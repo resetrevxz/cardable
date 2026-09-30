@@ -22,11 +22,12 @@
           while (slots.length < value.length) {
             var next = slot(''); host.insertBefore(next.el, slots.length ? slots[0].el : null); slots.unshift(next);
           }
+          var changedAt = 0;
           Array.from(value).forEach(function (character, i) {
             var slot = slots[i]; if (slot.character === character) return;
             if (text !== '') changes += 1; slot.previous.textContent = slot.character; slot.current.textContent = character;
             slot.el.classList.toggle('rolling-char--literal', !/\d/.test(character));
-            slot.start = canAnimate && !C.motion.reduced && /\d/.test(character) && (/\d/.test(slot.character) || slot.character === '') ? root.performance.now() : null;
+            slot.start = canAnimate && !C.motion.reduced && /\d/.test(character) && (/\d/.test(slot.character) || slot.character === '') ? root.performance.now() + changedAt++ * C.config.polish.digitStaggerMs : null;
             slot.character = character;
             slot.el.classList.toggle('is-rolling', slot.start !== null);
             slot.current.style.transform = slot.start !== null ? 'translateY(100%)' : 'translateY(0%)';
@@ -37,7 +38,7 @@
           var active = false;
           slots.forEach(function (slot) {
             if (slot.start === null) return;
-            var p = C.motion.reduced ? 1 : Math.min(1, (now - slot.start) / C.config.menuMotion.digitMs), ease = 1 - Math.pow(1 - p, 3);
+            var p = C.motion.reduced ? 1 : Math.max(0, Math.min(1, (now - slot.start) / C.config.menuMotion.digitMs)), ease = 1 - Math.pow(1 - p, 3);
             slot.current.style.transform = 'translateY(' + (1 - ease) * 100 + '%)'; slot.previous.style.transform = 'translateY(' + -ease * 100 + '%)'; slot.previous.style.opacity = 1 - ease;
             if (p === 1) { slot.start = null; slot.el.classList.remove('is-rolling'); } else active = true;
           }); return active;

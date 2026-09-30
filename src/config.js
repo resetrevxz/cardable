@@ -26,6 +26,13 @@
 
     storage: { key: 'cardable.save', schemaVersion: 1 },
 
+    polish: {
+      maxSaveBytes: 8 * 1024 * 1024, downloadReleaseMs: 1000, profileMs: 5000,
+      profileMaxFrames: 1200, slowFrameMs: 1000 / 60 + 1, parallaxPx: 2,
+      grainOpacity: 0.025, vignetteOpacity: 0.12, newBloomGain: 0.08, digitStaggerMs: 20,
+      sheetDragHighlight: 0.26, sheetRestHighlight: 0.18, maxRipples: 48, faviconReadyDotPx: 4
+    },
+
     dots: {
       spacing: 26, baseRadius: 0.9, maxRadius: 2.2, influenceRadius: 170,
       baseAlpha: 0, maxAlpha: 0.55, lean: 1.5, trailDecayMs: 400,

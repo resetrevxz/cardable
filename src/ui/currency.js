@@ -31,7 +31,7 @@
           if (shineP === 1) shimmerStart = null;
         }
         return digits.update(now) || start !== null || shimmerStart !== null;
-      });
+      }, 'currency');
     }
   };
 })(window.Cardable, window);

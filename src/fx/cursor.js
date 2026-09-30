@@ -53,7 +53,7 @@
       function pointerChanged() { dirty = true; C.fx.wake(); }
       if (finePointer.addEventListener) finePointer.addEventListener('change', pointerChanged);
       else finePointer.addListener(pointerChanged);
-      C.fx.subscribe(update);
+      C.fx.subscribe(update, 'cursor');
     }
   };
 })(window.Cardable, window);

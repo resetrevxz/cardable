@@ -74,6 +74,7 @@
           profileText.textContent = 'FPS sample needs a visible full front card with motion enabled.'; return;
         }
         profile = { view: selected, start: root.performance.now(), stamps: [], invalid: false };
+        C.profiler.start('gallery · one full card');
         C.gallery.lastProfile = null;
         profileText.textContent = 'Sampling one full card and ' + (cards.length - 1) + ' lite cards for 5 seconds. Keep this card visible.';
         C.fx.wake();

@@ -117,7 +117,7 @@
       C.events.on('pointer:leave', function () { hovered = false; if (!focused) settle(); });
       C.events.on('motion:changed', function (reduced) { if (reduced) reset(); else if (hovered || focused) start(); });
       C.events.on('fx:visibility', function (visible) { if (!visible) { hovered = false; reset(); } else if (focused) start(); });
-      C.fx.subscribe(update);
+      C.fx.subscribe(update, 'logo');
     }
   };
 })(window.Cardable, window);

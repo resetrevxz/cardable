@@ -34,6 +34,7 @@
         host.classList.toggle('is-first-visit', !state.tutorial.done && state.stats.packsOpened === 0);
         stock.setAttribute('aria-label', ready + ' of ' + C.config.packs.maxStored + ' packs stored');
         host.setAttribute('aria-label', pack.name + ': ' + (ready ? ready + ' ready' : 'regenerating'));
+        host.setAttribute('aria-disabled', ready <= 0);
         vials.forEach(function (vial, i) {
           var target = i < ready ? 1 : 0;
           if (initial) { vial.value = target; vial.target = target; }
@@ -106,7 +107,7 @@
         });
         // Even with reduced motion the timestamp-derived fluid remains continuous.
         return !reduced || ready < C.config.packs.maxStored || active || arrivalStart !== null || handoff !== null;
-      });
+      }, 'pack');
     }
   };
 })(window.Cardable, window);

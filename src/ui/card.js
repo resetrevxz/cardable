@@ -120,6 +120,7 @@
       el.setAttribute('aria-label', label + ' Press Enter to turn the card.');
       el.style.setProperty('--stamp-flicker', C.config.cardView.stampFlickerMs + 'ms');
       el.style.setProperty('--mode-duration', C.config.cardView.crossfadeMs + 'ms');
+      el.style.setProperty('--card-grain-opacity', C.config.polish.grainOpacity);
       var shadow = layer(0); el.appendChild(shadow);
       var tilter = node('div', 'card__tilter'), flipper = node('div', 'card__flipper');
       var front = buildFace(false, card, instance, rarity, generation, context), back = buildFace(true, card, instance, rarity, generation, context);
@@ -136,6 +137,7 @@
       if (options.shine && !options.controlledReveal) front.el.querySelectorAll('.card__glare')[0].appendChild(shine);
       var lamp = root.getComputedStyle(root.document.documentElement);
       var lampX = parseFloat(lamp.getPropertyValue('--lamp-x')), lampY = parseFloat(lamp.getPropertyValue('--lamp-y'));
+      var painted = Object.create(null);
       function idleWake() {
         root.clearTimeout(idleTimer);
         if (!view.revealControlled && !C.motion.reduced && view.mode === 'full' && view.visible) idleTimer = root.setTimeout(C.fx.wake, Math.max(0, C.config.cardView.idleMs - (root.performance.now() - lastMove)));
@@ -151,9 +153,11 @@
           '--core-y': clamp(0.5 + (pointer.y - 0.5) * cfg.specularSpeed - lampY * cfg.lampInfluence, 0, 1) * 100 + '%',
           '--shadow-x': -ry * 0.5 + 'px', '--shadow-y': 12 + rx * 0.5 + raised * 8 + 'px',
           '--shadow-blur': 18 + raised * 14 + 'px', '--far-edge-angle': Math.atan2(rx, ry) * 180 / Math.PI + 90 + 'deg',
+          '--parallax-x': (C.motion.reduced ? 0 : ry / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
+          '--parallax-y': (C.motion.reduced ? 0 : -rx / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
           '--far-edge-alpha': Math.max(Math.abs(rx), Math.abs(ry)) / cfg.tiltCap * 0.2
         };
-        Object.keys(values).forEach(function (key) { el.style.setProperty(key, values[key]); });
+        Object.keys(values).forEach(function (key) { if (painted[key] !== values[key]) { painted[key] = values[key]; el.style.setProperty(key, values[key]); } });
       }
       var view = {
         el: el, card: card, instance: instance, mode: 'lite', side: 'front', visible: true, destroyed: false, followColorMode: !options.colorMode,
@@ -196,6 +200,7 @@
           root.clearTimeout(idleTimer);
           if (visible && view.mode === 'full') { lastMove = root.performance.now(); idleWake(); C.fx.wake(); }
         },
+        resetMotion: function () { sx.reset(); sy.reset(); lift.reset(); pointer.x = pointer.y = 0.5; pose(0, 0, 0); },
         setRevealFrame: function (frame) {
           if (!options.controlledReveal) return;
           view.revealFrame = frame;
@@ -263,7 +268,7 @@
         update: function (now, dt) {
           var cfg = C.config.cardView, reduced = C.motion.reduced;
           if (view.revealControlled) { stats.updates += 1; view.stats.updates += 1; return !reduced && view.side === 'front' && front.finish.update(dt, pointer); }
-          var cap = reduced ? cfg.reducedTiltCap : cfg.tiltCap;
+          var cap = reduced ? 0 : cfg.tiltCap;
           var sway = !reduced && now - lastMove >= cfg.idleMs;
           var time = (now - lastMove - cfg.idleMs) / 1000;
           var tx = -(pointer.y - 0.5) * 2 * cap + (sway ? Math.sin(time * cfg.swaySpeed) * cfg.swayDegrees : 0);
@@ -279,7 +284,7 @@
           return sway || finishMoving || !sx.settled() || !sy.settled() || !lift.settled();
         },
         pointer: function (event) {
-          if (view.mode !== 'full' || !view.visible) return;
+          if (C.motion.reduced || view.mode !== 'full' || !view.visible) return;
           var bounds = el.getBoundingClientRect();
           pointer.x = clamp((event.pointer.x - bounds.left) / bounds.width, 0, 1);
           pointer.y = clamp((event.pointer.y - bounds.top) / bounds.height, 0, 1);
@@ -304,10 +309,11 @@
         observer = new root.IntersectionObserver(function (entries) { view.setVisible(entries[0].isIntersecting); }, { threshold: 0.02 }); observer.observe(el);
       }
       if (!subscribed) {
-        subscribed = true; C.fx.subscribe(update);
+        subscribed = true; C.fx.subscribe(update, 'card');
         C.events.on('pointer:move', function (event) { if (active && active.el.contains(event.pointer.target)) active.pointer(event); });
         C.events.on('motion:changed', function () {
           if (active) {
+            if (C.motion.reduced && !active.revealControlled) active.resetMotion();
             active.el.querySelectorAll('.is-stamping').forEach(function (element) { element.classList.remove('is-stamping'); });
             active.setVisible(active.visible);
           }

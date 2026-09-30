@@ -9,7 +9,9 @@
     var t = Math.max(0, Math.min(1, distance / radius));
     return 1 - t * t * (3 - 2 * t);
   }
-  function point(index) { return { x: (index % cols + 0.5) * C.config.dots.spacing, y: (Math.floor(index / cols) + 0.5) * C.config.dots.spacing }; }
+  var points = [];
+  function point(index) { return points[index]; }
+  function boundRipples() { if (ripples.length > C.config.polish.maxRipples) ripples.splice(0, ripples.length - C.config.polish.maxRipples); }
   function region(left, top, right, bottom, visit) {
     var pitch = C.config.dots.spacing;
     var minX = Math.max(0, Math.ceil(left / pitch - 0.5)), maxX = Math.min(cols - 1, Math.floor(right / pitch - 0.5));
@@ -37,6 +39,7 @@
     canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cols = Math.ceil(width / C.config.dots.spacing); rows = Math.ceil(height / C.config.dots.spacing);
+    points = Array.from({ length: cols * rows }, function (_, index) { return { x: (index % cols + 0.5) * C.config.dots.spacing, y: (Math.floor(index / cols) + 0.5) * C.config.dots.spacing }; });
     stats.columns = cols; stats.rows = rows;
     heat.clear(); pendingPaths = []; lastHeatAt = null; dirty = true;
     C.fx.wake();
@@ -113,11 +116,13 @@
         if (C.motion.reduced) return;
         ripples.push({ x: event.x, y: event.y, born: event.now, delay: 0, intensity: 1 });
         ripples.push({ x: event.x, y: event.y, born: event.now, delay: C.config.dots.rippleSecondDelayMs, intensity: C.config.shell.dots.secondRingIntensity });
+        boundRipples();
         dirty = true;
       });
       C.events.on('dots:pulse', function (event) {
         if (C.motion.reduced || root.document.hidden) return;
         ripples.push({ x: event.x, y: event.y, born: root.performance.now(), delay: 0, intensity: event.intensity });
+        boundRipples();
         dirty = true; C.fx.wake();
       });
       C.events.on('reveal:context', function (event) { reveal = { dim: event.gridDim || 0, halo: event.halo || null }; dirty = true; C.fx.wake(); });
@@ -125,7 +130,7 @@
       C.events.on('motion:changed', function () { heat.clear(); ripples = []; pendingPaths = []; dirty = true; });
       C.events.on('fx:visibility', function (visible) { if (visible) dirty = true; });
       root.addEventListener('resize', resize);
-      C.fx.subscribe(update);
+      C.fx.subscribe(update, 'dots');
     }
   };
 })(window.Cardable, window);

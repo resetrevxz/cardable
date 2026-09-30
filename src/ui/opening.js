@@ -8,6 +8,7 @@
   var keeping = false, writingKeep = false, collected = false, flights = [], toast, toastView = null, toastAge = null, collectionSource, collectionTarget;
   var meniscus, enabled = false, width = 0, height = 0, inventoryBlocked = false;
   var finePointer = root.matchMedia('(hover: hover) and (pointer: fine)');
+  var preferencesActive = false;
   var stats = { commits: 0, transitions: 0, tears: 0, updates: 0, particles: 0, shines: 0, keeps: 0, collections: 0, recoveries: 0 };
   function node(tag, className, parent, text) { return C.packMarkup.node(tag, className, parent, text); }
   function svg(tag, parent) { var el = root.document.createElementNS('http://www.w3.org/2000/svg', tag); if (parent) parent.appendChild(el); return el; }
@@ -77,7 +78,7 @@
     host.style.visibility = ''; phaseTo('idle'); glass.pose.style.transform = ''; glass.el.style.opacity = 0; foil.style.opacity = 0;
   }
   function chargeStart() {
-    if (!enabled || inventoryBlocked || phase !== 'idle' || C.state.current.pendingReveal || root.document.hidden) return;
+    if (!enabled || preferencesActive || inventoryBlocked || phase !== 'idle' || C.state.current.pendingReveal || root.document.hidden) return;
     C.timers.tick(); if (C.state.current.packs.ready <= 0) return;
     savedFocus = root.document.activeElement; clearCut(); particles.clear(); meniscus.reset(0); fill = 0;
     errorUntil = 0; error.style.opacity = 0; chargeAt = root.performance.now(); pulseAt = 0;
@@ -206,6 +207,7 @@
     scene.style.setProperty('--bloom-scale', motion.bloomScale);
   }
   function revealContext(active, strength) {
+    stage.style.setProperty('--reveal-vignette', active && rarity && rarity.tier >= 7 && !C.motion.reduced ? C.config.polish.vignetteOpacity * (strength == null ? 1 : strength) : 0);
     C.events.emit('reveal:context', { hideCursor: active && phase === 'flipping', gridDim: active && rarity ? rarity.reveal.gridDim * (strength == null ? 1 : strength) : 0,
       halo: active ? { x: root.innerWidth / 2, y: root.innerHeight / 2, radius: motion.haloRadiusPx } : null });
   }
@@ -222,6 +224,7 @@
     var accent = C.config.rarityColorMode === 'mono' ? 'white' : currentView.revealAccent || root.getComputedStyle(currentView.el).getPropertyValue('--art-accent').trim() || 'white';
     bloom.style.setProperty('--reveal-accent', accent);
   }
+  function bloomLevel() { return Math.min(1, rarity.reveal.bloom + (ownedCount ? 0 : rarity.reveal.bloom * C.config.polish.newBloomGain)); }
   function startReveal(recover) {
     var pending = C.state.current.pendingReveal; if (!pending || !pending.cards.length) { reset(); return; }
     if (currentView) currentView.destroy();
@@ -243,7 +246,7 @@
     currentView.setRevealFrame({ pose: { y: 0, scale: 1, turn: 0 }, angle: recover ? 0 : 180, frontOpacity: recover ? 1 : 0, shine: 0, infoMs: -1 });
     if (recover) {
       stats.recoveries += 1; infoClock = keepAt; currentView.setRevealFrame({ angle: 0, frontOpacity: 1, infoMs: infoClock, shine: 0 }); currentView.releaseReveal();
-      phaseTo('revealed'); note.style.opacity = 1; bloom.style.opacity = rarity.reveal.bloom; showKeep();
+      phaseTo('revealed'); note.style.opacity = 1; bloom.style.opacity = bloomLevel(); showKeep();
     } else { phaseTo('rising'); announce('Revealing card ' + (cardIndex + 1) + ' of ' + pending.cards.length + '.'); }
   }
   function showKeep() {
@@ -254,7 +257,7 @@
     if (first && C.input.modality === 'keyboard') focus(keepButton);
   }
   function keep() {
-    if (phase !== 'revealed' || keeping || keepButton.hidden || keepButton.disabled || root.document.hidden) return;
+    if (preferencesActive || phase !== 'revealed' || keeping || keepButton.hidden || keepButton.disabled || root.document.hidden) return;
     var candidate = JSON.parse(JSON.stringify(C.state.current)), pending = candidate.pendingReveal;
     if (!pending || (Number(pending.keptCount) || 0) !== cardIndex) return;
     keeping = true; keepButton.disabled = true; pending.keptCount = cardIndex + 1;
@@ -314,11 +317,11 @@
       p = clamp(elapsed / timings.riseMs); pose = { y: (1 - ease(p)) * h * motion.risePortion, scale: 1 + (motion.riseScale - 1) * ease(p), turn: Math.sin(p * Math.PI) * motion.riseTurnDegrees };
       scene.style.opacity = reduced ? ease(p) : 1;
       currentView.setRevealFrame({ pose: pose, angle: 180, frontOpacity: 0, infoMs: -1 });
-      if (p === 1) { phaseTo(timings.preFlipPauseMs ? 'preFlip' : 'flipping'); bloom.style.opacity = timings.preFlipPauseMs ? 0 : rarity.reveal.bloom; }
+      if (p === 1) { phaseTo(timings.preFlipPauseMs ? 'preFlip' : 'flipping'); bloom.style.opacity = timings.preFlipPauseMs ? 0 : bloomLevel(); }
       return true;
     }
     if (phase === 'preFlip') {
-      p = clamp(elapsed / timings.preFlipPauseMs); bloom.style.opacity = rarity.reveal.bloom * ease(p);
+      p = clamp(elapsed / timings.preFlipPauseMs); bloom.style.opacity = bloomLevel() * ease(p);
       revealContext(true, ease(p));
       scene.style.transform = !reduced && rarity.reveal.shiftPx ? 'translateX(' + rarity.reveal.shiftPx + 'px)' : '';
       var logo = 'cardable';
@@ -338,7 +341,7 @@
       currentView.setRevealFrame({ pose: pose, angle: angle, frontOpacity: smooth, shine: shineAt === null ? 0 : (revealClock - shineAt) / motion.shineMs });
       if (p === 1) {
         currentView.setRevealFrame({ angle: 0, frontOpacity: 1 }); currentView.releaseReveal(); phaseTo('settling'); infoClock = 0;
-        dust.emit('dust', [{ x: 0.5, y: 0.9 }], sceneWidth, h);
+        if (!ownedCount) dust.emit('dust', [{ x: 0.5, y: 0.9 }], sceneWidth, h);
         C.events.emit('card:revealed', currentView.instance);
       }
       return true;
@@ -361,7 +364,7 @@
         flight.el.style.opacity = elapsed < flight.at ? 0 : reduced ? 1 - e : 1 - clamp((amount - 0.9) / 0.1);
         flight.el.style.transform = reduced ? 'translate3d(' + from.left + 'px,' + from.top + 'px,0)' : 'translate3d(' + x + 'px,' + y + 'px,0) scale(' + (1 + (motion.thumbnailWidthPx / from.width - 1) * e) + ')';
       });
-      bloom.style.opacity = rarity.reveal.bloom * (1 - ease(p));
+      bloom.style.opacity = bloomLevel() * (1 - ease(p));
       if (p === 1 && !collected) { collected = true; C.events.emit('inventory:collectPulse'); flights.forEach(function (flight) { flight.el.style.opacity = 0; }); }
       if (elapsed >= motion.collectMs + motion.menuReturnDelayMs) { cleanReveal(); phaseTo('idle'); host.style.visibility = ''; C.events.emit('pack:handoff'); }
       return phase === 'collecting';
@@ -467,6 +470,7 @@
       root.document.getElementById('pack-stage').setAttribute('role', 'button');
       C.events.on('input:chargeStart', chargeStart); C.events.on('input:chargeEnd', chargeEnd); C.events.on('input:cancel', function (event) { cancel(event.reason); });
       C.events.on('inventory:context', function (event) { inventoryBlocked = event.active; });
+      C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
       C.events.on('input:keep', keep);
       C.events.on('input:cutStart', cutStart); C.events.on('input:cutMove', cutMove); C.events.on('input:cutEnd', release); C.events.on('input:tear', tear);
       host.addEventListener('lostpointercapture', function () { release(); });
@@ -477,6 +481,7 @@
       C.events.on('motion:changed', function () { particles.clear(); dust.clear(); stats.particles = 0; meniscus.reset(0); hot.forEach(function (item) { if (item.el) item.el.remove(); }); hot = []; dirty = true; C.fx.wake(); });
       C.events.on('save:written', function () { if (phase !== 'idle' && phase !== 'charging' && phase !== 'draining' && !C.state.current.pendingReveal && !writingKeep && phase !== 'collecting') reset(); context(); });
       C.events.on('save:reset', reset);
+      C.events.on('save:imported', function () { if (C.state.current.pendingReveal) startReveal(true); });
       C.events.on('opening:replay', function () { if (phase === 'revealed' && C.state.current.pendingReveal) { cleanReveal(); clearCut(); host.style.visibility = ''; phaseTo('cutting'); foil.style.opacity = 1; } });
       root.addEventListener('resize', function () {
         bounds(); revealBounds();
@@ -488,7 +493,7 @@
         C.fx.wake();
       });
       C.events.on('settings:rarityColorMode', updateBloom);
-      C.fx.subscribe(update);
+      C.fx.subscribe(update, 'opening');
       if (C.state.current.pendingReveal) startReveal(true);
       else context();
     }

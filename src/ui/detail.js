@@ -4,6 +4,7 @@
   var payload = null, view = null, visual = null, serialIndex = 0, side = 'front', phase = 'closed', spring, from, to;
   var shineAge = 0, drag = null, dragSpring, panelOpacity = 0, swapping = null, fadeMs, returnPanelFrom = 1, returnBackdropFrom = 1;
   var node = C.packMarkup.node;
+  var preferencesActive = false;
   function clamp(value, low, high) { return Math.max(low, Math.min(high, value)); }
   function prevent(event) { if (event.preventDefault) event.preventDefault(); }
   function focus(el) { if (el && el.focus) el.focus({ preventScroll: true }); }
@@ -73,6 +74,7 @@
     if (phase !== 'closed') return;
     payload = event; view = event.view; visual = event.visual; serialIndex = 0; side = 'front';
     overlay.hidden = false; overlay.inert = false; panelOpacity = 0; panel.style.opacity = 0;
+    C.accessibility.trap(overlay);
     overlay.style.setProperty('--detail-dim', 0); root.document.body.style.setProperty('--detail-focus', 0);
     mount.appendChild(visual); from = event.sourceRect; to = detailRect(); spring.reset(0); dragSpring.reset(0);
     phase = 'lifting'; shineAge = 0; fillPanel(); pose(from, C.motion.reduced ? 0 : 1);
@@ -117,6 +119,7 @@
     var result = { cardId: payload.entry.card.id, view: view, visual: visual };
     if (view) view.setFace('front');
     phase = 'closed'; overlay.hidden = true; overlay.inert = true; root.document.body.classList.remove('inventory-detail-active');
+    C.accessibility.release(overlay);
     C.events.emit('inventory:detailReturned', result); C.events.emit('inventory:detailContext', { active: false });
     payload = null; view = null; visual = null;
   }
@@ -126,6 +129,7 @@
     if (view) view.destroy(); else if (visual) visual.remove();
     phase = 'closed'; payload = null; view = null; visual = null; overlay.hidden = true; overlay.inert = true;
     root.document.body.classList.remove('inventory-detail-active'); C.events.emit('inventory:detailContext', { active: false });
+    C.accessibility.release(overlay);
   }
   function update(now, dt) {
     if (phase === 'closed') return false;
@@ -177,15 +181,17 @@
       root.addEventListener('blur', function () { releaseDrag(null, true); });
       C.events.on('fx:visibility', function (visible) { if (!visible) releaseDrag(null, true); });
       root.document.addEventListener('keydown', function (event) {
+        if (preferencesActive) return;
         if (phase === 'closed' || event.repeat) return;
         if (event.key === 'Escape') { prevent(event); close(); }
         else if (phase === 'detail' && (event.key === 'ArrowLeft' || event.key === 'ArrowRight') && payload.entry.owned) { prevent(event); browse(event.key === 'ArrowLeft' ? -1 : 1); }
       });
       C.events.on('inventory:detailOpen', open); C.events.on('detail:requestClose', close); C.events.on('detail:reset', reset);
+      C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
       C.events.on('motion:changed', function () { if (phase !== 'closed') C.fx.wake(); });
       root.addEventListener('resize', function () { if (phase === 'closed') return; from = currentRect(); if (phase === 'returning') { var target = { cardId: payload.entry.card.id }; C.events.emit('inventory:returnTarget', target); to = target.rect || payload.sourceRect; } else to = detailRect(); spring.reset(0); C.fx.wake(); });
       C.detail.el = overlay; C.detail.mount = mount; C.detail.panel = panel; C.detail.closeButton = closeButton;
-      C.fx.subscribe(update);
+      C.fx.subscribe(update, 'detail');
     }
   };
 })(window.Cardable, window);

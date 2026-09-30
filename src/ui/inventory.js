@@ -9,6 +9,7 @@
   var focusAfterSnap = false, dev = false, lastProfile = null, profile = null, profileButton, controls = [], fadeMs;
   var stats = { updates: 0, mounted: 0, maxMounted: 0, opens: 0, closes: 0, snaps: 0 };
   var windowDirty = true, sheetDirty = true, paintedScroll = null, paintedSheet = null;
+  var preferencesActive = false;
   var node = C.packMarkup.node;
   function clamp(value, low, high) { return Math.max(low, Math.min(high, value)); }
   function focus(el) { if (el && el.focus) el.focus({ preventScroll: true }); }
@@ -107,6 +108,7 @@
   function beginSession() {
     if (session) return;
     session = true; sheet.hidden = false; sheet.inert = false; sheetSpring.reset(0); countValue = 0; countFrom = 0; countAge = 0;
+    C.accessibility.trap(sheet);
     shimmerAge = 0; arrowHome.inert = false; grip.appendChild(arrow); arrow.classList.add('is-sheet-arrow');
     root.document.body.classList.add('inventory-depth-active'); setMenuInert(true);
     C.events.emit('menu:visibilityHold', { reason: 'inventory', active: true }); context(); refresh(true); resize();
@@ -115,6 +117,7 @@
     if (!session) return;
     if (profile) { profile = null; lastProfile = { valid: false }; profileButton.textContent = 'Sample cancelled · retry'; }
     session = false; opened = false; hovered = null; sheet.hidden = true; sheet.inert = true; clearTiles();
+    C.accessibility.release(sheet);
     arrowHome.appendChild(arrow); arrow.classList.remove('is-sheet-arrow');
     root.document.body.classList.remove('inventory-depth-active'); setMenuInert(false);
     C.events.emit('menu:visibilityHold', { reason: 'inventory', active: false }); C.events.emit('menu:activity'); context();
@@ -144,6 +147,7 @@
     if (openingPhase !== 'idle' || detailId || event.button !== 0 || event.isPrimary === false) return;
     beginSession(); drag = { id: event.pointerId, capture: capture, y: event.clientY, value: sheetSpring.value, lastY: event.clientY, at: root.performance.now(), moved: false };
     capture.setPointerCapture(event.pointerId); C.fx.wake();
+    sheet.style.setProperty('--sheet-edge-alpha', C.config.polish.sheetDragHighlight);
   }
   function moveSheet(event) {
     if (!drag || event.pointerId !== drag.id) return;
@@ -157,6 +161,7 @@
   function releaseSheet(event, cancel) {
     if (!drag || event && event.pointerId !== drag.id) return;
     var current = drag; drag = null;
+    sheet.style.setProperty('--sheet-edge-alpha', C.config.polish.sheetRestHighlight);
     if (current.capture.hasPointerCapture(current.id)) current.capture.releasePointerCapture(current.id);
     if (current.moved) {
       guardUntil = root.performance.now() + cfg.dragClickGuardMs;
@@ -209,6 +214,7 @@
       var pulse = i === center && snapAge < cfg.centerPulseMs && !C.motion.reduced ? Math.sin(snapAge / cfg.centerPulseMs * Math.PI) * cfg.centerPulseScale : 0;
       tile.pose.style.transform = 'translateY(' + (!C.motion.reduced && hovered === i ? -cfg.hoverLiftPx : 0) + 'px) rotateY(' + (C.motion.reduced ? 0 : -Math.sign(distance) * weight * cfg.sideTurnDegrees) + 'deg) scale(' + (1 - (1 - cfg.sideScale) * weight + pulse) + ')';
       tile.pose.style.opacity = 1 - (1 - cfg.sideOpacity) * weight;
+      tile.card.style.setProperty('--reflection-alpha', (1 - weight) * 0.1);
       tile.el.classList.toggle('is-centered', i === center); tile.el.setAttribute('aria-selected', i === center); tile.el.setAttribute('tabindex', i === center ? '0' : '-1');
       if (tile.view) {
         var visible = Math.abs(distance) * pitch <= root.innerWidth / 2 + tileWidth / 2;
@@ -308,6 +314,7 @@
   }
   function measure() {
     if (!session || !opened || detailId || C.motion.reduced || root.document.hidden || !C.cardView.active || !C.cardView.active.visible) return;
+    C.profiler.start('inventory · ' + model.total + ' tiles');
     profile = { elapsed: 0, stamps: [], view: C.cardView.active, invalid: false }; lastProfile = null; profileButton.textContent = 'Measuring…'; C.fx.wake();
   }
   C.inventory = {
@@ -384,6 +391,7 @@
         } else if (event.key === 'Enter' && event.target === shelf && !event.repeat) { prevent(event); openDetail(center); }
       });
       root.document.addEventListener('keydown', function (event) {
+        if (preferencesActive) return;
         if (event.repeat || event.target && (event.target.isContentEditable || event.target.closest && event.target.closest('input, select, textarea, [contenteditable]'))) return;
         if (event.key === 'Escape' && session && !detailId) { prevent(event); request(false); }
         else if ((event.key.toLowerCase() === 'i' || event.key === 'ArrowUp' && !session) && openingPhase === 'idle') { prevent(event); request(); }
@@ -393,11 +401,12 @@
       C.events.on('inventory:preview', function (value) { if (!dev || detailId) return; fixture = value ? C.collection.preview(cfg.previewCount) : null; refresh(true); });
       C.events.on('opening:context', function (event) { openingPhase = event.phase; if (event.active && session) reset(); });
       C.events.on('save:written', function () { refresh(false); }); C.events.on('save:reset', reset);
+      C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
       C.events.on('fx:visibility', function (visible) { if (!visible) { releaseSheet(null, true); releaseShelf(null, true); if (profile) profile.invalid = true; } });
       C.events.on('motion:changed', function () { sheetDirty = true; windowDirty = true; if (profile) profile.invalid = true; C.fx.wake(); });
       root.addEventListener('resize', resize);
       C.inventory.el = sheet; C.inventory.grip = grip; C.inventory.shelf = shelf; C.inventory.arrow = arrow; C.inventory.filters = controls; C.inventory.count = numbers;
-      C.fx.subscribe(update); refresh(false); resize();
+      C.fx.subscribe(update, 'inventory'); refresh(false); resize();
       if (root.document.fonts && root.document.fonts.ready) root.document.fonts.ready.then(function () { underlineWidth = null; resize(); });
       C.events.on('inventory:context', function (event) { arrow.setAttribute('aria-expanded', event.open); });
     }

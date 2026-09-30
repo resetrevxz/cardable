@@ -41,7 +41,7 @@
         arrow.style.setProperty('--arrow-bob', (p < 1 ? -Math.sin(p * Math.PI) * cfg.arrowNudgePx : 0) + 'px');
         arrow.style.setProperty('--arrow-breath', cfg.arrowOpacity + Math.sin(time / cfg.arrowBreathMs * Math.PI * 2) * cfg.arrowOpacityRange);
         return true;
-      });
+      }, 'inventory-arrow');
     }
   };
 })(window.Cardable, window);

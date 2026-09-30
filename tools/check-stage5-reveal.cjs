@@ -144,9 +144,9 @@ check('live reduced motion after landing keeps the front visible and immediately
  assert.equal(r.C.opening.stats.particles,0);const v=r.C.opening.view;assert.equal(v.el.querySelectorAll('.card__face--front')[0].style.opacity,1);assert.equal(v.el.querySelectorAll('.card__face--back')[0].style.opacity,0);
  ready(r);r.reduced(false);r.advance(20);assert.equal(v.el.querySelectorAll('.card__face--back')[0].style.opacity,'');assert.equal(v.side,'front');
 });
-check('live color/mono changes update both finish surfaces and bloom without changing pending data',()=>{
+check('live color/mono changes update finish/bloom, persist the display preference and preserve pending data',()=>{
  const r=open('secret');ready(r);const saved=clone(r.C.state.current), button=r.C.dev.panel.querySelectorAll('button').find(b=>b.textContent==='Toggle rarityColorMode');
- const original=r.C.config.rarityColorMode;r.click(10,10,button);assert.notEqual(r.C.config.rarityColorMode,original);assert.equal(r.C.opening.view.el.dataset.colorMode,r.C.config.rarityColorMode);assert.deepEqual(clone(r.C.state.current),saved);
+ const original=r.C.config.rarityColorMode;r.click(10,10,button);assert.notEqual(r.C.config.rarityColorMode,original);assert.equal(r.C.opening.view.el.dataset.colorMode,r.C.config.rarityColorMode);saved.settings.rarityColorMode=r.C.config.rarityColorMode;assert.deepEqual(clone(r.C.state.current),saved);
  r.click(10,10,button);assert.equal(r.C.config.rarityColorMode,original);assert.equal(r.C.opening.view.el.dataset.colorMode,original);
  assert.equal(r.C.opening.scene.querySelectorAll('.opening-bloom')[0].style['--reveal-accent'],original==='mono'?'white':'#FFFFFF');
 });

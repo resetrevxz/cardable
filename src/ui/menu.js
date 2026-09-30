@@ -2,6 +2,7 @@
   'use strict';
   var holds = new Set(), idleTimer = null, waveTimer = null, lastActivity = 0, queuedWave = false;
   var notifiedReady = false;
+  var favicon = null, faviconStates = {}, faviconReady = null;
   function setIdle(value) {
     value = value && !holds.size;
     if (C.menu.idle === value) return;
@@ -34,6 +35,8 @@
     if (!hidden) notifiedReady = false;
     var ready = C.state.current && C.state.current.packs.ready > 0;
     root.document.title = C.config.gameName + (hidden && (ready || notifiedReady) ? ' · pack ready' : '');
+    var showReady = ready || hidden && notifiedReady;
+    if (favicon && faviconReady !== showReady) { faviconReady = showReady; favicon.setAttribute('href', faviconStates[showReady ? 'ready' : 'normal']); }
   }
   C.menu = {
     initialized: false, idle: false,
@@ -69,10 +72,12 @@
       C.events.on('save:written', title);
       root.document.addEventListener('visibilitychange', function () { title(); arm(); });
       title();
-      var favicon = root.document.getElementById('favicon');
+      favicon = root.document.getElementById('favicon');
       var tokens = root.getComputedStyle(root.document.documentElement);
       var mark = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="' + tokens.getPropertyValue('--bg').trim() + '"/><path d="M44 20C40 16 35 15 31 16C21 18 16 25 16 32C16 42 22 49 32 49C37 49 41 47 44 44" fill="none" stroke="' + tokens.getPropertyValue('--text').trim() + '" stroke-width="8" stroke-linecap="round"/></svg>';
-      favicon.setAttribute('href', 'data:image/svg+xml,' + encodeURIComponent(mark));
+      faviconStates.normal = 'data:image/svg+xml,' + encodeURIComponent(mark);
+      faviconStates.ready = 'data:image/svg+xml,' + encodeURIComponent(mark.replace('</svg>', '<circle cx="53" cy="11" r="' + C.config.polish.faviconReadyDotPx + '" fill="' + tokens.getPropertyValue('--text').trim() + '"/></svg>'));
+      title();
     }
   };
 })(window.Cardable, window);

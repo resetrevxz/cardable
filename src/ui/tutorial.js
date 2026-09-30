@@ -6,6 +6,8 @@
   var stats = { updates: 0, advances: 0, ghostCycles: 0 };
   var packHost, wrapperHost, keepControl, inventoryHost, meta, toastHost, enter;
   var inventoryActive = false;
+  var preferencesActive = false;
+  var layoutDirty = true, fastMs;
   function first(parent, selector) { return parent.querySelectorAll(selector)[0] || null; }
   function copy() {
     var hours = C.config.packs.regenMs / 3600000;
@@ -20,7 +22,7 @@
     var next = saved.done ? 'done' : (steps.indexOf(saved.step) !== -1 ? saved.step : 'welcome');
     if (next === step && active === (next !== 'done')) return;
     var wasActive = active;
-    clearTarget(); step = next; active = step !== 'done'; elapsed = 0; pulseClock = 0; ghostClock = 0; opacity = 0;
+    layoutDirty = true; clearTarget(); step = next; active = step !== 'done'; elapsed = 0; pulseClock = 0; ghostClock = 0; opacity = 0;
     if (step === 'cut') cutStarted = false;
     C.tutorial.step = step; C.tutorial.active = active;
     if (active && !wasActive) shellOpacity = 0;
@@ -50,7 +52,7 @@
     else if (!C.state.current.pendingReveal && (step === 'cut' || step === 'keep')) advance(C.state.current.inventory.length ? 'inventory' : 'hold');
   }
   function lessonTarget() {
-    if (inventoryActive) return null;
+    if (inventoryActive || preferencesActive) return null;
     if (step === 'welcome' && phase === 'idle') return packHost;
     if (step === 'hold') {
       if (phase === 'idle') return packHost;
@@ -70,6 +72,8 @@
   }
   function layout() {
     var nextTarget = active ? lessonTarget() : null, body = root.document.body;
+    if (!layoutDirty && nextTarget === target) return !!target;
+    layoutDirty = false;
     if (nextTarget !== target) { clearTarget(); target = nextTarget; if (target) target.classList.add('is-tutorial-target'); }
     body.dataset.tutorial = target ? step : '';
     cutHint.dataset.tutorial = active && step === 'cut' && phase === 'cutting' ? 'cut' : '';
@@ -102,7 +106,7 @@
     }
     stats.updates += 1;
     shellOpacity = Math.min(1, shellOpacity + dt / uiMs); shell.style.opacity = 1 - Math.pow(1 - shellOpacity, 3);
-    var visible = layout(), fadeMs = parseFloat(root.getComputedStyle(root.document.documentElement).getPropertyValue('--t-fast'));
+    var visible = layout(), fadeMs = fastMs;
     opacity = visible ? Math.min(1, opacity + dt / fadeMs) : Math.max(0, opacity - dt / fadeMs);
     instruction.style.opacity = 1 - Math.pow(1 - opacity, 3);
     if (visible) {
@@ -130,6 +134,7 @@
       if (query.get('gallery') === '1' && query.get(C.config.dev.queryFlag) === '1') return;
       cfg = C.config.tutorialMotion; phase = C.opening.phase;
       uiMs = parseFloat(root.getComputedStyle(root.document.documentElement).getPropertyValue('--t-ui'));
+      fastMs = parseFloat(root.getComputedStyle(root.document.documentElement).getPropertyValue('--t-fast'));
       cutHint = first(root.document.body, '.opening-cut-hint');
       if (!cutHint) return;
       packHost = root.document.getElementById('pack-stage'); wrapperHost = first(root.document.body, '.opening-pack');
@@ -145,6 +150,7 @@
       root.document.body.style.setProperty('--tutorial-dim', cfg.chromeOpacity);
       C.events.on('save:written', adopt);
       C.events.on('save:reset', function () { adopt(); });
+      C.events.on('save:imported', reconcile);
       C.events.on('tutorial:replay', function () { elapsed = 0; adopt(); reconcile(); });
       C.events.on('opening:context', function (event) { phase = event.phase; layout(); C.fx.wake(); });
       C.events.on('opening:keepReady', function () { layout(); C.fx.wake(); });
@@ -152,15 +158,17 @@
       C.events.on('opening:prepareCommit', function (candidate) { if (active && (step === 'welcome' || step === 'hold')) { candidate.tutorial.step = 'cut'; candidate.tutorial.done = false; } });
       C.events.on('opening:prepareKeep', function (event) { if (active && step === 'keep' && event.final) { event.candidate.tutorial.step = 'inventory'; event.candidate.tutorial.done = false; } });
       C.events.on('reveal:phase', function (next) { if (active && step === 'cut' && next === 'rising') advance('keep'); });
-      C.events.on('cut:started', function () { cutStarted = true; layout(); C.fx.wake(); });
+      C.events.on('cut:started', function () { cutStarted = true; layoutDirty = true; layout(); C.fx.wake(); });
       C.events.on('inventory:open', function () { if (active && step === 'inventory' && phase === 'idle') advance('timer'); });
       C.events.on('inventory:context', function (event) { inventoryActive = event.active; layout(); C.fx.wake(); });
+      C.events.on('preferences:context', function (event) { preferencesActive = event.active; layout(); C.fx.wake(); });
       C.events.on('motion:changed', function () { C.fx.wake(); });
       C.events.on('fx:visibility', function () { C.fx.wake(); });
       root.document.getElementById('pack-stage').addEventListener('pointerenter', function () { if (active && step === 'welcome') advance('hold'); });
-      root.document.addEventListener('keydown', function (event) { if (active && event.key === 'Escape') { if (event.preventDefault) event.preventDefault(); skip(); } });
-      root.addEventListener('resize', function () { layout(); C.fx.wake(); });
-      C.fx.subscribe(update); adopt(); reconcile();
+      root.document.addEventListener('keydown', function (event) { if (!preferencesActive && active && event.key === 'Escape') { if (event.preventDefault) event.preventDefault(); skip(); } });
+      root.addEventListener('resize', function () { layoutDirty = true; layout(); C.fx.wake(); });
+      if (root.document.fonts && root.document.fonts.ready) root.document.fonts.ready.then(function () { layoutDirty = true; layout(); C.fx.wake(); });
+      C.fx.subscribe(update, 'tutorial'); adopt(); reconcile();
     }
   };
 })(window.Cardable, window);

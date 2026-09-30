@@ -5,6 +5,7 @@
   var controls = 'button, a[href], input, select, textarea, summary, [role="button"], [data-cursor="ring"]';
   var opening = { enabled: false, phase: 'idle', ready: false }, spaceDown = false, enterDown = false, spaceOwned = false;
   var inventoryActive = false;
+  var preferencesActive = false;
   function prevent(event) { if (event.preventDefault) event.preventDefault(); }
   function chargeTarget(target) {
     if (inventoryActive) return false;
@@ -46,7 +47,7 @@
         path = [];
         C.events.emit('pointer:move', { pointer: pointer, path: travelled });
         return false;
-      });
+      }, 'input');
       root.document.addEventListener('pointermove', function (event) {
         if (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
         var previous = pending || pointer;
@@ -70,6 +71,7 @@
       root.document.addEventListener('pointercancel', function (event) { C.events.emit('input:cutEnd', event); });
       root.document.addEventListener('keydown', function (event) {
         modality('keyboard');
+        if (preferencesActive) return;
         if (!opening.enabled) return;
         if (event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar') {
           var wasSpaceDown = spaceDown; spaceDown = true;
@@ -103,6 +105,7 @@
       });
       C.events.on('opening:context', function (event) { opening = event; });
       C.events.on('inventory:context', function (event) { inventoryActive = event.active; });
+      C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
       root.document.addEventListener('click', function (event) {
         var x = event.clientX, y = event.clientY;
         if (event.detail === 0 && event.target.getBoundingClientRect) {

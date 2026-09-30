@@ -13,7 +13,7 @@ function runtime(dev = false, gallery = false, initialSave = null, tutorial = fa
   let now = 0, nextId = 1, wallOffset = 0;
   const wallBase = Date.now();
   const tasks = new Map(), queries = new Map(), logs = [], store = new Map();
-  if (initialSave) store.set('cardable.save', JSON.stringify(initialSave));
+  if (initialSave) store.set('cardable.save', typeof initialSave === 'string' ? initialSave : JSON.stringify(initialSave));
   class Target {
     constructor() { this.listeners = new Map(); }
     addEventListener(type, fn) { if (!this.listeners.has(type)) this.listeners.set(type, []); this.listeners.get(type).push(fn); }
@@ -33,6 +33,8 @@ function runtime(dev = false, gallery = false, initialSave = null, tutorial = fa
     appendChild(child) { if (child.parent) child.remove(); child.parent = this; this.children.push(child); return child; }
     insertBefore(child, before) { if (child.parent) child.remove(); child.parent = this; const index = before ? this.children.indexOf(before) : -1; this.children.splice(index < 0 ? this.children.length : index, 0, child); return child; }
     remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
+    get parentElement() { return this.parent || null; }
+    click() { this.fire('click', { target: this }); }
     setAttribute(key, value) { this.attrs[key] = String(value); if (key === 'class') this.className = String(value); }
     removeAttribute(key) { delete this.attrs[key]; }
     getAttribute(key) { return this.attrs[key] ?? null; }
@@ -83,6 +85,7 @@ function runtime(dev = false, gallery = false, initialSave = null, tutorial = fa
   Object.assign(window, {
     document, performance: { now: () => now }, innerWidth: 1280, innerHeight: 720, devicePixelRatio: 1,
     location: { search: dev ? '?dev=1' + (gallery ? '&gallery=1' : '') : '' }, crypto: require('node:crypto').webcrypto,
+    Blob, URL: { createObjectURL: () => 'blob:simulated-download', revokeObjectURL() {} },
     localStorage: { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, String(value)), removeItem: key => store.delete(key) },
     setTimeout: (fn, delay = 0) => schedule(fn, delay), clearTimeout: id => tasks.delete(id),
     setInterval: (fn, delay) => schedule(fn, delay, delay), clearInterval: id => tasks.delete(id),

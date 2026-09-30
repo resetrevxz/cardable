@@ -7,7 +7,7 @@
   function button(label, action) {
     var el = node('button', label);
     el.addEventListener('click', function () {
-      if (openingPhase !== 'idle' && label !== 'Reset save' && label !== 'Replay committed reveal' && !(openingPhase === 'revealed' && label === 'Toggle rarityColorMode')) return;
+      if (openingPhase !== 'idle' && label !== 'Reset save' && label !== 'Replay committed reveal' && label.indexOf('Profile current screen') !== 0 && !(openingPhase === 'revealed' && label === 'Toggle rarityColorMode')) return;
       action();
     });
     return el;
@@ -99,7 +99,7 @@
     try { storage = root.localStorage; } catch (_) {}
     if (!storage) passed = report(false, 'save survives reload and corrupted-save recovery', 'localStorage unavailable') && passed;
     else {
-      var prior = cfg.storage.key;
+      var prior = cfg.storage.key, priorRecovery = C.state.recovery;
       try {
         cfg.storage.key = testKey;
         C.state.current = C.state.fresh(123);
@@ -119,6 +119,7 @@
         cfg.storage.key = prior;
         try { storage.removeItem(testKey); storage.removeItem(testKey + '.corrupt'); } catch (_) {}
         C.state.current = oldState;
+        C.state.recovery = priorRecovery; C.events.emit('save:written', oldState);
       }
     }
     return passed;
@@ -185,6 +186,11 @@
       C.events.emit('tutorial:replay');
     }));
     panel.appendChild(button('Preview 300 inventory tiles', function () { C.events.emit('inventory:preview', true); C.events.emit('inventory:request', true); }));
+    var performanceButton = button('Profile current screen · 5 s', function () { C.profiler.start(root.document.body.dataset.phase || (C.inventory.active ? 'inventory' : 'menu')); performanceButton.textContent = 'Profiling…'; });
+    panel.appendChild(performanceButton);
+    performanceButton.setAttribute('title', 'Profile any phase with Ctrl+Shift+P');
+    root.document.addEventListener('keydown', function (event) { if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'p' && !event.repeat) { event.preventDefault(); C.profiler.start('current screen'); performanceButton.textContent = 'Profiling…'; } });
+    C.events.on('profile:finished', function (sample) { performanceButton.textContent = sample.valid ? sample.fps.toFixed(1) + ' FPS · p95 ' + sample.p95Ms.toFixed(1) + ' ms' : 'Sample interrupted · retry'; });
     panel.appendChild(button('Toggle rarityColorMode', function () {
       C.config.rarityColorMode = C.config.rarityColorMode === 'color' ? 'mono' : 'color';
       mode.textContent = 'rarityColorMode: ' + C.config.rarityColorMode;
