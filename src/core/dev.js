@@ -184,6 +184,7 @@
       C.state.save();
       C.events.emit('tutorial:replay');
     }));
+    panel.appendChild(button('Preview 300 inventory tiles', function () { C.events.emit('inventory:preview', true); C.events.emit('inventory:request', true); }));
     panel.appendChild(button('Toggle rarityColorMode', function () {
       C.config.rarityColorMode = C.config.rarityColorMode === 'color' ? 'mono' : 'color';
       mode.textContent = 'rarityColorMode: ' + C.config.rarityColorMode;

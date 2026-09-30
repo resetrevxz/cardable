@@ -106,6 +106,20 @@
       ghostPath: 'M 4 12 C 28 5, 65 16, 96 7'
     },
 
+    inventoryMotion: {
+      sheetHeightVh: 62, sheetSpring: { stiffness: 220, damping: 26, mass: 1, epsilon: 0.002 },
+      menuScale: 0.96, menuBlurPx: 8, menuDim: 0.4,
+      rubberBandPx: 64, dragSlopPx: 6, flickProjectionMs: 180, flickDecayMs: 120, maxFlickPxPerSecond: 1800,
+      closeThreshold: 0.5, wheelSnapMs: 140, wheelLinePx: 24, dragClickGuardMs: 300,
+      tileHeightPortion: 0.62, tileMinHeightPx: 120, tileMaxHeightPx: 280, tileGapPx: 24, shelfChromePx: 144,
+      overscan: 6, sideScale: 0.82, sideOpacity: 0.6, sideTurnDegrees: 12, hoverLiftPx: 6,
+      centerPulseMs: 220, centerPulseScale: 0.025, countMs: 700, shimmerMs: 1100,
+      detailHeightVh: 62, detailInfoWidthPx: 280, detailGapPx: 48, detailStackWidthPx: 760,
+      detailClosePortion: 0.18, detailFlickPxPerSecond: 600, detailShineMs: 700, detailStackHeightVh: 50,
+      detailBackdropDim: 0.65, sheetDetailOpacity: 0.4,
+      safeMarginPx: 32, previewCount: 300, previewDuplicateMax: 3
+    },
+
     finishMotion: {
       superRare: { cycleMs: 12000, travelPercent: 12 },
       unusual: { cycleMs: 5500, glowMinScale: 0.35, glowMinOpacity: 0.4 },

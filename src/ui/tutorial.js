@@ -5,6 +5,7 @@
   var steps = ['welcome', 'hold', 'cut', 'keep', 'inventory', 'timer', 'done'];
   var stats = { updates: 0, advances: 0, ghostCycles: 0 };
   var packHost, wrapperHost, keepControl, inventoryHost, meta, toastHost, enter;
+  var inventoryActive = false;
   function first(parent, selector) { return parent.querySelectorAll(selector)[0] || null; }
   function copy() {
     var hours = C.config.packs.regenMs / 3600000;
@@ -49,6 +50,7 @@
     else if (!C.state.current.pendingReveal && (step === 'cut' || step === 'keep')) advance(C.state.current.inventory.length ? 'inventory' : 'hold');
   }
   function lessonTarget() {
+    if (inventoryActive) return null;
     if (step === 'welcome' && phase === 'idle') return packHost;
     if (step === 'hold') {
       if (phase === 'idle') return packHost;
@@ -152,6 +154,7 @@
       C.events.on('reveal:phase', function (next) { if (active && step === 'cut' && next === 'rising') advance('keep'); });
       C.events.on('cut:started', function () { cutStarted = true; layout(); C.fx.wake(); });
       C.events.on('inventory:open', function () { if (active && step === 'inventory' && phase === 'idle') advance('timer'); });
+      C.events.on('inventory:context', function (event) { inventoryActive = event.active; layout(); C.fx.wake(); });
       C.events.on('motion:changed', function () { C.fx.wake(); });
       C.events.on('fx:visibility', function () { C.fx.wake(); });
       root.document.getElementById('pack-stage').addEventListener('pointerenter', function () { if (active && step === 'welcome') advance('hold'); });

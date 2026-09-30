@@ -1,0 +1,97 @@
+.inventory-depth-active .menu-shell {
+  transform: scale(var(--inventory-menu-scale, 1)); transform-origin: 50% 50%;
+  filter: blur(var(--inventory-menu-blur, 0px)); opacity: var(--inventory-menu-opacity, 1);
+}
+.inventory-depth-active #inventory-affordance { opacity: 0; pointer-events: none; }
+.inventory-depth-active .dev-panel { opacity: 0; pointer-events: none; }
+.inventory-sheet {
+  position: fixed; bottom: 0; left: var(--s-6); right: var(--s-6); z-index: var(--z-sheet);
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0; border-bottom: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 -8px 40px rgba(0,0,0,.35), var(--shadow-2);
+  will-change: transform; --inventory-progress: 0; --inventory-shimmer: 0;
+}
+.inventory-grip { position: absolute; top: calc(var(--s-8) * -1); left: 0; right: 0; height: var(--s-8); cursor: grab; touch-action: none; }
+.inventory-grip:active { cursor: grabbing; }
+.inventory-sheet .inventory-arrow { cursor: pointer; opacity: 1; transform: rotate(180deg); }
+.inventory-sheet .inventory-arrow:hover { transform: rotate(180deg) translateY(3px); }
+.inventory-sheet .inventory-arrow:active { transform: rotate(180deg) translateY(1px); }
+.inventory-header { display: flex; align-items: center; justify-content: space-between; gap: var(--s-5); padding: var(--s-5) var(--s-6) var(--s-3); }
+.inventory-header h2 { font: 500 15px/1.5 var(--font-ui); margin: 0; }
+.inventory-count { min-width: var(--s-8); text-align: right; font: 11px/1.5 var(--font-mono); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.inventory-progress { height: 2px; margin-top: var(--s-2); border-radius: var(--r-chip); background: var(--glass); overflow: hidden; }
+.inventory-progress-fill {
+  width: 100%; height: 100%; background: var(--text-dim); transform: scaleX(var(--inventory-progress)); transform-origin: left;
+  border-radius: inherit; box-shadow: 0 var(--inventory-progress-wave, 0px) var(--s-1) var(--hairline-strong);
+}
+.inventory-filters { position: relative; display: flex; width: max-content; max-width: 100%; gap: var(--s-5); margin: 0 var(--s-6); padding-bottom: var(--s-2); }
+.inventory-filters button { border: 0; background: transparent; padding: 0 0 var(--s-1); font: 11px/1.5 var(--font-ui); color: var(--text-dim); cursor: pointer; white-space: nowrap; }
+.inventory-filters button:hover, .inventory-filters button[aria-selected="true"] { color: var(--text); }
+.inventory-filters button:active { opacity: .8; }
+.inventory-filter-underline { position: absolute; bottom: 0; left: 0; height: 1px; background: var(--text-dim); transform-origin: left; pointer-events: none; }
+.inventory-group-label { position: absolute; top: var(--s-5); left: 50%; transform: translateX(-50%); color: var(--text-dim); font: 10px/1.5 var(--font-mono); pointer-events: none; }
+.inventory-shelf {
+  display: flex; gap: var(--inventory-tile-gap); height: calc(100% - var(--s-8) - var(--s-6));
+  padding: var(--s-5) calc(50% - var(--inventory-tile-width) / 2) var(--s-5);
+  overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+  scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none;
+}
+.inventory-shelf::-webkit-scrollbar { display: none; }
+.inventory-shelf.is-dragging { cursor: grabbing; }
+.inventory-tile { position: relative; flex: 0 0 var(--inventory-tile-width); height: var(--inventory-tile-height); scroll-snap-align: center; scroll-snap-stop: normal; perspective: 1100px; border-radius: var(--r-card); cursor: pointer; }
+.inventory-tile-pose { position: relative; width: 100%; height: 100%; transform-origin: 50% 55%; }
+.inventory-tile-card { position: relative; width: 100%; height: 100%; }
+.inventory-stack-back { position: absolute; inset: 0; border-radius: var(--r-card); background: var(--bg-elev); border: 1px solid var(--hairline); transform: translate(var(--s-1),calc(var(--s-1) * -1)); pointer-events: none; }
+.inventory-stack-back--far { transform: translate(var(--s-2),calc(var(--s-2) * -1)); opacity: .6; }
+.inventory-tile-card > .collectible-card { width: 100%; height: 100%; }
+.inventory-tile.is-centered .inventory-tile-card { -webkit-box-reflect: below var(--s-2) linear-gradient(transparent 70%,rgba(255,255,255,.1)); }
+.inventory-tile.is-centered::after { content: ''; position: absolute; top: calc(100% + var(--s-2)); left: var(--s-4); right: var(--s-4); height: var(--s-4); border-radius: var(--r-chip); background: var(--glass); filter: blur(var(--s-2)); pointer-events: none; }
+.inventory-tile .card__header, .inventory-tile .card__memory, .inventory-tile .card__specs,
+.inventory-tile .card__serial, .inventory-tile .card__meter { opacity: 0; transition: opacity var(--t-fast) var(--ease-out); }
+.inventory-tile.is-hovered .card__header, .inventory-tile.is-hovered .card__memory, .inventory-tile.is-hovered .card__specs,
+.inventory-tile.is-hovered .card__serial, .inventory-tile.is-hovered .card__meter,
+.inventory-tile:focus-visible .card__header, .inventory-tile:focus-visible .card__memory, .inventory-tile:focus-visible .card__specs,
+.inventory-tile:focus-visible .card__serial, .inventory-tile:focus-visible .card__meter { opacity: 1; }
+.inventory-tile[data-owned="false"] .card__text { opacity: 0; }
+.inventory-stack-count { position: absolute; right: var(--s-2); bottom: var(--s-2); padding: var(--s-1) var(--s-2); background: var(--bg-elev); border: 1px solid var(--hairline); border-radius: var(--r-chip); font: 10px/1 var(--font-mono); color: var(--text-dim); pointer-events: none; }
+.inventory-new-dot { position: absolute; top: calc(var(--s-2) * -1); right: var(--s-2); width: var(--s-1); height: var(--s-1); border-radius: var(--r-chip); background: var(--text); box-shadow: 0 0 var(--s-2) var(--glass-strong); pointer-events: none; }
+.inventory-silhouette { position: relative; width: 100%; height: 100%; border-radius: var(--r-card); border: 1px solid var(--hairline); background: var(--bg-elev); box-shadow: inset 0 1px 0 var(--glass); overflow: hidden; }
+.inventory-silhouette-generation { position: absolute; top: 50%; left: var(--s-4); right: var(--s-4); text-align: center; color: var(--text-dim); opacity: .5; font: 10px/1.5 var(--font-mono); }
+.inventory-silhouette::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,transparent,var(--glass),transparent); opacity: var(--inventory-shimmer); transform: translateX(var(--inventory-shimmer-x, -100%)); pointer-events: none; }
+.inventory-empty { position: absolute; bottom: var(--s-3); left: var(--s-6); right: var(--s-6); margin: 0; text-align: center; font: 12px/1.5 var(--font-ui); color: var(--text-dim); pointer-events: none; }
+.inventory-preview-label { position: absolute; bottom: var(--s-2); right: var(--s-6); margin: 0; font: 10px/1.5 var(--font-mono); color: var(--text-dim); pointer-events: none; }
+.inventory-dev-tools { position: absolute; bottom: var(--s-2); left: var(--s-6); display: flex; gap: var(--s-2); }
+.inventory-dev-tools button { border: 1px solid var(--hairline); border-radius: var(--r-chip); padding: var(--s-1) var(--s-2); background: var(--bg-elev); color: var(--text-dim); font: 10px/1.5 var(--font-mono); cursor: pointer; }
+.inventory-dev-tools button:hover { color: var(--text); border-color: var(--hairline-strong); }
+.inventory-detail { position: fixed; inset: 0; z-index: var(--z-stage); background: rgba(0,0,0,calc(var(--detail-dim, 0) * var(--detail-backdrop-dim))); }
+.inventory-detail-active .inventory-sheet { filter: brightness(calc(1 - (1 - var(--sheet-detail-opacity)) * var(--detail-focus, 0))); pointer-events: none; }
+.detail-card-mount { position: fixed; left: 0; top: 0; transform-origin: top left; user-select: none; touch-action: none; }
+.detail-card-mount > .collectible-card, .detail-card-mount > .inventory-silhouette { width: 100%; aspect-ratio: 5 / 7; }
+.detail-card-mount > .collectible-card + .collectible-card { position: absolute; inset: 0; }
+.detail-info { position: fixed; overflow-y: auto; padding: var(--s-4) 0; scrollbar-width: thin; }
+.detail-kicker { margin: 0 0 var(--s-3); color: var(--text-dim); font: 10px/1.5 var(--font-mono); }
+.detail-name { margin: 0 0 var(--s-5); font: 600 24px/1.15 var(--font-ui); letter-spacing: -.02em; }
+.detail-tier { display: flex; gap: var(--s-3); align-items: center; margin-bottom: var(--s-5); }
+.detail-badge { padding: var(--s-1) var(--s-2); border: 1px solid var(--hairline); border-radius: var(--s-1); color: var(--text-dim); font: 10px/1.5 var(--font-mono); }
+.detail-meter { display: grid; grid-template-columns: repeat(12,1fr); gap: 3px; width: 120px; }
+.detail-meter i { height: 3px; border-radius: 1px; background: var(--glass); }
+.detail-meter i[data-filled="true"] { background: var(--text-dim); }
+.detail-vram { font: 14px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; margin: 0 0 var(--s-4); }
+.detail-specs { display: grid; gap: var(--s-2); margin: 0; font: 11px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; }
+.detail-specs > div { display: flex; justify-content: space-between; gap: var(--s-4); }
+.detail-specs dt { color: var(--text-dim); } .detail-specs dd { margin: 0; }
+.detail-description { margin: var(--s-5) 0; color: var(--text-dim); font: 14px/1.5 var(--font-ui); }
+.detail-serial-browser { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-5); }
+.detail-serial-values { flex: 1; text-align: center; font: 10px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; }
+.detail-serial-position { margin-top: var(--s-1); color: var(--text-dim); }
+.detail-serial-arrow, .detail-close { border: 1px solid var(--hairline); border-radius: var(--r-chip); width: var(--s-6); height: var(--s-6); background: var(--glass); color: var(--text-dim); cursor: pointer; }
+.detail-serial-arrow:disabled { opacity: .35; cursor: default; }
+.detail-serial-arrow:hover:not(:disabled), .detail-close:hover { color: var(--text); border-color: var(--hairline-strong); }
+.detail-close { position: fixed; top: var(--s-6); right: var(--s-6); }
+.detail-flip { display: block; width: var(--s-6); height: var(--s-6); border-radius: var(--r-chip); margin-top: var(--s-5); font: 16px/1 var(--font-ui); color: var(--text-dim); cursor: pointer; }
+.detail-flip:hover { color: var(--text); border-color: var(--hairline-strong); }
+.detail-serial-arrow svg, .detail-close svg, .detail-flip svg { display: block; width: 18px; height: 18px; margin: auto; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+.reduced-motion .inventory-sheet, .reduced-motion .inventory-tile-pose { will-change: auto; }
+.reduced-motion .inventory-sheet .inventory-arrow { transform: none; }
+.reduced-motion .inventory-silhouette::after { display: none; }
+@media (max-height: 540px) { .inventory-header { padding-top: var(--s-3); padding-bottom: var(--s-2); } .inventory-shelf { padding-top: var(--s-3); } }
+@media (prefers-reduced-motion: reduce) { .inventory-silhouette::after { display: none; } }

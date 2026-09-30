@@ -1,6 +1,6 @@
 (function (C, root) {
   'use strict';
-  var node = C.packMarkup.node, unit = C.packMarkup.unit, openingPaused = false;
+  var node = C.packMarkup.node, unit = C.packMarkup.unit, openingPaused = false, inventoryPaused = false;
   C.packView = {
     initialized: false, visible: true, stats: { updates: 0, readyMoments: 0 },
     setVisible: function (value) { C.packView.visible = value; C.fx.wake(); },
@@ -56,6 +56,7 @@
       C.events.on('pointer:leave', function () { C.fx.wake(); });
       C.events.on('motion:changed', function () { C.fx.wake(); });
       C.events.on('opening:context', function (event) { openingPaused = event.active; C.fx.wake(); });
+      C.events.on('inventory:context', function (event) { inventoryPaused = event.active; C.fx.wake(); });
       C.events.on('pack:handoff', function () { if (ready) handoff = 0; C.fx.wake(); });
       C.events.on('save:reset', function () { handoff = null; front.el.style.transform = ''; });
       host.addEventListener('pointerenter', function () { host.classList.add('is-hovered'); });
@@ -66,7 +67,7 @@
       });
       refresh(true);
       C.fx.subscribe(function (now, dt) {
-        if (!C.packView.visible || openingPaused) return false;
+        if (!C.packView.visible || openingPaused || inventoryPaused) return false;
         C.packView.stats.updates += 1; time += dt;
         if (handoff !== null) {
           handoff += dt; var slide = Math.min(1, handoff / C.config.revealMotion.packSlideMs);

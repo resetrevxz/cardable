@@ -9,7 +9,7 @@ const html = fs.readFileSync(path.join(base, 'index.html'), 'utf8');
 const scripts = Array.from(html.matchAll(/<script src="([^"]+)"/g), match => match[1]);
 const tokens = new Map(Array.from(fs.readFileSync(path.join(base, 'src/styles/tokens.css'), 'utf8').matchAll(/(--[\w-]+):\s*([^;]+);/g), match => [match[1], match[2]]));
 
-function runtime(dev = false, gallery = false, initialSave = null, tutorial = false) {
+function runtime(dev = false, gallery = false, initialSave = null, tutorial = false, inventory = false) {
   let now = 0, nextId = 1, wallOffset = 0;
   const wallBase = Date.now();
   const tasks = new Map(), queries = new Map(), logs = [], store = new Map();
@@ -30,7 +30,7 @@ function runtime(dev = false, gallery = false, initialSave = null, tutorial = fa
         toggle: (value, enabled) => { enabled = enabled === undefined ? !this.classList.contains(value) : enabled; this.classList[enabled ? 'add' : 'remove'](value); return enabled; }
       };
     }
-    appendChild(child) { child.parent = this; this.children.push(child); return child; }
+    appendChild(child) { if (child.parent) child.remove(); child.parent = this; this.children.push(child); return child; }
     insertBefore(child, before) { if (child.parent) child.remove(); child.parent = this; const index = before ? this.children.indexOf(before) : -1; this.children.splice(index < 0 ? this.children.length : index, 0, child); return child; }
     remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
     setAttribute(key, value) { this.attrs[key] = String(value); if (key === 'class') this.className = String(value); }
@@ -99,6 +99,7 @@ function runtime(dev = false, gallery = false, initialSave = null, tutorial = fa
   for (const file of scripts) {
     // Prior-stage checks isolate guidance; Stage 6 opts into the real fresh-save tutorial.
     if (file === 'src/boot.js' && !tutorial) window.Cardable.tutorial.init = function () {};
+    if (file === 'src/boot.js' && !inventory) { window.Cardable.inventory.init = function () {}; window.Cardable.detail.init = function () {}; }
     vm.runInContext(fs.readFileSync(path.join(base, file), 'utf8'), context, { filename: file });
   }
   const C = window.Cardable;

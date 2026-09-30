@@ -133,6 +133,7 @@
         front.el.querySelectorAll('.card__glare')[0].appendChild(shine);
         el.removeAttribute('data-cursor'); el.classList.add('is-reveal-card'); el.setAttribute('role', 'group'); el.setAttribute('tabindex', '-1'); el.setAttribute('aria-label', label);
       }
+      if (options.shine && !options.controlledReveal) front.el.querySelectorAll('.card__glare')[0].appendChild(shine);
       var lamp = root.getComputedStyle(root.document.documentElement);
       var lampX = parseFloat(lamp.getPropertyValue('--lamp-x')), lampY = parseFloat(lamp.getPropertyValue('--lamp-y'));
       function idleWake() {
@@ -183,6 +184,12 @@
           if (mode !== 'color' && mode !== 'mono') throw new Error('Unknown rarity color mode');
           context.colorMode = mode; el.dataset.colorMode = mode;
           el.querySelectorAll('.finish-surface').forEach(function (surface) { surface.dataset.colorMode = mode; });
+        },
+        setShine: function (progress) {
+          if (!options.shine) return;
+          var p = clamp(progress, 0, 1), motion = C.config.revealMotion;
+          shine.style.opacity = Math.sin(p * Math.PI) * (C.motion.reduced ? 0.35 : 1);
+          shine.style.transform = C.motion.reduced ? 'none' : 'translateX(' + (-motion.shineTravelPercent + p * motion.shineTravelPercent * 2) + '%) rotate(' + motion.shineAngleDegrees + 'deg)';
         },
         setVisible: function (visible) {
           view.visible = visible; el.dataset.visible = visible;
@@ -268,7 +275,7 @@
           var raised = lift.step(dt, reduced ? 0 : cfg.focusedLift, reduced ? cfg.reducedDamping : undefined);
           pose(rx, ry, raised); stats.updates += 1; view.stats.updates += 1;
           var finishMoving = !reduced && view.side === 'front' && front.finish.update(dt, pointer);
-          if (!options.controlledReveal && !stamped && sx.settled() && sy.settled() && lift.settled()) view.stamp();
+          if (!options.controlledReveal && options.autoStamp !== false && !stamped && sx.settled() && sy.settled() && lift.settled()) view.stamp();
           return sway || finishMoving || !sx.settled() || !sy.settled() || !lift.settled();
         },
         pointer: function (event) {
@@ -290,7 +297,7 @@
         el.addEventListener('pointerenter', function () { view.setMode('full'); });
         el.addEventListener('focus', function () { view.setMode('full'); });
       }
-      if (!options.controlledReveal) el.addEventListener('keydown', function (event) {
+      if (!options.controlledReveal && options.keyboardFlip !== false) el.addEventListener('keydown', function (event) {
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); view.setFace(view.side === 'front' ? 'back' : 'front'); }
       });
       if (root.IntersectionObserver) {

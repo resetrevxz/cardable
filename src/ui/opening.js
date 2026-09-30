@@ -6,7 +6,7 @@
   var motion, scene, mount, bloom, keepButton, note, dust, currentView = null, rarity, timings, pendingCards = null;
   var cardIndex = 0, ownedCount = 0, revealClock = 0, infoClock = 0, shineAt = null, infoEnd = 0, keepAt = 0, sceneWidth = 0, sceneHeight = 0;
   var keeping = false, writingKeep = false, collected = false, flights = [], toast, toastView = null, toastAge = null, collectionSource, collectionTarget;
-  var meniscus, enabled = false, width = 0, height = 0;
+  var meniscus, enabled = false, width = 0, height = 0, inventoryBlocked = false;
   var finePointer = root.matchMedia('(hover: hover) and (pointer: fine)');
   var stats = { commits: 0, transitions: 0, tears: 0, updates: 0, particles: 0, shines: 0, keeps: 0, collections: 0, recoveries: 0 };
   function node(tag, className, parent, text) { return C.packMarkup.node(tag, className, parent, text); }
@@ -77,7 +77,7 @@
     host.style.visibility = ''; phaseTo('idle'); glass.pose.style.transform = ''; glass.el.style.opacity = 0; foil.style.opacity = 0;
   }
   function chargeStart() {
-    if (!enabled || phase !== 'idle' || C.state.current.pendingReveal || root.document.hidden) return;
+    if (!enabled || inventoryBlocked || phase !== 'idle' || C.state.current.pendingReveal || root.document.hidden) return;
     C.timers.tick(); if (C.state.current.packs.ready <= 0) return;
     savedFocus = root.document.activeElement; clearCut(); particles.clear(); meniscus.reset(0); fill = 0;
     errorUntil = 0; error.style.opacity = 0; chargeAt = root.performance.now(); pulseAt = 0;
@@ -466,6 +466,7 @@
       C.opening.hint = hint; C.opening.enterHint = enterHint; C.opening.seam = seam; C.opening.error = error;
       root.document.getElementById('pack-stage').setAttribute('role', 'button');
       C.events.on('input:chargeStart', chargeStart); C.events.on('input:chargeEnd', chargeEnd); C.events.on('input:cancel', function (event) { cancel(event.reason); });
+      C.events.on('inventory:context', function (event) { inventoryBlocked = event.active; });
       C.events.on('input:keep', keep);
       C.events.on('input:cutStart', cutStart); C.events.on('input:cutMove', cutMove); C.events.on('input:cutEnd', release); C.events.on('input:tear', tear);
       host.addEventListener('lostpointercapture', function () { release(); });

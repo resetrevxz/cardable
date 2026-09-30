@@ -4,8 +4,10 @@
   var pointer = { x: 0, y: 0, inside: false, interactive: false, target: null };
   var controls = 'button, a[href], input, select, textarea, summary, [role="button"], [data-cursor="ring"]';
   var opening = { enabled: false, phase: 'idle', ready: false }, spaceDown = false, enterDown = false, spaceOwned = false;
+  var inventoryActive = false;
   function prevent(event) { if (event.preventDefault) event.preventDefault(); }
   function chargeTarget(target) {
+    if (inventoryActive) return false;
     if (!target) return true;
     var pack = root.document.getElementById('pack-stage');
     if (pack && pack.contains(target)) return true;
@@ -100,6 +102,7 @@
         }
       });
       C.events.on('opening:context', function (event) { opening = event; });
+      C.events.on('inventory:context', function (event) { inventoryActive = event.active; });
       root.document.addEventListener('click', function (event) {
         var x = event.clientX, y = event.clientY;
         if (event.detail === 0 && event.target.getBoundingClientRect) {
