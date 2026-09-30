@@ -1,0 +1,20 @@
+/* Tier-specific surfaces stay at layer 2, below the shared foil/beam/glare. */
+.finish-super-rare { background: linear-gradient(180deg,#247AD1,#123A74 65%,#0A214E); }
+.finish-sr-checker { position: absolute; inset: 25% 0 0; background: repeating-conic-gradient(rgba(255,255,255,.065) 0 25%,rgba(0,0,0,.16) 0 50%) 0 0 / 12% 8.6%; mask-image: linear-gradient(180deg,transparent,#000 65%); }
+.finish-sr-ocean { position: absolute; inset: 0 0 30%; overflow: hidden; mask-image: linear-gradient(180deg,#000 0 48%,transparent); }
+.finish-sr-wave { position: absolute; width: 160%; height: 100%; left: -30%; top: 0; fill: #87D4F8; }
+.finish-super-rare[data-color-mode="mono"] { background: linear-gradient(180deg,#7C7C7C,#373737 65%,#212121); }
+.finish-super-rare[data-color-mode="mono"] .finish-sr-wave { fill: #DDDDDD; }
+.finish-unusual { background: linear-gradient(180deg,#7A43B1,#502379 75%,#361756); }
+.finish-unusual-glow { position: absolute; inset: 0 0 15%; transform-origin: 50% 0; transform: scaleY(.7); opacity: .7; background: radial-gradient(ellipse at 50% -10%,rgba(255,255,255,.95),rgba(255,255,255,.32) 25%,transparent 70%); }
+.finish-unusual[data-color-mode="mono"] { background: linear-gradient(180deg,#676767,#383838 75%,#252525); }
+.finish-double-super-rare { --ssr-gold: #E8C467; --ssr-blue: #132D58; --ssr-gold-mono: #BABABA; --ssr-blue-mono: #303030; background-image: linear-gradient(165deg,transparent 15%,transparent 30%,var(--ssr-gold) 76%),repeating-conic-gradient(var(--ssr-blue) 0 25%,#0B1A34 0 50%); background-size: 100% 100%,12% 8.6%; }
+.finish-double-super-rare[data-color-mode="mono"] { background-image: linear-gradient(165deg,transparent 15%,transparent 30%,var(--ssr-gold-mono) 76%),repeating-conic-gradient(var(--ssr-blue-mono) 0 25%,#191919 0 50%); }
+.collectible-card[data-rarity="super-rare"], .collectible-card[data-rarity="unusual"] { --card-ink: #F5F5F7; --card-ink-dim: #CDD6E2; }
+.collectible-card[data-rarity="super-rare"][data-color-mode="color"] { --art-accent: #78BBE9; }
+.collectible-card[data-rarity="unusual"][data-color-mode="color"] { --art-accent: #D1AFE8; }
+.collectible-card[data-rarity="double-super-rare"][data-color-mode="color"] { --art-accent: #E8C467; }
+.collectible-card[data-rarity="double-super-rare"] .card__header { color: var(--text); --card-ink-dim: #D0D9E5; }
+.collectible-card:is([data-rarity="super-rare"],[data-rarity="unusual"]) .card__badge { border-color: rgba(255,255,255,.4); }
+.collectible-card:is([data-rarity="super-rare"],[data-rarity="unusual"]) .card__meter-tick { background: rgba(255,255,255,.2); }
+.collectible-card:is([data-rarity="super-rare"],[data-rarity="unusual"]) .card__meter-tick[data-filled="true"] { background: var(--card-ink); }

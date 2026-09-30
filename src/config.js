@@ -54,6 +54,14 @@
       meterSegments: 12, maxFrontSpecs: 3, sparkleCount: 18
     },
 
+    finishMotion: {
+      superRare: { cycleMs: 12000, travelPercent: 12 },
+      unusual: { cycleMs: 5500, glowMinScale: 0.35, glowMinOpacity: 0.4 },
+      doubleSuperRare: { goldCycleMs: 9000, blueCycleMs: 27000, sparkleCount: 20,
+        goldHue: 43, goldHueRange: 15, blueHue: 216, blueHueRange: 12, sparkleSpeed: 1.4 },
+      profileMs: 5000
+    },
+
     // Only a -> @ and l -> / were specified; the rest are suggestions (OPEN-QUESTIONS #23)
     logoMorph: { c: '(', a: '@', r: '®', d: '∂', b: '6', l: '/', e: '€' },
 

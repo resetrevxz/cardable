@@ -10,18 +10,19 @@ function check(name, callback) { callback(); passed += 1; console.log('PASS ' + 
 function instance(card, serial = 'CBL-2345-000123') { return { cardId: card.id, instanceId: 'check-' + card.id, serial, pulledAt: 0, seen: false }; }
 function serialize(element) { return JSON.stringify({ tag: element.tagName, attrs: element.attrs, classes: element.className, children: element.children.map(child => JSON.parse(serialize(child))) }); }
 
-check('only tiers 0–3 register finishes with the required lifecycle methods', () => {
-  assert.deepEqual(Object.keys(C.finishes.registry), ['basic', 'common', 'uncommon', 'rare']);
+check('tiers 0–3 remain registered with the required lifecycle methods', () => {
+  ['basic', 'common', 'uncommon', 'rare'].forEach(id => assert(C.finishes.registry[id]));
   Object.values(C.finishes.registry).forEach(finish => ['mount', 'update', 'destroy', 'lite'].forEach(method => assert.equal(typeof finish[method], 'function')));
   assert(scripts.indexOf('src/fx/springs.js') < scripts.indexOf('src/finishes/index.js'));
   assert(scripts.indexOf('src/finishes/rare.js') < scripts.indexOf('src/ui/card.js'));
   assert.throws(() => C.cardView.create(C.card('gen2-legendary-01'), instance(C.card('gen2-legendary-01'))), /not implemented/);
 });
 
-check('gallery shows four tiers in both modes, uses an isolated Uncommon fixture, and preserves save/data', () => {
-  assert.equal(C.gallery.views.length, 8);
-  assert.equal(C.gallery.views.filter(view => view.el.dataset.colorMode === 'color').length, 4);
-  assert.equal(C.gallery.views.filter(view => view.el.dataset.colorMode === 'mono').length, 4);
+check('gallery retains four original tiers in both modes, uses an isolated Uncommon fixture, and preserves save/data', () => {
+  const original = C.gallery.views.filter(view => C.rarity(view.card.rarity).tier <= 3);
+  assert.equal(original.length, 8);
+  assert.equal(original.filter(view => view.el.dataset.colorMode === 'color').length, 4);
+  assert.equal(original.filter(view => view.el.dataset.colorMode === 'mono').length, 4);
   assert.equal(C.data.cards.length, 6);
   assert(!C.data.cards.some(card => card.rarity === 'uncommon'));
   assert.equal(C.gallery.views.filter(view => view.card.rarity === 'uncommon').length, 2);

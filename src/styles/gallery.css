@@ -8,9 +8,9 @@
 .gallery-heading h1 { font-size: clamp(24px,3vw,40px); font-weight: 600; letter-spacing: -.04em; margin: 0 0 var(--s-3); }
 .gallery-description { font-size: 14px; color: var(--text-dim); margin: 0 0 var(--s-5); }
 .gallery-tools { display: flex; flex-wrap: wrap; gap: var(--s-2); }
-.gallery-tools button { padding: var(--s-2) var(--s-3); border-radius: var(--r-button); border: 1px solid var(--hairline); background: var(--glass); font-size: 11px; font-family: var(--font-mono); cursor: pointer; transition: background var(--t-fast),border-color var(--t-fast); }
-.gallery-tools button:hover { background: var(--glass-strong); border-color: var(--hairline-strong); }
-.gallery-tools button:active { background: var(--surface-2); }
+.gallery-tools button, .gallery-profile button { padding: var(--s-2) var(--s-3); border-radius: var(--r-button); border: 1px solid var(--hairline); background: var(--glass); font-size: 11px; font-family: var(--font-mono); cursor: pointer; transition: background var(--t-fast),border-color var(--t-fast); }
+.gallery-tools button:hover, .gallery-profile button:hover { background: var(--glass-strong); border-color: var(--hairline-strong); }
+.gallery-tools button:active, .gallery-profile button:active { background: var(--surface-2); }
 .gallery-status { margin: var(--s-3) 0 0; }
 .gallery-section { margin-bottom: var(--s-7); }
 .gallery-section-title { font-weight: 500; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 var(--s-5); }
@@ -19,5 +19,7 @@
 .gallery-item figcaption { text-align: center; margin-top: var(--s-5); }
 .gallery-note { max-width: 660px; line-height: 1.8; }
 .gallery-page .dev-panel { z-index: var(--z-toast); max-height: 28vh; opacity: .92; }
+.gallery-profile { position: fixed; z-index: var(--z-toast); bottom: var(--s-4); right: var(--s-4); width: min(300px,40vw); padding: var(--s-3); border-radius: var(--r-button); }
+.gallery-profile .gallery-status { line-height: 1.6; }
 @media (max-width: 1000px) { .gallery-cards { grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--s-6); } .card-gallery { max-width: 760px; } }
 @media (max-width: 520px) { .gallery-cards { grid-template-columns: 1fr; } .card-gallery { max-width: 400px; } }
