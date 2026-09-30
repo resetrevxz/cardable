@@ -98,6 +98,14 @@
       bloomScale: 1.6
     },
 
+    // Stage 6 guidance only; pack rules and existing presentation values stay unchanged.
+    tutorialMotion: {
+      welcomeMs: 2500, inventoryMs: 6000, timerMs: 4000, ghostMs: 3000,
+      pulseMs: 1800, pulseMin: 0.35, chromeOpacity: 0.18, gridDim: 0.8,
+      haloPaddingPx: 48, haloStrength: 0.4, instructionGapPx: 32, safeMarginPx: 32,
+      ghostPath: 'M 4 12 C 28 5, 65 16, 96 7'
+    },
+
     finishMotion: {
       superRare: { cycleMs: 12000, travelPercent: 12 },
       unusual: { cycleMs: 5500, glowMinScale: 0.35, glowMinOpacity: 0.4 },

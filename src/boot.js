@@ -12,6 +12,7 @@
   C.inventoryHint.init();
   C.gallery.init();
   C.opening.init();
+  C.tutorial.init();
   // Subscribe the menu before catch-up so a new arrival plays once on load.
   C.timers.start();
 })(window.Cardable, window);

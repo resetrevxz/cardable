@@ -3,6 +3,7 @@
   var canvas, ctx, ink, width, height, cols, rows, heat = new Map(), ripples = [], dirty = true;
   var pendingPaths = [], lastHeatAt = null;
   var reveal = { dim: 0, halo: null };
+  var tutorial = { dim: 0, halo: null };
   var stats = { draws: 0, visibleDots: 0, trailCells: 0, ripples: 0, columns: 0, rows: 0 };
   function falloff(distance, radius) {
     var t = Math.max(0, Math.min(1, distance / radius));
@@ -56,6 +57,7 @@
     pendingPaths = [];
     ripples = ripples.filter(function (r) { return now - r.born - r.delay < cfg.rippleMs; });
     var candidates = new Set(heat.keys());
+    if (tutorial.halo) region(tutorial.halo.x - tutorial.halo.rx, tutorial.halo.y - tutorial.halo.ry, tutorial.halo.x + tutorial.halo.rx, tutorial.halo.y + tutorial.halo.ry, function (index) { candidates.add(index); });
     if (reveal.halo) region(reveal.halo.x - reveal.halo.radius, reveal.halo.y - reveal.halo.radius, reveal.halo.x + reveal.halo.radius, reveal.halo.y + reveal.halo.radius, function (index) { candidates.add(index); });
     if (cfg.baseAlpha > tuning.alphaThreshold) region(0, 0, width, height, function (index) { candidates.add(index); });
     if (pointer.inside) region(pointer.x - cfg.influenceRadius, pointer.y - cfg.influenceRadius, pointer.x + cfg.influenceRadius, pointer.y + cfg.influenceRadius, function (index) { candidates.add(index); });
@@ -81,6 +83,9 @@
       var alpha = cfg.baseAlpha + (cfg.maxAlpha - cfg.baseAlpha) * energy;
       alpha *= 1 - reveal.dim;
       if (reveal.halo) alpha = Math.max(alpha, cfg.maxAlpha * C.config.revealMotion.haloStrength * falloff(Math.hypot(p.x - reveal.halo.x, p.y - reveal.halo.y), reveal.halo.radius));
+      var spotlight = tutorial.halo ? falloff(Math.hypot((p.x - tutorial.halo.x) / tutorial.halo.rx, (p.y - tutorial.halo.y) / tutorial.halo.ry), 1) : 0;
+      alpha *= 1 - tutorial.dim * (1 - spotlight);
+      alpha = Math.max(alpha, cfg.maxAlpha * C.config.tutorialMotion.haloStrength * spotlight);
       if (alpha <= tuning.alphaThreshold) return;
       var lean = !C.motion.reduced && distance > 0 ? cfg.lean * hover / distance : 0;
       var radius = C.motion.reduced ? cfg.baseRadius : cfg.baseRadius + (cfg.maxRadius - cfg.baseRadius) * energy;
@@ -116,6 +121,7 @@
         dirty = true; C.fx.wake();
       });
       C.events.on('reveal:context', function (event) { reveal = { dim: event.gridDim || 0, halo: event.halo || null }; dirty = true; C.fx.wake(); });
+      C.events.on('tutorial:context', function (event) { tutorial = { dim: event.gridDim || 0, halo: event.halo || null }; dirty = true; C.fx.wake(); });
       C.events.on('motion:changed', function () { heat.clear(); ripples = []; pendingPaths = []; dirty = true; });
       C.events.on('fx:visibility', function (visible) { if (visible) dirty = true; });
       root.addEventListener('resize', resize);

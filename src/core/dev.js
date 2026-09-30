@@ -179,9 +179,10 @@
       });
       select.disabled = event.active;
     });
-    panel.appendChild(button('Replay tutorial flag', function () {
+    panel.appendChild(button('Replay tutorial', function () {
       C.state.current.tutorial = { step: 'welcome', done: false };
       C.state.save();
+      C.events.emit('tutorial:replay');
     }));
     panel.appendChild(button('Toggle rarityColorMode', function () {
       C.config.rarityColorMode = C.config.rarityColorMode === 'color' ? 'mono' : 'color';

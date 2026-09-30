@@ -103,6 +103,7 @@
       }));
       candidate.stats.packsOpened += 1;
       candidate.pendingReveal = { packId: pack.id, cards: cards, committedAt: now, keptCount: 0 };
+      C.events.emit('opening:prepareCommit', candidate);
       if (!C.state.commit(candidate)) throw new Error('durable save unavailable');
     } catch (_) {
       error.textContent = 'Could not save. Your pack is still here.'; errorUntil = root.performance.now() + cfg.errorMs;
@@ -137,6 +138,7 @@
     if (host.setPointerCapture) host.setPointerCapture(event.pointerId);
     if (event.preventDefault) event.preventDefault();
     cutIdle = 0; blade(true); dirty = true; C.fx.wake();
+    C.events.emit('cut:started');
   }
   function addPoint(point, now, speed) {
     var previous = path[path.length - 1]; path.push(point);
@@ -248,6 +250,7 @@
     if (phase !== 'revealed' || infoClock < keepAt || keeping) return;
     var first = keepButton.hidden || keepButton.disabled;
     keepButton.hidden = false; keepButton.disabled = false;
+    if (first) C.events.emit('opening:keepReady');
     if (first && C.input.modality === 'keyboard') focus(keepButton);
   }
   function keep() {
@@ -261,6 +264,7 @@
       cards.forEach(function (item) { if (!owned.has(item.instanceId)) { candidate.inventory.push(item); owned.add(item.instanceId); } });
       candidate.pendingReveal = null;
     }
+    C.events.emit('opening:prepareKeep', { candidate: candidate, final: final });
     writingKeep = true; var saved = C.state.commit(candidate); writingKeep = false;
     if (!saved) {
       keeping = false; keepButton.disabled = false; error.textContent = 'Could not save. Your card is still reserved. Try Keep again.';

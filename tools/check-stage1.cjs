@@ -9,7 +9,7 @@ const html = fs.readFileSync(path.join(base, 'index.html'), 'utf8');
 const scripts = Array.from(html.matchAll(/<script src="([^"]+)"/g), match => match[1]);
 const tokens = new Map(Array.from(fs.readFileSync(path.join(base, 'src/styles/tokens.css'), 'utf8').matchAll(/(--[\w-]+):\s*([^;]+);/g), match => [match[1], match[2]]));
 
-function runtime(dev = false, gallery = false, initialSave = null) {
+function runtime(dev = false, gallery = false, initialSave = null, tutorial = false) {
   let now = 0, nextId = 1, wallOffset = 0;
   const wallBase = Date.now();
   const tasks = new Map(), queries = new Map(), logs = [], store = new Map();
@@ -96,7 +96,11 @@ function runtime(dev = false, gallery = false, initialSave = null) {
   });
   class ClockDate extends Date { static now() { return wallBase + now + wallOffset; } }
   const context = vm.createContext({ window, Date: ClockDate, URLSearchParams, performance: window.performance, Option: class extends Element { constructor(text, value) { super('option'); this.textContent = text; this.value = value; } } });
-  for (const file of scripts) vm.runInContext(fs.readFileSync(path.join(base, file), 'utf8'), context, { filename: file });
+  for (const file of scripts) {
+    // Prior-stage checks isolate guidance; Stage 6 opts into the real fresh-save tutorial.
+    if (file === 'src/boot.js' && !tutorial) window.Cardable.tutorial.init = function () {};
+    vm.runInContext(fs.readFileSync(path.join(base, file), 'utf8'), context, { filename: file });
+  }
   const C = window.Cardable;
   const advance = ms => {
     const end = now + ms;
