@@ -10,6 +10,11 @@
       if (registry[id]) throw new Error('Finish already registered: ' + id);
       registry[id] = definition;
     },
+    describe: function (id, card, context) {
+      var definition = registry[id];
+      return definition && definition.describe ? definition.describe(card, context) : {};
+    },
+    previewStates: function (id) { return registry[id].previewStates || [null]; },
     bind: function (id, element, card, context) {
       var definition = registry[id];
       if (!definition) throw new Error('Unimplemented finish: ' + id);
@@ -36,6 +41,15 @@
       if (parent) parent.appendChild(element); return element;
     },
     uid: function (prefix) { nextId += 1; return 'finish-' + prefix + '-' + nextId; },
+    squircle: function (parent, className) {
+      var svg = C.finishes.svg('svg', { viewBox: '0 0 100 140', class: 'finish-squircle-frame ' + className, 'data-shape': 'squircle', 'aria-hidden': 'true' }, parent);
+      var defs = C.finishes.svg('defs', {}, svg), clipId = C.finishes.uid('frame-clip');
+      var clip = C.finishes.svg('clipPath', { id: clipId }, defs);
+      C.finishes.svg('path', { d: 'M12 0H88C100 0 100 0 100 12V128C100 140 100 140 88 140H12C0 140 0 140 0 128V12C0 0 0 0 12 0Z' }, clip);
+      var group = C.finishes.svg('g', { 'clip-path': 'url(#' + clipId + ')' }, svg);
+      var path = C.finishes.svg('path', { d: 'M12 2H88C98 2 98 2 98 12V128C98 138 98 138 88 138H12C2 138 2 138 2 128V12C2 2 2 2 12 2Z', fill: 'none', 'stroke-width': 3 }, group);
+      return { el: svg, defs: defs, path: path };
+    },
     sparkles: function (parent, count, seed, bounds, className) {
       var stars = [], random = C.art.random(seed);
       for (var i = 0; i < count; i += 1) {

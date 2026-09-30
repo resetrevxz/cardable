@@ -13,18 +13,17 @@ function prop(v, lite = false) { return v.el.querySelectorAll('.finish-prop')[li
 function snapshot(el) { return JSON.stringify({ attrs: el.attrs, style: el.style, children: el.children.map(snapshot) }); }
 function traverse(el, callback) { callback(el); el.children.forEach(child => traverse(child, callback)); }
 
-check('tiers 7–9 register separately, with no tiers 10–12 yet', () => {
-  assert.equal(Object.keys(C.finishes.registry).length, 10);
+check('tiers 7–9 remain separately registered', () => {
   ids.forEach(id => {
     assert(scripts.includes('src/finishes/' + id + '.js'));
     ['mount', 'update', 'destroy', 'lite'].forEach(method => assert.equal(typeof C.finishes.registry[id][method], 'function'));
   });
-  ['ascendant', 'secret', 'limited'].forEach(id => assert.equal(C.finishes.registry[id], undefined));
 });
 
 check('gallery displays tiers 0–9 in color and mono without altering catalog or save', () => {
-  assert.equal(C.gallery.views.length, 20);
-  assert.equal(C.gallery.views.filter(v => v.el.dataset.colorMode === 'mono').length, 10);
+  const original = C.gallery.views.filter(v => C.rarity(v.card.rarity).tier <= 9);
+  assert.equal(original.length, 20);
+  assert.equal(original.filter(v => v.el.dataset.colorMode === 'mono').length, 10);
   ids.forEach(id => ['color', 'mono'].forEach(mode => assert(view(id, mode))));
   assert.equal(C.data.cards.length, 6); assert.equal(C.state.current.serialCounter, 0);
   assert.equal(C.state.current.packs.ready, 2);
@@ -143,10 +142,10 @@ check('reduced motion freezes new effects and selects static props through the s
   r.reduced(false);
 });
 
-check('FPS sampler includes one full and nineteen lite cards with simulated timestamps', () => {
+check('FPS sampler includes one full and the remaining lite cards with simulated timestamps', () => {
   view('exotic').el.fire('pointerenter'); r.advance(100); C.gallery.measure(); r.advance(5000);
   const sample = C.gallery.lastProfile; assert(sample.valid);
-  assert.equal(sample.fullCards, 1); assert.equal(sample.liteCards, 19);
+  assert.equal(sample.fullCards, 1); assert.equal(sample.liteCards, C.gallery.views.length - 1);
   assert(sample.fps > 58 && sample.fps <= 61); assert(sample.p95Ms < 17);
   // No actual GPU/paint work occurs in this harness.
 });

@@ -34,7 +34,7 @@
       profilePanel.appendChild(button('Measure 5 s FPS', function () { C.gallery.measure(); }));
       var profileText = el('p', 'gallery-status', 'FPS sample: select a visible full card, then measure.');
       profileText.setAttribute('aria-live', 'polite'); profilePanel.appendChild(profileText);
-      function status() { statusText.textContent = selected ? C.rarity(selected.card.rarity).name + ' / ' + selected.el.dataset.colorMode + ' / ' + (allLite ? 'lite' : 'full') + ' / ' + selected.side : 'Select a card'; }
+      function status() { statusText.textContent = selected ? C.rarity(selected.card.rarity).name + (selected.finishState ? ' ' + selected.finishState : '') + ' / ' + selected.el.dataset.colorMode + ' / ' + (allLite ? 'lite' : 'full') + ' / ' + selected.side : 'Select a card'; }
       function select(view) { selected = view; if (!allLite) view.setMode('full'); cards.forEach(function (card) { card.el.classList.toggle('is-selected', card === view); }); status(); }
       var tiers = C.data.rarities.filter(function (tier) { return C.finishes.registry[tier.finish]; });
       ['color', 'mono'].forEach(function (colorMode) {
@@ -50,13 +50,16 @@
               art: Object.assign({}, template.art, { seed: template.art.seed + tier.tier }) });
             preview = true;
           }
-          var instance = { instanceId: 'gallery-' + tier.id, cardId: record.id, serial: C.serial.format(C.state.current.playerCode, index + 1), pulledAt: 0, seen: true };
-          var view = C.cardView.create(record, instance, { colorMode: colorMode, autoFocus: false });
-          var figure = el('figure', 'gallery-item'); figure.appendChild(view.el);
-          figure.appendChild(el('figcaption', '', tier.name + (preview ? ' · gallery-only preview' : '')));
-          row.appendChild(figure); cards.push(view);
-          view.el.addEventListener('pointerenter', function () { select(view); });
-          view.el.addEventListener('focus', function () { select(view); });
+          C.finishes.previewStates(tier.finish).forEach(function (finishState) {
+            var instance = { instanceId: 'gallery-' + tier.id + '-' + (finishState || 'default'), cardId: record.id, serial: C.serial.format(C.state.current.playerCode, index + 1), pulledAt: 0, seen: true };
+            var view = C.cardView.create(record, instance, { colorMode: colorMode, finishState: finishState, autoFocus: false });
+            var figure = el('figure', 'gallery-item'); figure.appendChild(view.el);
+            figure.appendChild(el('figcaption', '', tier.name + (finishState ? ' · ' + finishState : '') + (preview ? ' · gallery-only preview' : '')));
+            if (view.description) figure.appendChild(el('p', 'gallery-finish-description', view.description));
+            row.appendChild(figure); cards.push(view);
+            view.el.addEventListener('pointerenter', function () { select(view); });
+            view.el.addEventListener('focus', function () { select(view); });
+          });
         });
         section.appendChild(row); gallery.appendChild(section);
       });

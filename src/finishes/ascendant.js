@@ -1,0 +1,46 @@
+(function (C) {
+  'use strict';
+  // Design: "A white colored shifting pastel RGB colors on all side with random faded splashes happening every 2-3 seconds for 1 second fade in and out."
+  // Prop: "A outside square with small squircle edges which shines and shifts colors like a aurora but with pastel colors"
+  function surface(card, context, lite) {
+    var cfg = C.config.finishMotion.ascendant, element = C.finishes.surface('ascendant', context);
+    C.finishes.element('div', 'finish-ascendant-sides', element);
+    var splash = C.finishes.element('div', 'finish-ascendant-splash', element); splash.style.opacity = lite ? 0.16 : 0;
+    var prop = C.finishes.surface('ascendant-prop', context); prop.classList.add('finish-prop');
+    var frame = C.finishes.squircle(prop, 'finish-ascendant-frame'), gradientId = C.finishes.uid('aurora');
+    var gradient = C.finishes.svg('linearGradient', { id: gradientId, x2: '100%', y2: '100%' }, frame.defs);
+    ['var(--aurora-1)', 'var(--aurora-2)', 'var(--aurora-3)', 'var(--aurora-1)'].forEach(function (color, i) {
+      C.finishes.svg('stop', { offset: i / 3, 'stop-color': color }, gradient);
+    });
+    frame.path.setAttribute('stroke', 'url(#' + gradientId + ')');
+    (context.propElement || element).appendChild(prop);
+    var random = C.art.random(card.art.seed + 10);
+    return { el: element, prop: prop, splash: splash, random: random, time: 0, birth: null,
+      nextAt: cfg.splashMinDelayMs + random() * (cfg.splashMaxDelayMs - cfg.splashMinDelayMs) };
+  }
+  C.finishes.register('ascendant', {
+    mount: function (element, card, context) { var state = surface(card, context, false); element.appendChild(state.el); return state; },
+    update: function (dt, pointer, state) {
+      state.time += dt;
+      var cfg = C.config.finishMotion.ascendant, phase = state.time / cfg.auroraCycleMs * Math.PI * 2;
+      state.el.style.setProperty('--asc-angle', (state.time / cfg.auroraCycleMs * 360 % 360) + 'deg');
+      for (var i = 1; i <= 3; i += 1) {
+        state.prop.style.setProperty('--aurora-color-' + i, 'hsl(' + ((i - 1) * 120 + Math.sin(phase) * 35) + ' 75% 86%)');
+        state.prop.style.setProperty('--aurora-mono-' + i, 'hsl(0 0% ' + (80 + Math.sin(phase + i * 2) * 12) + '%)');
+      }
+      if (state.time >= state.nextAt) {
+        state.birth = state.nextAt;
+        state.splash.style.setProperty('--splash-x', (10 + state.random() * 80) + '%');
+        state.splash.style.setProperty('--splash-y', (10 + state.random() * 80) + '%');
+        state.splash.style.setProperty('--splash-color', 'hsl(' + state.random() * 360 + ' 70% 82%)');
+        state.nextAt += cfg.splashMinDelayMs + state.random() * (cfg.splashMaxDelayMs - cfg.splashMinDelayMs);
+      }
+      var progress = state.birth === null ? 1 : Math.min(1, (state.time - state.birth) / cfg.splashMs);
+      state.splash.style.opacity = progress >= 1 ? 0 : Math.sin(progress * Math.PI) * cfg.splashOpacity;
+      state.splash.style.transform = 'scale(' + (0.7 + progress * 0.3) + ')';
+      return true;
+    },
+    destroy: function (state) { state.prop.remove(); state.el.remove(); },
+    lite: function (card, context) { return surface(card, context, true).el; }
+  });
+})(window.Cardable);

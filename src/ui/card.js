@@ -20,12 +20,16 @@
     layerEl.appendChild(live); layerEl.appendChild(lite);
     return { live: live, lite: lite };
   }
-  function frontText(card, instance, rarity, generation) {
+  function frontText(card, instance, rarity, generation, context) {
     var text = layer(7), header = node('div', 'card__header');
     header.appendChild(node('span', 'card__badge', rarity.code));
     header.appendChild(node('span', 'card__generation', generation ? generation.name : card.generation));
     text.appendChild(header);
     var info = node('div', 'card__info');
+    if (context.presentation.concealed) {
+      info.appendChild(node('p', 'card__unknown', context.presentation.description)); text.appendChild(info);
+      return { el: text, serial: node('div'), meter: node('div') };
+    }
     info.appendChild(node('h2', 'card__name', card.name));
     var memory = node('div', 'card__memory');
     memory.appendChild(node('span', 'card__vram', C.cardSpecs.vram(card)));
@@ -49,20 +53,20 @@
     info.appendChild(meter); text.appendChild(info);
     return { el: text, serial: serial, meter: meter };
   }
-  function backText(instance) {
+  function backText(instance, context) {
     var text = layer(7), mark = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     mark.setAttribute('viewBox', '0 0 64 64'); mark.setAttribute('aria-hidden', 'true'); mark.classList.add('card__back-mark');
     var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', 'M44 20C40 16 35 15 31 16C21 18 16 25 16 32C16 42 22 49 32 49C37 49 41 47 44 44');
     mark.appendChild(path); text.appendChild(mark);
     text.appendChild(node('div', 'card__back-wordmark', 'cardable'));
-    text.appendChild(node('div', 'card__back-serial', instance.serial));
+    if (!context.presentation.concealed) text.appendChild(node('div', 'card__back-serial', instance.serial));
     return text;
   }
   function buildFace(back, card, instance, rarity, generation, context) {
     var face = node('div', 'card__face ' + (back ? 'card__face--back' : 'card__face--front'));
     var binding = null, textParts, propLayer = layer(8), finishContext = context;
-    if (!back && rarity.propSpec) {
+    if (!back && (rarity.propSpec || context.presentation.hasProp)) {
       var props = material(propLayer, 'card__prop-render');
       finishContext = Object.assign({}, context, { propElement: props.live, litePropElement: props.lite });
     }
@@ -73,11 +77,11 @@
         binding = C.finishes.bind(rarity.finish, finish.live, card, finishContext);
         finish.lite.appendChild(binding.lite());
       }
-      if (i === 3 && !back) { var artWindow = node('div', 'card__art-window'); artWindow.appendChild(C.art.render(card)); element.appendChild(artWindow); }
+      if (i === 3 && !back && !context.presentation.hideArt) { var artWindow = node('div', 'card__art-window'); artWindow.appendChild(C.art.render(card)); element.appendChild(artWindow); }
       if (i >= 4 && i <= 6) material(element, 'card__' + layerNames[i] + '-render');
       if (i === 7) {
-        if (back) element = backText(instance);
-        else { textParts = frontText(card, instance, rarity, generation); element = textParts.el; }
+        if (back) element = backText(instance, context);
+        else { textParts = frontText(card, instance, rarity, generation, context); element = textParts.el; }
       }
       if (i === 8) element = propLayer;
       face.appendChild(element);
@@ -103,12 +107,17 @@
       if (!card || !instance || typeof instance.serial !== 'string') throw new Error('Card view needs a card and an instance serial');
       var rarity = C.rarity(card.rarity), generation = C.data.generations.find(function (g) { return g.id === card.generation; });
       if (!rarity || !C.finishes.registry[rarity.finish]) throw new Error('Card finish is not implemented');
-      var context = { colorMode: options.colorMode || C.config.rarityColorMode };
+      var context = { colorMode: options.colorMode || C.config.rarityColorMode, state: options.finishState,
+        owned: typeof options.owned === 'boolean' ? options.owned : C.state.current.inventory.some(function (owned) { return owned && owned.cardId === card.id; }) };
+      context.presentation = C.finishes.describe(rarity.finish, card, context);
+      context.state = context.presentation.state || context.state;
       var el = node('article', 'collectible-card');
       el.dataset.cardId = card.id; el.dataset.rarity = rarity.id; el.dataset.colorMode = context.colorMode;
       el.dataset.mode = 'lite'; el.dataset.side = 'front'; el.dataset.visible = 'true';
+      if (context.state) el.dataset.finishState = context.state;
       el.dataset.cursor = 'ring'; el.setAttribute('tabindex', 0); el.setAttribute('role', 'button');
-      el.setAttribute('aria-label', card.name + ', ' + rarity.name + '. Press Enter to turn the card.');
+      var label = context.presentation.concealed ? context.presentation.description : card.name + ', ' + rarity.name + '.';
+      el.setAttribute('aria-label', label + ' Press Enter to turn the card.');
       el.style.setProperty('--stamp-flicker', C.config.cardView.stampFlickerMs + 'ms');
       el.style.setProperty('--mode-duration', C.config.cardView.crossfadeMs + 'ms');
       var shadow = layer(0); el.appendChild(shadow);
@@ -118,7 +127,7 @@
       flipper.appendChild(front.el); flipper.appendChild(back.el); tilter.appendChild(flipper); el.appendChild(tilter);
       var sx = C.springs.create(0), sy = C.springs.create(0), lift = C.springs.create(0);
       var pointer = { x: 0.5, y: 0.5 }, lastMove = root.performance.now(), idleTimer = null, stampTimer = null;
-      var stamped = false, observer = null;
+      var stamped = !!context.presentation.concealed, observer = null;
       var lamp = root.getComputedStyle(root.document.documentElement);
       var lampX = parseFloat(lamp.getPropertyValue('--lamp-x')), lampY = parseFloat(lamp.getPropertyValue('--lamp-y'));
       function idleWake() {
@@ -142,6 +151,7 @@
       }
       var view = {
         el: el, card: card, instance: instance, mode: 'lite', side: 'front', visible: true, destroyed: false, followColorMode: !options.colorMode,
+        finishState: context.state, description: context.presentation.description || '',
         stats: { updates: 0, stamps: 0 },
         applyMode: function (mode) {
           if (view.mode === mode) return;
@@ -174,6 +184,7 @@
           if (visible && view.mode === 'full') { lastMove = root.performance.now(); idleWake(); C.fx.wake(); }
         },
         stamp: function () {
+          if (context.presentation.concealed) return;
           root.clearTimeout(stampTimer); view.stats.stamps += 1; stamped = true;
           front.text.serial.classList.remove('is-stamping'); front.text.meter.classList.remove('is-stamping');
           if (C.motion.reduced || view.mode === 'lite') return;

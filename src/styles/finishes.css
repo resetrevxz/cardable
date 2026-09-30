@@ -65,3 +65,44 @@
 .collectible-card[data-rarity="legendary"][data-color-mode="color"] { --art-accent: #E3B85D; }
 .collectible-card[data-rarity="mythical"][data-color-mode="color"] { --art-accent: #E3819A; }
 .collectible-card[data-rarity="exotic"][data-color-mode="color"] { --art-accent: #D582CE; }
+
+/* Ascendant: white metal, pastel energy at every edge and a clipped aurora frame. */
+.finish-squircle-frame { position: absolute; inset: -2%; width: 104%; height: 104%; overflow: visible; }
+@supports (corner-shape: squircle) { .finish-squircle-frame { corner-shape: squircle; border-radius: var(--r-card); } }
+.finish-ascendant { background: #FAFAFC; }
+.finish-ascendant-sides { position: absolute; inset: 0; border-radius: inherit; background: conic-gradient(from var(--asc-angle,0deg),#FFCEDE,#D7E4FF,#C9F3E5,#FFCEDE); mask-image: radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.35) 58%,#000 85%); }
+.finish-ascendant[data-color-mode="mono"] .finish-ascendant-sides { background: conic-gradient(from var(--asc-angle,0deg),#DDD,#FAFAFA,#BDBDBD,#DDD); }
+.finish-ascendant-splash { position: absolute; inset: 0; background: radial-gradient(ellipse at var(--splash-x,35%) var(--splash-y,30%),var(--splash-color,#D5DFFF),transparent 48%); }
+.finish-ascendant[data-color-mode="mono"] .finish-ascendant-splash { background: radial-gradient(ellipse at var(--splash-x,35%) var(--splash-y,30%),#AFAFAF,transparent 48%); }
+.finish-ascendant-prop { --aurora-1: var(--aurora-color-1,#FFCEE3); --aurora-2: var(--aurora-color-2,#CCF7DE); --aurora-3: var(--aurora-color-3,#CEDCFF); }
+.finish-ascendant-prop[data-color-mode="mono"] { --aurora-1: var(--aurora-mono-1,#EEE); --aurora-2: var(--aurora-mono-2,#AAA); --aurora-3: var(--aurora-mono-3,#CCC); }
+.finish-ascendant-frame { filter: drop-shadow(0 0 3px var(--aurora-1)); }
+.collectible-card[data-rarity="ascendant"][data-color-mode="color"] { --art-accent: #D4DBED; }
+
+/* Unfound has no art; Found retains a faint GPU etching over the glyph field. */
+.finish-secret { --secret-bg: #050505; --secret-ink: #FAFAFA; background: var(--secret-bg); opacity: 1; overflow: hidden; }
+.finish-secret[data-phase="cover"] { --secret-bg: #FAFAFA; --secret-ink: #050505; }
+.finish-secret-logo { position: absolute; top: 29%; left: 8%; right: 8%; display: flex; justify-content: center; font-family: var(--font-mono); font-size: 14cqw; font-weight: 600; color: var(--secret-ink); }
+.finish-secret-glyph { width: 1ch; text-align: center; background: rgb(255 255 255 / calc(var(--lock-flash,0) * .55)); text-shadow: 0 0 calc(var(--lock-flash,0) * 12px) #FFF; }
+.finish-secret-lines { position: absolute; inset: 0; overflow: hidden; }
+.finish-secret-line { position: absolute; left: -30%; width: 160%; transform-origin: center; background: linear-gradient(90deg,transparent,var(--secret-ink) 15% 85%,transparent); }
+.finish-secret-prop { --secret-border: #000; }
+.finish-secret-prop[data-phase="cover"] { --secret-border: #FFF; }
+.finish-secret-prop[data-color-mode="mono"] { color: var(--text); }
+.collectible-card[data-rarity="secret"] { --card-ink: #FFF; --card-ink-dim: #DDD; }
+.collectible-card[data-rarity="secret"] .card__art-window { background: transparent; border: 0; box-shadow: none; opacity: .12; }
+.collectible-card[data-rarity="secret"] .card__info, .collectible-card[data-rarity="secret"] .card__header { background: rgba(0,0,0,.8); border-radius: var(--r-button); padding: var(--s-2); }
+.collectible-card[data-rarity="secret"] .card__unknown { font-family: var(--font-mono); font-size: 4cqw; line-height: 1.7; margin: 0; }
+.collectible-card[data-rarity="secret"] .card__meter-tick { background: rgba(255,255,255,.2); }
+.collectible-card[data-rarity="secret"] .card__meter-tick[data-filled="true"] { background: var(--card-ink); }
+
+/* Limited inherits Unusual's exact base and adds a lifted mark and crimson rim. */
+.finish-limited-prop { --limited-border: #C91F42; }
+.finish-limited-prop[data-color-mode="mono"] { --limited-border: #C3C3C3; }
+.finish-limited-border { position: absolute; inset: -1%; border: 2px solid var(--limited-border); border-radius: var(--r-card); box-shadow: 0 0 9px var(--limited-border),inset 0 0 6px var(--limited-border); }
+.finish-limited-logo { position: absolute; width: 40%; height: 10%; left: 30%; top: 3%; overflow: visible; filter: drop-shadow(0 3px 3px rgba(0,0,0,.7)); }
+.finish-limited-wordmark { font-family: var(--font-ui); font-size: 24px; font-weight: 600; fill: var(--highlight); letter-spacing: -1px; }
+.collectible-card[data-rarity="limited"] { --card-ink: #F5F5F7; --card-ink-dim: #DDD; }
+.collectible-card[data-rarity="limited"][data-color-mode="color"] { --art-accent: #D1AFE8; }
+.collectible-card[data-rarity="limited"] .card__meter-tick { background: rgba(255,255,255,.2); }
+.collectible-card[data-rarity="limited"] .card__meter-tick[data-filled="true"] { background: var(--card-ink); }
