@@ -53,6 +53,10 @@ function runtime(dev = false, gallery = false, initialSave = null) {
     querySelectorAll(selector) { return this.children.flatMap(child => [...(child.matches(selector) ? [child] : []), ...child.querySelectorAll(selector)]); }
     getComputedTextLength() { return this.textContent.length * 24; }
     getBoundingClientRect() { return this.rect || { left: 50, top: 50, width: 100, height: 32 }; }
+    focus() { const previous = document.activeElement; document.activeElement = this; if (previous && previous !== this) previous.fire('blur'); this.fire('focus'); document.fire('focusin', { target: this }); }
+    setPointerCapture(id) { this.capture = id; }
+    hasPointerCapture(id) { return this.capture === id; }
+    releasePointerCapture(id) { if (this.capture === id) { this.capture = null; this.fire('lostpointercapture', { pointerId: id }); } }
   }
   const document = new Target();
   document.body = new Element('body'); document.documentElement = new Element('html');

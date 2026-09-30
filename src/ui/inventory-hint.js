@@ -22,9 +22,10 @@
       C.events.on('menu:idle', function () { C.fx.wake(); });
       C.inventoryHint.el = host; C.inventoryHint.arrow = arrow; C.inventoryHint.peek = peek;
       var gallery = new URLSearchParams(root.location.search).get('gallery') === '1' && new URLSearchParams(root.location.search).get(C.config.dev.queryFlag) === '1';
-      var time = 0;
+      var time = 0, openingPaused = false;
+      C.events.on('opening:context', function (event) { openingPaused = event.active; });
       C.fx.subscribe(function (now, dt) {
-        if (!C.inventoryHint.visible || gallery || C.menu.idle || C.motion.reduced) { arrow.style.setProperty('--arrow-bob', '0px'); arrow.style.setProperty('--arrow-breath', 1); return false; }
+        if (!C.inventoryHint.visible || gallery || openingPaused || C.menu.idle || C.motion.reduced) { arrow.style.setProperty('--arrow-bob', '0px'); arrow.style.setProperty('--arrow-breath', 1); return false; }
         time += dt;
         var p = time % cfg.arrowNudgeMs / cfg.arrowNudgeDurationMs;
         arrow.style.setProperty('--arrow-bob', (p < 1 ? -Math.sin(p * Math.PI) * cfg.arrowNudgePx : 0) + 'px');

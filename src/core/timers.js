@@ -36,15 +36,20 @@
       if (seconds >= 60) return Math.floor(seconds / 60) + 'm ' + seconds % 60 + 's';
       return seconds + 's';
     },
-    openPack: function (now) {
-      now = now == null ? Date.now() : now;
-      var packs = state().packs;
-      C.timers.tick(now);
+    // Mutates a supplied candidate only: no writes or presentation events.
+    consumeInto: function (candidate, now) {
+      var packs = candidate.packs;
       if (packs.ready <= 0) return false;
       packs.ready -= 1;
       if (packs.timerStartedAt == null) packs.timerStartedAt = now;
+      return true;
+    },
+    openPack: function (now) {
+      now = now == null ? Date.now() : now;
+      C.timers.tick(now);
+      if (!C.timers.consumeInto(state(), now)) return false;
       C.state.save();
-      C.events.emit('pack:opened', { ready: packs.ready });
+      C.events.emit('pack:opened', { ready: state().packs.ready });
       return true;
     },
     start: function () {

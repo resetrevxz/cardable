@@ -3,6 +3,7 @@
   var svg, host, letters = [], waveAt = null, settling = null, hovered = false, focused = false, visible = true;
   var NS = 'http://www.w3.org/2000/svg', word = 'cardable';
   var stats = { waves: 0, active: false };
+  var openingPaused = false;
   function make(tag, attrs) {
     var el = root.document.createElementNS(NS, tag);
     Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
@@ -40,7 +41,7 @@
     svg.setAttribute('width', position + 4); svg.setAttribute('height', cfg.cellHeight);
   }
   function start() {
-    if (C.motion.reduced || root.document.hidden || !visible || waveAt !== null) return;
+    if (openingPaused || C.motion.reduced || root.document.hidden || !visible || waveAt !== null) return;
     waveAt = root.performance.now(); settling = null; stats.waves += 1; stats.active = true;
     C.fx.wake();
   }
@@ -104,6 +105,7 @@
       host.addEventListener('focus', function () { focused = C.input.modality === 'keyboard'; if (focused) start(); });
       host.addEventListener('blur', function () { focused = false; if (!hovered) settle(); });
       C.events.on('logo:wave', start);
+      C.events.on('opening:context', function (event) { openingPaused = event.active; if (openingPaused) reset(); });
       C.events.on('menu:idle', function (idle) {
         visible = !idle;
         if (idle) settle(); else if (hovered || focused) start();

@@ -1,26 +1,6 @@
 (function (C, root) {
   'use strict';
-  function node(tag, className, parent, text) {
-    var el = root.document.createElement(tag); el.className = className;
-    if (text != null) el.textContent = text; if (parent) parent.appendChild(el); return el;
-  }
-  function unit(parent, back, pack) {
-    var el = node('div', 'pack-unit' + (back ? ' pack-unit--back' : ''), parent);
-    el.setAttribute('aria-hidden', 'true'); el.dataset.material = pack.design.material; el.dataset.wrapper = pack.design.wrapper;
-    var pose = node('div', 'pack-pose', el), glass = node('div', 'pack-body glass', pose);
-    var fluid = node('div', 'pack-fluid', glass); node('div', 'pack-fluid__body', fluid); node('div', 'pack-meniscus', fluid);
-    var specks = [], random = C.art.random(C.config.menuMotion.speckCount);
-    for (var i = 0; i < C.config.menuMotion.speckCount; i++) {
-      var speck = node('i', 'pack-speck', fluid), inset = C.config.menuMotion.speckInsetPercent;
-      speck.style.left = (inset + random() * (100 - inset * 2)) + '%'; speck.style.top = (inset + random() * (100 - inset * 2)) + '%';
-      specks.push({ el: speck, phase: random() * Math.PI * 2 });
-    }
-    var wrapper = node('div', 'pack-wrapper', glass); node('div', 'pack-crimp pack-crimp--top', wrapper); node('div', 'pack-crimp pack-crimp--bottom', wrapper);
-    node('div', 'pack-wrapper__grain', wrapper); node('div', 'pack-shine', wrapper);
-    node('div', 'pack-brand', glass, C.config.gameName.toLowerCase()); node('div', 'pack-label', glass, pack.name);
-    node('div', 'pack-arrival-sweep', glass);
-    return { el: el, pose: pose, fluid: fluid, specks: specks };
-  }
+  var node = C.packMarkup.node, unit = C.packMarkup.unit, openingPaused = false;
   C.packView = {
     initialized: false, visible: true, stats: { updates: 0, readyMoments: 0 },
     setVisible: function (value) { C.packView.visible = value; C.fx.wake(); },
@@ -75,6 +55,7 @@
       C.events.on('pointer:move', function () { C.fx.wake(); });
       C.events.on('pointer:leave', function () { C.fx.wake(); });
       C.events.on('motion:changed', function () { C.fx.wake(); });
+      C.events.on('opening:context', function (event) { openingPaused = event.active; C.fx.wake(); });
       host.addEventListener('pointerenter', function () { host.classList.add('is-hovered'); });
       host.addEventListener('pointerleave', function () { host.classList.remove('is-hovered'); });
       C.events.on('fx:visibility', function (visible) {
@@ -83,7 +64,7 @@
       });
       refresh(true);
       C.fx.subscribe(function (now, dt) {
-        if (!C.packView.visible) return false;
+        if (!C.packView.visible || openingPaused) return false;
         C.packView.stats.updates += 1; time += dt;
         var reduced = C.motion.reduced, pointer = C.input.pointer;
         var x = pointer.inside ? pointer.x / root.innerWidth : 0.5, y = pointer.inside ? pointer.y / root.innerHeight : 0.5;

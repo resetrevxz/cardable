@@ -59,6 +59,7 @@
       });
       lastActivity = root.performance.now(); arm();
       C.events.on('pointer:activity', activity);
+      C.events.on('menu:activity', activity);
       C.events.on('input:modality', keyboardHold);
       C.events.on('menu:visibilityHold', function (event) { C.menu.holdVisible(event.reason, event.active); });
       root.document.addEventListener('focusin', keyboardHold);

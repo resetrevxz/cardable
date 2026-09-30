@@ -57,6 +57,23 @@
       previewCountdownsMs: { hours: (7 * 60 + 12) * 60000, minutes: (42 * 60 + 10) * 1000, seconds: 38000 }
     },
 
+    // Stage 5 presentation. Charge/cut game rules above remain unchanged.
+    openingMotion: {
+      dissolveMs: 900, tearMs: 350, splitMs: 500, fallMs: 700, drainExitPortion: 0.25,
+      cutHintMs: 2000, enterHintMs: 5000, samplePx: 8, snapPx: 16, maxPathSamples: 512,
+      smoothSteps: 6, geometryEpsilon: 0.00001, boundaryInset: 0.002,
+      trailMs: 300, seamPx: 1, glintPx: 1.6, fastGlintPx: 0.8, glintSpeedPx: 1200,
+      bladeFollow: 0.35, bladeLengthPx: 36, bladeWidthPx: 2,
+      chargeAgitationAt: 0.7, vibrationAt: 0.6, vibrationPx: 1.2, vibrationHz: 38,
+      meniscusPx: 1.5, agitationPx: 3, waveMs: 900, speckSpeedPx: 24,
+      sloshPx: 5, sloshCycles: 2, pulseStartMs: 750, pulseEndMs: 220, pulseIntensity: 0.65,
+      separationMinPx: 6, separationMaxPx: 14, rotationDegrees: 1.2, fallMinPx: 40, fallMaxPx: 120,
+      dissolveCount: 40, fleckCount: 32, particleMinMs: 400, particleMaxMs: 700,
+      particleRisePx: 85, particleSpreadPx: 25, fleckSpeedPx: 85, gravityPx: 120,
+      fleckMinPx: 1, fleckMaxPx: 4, particleOpacity: 0.65, particleRotationDegrees: 90,
+      chargeChromeOpacity: 0.02, errorMs: 5000
+    },
+
     // Card presentation only; existing game rules and data remain unchanged.
     cardView: {
       spring: { stiffness: 140, damping: 16, mass: 1, stepMs: 1000 / 120, epsilon: 0.01 },

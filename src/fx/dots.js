@@ -106,6 +106,11 @@
         ripples.push({ x: event.x, y: event.y, born: event.now, delay: C.config.dots.rippleSecondDelayMs, intensity: C.config.shell.dots.secondRingIntensity });
         dirty = true;
       });
+      C.events.on('dots:pulse', function (event) {
+        if (C.motion.reduced || root.document.hidden) return;
+        ripples.push({ x: event.x, y: event.y, born: root.performance.now(), delay: 0, intensity: event.intensity });
+        dirty = true; C.fx.wake();
+      });
       C.events.on('motion:changed', function () { heat.clear(); ripples = []; pendingPaths = []; dirty = true; });
       C.events.on('fx:visibility', function (visible) { if (visible) dirty = true; });
       root.addEventListener('resize', resize);

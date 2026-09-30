@@ -23,7 +23,8 @@
       var tiers = options.rarities || C.data.rarities;
       var cards = options.cards || C.data.cards;
       var random = options.random || Math.random;
-      var requestedTier = options.forcedTier || (!options.rarities && C.dev && C.dev.consumeForcedTier ? C.dev.consumeForcedTier() : null);
+      var requestedTier = Object.prototype.hasOwnProperty.call(options, 'forcedTier') ? options.forcedTier :
+        (!options.rarities && C.dev && C.dev.consumeForcedTier ? C.dev.consumeForcedTier() : null);
       var tier = requestedTier ? tiers.find(function (item) { return item.id === requestedTier && item.pullable; }) : weightedPick(tiers, pack.tierWeightModifiers || {}, random);
       if (!tier) throw new Error('Forced tier is unknown or not pullable');
       var eligible = availableCards(tier, cards);
@@ -38,7 +39,7 @@
       }
       if (!eligible.length) throw new Error('No cards available for selected tier or downgrade policy');
       var card = eligible[Math.floor(random() * eligible.length)];
-      var serial = C.serial.next();
+      var serial = options.allocateSerial ? options.allocateSerial() : C.serial.next();
       return { instanceId: C.randomId('card'), cardId: card.id, serial: serial, pulledAt: Date.now(), seen: false };
     }
   };

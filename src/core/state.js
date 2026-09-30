@@ -47,6 +47,18 @@
     noticeShown: false,
     fresh: freshState,
     migrate: migrate,
+    // Opening is irrevocable only after this single durable write succeeds.
+    // Ordinary saves keep their existing session-only fallback.
+    commit: function (candidate) {
+      try {
+        var store = root.localStorage;
+        if (!store) return false;
+        store.setItem(C.config.storage.key, JSON.stringify(candidate));
+      } catch (_) { return false; }
+      C.state.current = candidate;
+      C.events.emit('save:written', candidate);
+      return true;
+    },
     save: function () {
       if (!C.state.current) C.state.current = freshState();
       var json = JSON.stringify(C.state.current);
@@ -85,6 +97,7 @@
       memory = null;
       C.state.current = freshState();
       C.state.save();
+      C.events.emit('save:reset', C.state.current);
       return C.state.current;
     }
   };

@@ -1,0 +1,49 @@
+.opening-stage { position: fixed; inset: 0; z-index: var(--z-stage); pointer-events: none; }
+.opening-stage[hidden] { display: none; }
+.opening-pack { position: absolute; top: 50%; left: 50%; width: var(--pack-width); height: var(--pack-height); transform: translate(-50%,-50%); border-radius: var(--r-pack); pointer-events: auto; user-select: none; touch-action: none; }
+.opening-pack:focus-visible { outline: 1px solid rgba(255,255,255,.6); outline-offset: var(--s-2); box-shadow: 0 0 0 3px var(--glass); }
+.opening-glass, .opening-foil { opacity: 0; }
+.opening-glass { transition: opacity var(--t-fast) var(--ease-out); }
+.opening-glass .pack-pose::after { opacity: .4; }
+.opening-glass .pack-wrapper { opacity: 0; }
+.opening-glass .pack-fluid { opacity: 1; }
+.opening-glass .pack-body::before { content: ''; position: absolute; inset: 1px; border-radius: inherit; border: 1px solid var(--highlight); box-shadow: inset 0 0 12px var(--hairline-strong),0 0 20px var(--glass-strong); opacity: var(--charge-leak,0); pointer-events: none; }
+.opening-foil { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; box-shadow: inset 0 1px 0 var(--hairline-strong),var(--shadow-2); }
+.opening-foil .pack-wrapper { opacity: 1; border: 1px solid var(--hairline-strong); border-radius: inherit; }
+.opening-foil .pack-shine { background: linear-gradient(135deg,var(--hairline-strong),transparent 50%); opacity: .5; }
+.opening-silhouette { position: absolute; inset: var(--s-5) var(--s-4); border-radius: var(--r-card); border: 1px solid var(--hairline); box-shadow: inset 0 1px 3px rgba(0,0,0,.35); background: rgba(0,0,0,.08); }
+.opening-foil .pack-brand { font-size: 23px; color: var(--text-dim); }
+.opening-half { transform-origin: center; }
+.opening-seams, .opening-particles { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.opening-cut-seam, .opening-cut-glint, .opening-light-gap { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.opening-cut-seam { stroke: var(--keyline); }
+.opening-cut-glint { stroke: var(--highlight); }
+.opening-light-gap { stroke: var(--highlight); opacity: 0; filter: drop-shadow(0 0 4px var(--hairline-strong)); }
+.opening-particle { position: absolute; top: 0; left: 0; background: var(--highlight); pointer-events: none; }
+.opening-hint { position: absolute; top: 50%; right: calc(100% + var(--s-5)); pointer-events: none; opacity: 0; transition: opacity var(--t-fast) var(--ease-out); }
+.opening-keycap { display: block; padding: var(--s-1) var(--s-2); border-radius: var(--s-1); border: 1px solid var(--hairline); background: var(--glass); color: var(--text-dim); box-shadow: 0 2px 0 var(--surface-2); font: 10px var(--font-mono); transition: transform var(--t-fast) var(--ease-out); }
+.is-held .opening-keycap { transform: translateY(2px); box-shadow: inset 0 1px 3px rgba(0,0,0,.5); }
+.opening-cut-hint { display: none; }
+[data-phase="charging"] .opening-hint, [data-phase="draining"] .opening-hint { opacity: 1; }
+[data-phase="dissolving"] .opening-hint, [data-phase="tearing"] .opening-hint, [data-phase="torn"] .opening-hint { opacity: 0; }
+[data-phase="cutting"] .opening-hint { top: 50%; left: var(--s-4); right: var(--s-4); text-align: center; }
+[data-phase="cutting"] .opening-keycap { display: none; }
+[data-phase="cutting"] .opening-cut-hint { display: block; border-top: 1px dashed var(--hairline-strong); padding-top: var(--s-2); color: var(--text-dim); font: 10px var(--font-mono); }
+.opening-enter-hint { position: absolute; top: calc(100% + var(--s-5)); width: 100%; text-align: center; opacity: 0; transition: opacity var(--t-fast) var(--ease-out); color: var(--text-dim); font: 11px/1.5 var(--font-mono); pointer-events: none; }
+.opening-error { position: fixed; left: var(--s-6); right: var(--s-6); bottom: var(--s-6); text-align: center; z-index: var(--z-toast); pointer-events: none; color: var(--text-dim); font: 12px var(--font-ui); opacity: 0; transition: opacity var(--t-fast) var(--ease-out); }
+.menu-shell { transition: opacity var(--t-ui) var(--ease-out); }
+.is-opening .menu-shell, .is-opening:not(.is-opening-torn) .dev-panel { opacity: 0; pointer-events: none; }
+.is-opening .cursor-glow.is-present:not(.is-blade) { opacity: var(--opening-chrome-opacity) !important; }
+.cursor-glow__blade { position: absolute; top: 50%; left: 50%; width: var(--blade-length); height: var(--blade-width); opacity: 0; background: linear-gradient(90deg,transparent,var(--hairline-strong) 20%,var(--highlight) 65%,transparent); border-radius: var(--r-chip); box-shadow: 0 0 8px var(--hairline-strong); }
+.is-blade .cursor-glow__blade { opacity: 1; }
+.is-blade .cursor-glow__light, .is-blade .cursor-glow__ring { opacity: 0; }
+.is-opening .cursor-glow.is-blade.is-present { opacity: 1 !important; }
+[data-phase="cutting"] .opening-pack.has-blade { cursor: none; }
+[data-phase="torn"] .opening-pack { pointer-events: none; outline: none; box-shadow: none; }
+[data-phase="tearing"] .opening-pack:focus-visible { outline: none; box-shadow: none; }
+[data-phase="tearing"] .opening-cut-seam, [data-phase="torn"] .opening-seams, [data-phase="torn"] .opening-enter-hint { opacity: 0; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.reduced-motion .opening-keycap { transform: none; transition-property: opacity; }
+.reduced-motion .opening-particle { display: none; }
+@media (prefers-reduced-motion: reduce) { .opening-keycap { transform: none; transition-property: opacity; } .opening-particle { display: none; } }
+@media (max-height: 540px) { .opening-pack { top: 45%; } }

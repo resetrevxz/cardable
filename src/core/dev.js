@@ -2,10 +2,14 @@
   'use strict';
   var forcedTier = null;
   var fpsValue = 0;
+  var openingPhase = 'idle';
   function node(tag, text) { var el = root.document.createElement(tag); if (text) el.textContent = text; return el; }
   function button(label, action) {
     var el = node('button', label);
-    el.addEventListener('click', action);
+    el.addEventListener('click', function () {
+      if (openingPhase !== 'idle' && label !== 'Reset save' && label !== 'Replay committed wrapper') return;
+      action();
+    });
     return el;
   }
   function report(ok, label, detail) {
@@ -164,6 +168,17 @@
     });
     panel.appendChild(button('Add currency (dev only)', function () { C.currency.add(C.config.menuMotion.previewCurrencyAmount); }));
     panel.appendChild(button('Reset save', function () { C.state.reset(); }));
+    var replay = button('Replay committed wrapper', function () { C.events.emit('opening:replay'); });
+    replay.disabled = true; panel.appendChild(replay);
+    var openingStatus = node('div', 'Opening: idle'); panel.appendChild(openingStatus);
+    C.events.on('opening:context', function (event) {
+      openingPhase = event.phase;
+      openingStatus.textContent = 'Opening: ' + event.phase + (event.phase === 'torn' ? ' · pull reserved' : '');
+      panel.querySelectorAll('button').forEach(function (control) {
+        control.disabled = control === replay ? event.phase !== 'torn' : event.active && control.textContent !== 'Reset save';
+      });
+      select.disabled = event.active;
+    });
     panel.appendChild(button('Replay tutorial flag', function () {
       C.state.current.tutorial = { step: 'welcome', done: false };
       C.state.save();
@@ -184,6 +199,7 @@
     var fps = node('div', 'FPS: idle'), titleHint = node('div');
     panel.appendChild(mode); panel.appendChild(fps); panel.appendChild(titleHint);
     C.dev = { panel: panel, output: node('pre'), validateData: validateData, runChecks: runChecks,
+      peekForcedTier: function () { return forcedTier; },
       consumeForcedTier: function () { var tier = forcedTier; forcedTier = null; select.value = ''; return tier; },
       get fps() { return fpsValue; } };
     root.document.body.appendChild(panel);
@@ -205,5 +221,6 @@
     C.events.on('fx:sleep', function (stats) { fpsValue = 0; fps.textContent = 'FPS: idle · frames ' + stats.frameCount; });
   }
   C.dev = { init: init, validateData: validateData, runChecks: runChecks,
+    peekForcedTier: function () { return forcedTier; },
     consumeForcedTier: function () { var tier = forcedTier; forcedTier = null; return tier; } };
 })(window.Cardable, window);
