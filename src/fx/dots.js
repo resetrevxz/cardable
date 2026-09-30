@@ -2,6 +2,7 @@
   'use strict';
   var canvas, ctx, ink, width, height, cols, rows, heat = new Map(), ripples = [], dirty = true;
   var pendingPaths = [], lastHeatAt = null;
+  var reveal = { dim: 0, halo: null };
   var stats = { draws: 0, visibleDots: 0, trailCells: 0, ripples: 0, columns: 0, rows: 0 };
   function falloff(distance, radius) {
     var t = Math.max(0, Math.min(1, distance / radius));
@@ -55,6 +56,7 @@
     pendingPaths = [];
     ripples = ripples.filter(function (r) { return now - r.born - r.delay < cfg.rippleMs; });
     var candidates = new Set(heat.keys());
+    if (reveal.halo) region(reveal.halo.x - reveal.halo.radius, reveal.halo.y - reveal.halo.radius, reveal.halo.x + reveal.halo.radius, reveal.halo.y + reveal.halo.radius, function (index) { candidates.add(index); });
     if (cfg.baseAlpha > tuning.alphaThreshold) region(0, 0, width, height, function (index) { candidates.add(index); });
     if (pointer.inside) region(pointer.x - cfg.influenceRadius, pointer.y - cfg.influenceRadius, pointer.x + cfg.influenceRadius, pointer.y + cfg.influenceRadius, function (index) { candidates.add(index); });
     var rings = [];
@@ -77,6 +79,8 @@
       var energy = Math.max(hover, heat.get(index) || 0);
       rings.forEach(function (ring) { energy = Math.max(energy, falloff(Math.abs(Math.hypot(p.x - ring.x, p.y - ring.y) - ring.radius), ring.band) * ring.intensity); });
       var alpha = cfg.baseAlpha + (cfg.maxAlpha - cfg.baseAlpha) * energy;
+      alpha *= 1 - reveal.dim;
+      if (reveal.halo) alpha = Math.max(alpha, cfg.maxAlpha * C.config.revealMotion.haloStrength * falloff(Math.hypot(p.x - reveal.halo.x, p.y - reveal.halo.y), reveal.halo.radius));
       if (alpha <= tuning.alphaThreshold) return;
       var lean = !C.motion.reduced && distance > 0 ? cfg.lean * hover / distance : 0;
       var radius = C.motion.reduced ? cfg.baseRadius : cfg.baseRadius + (cfg.maxRadius - cfg.baseRadius) * energy;
@@ -111,6 +115,7 @@
         ripples.push({ x: event.x, y: event.y, born: root.performance.now(), delay: 0, intensity: event.intensity });
         dirty = true; C.fx.wake();
       });
+      C.events.on('reveal:context', function (event) { reveal = { dim: event.gridDim || 0, halo: event.halo || null }; dirty = true; C.fx.wake(); });
       C.events.on('motion:changed', function () { heat.clear(); ripples = []; pendingPaths = []; dirty = true; });
       C.events.on('fx:visibility', function (visible) { if (visible) dirty = true; });
       root.addEventListener('resize', resize);

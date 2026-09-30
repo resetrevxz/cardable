@@ -24,6 +24,7 @@
               var side = j % 2 ? 1 : -1, speed = cfg.fleckSpeedPx * (0.5 + random() * 0.5);
               p.vx += normal.x * side * speed; p.vy = normal.y * side * speed - speed * 0.5; p.gravity = cfg.gravityPx;
             }
+            if (kind === 'dust') { p.vx = (random() - 0.5) * C.config.revealMotion.dustSpreadPx; p.vy = -C.config.revealMotion.dustRisePx * random(); }
             p.rotation = (random() - 0.5) * cfg.particleRotationDegrees;
             p.el.style.width = (cfg.fleckMinPx + random() * (cfg.fleckMaxPx - cfg.fleckMinPx)) + 'px';
             p.el.style.height = cfg.fleckMinPx + 'px';

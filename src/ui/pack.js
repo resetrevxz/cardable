@@ -22,7 +22,7 @@
         vials.push({ el: vial, fill: fill, value: i < C.state.current.packs.ready ? 1 : 0, from: 0, target: 0, start: null });
       }
       var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); node('kbd', '', hint, 'Space');
-      var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, px = 0.5, py = 0.5;
+      var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, px = 0.5, py = 0.5, handoff = null;
       var gallery = new URLSearchParams(root.location.search).get('gallery') === '1' && new URLSearchParams(root.location.search).get(C.config.dev.queryFlag) === '1';
       if (gallery) C.packView.visible = false;
       function refresh(initial) {
@@ -56,6 +56,8 @@
       C.events.on('pointer:leave', function () { C.fx.wake(); });
       C.events.on('motion:changed', function () { C.fx.wake(); });
       C.events.on('opening:context', function (event) { openingPaused = event.active; C.fx.wake(); });
+      C.events.on('pack:handoff', function () { if (ready) handoff = 0; C.fx.wake(); });
+      C.events.on('save:reset', function () { handoff = null; front.el.style.transform = ''; });
       host.addEventListener('pointerenter', function () { host.classList.add('is-hovered'); });
       host.addEventListener('pointerleave', function () { host.classList.remove('is-hovered'); });
       C.events.on('fx:visibility', function (visible) {
@@ -66,6 +68,11 @@
       C.fx.subscribe(function (now, dt) {
         if (!C.packView.visible || openingPaused) return false;
         C.packView.stats.updates += 1; time += dt;
+        if (handoff !== null) {
+          handoff += dt; var slide = Math.min(1, handoff / C.config.revealMotion.packSlideMs);
+          front.el.style.transform = C.motion.reduced ? 'none' : 'translate(' + (1 - slide) * C.config.revealMotion.packSlidePx + 'px,' + (slide - 1) * C.config.revealMotion.packSlidePx + 'px)';
+          if (slide === 1) { handoff = null; front.el.style.transform = ''; }
+        }
         var reduced = C.motion.reduced, pointer = C.input.pointer;
         var x = pointer.inside ? pointer.x / root.innerWidth : 0.5, y = pointer.inside ? pointer.y / root.innerHeight : 0.5;
         var follow = reduced ? 1 : 1 - Math.exp(-dt / cfg.followMs); px += (x - px) * follow; py += (y - py) * follow;
@@ -97,7 +104,7 @@
           if (p === 1) vial.start = null; else active = true;
         });
         // Even with reduced motion the timestamp-derived fluid remains continuous.
-        return !reduced || ready < C.config.packs.maxStored || active || arrivalStart !== null;
+        return !reduced || ready < C.config.packs.maxStored || active || arrivalStart !== null || handoff !== null;
       });
     }
   };

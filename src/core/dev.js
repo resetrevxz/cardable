@@ -7,7 +7,7 @@
   function button(label, action) {
     var el = node('button', label);
     el.addEventListener('click', function () {
-      if (openingPhase !== 'idle' && label !== 'Reset save' && label !== 'Replay committed wrapper') return;
+      if (openingPhase !== 'idle' && label !== 'Reset save' && label !== 'Replay committed reveal' && !(openingPhase === 'revealed' && label === 'Toggle rarityColorMode')) return;
       action();
     });
     return el;
@@ -168,14 +168,14 @@
     });
     panel.appendChild(button('Add currency (dev only)', function () { C.currency.add(C.config.menuMotion.previewCurrencyAmount); }));
     panel.appendChild(button('Reset save', function () { C.state.reset(); }));
-    var replay = button('Replay committed wrapper', function () { C.events.emit('opening:replay'); });
+    var replay = button('Replay committed reveal', function () { C.events.emit('opening:replay'); });
     replay.disabled = true; panel.appendChild(replay);
     var openingStatus = node('div', 'Opening: idle'); panel.appendChild(openingStatus);
     C.events.on('opening:context', function (event) {
       openingPhase = event.phase;
-      openingStatus.textContent = 'Opening: ' + event.phase + (event.phase === 'torn' ? ' · pull reserved' : '');
+      openingStatus.textContent = 'Opening: ' + event.phase + (event.phase === 'revealed' ? ' · pull reserved' : '');
       panel.querySelectorAll('button').forEach(function (control) {
-        control.disabled = control === replay ? event.phase !== 'torn' : event.active && control.textContent !== 'Reset save';
+        control.disabled = control === replay ? event.phase !== 'revealed' : event.active && control.textContent !== 'Reset save' && !(event.phase === 'revealed' && control.textContent === 'Toggle rarityColorMode');
       });
       select.disabled = event.active;
     });

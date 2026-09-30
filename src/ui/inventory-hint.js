@@ -22,10 +22,19 @@
       C.events.on('menu:idle', function () { C.fx.wake(); });
       C.inventoryHint.el = host; C.inventoryHint.arrow = arrow; C.inventoryHint.peek = peek;
       var gallery = new URLSearchParams(root.location.search).get('gallery') === '1' && new URLSearchParams(root.location.search).get(C.config.dev.queryFlag) === '1';
-      var time = 0, openingPaused = false;
+      var time = 0, openingPaused = false, pulse = null;
+      C.events.on('inventory:collectPulse', function () { pulse = 0; C.fx.wake(); });
+      C.events.on('save:reset', function () { pulse = null; svg.style.transform = ''; });
       C.events.on('opening:context', function (event) { openingPaused = event.active; });
       C.fx.subscribe(function (now, dt) {
-        if (!C.inventoryHint.visible || gallery || openingPaused || C.menu.idle || C.motion.reduced) { arrow.style.setProperty('--arrow-bob', '0px'); arrow.style.setProperty('--arrow-breath', 1); return false; }
+        var pulsing = pulse !== null;
+        if (pulsing) {
+          pulse += dt; var amount = Math.min(1, pulse / C.config.revealMotion.arrowPulseMs);
+          svg.style.transform = C.motion.reduced ? 'none' : 'scale(' + (1 + Math.sin(amount * Math.PI) * (C.config.revealMotion.arrowPulseScale - 1)) + ')';
+          svg.style.opacity = 0.7 + Math.sin(amount * Math.PI) * 0.3;
+          if (amount === 1) { pulse = null; svg.style.transform = ''; svg.style.opacity = ''; }
+        }
+        if (!C.inventoryHint.visible || gallery || openingPaused || C.menu.idle || C.motion.reduced) { arrow.style.setProperty('--arrow-bob', '0px'); arrow.style.setProperty('--arrow-breath', 1); return pulse !== null; }
         time += dt;
         var p = time % cfg.arrowNudgeMs / cfg.arrowNudgeDurationMs;
         arrow.style.setProperty('--arrow-bob', (p < 1 ? -Math.sin(p * Math.PI) * cfg.arrowNudgePx : 0) + 'px');

@@ -51,7 +51,7 @@
       tick.style.setProperty('--tick-delay', i * C.config.cardView.meterTickMs + 'ms'); tick.setAttribute('aria-hidden', 'true'); meter.appendChild(tick);
     }
     info.appendChild(meter); text.appendChild(info);
-    return { el: text, serial: serial, meter: meter };
+    return { el: text, serial: serial, meter: meter, name: info.querySelector('h2'), memory: memory, specs: Array.from(specs.children), badge: header.children[0] };
   }
   function backText(instance, context) {
     var text = layer(7), mark = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -127,12 +127,17 @@
       flipper.appendChild(front.el); flipper.appendChild(back.el); tilter.appendChild(flipper); el.appendChild(tilter);
       var sx = C.springs.create(0), sy = C.springs.create(0), lift = C.springs.create(0);
       var pointer = { x: 0.5, y: 0.5 }, lastMove = root.performance.now(), idleTimer = null, stampTimer = null;
-      var stamped = !!context.presentation.concealed, observer = null;
+      var stamped = !!context.presentation.concealed, observer = null, renderedInfo = null, revealAngle = 180, revealReduced = null;
+      var shine = node('div', 'card__reveal-shine'); shine.setAttribute('aria-hidden', 'true');
+      if (options.controlledReveal) {
+        front.el.querySelectorAll('.card__glare')[0].appendChild(shine);
+        el.removeAttribute('data-cursor'); el.classList.add('is-reveal-card'); el.setAttribute('role', 'group'); el.setAttribute('tabindex', '-1'); el.setAttribute('aria-label', label);
+      }
       var lamp = root.getComputedStyle(root.document.documentElement);
       var lampX = parseFloat(lamp.getPropertyValue('--lamp-x')), lampY = parseFloat(lamp.getPropertyValue('--lamp-y'));
       function idleWake() {
         root.clearTimeout(idleTimer);
-        if (!C.motion.reduced && view.mode === 'full' && view.visible) idleTimer = root.setTimeout(C.fx.wake, Math.max(0, C.config.cardView.idleMs - (root.performance.now() - lastMove)));
+        if (!view.revealControlled && !C.motion.reduced && view.mode === 'full' && view.visible) idleTimer = root.setTimeout(C.fx.wake, Math.max(0, C.config.cardView.idleMs - (root.performance.now() - lastMove)));
       }
       function pose(rx, ry, raised) {
         var cfg = C.config.cardView;
@@ -151,6 +156,7 @@
       }
       var view = {
         el: el, card: card, instance: instance, mode: 'lite', side: 'front', visible: true, destroyed: false, followColorMode: !options.colorMode,
+        revealControlled: !!options.controlledReveal, revealFrame: null, backScramble: !!context.presentation.backScramble, revealAccent: context.presentation.revealAccent,
         finishState: context.state, description: context.presentation.description || '',
         stats: { updates: 0, stamps: 0 },
         applyMode: function (mode) {
@@ -183,6 +189,59 @@
           root.clearTimeout(idleTimer);
           if (visible && view.mode === 'full') { lastMove = root.performance.now(); idleWake(); C.fx.wake(); }
         },
+        setRevealFrame: function (frame) {
+          if (!options.controlledReveal) return;
+          view.revealFrame = frame;
+          var reduced = C.motion.reduced, info = front.text, cfg = C.config.cardView;
+          if (view.revealControlled && frame.pose) {
+            pose(0, reduced ? 0 : frame.pose.turn || 0, 0);
+            tilter.style.transform = reduced ? 'none' : 'translateY(' + frame.pose.y + 'px) rotateY(' + (frame.pose.turn || 0) + 'deg) scale(' + frame.pose.scale + ')';
+            el.style.setProperty('--shadow-blur', C.config.revealMotion.airShadowBlurPx + 'px');
+          }
+          if (frame.angle != null || revealReduced !== reduced) {
+            if (frame.angle != null) revealAngle = frame.angle;
+            revealReduced = reduced;
+            flipper.style.transition = 'none'; flipper.style.transform = reduced ? 'none' : 'rotateY(' + revealAngle + 'deg)';
+            var frontOpacity = frame.frontOpacity == null ? (view.side === 'front' ? 1 : 0) : frame.frontOpacity;
+            if (reduced) { front.el.style.opacity = frontOpacity; back.el.style.opacity = 1 - frontOpacity; }
+            else { front.el.style.opacity = ''; back.el.style.opacity = ''; }
+            var side = revealAngle <= 90 ? 'front' : 'back';
+            if (view.side !== side) view.setFace(side);
+          }
+          if (frame.shine != null) {
+            var p = clamp(frame.shine, 0, 1), motion = C.config.revealMotion;
+            shine.style.opacity = Math.sin(p * Math.PI) * (reduced ? 0.35 : 1);
+            shine.style.transform = reduced ? 'none' : 'translateX(' + (-motion.shineTravelPercent + p * motion.shineTravelPercent * 2) + '%) rotate(' + motion.shineAngleDegrees + 'deg)';
+          }
+          if (frame.backLogo != null) back.el.querySelectorAll('.card__back-wordmark')[0].textContent = frame.backLogo;
+          if (frame.infoMs == null) return;
+          if (!stamped && frame.infoMs > C.config.revealMotion.serialDelayMs) { stamped = true; view.stats.stamps += 1; }
+          var timing = C.config.revealMotion;
+          var infoDone = Math.max(timing.serialDelayMs + instance.serial.length * cfg.stampCharMs + cfg.stampFlickerMs,
+            timing.serialDelayMs + timing.infoStepMs * (info.specs.length + 3) + (cfg.meterSegments - 1) * cfg.meterTickMs + timing.infoFadeMs);
+          var time = Math.min(frame.infoMs, infoDone);
+          if (renderedInfo === time) return;
+          renderedInfo = time;
+          function opacity(el, start) {
+            var value = clamp((time - start) / timing.infoFadeMs, 0, 1);
+            el.style.opacity = value; el.setAttribute('aria-hidden', value === 0 ? 'true' : 'false');
+          }
+          opacity(info.name, 0); opacity(info.memory, timing.serialDelayMs + timing.infoStepMs);
+          info.specs.forEach(function (el, i) { opacity(el, timing.serialDelayMs + timing.infoStepMs * (i + 2)); });
+          var badgeAt = timing.serialDelayMs + timing.infoStepMs * (info.specs.length + 2);
+          opacity(info.badge, badgeAt); opacity(info.serial, timing.serialDelayMs);
+          Array.from(info.serial.children).forEach(function (char, i) {
+            var p = clamp((time - timing.serialDelayMs - i * cfg.stampCharMs) / cfg.stampFlickerMs, 0, 1);
+            char.style.opacity = p; char.style.transform = reduced ? 'none' : 'translateY(' + (1 - p) * 2 + 'px)';
+            char.style.filter = !reduced && p > 0 && p < 1 ? 'brightness(' + (1 + Math.sin(p * Math.PI * 3) * 0.4) + ')' : 'none';
+          });
+          var meterAt = badgeAt + timing.infoStepMs;
+          Array.from(info.meter.children).forEach(function (tick, i) { opacity(tick, meterAt + i * cfg.meterTickMs); });
+        },
+        releaseReveal: function () {
+          view.revealControlled = false; tilter.style.transform = ''; sx.reset(); sy.reset(); lift.reset();
+          lastMove = root.performance.now(); idleWake(); C.fx.wake();
+        },
         stamp: function () {
           if (context.presentation.concealed) return;
           root.clearTimeout(stampTimer); view.stats.stamps += 1; stamped = true;
@@ -196,6 +255,7 @@
         },
         update: function (now, dt) {
           var cfg = C.config.cardView, reduced = C.motion.reduced;
+          if (view.revealControlled) { stats.updates += 1; view.stats.updates += 1; return !reduced && view.side === 'front' && front.finish.update(dt, pointer); }
           var cap = reduced ? cfg.reducedTiltCap : cfg.tiltCap;
           var sway = !reduced && now - lastMove >= cfg.idleMs;
           var time = (now - lastMove - cfg.idleMs) / 1000;
@@ -208,7 +268,7 @@
           var raised = lift.step(dt, reduced ? 0 : cfg.focusedLift, reduced ? cfg.reducedDamping : undefined);
           pose(rx, ry, raised); stats.updates += 1; view.stats.updates += 1;
           var finishMoving = !reduced && view.side === 'front' && front.finish.update(dt, pointer);
-          if (!stamped && sx.settled() && sy.settled() && lift.settled()) view.stamp();
+          if (!options.controlledReveal && !stamped && sx.settled() && sy.settled() && lift.settled()) view.stamp();
           return sway || finishMoving || !sx.settled() || !sy.settled() || !lift.settled();
         },
         pointer: function (event) {
@@ -230,7 +290,7 @@
         el.addEventListener('pointerenter', function () { view.setMode('full'); });
         el.addEventListener('focus', function () { view.setMode('full'); });
       }
-      el.addEventListener('keydown', function (event) {
+      if (!options.controlledReveal) el.addEventListener('keydown', function (event) {
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); view.setFace(view.side === 'front' ? 'back' : 'front'); }
       });
       if (root.IntersectionObserver) {

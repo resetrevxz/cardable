@@ -23,7 +23,7 @@ function pointer(r, type, x, y, extra = {}) {
   r.document.fire(type, { target: r.C.opening.wrapper, pointerId: 7, pointerType: 'mouse', button: 0, isPrimary: true,
     clientX: rect.left + rect.width * x, clientY: rect.top + rect.height * y, preventDefault() {}, ...extra });
 }
-function finish(r) { key(r, 'keydown', 'Enter'); assert.equal(r.C.opening.phase, 'tearing'); r.advance(1600); assert.equal(r.C.opening.phase, 'torn'); }
+function finish(r) { key(r, 'keydown', 'Enter'); assert.equal(r.C.opening.phase, 'tearing'); key(r, 'keyup', 'Enter'); r.advance(1600); assert.equal(r.C.opening.phase, 'rising'); }
 function stable(value) { return JSON.stringify(value); }
 
 check('local classic-script order includes opening, shared markup and effects, with boot last', () => {
@@ -118,13 +118,11 @@ check('dissolve is bounded and hidden tabs pause visual phases without replaying
   r.hidden(false); r.advance(200); assert.equal(r.C.opening.phase, 'dissolving');
   r.advance(500); assert.equal(r.C.opening.phase, 'cutting'); assert.equal(r.C.cardView.stats.fullCards, 0);
 });
-check('reload at any committed phase restores the same instances at cutting without a new pull', () => {
+check('reload restores the same instances at Keep without another pull', () => {
   const r = setup(); charge(r); const snapshot = JSON.parse(r.store.get('cardable.save'));
-  const restored = setup(false, snapshot); assert.equal(restored.C.opening.phase, 'cutting');
+  const restored = setup(false, snapshot); assert.equal(restored.C.opening.phase, 'revealed'); assert(!restored.C.opening.keepButton.hidden);
   assert.equal(stable(restored.C.state.current.pendingReveal), stable(snapshot.pendingReveal));
   assert.equal(restored.C.state.current.packs.ready, 1); assert.equal(restored.C.state.current.serialCounter, 1); assert.equal(restored.C.opening.stats.commits, 0);
-  finish(restored); const endpoint = setup(false, JSON.parse(restored.store.get('cardable.save')));
-  assert.equal(endpoint.C.opening.phase, 'cutting'); assert.equal(stable(endpoint.C.state.current.pendingReveal), stable(snapshot.pendingReveal));
 });
 check('pointer must press; partial seams persist and resume only near either endpoint', () => {
   const r = setup(); cutting(r); pointer(r, 'pointermove', 0.4, 0.5); assert.equal(r.C.opening.path.length, 0);
@@ -189,14 +187,15 @@ check('cut hint appears at 2s, Enter hint at 5s, and Enter immediately completes
   const pending = stable(r.C.state.current.pendingReveal); finish(r); assert.equal(r.C.opening.split.axis, 'y'); assert.equal(stable(r.C.state.current.pendingReveal), pending);
   const s = setup(); cutting(s); assert(key(s, 'keydown', 'Enter').prevented); assert.equal(s.C.opening.phase, 'tearing'); assert.equal(s.C.opening.split.axis, 'x');
 });
-check('tear lifts, rotates, emits bounded fibers, falls away, stops empty and reserves the result', () => {
-  const r = setup(); cutting(r); const pending = stable(r.C.state.current.pendingReveal); key(r, 'keydown', 'Enter');
+check('tear lifts, emits bounded fibers, falls away and hands the reserved result to rising', () => {
+  const r = setup(); cutting(r); const pending = stable(r.C.state.current.pendingReveal); key(r, 'keydown', 'Enter'); key(r, 'keyup', 'Enter');
   r.advance(200); assert(r.C.opening.stats.particles > 0 && r.C.opening.stats.particles <= 32);
   assert(r.C.opening.halves.some(el => !el.style.transform.includes('translate3d(0px,0px')));
   r.advance(800); assert(r.C.opening.halves.every(el => Number(el.style.opacity) < 1));
-  r.advance(600); assert.equal(r.C.opening.phase, 'torn'); assert(r.C.opening.halves.every(el => Number(el.style.opacity) === 0));
+  r.advance(600); assert.equal(r.C.opening.phase, 'rising'); assert(r.C.opening.halves.every(el => Number(el.style.opacity) === 0));
   assert.equal(r.C.opening.stats.particles, 0); assert.equal(stable(r.C.state.current.pendingReveal), pending); assert.equal(r.C.state.current.inventory.length, 0);
-  key(r, 'keydown', ' '); r.advance(3500); key(r, 'keyup', ' '); assert.equal(r.C.opening.stats.commits, 1); assert.equal(r.C.cardView.stats.fullCards, 0);
+  key(r, 'keydown', ' '); r.advance(3500); key(r, 'keyup', ' '); assert.equal(r.C.opening.stats.commits, 1); assert.equal(r.C.cardView.stats.fullCards, 1);
+  r.reduced(true); r.advance(10000); assert.equal(r.C.opening.phase, 'revealed');
   const frames = r.C.fx.stats.frameCount; r.advance(1000); assert.equal(r.C.fx.stats.frameCount, frames); assert(!r.C.fx.stats.running);
 });
 check('live reduced motion removes ripples/vibration/particles and uses direct blade positioning and tear fades', () => {
@@ -207,11 +206,11 @@ check('live reduced motion removes ripples/vibration/particles and uses direct b
   assert(r.document.getElementById('cursor-glow').style.transform.startsWith('translate3d(640px,356px'));
   key(r, 'keydown', 'Enter'); r.advance(200); assert.equal(r.C.opening.stats.particles, 0);
   assert(r.C.opening.halves.every(el => el.style.transform === 'none' && Number(el.style.opacity) < 1));
-  r.reduced(false); r.advance(1400); assert.equal(r.C.opening.phase, 'torn');
+  r.reduced(false); r.advance(1400); assert.equal(r.C.opening.phase, 'rising');
 });
 check('dev replay does not alter the committed result, and reset releases the terminal checkpoint', () => {
-  const r = setup(true); cutting(r); finish(r); const before = stable(r.C.state.current);
-  const button = r.C.dev.panel.querySelectorAll('button').find(el => el.textContent === 'Replay committed wrapper'); assert(!button.disabled);
+  const r = setup(true); cutting(r); finish(r); r.advance(10000); const before = stable(r.C.state.current);
+  const button = r.C.dev.panel.querySelectorAll('button').find(el => el.textContent === 'Replay committed reveal'); assert(!button.disabled);
   r.click(70, 70, button); assert.equal(r.C.opening.phase, 'cutting'); assert.equal(stable(r.C.state.current), before); assert.equal(r.C.opening.path.length, 0);
   r.C.state.reset(); assert.equal(r.C.opening.phase, 'idle'); assert(!r.pack.inert); assert(!r.C.dev.panel.inert); assert.equal(r.C.state.current.pendingReveal, null);
   assert(r.C.opening.hint.style.opacity === 0); key(r, 'keydown', ' ', { target: r.document.body }); assert.equal(r.C.opening.hint.style.opacity, 1);
@@ -244,12 +243,12 @@ check('stationary cutting sleeps after hints settle; hidden tearing pauses and r
   const transform = r.C.opening.halves[0].style.transform, pending = stable(r.C.state.current.pendingReveal);
   r.advance(50000); assert.equal(r.C.opening.halves[0].style.transform, transform); assert.equal(r.C.opening.phase, 'tearing');
   r.hidden(false); r.advance(200); assert.equal(r.C.opening.phase, 'tearing'); r.advance(1200);
-  assert.equal(r.C.opening.phase, 'torn'); assert.equal(stable(r.C.state.current.pendingReveal), pending);
+  assert.equal(r.C.opening.phase, 'rising'); assert.equal(stable(r.C.state.current.pendingReveal), pending);
   assert.equal(r.C.opening.wrapper.getAttribute('tabindex'), '-1');
 });
-check('shared scheduler is the only animation loop and later reveal/market/audio remain absent', () => {
+check('shared scheduler is the only animation loop and market/audio remain absent', () => {
   const source = fs.readFileSync(path.join(__dirname, '../src/ui/opening.js'), 'utf8');
-  assert(!source.includes('requestAnimationFrame(')); assert(!source.includes('setInterval(')); assert(!source.includes('card:revealed')); assert(!source.includes('card:kept'));
+  assert(!source.includes('requestAnimationFrame(')); assert(!source.includes('setInterval(')); assert(source.includes('card:revealed')); assert(source.includes('card:kept'));
   const r = setup(); assert.equal(r.C.config.flags.market, false); assert.equal(r.C.config.flags.audio, false); assert.equal(r.C.config.flags.variants, false);
 });
 console.log('\n' + passed + ' Stage 5 behavior groups passed. Browser appearance, screenshots and measured FPS remain unverified.');

@@ -3,7 +3,7 @@
   var pending = null, path = [];
   var pointer = { x: 0, y: 0, inside: false, interactive: false, target: null };
   var controls = 'button, a[href], input, select, textarea, summary, [role="button"], [data-cursor="ring"]';
-  var opening = { enabled: false, phase: 'idle', ready: false }, spaceDown = false;
+  var opening = { enabled: false, phase: 'idle', ready: false }, spaceDown = false, enterDown = false, spaceOwned = false;
   function prevent(event) { if (event.preventDefault) event.preventDefault(); }
   function chargeTarget(target) {
     if (!target) return true;
@@ -12,7 +12,7 @@
     return !(target.isContentEditable || (target.closest && target.closest(controls + ', [contenteditable]')));
   }
   function cancel(reason) {
-    spaceDown = false;
+    spaceDown = false; enterDown = false; spaceOwned = false;
     C.events.emit('input:cancel', { reason: reason });
   }
   function modality(value) {
@@ -32,6 +32,7 @@
     chargeStart: function () { C.events.emit('input:chargeStart'); },
     chargeEnd: function () { C.events.emit('input:chargeEnd'); },
     cutMove: function (event) { C.events.emit('input:cutMove', event); },
+    keep: function () { if (!spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:keep'); },
     init: function () {
       if (C.input.initialized) return;
       C.input.initialized = true;
@@ -69,19 +70,33 @@
         modality('keyboard');
         if (!opening.enabled) return;
         if (event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar') {
+          var wasSpaceDown = spaceDown; spaceDown = true;
+          var spaceButton = event.target && event.target.closest && event.target.closest('button');
+          if (spaceButton && spaceButton.classList.contains('opening-keep')) { spaceOwned = true; prevent(event); return; }
           if (!chargeTarget(event.target)) return;
-          if (opening.phase !== 'idle' || opening.ready) prevent(event);
-          if (event.repeat || spaceDown || opening.phase !== 'idle' || !opening.ready || root.document.hidden) return;
+          if (opening.phase !== 'idle' || opening.ready) { spaceOwned = true; prevent(event); }
+          if (event.repeat || wasSpaceDown || opening.phase !== 'idle' || !opening.ready || root.document.hidden) return;
           spaceDown = true; C.input.chargeStart();
         } else if (event.key === 'Escape' && opening.phase === 'charging') {
           prevent(event); cancel('escape');
-        } else if (event.key === 'Enter' && !event.repeat && opening.phase === 'cutting' && chargeTarget(event.target)) {
-          prevent(event); C.events.emit('input:tear');
+        } else if (event.key === 'Enter') {
+          var button = event.target && event.target.closest && event.target.closest('button');
+          var valid = chargeTarget(event.target) || (button && button.classList.contains('opening-keep'));
+          if (valid && (opening.phase === 'cutting' || opening.phase === 'revealed')) {
+            prevent(event);
+            if (!event.repeat && !enterDown && !spaceDown) {
+              if (opening.phase === 'cutting') C.events.emit('input:tear');
+              else C.input.keep();
+            }
+          }
+          enterDown = true;
         }
       });
       root.document.addEventListener('keyup', function (event) {
+        if (event.key === 'Enter') enterDown = false;
         if ((event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar') && spaceDown) {
-          prevent(event); spaceDown = false; C.input.chargeEnd();
+          if (spaceOwned) { prevent(event); C.input.chargeEnd(); }
+          spaceDown = false; spaceOwned = false;
         }
       });
       C.events.on('opening:context', function (event) { opening = event; });

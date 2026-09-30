@@ -2,11 +2,11 @@
   'use strict';
   var element, x = 0, y = 0, dirty = false, present = false;
   var finePointer = root.matchMedia('(hover: hover) and (pointer: fine)');
-  var blade = false, angle = 0, previous = null, bladeElement;
+  var blade = false, angle = 0, previous = null, bladeElement, revealHidden = false;
   function update(_, dt) {
     if (!dirty) return false;
     var p = C.input.pointer, cfg = C.config.shell.cursor;
-    if (!p.inside || !finePointer.matches) {
+    if (revealHidden || !p.inside || !finePointer.matches) {
       present = false; element.classList.remove('is-present'); dirty = false; return false;
     }
     var amount = C.motion.reduced ? 1 : 1 - Math.pow(1 - (blade ? C.config.openingMotion.bladeFollow : cfg.follow), dt / C.config.shell.frameMs);
@@ -44,6 +44,11 @@
       C.events.on('motion:changed', function () { dirty = true; });
       C.events.on('cursor:blade', function (value) {
         blade = value; element.classList.toggle('is-blade', blade); dirty = true; C.fx.wake();
+      });
+      C.events.on('reveal:context', function (event) {
+        revealHidden = !!event.hideCursor; element.classList.toggle('is-reveal-hidden', revealHidden);
+        if (revealHidden) { element.classList.remove('is-present'); present = false; }
+        dirty = true; C.fx.wake();
       });
       function pointerChanged() { dirty = true; C.fx.wake(); }
       if (finePointer.addEventListener) finePointer.addEventListener('change', pointerChanged);

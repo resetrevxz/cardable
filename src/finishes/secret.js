@@ -7,7 +7,7 @@
   function presentation(card, context) {
     var state = context.state || (context.owned ? 'found' : 'unfound'), rarity = C.rarity(card.rarity);
     if (state !== 'found' && state !== 'unfound') throw new Error('Unknown Secret state: ' + state);
-    return { state: state, concealed: state === 'unfound', hideArt: state === 'unfound', hasProp: true,
+    return { state: state, concealed: state === 'unfound', hideArt: state === 'unfound', hasProp: true, backScramble: true, revealAccent: '#FFFFFF',
       description: state === 'found' ? rarity.foundDescription : rarity.unfoundDescription };
   }
   function surface(card, context, lite) {

@@ -12,6 +12,11 @@
 .card__tilter { transform: rotateX(var(--rx)) rotateY(var(--ry)) translateZ(var(--lift-px)) scale(var(--card-scale)); }
 [data-mode="lite"] .card__tilter { transition: transform var(--t-fast) var(--ease-out); }
 .card__flipper { transition: transform var(--t-sheet) var(--ease-in-out); }
+.card__reveal-shine { position: absolute; left: 28%; top: -40%; width: 45%; height: 180%; opacity: 0; background: linear-gradient(90deg,transparent,rgba(255,255,255,.25) 22%,rgba(255,255,255,.9) 48%,#fff 50%,rgba(255,255,255,.4) 68%,transparent); mix-blend-mode: soft-light; pointer-events: none; }
+.is-reveal-card .card__glare { overflow: hidden; }
+.is-reveal-card { cursor: default; }
+.is-reveal-card .card__flipper { transition: none; }
+.reduced-motion .is-reveal-card .card__face--back { transform: none; }
 [data-side="back"] .card__flipper { transform: rotateY(180deg); }
 .card__face { position: absolute; inset: 0; border-radius: inherit; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .card__face--back { transform: rotateY(180deg); --card-ink: var(--text); --card-ink-dim: var(--text-dim); }
