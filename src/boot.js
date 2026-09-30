@@ -8,4 +8,5 @@
   C.logo.init();
   C.menu.init();
   C.dev.init();
+  C.gallery.init();
 })(window.Cardable, window);

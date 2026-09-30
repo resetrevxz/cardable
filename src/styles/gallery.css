@@ -1,0 +1,23 @@
+.gallery-page { overflow-y: auto; }
+.gallery-page .pack-placeholder, .gallery-page .currency-placeholder, .gallery-page .inventory-placeholder { display: none; }
+.gallery-page .menu-shell { position: absolute; }
+.card-gallery { position: relative; z-index: var(--z-stage); max-width: 1440px; margin: 0 auto; padding: 120px var(--s-6) var(--s-8); }
+.gallery-heading { margin-bottom: var(--s-7); }
+.gallery-kicker, .gallery-section-title, .gallery-status, .gallery-item figcaption, .gallery-note { font-family: var(--font-mono); font-size: 10px; font-variant-numeric: tabular-nums; color: var(--text-dim); }
+.gallery-kicker { letter-spacing: .1em; margin: 0 0 var(--s-3); }
+.gallery-heading h1 { font-size: clamp(24px,3vw,40px); font-weight: 600; letter-spacing: -.04em; margin: 0 0 var(--s-3); }
+.gallery-description { font-size: 14px; color: var(--text-dim); margin: 0 0 var(--s-5); }
+.gallery-tools { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.gallery-tools button { padding: var(--s-2) var(--s-3); border-radius: var(--r-button); border: 1px solid var(--hairline); background: var(--glass); font-size: 11px; font-family: var(--font-mono); cursor: pointer; transition: background var(--t-fast),border-color var(--t-fast); }
+.gallery-tools button:hover { background: var(--glass-strong); border-color: var(--hairline-strong); }
+.gallery-tools button:active { background: var(--surface-2); }
+.gallery-status { margin: var(--s-3) 0 0; }
+.gallery-section { margin-bottom: var(--s-7); }
+.gallery-section-title { font-weight: 500; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 var(--s-5); }
+.gallery-cards { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--s-6); }
+.gallery-item { margin: 0; min-width: 0; }
+.gallery-item figcaption { text-align: center; margin-top: var(--s-5); }
+.gallery-note { max-width: 660px; line-height: 1.8; }
+.gallery-page .dev-panel { z-index: var(--z-toast); max-height: 28vh; opacity: .92; }
+@media (max-width: 1000px) { .gallery-cards { grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--s-6); } .card-gallery { max-width: 760px; } }
+@media (max-width: 520px) { .gallery-cards { grid-template-columns: 1fr; } .card-gallery { max-width: 400px; } }

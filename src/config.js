@@ -44,6 +44,16 @@
       dev: { fpsSampleMs: 1000, titleTestDelayMs: 1000 }
     },
 
+    // Card presentation only; existing game rules and data remain unchanged.
+    cardView: {
+      spring: { stiffness: 140, damping: 16, mass: 1, stepMs: 1000 / 120, epsilon: 0.01 },
+      tiltCap: 14, reducedTiltCap: 3, reducedDamping: 26,
+      idleMs: 3000, swayDegrees: 1.2, swaySpeed: 0.45, liftPx: 16, focusedLift: 0.7,
+      specularSpeed: 1.5, lampInfluence: 0.12,
+      crossfadeMs: 150, stampCharMs: 35, stampFlickerMs: 100, meterTickMs: 40,
+      meterSegments: 12, maxFrontSpecs: 3, sparkleCount: 18
+    },
+
     // Only a -> @ and l -> / were specified; the rest are suggestions (OPEN-QUESTIONS #23)
     logoMorph: { c: '(', a: '@', r: '®', d: '∂', b: '6', l: '/', e: '€' },
 

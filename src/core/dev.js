@@ -152,6 +152,7 @@
     panel.appendChild(button('Toggle rarityColorMode', function () {
       C.config.rarityColorMode = C.config.rarityColorMode === 'color' ? 'mono' : 'color';
       mode.textContent = 'rarityColorMode: ' + C.config.rarityColorMode;
+      C.events.emit('settings:rarityColorMode', C.config.rarityColorMode);
     }));
     panel.appendChild(button('Test pack-ready title', function () {
       titleHint.textContent = 'Switch tabs now; title event in 1 second.';

@@ -9,7 +9,7 @@ const html = fs.readFileSync(path.join(base, 'index.html'), 'utf8');
 const scripts = Array.from(html.matchAll(/<script src="([^"]+)"/g), match => match[1]);
 const tokens = new Map(Array.from(fs.readFileSync(path.join(base, 'src/styles/tokens.css'), 'utf8').matchAll(/(--[\w-]+):\s*([^;]+);/g), match => [match[1], match[2]]));
 
-function runtime(dev = false) {
+function runtime(dev = false, gallery = false) {
   let now = 0, nextId = 1;
   const tasks = new Map(), queries = new Map(), logs = [], store = new Map();
   class Target {
@@ -19,7 +19,7 @@ function runtime(dev = false) {
   }
   class Element extends Target {
     constructor(tag) {
-      super(); this.tagName = tag; this.children = []; this.attrs = {}; this.textContent = ''; this.className = '';
+      super(); this.tagName = tag; this.children = []; this.attrs = {}; this.dataset = {}; this.textContent = ''; this.className = '';
       this.style = { setProperty(key, value) { this[key] = String(value); } };
       this.classList = {
         contains: value => this.className.split(/\s+/).includes(value),
@@ -29,13 +29,14 @@ function runtime(dev = false) {
       };
     }
     appendChild(child) { child.parent = this; this.children.push(child); return child; }
-    remove() { this.parent.children.splice(this.parent.children.indexOf(this), 1); }
+    remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
     setAttribute(key, value) { this.attrs[key] = String(value); }
     removeAttribute(key) { delete this.attrs[key]; }
     getAttribute(key) { return this.attrs[key] ?? null; }
     matches(selectors) {
       return selectors.split(',').some(selector => {
         selector = selector.trim();
+        if (selector.startsWith('.')) return this.classList.contains(selector.slice(1));
         if (selector === '[tabindex]') return 'tabindex' in this.attrs;
         if (selector === 'a[href]') return this.tagName === 'a' && 'href' in this.attrs;
         if (selector === '[role="button"]') return this.attrs.role === 'button';
@@ -44,9 +45,11 @@ function runtime(dev = false) {
       });
     }
     closest(selector) { return this.matches(selector) ? this : this.parent?.closest(selector) || null; }
+    contains(element) { return this === element || this.children.some(child => child.contains(element)); }
     querySelector(tag) { for (const child of this.children) { if (child.tagName === tag) return child; const nested = child.querySelector(tag); if (nested) return nested; } return null; }
+    querySelectorAll(selector) { return this.children.flatMap(child => [...(child.matches(selector) ? [child] : []), ...child.querySelectorAll(selector)]); }
     getComputedTextLength() { return this.textContent.length * 24; }
-    getBoundingClientRect() { return { left: 50, top: 50, width: 100, height: 32 }; }
+    getBoundingClientRect() { return this.rect || { left: 50, top: 50, width: 100, height: 32 }; }
   }
   const document = new Target();
   document.body = new Element('body'); document.documentElement = new Element('html');
@@ -69,7 +72,7 @@ function runtime(dev = false) {
   const window = new Target();
   Object.assign(window, {
     document, performance: { now: () => now }, innerWidth: 1280, innerHeight: 720, devicePixelRatio: 1,
-    location: { search: dev ? '?dev=1' : '' }, crypto: require('node:crypto').webcrypto,
+    location: { search: dev ? '?dev=1' + (gallery ? '&gallery=1' : '') : '' }, crypto: require('node:crypto').webcrypto,
     localStorage: { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, String(value)), removeItem: key => store.delete(key) },
     setTimeout: (fn, delay = 0) => schedule(fn, delay), clearTimeout: id => tasks.delete(id),
     setInterval: (fn, delay) => schedule(fn, delay, delay), clearInterval: id => tasks.delete(id),
@@ -105,6 +108,8 @@ function runtime(dev = false) {
   return { C, window, document, drawing, canvas, wordmark, pack, logs, store, advance, move, click, hidden, reduced, now: () => now, Element };
 }
 
+module.exports = { runtime, html, scripts };
+if (require.main === module) {
 let passed = 0;
 function check(name, fn) { fn(); passed += 1; console.log('PASS ' + name); }
 const r = runtime();
@@ -258,3 +263,4 @@ check('dev title test is transient and restores the normal title on return', () 
 });
 
 console.log('\n' + passed + ' Stage 1 checks passed; 6 Stage 0 console checks passed. Browser visuals and measured FPS are unverified.');
+}
