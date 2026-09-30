@@ -1,0 +1,46 @@
+/* Cardable — config. Every tunable number and flag lives here. */
+(function (C) {
+  'use strict';
+
+  C.config = {
+    gameName: 'Cardable',
+
+    packs: {
+      regenMs: 8 * 60 * 60 * 1000,   // OPEN-QUESTIONS #1 (brief says both "4 per day" and "every 8 hours")
+      maxStored: 2,
+      startingPacks: 2
+    },
+
+    hold: { chargeMs: 3000, drainMs: 700 },
+    cut: { requirePress: true, autoFinishSpan: 0.8 },   // OPEN-QUESTIONS #15
+
+    idleFadeMs: 2500,
+
+    pull: { emptyTierPolicy: 'downgrade' },   // 'downgrade' | 'renormalize'  (OPEN-QUESTIONS #8)
+
+    rarityColorMode: 'color',                 // 'color' | 'mono'             (OPEN-QUESTIONS #3)
+
+    currency: { name: 'Credits', symbol: '' },   // placeholder                 (OPEN-QUESTIONS #11)
+
+    serial: { prefix: 'CBL', counterDigits: 6, playerCodeLength: 4 },
+
+    storage: { key: 'cardable.save', schemaVersion: 1 },
+
+    dots: {
+      spacing: 26, baseRadius: 0.9, maxRadius: 2.2, influenceRadius: 170,
+      baseAlpha: 0, maxAlpha: 0.55, lean: 1.5, trailDecayMs: 400,
+      rippleMs: 600, rippleSecondDelayMs: 120, rippleSpeed: 700
+    },
+
+    // Only a -> @ and l -> / were specified; the rest are suggestions (OPEN-QUESTIONS #23)
+    logoMorph: { c: '(', a: '@', r: '®', d: '∂', b: '6', l: '/', e: '€' },
+
+    flags: {
+      market: false,     // future: the owner builds this later. Do not implement.
+      variants: false,   // not made yet
+      audio: false       // no music or sound yet
+    },
+
+    dev: { queryFlag: 'dev' }   // ?dev=1 enables dev panel and validation
+  };
+})(window.Cardable = window.Cardable || {});
