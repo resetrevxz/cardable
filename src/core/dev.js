@@ -135,15 +135,34 @@
     select.addEventListener('change', function () { forcedTier = select.value || null; });
     panel.appendChild(select);
     panel.appendChild(button('Grant a pack', function () {
-      C.state.current.packs.ready = Math.min(C.config.packs.maxStored, C.state.current.packs.ready + 1);
+      C.timers.tick();
+      var packs = C.state.current.packs;
+      if (packs.ready >= C.config.packs.maxStored) return;
+      packs.ready += 1;
+      if (packs.ready >= C.config.packs.maxStored) packs.timerStartedAt = null;
+      else if (packs.timerStartedAt == null) packs.timerStartedAt = Date.now();
       C.state.save();
+      C.events.emit('pack:ready', { ready: packs.ready, gained: 1 });
     }));
     panel.appendChild(button('Skip timer', function () {
       var p = C.state.current.packs;
-      if (p.ready >= C.config.packs.maxStored) p.ready -= 1;
+      if (p.ready >= C.config.packs.maxStored) C.timers.openPack(Date.now());
       p.timerStartedAt = Date.now() - C.config.packs.regenMs;
       C.timers.tick(Date.now());
     }));
+    panel.appendChild(button('Consume a pack (dev only)', function () { C.timers.openPack(Date.now()); }));
+    function waiting(progress) {
+      progress = Math.max(0, Math.min(1, progress));
+      C.state.current.packs = { ready: 0, timerStartedAt: Date.now() - C.config.packs.regenMs * progress };
+      C.state.save(); C.fx.wake();
+    }
+    panel.appendChild(button('Waiting: empty', function () { waiting(0); }));
+    panel.appendChild(button('Waiting: halfway', function () { waiting(0.5); }));
+    panel.appendChild(button('Waiting: nearly ready', function () { waiting(1 - C.config.menuMotion.previewReadyLeadMs / C.config.packs.regenMs); }));
+    Object.keys(C.config.menuMotion.previewCountdownsMs).forEach(function (unit) {
+      panel.appendChild(button('Waiting: ' + unit, function () { waiting(1 - C.config.menuMotion.previewCountdownsMs[unit] / C.config.packs.regenMs); }));
+    });
+    panel.appendChild(button('Add currency (dev only)', function () { C.currency.add(C.config.menuMotion.previewCurrencyAmount); }));
     panel.appendChild(button('Reset save', function () { C.state.reset(); }));
     panel.appendChild(button('Replay tutorial flag', function () {
       C.state.current.tutorial = { step: 'welcome', done: false };

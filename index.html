@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="src/styles/base.css">
   <link rel="stylesheet" href="src/styles/glass.css">
   <link rel="stylesheet" href="src/styles/menu.css">
+  <link rel="stylesheet" href="src/styles/pack.css">
   <link rel="stylesheet" href="src/styles/card.css">
   <link rel="stylesheet" href="src/styles/finishes.css">
   <link rel="stylesheet" href="src/styles/gallery.css">
@@ -20,11 +21,9 @@
     <div id="wordmark" class="wordmark idle-chrome entrance" tabindex="0" role="img" aria-label="cardable" style="--entry: 0">
       <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
     </div>
-    <div class="pack-placeholder entrance" aria-hidden="true" style="--entry: 1"></div>
-    <div class="currency-placeholder idle-chrome entrance" aria-label="Currency: 0" style="--entry: 2">0</div>
-    <svg class="inventory-placeholder idle-chrome entrance" viewBox="0 0 24 24" aria-hidden="true" style="--entry: 2">
-      <path d="M6 14l6-6 6 6"/>
-    </svg>
+    <div id="pack-stage" class="pack-stage entrance" tabindex="0" role="img" style="--entry: 1"></div>
+    <div id="currency-counter" class="currency-counter idle-chrome entrance" style="--entry: 2"></div>
+    <div id="inventory-affordance" class="inventory-affordance idle-chrome entrance" style="--entry: 2"></div>
     <div id="market-slot" hidden></div>
   </main>
   <div id="cursor-glow" class="cursor-glow idle-chrome" aria-hidden="true">
@@ -38,6 +37,7 @@
   <script src="src/data/packs.js"></script>
   <script src="src/core/events.js"></script>
   <script src="src/core/state.js"></script>
+  <script src="src/core/currency.js"></script>
   <script src="src/core/timers.js"></script>
   <script src="src/core/pull.js"></script>
   <script src="src/core/serial.js"></script>
@@ -66,6 +66,10 @@
   <script src="src/ui/card.js"></script>
   <script src="src/ui/logo.js"></script>
   <script src="src/ui/menu.js"></script>
+  <script src="src/ui/numbers.js"></script>
+  <script src="src/ui/pack.js"></script>
+  <script src="src/ui/currency.js"></script>
+  <script src="src/ui/inventory-hint.js"></script>
   <script src="src/ui/gallery.js"></script>
   <script src="src/boot.js"></script>
 </body>

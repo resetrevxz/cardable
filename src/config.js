@@ -44,6 +44,19 @@
       dev: { fpsSampleMs: 1000, titleTestDelayMs: 1000 }
     },
 
+    // Stage 4 presentation; timestamp rules and pack data stay unchanged.
+    menuMotion: {
+      floatMs: 6000, floatPx: 5, backPhaseMs: 650, backOpacity: 0.45, leanDegrees: 5, followMs: 180,
+      shadowOpacity: 0.4, shadowBreath: 0.08, speckInsetPercent: 10, sweepTravelPercent: 120,
+      readyMomentMs: 850, arrivalLiftPx: 10, speckCount: 10, speckTravelPx: 8,
+      fluidWavePx: 1.2, fluidWaveMs: 2400,
+      vialMs: 450, vialSloshDegrees: 7, vialOscillations: 3,
+      digitMs: 220, currencyMs: 700, shimmerMs: 850, shimmerOpacity: 0.4,
+      arrowBreathMs: 6000, arrowNudgeMs: 14000, arrowNudgeDurationMs: 1000, arrowNudgePx: 2, arrowOpacity: 0.85, arrowOpacityRange: 0.15,
+      previewReadyLeadMs: 2000, previewCurrencyAmount: 100, peekSlots: 3,
+      previewCountdownsMs: { hours: (7 * 60 + 12) * 60000, minutes: (42 * 60 + 10) * 1000, seconds: 38000 }
+    },
+
     // Card presentation only; existing game rules and data remain unchanged.
     cardView: {
       spring: { stiffness: 140, damping: 16, mass: 1, stepMs: 1000 / 120, epsilon: 0.01 },

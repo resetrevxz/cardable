@@ -9,9 +9,11 @@ const html = fs.readFileSync(path.join(base, 'index.html'), 'utf8');
 const scripts = Array.from(html.matchAll(/<script src="([^"]+)"/g), match => match[1]);
 const tokens = new Map(Array.from(fs.readFileSync(path.join(base, 'src/styles/tokens.css'), 'utf8').matchAll(/(--[\w-]+):\s*([^;]+);/g), match => [match[1], match[2]]));
 
-function runtime(dev = false, gallery = false) {
-  let now = 0, nextId = 1;
+function runtime(dev = false, gallery = false, initialSave = null) {
+  let now = 0, nextId = 1, wallOffset = 0;
+  const wallBase = Date.now();
   const tasks = new Map(), queries = new Map(), logs = [], store = new Map();
+  if (initialSave) store.set('cardable.save', JSON.stringify(initialSave));
   class Target {
     constructor() { this.listeners = new Map(); }
     addEventListener(type, fn) { if (!this.listeners.has(type)) this.listeners.set(type, []); this.listeners.get(type).push(fn); }
@@ -29,6 +31,7 @@ function runtime(dev = false, gallery = false) {
       };
     }
     appendChild(child) { child.parent = this; this.children.push(child); return child; }
+    insertBefore(child, before) { if (child.parent) child.remove(); child.parent = this; const index = before ? this.children.indexOf(before) : -1; this.children.splice(index < 0 ? this.children.length : index, 0, child); return child; }
     remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
     setAttribute(key, value) { this.attrs[key] = String(value); if (key === 'class') this.className = String(value); }
     removeAttribute(key) { delete this.attrs[key]; }
@@ -65,7 +68,10 @@ function runtime(dev = false, gallery = false) {
   canvas.getContext = () => drawing;
   const wordmark = make('div', 'wordmark', 'wordmark idle-chrome entrance');
   wordmark.setAttribute('tabindex', 0); wordmark.appendChild(new Element('svg'));
-  const pack = make('div', 'pack-placeholder', 'pack-placeholder entrance');
+  const pack = make('div', 'pack-stage', 'pack-stage entrance');
+  pack.setAttribute('tabindex', 0);
+  make('div', 'currency-counter', 'currency-counter idle-chrome entrance');
+  make('div', 'inventory-affordance', 'inventory-affordance idle-chrome entrance');
   make('div', 'cursor-glow', 'cursor-glow idle-chrome');
   document.getElementById = id => ids.get(id);
   function schedule(fn, delay, interval = 0) { const id = nextId++; tasks.set(id, { fn, due: now + delay, interval }); return id; }
@@ -84,7 +90,8 @@ function runtime(dev = false, gallery = false) {
     },
     console: Object.fromEntries(['log', 'info', 'warn', 'error'].map(level => [level, (...args) => logs.push({ level, text: args.join(' ') })]))
   });
-  const context = vm.createContext({ window, URLSearchParams, performance: window.performance, Option: class extends Element { constructor(text, value) { super('option'); this.textContent = text; this.value = value; } } });
+  class ClockDate extends Date { static now() { return wallBase + now + wallOffset; } }
+  const context = vm.createContext({ window, Date: ClockDate, URLSearchParams, performance: window.performance, Option: class extends Element { constructor(text, value) { super('option'); this.textContent = text; this.value = value; } } });
   for (const file of scripts) vm.runInContext(fs.readFileSync(path.join(base, file), 'utf8'), context, { filename: file });
   const C = window.Cardable;
   const advance = ms => {
@@ -105,7 +112,7 @@ function runtime(dev = false, gallery = false) {
   const click = (x, y, target = document.body) => { const event = { clientX: x, clientY: y, detail: 1, target }; target.fire('click', event); if (target !== document) document.fire('click', event); };
   const hidden = value => { document.hidden = value; document.fire('visibilitychange'); };
   const reduced = value => { const query = queries.get('(prefers-reduced-motion: reduce)'); query.matches = value; query.fire('change'); };
-  return { C, window, document, drawing, canvas, wordmark, pack, logs, store, advance, move, click, hidden, reduced, now: () => now, Element };
+  return { C, window, document, drawing, canvas, wordmark, pack, logs, store, advance, move, click, hidden, reduced, now: () => now, wall: ms => { wallOffset += ms; }, date: () => ClockDate.now(), Element };
 }
 
 module.exports = { runtime, html, scripts };
@@ -113,6 +120,9 @@ if (require.main === module) {
 let passed = 0;
 function check(name, fn) { fn(); passed += 1; console.log('PASS ' + name); }
 const r = runtime();
+// Isolate Stage 1's demand-driven shell checks from Stage 4's breathing pack.
+r.C.packView.setVisible(false);
+r.C.inventoryHint.setVisible(false);
 
 check('classic local script order, staged entrance, and initial scheduler sleep', () => {
   assert(!scripts.some(file => /https?:/.test(file)));
@@ -243,6 +253,8 @@ check('hidden tabs cancel animation and expired ripples are not replayed', () =>
 });
 
 const d = runtime(true);
+d.C.packView.setVisible(false);
+d.C.inventoryHint.setVisible(false);
 check('dev integration runs six Stage 0 checks once and retains the real save', () => {
   assert.equal(d.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, 6);
   assert.equal(d.logs.filter(log => log.level === 'error').length, 0);

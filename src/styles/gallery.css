@@ -1,5 +1,5 @@
 .gallery-page { overflow-y: auto; }
-.gallery-page .pack-placeholder, .gallery-page .currency-placeholder, .gallery-page .inventory-placeholder { display: none; }
+.gallery-page .pack-stage, .gallery-page .currency-counter, .gallery-page .inventory-affordance { display: none; }
 .gallery-page .menu-shell { position: absolute; }
 .card-gallery { position: relative; z-index: var(--z-stage); max-width: 1440px; margin: 0 auto; padding: 120px var(--s-6) var(--s-8); }
 .gallery-heading { margin-bottom: var(--s-7); }

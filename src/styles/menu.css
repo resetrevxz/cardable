@@ -8,19 +8,6 @@
 .wordmark svg { display: block; overflow: visible; fill: currentColor; font: inherit; }
 .wordmark text { transform-box: view-box; }
 .wordmark:hover, .wordmark:focus-visible { color: var(--highlight); }
-.pack-placeholder {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: var(--placeholder-width); height: var(--placeholder-height);
-  border-radius: var(--r-pack); background: var(--surface); border: 1px solid var(--hairline);
-}
-.currency-placeholder {
-  position: absolute; top: var(--s-6); right: var(--s-6); font-family: var(--font-mono);
-  font-size: 14px; font-variant-numeric: tabular-nums; color: var(--text-dim); line-height: 1;
-}
-.inventory-placeholder {
-  position: absolute; bottom: var(--s-6); left: 50%; transform: translateX(-50%);
-  width: var(--s-5); height: var(--s-5); fill: none; stroke: var(--text-dim); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
-}
 .entrance { opacity: 0; transition: opacity var(--t-ui) var(--ease-out); }
 .is-loaded .entrance { opacity: 1; transition-delay: calc(var(--entry, 0) * var(--load-stagger)); }
 .idle-chrome { transition-property: opacity; transition-duration: var(--t-fast); transition-timing-function: var(--ease-out); }

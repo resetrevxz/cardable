@@ -4,6 +4,7 @@
   var notifiedReady = false;
   function setIdle(value) {
     value = value && !holds.size;
+    if (C.menu.idle === value) return;
     root.document.body.classList.toggle('is-idle', value);
     C.menu.idle = value;
     C.events.emit('menu:idle', value);
@@ -46,8 +47,8 @@
       C.menu.initialized = true;
       var shell = C.config.shell, body = root.document.body;
       body.style.setProperty('--load-stagger', shell.loadStaggerMs + 'ms');
-      body.style.setProperty('--placeholder-width', shell.packWidth + 'px');
-      body.style.setProperty('--placeholder-height', shell.packHeight + 'px');
+      body.style.setProperty('--pack-width', shell.packWidth + 'px');
+      body.style.setProperty('--pack-height', shell.packHeight + 'px');
       var firstFrame = true;
       var unsubscribe = C.fx.subscribe(function () {
         if (firstFrame) { firstFrame = false; return true; }
@@ -62,7 +63,9 @@
       C.events.on('menu:visibilityHold', function (event) { C.menu.holdVisible(event.reason, event.active); });
       root.document.addEventListener('focusin', keyboardHold);
       root.document.addEventListener('focusout', function () { root.setTimeout(keyboardHold, 0); });
-      C.events.on('pack:ready', function (event) { if (!event || event.ready > 0) notifiedReady = true; title(); });
+      C.events.on('pack:ready', function (event) { if (event && event.simulated) notifiedReady = event.ready > 0; title(); });
+      C.events.on('pack:opened', title);
+      C.events.on('save:written', title);
       root.document.addEventListener('visibilitychange', function () { title(); arm(); });
       title();
       var favicon = root.document.getElementById('favicon');
