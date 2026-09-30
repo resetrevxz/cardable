@@ -5,12 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#08080A">
   <title>Cardable</title>
+  <link id="favicon" rel="icon" type="image/svg+xml">
   <link rel="stylesheet" href="src/styles/tokens.css">
   <link rel="stylesheet" href="src/styles/base.css">
   <link rel="stylesheet" href="src/styles/glass.css">
+  <link rel="stylesheet" href="src/styles/menu.css">
 </head>
 <body>
-  <main class="wordmark" aria-label="Cardable">cardable</main>
+  <canvas id="dot-grid" aria-hidden="true"></canvas>
+  <main class="menu-shell" aria-label="Cardable">
+    <div id="wordmark" class="wordmark idle-chrome entrance" tabindex="0" role="img" aria-label="cardable" style="--entry: 0">
+      <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
+    </div>
+    <div class="pack-placeholder entrance" aria-hidden="true" style="--entry: 1"></div>
+    <div class="currency-placeholder idle-chrome entrance" aria-label="Currency: 0" style="--entry: 2">0</div>
+    <svg class="inventory-placeholder idle-chrome entrance" viewBox="0 0 24 24" aria-hidden="true" style="--entry: 2">
+      <path d="M6 14l6-6 6 6"/>
+    </svg>
+    <div id="market-slot" hidden></div>
+  </main>
+  <div id="cursor-glow" class="cursor-glow idle-chrome" aria-hidden="true">
+    <div class="cursor-glow__light"></div><div class="cursor-glow__ring"></div>
+  </div>
 
   <script src="src/core/namespace.js"></script>
   <script src="src/config.js"></script>
@@ -24,6 +40,11 @@
   <script src="src/core/serial.js"></script>
   <script src="src/core/input.js"></script>
   <script src="src/core/dev.js"></script>
+  <script src="src/fx/loop.js"></script>
+  <script src="src/fx/dots.js"></script>
+  <script src="src/fx/cursor.js"></script>
+  <script src="src/ui/logo.js"></script>
+  <script src="src/ui/menu.js"></script>
   <script src="src/boot.js"></script>
 </body>
 </html>

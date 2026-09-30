@@ -3,19 +3,12 @@ html, body { min-width: 320px; min-height: 100%; margin: 0; }
 body {
   min-height: 100vh;
   overflow: hidden;
-  display: grid;
-  place-items: center;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-.wordmark {
-  color: var(--text);
-  font-size: clamp(40px, 6vw, 72px);
-  font-weight: 600;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  user-select: none;
-}
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 1px solid rgba(255,255,255,.6); outline-offset: var(--s-1); box-shadow: 0 0 0 3px var(--glass-strong); }
+[hidden] { display: none !important; }

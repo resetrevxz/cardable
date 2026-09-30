@@ -37,6 +37,8 @@
   function runChecks() {
     var passed = true, cfg = C.config, oldState = C.state.current;
     var oldSave = C.state.save;
+    // Simulations must not overwrite the player's real saved state.
+    C.state.save = function () {};
 
     var timerState = C.state.migrate({ schemaVersion: 1, playerCode: '2345', createdAt: 1,
       packs: { ready: 0, timerStartedAt: 0 }, serialCounter: 0, inventory: [], pendingReveal: null, currency: 0,
@@ -48,7 +50,6 @@
     var backwards = C.timers.tick(9000);
     passed = report(backwards.gained === 0 && timerState.packs.timerStartedAt === 9000, 'timer ignores a backwards clock') && passed;
 
-    C.state.save = function () {};
     var fixtures = C.data.rarities.filter(function (r) { return r.pullable; }).map(function (r) {
       return { id: 'fixture-' + r.id, rarity: r.id, pullable: true };
     });
@@ -123,7 +124,8 @@
     try { params = new URLSearchParams(root.location.search); } catch (_) { params = new URLSearchParams(''); }
     if (params.get(C.config.dev.queryFlag) !== '1') return;
     var panel = node('aside');
-    panel.className = 'dev-panel';
+    panel.className = 'dev-panel glass idle-chrome entrance';
+    panel.style.setProperty('--entry', 2);
     panel.setAttribute('aria-label', 'Developer tools');
     panel.appendChild(node('div', 'CARDABLE / DEV'));
     var select = node('select');
@@ -151,24 +153,36 @@
       C.config.rarityColorMode = C.config.rarityColorMode === 'color' ? 'mono' : 'color';
       mode.textContent = 'rarityColorMode: ' + C.config.rarityColorMode;
     }));
+    panel.appendChild(button('Test pack-ready title', function () {
+      titleHint.textContent = 'Switch tabs now; title event in 1 second.';
+      root.setTimeout(function () {
+        C.events.emit('pack:ready', { ready: 1, simulated: true });
+        titleHint.textContent = 'Title event sent. Returning shows Cardable.';
+      }, C.config.shell.dev.titleTestDelayMs);
+    }));
     var mode = node('div', 'rarityColorMode: ' + C.config.rarityColorMode);
-    var fps = node('div', 'FPS: --');
-    panel.appendChild(mode); panel.appendChild(fps);
+    var fps = node('div', 'FPS: idle'), titleHint = node('div');
+    panel.appendChild(mode); panel.appendChild(fps); panel.appendChild(titleHint);
     C.dev = { panel: panel, output: node('pre'), validateData: validateData, runChecks: runChecks,
       consumeForcedTier: function () { var tier = forcedTier; forcedTier = null; select.value = ''; return tier; },
       get fps() { return fpsValue; } };
     root.document.body.appendChild(panel);
-    panel.appendChild(C.dev.output);
+    var details = node('details');
+    details.appendChild(node('summary', 'Checks and data validation'));
+    details.appendChild(C.dev.output); panel.appendChild(details);
     var validation = validateData();
     C.dev.output.textContent += 'Data validation: ' + validation.errors.length + ' error(s), ' + validation.warnings.length + ' warning(s).\n';
     runChecks();
-    var frames = 0, last = performance.now();
-    function frame(now) {
+    var frames = 0, last = root.performance.now();
+    C.events.on('fx:wake', function () { frames = 0; last = root.performance.now(); fps.textContent = 'FPS: measuring'; });
+    C.events.on('fx:frame', function (event) {
       frames += 1;
-      if (now - last >= 1000) { fpsValue = Math.round(frames * 1000 / (now - last)); frames = 0; last = now; fps.textContent = 'FPS: ' + fpsValue; }
-      root.requestAnimationFrame(frame);
-    }
-    root.requestAnimationFrame(frame);
+      if (event.now - last >= C.config.shell.dev.fpsSampleMs) {
+        fpsValue = Math.round(frames * 1000 / (event.now - last)); frames = 0; last = event.now;
+        fps.textContent = 'FPS: ' + fpsValue + ' · frames ' + event.frameCount;
+      }
+    });
+    C.events.on('fx:sleep', function (stats) { fpsValue = 0; fps.textContent = 'FPS: idle · frames ' + stats.frameCount; });
   }
   C.dev = { init: init, validateData: validateData, runChecks: runChecks,
     consumeForcedTier: function () { var tier = forcedTier; forcedTier = null; return tier; } };

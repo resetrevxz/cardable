@@ -32,6 +32,18 @@
       rippleMs: 600, rippleSecondDelayMs: 120, rippleSpeed: 700
     },
 
+    // Stage 1 visual tuning; game rules and the original dot parameters stay as supplied.
+    shell: {
+      loadStaggerMs: 125, idleWaveMs: 60000,
+      packWidth: 180, packHeight: 252,
+      frameMs: 1000 / 60, maxFrameDeltaMs: 64,
+      pointerSamples: 32,
+      dots: { alphaThreshold: 0.002, trailStrength: 0.35, trailCooling: 4.605, ringWidthPitches: 1.25, secondRingIntensity: 0.55 },
+      cursor: { glowPx: 220, ringPx: 24, ringScale: 1.1, opacity: 0.055, follow: 0.18, settlePx: 0.1 },
+      logo: { fontPx: 40, letterSpacingEm: -0.04, cellHeight: 52, baseline: 40, swapMs: 200, staggerMs: 40, returnMs: 760, loopMs: 1600, blurPx: 2 },
+      dev: { fpsSampleMs: 1000, titleTestDelayMs: 1000 }
+    },
+
     // Only a -> @ and l -> / were specified; the rest are suggestions (OPEN-QUESTIONS #23)
     logoMorph: { c: '(', a: '@', r: '®', d: '∂', b: '6', l: '/', e: '€' },
 

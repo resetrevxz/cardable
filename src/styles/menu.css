@@ -1,0 +1,71 @@
+#dot-grid { position: fixed; inset: 0; width: 100%; height: 100%; z-index: var(--z-grid); pointer-events: none; }
+.menu-shell { position: fixed; inset: 0; z-index: var(--z-menu); pointer-events: none; }
+.wordmark {
+  position: absolute; top: var(--s-6); left: var(--s-6);
+  color: var(--text); font-family: var(--font-ui); font-weight: 600; line-height: 1;
+  user-select: none; pointer-events: auto; border-radius: var(--s-1);
+}
+.wordmark svg { display: block; overflow: visible; fill: currentColor; font: inherit; }
+.wordmark text { transform-box: view-box; }
+.wordmark:hover, .wordmark:focus-visible { color: var(--highlight); }
+.pack-placeholder {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: var(--placeholder-width); height: var(--placeholder-height);
+  border-radius: var(--r-pack); background: var(--surface); border: 1px solid var(--hairline);
+}
+.currency-placeholder {
+  position: absolute; top: var(--s-6); right: var(--s-6); font-family: var(--font-mono);
+  font-size: 14px; font-variant-numeric: tabular-nums; color: var(--text-dim); line-height: 1;
+}
+.inventory-placeholder {
+  position: absolute; bottom: var(--s-6); left: 50%; transform: translateX(-50%);
+  width: var(--s-5); height: var(--s-5); fill: none; stroke: var(--text-dim); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+}
+.entrance { opacity: 0; transition: opacity var(--t-ui) var(--ease-out); }
+.is-loaded .entrance { opacity: 1; transition-delay: calc(var(--entry, 0) * var(--load-stagger)); }
+.idle-chrome { transition-property: opacity; transition-duration: var(--t-fast); transition-timing-function: var(--ease-out); }
+.is-idle .idle-chrome { opacity: 0 !important; transition-duration: var(--t-fade); transition-delay: 0; }
+.is-loaded.has-entered .entrance { transition-delay: 0; }
+.is-loaded:not(.has-entered) .entrance { transition-duration: var(--t-ui); }
+.cursor-glow {
+  position: fixed; top: 0; left: 0; width: var(--glow-size); height: var(--glow-size);
+  z-index: var(--z-cursor); pointer-events: none; mix-blend-mode: screen; opacity: 0;
+}
+.cursor-glow.is-present { opacity: 1; }
+.cursor-glow__light {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,var(--glow-opacity)) 0%, rgba(255,255,255,0) 70%);
+  transition: transform var(--t-ui) var(--ease-out), opacity var(--t-ui) var(--ease-out);
+}
+.cursor-glow__ring {
+  position: absolute; top: 50%; left: 50%; width: var(--ring-size); height: var(--ring-size);
+  border: 1px solid var(--hairline-strong); border-radius: var(--r-chip); opacity: 0;
+  transform: translate(-50%,-50%) scale(.8);
+  transition: transform var(--t-ui) var(--ease-out), opacity var(--t-ui) var(--ease-out);
+}
+.is-ring .cursor-glow__light { transform: scale(var(--ring-ratio)); opacity: 0; }
+.is-ring .cursor-glow__ring { opacity: 1; transform: translate(-50%,-50%) scale(var(--ring-scale)); }
+.dev-panel {
+  position: fixed; left: var(--s-4); bottom: var(--s-4); z-index: var(--z-toast);
+  display: grid; gap: var(--s-2); width: 280px; max-width: calc(100vw - var(--s-6)); max-height: 45vh; overflow: auto;
+  padding: var(--s-3); border-radius: var(--r-button); font-family: var(--font-mono); font-size: 10px;
+  line-height: 1.5; font-variant-numeric: tabular-nums; color: var(--text-dim);
+}
+.dev-panel button, .dev-panel select {
+  min-height: var(--s-6); padding: var(--s-1) var(--s-2); border: 1px solid var(--hairline);
+  border-radius: var(--s-2); background: var(--surface); text-align: left; cursor: pointer;
+  transition: background var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out), transform var(--t-fast) var(--ease-out);
+}
+.dev-panel button:hover, .dev-panel select:hover { border-color: var(--hairline-strong); background: var(--surface-2); }
+.dev-panel button:hover { transform: translateY(-1px); }
+.dev-panel button:active { transform: scale(.98); }
+.dev-panel button:disabled { opacity: .5; cursor: default; transform: none; }
+.dev-panel option { background: var(--surface); }
+.dev-panel summary { cursor: pointer; }
+.dev-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: var(--s-2) 0 0; font: inherit; }
+.reduced-motion .cursor-glow__light, .reduced-motion .cursor-glow__ring { transition-property: opacity; }
+.reduced-motion .dev-panel button { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .cursor-glow__light, .cursor-glow__ring { transition-property: opacity; }
+  .dev-panel button { transform: none; }
+}
