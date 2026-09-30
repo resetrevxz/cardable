@@ -15,7 +15,8 @@ check('tiers 0–3 remain registered with the required lifecycle methods', () =>
   Object.values(C.finishes.registry).forEach(finish => ['mount', 'update', 'destroy', 'lite'].forEach(method => assert.equal(typeof finish[method], 'function')));
   assert(scripts.indexOf('src/fx/springs.js') < scripts.indexOf('src/finishes/index.js'));
   assert(scripts.indexOf('src/finishes/rare.js') < scripts.indexOf('src/ui/card.js'));
-  assert.throws(() => C.cardView.create(C.card('gen2-legendary-01'), instance(C.card('gen2-legendary-01'))), /not implemented/);
+  const unsupported = { ...C.card('gen1-basic-01'), rarity: 'ascendant' };
+  assert.throws(() => C.cardView.create(unsupported, instance(unsupported)), /not implemented/);
 });
 
 check('gallery retains four original tiers in both modes, uses an isolated Uncommon fixture, and preserves save/data', () => {

@@ -61,12 +61,16 @@
   }
   function buildFace(back, card, instance, rarity, generation, context) {
     var face = node('div', 'card__face ' + (back ? 'card__face--back' : 'card__face--front'));
-    var binding = null, textParts;
+    var binding = null, textParts, propLayer = layer(8), finishContext = context;
+    if (!back && rarity.propSpec) {
+      var props = material(propLayer, 'card__prop-render');
+      finishContext = Object.assign({}, context, { propElement: props.live, litePropElement: props.lite });
+    }
     for (var i = 1; i < layerNames.length; i += 1) {
       var element = layer(i);
       if (i === 2 && !back) {
         var finish = material(element, 'card__finish-render');
-        binding = C.finishes.bind(rarity.finish, finish.live, card, context);
+        binding = C.finishes.bind(rarity.finish, finish.live, card, finishContext);
         finish.lite.appendChild(binding.lite());
       }
       if (i === 3 && !back) { var artWindow = node('div', 'card__art-window'); artWindow.appendChild(C.art.render(card)); element.appendChild(artWindow); }
@@ -75,6 +79,7 @@
         if (back) element = backText(instance);
         else { textParts = frontText(card, instance, rarity, generation); element = textParts.el; }
       }
+      if (i === 8) element = propLayer;
       face.appendChild(element);
     }
     return { el: face, finish: binding, text: textParts };

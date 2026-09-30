@@ -115,6 +115,8 @@
 .card__back-serial { position: absolute; top: 70%; width: 100%; text-align: center; font-family: var(--font-mono); font-size: clamp(7px,3cqw,11px); letter-spacing: .15em; color: var(--text-dim); text-shadow: 0 -1px 0 var(--keyline),0 1px 0 rgba(255,255,255,.12); }
 .reduced-motion .card__finish .card__material--live { opacity: 0; }
 .reduced-motion .card__finish .card__material--lite { opacity: 1; }
+.reduced-motion .card__prop .card__material--live { opacity: 0; }
+.reduced-motion .card__prop .card__material--lite { opacity: 1; }
 .reduced-motion .card__flipper { transition: none; transform: none; }
 .reduced-motion .card__face { transform: none; transition: opacity var(--t-fast) var(--ease-out); }
 .reduced-motion .card__face--back { opacity: 0; }

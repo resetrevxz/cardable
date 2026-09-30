@@ -12,16 +12,16 @@ function view(id, mode = 'color') { return C.gallery.views.find(v => v.card.rari
 function live(v) { return v.el.querySelectorAll('.finish-surface')[0]; }
 function snapshot(el) { return JSON.stringify({ style: el.style, children: el.children.map(snapshot) }); }
 
-check('tiers 4–6 register individual modules; later finishes are still unimplemented', () => {
-  assert.deepEqual(Object.keys(C.finishes.registry), ['basic', 'common', 'uncommon', 'rare', ...ids]);
+check('tiers 4–6 remain registered as individual modules', () => {
+  ['basic', 'common', 'uncommon', 'rare', ...ids].forEach(id => assert(C.finishes.registry[id]));
   ids.forEach(id => {
     assert(scripts.includes('src/finishes/' + id + '.js'));
     ['mount', 'update', 'destroy', 'lite'].forEach(method => assert.equal(typeof C.finishes.registry[id][method], 'function'));
   });
 });
 
-check('gallery contains seven tiers in both modes and preserves catalog/save state', () => {
-  assert.equal(C.gallery.views.length, 14);
+check('gallery retains tiers 0–6 in both modes and preserves catalog/save state', () => {
+  assert.equal(C.gallery.views.filter(v => C.rarity(v.card.rarity).tier <= 6).length, 14);
   ids.forEach(id => ['color', 'mono'].forEach(mode => assert(view(id, mode))));
   assert.equal(C.data.cards.length, 6);
   assert.equal(C.state.current.serialCounter, 0);
@@ -111,11 +111,11 @@ check('reduced motion freezes each new finish and shows its static equivalent', 
   r.reduced(false);
 });
 
-check('FPS sampler counts one full + thirteen lite cards under simulated 60 Hz timestamps', () => {
+check('FPS sampler counts one full and all remaining cards as lite under simulated timestamps', () => {
   const active = view('double-super-rare'); active.el.fire('pointerenter'); r.advance(100);
   C.gallery.measure(); r.advance(C.config.finishMotion.profileMs);
   const result = C.gallery.lastProfile;
-  assert(result.valid); assert.equal(result.fullCards, 1); assert.equal(result.liteCards, 13);
+  assert(result.valid); assert.equal(result.fullCards, 1); assert.equal(result.liteCards, C.gallery.views.length - 1);
   assert(result.fps >= 58 && result.fps <= 61); assert(result.p95Ms < 17);
   // This checks the sampler's arithmetic only, not actual rendering performance.
 });

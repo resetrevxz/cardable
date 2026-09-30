@@ -18,3 +18,50 @@
 .collectible-card:is([data-rarity="super-rare"],[data-rarity="unusual"]) .card__badge { border-color: rgba(255,255,255,.4); }
 .collectible-card:is([data-rarity="super-rare"],[data-rarity="unusual"]) .card__meter-tick { background: rgba(255,255,255,.2); }
 .collectible-card:is([data-rarity="super-rare"],[data-rarity="unusual"]) .card__meter-tick[data-filled="true"] { background: var(--card-ink); }
+
+/* Props are mounted separately at layer 8 and share the material crossfade. */
+.finish-prop { opacity: 1; background: none; }
+.finish-legendary, .finish-legendary-prop {
+  --legendary-light: #FFF0BA; --legendary-gold: #E3B85D; --legendary-maroon: #6C2136; --legendary-checker: #DB7B83;
+  --crown-shadow: #855920; --gem-red: #EF3456; --gem-blue: #C5E7F4; --gem-green: #219458; --gem-green-edge: #C5FFDC;
+}
+.finish-legendary { background: linear-gradient(135deg,var(--legendary-light),var(--legendary-gold) 50%,#BC8D36); }
+.finish-legendary[data-color-mode="mono"], .finish-legendary-prop[data-color-mode="mono"] {
+  --legendary-light: #F1F1F1; --legendary-gold: #BDBDBD; --legendary-maroon: #353535; --legendary-checker: #888;
+  --crown-shadow: #5B5B5B; --gem-red: #AAA; --gem-blue: #EAEAEA; --gem-green: #737373; --gem-green-edge: #FFF;
+}
+.finish-legendary[data-color-mode="mono"] { background: linear-gradient(135deg,var(--legendary-light),var(--legendary-gold) 50%,#898989); }
+.finish-legendary-band { position: absolute; left: 0; top: 37%; width: 100%; height: 26%; opacity: .9; }
+.finish-legendary-crown { position: absolute; width: 28%; height: 12%; top: 1.5%; left: 36%; overflow: visible; }
+.crown-red-glow { opacity: .6; filter: drop-shadow(0 0 2px var(--gem-red)); }
+.crown-green-gem { filter: drop-shadow(0 0 2px var(--gem-green-edge)); }
+.finish-tip-spark { position: absolute; width: 2px; height: 6px; background: var(--legendary-light); border-radius: var(--s-1); opacity: .65; box-shadow: 0 0 4px var(--legendary-gold); }
+.finish-mythical { background: linear-gradient(145deg,#751A35,#4B0C21 60%,#651129); }
+.finish-mythical-shine { position: absolute; inset: 0; opacity: .55; background: radial-gradient(ellipse at 23% 12%,#FFC6D1,rgba(239,83,122,.65) 24%,transparent 65%),linear-gradient(125deg,transparent 30%,rgba(255,164,185,.26) 42%,transparent 56%); }
+.finish-mythical[data-color-mode="mono"] { background: linear-gradient(145deg,#424242,#202020 60%,#353535); }
+.finish-mythical[data-color-mode="mono"] .finish-mythical-shine { background: radial-gradient(ellipse at 23% 12%,#E1E1E1,rgba(180,180,180,.55) 24%,transparent 65%),linear-gradient(125deg,transparent 30%,rgba(200,200,200,.26) 42%,transparent 56%); }
+.finish-mythical-prop { --flame-middle: #FF9AA9; --flame-tip: #D51A38; }
+.finish-mythical-prop[data-color-mode="mono"] { --flame-middle: #BDBDBD; --flame-tip: #555; }
+.finish-mythical-nametag { position: absolute; top: 63%; left: 7.5%; right: 7.5%; }
+.finish-mythical-label-measure { visibility: hidden; }
+.finish-mythical-flames { position: absolute; left: -10px; top: -10px; width: calc(100% + 20px); height: calc(100% + 20px); overflow: visible; filter: drop-shadow(0 0 2px var(--flame-tip)); }
+.finish-flame { transform-box: fill-box; transform-origin: center bottom; opacity: .75; }
+.collectible-card[data-rarity="mythical"] { --card-ink: var(--text); --card-ink-dim: #E8D8DD; }
+.collectible-card[data-rarity="mythical"] .card__name { padding: var(--s-1) var(--s-2); background: rgba(8,8,10,.68); border: 1px solid rgba(255,255,255,.18); border-radius: var(--s-1); }
+.collectible-card[data-rarity="mythical"] .card__badge { border-color: rgba(255,255,255,.4); }
+.collectible-card[data-rarity="mythical"] .card__meter-tick { background: rgba(255,255,255,.2); }
+.collectible-card[data-rarity="mythical"] .card__meter-tick[data-filled="true"] { background: var(--card-ink); }
+.finish-exotic { background: #F19DCC; border: 2px solid #794095; }
+.finish-exotic[data-color-mode="mono"] { background: #BEBEBE; border-color: #555; }
+.finish-exotic-shape { position: absolute; width: 10%; height: 8%; fill: none; stroke: #752C94; stroke-width: 1.5; opacity: .24; }
+.finish-exotic[data-color-mode="mono"] .finish-exotic-shape { stroke: #555; }
+.finish-exotic-prop { --exotic-border: #35134B; --exotic-outline: #FFB0DA; }
+.finish-exotic-prop[data-color-mode="mono"] { --exotic-border: #222; --exotic-outline: #DDD; }
+.finish-exotic-frame { position: absolute; inset: -2%; width: 104%; height: 104%; overflow: visible; filter: drop-shadow(0 0 3px var(--exotic-outline)); }
+.exotic-pink-outline { stroke: var(--exotic-outline); }
+.exotic-dark-border { stroke: var(--exotic-border); }
+.exotic-border-highlight { stroke: var(--highlight); stroke-linecap: round; }
+@supports (corner-shape: squircle) { .finish-exotic-frame { corner-shape: squircle; border-radius: var(--r-card); } }
+.collectible-card[data-rarity="legendary"][data-color-mode="color"] { --art-accent: #E3B85D; }
+.collectible-card[data-rarity="mythical"][data-color-mode="color"] { --art-accent: #E3819A; }
+.collectible-card[data-rarity="exotic"][data-color-mode="color"] { --art-accent: #D582CE; }

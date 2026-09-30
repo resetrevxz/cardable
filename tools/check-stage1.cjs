@@ -30,7 +30,7 @@ function runtime(dev = false, gallery = false) {
     }
     appendChild(child) { child.parent = this; this.children.push(child); return child; }
     remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
-    setAttribute(key, value) { this.attrs[key] = String(value); }
+    setAttribute(key, value) { this.attrs[key] = String(value); if (key === 'class') this.className = String(value); }
     removeAttribute(key) { delete this.attrs[key]; }
     getAttribute(key) { return this.attrs[key] ?? null; }
     matches(selectors) {

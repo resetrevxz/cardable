@@ -59,6 +59,10 @@
       unusual: { cycleMs: 5500, glowMinScale: 0.35, glowMinOpacity: 0.4 },
       doubleSuperRare: { goldCycleMs: 9000, blueCycleMs: 27000, sparkleCount: 20,
         goldHue: 43, goldHueRange: 15, blueHue: 216, blueHueRange: 12, sparkleSpeed: 1.4 },
+      legendary: { waveCycleMs: 7000, waveTravelPercent: 3, sparkleCount: 16,
+        crownSparkleCount: 8, sparkleSpeed: 1.3, tipSparkSpeed: 1.8, tipSparkTravelPx: 6, gemCycleMs: 6000 },
+      mythical: { shineCycleMs: 6500, flameCount: 24, flameCycleMs: 1600, flameScaleMin: 0.75, flameScaleMax: 1.1 },
+      exotic: { shapeCount: 9, shapeCycleMs: 11000, shapeTravelPx: 10, shapeRotateDegrees: 18, borderCycleMs: 5000 },
       profileMs: 5000
     },
 
