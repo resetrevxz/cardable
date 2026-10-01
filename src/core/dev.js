@@ -69,7 +69,8 @@
       tutorial: { step: 'welcome', done: false }, settings: {}, stats: {} });
     C.state.current = timerState;
     var catchup = C.timers.reconcileInto(timerState, 20 * 60 * 60 * 1000);
-    passed = report(catchup.ready === 2, 'timer catch-up after 20 hours respects cap 2', 'ready=' + catchup.ready) && passed;
+    var expectedStock = Math.min(cfg.packs.maxStored, Math.floor(20 * 60 * 60 * 1000 / cfg.packs.regenMs));
+    passed = report(catchup.ready === expectedStock, 'timer catch-up after 20 hours respects cap ' + cfg.packs.maxStored, 'ready=' + catchup.ready) && passed;
     timerState.packs = { ready: 0, timerStartedAt: 10000 };
     var backwards = C.timers.reconcileInto(timerState, 9000);
     passed = report(backwards.gained === 0 && timerState.packs.timerStartedAt === 9000, 'timer ignores a backwards clock') && passed;

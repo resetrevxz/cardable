@@ -7,8 +7,8 @@
     version: '1.0.0',
 
     packs: {
-      regenMs: 8 * 60 * 60 * 1000,   // OPEN-QUESTIONS #1 (brief says both "4 per day" and "every 8 hours")
-      maxStored: 2,
+      regenMs: 2 * 60 * 60 * 1000,   // One pack every two hours.
+      maxStored: 4,
       startingPacks: 2
     },
 
@@ -76,7 +76,7 @@
       digitMs: 220, currencyMs: 700, shimmerMs: 850, shimmerOpacity: 0.4,
       arrowBreathMs: 6000, arrowNudgeMs: 14000, arrowNudgeDurationMs: 1000, arrowNudgePx: 2, arrowOpacity: 0.85, arrowOpacityRange: 0.15,
       previewReadyLeadMs: 2000, previewCurrencyAmount: 100, peekSlots: 3,
-      previewCountdownsMs: { hours: (7 * 60 + 12) * 60000, minutes: (42 * 60 + 10) * 1000, seconds: 38000 }
+      previewCountdownsMs: { hours: (1 * 60 + 12) * 60000, minutes: (42 * 60 + 10) * 1000, seconds: 38000 }
     },
 
     // Stage 5 presentation. Charge/cut game rules above remain unchanged.

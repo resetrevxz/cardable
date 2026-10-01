@@ -4,8 +4,8 @@ All numbers live in `src/config.js` and `src/data/`. Change them there, never in
 
 ## 1. Packs and the timer
 
-- A new pack arrives every `config.packs.regenMs` (default **8 hours**, see OPEN-QUESTIONS #1).
-- Up to `config.packs.maxStored` (**2**) packs can be stored. At the cap, the timer is **paused** (time is not banked).
+- A new pack arrives every `config.packs.regenMs` (**2 hours**, per the owner).
+- Up to `config.packs.maxStored` (**4**) packs can be stored. At the cap, the timer is **paused** (time is not banked).
 - New players start with `config.packs.startingPacks` (**2**) packs and the tutorial (`docs/08-TUTORIAL.md`).
 - Timers use real timestamps so they keep running while the tab is closed. There is no interval-based counting.
 

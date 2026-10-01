@@ -18,7 +18,7 @@ check('real menu replaces placeholders with local classic-script components', ()
   assert.equal(scripts.at(-1), 'src/boot.js');
   assert.equal(C.packView.el.dataset.pack, C.data.packs.find(pack => pack.enabled && pack.obtainable === 'timer').id);
   assert.equal(C.packView.el.dataset.state, 'ready'); assert.equal(C.packView.stats.readyMoments, 0);
-  assert.equal(C.packView.vials.length, 2); assert(C.packView.vials.every(vial => vial.value === 1));
+  assert.equal(C.packView.vials.length, C.config.packs.maxStored); assert(C.packView.vials.every((vial, i) => vial.value === (i < C.config.packs.startingPacks ? 1 : 0)));
 });
 check('ready wrapper stays grounded, responds to a nearby pointer, and keeps a restrained rear pack', () => {
   r.advance(100); const before = C.packView.front.pose.style.transform;
@@ -30,8 +30,9 @@ check('ready wrapper stays grounded, responds to a nearby pointer, and keeps a r
   assert(C.packView.front.pose.style.transform.includes('rotateY('));
 });
 check('dev consumption drains vials with slosh, removes rear pack, starts the real timer and saves', () => {
+  const started = C.state.current.packs.timerStartedAt;
   dev('Consume a pack (dev only)'); assert.equal(C.state.current.packs.ready, 1);
-  assert.equal(C.packView.back.el.style.opacity, 0); assert.equal(C.state.current.packs.timerStartedAt, r.date());
+  assert.equal(C.packView.back.el.style.opacity, 0); assert.equal(C.state.current.packs.timerStartedAt, started == null ? r.date() : started);
   r.advance(100); assert(C.packView.vials[1].value < 1 && C.packView.vials[1].value > 0);
   assert(!C.packView.vials[1].fill.style.transform.includes('rotate(0deg)'));
   r.advance(500); assert.equal(C.packView.vials[1].value, 0);
@@ -44,7 +45,7 @@ check('waiting glass fill follows progress every frame, with meniscus and drifti
   dev('Waiting: halfway'); r.advance(20); const a = fluidFill();
   assert(Math.abs(a - C.timers.progress(r.date())) < 0.000001);
   assert(a > 0.5 && a < 0.501); const speck = C.packView.front.specks[0], before = speck.el.style.transform;
-  r.advance(100); const b = fluidFill(); assert(b > a); assert(b - a < 0.00001);
+  r.advance(100); const b = fluidFill(); assert(b > a); assert(b - a < 110 / C.config.packs.regenMs);
   assert.notEqual(speck.el.style.transform, before);
   assert(r.pack.querySelectorAll('.pack-meniscus').length === 2); assert.equal(C.packView.front.specks.length, C.config.menuMotion.speckCount);
   assert(Math.abs(b - C.timers.progress(r.date())) < 0.000001);
@@ -52,7 +53,7 @@ check('waiting glass fill follows progress every frame, with meniscus and drifti
 check('countdown formats hours, minutes, seconds and rolls only the changed numeric slot', () => {
   assert.equal(C.timers.format((7 * 3600 + 12 * 60) * 1000), '7h 12m');
   assert.equal(C.timers.format((42 * 60 + 10) * 1000), '42m 10s'); assert.equal(C.timers.format(38000), '38s');
-  [['hours','7h 12m'],['minutes','42m 10s'],['seconds','38s']].forEach(([unit, text]) => { dev('Waiting: ' + unit); r.advance(30); assert.equal(C.packView.digits.text, text); });
+  ['hours','minutes','seconds'].forEach(unit => { dev('Waiting: ' + unit); r.advance(30); assert.equal(C.packView.digits.text, C.timers.format(C.config.menuMotion.previewCountdownsMs[unit])); });
   const host = new r.Element('span'), digits = C.numbers.create(host);
   digits.set('42m 10s'); const slots = digits.slots.slice(); digits.set('42m 11s');
   assert.equal(digits.changes, 1); assert.equal(digits.slots.filter(slot => slot.start !== null).length, 1);
@@ -78,13 +79,14 @@ check('near-ready completes fluid and plays exactly one sweep/lift while filling
   r.advance(1200); assert(!r.pack.classList.contains('is-arriving')); assert.equal(C.packView.vials[0].value, 1);
 });
 check('grant/skip controls use real ready events, stock cap pauses time without banking', () => {
-  const before = C.packView.stats.readyMoments; dev('Grant a pack'); r.advance(500);
-  assert.equal(C.state.current.packs.ready, 2); assert.equal(C.state.current.packs.timerStartedAt, null); assert.equal(C.packView.stats.readyMoments, before + 1);
-  assert(C.packView.vials.every(v => v.value === 1)); dev('Grant a pack'); assert.equal(C.packView.stats.readyMoments, before + 1);
+  const before = C.packView.stats.readyMoments, gained = C.config.packs.maxStored - C.state.current.packs.ready;
+  for (let i = 0; i < gained; i++) dev('Grant a pack'); r.advance(500);
+  assert.equal(C.state.current.packs.ready, C.config.packs.maxStored); assert.equal(C.state.current.packs.timerStartedAt, null); assert.equal(C.packView.stats.readyMoments, before + gained);
+  assert(C.packView.vials.every(v => v.value === 1)); dev('Grant a pack'); assert.equal(C.packView.stats.readyMoments, before + gained);
   r.wall(C.config.packs.regenMs * 3); C.timers.tick(r.date()); assert.equal(C.state.current.packs.timerStartedAt, null);
   dev('Consume a pack (dev only)'); assert.equal(C.state.current.packs.timerStartedAt, r.date()); assert.equal(C.timers.progress(r.date()), 0);
-  dev('Skip timer'); assert.equal(C.state.current.packs.ready, 2); assert.equal(C.packView.stats.readyMoments, before + 2);
-  dev('Skip timer'); assert.equal(C.state.current.packs.ready, 2); assert.equal(C.packView.stats.readyMoments, before + 3);
+  dev('Skip timer'); assert.equal(C.state.current.packs.ready, C.config.packs.maxStored); assert.equal(C.packView.stats.readyMoments, before + gained + 1);
+  dev('Skip timer'); assert.equal(C.state.current.packs.ready, C.config.packs.maxStored); assert.equal(C.packView.stats.readyMoments, before + gained + 2);
 });
 check('currency adds save once and count up/shimmer without earning or spending actions', () => {
   let writes = 0; const stop = C.events.on('save:written', () => writes++);
@@ -145,18 +147,18 @@ check('reduced motion stops float/lean/particles/rolls/slosh and uses fades for 
   assert(C.packView.vials.every(v => !v.fill.style.transform.includes('rotate(') || v.fill.style.transform.includes('rotate(0deg)')));
   assert.equal(C.currencyView.el.querySelectorAll('.currency-shimmer')[0].style.transform, 'translateX(0%)');
   assert(C.currencyView.digits.slots.every(slot => slot.start === null));
-  dev('Grant a pack'); r.advance(4000); assert.equal(C.fx.stats.running, false);
+  while (C.state.current.packs.ready < C.config.packs.maxStored) dev('Grant a pack'); r.advance(4000); assert.equal(C.fx.stats.running, false);
   const frames = C.fx.stats.frameCount; r.advance(1000); assert.equal(C.fx.stats.frameCount, frames); r.reduced(false);
 });
-check('a load-time twenty-hour catch-up plays once, caps at two, and reload does not replay it', () => {
+check('a load-time twenty-hour catch-up plays once, respects the stock cap, and reload does not replay it', () => {
   const save = { schemaVersion: 1, playerCode: '7K3F', createdAt: 1, packs: { ready: 0, timerStartedAt: Date.now() - 20 * 3600000 } };
-  const loaded = runtime(false, false, save); assert.equal(loaded.C.state.current.packs.ready, 2); assert.equal(loaded.C.packView.stats.readyMoments, 1);
+  const loaded = runtime(false, false, save); assert.equal(loaded.C.state.current.packs.ready, loaded.C.config.packs.maxStored); assert.equal(loaded.C.packView.stats.readyMoments, 1);
   loaded.advance(1000); assert.equal(loaded.C.packView.stats.readyMoments, 1);
   const reloaded = runtime(false, false, JSON.parse(loaded.store.get('cardable.save'))); assert.equal(reloaded.C.packView.stats.readyMoments, 0); assert.equal(reloaded.C.state.current.packs.timerStartedAt, null);
 });
 check('save reset refreshes all menu components and gallery keeps pack animation disabled', () => {
   dev('Reset save'); r.advance(1200); assert.equal(C.state.current.currency, 0); assert.equal(C.currencyView.digits.text, '0');
-  assert.equal(C.state.current.packs.ready, 2); assert(C.packView.vials.every(v => v.value === 1));
+  assert.equal(C.state.current.packs.ready, C.config.packs.startingPacks); assert(C.packView.vials.every((v, i) => v.value === (i < C.config.packs.startingPacks ? 1 : 0)));
   assert.equal(C.state.current.pendingReveal, null); assert.equal(C.state.current.serialCounter, 0);
   const gallery = runtime(true, true); gallery.advance(200); assert.equal(gallery.C.packView.visible, false); assert.equal(gallery.C.packView.stats.updates, 0);
   assert.equal(gallery.C.gallery.views.length, 28); assert.equal(gallery.C.cardView.stats.fullCards, 1);

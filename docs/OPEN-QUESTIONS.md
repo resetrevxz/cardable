@@ -4,7 +4,7 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 
 | # | Question | Default used | Change it |
 |---|---|---|---|
-| 1 | The brief says "4 packs per day" and "a pack every 8 hours". 24 h / 8 h = 3 packs per day (4 per day would be every 6 h). | 8 hours | `config.packs.regenMs` |
+| 1 | Pack regeneration cadence. | Owner changed it to 2 hours per pack; up to 12 per day while below the stock cap | `config.packs.regenMs` |
 | 2 | The tier chances add up to **100.5 %**, and the printed running totals imply Legendary is **0.5 %**, not 1 %. | Chances kept as written and normalized by their sum; dev-mode warning | `chance` of `legendary` in `rarities.js` |
 | 3 | The palette rule says black/white/gray only, but the rarity designs specify colors. | UI chrome is monochrome; rarity colors appear only on card faces and their direct accents. A mono mode exists. | `config.rarityColorMode` |
 | 4 | How many cards does one pack give? Some text says "the card", other text says "cards". | 1 card per pack; the sequence supports more | `cardsPerPack` in `packs.js` |
@@ -17,7 +17,7 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 | 11 | Currency name, symbol, earning and spending are not defined. | Placeholder name "Credits", display only, no earning or spending in v1 | `config.currency` |
 | 12 | Can duplicates be sold or converted? | No. They stack visually only. | future |
 | 13 | Limited tier: pull chance and dates are undefined. | `pullable: false`, `availableUntil: null`, date text shown as `<date>` until set | `rarities.js` |
-| 14 | What happens to the timer when 2 packs are stored? | Timer pauses at the cap; time is not banked | `docs/01-GAME-RULES.md` section 1 |
+| 14 | What happens to the timer when 4 packs are stored? | Timer pauses at the cap; time is not banked | `docs/01-GAME-RULES.md` section 1 |
 | 15 | Cutting: hover-slide or press-and-drag? | Press and drag | `config.cut.requirePress` |
 | 16 | The tier text mentions "rare card packs". How many pack types now? | One pack type (`standard`). A disabled second entry shows the pattern. | `src/data/packs.js` |
 | 17 | The Limited design text is identical to Unusual. Intended? | Treated as intended: Unusual-style base plus crimson border prop | `docs/02-RARITIES.md` tier 12 |

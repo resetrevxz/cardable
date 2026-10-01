@@ -43,9 +43,10 @@
   });
   C.dev.registerCheck('charge reconciliation mutates only the durable candidate', function () {
     var original = C.state.fresh(0); original.packs = { ready: 1, timerStartedAt: 0 };
-    var candidate = JSON.parse(JSON.stringify(original)); C.timers.reconcileInto(candidate, C.config.packs.regenMs);
+    var now = C.config.packs.regenMs * (C.config.packs.maxStored - 1);
+    var candidate = JSON.parse(JSON.stringify(original)); C.timers.reconcileInto(candidate, now);
     return original.packs.ready === 1 && candidate.packs.ready === C.config.packs.maxStored &&
-      C.timers.consumeInto(candidate, C.config.packs.regenMs) && candidate.packs.ready === 1;
+      C.timers.consumeInto(candidate, now) && candidate.packs.ready === C.config.packs.maxStored - 1;
   });
   C.dev.registerCheck('state simulations cannot replace an active opening or modal', function () {
     return C.dev.canRunStateChecks({ phase: 'idle' }) && !C.dev.canRunStateChecks({ phase: 'revealed' }) &&

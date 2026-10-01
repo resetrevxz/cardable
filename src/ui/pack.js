@@ -44,7 +44,7 @@
         if (!initial && next > ready) pendingGain = next - ready;
         if (next < ready) { pendingGain = 0; arrivalStart = null; host.classList.remove('is-arriving'); }
         ready = next; host.dataset.state = ready > 0 ? 'ready' : 'waiting'; host.dataset.ready = ready;
-        back.el.style.opacity = ready >= C.config.packs.maxStored ? cfg.backOpacity : 0;
+        back.el.style.opacity = ready > 1 ? cfg.backOpacity : 0;
         host.classList.toggle('is-first-visit', !state.tutorial.done && state.stats.packsOpened === 0);
         stock.setAttribute('aria-label', ready + ' of ' + C.config.packs.maxStored + ' packs stored');
         host.setAttribute('aria-label', pack.name + ': ' + (ready ? ready + ' ready' : 'regenerating'));
@@ -99,7 +99,7 @@
         host.style.setProperty('--arrival-lift', reduced ? '0px' : -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx + 'px');
         host.style.setProperty('--arrival-opacity', arrivalStart === null ? 0 : Math.sin(arrivalP * Math.PI));
         [front, back].forEach(function (item, index) {
-          if (index && ready < C.config.packs.maxStored) return;
+          if (index && ready < 2) return;
           var lift = index === 0 && !reduced && arrivalStart !== null ? -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx : 0;
           var amount = index ? 0.35 : 1;
           item.pose.style.transform = 'translate3d(' + pose.x * amount + 'px,' + (pose.y * amount - pose.lift * amount + lift) + 'px,' + pose.lift * amount + 'px) rotateX(' + rx * amount + 'deg) rotateY(' + ry * amount + 'deg) rotateZ(' + pose.rz * amount + 'deg) scale(' + (1 - pose.grip * 0.008) + ')';

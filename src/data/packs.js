@@ -24,7 +24,7 @@
         roughness: 0.42, foilStrength: 0.65, refraction: 0.32, emboss: 0.7,
         subtitle: 'Collectible graphics series', series: '01', batch: 'CB / 00018472',
         microprint: 'Digital sealed pack / Offline collection system', security: 'CBL / AUTHENTIC' },
-      obtainable: 'timer'                    // 'timer' = comes from the 8-hour pack timer
+      obtainable: 'timer'                    // 'timer' = regenerates on config.packs.regenMs
     },
     {
       id: 'rare', name: 'Rare Pack', enabled: false,   // example of a future pack; keep disabled
