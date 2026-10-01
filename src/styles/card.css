@@ -36,6 +36,15 @@
 .card__text { z-index: 7; color: var(--card-ink); }
 .card__prop { z-index: 8; }
 .card__edge { z-index: 9; border: 1px solid rgba(255,255,255,.75); outline: 2px solid var(--keyline); outline-offset: 0; }
+[data-thumbnail="true"] { overflow: hidden; cursor: default; background: var(--surface); }
+[data-thumbnail="true"] .card__shadow, [data-thumbnail="true"] .card__body,
+[data-thumbnail="true"] .card__finish, [data-thumbnail="true"] .card__foil,
+[data-thumbnail="true"] .card__beam, [data-thumbnail="true"] .card__glare,
+[data-thumbnail="true"] .card__text, [data-thumbnail="true"] .card__prop,
+[data-thumbnail="true"] .card__face--back { display: none; }
+[data-thumbnail="true"] .card__art-window { inset: 1px; border: 0; border-radius: inherit; }
+[data-thumbnail="true"] .card__tilter { transform: none; }
+[data-thumbnail="true"] .card__edge { outline: none; border: 1px solid var(--keyline); }
 .card__material { position: absolute; inset: 0; border-radius: inherit; transition: opacity var(--mode-duration, var(--t-fast)) var(--ease-out); }
 .card__material--live { opacity: 0; }
 .card__material--lite {

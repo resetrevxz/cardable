@@ -175,12 +175,12 @@ check('pointer leave clears the halo and every click creates two rings with a de
   r.document.fire('pointerout', { relatedTarget: null }); r.advance(20); assert.equal(r.drawing.arcs.length, 0);
   const button = new r.Element('button');
   r.click(793, 507, button); r.advance(100);
-  assert.equal(r.C.dots.stats.ripples, 2);
+  assert.equal(r.C.dots.stats.clickRipples, 2); assert.equal(r.C.dots.stats.rings, 1);
   assert(!r.drawing.arcs.some(dot => Math.hypot(dot.x - 793, dot.y - 507) < 5));
-  r.advance(50);
+  r.advance(130); assert.equal(r.C.dots.stats.rings, 2);
   const inner = r.drawing.arcs.find(dot => Math.hypot(dot.x - 793, dot.y - 507) < 5);
-  assert(inner && inner.alpha <= 0.55 * 0.55);
-  r.advance(650); assert.equal(r.C.dots.stats.ripples, 0); assert.equal(r.C.fx.stats.running, false);
+  assert(inner && inner.alpha <= r.C.config.dots.ripple.peakAlpha * r.C.config.dots.ripple.secondRingScale);
+  r.advance(1300); assert.equal(r.C.dots.stats.ripples, 0); assert.equal(r.C.fx.stats.running, false);
 });
 
 check('high-DPI resize rebuilds dimensions and grid pitch', () => {
@@ -234,7 +234,7 @@ check('SVG has one animated group per letter, loops on hover, and settles on lea
   for (let i = 0; i < 4; i += 1) { r.move(40 + i, 40, r.wordmark); r.advance(900); }
   assert(r.C.logo.stats.waves >= first + 2);
   assert.equal(r.wordmark.querySelector('svg').querySelector('defs').children.length, 8);
-  r.wordmark.fire('pointerleave'); r.advance(250); assert.equal(r.C.logo.stats.active, false);
+  r.wordmark.fire('pointerleave'); r.advance(750); assert.equal(r.C.logo.stats.active, false);
   const groups = r.wordmark.querySelector('svg').children.find(child => child.tagName === 'g').children;
   assert(groups.every(group => group.children[0].children[0].style.transform === 'translateY(0px)'));
   const draws = r.C.dots.stats.draws; r.advance(400); assert.equal(r.C.dots.stats.draws, draws);

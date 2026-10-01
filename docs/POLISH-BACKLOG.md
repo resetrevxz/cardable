@@ -10,9 +10,9 @@ Codex appends ideas here instead of building them mid-stage. The owner ranks the
 - [x] (cards) Shelf cards get a static baked highlight in lite mode so they still feel metallic. Static top-left glare; no animation required.
 - [x] (reveal) Very faint screen vignette that deepens during preFlip for tiers 7+. Neutral vignette, disabled with reduced motion.
 - [x] (reveal) First-time pulls get a slightly longer bloom; duplicates skip the dust puff. Existing 200 ms New hold retained; subtle first-pull bloom gain and duplicate dust suppression added.
-- [x] (menu) The pack shadow breathes in sync with its float. Existing shared phase verified in Stage 8 source/behavior review.
+- [x] (menu) The pack shadow breathes in sync with its float. F6 grounds it outside the moving rig; it grows darker/larger as the pack lowers.
 - [x] (menu) Digits in the countdown roll with a 20 ms stagger. Only changed digits participate.
-- [x] (menu) The wordmark occasionally runs one silent morph wave when idle. Existing queued wave retained and regression checked.
+- [x] (menu) The wordmark occasionally runs one silent morph when idle. F5 uses one calm scrambled letter after queued pointer restoration.
 - [x] (inventory) Sheet top edge shows a 1 px highlight that brightens while dragging. Neutral highlight follows capture/release.
 - [x] (inventory) Coverflow card reflection fades with distance from center. Continuous reflection alpha follows shelf position.
 - [x] (global) Grain overlay at 2-3 % opacity. Static 2.5% texture shares the card's cached SVG image.
@@ -33,3 +33,7 @@ The seeded items above were worked in their listed order after save/accessibilit
 - [ ] (acceptance) Measure browser paint/compositing on a mid-range laptop, especially the sheet's 40 px blur, grain and one full Secret finish among 300 tiles. Use the new profiler for JS/cadence, then the browser Performance panel for paint.
 - [ ] (acceptance) Check the real native file picker and download, modal focus at 200% zoom, missing-font fallback, and system reduced-motion changes during every opening phase.
 - [ ] (content) Replace the placeholder catalog when the owner supplies the real generation-wise card list. No replacement list is currently present.
+
+## Requested F1–F6 fixes
+
+Implemented in `FIXES-F1-F6-REPORT.md`: atomic whole-card handoff and art-only toast/flight thumbnails; pre-mounted transform/clip glass toast; subtle capped click breaths; exclusive opening pulses; fixed-slot independent logo scrambling; and the aligned satin pack rig with a grounded shadow. Source and behavior checks pass. Toast first-frame glass compositing and pack/wordmark screenshots remain part of the rendered acceptance gate above.

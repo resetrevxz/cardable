@@ -151,7 +151,7 @@ await check('reduced-motion cards have no tilt, lift, parallax, sway, finish ani
 });
 await check('burst clicks have bounded ripple storage and settle to a sleeping canvas', () => {
   const r = boot(); r.C.packView.setVisible(false); r.C.inventoryHint.setVisible(false); for (let i = 0; i < 100; i++) r.click(640, 300); r.advance(20);
-  assert(r.C.dots.stats.ripples <= r.C.config.polish.maxRipples); r.advance(1800); const draws = r.C.dots.stats.draws; r.advance(1000); assert.equal(r.C.dots.stats.draws, draws);
+  assert(r.C.dots.stats.ripples <= r.C.config.dots.ripple.maxSimultaneous); r.advance(1800); const draws = r.C.dots.stats.draws; r.advance(1000); assert.equal(r.C.dots.stats.draws, draws);
 });
 await check('300 tiles retain virtualization and one full render through settings and reset', () => {
   const r = boot(save(), true); r.C.events.emit('inventory:preview', true); open(r); const index = r.C.inventory.entries.findIndex((e, i) => i >= 80 && e.owned); r.C.inventory.shelf.scrollLeft = index * (parseFloat(r.C.inventory.el.style['--inventory-tile-width']) + 24); r.C.inventory.shelf.fire('scroll'); r.advance(1200);

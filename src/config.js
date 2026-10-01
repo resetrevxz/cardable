@@ -30,30 +30,35 @@
       maxSaveBytes: 8 * 1024 * 1024, downloadReleaseMs: 1000, profileMs: 5000,
       profileMaxFrames: 1200, slowFrameMs: 1000 / 60 + 1, parallaxPx: 2,
       grainOpacity: 0.025, vignetteOpacity: 0.12, newBloomGain: 0.08, digitStaggerMs: 20,
-      sheetDragHighlight: 0.26, sheetRestHighlight: 0.18, maxRipples: 48, faviconReadyDotPx: 4
+      sheetDragHighlight: 0.26, sheetRestHighlight: 0.18, faviconReadyDotPx: 4
     },
 
     dots: {
       spacing: 26, baseRadius: 0.9, maxRadius: 2.2, influenceRadius: 170,
       baseAlpha: 0, maxAlpha: 0.55, lean: 1.5, trailDecayMs: 400,
-      rippleMs: 600, rippleSecondDelayMs: 120, rippleSpeed: 700
+      pulse: { lifeMs: 600, speed: 700, ringWidth: 65 },
+      // Click breaths are independent of the opening's pack pulses.
+      ripple: { speed: 320, lifeMs: 1100, peakAlpha: 0.28, ringWidth: 24, maxRadius: 240,
+        secondRingScale: 0.30, secondDelayMs: 200, maxSimultaneous: 3 },
+      openingFadeOutMs: 200, openingFadeInMs: 300
     },
 
-    // Stage 1 visual tuning; game rules and the original dot parameters stay as supplied.
+    // Shell layout/font metrics. Click breaths and the requested calm logo use their own tuning.
     shell: {
       loadStaggerMs: 125, idleWaveMs: 60000,
-      packWidth: 180, packHeight: 252,
+      packWidth: 180, packHeight: 266.4,
       frameMs: 1000 / 60, maxFrameDeltaMs: 64,
       pointerSamples: 32,
-      dots: { alphaThreshold: 0.002, trailStrength: 0.35, trailCooling: 4.605, ringWidthPitches: 1.25, secondRingIntensity: 0.55 },
+      dots: { alphaThreshold: 0.002, trailStrength: 0.35, trailCooling: 4.605 },
       cursor: { glowPx: 220, ringPx: 24, ringScale: 1.1, opacity: 0.055, follow: 0.18, settlePx: 0.1 },
-      logo: { fontPx: 40, letterSpacingEm: -0.04, cellHeight: 52, baseline: 40, swapMs: 200, staggerMs: 40, returnMs: 760, loopMs: 1600, blurPx: 2 },
+      logo: { fontPx: 40, cellHeight: 52, baseline: 40 },
       dev: { fpsSampleMs: 1000, titleTestDelayMs: 1000 }
     },
 
     // Stage 4 presentation; timestamp rules and pack data stay unchanged.
     menuMotion: {
-      floatMs: 6000, floatPx: 5, backPhaseMs: 650, backOpacity: 0.45, leanDegrees: 5, followMs: 180,
+      floatMs: 6000, floatPx: 5, backPhaseMs: 650, backOpacity: 0.45, leanDegrees: 8, followMs: 180,
+      sweepMs: 6000, sweepOpacity: 0.18, shadowScaleBreath: 0.08, reflectionOpacity: 0.055,
       shadowOpacity: 0.4, shadowBreath: 0.08, speckInsetPercent: 10, sweepTravelPercent: 120,
       readyMomentMs: 850, arrivalLiftPx: 10, speckCount: 10, speckTravelPx: 8,
       fluidWavePx: 1.2, fluidWaveMs: 2400,
@@ -100,6 +105,7 @@
       serialDelayMs: 180, infoStepMs: 80, infoFadeMs: 150, keepDelayMs: 400,
       newHoldMs: 200, duplicateMotionScale: 0.85, secretBackMs: 400,
       collectMs: 900, thumbnailStaggerMs: 80, thumbnailWidthPx: 40, toastThumbnailWidthPx: 34,
+      collectionHandoffMs: 150, collectionExitScale: 0.96,
       toastMs: 2400, menuReturnDelayMs: 200, arrowPulseMs: 500, arrowPulseScale: 1.15,
       packSlideMs: 500, packSlidePx: 12, haloRadiusPx: 260, haloStrength: 0.32,
       bloomScale: 1.6
@@ -145,7 +151,14 @@
     },
 
     // Only a -> @ and l -> / were specified; the rest are suggestions (OPEN-QUESTIONS #23)
-    logoMorph: { c: '(', a: '@', r: '®', d: '∂', b: '6', l: '/', e: '€' },
+    logoMorph: { c: '(', a: '@', r: '3', d: 'ð', b: '6', l: '/', e: '€' },
+    logo: {
+      pool: { c: ['c', '(', '6', '€'], a: ['a', '@', '4', 'ð'], r: ['r', '3', '1', '|'],
+        d: ['d', 'ð', '6', '4'], b: ['b', '6', 'ð', '3'], l: ['l', '/', '1', '|'], e: ['e', '€', '3', '6'] },
+      holdMinMs: 180, holdMaxMs: 520, swapMinMs: 320, swapMaxMs: 420,
+      maxSwapping: 2, maxChanged: 4, returnMs: 320, trackingPx: 2, slotPaddingPx: 2,
+      travelPortion: 0.35, blurPx: 2
+    },
 
     flags: {
       market: false,     // future: the owner builds this later. Do not implement.

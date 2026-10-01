@@ -75,10 +75,10 @@ check('failed Keep retains pending state and storage, then retry commits exactly
 });
 check('collection has only lite cards, a single pulse/toast, menu delay and no post-commit replay',()=>{
  const r=open();ready(r);let pulses=0,handoffs=0;r.C.events.on('inventory:collectPulse',()=>pulses++);r.C.events.on('pack:handoff',()=>handoffs++);
- clickKeep(r);assert.equal(r.C.opening.phase,'collecting');assert.equal(r.C.cardView.stats.fullCards,0);assert(!r.C.opening.toast.hidden);assert.equal(r.C.opening.stats.collections,1);
- r.advance(920);assert.equal(pulses,1);assert.equal(r.C.opening.phase,'collecting');r.advance(220);assert.equal(r.C.opening.phase,'idle');assert.equal(handoffs,1);assert(!r.pack.inert);assert(!r.C.menu.idle);
+ clickKeep(r);assert.equal(r.C.opening.phase,'collecting');assert.equal(r.C.cardView.stats.fullCards,0);assert(r.C.opening.toast.hidden);r.advance(180);assert(!r.C.opening.toast.hidden);assert.equal(r.C.opening.view.el.style.visibility,'hidden');assert.equal(r.C.opening.stats.collections,1);
+ r.advance(740);assert.equal(pulses,1);assert.equal(r.C.opening.phase,'collecting');r.advance(220);assert.equal(r.C.opening.phase,'idle');assert.equal(handoffs,1);assert(!r.pack.inert);assert(!r.C.menu.idle);
  assert(r.C.packView.front.el.style.transform.includes('translate'));const restored=runtime(false,false,clone(r.C.state.current));assert.equal(restored.C.opening.phase,'idle');assert.equal(restored.C.state.current.inventory.length,1);
- r.advance(1400);assert(r.C.opening.toast.hidden);assert.equal(pulses,1);
+ r.advance(1600);assert(r.C.opening.toast.hidden);assert.equal(pulses,1);
 });
 check('every committed reveal phase reloads immediately at Keep with identical instances',()=>{
  for(const phase of ['dissolving','cutting','tearing','rising','preFlip','flipping','settling','revealed']){

@@ -104,12 +104,14 @@
     create: function (record, instance, options) {
       var card = typeof record === 'string' ? C.card(record) : record;
       options = options || {};
+      if (options.thumbnail) options = Object.assign({}, options, { autoFocus: false, keyboardFlip: false });
       if (!card || !instance || typeof instance.serial !== 'string') throw new Error('Card view needs a card and an instance serial');
       var rarity = C.rarity(card.rarity), generation = C.data.generations.find(function (g) { return g.id === card.generation; });
       if (!rarity || !C.finishes.registry[rarity.finish]) throw new Error('Card finish is not implemented');
       var context = { colorMode: options.colorMode || C.config.rarityColorMode, state: options.finishState,
         owned: typeof options.owned === 'boolean' ? options.owned : C.state.current.inventory.some(function (owned) { return owned && owned.cardId === card.id; }) };
       context.presentation = C.finishes.describe(rarity.finish, card, context);
+      if (options.thumbnail) context.presentation.hideArt = false;
       context.state = context.presentation.state || context.state;
       var el = node('article', 'collectible-card');
       el.dataset.cardId = card.id; el.dataset.rarity = rarity.id; el.dataset.colorMode = context.colorMode;
@@ -124,11 +126,17 @@
       var shadow = layer(0); el.appendChild(shadow);
       var tilter = node('div', 'card__tilter'), flipper = node('div', 'card__flipper');
       var front = buildFace(false, card, instance, rarity, generation, context), back = buildFace(true, card, instance, rarity, generation, context);
+      if (options.thumbnail) {
+        el.dataset.thumbnail = 'true'; el.inert = true; el.setAttribute('tabindex', '-1'); el.setAttribute('aria-hidden', 'true');
+        [front, back].forEach(function (face) {
+          face.el.querySelectorAll('.card__text, .card__prop').forEach(function (part) { while (part.children.length) part.children[0].remove(); part.hidden = true; });
+        });
+      }
       back.el.setAttribute('aria-hidden', 'true');
       flipper.appendChild(front.el); flipper.appendChild(back.el); tilter.appendChild(flipper); el.appendChild(tilter);
       var sx = C.springs.create(0), sy = C.springs.create(0), lift = C.springs.create(0);
       var pointer = { x: 0.5, y: 0.5 }, lastMove = root.performance.now(), idleTimer = null, stampTimer = null;
-      var stamped = !!context.presentation.concealed, observer = null, renderedInfo = null, revealAngle = 180, revealReduced = null;
+      var stamped = !!options.thumbnail || !!context.presentation.concealed, observer = null, renderedInfo = null, revealAngle = 180, revealReduced = null;
       var shine = node('div', 'card__reveal-shine'); shine.setAttribute('aria-hidden', 'true');
       if (options.controlledReveal) {
         front.el.querySelectorAll('.card__glare')[0].appendChild(shine);
@@ -175,6 +183,7 @@
         },
         setMode: function (mode) {
           if (mode !== 'full' && mode !== 'lite') throw new Error('Unknown card render mode');
+          if (options.thumbnail) mode = 'lite';
           if (mode === 'full') C.cardView.focus(view);
           else { view.applyMode('lite'); if (active === view) { active = null; stats.fullCards = 0; } }
         },

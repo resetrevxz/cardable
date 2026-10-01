@@ -23,6 +23,8 @@
       }
       var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); node('kbd', '', hint, 'Space');
       var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, px = 0.5, py = 0.5, handoff = null;
+      var leanX = C.springs.create(0), leanY = C.springs.create(0);
+      host.style.setProperty('--pack-reflection-opacity', cfg.reflectionOpacity);
       var gallery = new URLSearchParams(root.location.search).get('gallery') === '1' && new URLSearchParams(root.location.search).get(C.config.dev.queryFlag) === '1';
       if (gallery) C.packView.visible = false;
       function refresh(initial) {
@@ -78,6 +80,9 @@
         var reduced = C.motion.reduced, pointer = C.input.pointer;
         var x = pointer.inside ? pointer.x / root.innerWidth : 0.5, y = pointer.inside ? pointer.y / root.innerHeight : 0.5;
         var follow = reduced ? 1 : 1 - Math.exp(-dt / cfg.followMs); px += (x - px) * follow; py += (y - py) * follow;
+        if (reduced) { leanX.reset(); leanY.reset(); }
+        var rx = reduced ? 0 : Math.max(-cfg.leanDegrees, Math.min(cfg.leanDegrees, leanX.step(dt, Math.max(-cfg.leanDegrees, Math.min(cfg.leanDegrees, (0.5 - y) * cfg.leanDegrees * 2)))));
+        var ry = reduced ? 0 : Math.max(-cfg.leanDegrees, Math.min(cfg.leanDegrees, leanY.step(dt, Math.max(-cfg.leanDegrees, Math.min(cfg.leanDegrees, (x - 0.5) * cfg.leanDegrees * 2)))));
         var progress = C.timers.progress(Date.now());
         C.packView.progress = progress;
         var fill = ready > 0 ? 1 : progress;
@@ -89,8 +94,13 @@
         host.style.setProperty('--shine-x', px * 100 + '%'); host.style.setProperty('--shine-y', py * 100 + '%');
         [front, back].forEach(function (item, index) {
           var wave = reduced ? 0 : Math.sin((time + index * cfg.backPhaseMs) / cfg.floatMs * Math.PI * 2);
-          item.pose.style.transform = 'translateY(' + (-wave * cfg.floatPx) + 'px) rotateX(' + (reduced ? 0 : (0.5 - py) * cfg.leanDegrees * 2) + 'deg) rotateY(' + (reduced ? 0 : (px - 0.5) * cfg.leanDegrees * 2) + 'deg)';
-          item.el.style.setProperty('--breath-shadow', cfg.shadowOpacity + (reduced ? 0 : wave * cfg.shadowBreath));
+          var lift = index === 0 && !reduced ? -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx : 0;
+          item.pose.style.transform = 'translateY(' + (-wave * cfg.floatPx + lift) + 'px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+          item.shadow.style.opacity = cfg.shadowOpacity - wave * cfg.shadowBreath;
+          item.shadow.style.transform = 'translate(8px,12px) scale(' + (1 - wave * cfg.shadowScaleBreath) + ')';
+          var sweep = ((time + index * cfg.backPhaseMs) % cfg.sweepMs) / cfg.sweepMs;
+          item.el.style.setProperty('--pack-sweep-x', (-cfg.sweepTravelPercent + sweep * cfg.sweepTravelPercent * 2) + '%');
+          item.el.style.setProperty('--pack-sweep-opacity', reduced ? 0 : Math.sin(sweep * Math.PI) * cfg.sweepOpacity);
           item.fluid.style.transform = 'translateY(' + (1 - fill) * 100 + '%)';
           item.el.style.setProperty('--meniscus-wave', reduced ? '0px' : Math.sin(time / cfg.fluidWaveMs * Math.PI * 2) * cfg.fluidWavePx + 'px');
           if (!ready) item.specks.forEach(function (speck) { speck.el.style.transform = 'translateY(' + (reduced ? 0 : Math.sin(time / cfg.fluidWaveMs * Math.PI * 2 + speck.phase) * cfg.speckTravelPx) + 'px)'; });

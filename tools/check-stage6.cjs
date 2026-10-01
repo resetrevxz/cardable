@@ -86,7 +86,7 @@ check('full fresh walkthrough uses one real pack and pull, then inventory, timer
   let writes = 0; const original = r.window.localStorage.setItem; r.window.localStorage.setItem = (k, v) => { writes++; original(k, v); };
   keep(r); assert.equal(writes, 1); assert.equal(r.C.tutorial.step, 'inventory');
   assert.deepEqual(clone(r.C.state.current.inventory[0]), instance); assert.equal(r.C.state.current.packs.ready, 1);
-  r.advance(2500); assert.equal(r.document.body.dataset.tutorial, 'inventory'); assert.equal(r.C.tutorial.instruction.textContent, 'Your cards live here.');
+  r.advance(r.C.config.revealMotion.collectionHandoffMs + r.C.config.revealMotion.toastMs + 100); assert.equal(r.document.body.dataset.tutorial, 'inventory'); assert.equal(r.C.tutorial.instruction.textContent, 'Your cards live here.');
   r.advance(6050); assert.equal(r.C.tutorial.step, 'timer'); assert.equal(r.C.tutorial.instruction.textContent, 'A new pack arrives every 8 hours.');
   r.advance(4100); assert.equal(r.C.tutorial.step, 'done'); assert.equal(r.C.state.current.tutorial.done, true);
   assert.equal(r.C.state.current.stats.packsOpened, 1); assert.equal(r.C.state.current.serialCounter, 1); assert.equal(r.C.opening.stats.collections, 1);

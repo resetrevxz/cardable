@@ -6,6 +6,7 @@
   var motion, scene, mount, bloom, keepButton, note, dust, currentView = null, rarity, timings, pendingCards = null;
   var cardIndex = 0, ownedCount = 0, revealClock = 0, infoClock = 0, shineAt = null, infoEnd = 0, keepAt = 0, sceneWidth = 0, sceneHeight = 0;
   var keeping = false, writingKeep = false, collected = false, flights = [], toast, toastView = null, toastAge = null, collectionSource, collectionTarget;
+  var toastThumb, toastName, toastDetail;
   var meniscus, enabled = false, width = 0, height = 0, inventoryBlocked = false;
   var finePointer = root.matchMedia('(hover: hover) and (pointer: fine)');
   var preferencesActive = false;
@@ -280,34 +281,46 @@
   }
   function closeToast() {
     if (toastView) toastView.destroy(); toastView = null; toastAge = null;
-    if (toast) { while (toast.children.length) toast.children[0].remove(); toast.hidden = true; }
+    if (toast) { toast.hidden = true; toast.style.visibility = 'hidden'; toast.style.transform = 'translate(-50%,100vh)'; toast.style.clipPath = 'inset(100% 0 0 0 round var(--r-button))'; toast.style.willChange = ''; toast.setAttribute('aria-hidden', 'true'); }
     C.events.emit('menu:visibilityHold', { reason: 'collection-toast', active: false });
   }
   function beginCollect() {
-    stats.collections += 1; collected = false; currentView.setMode('lite'); currentView.el.style.opacity = 0;
+    stats.collections += 1; collected = false; currentView.setMode('lite'); currentView.setVisible(false);
+    currentView.el.inert = true; currentView.el.style.opacity = 1; currentView.el.style.transform = 'scale(1)'; dust.clear();
     collectionSource = mount.getBoundingClientRect();
+    var corner = parseFloat(root.getComputedStyle(currentView.el).getPropertyValue('--r-card'));
+    toastThumb.style.setProperty('--thumbnail-radius', corner * motion.toastThumbnailWidthPx / collectionSource.width + 'px');
     var arrow = root.document.getElementById('inventory-affordance').querySelector('button'); collectionTarget = arrow.getBoundingClientRect();
     var step = pendingCards.length > 1 ? Math.min(motion.thumbnailStaggerMs, motion.collectMs * 0.4 / (pendingCards.length - 1)) : 0;
     pendingCards.forEach(function (instance, i) {
-      var el = node('div', 'collection-flight', stage), view = C.cardView.create(instance.cardId, instance, { autoFocus: false, owned: true });
+      var el = node('div', 'collection-flight', stage), view = C.cardView.create(instance.cardId, instance, { thumbnail: true, owned: true });
       el.appendChild(view.el); el.setAttribute('aria-hidden', 'true'); el.inert = true; view.el.setAttribute('tabindex', '-1');
       el.style.width = collectionSource.width + 'px'; el.style.opacity = 0;
+      el.style.setProperty('--thumbnail-radius', corner + 'px');
       flights.push({ el: el, view: view, at: i * step, duration: motion.collectMs - (pendingCards.length - 1) * step });
     });
-    closeToast(); toast.hidden = false; toastAge = 0;
-    var thumb = node('div', 'collection-toast-thumb', toast); thumb.style.width = motion.toastThumbnailWidthPx + 'px'; thumb.setAttribute('aria-hidden', 'true'); thumb.inert = true;
-    toastView = C.cardView.create(pendingCards[0].cardId, pendingCards[0], { autoFocus: false, owned: true }); toastView.el.setAttribute('tabindex', '-1'); thumb.appendChild(toastView.el);
-    var text = node('div', 'collection-toast-text', toast);
-    node('div', 'collection-toast-name', text, pendingCards.length === 1 ? C.card(pendingCards[0].cardId).name : pendingCards.length + ' cards');
-    node('div', 'collection-toast-detail', text, pendingCards.length === 1 ? 'Added to inventory' : 'Cards added to inventory');
+    // Reveal the toast after the whole source card is hidden, never behind fading card text.
+    closeToast(); toastAge = -motion.collectionHandoffMs;
+    toastView = C.cardView.create(pendingCards[0].cardId, pendingCards[0], { thumbnail: true, owned: true }); toastThumb.appendChild(toastView.el);
+    toastName.textContent = pendingCards.length === 1 ? C.card(pendingCards[0].cardId).name : pendingCards.length + ' cards';
+    toastDetail.textContent = 'Added to inventory';
     C.events.emit('menu:visibilityHold', { reason: 'collection-toast', active: true });
     phaseTo('collecting'); revealContext(true); announce(pendingCards.length + (pendingCards.length === 1 ? ' card added' : ' cards added') + ' to inventory.');
   }
   function updateToast(dt) {
     if (toastAge === null) return false;
-    toastAge += dt; var enter = clamp(toastAge / motion.infoFadeMs), exit = clamp((motion.toastMs - toastAge) / motion.infoFadeMs);
-    toast.style.opacity = Math.min(enter, exit); toast.style.transform = C.motion.reduced ? 'translateX(-50%)' : 'translate(-50%,' + (1 - ease(enter)) * motion.packSlidePx + 'px)';
+    toastAge += dt; if (toastAge < 0) return true;
+    toast.hidden = false; toast.style.visibility = 'visible'; toast.setAttribute('aria-hidden', 'false');
+    var enter = clamp(toastAge / motion.infoFadeMs), exit = clamp((motion.toastMs - toastAge) / motion.infoFadeMs);
+    paintToast(Math.min(enter, exit));
     if (toastAge >= motion.toastMs) { closeToast(); return false; } return true;
+  }
+  function paintToast(amount) {
+    // One pre-mounted glass/content surface. Never fade the backdrop-filter layer.
+    var moving = !C.motion.reduced && amount < 1;
+    toast.style.willChange = moving ? 'transform' : '';
+    toast.style.transform = C.motion.reduced ? 'translateX(-50%)' : 'translate(-50%,' + (1 - ease(amount)) * motion.packSlidePx + 'px)';
+    toast.style.clipPath = C.motion.reduced ? 'none' : 'inset(' + (1 - ease(amount)) * 100 + '% 0 0 0 round var(--r-button))';
   }
   function updateReveal(dt) {
     if (!currentView) return false;
@@ -346,8 +359,8 @@
       }
       return true;
     }
-    currentView.setRevealFrame({ infoMs: infoClock, shine: shineAt === null ? 0 : (revealClock - shineAt) / motion.shineMs });
     if (phase === 'settling' || phase === 'revealed') {
+      currentView.setRevealFrame({ infoMs: infoClock, shine: shineAt === null ? 0 : (revealClock - shineAt) / motion.shineMs });
       var land = clamp(infoClock / timings.settleMs);
       mount.style.transform = reduced ? 'none' : 'translateY(' + Math.sin(land * Math.PI * motion.bounceCycles) * (1 - land) * motion.bouncePx + 'px)';
       note.style.opacity = clamp((infoClock - infoEnd) / motion.infoFadeMs);
@@ -357,11 +370,15 @@
     }
     if (phase === 'collecting') {
       p = clamp(elapsed / motion.collectMs);
+      var handoff = clamp(elapsed / motion.collectionHandoffMs);
+      currentView.el.style.opacity = 1 - ease(handoff);
+      currentView.el.style.transform = reduced ? 'none' : 'scale(' + (1 + (motion.collectionExitScale - 1) * ease(handoff)) + ')';
+      if (handoff === 1) currentView.el.style.visibility = 'hidden';
       flights.forEach(function (flight) {
         var amount = clamp((elapsed - flight.at) / flight.duration), e = ease(amount), from = collectionSource, to = collectionTarget;
         var x = from.left + (to.left + to.width / 2 - from.width / 2 - from.left) * e;
         var y = from.top + (to.top + to.height / 2 - from.height / 2 - from.top) * e;
-        flight.el.style.opacity = elapsed < flight.at ? 0 : reduced ? 1 - e : 1 - clamp((amount - 0.9) / 0.1);
+        flight.el.style.opacity = elapsed < flight.at ? 0 : (reduced ? 1 - e : 1 - clamp((amount - 0.9) / 0.1)) * ease(clamp((elapsed - flight.at) / motion.collectionHandoffMs));
         flight.el.style.transform = reduced ? 'translate3d(' + from.left + 'px,' + from.top + 'px,0)' : 'translate3d(' + x + 'px,' + y + 'px,0) scale(' + (1 + (motion.thumbnailWidthPx / from.width - 1) * e) + ')';
       });
       bloom.style.opacity = bloomLevel() * (1 - ease(p));
@@ -462,7 +479,11 @@
       note = node('div', 'opening-card-note', scene);
       keepButton = node('button', 'opening-keep glass', scene, 'Keep'); keepButton.setAttribute('type', 'button'); keepButton.hidden = true;
       keepButton.addEventListener('click', function () { C.input.keep(); });
-      toast = node('aside', 'collection-toast glass', root.document.body); toast.hidden = true; toast.setAttribute('role', 'status');
+      toast = node('aside', 'collection-toast glass', root.document.body); toast.setAttribute('role', 'status');
+      toastThumb = node('div', 'collection-toast-thumb', toast); toastThumb.style.width = motion.toastThumbnailWidthPx + 'px'; toastThumb.setAttribute('aria-hidden', 'true'); toastThumb.inert = true;
+      var toastText = node('div', 'collection-toast-text', toast);
+      toastName = node('div', 'collection-toast-name', toastText);
+      toastDetail = node('div', 'collection-toast-detail', toastText, 'Added to inventory'); closeToast();
       meniscus = C.springs.create(0); bounds(); revealBounds();
       C.opening.el = stage; C.opening.wrapper = host; C.opening.glass = glass; C.opening.foil = foil; C.opening.halves = halves;
       C.opening.scene = scene; C.opening.keepButton = keepButton; C.opening.note = note; C.opening.toast = toast;
@@ -488,7 +509,9 @@
         if (currentView) revealContext(phase !== 'rising', phase === 'preFlip' ? ease(elapsed / timings.preFlipPauseMs) : 1);
         if (phase === 'collecting') {
           collectionSource = mount.getBoundingClientRect(); collectionTarget = root.document.getElementById('inventory-affordance').querySelector('button').getBoundingClientRect();
-          flights.forEach(function (flight) { flight.el.style.width = collectionSource.width + 'px'; });
+          var corner = parseFloat(root.getComputedStyle(currentView.el).getPropertyValue('--r-card'));
+          toastThumb.style.setProperty('--thumbnail-radius', corner * motion.toastThumbnailWidthPx / collectionSource.width + 'px');
+          flights.forEach(function (flight) { flight.el.style.width = collectionSource.width + 'px'; flight.el.style.setProperty('--thumbnail-radius', corner + 'px'); });
         }
         C.fx.wake();
       });
