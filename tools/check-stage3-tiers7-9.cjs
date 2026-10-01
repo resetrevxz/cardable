@@ -70,7 +70,9 @@ check('Mythical slowly pulses ruby shine, with white-to-red flames originating a
   assert.equal(gradient.children[0].getAttribute('stop-color'), 'var(--highlight)');
   assert.equal(gradient.children[2].getAttribute('stop-color'), 'var(--flame-tip)');
   assert(prop(v).querySelector('mask'));
-  assert.equal(prop(v).querySelectorAll('.finish-mythical-label-measure')[0].textContent, v.card.name);
+  assert.equal(prop(v).querySelectorAll('.finish-mythical-label-measure').length, 0);
+  assert.equal(prop(v).querySelectorAll('.finish-mythical-flames')[0].getAttribute('data-origin'), 'bottom');
+  assert.equal(finish(v).querySelectorAll('.finish-mythical-crystal')[0].querySelectorAll('polygon').length, 48);
   r.advance(50); const before = shine.style.opacity, fireBefore = snapshot(flames[0]);
   r.advance(1200); assert.notEqual(shine.style.opacity, before); assert.notEqual(snapshot(flames[0]), fireBefore);
 });

@@ -10,14 +10,14 @@ function charge(r){key(r,'keydown',' ');r.advance(3000);key(r,'keyup',' ');}
 function until(r,phase){let t=0;while(r.C.opening.phase!==phase&&t<20000){r.advance(30);t+=30;}assert.equal(r.C.opening.phase,phase);}
 function ready(r){until(r,'cutting');tap(r,'Enter');until(r,'revealed');r.advance(3000);assert(!r.C.opening.keepButton.hidden);assert(!r.C.opening.deleteButton.hidden);}
 function decide(r,discard){r.click(600,640,discard?r.C.opening.deleteButton:r.C.opening.keepButton);}
-check('seven tiers opt into the portrait frame; the remaining fronts and odds stay unchanged',()=>{
- const r=runtime(true,true),C=r.C;assert.deepEqual(Array.from(C.data.rarities.filter(x=>x.frontDesign==='full-art'),x=>x.id),['basic','common','uncommon','rare','super-rare','unusual','double-super-rare']);
+check('the first seven portrait tiers and their odds survive the second remake pass',()=>{
+ const r=runtime(true,true),C=r.C;assert.deepEqual(Array.from(C.data.rarities.filter(x=>x.frontDesign==='full-art'&&x.tier<=6),x=>x.id),['basic','common','uncommon','rare','super-rare','unusual','double-super-rare']);
  assert.deepEqual(Array.from(C.data.rarities.slice(0,7),x=>x.chance),[46.5,23.5,15,7.5,2.5,2,1.5]);
- for(const v of C.gallery.views.filter(x=>C.rarity(x.card.rarity).frontDesign)){
+ for(const v of C.gallery.views.filter(x=>C.rarity(x.card.rarity).tier<=6)){
   assert(v.el.querySelectorAll('.card__brand').length);assert(v.el.querySelectorAll('.card__spec-icon').length>=3);assert(v.el.querySelectorAll('.card__badge')[0].textContent===C.rarity(v.card.rarity).name);
   assert.equal(v.el.querySelectorAll('.card__prop')[0].children.length,0);assert(v.el.querySelectorAll('.card__spec').length<=4);
  }
- assert(C.gallery.views.filter(x=>C.rarity(x.card.rarity).tier>=7).every(v=>!v.el.dataset.frontDesign));
+ assert(C.gallery.views.filter(x=>x.card.rarity==='limited').every(v=>!v.el.dataset.frontDesign));
 });
 check('cancel and failed charge award nothing; successful retry makes one durable reward',()=>{
  const r=runtime(true),C=r.C;r.advance(40);key(r,'keydown',' ');r.advance(2999);key(r,'keyup',' ');r.advance(730);assert.equal(C.state.current.currency,0);

@@ -83,7 +83,7 @@
       description: "A card so legendary that it's sought after for millions.",
       designSpec: 'A golden color with sparkles, tip sparks, and in the middle part a different waving line which fades colors from light yellow-gold to a red-maroon colors, the red maroon color has a checkerbox pattern in it',
       propSpec: 'A gold crown (with sparkles and sparks) with red, blue and green gemstones with red having a hexagonal rotating glow, the blue being a mythril like non-animated white-ish texture, and the green having a extremely shiny outline',
-      finish: 'legendary',
+      finish: 'legendary', frontDesign: 'full-art', propOutset: { top: 0.18, bottom: 0, side: 0 },
       reveal: { riseMs: 1300, preFlipPauseMs: 450, flipMs: 1300, bloom: 0.6, gridDim: 0.85, shiftPx: 1 },
       marketValueUsd: 41.6
     },
@@ -91,9 +91,9 @@
       id: 'mythical', tier: 8, code: 'M', name: 'Mythical', group: 'Rare Tiers',
       chance: 0.75, pullable: true, targetCardCount: 26,
       description: 'Such a tale said about mythical cards almost no one has seen it for ages.',
-      designSpec: 'A ruby like color which slowly goes from a basic to a shining one',
-      propSpec: 'White to red flames outside the nametag having a burning flame animation from the bottom only',
-      finish: 'mythical',
+      designSpec: 'A ruby like color which slowly goes from a basic to a shining one, has the glassy look with shiny refractions and actual crystal look',
+      propSpec: 'White to red flames outside the card having a burning flame animation from the bottom only',
+      finish: 'mythical', frontDesign: 'full-art', propOutset: { top: 0, bottom: 0.11, side: 0.06 },
       reveal: { riseMs: 1400, preFlipPauseMs: 450, flipMs: 1400, bloom: 0.65, gridDim: 0.88, shiftPx: 1 },
       marketValueUsd: 66.9
     },
@@ -103,7 +103,7 @@
       description: 'A truly Exotic card that stands apart from the rest.',
       designSpec: 'A pink color with a purple border, and animated random shapes in the middle.',
       propSpec: 'A glowing outside square with small squircle edges border made of dark purple with a pink outline with white going circling border',
-      finish: 'exotic',
+      finish: 'exotic', frontDesign: 'full-art', propOutset: { top: 0.045, bottom: 0.045, side: 0.045 },
       reveal: { riseMs: 1500, preFlipPauseMs: 500, flipMs: 1500, bloom: 0.75, gridDim: 0.9, shiftPx: 1 },
       marketValueUsd: 208.7
     },
@@ -113,7 +113,7 @@
       description: 'A truly Ascendant card throughout generations.',
       designSpec: 'A white colored shifting pastel RGB colors on all side with random faded splashes happening every 2-3 seconds for 1 second fade in and out.',
       propSpec: 'A outside square with small squircle edges which shines and shifts colors like a aurora but with pastel colors',
-      finish: 'ascendant',
+      finish: 'ascendant', frontDesign: 'full-art', propOutset: { top: 0.045, bottom: 0.045, side: 0.045 },
       reveal: { riseMs: 1700, preFlipPauseMs: 500, flipMs: 1800, bloom: 0.9, gridDim: 0.95, shiftPx: 1 },
       marketValueUsd: 1192.4
     },
@@ -122,12 +122,12 @@
       chance: 0.005, pullable: true, targetCardCount: 16,
       // Two states: "unfound" (player does not own it) and "found" (owned). See docs/02-RARITIES.md tier 11.
       unfoundDescription: 'No record of this card exists.',
-      unfoundDesignSpec: 'The secret logo is shifted by gibberish letters shifting including @#$&_- and many more in quick succession with a white color lines shifting across all of them quickly',
+      unfoundDesignSpec: 'Fast white line sweeps on black, confined to the sides, without lettering.',
       unfoundPropSpec: 'A black square outside border with small squircle edges at 95% opacity',
       foundDescription: 'A secret card which was hidden by the world.',
-      foundDesignSpec: 'The secret logo is shifted by gibberish letters shifting including @#$&_- and many more with a white color lines shifting across all of them quickly but every 0.3 seconds 1 letter of the word "Secret" locks in with a small white animation, until everything is "Secret", then it reverses to black color lines on white, and the lines start going faster and faster and bigger and bigger until everything is black then it reverses to White lines on black and so on.',
+      foundDesignSpec: 'White line sweeps on black sides invert to black lines on white, accelerate and grow to cover the sides, then repeat; no lettering.',
       foundPropSpec: 'A black square outside border with small squircle edges at 95% opacity, which reverses to white when the design text changes',
-      finish: 'secret',
+      finish: 'secret', frontDesign: 'full-art', propOutset: { top: 0.04, bottom: 0.04, side: 0.04 },
       reveal: { riseMs: 2000, preFlipPauseMs: 500, flipMs: 2200, bloom: 1, gridDim: 1, shiftPx: 1 },
       marketValueUsd: 9875
     },

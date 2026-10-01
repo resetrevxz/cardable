@@ -46,9 +46,14 @@
     var prop = C.finishes.surface('legendary-prop', context); prop.classList.add('finish-prop');
     var wave = band(element), redGlow = crown(prop);
     var stars = C.finishes.sparkles(element, cfg.sparkleCount, card.art.seed, { x: 4, y: 4, width: 92, height: 89 });
-    var crownStars = C.finishes.sparkles(prop, cfg.crownSparkleCount, card.art.seed + 17, { x: 38, y: 2, width: 24, height: 11 });
+    stars.forEach(function (star, i) {
+      var side = i % 4, along = 6 + parseFloat(star.el.style.left) * 0.88;
+      star.el.style.left = (side === 0 ? 1.3 : side === 1 ? 98.7 : along) + '%';
+      star.el.style.top = (side === 2 ? 1 : side === 3 ? 99 : along) + '%';
+    });
+    var crownStars = C.finishes.sparkles(prop, cfg.crownSparkleCount, card.art.seed + 17, { x: 35, y: -10, width: 30, height: 12 });
     var sparks = [];
-    [[3,3],[97,3],[3,97],[97,97],[39,4],[50,1],[61,4]].forEach(function (position, i) {
+    [[1,1],[99,1],[1,99],[99,99],[35,-4],[50,-12],[65,-4]].forEach(function (position, i) {
       var spark = C.finishes.element('i', 'finish-tip-spark', prop); spark.style.left = position[0] + '%'; spark.style.top = position[1] + '%';
       sparks.push({ el: spark, phase: i * 0.83 });
     });

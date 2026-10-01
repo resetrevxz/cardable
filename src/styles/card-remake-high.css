@@ -1,0 +1,45 @@
+/* Pass two: portrait faces with distinct manufactured rims and attached props. */
+[data-front-design="full-art"][data-rarity="legendary"] { --border-accent: #EAC579; --frame-width: 3.2cqw; }
+[data-front-design="full-art"][data-rarity="mythical"] { --border-accent: #F0819C; --frame-width: 3.4cqw; }
+[data-front-design="full-art"][data-rarity="exotic"] { --border-accent: #E69BCE; --frame-width: 3.2cqw; }
+[data-front-design="full-art"][data-rarity="ascendant"] { --border-accent: #E1DFEF; --frame-width: 3cqw; }
+[data-front-design="full-art"][data-rarity="secret"] { --border-accent: #FFFFFF; --frame-width: 3cqw; }
+[data-front-design="full-art"][data-color-mode="mono"] { --border-accent: #DDDEE2; }
+
+[data-front-design="full-art"] .finish-legendary { background: linear-gradient(var(--lamp-angle),var(--legendary-light),var(--legendary-gold) 19%,var(--crown-shadow) 40%,var(--legendary-light) 55%,var(--legendary-gold) 71%,var(--crown-shadow) 91%); background-size: 180% 180%; background-position: calc(var(--mx) * 100%) calc(var(--my) * 100%); }
+[data-front-design="full-art"] .finish-legendary-band { top: 35%; height: 30%; opacity: 1; }
+[data-front-design="full-art"] .finish-legendary-crown { width: 38%; height: 19%; left: 31%; top: -14.5%; filter: drop-shadow(0 3px 2px rgba(0,0,0,.8)) drop-shadow(0 0 5px var(--crown-shadow)); }
+[data-front-design="full-art"] .finish-legendary .finish-sparkle { background: var(--legendary-light); }
+[data-front-design="full-art"] .crown-red-glow { filter: drop-shadow(0 0 3px var(--gem-red)); }
+[data-front-design="full-art"] .crown-green-gem { filter: drop-shadow(0 0 3px var(--gem-green-edge)); }
+
+.finish-mythical { --ruby-facet-1: #F693AB; --ruby-facet-2: #570B25; --ruby-facet-3: #B42C52; --ruby-cut: #FFD3DD; }
+.finish-mythical[data-color-mode="mono"] { --ruby-facet-1: #DDD; --ruby-facet-2: #292929; --ruby-facet-3: #777; --ruby-cut: #EEE; }
+[data-front-design="full-art"] .finish-mythical { background: linear-gradient(120deg,var(--ruby-facet-2),var(--ruby-facet-3) 20%,var(--ruby-facet-1) 43%,var(--ruby-facet-2) 56%,var(--ruby-facet-3) 83%,var(--ruby-facet-1)); }
+.finish-mythical-crystal { position: absolute; inset: 0; width: 100%; height: 100%; }
+[data-front-design="full-art"] .finish-mythical-shine { background: linear-gradient(var(--lamp-angle),transparent 15%,var(--ruby-cut) var(--ruby-ray,25%),transparent 47%,var(--ruby-facet-1) 70%,transparent 90%),radial-gradient(ellipse at calc(var(--mx) * 100%) calc(var(--my) * 100%),var(--ruby-cut),transparent 63%); mix-blend-mode: screen; }
+[data-front-design="full-art"] .finish-mythical-flames { left: -5%; top: auto; bottom: -9%; width: 110%; height: 18%; filter: drop-shadow(0 0 3px var(--flame-tip)); }
+[data-front-design="full-art"] .finish-mythical-prop[data-color-mode="color"] { --flame-middle: #FF6075; --flame-tip: #D0132E; }
+[data-front-design="full-art"][data-rarity="mythical"] .card__name { padding: 0; background: none; border: 0; border-radius: 0; }
+.opening-reveal:has([data-rarity="mythical"]) .opening-card-note,
+.opening-reveal [data-rarity="mythical"] .card__flip-hint { top: -26px; }
+
+[data-front-design="full-art"] .finish-exotic { border: 0; background: linear-gradient(145deg,#FFE0F1,#E59BC9 24%,#7B3B96 44%,#FFD0EC 61%,#BA68B7 82%,#59236B); }
+[data-front-design="full-art"] .finish-exotic[data-color-mode="mono"] { background: linear-gradient(145deg,#EEE,#AAA 24%,#555 44%,#DDD 61%,#999 82%,#333); }
+[data-front-design="full-art"] .finish-exotic-shape { width: 4cqw; height: 4cqw; stroke: #FFF1FC; stroke-width: 2; opacity: .75; }
+[data-front-design="full-art"] .finish-exotic[data-color-mode="mono"] .finish-exotic-shape { stroke: #FFF; }
+[data-front-design="full-art"] .finish-exotic-frame { inset: -3.8%; width: 107.6%; height: 107.6%; filter: drop-shadow(0 0 3px var(--exotic-outline)) drop-shadow(0 0 9px var(--exotic-border)); }
+
+[data-front-design="full-art"] .finish-ascendant-sides { mask-image: none; background: conic-gradient(from var(--asc-angle,0deg),#FFCEE3,#F8F6FF 15%,#CCF7DE 35%,#CEDCFF 50%,#FFF4DB 68%,#FFCEE3 85%,#F8F6FF); }
+[data-front-design="full-art"] .finish-ascendant[data-color-mode="mono"] .finish-ascendant-sides { background: conic-gradient(from var(--asc-angle,0deg),#FFF,#BBB,#EEE,#AAA,#FFF); }
+[data-front-design="full-art"] .finish-ascendant-splash { background: radial-gradient(ellipse at var(--splash-x,0%) var(--splash-y,30%),var(--splash-color,#D5DFFF),transparent var(--splash-spread,35%)); mix-blend-mode: multiply; }
+[data-front-design="full-art"] .finish-ascendant[data-color-mode="mono"] .finish-ascendant-splash { background: radial-gradient(ellipse at var(--splash-x,0%) var(--splash-y,30%),#777,transparent var(--splash-spread,35%)); }
+[data-front-design="full-art"] .finish-ascendant-frame { inset: -3.5%; width: 107%; height: 107%; filter: drop-shadow(0 0 3px var(--aurora-1)) drop-shadow(0 0 6px var(--aurora-3)); }
+
+/* Only the two vertical rims carry Secret's old inversion and sweeping lines. */
+[data-front-design="full-art"] .finish-secret { mask-image: linear-gradient(90deg,#000 0 var(--frame-width),transparent var(--frame-width) calc(100% - var(--frame-width)),#000 calc(100% - var(--frame-width))); }
+[data-front-design="full-art"][data-rarity="secret"] .card__art-window { opacity: 1; background: #08090B; border: 1px solid rgba(255,255,255,.24); box-shadow: 0 0 0 1px rgba(0,0,0,.8); }
+[data-front-design="full-art"][data-rarity="secret"] .card__header { background: none; padding: 0; border-radius: 0; }
+[data-front-design="full-art"][data-rarity="secret"] .card__info { padding: 4cqw 3.2cqw 2.6cqw; border-radius: calc(var(--r-card) - 8px); background: linear-gradient(135deg,rgba(47,48,54,.82),rgba(13,14,18,.89) 62%,rgba(33,34,39,.87)); }
+[data-front-design="full-art"][data-finish-state="unfound"] .card__info { min-height: 16%; display: grid; align-content: center; }
+[data-front-design="full-art"] .finish-secret-frame { inset: -3.2%; width: 106.4%; height: 106.4%; filter: drop-shadow(0 0 1px rgba(255,255,255,.3)); }

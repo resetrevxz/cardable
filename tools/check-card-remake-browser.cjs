@@ -17,7 +17,7 @@ async function main() {
    document.querySelectorAll('.card-gallery,.gallery-profile,.menu-shell,.dev-panel,.tutorial').forEach(el=>el.style.display='none');
    const grid=document.createElement('main'); grid.id='remake-study'; grid.style.cssText='position:relative;z-index:20;display:grid;grid-template-columns:repeat(4,300px);gap:35px 40px;padding:40px 80px;background:#08080a;width:max-content;';
    const views=[];
-   Cardable.data.rarities.filter(r=>r.frontDesign==='full-art').forEach((r,i)=>{
+   Cardable.data.rarities.filter(r=>r.frontDesign==='full-art'&&r.tier<=6).forEach((r,i)=>{
     const card=Cardable.data.cards.find(c=>c.pullable&&c.rarity===r.id&&c.art.kind==='image')||Cardable.data.cards.find(c=>c.pullable&&c.rarity===r.id);
     const v=Cardable.cardView.create(card,{cardId:card.id,instanceId:'study-'+i,serial:Cardable.serial.format(Cardable.state.current.playerCode,100+i)},{autoFocus:false});
     const figure=document.createElement('figure');figure.style.cssText='margin:0;width:300px';figure.appendChild(v.el);

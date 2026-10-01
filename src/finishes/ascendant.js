@@ -30,14 +30,16 @@
       }
       if (state.time >= state.nextAt) {
         state.birth = state.nextAt;
-        state.splash.style.setProperty('--splash-x', (10 + state.random() * 80) + '%');
-        state.splash.style.setProperty('--splash-y', (10 + state.random() * 80) + '%');
+        var side = Math.floor(state.random() * 4), along = 8 + state.random() * 84;
+        state.splash.style.setProperty('--splash-x', (side < 2 ? side * 100 : along) + '%');
+        state.splash.style.setProperty('--splash-y', (side >= 2 ? (side - 2) * 100 : along) + '%');
         state.splash.style.setProperty('--splash-color', 'hsl(' + state.random() * 360 + ' 70% 82%)');
         state.nextAt += cfg.splashMinDelayMs + state.random() * (cfg.splashMaxDelayMs - cfg.splashMinDelayMs);
       }
       var progress = state.birth === null ? 1 : Math.min(1, (state.time - state.birth) / cfg.splashMs);
       state.splash.style.opacity = progress >= 1 ? 0 : Math.sin(progress * Math.PI) * cfg.splashOpacity;
-      state.splash.style.transform = 'scale(' + (0.7 + progress * 0.3) + ')';
+      // Expand the splash around its edge anchor; scaling the full surface would move it behind the artwork.
+      state.splash.style.setProperty('--splash-spread', (12 + progress * 24) + '%');
       return true;
     },
     destroy: function (state) { state.prop.remove(); state.el.remove(); },

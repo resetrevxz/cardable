@@ -7,7 +7,7 @@
     var element = C.finishes.surface('exotic', context), cfg = C.config.finishMotion.exotic, random = C.art.random(card.art.seed), shapes = [];
     for (var i = 0; i < cfg.shapeCount; i += 1) {
       var svg = C.finishes.svg('svg', { viewBox: '0 0 40 40', class: 'finish-exotic-shape', 'aria-hidden': 'true' }, element);
-      svg.style.left = (2 + random() * 88) + '%'; svg.style.top = (28 + random() * 31) + '%';
+      svg.style.left = (i % 2 ? 96.8 : -0.8) + '%'; svg.style.top = (28 + random() * 34) + '%';
       var kind = Math.floor(random() * 3);
       if (kind === 0) C.finishes.svg('circle', { cx: 20, cy: 20, r: 13 }, svg);
       else C.finishes.svg('path', { d: kind === 1 ? 'M20 4L36 32H4Z' : 'M9 7H31V33H9Z' }, svg);
@@ -32,8 +32,8 @@
       var cfg = C.config.finishMotion.exotic;
       state.shapes.forEach(function (shape) {
         var phase = state.time / cfg.shapeCycleMs * Math.PI * 2 + shape.phase;
-        shape.el.style.transform = 'translate(' + Math.sin(phase) * cfg.shapeTravelPx + 'px,' + Math.cos(phase * 0.8) * cfg.shapeTravelPx + 'px) rotate(' + Math.sin(phase) * cfg.shapeRotateDegrees + 'deg)';
-        shape.el.style.opacity = 0.16 + 0.16 * (1 + Math.sin(phase)) / 2;
+        shape.el.style.transform = 'translateY(' + Math.cos(phase * 0.8) * cfg.shapeTravelPx + 'px) rotate(' + Math.sin(phase) * cfg.shapeRotateDegrees + 'deg)';
+        shape.el.style.opacity = 0.4 + 0.5 * (1 + Math.sin(phase)) / 2;
       });
       state.highlight.style.strokeDashoffset = -(state.time / cfg.borderCycleMs * 1000 % 1000);
       return true;

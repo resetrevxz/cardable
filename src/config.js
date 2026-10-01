@@ -165,7 +165,7 @@
       mythical: { shineCycleMs: 6500, flameCount: 24, flameCycleMs: 1600, flameScaleMin: 0.75, flameScaleMax: 1.1 },
       exotic: { shapeCount: 9, shapeCycleMs: 11000, shapeTravelPx: 10, shapeRotateDegrees: 18, borderCycleMs: 5000 },
       ascendant: { auroraCycleMs: 12000, splashMinDelayMs: 2000, splashMaxDelayMs: 3000, splashMs: 1000, splashOpacity: 0.5 },
-      secret: { lockMs: 300, scrambleMs: 55, lockFlashMs: 120, coverMs: 2400,
+      secret: { sweepLeadMs: 1800, lockMs: 300, scrambleMs: 55, lockFlashMs: 120, coverMs: 2400,
         lineCount: 8, lineHeightPercent: 3, lineScaleMax: 4.25, sweepHz: 2, maxSweepHz: 8, sweepPercent: 12,
         glyphs: '@#$&_-?!%+=/\\0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
       limited: { floatCycleMs: 6000, floatPx: 2.4, parallaxPx: 4 },

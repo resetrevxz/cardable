@@ -10,7 +10,6 @@ function check(name, callback) { callback(); passed++; console.log('PASS ' + nam
 function view(id, mode = 'color', state) { return C.gallery.views.find(v => v.card.rarity === id && v.el.dataset.colorMode === mode && (!state || v.finishState === state)); }
 function snapshot(el) { return JSON.stringify({ attrs: el.attrs, dataset: el.dataset, style: el.style, text: el.textContent, children: el.children.map(snapshot) }); }
 function mount(id, state) { return C.finishes.registry[id].mount(new r.Element('div'), view(id).card, { colorMode: 'color', state }); }
-function word(state) { return state.glyphs.map(g => g.textContent).join(''); }
 check('all thirteen finishes register and tier modules preserve exact design and prop text', () => {
   assert.equal(Object.keys(C.finishes.registry).length, 13);
   ids.forEach(id => {
@@ -49,35 +48,37 @@ check('Ascendant has seeded 2–3 second splashes, one-second fades, moving past
   def.update(a.nextAt, {}, a); assert.equal(a.splash.style.opacity, 0);
   const birth = a.birth; assert(a.nextAt - birth >= 2000 && a.nextAt - birth <= 3000);
   def.update(500, {}, a); assert.equal(a.splash.style.opacity, C.config.finishMotion.ascendant.splashOpacity);
+  assert(['0%', '100%'].includes(a.splash.style['--splash-x']) || ['0%', '100%'].includes(a.splash.style['--splash-y']));
+  assert.equal(a.splash.style['--splash-spread'], '24%');
   assert(a.el.style['--asc-angle']); assert(a.prop.style['--aurora-color-1']); assert(a.prop.style['--aurora-mono-1']);
   def.update(500, {}, a); assert.equal(a.splash.style.opacity, 0);
   const frame = a.prop.querySelectorAll('.finish-ascendant-frame')[0]; assert(frame.querySelector('clipPath')); assert(frame.querySelector('linearGradient'));
   def.destroy(a); def.destroy(b);
 });
-check('Secret locks one letter exactly every 300 ms, including a flash on the sixth letter', () => {
+check('Secret has no logo or glyph nodes and keeps its original inversion cadence', () => {
   const def = C.finishes.registry.secret, state = mount('secret', 'found');
-  def.update(299, {}, state); assert.equal(state.locked, 0);
-  for (let i = 1; i <= 6; i++) {
-    def.update(i === 1 ? 1 : 300, {}, state); assert.equal(state.locked, i);
-    assert.equal(word(state).slice(0, i), 'Secret'.slice(0, i));
-    assert.equal(Number(state.glyphs[i - 1].style['--lock-flash']), 1);
-  }
-  assert.equal(word(state), 'Secret'); assert.equal(state.phase, 'cover');
+  assert.equal(state.el.querySelectorAll('.finish-secret-logo').length, 0);
+  assert.equal(state.el.querySelectorAll('.finish-secret-glyph').length, 0);
+  assert.equal(state.lines.length, C.config.finishMotion.secret.lineCount);
+  def.update(1799, {}, state); assert.equal(state.phase, 'sweep');
+  def.update(1, {}, state); assert.equal(state.phase, 'cover');
   assert.equal(state.el.dataset.phase, 'cover'); assert.equal(state.prop.dataset.phase, 'cover'); def.destroy(state);
 });
-check('Found inverts, accelerates/grows lines to total black coverage, then returns to scrambling', () => {
+check('Found still inverts and grows accelerating lines to coverage, then restarts its sweep', () => {
   const def = C.finishes.registry.secret, state = mount('secret', 'found'), cfg = C.config.finishMotion.secret;
-  def.update(1800, {}, state); const before = state.lines[0].style.transform;
+  def.update(cfg.sweepLeadMs, {}, state); const before = state.lines[0].style.transform;
   def.update(cfg.coverMs - 1, {}, state);
   const scale = Number(state.lines[0].style.transform.match(/scaleY\(([^)]+)/)[1]);
   assert(scale * cfg.lineHeightPercent > 100 / cfg.lineCount); assert.notEqual(before, state.lines[0].style.transform);
-  def.update(1, {}, state); assert.equal(state.phase, 'scramble'); assert.equal(state.locked, 0); assert.notEqual(word(state), 'Secret');
-  assert.equal(state.prop.dataset.phase, 'scramble'); def.destroy(state);
+  def.update(1, {}, state); assert.equal(state.phase, 'sweep');
+  assert.equal(state.prop.dataset.phase, 'sweep'); def.destroy(state);
 });
-check('Unfound only scrambles, stays black, and conceals name/specs/art/serial on both faces', () => {
-  const def = C.finishes.registry.secret, state = mount('secret', 'unfound'), before = word(state);
-  def.update(60, {}, state); assert.notEqual(word(state), before);
-  def.update(10000, {}, state); assert.equal(state.locked, 0); assert.equal(state.phase, 'scramble');
+check('Unfound sweeps without letters, stays black, and conceals name/specs/art/serial on both faces', () => {
+  const def = C.finishes.registry.secret, state = mount('secret', 'unfound');
+  def.update(60, {}, state); const before = state.lines[0].style.transform;
+  def.update(100, {}, state); assert.notEqual(state.lines[0].style.transform, before);
+  def.update(10000, {}, state); assert.equal(state.phase, 'sweep');
+  assert.equal(state.el.querySelectorAll('.finish-secret-glyph').length, 0);
   assert.equal(state.prop.querySelectorAll('.finish-secret-frame')[0].querySelector('g').children[0].getAttribute('opacity'), '0.95');
   const v = view('secret', 'color', 'unfound');
   ['card__name','card__memory','card__specs','card__serial','card__back-serial','card__art-window'].forEach(name => assert.equal(v.el.querySelectorAll('.' + name).length, 0));

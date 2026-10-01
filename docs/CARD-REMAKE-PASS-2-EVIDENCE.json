@@ -1,0 +1,308 @@
+{
+  "base": "1e43cf2a9756a35d0e001d64ed6fe0791a22bc69",
+  "behaviorGroups": 189,
+  "browserGroups": 21,
+  "behaviorRuns": {
+    "card": 13,
+    "lowerFinishes": 14,
+    "legendaryExotic": 15,
+    "ascendantSecretLimited": 15,
+    "rewardDecision": 7,
+    "menu": 18,
+    "opening": 26,
+    "revealCollection": 24,
+    "flipInventory": 19,
+    "inventoryRefresh": 29,
+    "retainedDetail": 9
+  },
+  "higherBrowserGroups": [
+    "five portrait tiers, local art, contained glass panels and top serials",
+    "crown outside the top, bottom-only external flames, and attached squircle frames",
+    "gold/maroon wave, rotating red hexagon, static mythril and green gem",
+    "faceted ruby catches moving refractions while curled bottom flames burn",
+    "Exotic shapes drift in the middle side borders and a white dash circles the outer frame",
+    "Ascendant pastel sides and aurora move with a timed one-second rim splash",
+    "Secret preserves sweep/inversion/coverage on its sides with no animated lettering or identity leaks",
+    "one full card, static unfocused cards, frozen reduced motion and neutral monochrome finishes",
+    "real pending reveals keep all five designs and actions visible on laptop, portrait and landscape",
+    "focused card still flips to the engraved Cardable back and pauses the front finish",
+    "collection detail reserves space for crowns, flames and frames across three window sizes",
+    "local offline runtime has no JavaScript exceptions or HTTP requests"
+  ],
+  "earlierBrowserGroups": [
+    "seven local portrait compositions, inset rarity frames, top serials and contained glass panels",
+    "Shared and unified memory fit a compact card without inventing VRAM",
+    "Common orbit updates through the shared loop with only one full card",
+    "Super Rare waves and Double Super Rare gold drift animate only the focused border",
+    "monochrome and reduced motion keep static border materials",
+    "Keep and Delete stay on screen at laptop, portrait and landscape sizes",
+    "real Space opening pays once, reload retains reward, keyboard Delete consumes only the reserved card",
+    "Keep still collects the next card and a second pack pays exactly $200",
+    "no browser exceptions or network requests"
+  ],
+  "exceptions": [],
+  "httpRequests": [],
+  "portraits": [
+    {
+      "tier": "legendary",
+      "imageLoaded": true,
+      "specs": 4,
+      "front": "full-art",
+      "mask": "exclude, exclude"
+    },
+    {
+      "tier": "mythical",
+      "imageLoaded": true,
+      "specs": 4,
+      "front": "full-art",
+      "mask": "exclude, exclude"
+    },
+    {
+      "tier": "exotic",
+      "imageLoaded": true,
+      "specs": 4,
+      "front": "full-art",
+      "mask": "exclude, exclude"
+    },
+    {
+      "tier": "ascendant",
+      "imageLoaded": true,
+      "specs": 4,
+      "front": "full-art",
+      "mask": "exclude, exclude"
+    },
+    {
+      "tier": "secret",
+      "imageLoaded": true,
+      "specs": 3,
+      "front": "full-art",
+      "mask": "exclude, exclude"
+    }
+  ],
+  "reveals": [
+    {
+      "tier": "legendary",
+      "viewport": "1280x720",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "legendary",
+      "viewport": "390x844",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "legendary",
+      "viewport": "844x390",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "mythical",
+      "viewport": "1280x720",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "mythical",
+      "viewport": "390x844",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "mythical",
+      "viewport": "844x390",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "exotic",
+      "viewport": "1280x720",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "exotic",
+      "viewport": "390x844",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "exotic",
+      "viewport": "844x390",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "ascendant",
+      "viewport": "1280x720",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "ascendant",
+      "viewport": "390x844",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "ascendant",
+      "viewport": "844x390",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "secret",
+      "viewport": "1280x720",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "secret",
+      "viewport": "390x844",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    },
+    {
+      "tier": "secret",
+      "viewport": "844x390",
+      "propFits": true,
+      "actionsFit": true,
+      "recoveredBalance": 200
+    }
+  ],
+  "details": [
+    {
+      "tier": "legendary",
+      "viewport": "1280x720",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    },
+    {
+      "tier": "legendary",
+      "viewport": "390x844",
+      "propFits": true,
+      "stackedPanelClearsProp": true
+    },
+    {
+      "tier": "legendary",
+      "viewport": "844x390",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    },
+    {
+      "tier": "mythical",
+      "viewport": "1280x720",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    },
+    {
+      "tier": "mythical",
+      "viewport": "390x844",
+      "propFits": true,
+      "stackedPanelClearsProp": true
+    },
+    {
+      "tier": "mythical",
+      "viewport": "844x390",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    },
+    {
+      "tier": "exotic",
+      "viewport": "1280x720",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    },
+    {
+      "tier": "exotic",
+      "viewport": "390x844",
+      "propFits": true,
+      "stackedPanelClearsProp": true
+    },
+    {
+      "tier": "exotic",
+      "viewport": "844x390",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    },
+    {
+      "tier": "ascendant",
+      "viewport": "1280x720",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    },
+    {
+      "tier": "ascendant",
+      "viewport": "390x844",
+      "propFits": true,
+      "stackedPanelClearsProp": true
+    },
+    {
+      "tier": "ascendant",
+      "viewport": "844x390",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    },
+    {
+      "tier": "secret",
+      "viewport": "1280x720",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    },
+    {
+      "tier": "secret",
+      "viewport": "390x844",
+      "propFits": true,
+      "stackedPanelClearsProp": true
+    },
+    {
+      "tier": "secret",
+      "viewport": "844x390",
+      "propFits": true,
+      "stackedPanelClearsProp": null
+    }
+  ],
+  "profile": [
+    {
+      "mode": "full",
+      "frames": 181,
+      "durationMs": 3016.6,
+      "fps": 60.00132599615461,
+      "medianMs": 16.699999999999818,
+      "p95Ms": 16.799999999999727,
+      "fullCards": 1
+    },
+    {
+      "mode": "lite",
+      "frames": 181,
+      "durationMs": 3016.4000000000005,
+      "fps": 60.00530433629491,
+      "medianMs": 16.699999999999818,
+      "p95Ms": 16.800000000000182,
+      "fullCards": 0
+    }
+  ],
+  "profileLimit": "Three-second headless Chromium sample at 1440x1000, one 430 px Mythical card; not a hardware or sustained-play guarantee.",
+  "artifactDirectory": "D:/CardableV2/outputs/card-remake-pass2",
+  "preview": "browser/higher-tiers.png",
+  "rawEvidence": [
+    "browser/evidence.json",
+    "earlier-tiers/browser-evidence.json"
+  ]
+}

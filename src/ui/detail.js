@@ -15,14 +15,16 @@
   }
   function detailRect() {
     var margin = cfg.safeMarginPx, width = root.innerWidth, height = root.innerHeight;
+    var outset = payload.entry.rarity.propOutset || {}, above = outset.top || 0, below = outset.bottom || 0, sides = outset.side || 0;
     var stacked = width < cfg.detailStackWidthPx;
-    var cardHeight = Math.min(height * cfg.detailHeightVh / 100, height - margin * 2, (width - margin * 2) * 7 / 5);
+    var cardHeight = Math.min(height * cfg.detailHeightVh / 100, (height - margin * 2) / (1 + above + below), (width - margin * 2) / (1 + sides * 2) * 7 / 5);
     if (stacked) cardHeight = Math.min(cardHeight, height * cfg.detailStackHeightVh / 100);
-    var cardWidth = cardHeight * 5 / 7, groupWidth = cardWidth + (stacked ? 0 : cfg.detailGapPx + cfg.detailInfoWidthPx);
-    var rect = { left: (width - groupWidth) / 2, top: stacked ? margin : (height - cardHeight) / 2, width: cardWidth, height: cardHeight };
+    var cardWidth = cardHeight * 5 / 7, groupWidth = cardWidth * (1 + sides * 2) + (stacked ? 0 : cfg.detailGapPx + cfg.detailInfoWidthPx);
+    var rect = { left: (width - groupWidth) / 2 + sides * cardWidth,
+      top: (stacked ? margin : (height - cardHeight * (1 + above + below)) / 2) + above * cardHeight, width: cardWidth, height: cardHeight };
     panel.style.width = (stacked ? Math.min(cfg.detailInfoWidthPx, width - margin * 2) : cfg.detailInfoWidthPx) + 'px';
-    panel.style.left = (stacked ? (width - Math.min(cfg.detailInfoWidthPx, width - margin * 2)) / 2 : rect.left + cardWidth + cfg.detailGapPx) + 'px';
-    panel.style.top = (stacked ? rect.top + cardHeight + cfg.detailGapPx / 2 : rect.top) + 'px';
+    panel.style.left = (stacked ? (width - Math.min(cfg.detailInfoWidthPx, width - margin * 2)) / 2 : rect.left + cardWidth * (1 + sides) + cfg.detailGapPx) + 'px';
+    panel.style.top = (stacked ? rect.top + cardHeight * (1 + below) + cfg.detailGapPx / 2 : rect.top) + 'px';
     panel.style.maxHeight = Math.max(margin, height - parseFloat(panel.style.top) - margin) + 'px';
     return rect;
   }

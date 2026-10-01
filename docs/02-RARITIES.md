@@ -6,6 +6,8 @@ Owner-approved card remake pass 1: Basic through Double Super Rare express their
 
 The system is a template reused from another project. **Ignore** its variants system and its card names. Everything else applies.
 
+Owner-approved card remake pass 2: Legendary through Ascendant and Secret now use the same portrait face and neutral glass specs. Their material finishes stay in the rim; attached props sit outside it. Secret's old animated lettering is removed and its original black/white sweep cadence is restricted to the two vertical sides. Limited retains the prior design. See `CARD-REMAKE-PASS-2.md`.
+
 ## 1. Overview
 
 | Tier | Code | Name | Chance | Group |
@@ -80,35 +82,35 @@ Text in quotes is the original spec, kept verbatim. "Build" notes are implementa
 - Description: "A card so legendary that it's sought after for millions."
 - Design: "A golden color with sparkles, tip sparks, and in the middle part a different waving line which fades colors from light yellow-gold to a red-maroon colors, the red maroon color has a checkerbox pattern in it"
 - Prop: "A gold crown (with sparkles and sparks) with red, blue and green gemstones with red having a hexagonal rotating glow, the blue being a mythril like non-animated white-ish texture, and the green having a extremely shiny outline"
-- Build: gold base with sparkles and small sparks at the tips/edges; a waving band across the middle fading light yellow-gold to red-maroon, with a checkerboard inside the maroon part. Crown prop: SVG crown with sparkles and sparks; three gems: red (hexagonal glow that rotates), blue (static mythril-like whitish texture), green (very shiny outline).
+- Build: gold base with sparkles and small sparks at the tips/edges; a waving band through the middle side-rims fading light yellow-gold to red-maroon, with a checkerboard inside the maroon part. Crown prop: attached above the top edge, an SVG crown with sparkles and sparks; three gems: red (hexagonal glow that rotates), blue (static mythril-like whitish texture), green (very shiny outline).
 
 ### 8 Mythical [M]
 - Description: "Such a tale said about mythical cards almost no one has seen it for ages."
-- Design: "A ruby like color which slowly goes from a basic to a shining one"
-- Prop: "White to red flames outside the nametag having a burning flame animation from the bottom only"
-- Build: ruby base that slowly pulses between a plain and a shining state. Flames surround the nametag, white at the core to red at the tips, animated upward from the bottom edge only.
+- Design: "A ruby like color which slowly goes from a basic to a shining one, has the glassy look with shiny refractions and actual crystal look"
+- Prop: "White to red flames outside the card having a burning flame animation from the bottom only"
+- Build: a ruby rim cut into 48 crystalline facets, with a slow shine pulse and lamp-responsive refraction rays. Curled, uneven flame tongues originate outside the bottom edge, white at the core and red at the tips. A mask keeps the fire off the artwork and specs.
 
 ### 9 Exotic [E]
 - Description: "A truly Exotic card that stands apart from the rest."
 - Design: "A pink color with a purple border, and animated random shapes in the middle."
 - Prop: "A glowing outside square with small squircle edges border made of dark purple with a pink outline with white going circling border"
-- Build: pink base, purple border, drifting random geometric shapes in the middle. Outer squircle border: dark purple with pink outline and a white highlight that travels around it continuously.
+- Build: pink/purple rim with drifting random geometric shapes in its middle side-sections. Outer squircle border: dark purple with pink outline and a white highlight that travels around it continuously.
 
 ### 10 Ascendant [A]
 - Description: "A truly Ascendant card throughout generations."
 - Design: "A white colored shifting pastel RGB colors on all side with random faded splashes happening every 2-3 seconds for 1 second fade in and out."
 - Prop: "A outside square with small squircle edges which shines and shifts colors like a aurora but with pastel colors"
-- Build: white base with pastel color shifting along all sides; every 2-3 s (random) a soft splash of color fades in and out over 1 s. Outer squircle border with an aurora-style pastel shimmer.
+- Build: white rim with pastel color shifting along all sides; every 2-3 s (random) a soft splash of color fades in and out over 1 s. Outer squircle border with an aurora-style pastel shimmer.
 
 ### 11 Secret [?]
 Two states. **Unfound** = the player does not own this card. **Found** = owned.
 - Unfound description: "No record of this card exists."
-- Unfound design: "The secret logo is shifted by gibberish letters shifting including @#$&_- and many more in quick succession with a white color lines shifting across all of them quickly"
+- Unfound design: fast white line sweeps on black sides, without lettering.
 - Unfound prop: "A black square outside border with small squircle edges at 95% opacity"
 - Found description: "A secret card which was hidden by the world."
-- Found design: "The secret logo is shifted by gibberish letters shifting including @#$&_- and many more with a white color lines shifting across all of them quickly but every 0.3 seconds 1 letter of the word "Secret" locks in with a small white animation, until everything is "Secret", then it reverses to black color lines on white, and the lines start going faster and faster and bigger and bigger until everything is black then it reverses to White lines on black and so on."
+- Found design: white line sweeps on black sides invert to black lines on white, accelerate and grow to side coverage, then repeat. No lettering.
 - Found prop: "A black square outside border with small squircle edges at 95% opacity, which reverses to white when the design text changes"
-- Build (found loop): phase A on black: gibberish scramble with fast white line sweeps; every 0.3 s one more letter of "Secret" locks (small white flash) left to right (S, e, c, r, e, t = 1.8 s). Phase B: invert to white background with black lines; lines accelerate and grow until the screen is fully black; then invert back to white-on-black and repeat. The prop border inverts (black to white) whenever the design inverts.
+- Build (found loop): preserve the 1.8 s black/white sweep lead-in and 2.4 s inverted accelerating coverage phase, now restricted to the left/right rims. The outer squircle inverts with the sides. There is no logo, gibberish or letter-lock animation on the face. Found artwork is fully visible; an unfound card still conceals its identity, specs, art and serial on both faces.
 - Inventory: an unowned Secret card shows its **Unfound** design in place of a plain silhouette, with no name. When pulled it plays the Found design.
 
 ### 12 Limited [#]

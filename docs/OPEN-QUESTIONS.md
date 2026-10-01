@@ -21,7 +21,7 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 | 15 | Cutting: hover-slide or press-and-drag? | Press and drag | `config.cut.requirePress` |
 | 16 | The tier text mentions "rare card packs". How many pack types now? | One pack type (`standard`). A disabled second entry shows the pattern. | `src/data/packs.js` |
 | 17 | The Limited design text is identical to Unusual. Intended? | Treated as intended: Unusual-style base plus crimson border prop | `docs/02-RARITIES.md` tier 12 |
-| 18 | Which specs appear on a card? | Remade tiers 0–6: memory capacity/type plus up to 4 available specs, using icons. Remaining tiers keep up to 3 until pass 2. | `src/ui/card-specs.js` |
+| 18 | Which specs appear on a card? | Remade tiers 0–11: memory capacity/type plus up to 4 available specs, using icons. Unfound Secret conceals them. Limited retains up to 3. | `src/ui/card-specs.js` |
 | 19 | Font files must be supplied. | Inter and JetBrains Mono woff2 in `assets/fonts/`; fallbacks work without them | `assets/fonts/` |
 | 20 | "Squircle" corners are not fully supported in all browsers. | `corner-shape: squircle` where available, else SVG path clip | `card.css` |
 | 21 | Mobile and touch. | Desktop only in v1 | future |

@@ -21,7 +21,7 @@
     return { live: live, lite: lite };
   }
   function frontText(card, instance, rarity, generation, context) {
-    if (rarity.frontDesign === 'full-art') return screenText(card, instance, rarity, generation);
+    if (rarity.frontDesign === 'full-art') return screenText(card, instance, rarity, generation, context);
     var text = layer(7), header = node('div', 'card__header');
     header.appendChild(node('span', 'card__badge', rarity.code));
     header.appendChild(node('span', 'card__generation', generation ? generation.name : card.generation));
@@ -69,7 +69,8 @@
     if (label) svg.setAttribute('data-spec', label);
     return svg;
   }
-  function screenText(card, instance, rarity, generation) {
+  function screenText(card, instance, rarity, generation, context) {
+    var concealed = context.presentation.concealed;
     var text = layer(7), header = node('div', 'card__header');
     var identity = node('div', 'card__identity'), brand = node('div', 'card__brand');
     brand.appendChild(icon('brand')); brand.appendChild(node('span', 'card__brand-wordmark', C.config.gameName.toLowerCase())); identity.appendChild(brand);
@@ -78,11 +79,15 @@
       var char = node('span', 'card__serial-char', character); char.setAttribute('aria-hidden', 'true');
       char.style.setProperty('--char-delay', i * C.config.cardView.stampCharMs + 'ms'); serial.appendChild(char);
     });
-    identity.appendChild(serial); header.appendChild(identity);
-    var meta = node('div', 'card__meta'), badge = node('span', 'card__badge', rarity.name);
+    if (!concealed) identity.appendChild(serial); header.appendChild(identity);
+    var meta = node('div', 'card__meta'), badge = node('span', 'card__badge', concealed ? '' : rarity.name);
     badge.appendChild(node('span', 'card__rarity-code', rarity.code)); meta.appendChild(badge);
-    meta.appendChild(node('span', 'card__generation', generation ? generation.name : card.generation)); header.appendChild(meta); text.appendChild(header);
+    if (!concealed) meta.appendChild(node('span', 'card__generation', generation ? generation.name : card.generation)); header.appendChild(meta); text.appendChild(header);
     var info = node('div', 'card__info'), title = node('div', 'card__title-block');
+    if (concealed) {
+      var unknown = node('p', 'card__unknown', context.presentation.description); info.appendChild(unknown); text.appendChild(info);
+      return { el: text, serial: node('div'), meter: node('div'), name: unknown, memory: node('div'), specs: [], badge: badge };
+    }
     title.appendChild(node('span', 'card__category', 'GRAPHICS PROCESSOR'));
     var name = node('h2', 'card__name', card.name); title.appendChild(name); info.appendChild(title);
     var memory = node('div', 'card__memory'); memory.appendChild(icon('memory', 'VRAM'));
