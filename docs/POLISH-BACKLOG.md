@@ -37,3 +37,7 @@ The seeded items above were worked in their listed order after save/accessibilit
 ## Requested F1–F6 fixes
 
 Implemented in `FIXES-F1-F6-REPORT.md`: atomic whole-card handoff and art-only toast/flight thumbnails; pre-mounted transform/clip glass toast; subtle capped click breaths; exclusive opening pulses; fixed-slot independent logo scrambling; and the aligned satin pack rig with a grounded shadow. Source and behavior checks pass. Toast first-frame glass compositing and pack/wordmark screenshots remain part of the rendered acceptance gate above.
+
+## Requested N1–N6 features
+
+Implemented in `NEW-FEATURES-N1-N6-REPORT.md`: scoped R/button turns, the common engraved back, normal inventory-arrow activation, the transform carousel, bounded FLIP sort transitions and hover/focus version metadata. Shelf cards remain lite, with detail as the sole full card. Behavioral checks and host CPU samples are recorded; rendered material and 60 FPS acceptance remain in the gate above.

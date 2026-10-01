@@ -17,7 +17,7 @@ function boot(initial = save(), dev = false, tutorial = false) { const r = runti
 function open(r) { r.C.events.emit('inventory:request', true); r.advance(1100); assert(r.C.inventory.open); }
 function key(r, name, target = r.document.activeElement, extra = {}) { const event = { key: name, code: name === ' ' ? 'Space' : name, target, repeat: false, preventDefault() {}, ...extra }; r.document.fire('keydown', event); return event; }
 function pitch(r) { return parseFloat(r.C.inventory.el.style['--inventory-tile-width']) + r.C.config.inventoryMotion.tileGapPx; }
-function select(r, index) { r.C.inventory.shelf.scrollLeft = index * pitch(r); r.C.inventory.shelf.fire('scroll'); r.advance(1100); assert.equal(r.C.inventory.center, index); }
+function select(r, index) { r.C.inventory.carousel.snap(index * pitch(r)); r.C.fx.wake(); r.advance(1100); assert.equal(r.C.inventory.center, index); }
 function current(r) { return r.C.inventory.rendered.get(r.C.inventory.center); }
 function detail(r, index = r.C.inventory.center) { const tile = r.C.inventory.rendered.get(index); tile.el.fire('click'); r.advance(1100); assert.equal(r.C.detail.phase, 'detail'); return tile; }
 function preview(r) { r.C.events.emit('inventory:preview', true); open(r); }
@@ -100,42 +100,41 @@ check('filter ordering and sliding underline preserve tile widths and use regist
 });
 check('vertical wheel supports pixel, line and page deltas, then spring-snaps with clamped bounds', () => {
   const r = boot(); open(r); const shelf = r.C.inventory.shelf;
-  shelf.fire('wheel', { deltaY: 1, deltaX: 0, deltaMode: 1, preventDefault() {} }); assert.equal(shelf.scrollLeft, 24);
-  r.advance(1100); assert.equal(shelf.scrollLeft, 0);
-  shelf.fire('wheel', { deltaY: 1, deltaX: 0, deltaMode: 2, preventDefault() {} }); r.advance(1100); assert.equal(shelf.scrollLeft, (r.C.inventory.entries.length - 1) * pitch(r));
-  shelf.fire('wheel', { deltaY: -100000, deltaX: 0, preventDefault() {} }); r.advance(1100); assert.equal(shelf.scrollLeft, 0);
+  shelf.fire('wheel', { deltaY: 1, deltaX: 0, deltaMode: 1, preventDefault() {} }); assert.equal(r.C.inventory.carousel.target, 24);
+  r.advance(1100); assert.equal(r.C.inventory.carousel.position, 0);
+  shelf.fire('wheel', { deltaY: 1, deltaX: 0, deltaMode: 2, preventDefault() {} }); r.advance(1100); assert.equal(r.C.inventory.carousel.position, (r.C.inventory.entries.length - 1) * pitch(r));
+  shelf.fire('wheel', { deltaY: -100000, deltaX: 0, preventDefault() {} }); r.advance(1100); assert.equal(r.C.inventory.carousel.position, 0);
 });
 check('coverflow smoothly scales/dims neighbors, centers pulse, and hover changes transforms without layout', () => {
   const r = boot(); open(r); const tile = current(r), neighbor = r.C.inventory.rendered.get(1); const width = r.C.inventory.el.style['--inventory-tile-width'];
-  assert(tile.pose.style.transform.includes('scale(1)')); assert(neighbor.pose.style.transform.includes('scale(0.82)')); assert.equal(Number(neighbor.pose.style.opacity), .6);
+  assert(tile.pose.style.transform.includes('scale(1)')); assert(neighbor.pose.style.transform.includes('scale(0.82)')); assert.equal(Number(neighbor.pose.style.opacity), .55);
   tile.el.fire('pointerenter'); r.advance(50); assert(tile.pose.style.transform.includes('translateY(-6px)')); assert.equal(r.C.inventory.el.style['--inventory-tile-width'], width);
-  r.C.inventory.shelf.scrollLeft = pitch(r); r.C.inventory.shelf.fire('scroll'); r.advance(30); assert(current(r).pose.style.transform.includes('scale(1.')); assert(r.C.inventory.stats.snaps > 0);
+  r.C.inventory.carousel.reset(pitch(r)); r.C.fx.wake(); r.advance(30); assert(current(r).pose.style.transform.includes('scale(1.')); assert(r.C.inventory.stats.snaps > 0);
 });
 check('horizontal pointer drag carries momentum and suppresses its trailing click', () => {
   const r = boot(); open(r); const shelf = r.C.inventory.shelf; press(r, shelf, 700, 500); r.advance(20); move(r, 420, 500); r.advance(20);
-  assert(shelf.hasPointerCapture(1)); assert(shelf.scrollLeft > 0); release(r); assert(!shelf.hasPointerCapture(1));
+  assert(shelf.hasPointerCapture(1)); assert(r.C.inventory.carousel.position > 0); release(r); assert(!shelf.hasPointerCapture(1));
   current(r).el.fire('click'); assert.equal(r.C.detail.phase, 'closed'); r.advance(1300); assert(r.C.inventory.center > 0);
-  assert(Math.abs(shelf.scrollLeft / pitch(r) - Math.round(shelf.scrollLeft / pitch(r))) < .001);
+  assert(Math.abs(r.C.inventory.carousel.position / pitch(r) - Math.round(r.C.inventory.carousel.position / pitch(r))) < .001);
 });
 check('300-tile preview is dev-only and leaves saves, catalogs and serial allocation untouched', () => {
   const r = boot(save(), true), before = clone(r.C.state.current), catalog = clone(r.C.data.cards), text = r.store.get('cardable.save'); preview(r);
-  assert.equal(r.C.inventory.entries.length, 300); assert.equal(r.C.inventory.shelf.children.length, 300); assert.equal(r.C.inventory.count.text, '225 / 300');
+  assert.equal(r.C.inventory.entries.length, 300); assert.equal(r.C.inventory.shelf.querySelectorAll('.inventory-tile').length, 300); assert.equal(r.C.inventory.count.text, '225 / 300');
   assert.deepEqual(clone(r.C.state.current), before); assert.deepEqual(clone(r.C.data.cards), catalog); assert.equal(r.store.get('cardable.save'), text);
   const other = boot(); other.C.events.emit('inventory:preview', true); open(other); assert.equal(other.C.inventory.entries.length, other.C.data.cards.length);
 });
 check('virtualization mounts at most +/-6, destroys departed views and keeps 300 placeholders', () => {
   const r = boot(save(), true); preview(r); select(r, 20); assert.equal(r.C.inventory.rendered.size, 13);
   const views = Array.from(r.C.inventory.rendered.values()).map(t => t.view).filter(Boolean); select(r, 170);
-  assert(views.every(v => v.destroyed)); assert.equal(r.C.inventory.rendered.size, 13); assert.equal(r.C.inventory.shelf.children.length, 300);
+  assert(views.every(v => v.destroyed)); assert.equal(r.C.inventory.rendered.size, 13); assert.equal(r.C.inventory.shelf.querySelectorAll('.inventory-tile').length, 300);
   assert(Array.from(r.C.inventory.rendered.keys()).every(i => i >= 164 && i <= 176)); assert(r.C.inventory.stats.maxMounted <= 13);
 });
-check('only a centered or hovered shelf card is full; leaving hover restores the center', () => {
+check('all shelf cards remain lite during centering and hover', () => {
   const r = boot(save(), true); preview(r); const ownedIndex = r.C.inventory.entries.findIndex(e => e.owned); select(r, ownedIndex);
-  assert.equal(r.C.cardView.stats.fullCards, 1); assert.equal(current(r).view.mode, 'full');
+  assert.equal(r.C.cardView.stats.fullCards, 0); assert.equal(current(r).view.mode, 'lite');
   const neighbor = Array.from(r.C.inventory.rendered.values()).find(t => t.index !== ownedIndex && t.view && t.entry.owned);
-  neighbor.el.fire('pointerenter'); r.advance(40); assert.equal(neighbor.view.mode, 'full'); assert.equal(current(r).view.mode, 'lite'); assert.equal(r.C.cardView.stats.fullCards, 1);
-  neighbor.el.fire('pointerleave'); r.advance(40); assert.equal(current(r).view.mode, 'full');
-  const offscreen = Array.from(r.C.inventory.rendered.values()).find(t => t.view && !t.view.visible); if (offscreen) { const n = offscreen.view.stats.updates; r.advance(200); assert.equal(offscreen.view.stats.updates, n); }
+  neighbor.el.fire('pointerenter'); r.advance(40); assert.equal(neighbor.view.mode, 'lite'); assert.equal(r.C.cardView.stats.fullCards, 0);
+  neighbor.el.fire('pointerleave'); r.advance(40); assert.equal(current(r).view.mode, 'lite');
 });
 check('shared-element lift moves the same owned card node and keeps the shelf geometry occupied', () => {
   const r = boot(); open(r); const tile = current(r), original = tile.visual, originalView = tile.view;
@@ -158,7 +157,7 @@ check('duplicate serial browser crossfades instances, keeps one full view, and f
   assert(old.destroyed); assert.equal(r.C.detail.serialIndex, 1); assert.equal(r.C.cardView.stats.fullCards, 1);
   assert.equal(r.C.detail.view.instance.serial, r.C.state.current.inventory[1].serial); panel.querySelectorAll('.detail-flip')[0].fire('click'); assert.equal(r.C.detail.view.side, 'back');
   panel.querySelectorAll('.detail-serial-arrow')[1].fire('click'); r.advance(200); assert.equal(r.C.detail.view.side, 'back'); assert.equal(r.C.detail.serialIndex, 2);
-  assert.equal(r.C.detail.view.el.querySelectorAll('.card__back-serial')[0].textContent, r.C.state.current.inventory[2].serial); assert(panel.querySelectorAll('.detail-serial-arrow')[1].disabled);
+  assert.equal(Array.from(r.C.detail.view.el.querySelectorAll('.card__back-serial')[0].children).map(c => c.textContent).join(''), r.C.state.current.inventory[2].serial); assert(panel.querySelectorAll('.detail-serial-arrow')[1].disabled);
 });
 check('detail shine lives inside glare, runs once, and leaves the original ten-layer stack intact', () => {
   const r = boot(); open(r); const tile = current(r); tile.el.fire('click'); r.advance(220);
@@ -215,7 +214,7 @@ check('sheet/detail pause while hidden and resume without skipping visible-time 
 check('reduced motion uses fades, static coverflow, no menu blur and an operational downward dismissal', () => {
   const r = boot(); r.reduced(true); r.C.events.emit('inventory:request', true); r.advance(180);
   assert.equal(r.C.inventory.el.style.transform, 'none'); assert(Number(r.C.inventory.el.style.opacity) > 0 && Number(r.C.inventory.el.style.opacity) < 1);
-  r.advance(1000); assert.equal(r.document.body.style['--inventory-menu-blur'], '0px'); assert(current(r).pose.style.transform.includes('rotateY(0deg)'));
+  r.advance(1000); assert.equal(r.document.body.style['--inventory-menu-blur'], '0px'); assert(current(r).pose.style.transform === 'none');
   detail(r); const mount = r.C.detail.mount; press(r, mount, 500, 300); move(r, 500, 500); release(r); r.advance(150); assert.equal(r.C.detail.phase, 'returning');
   assert(Number(mount.style.opacity) > 0 && Number(mount.style.opacity) < 1); r.advance(600); assert.equal(r.C.detail.phase, 'closed');
 });
@@ -250,10 +249,10 @@ check('real timer/title remain active through inventory and tutorial advances wh
   r.hidden(true); assert.equal(r.document.title, 'Cardable · pack ready'); r.hidden(false);
   r.C.events.emit('inventory:request', false); r.advance(1400); assert.equal(r.document.body.dataset.tutorial, 'timer'); r.advance(4100); assert(r.C.state.current.tutorial.done);
 });
-check('dev cadence sample uses 300 placeholders, bounded mounted views and one full card', () => {
+check('dev cadence sample uses 300 placeholders, bounded mounted lite views', () => {
   const r = boot(save(), true); preview(r); select(r, r.C.inventory.entries.findIndex(e => e.owned));
   const button = r.C.inventory.el.querySelectorAll('button').find(b => b.textContent === 'Measure 5 s FPS'); button.fire('click'); r.advance(5100);
-  const sample = r.C.inventory.lastProfile; assert(sample.valid); assert.equal(sample.tiles, 300); assert(sample.mounted <= 13); assert.equal(sample.fullCards, 1); assert(sample.fps > 59 && sample.fps < 61);
+  const sample = r.C.inventory.lastProfile; assert(sample.valid); assert.equal(sample.tiles, 300); assert(sample.mounted <= 13); assert.equal(sample.fullCards, 0); assert(sample.fps > 59 && sample.fps < 61);
   console.log('SIMULATED frame-cadence sample: ' + JSON.stringify(clone(sample)));
 });
 check('dev sampling cancels on sheet close and can retry in the real collection', () => {
@@ -263,16 +262,16 @@ check('dev sampling cancels on sheet close and can retry in the real collection'
   r.C.events.emit('inventory:preview', false); open(r); assert.equal(r.C.inventory.entries.length, r.C.data.cards.length); assert(!r.C.inventory.preview);
   select(r, r.C.inventory.entries.findIndex(e => e.owned)); button.fire('click'); r.advance(5100); assert(r.C.inventory.lastProfile.valid);
 });
-check('settled shelf chrome does no per-frame work while the sole full card continues animating', () => {
+check('settled shelf chrome does no per-frame work and lite shelf cards do no per-frame work', () => {
   const r = boot(save(1, 4)); open(r); select(r, r.C.inventory.entries.findIndex(e => e.owned)); r.advance(3500);
   const updates = r.C.inventory.stats.updates, cardUpdates = current(r).view.stats.updates;
-  r.advance(1000); assert.equal(r.C.inventory.stats.updates, updates); assert(current(r).view.stats.updates > cardUpdates);
+  r.advance(1000); assert.equal(r.C.inventory.stats.updates, updates); assert.equal(current(r).view.stats.updates, cardUpdates);
   detail(r); r.advance(1000); assert.equal(r.C.detail.phase, 'detail');
 });
 check('no extra animation loops, no application errors, and styles preserve static tile geometry', () => {
   const r = boot(save(), true); preview(r); select(r, 160); detail(r); r.C.detail.closeButton.fire('click'); r.advance(1400);
   assert(!r.logs.some(line => line.level === 'error' || line.text.includes('FAIL')));
   for (const file of ['inventory.js', 'detail.js']) { const source = fs.readFileSync(path.join(__dirname, '../src/ui/', file), 'utf8'); assert(!source.includes('requestAnimationFrame')); assert(!source.includes('setInterval')); }
-  const css = fs.readFileSync(path.join(__dirname, '../src/styles/inventory.css'), 'utf8'); assert(css.includes('scroll-snap-type: x mandatory')); assert(!css.includes('@keyframes')); assert(css.includes('flex: 0 0 var(--inventory-tile-width)'));
+  const css = fs.readFileSync(path.join(__dirname, '../src/styles/inventory.css'), 'utf8'); assert(!css.includes('scroll-snap-type: x mandatory')); assert(css.includes('.inventory-track')); assert(!css.includes('@keyframes')); assert(css.includes('width: var(--inventory-tile-width)'));
 });
 console.log('\n' + passed + ' Stage 7 behavior groups passed. Browser appearance, screenshots, paint cost and measured FPS remain unverified.');

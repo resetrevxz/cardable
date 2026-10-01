@@ -1,10 +1,11 @@
 (function (C, root) {
   'use strict';
+  var track, carousel, sortAge = null, sortDuration = 0, sortRetained = new Set(), suppressArrowClick = false;
   var cfg, sheet, grip, shelf, header, filters, underline, empty, countLabel, numbers, arrow, arrowHome, previewLabel;
   var session = false, opened = false, openingPhase = 'idle', detailId = null, pendingClose = false, order = 'all', fixture = null;
   var model = { entries: [], owned: 0, total: 0 }, tiles = [], rendered = new Map(), center = 0, hovered = null;
-  var sheetSpring, scrollSpring, underlineX, underlineScale, underlineTarget = { x: 0, scale: 1 }, underlineWidth;
-  var sheetHeight = 0, tileWidth = 0, pitch = 0, scrollTarget = null, scrollIdle = null, settingScroll = false;
+  var sheetSpring, underlineX, underlineScale, underlineTarget = { x: 0, scale: 1 }, underlineWidth, underlineAge = null, underlineFrom = { x: 0, scale: 1 };
+  var sheetHeight = 0, tileWidth = 0, pitch = 0, scrollTarget = null, scrollIdle = null;
   var drag = null, shelfDrag = null, guardUntil = 0, snapAge = 0, shimmerAge = null, countAge = 0, countFrom = 0, countValue = 0;
   var focusAfterSnap = false, dev = false, lastProfile = null, profile = null, profileButton, controls = [], fadeMs;
   var stats = { updates: 0, mounted: 0, maxMounted: 0, opens: 0, closes: 0, snaps: 0 };
@@ -26,7 +27,7 @@
   }
   function clearTiles() {
     tiles.forEach(unmount); tiles = []; rendered.clear();
-    while (shelf.children.length) shelf.children[0].remove();
+    while (track.children.length) track.children[0].remove(); sortRetained.clear(); sortAge = null;
   }
   function silhouette(entry) {
     var el = node('div', 'inventory-silhouette'); el.setAttribute('aria-hidden', 'true');
@@ -48,7 +49,7 @@
   function buildTiles() {
     clearTiles(); windowDirty = true;
     model.entries.forEach(function (entry, index) {
-      var el = node('div', 'inventory-tile is-placeholder', shelf); el.setAttribute('role', 'option'); el.setAttribute('tabindex', '-1');
+      var el = node('div', 'inventory-tile is-placeholder', track); el.setAttribute('role', 'option'); el.setAttribute('tabindex', '-1');
       el.setAttribute('id', 'inventory-tile-' + index); el.dataset.cardId = entry.card.id; el.dataset.owned = entry.owned;
       var pose = node('div', 'inventory-tile-pose', el);
       var backs = [node('i', 'inventory-stack-back inventory-stack-back--far', pose), node('i', 'inventory-stack-back', pose)];
@@ -56,11 +57,11 @@
       var card = node('div', 'inventory-tile-card', pose);
       var count = node('span', 'inventory-stack-count', pose), newDot = node('span', 'inventory-new-dot', pose); newDot.setAttribute('aria-hidden', 'true');
       var tile = { el: el, pose: pose, card: card, count: count, newDot: newDot, backs: backs, entry: entry, index: index, view: null, visual: null };
-      el.addEventListener('pointerenter', function () { if (!detailId && opened) { hovered = index; el.classList.add('is-hovered'); windowDirty = true; C.fx.wake(); } });
+      el.addEventListener('pointerenter', function () { if (!detailId && opened) { hovered = tile.index; el.classList.add('is-hovered'); windowDirty = true; C.fx.wake(); } });
       el.addEventListener('pointerleave', function () { hovered = null; el.classList.remove('is-hovered'); windowDirty = true; C.fx.wake(); });
-      el.addEventListener('click', function () { if (root.performance.now() >= guardUntil) openDetail(index); });
-      el.addEventListener('keydown', function (event) { if (event.key === 'Enter' && !event.repeat) { prevent(event); openDetail(index); } });
-      tiles.push(tile);
+      el.addEventListener('click', function () { if (root.performance.now() >= guardUntil) openDetail(tile.index); });
+      el.addEventListener('keydown', function (event) { if (event.key === 'Enter' && !event.repeat) { prevent(event); openDetail(tile.index); } });
+      el.style.transform = 'translate3d(' + index * pitch + 'px,0,0)'; tiles.push(tile);
     });
   }
   function refresh(rebuild) {
@@ -71,7 +72,7 @@
     model = next;
     if (session && !same) {
       buildTiles(); center = Math.max(0, model.entries.findIndex(function (e) { return e.card.id === oldId; }));
-      setScroll(center * pitch); scrollSpring.reset(shelf.scrollLeft); scrollTarget = null;
+      carousel.bounds((model.entries.length - 1) * pitch, pitch); setScroll(center * pitch); scrollTarget = null;
     }
     tiles.forEach(function (tile, i) {
       tile.entry = model.entries[i]; var entry = tile.entry;
@@ -88,13 +89,14 @@
   }
   function resize() {
     windowDirty = true; sheetDirty = true;
-    var currentIndex = pitch ? (shelf.scrollLeft || 0) / pitch : center;
+    var currentIndex = pitch ? (carousel.position) / pitch : center;
     sheetHeight = root.innerHeight * cfg.sheetHeightVh / 100;
     var height = clamp(Math.min(sheetHeight * cfg.tileHeightPortion, sheetHeight - cfg.shelfChromePx), cfg.tileMinHeightPx, cfg.tileMaxHeightPx);
     tileWidth = height * 5 / 7; pitch = tileWidth + cfg.tileGapPx;
     sheet.style.height = sheetHeight + 'px'; sheet.style.setProperty('--inventory-tile-width', tileWidth + 'px');
     sheet.style.setProperty('--inventory-tile-height', height + 'px'); sheet.style.setProperty('--inventory-tile-gap', cfg.tileGapPx + 'px');
-    setScroll(currentIndex * pitch); scrollSpring.reset(shelf.scrollLeft || 0); scrollTarget = null;
+    carousel.bounds((model.entries.length - 1) * pitch, pitch); tiles.forEach(function (tile) { tile.el.style.transform = 'translate3d(' + tile.index * pitch + 'px,0,0)'; });
+    setScroll(currentIndex * pitch); scrollTarget = null;
     setUnderline(); C.fx.wake();
   }
   function setUnderline() {
@@ -102,6 +104,7 @@
     if (!selected) return;
     var parent = filters.getBoundingClientRect(), rect = selected.getBoundingClientRect();
     if (!underlineWidth) { underlineWidth = rect.width || 1; underline.style.width = underlineWidth + 'px'; }
+    underlineFrom = { x: underlineX.value, scale: underlineScale.value }; underlineAge = 0;
     underlineTarget = { x: rect.left - parent.left, scale: rect.width / underlineWidth };
     underlineX.target = underlineTarget.x; underlineScale.target = underlineTarget.scale;
   }
@@ -145,14 +148,15 @@
   }
   function startSheetDrag(event, capture) {
     if (openingPhase !== 'idle' || detailId || event.button !== 0 || event.isPrimary === false) return;
-    beginSession(); drag = { id: event.pointerId, capture: capture, y: event.clientY, value: sheetSpring.value, lastY: event.clientY, at: root.performance.now(), moved: false };
+    if (capture === arrow) suppressArrowClick = false;
+    beginSession(); drag = { id: event.pointerId, capture: capture, x: event.clientX, y: event.clientY, value: sheetSpring.value, lastY: event.clientY, at: root.performance.now(), moved: false };
     capture.setPointerCapture(event.pointerId); C.fx.wake();
     sheet.style.setProperty('--sheet-edge-alpha', C.config.polish.sheetDragHighlight);
   }
   function moveSheet(event) {
     if (!drag || event.pointerId !== drag.id) return;
     var dy = event.clientY - drag.y, now = root.performance.now();
-    if (Math.abs(dy) > cfg.dragSlopPx) drag.moved = true;
+    if (Math.hypot(event.clientX - drag.x, dy) >= cfg.dragSlopPx) drag.moved = true;
     if (!drag.moved) return;
     prevent(event); sheetSpring.value = rubber(drag.value - dy / sheetHeight);
     sheetSpring.velocity = -clamp((event.clientY - drag.lastY) * 1000 / Math.max(C.config.shell.frameMs, now - drag.at), -cfg.maxFlickPxPerSecond, cfg.maxFlickPxPerSecond) / sheetHeight;
@@ -164,30 +168,53 @@
     sheet.style.setProperty('--sheet-edge-alpha', C.config.polish.sheetRestHighlight);
     if (current.capture.hasPointerCapture(current.id)) current.capture.releasePointerCapture(current.id);
     if (current.moved) {
-      guardUntil = root.performance.now() + cfg.dragClickGuardMs;
+      suppressArrowClick = current.capture === arrow;
       sheetSpring.velocity *= Math.exp(-(root.performance.now() - current.at) / cfg.flickDecayMs);
       var projected = sheetSpring.value + (C.motion.reduced || cancel ? 0 : sheetSpring.velocity * cfg.flickProjectionMs / 1000);
       request(cancel ? opened : projected >= cfg.closeThreshold);
     } else if (!opened) { sheetSpring.target = 0; C.fx.wake(); }
   }
-  function setScroll(value) {
-    settingScroll = true; shelf.scrollLeft = clamp(value, 0, Math.max(0, (model.entries.length - 1) * pitch)); settingScroll = false; windowDirty = true;
-  }
+  function setScroll(value) { carousel.reset(value); windowDirty = true; }
   function snapTo(index, velocity) {
-    index = clamp(index, 0, Math.max(0, model.entries.length - 1)); scrollTarget = index * pitch;
-    scrollSpring.reset(shelf.scrollLeft || 0); scrollSpring.velocity = C.motion.reduced ? 0 : velocity || 0;
-    scrollIdle = null; shelf.style.scrollSnapType = 'none'; C.fx.wake();
+    if (!model.entries.length) return;
+    scrollTarget = clamp(index, 0, model.entries.length - 1) * pitch;
+    carousel.snap(scrollTarget, velocity); scrollIdle = null; C.fx.wake();
+  }
+  function reorder(nextOrder) {
+    if (detailId || nextOrder === order) return;
+    var oldTiles = new Map(tiles.map(function (tile) { return [tile.entry.card.id, tile]; }));
+    var oldVisible = Array.from(rendered.values()).filter(function (tile) { return Math.abs(tile.index - carousel.position / pitch) <= cfg.overscan; });
+    rendered.forEach(function (tile) { if (oldVisible.indexOf(tile) < 0) unmount(tile); });
+    order = nextOrder; model = C.collection.project(fixture ? fixture.cards : C.data.cards, source(), order);
+    tiles = model.entries.map(function (entry, index) {
+      var tile = oldTiles.get(entry.card.id);
+      var oldX = parseFloat((tile.el.style.transform.match(/translate3d\(([-.0-9]+)/) || [0, tile.index * pitch])[1]);
+      tile.sortWasVisible = oldVisible.indexOf(tile) >= 0;
+      tile.sortPose = tile.sortWasVisible && tile.currentPose ? Object.assign({}, tile.currentPose) : null;
+      tile.sortOffset = tile.sortWasVisible ? oldX - index * pitch : 0; tile.sortBlend = 0;
+      tile.index = index; tile.entry = entry; tile.el.setAttribute('id', 'inventory-tile-' + index); tile.el.classList.remove('is-hovered');
+      tile.el.style.transform = 'translate3d(' + (index * pitch + tile.sortOffset) + 'px,0,0)'; tile.el.style.opacity = tile.sortWasVisible ? 1 : 0;
+      track.appendChild(tile.el); return tile;
+    });
+    rendered.clear(); sortRetained.clear();
+    oldVisible.forEach(function (tile, rank) { rendered.set(tile.index, tile); sortRetained.add(tile.index); tile.sortDelay = Math.min(C.config.carousel.sortMaxMs - C.config.carousel.sortMs, rank * C.config.carousel.sortStaggerMs); });
+    sortAge = 0; sortDuration = Math.min(C.config.carousel.sortMaxMs, C.config.carousel.sortMs + Math.max(0, oldVisible.length - 1) * C.config.carousel.sortStaggerMs);
+    hovered = null; center = 0; focusAfterSnap = false; snapTo(0); windowDirty = true;
+    if (C.motion.reduced) { carousel.reset(0); scrollTarget = null; }
+    C.inventory.groupLabel.style.opacity = 0;
+    controls.forEach(function (button) { button.setAttribute('aria-selected', button.dataset.order === order); });
+    setUnderline(); C.fx.wake();
   }
   function startShelfDrag(event) {
     if (!opened || detailId || event.button !== 0 || event.isPrimary === false) return;
-    shelfDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: shelf.scrollLeft || 0, lastX: event.clientX, at: root.performance.now(), velocity: 0, moved: false };
+    shelfDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: carousel.target, lastX: event.clientX, at: root.performance.now(), velocity: 0, moved: false };
   }
   function moveShelf(event) {
     if (!shelfDrag || event.pointerId !== shelfDrag.id) return;
     var d = shelfDrag, dx = event.clientX - d.x, now = root.performance.now();
     if (!d.moved && Math.abs(dx) > cfg.dragSlopPx && Math.abs(dx) > Math.abs(event.clientY - d.y)) { d.moved = true; shelf.setPointerCapture(d.id); shelf.classList.add('is-dragging'); }
     if (!d.moved) return;
-    prevent(event); shelf.style.scrollSnapType = 'none'; setScroll(d.left - dx); scrollTarget = null; scrollIdle = null;
+    prevent(event); carousel.move(d.left - dx); windowDirty = true; scrollTarget = null; scrollIdle = null;
     d.velocity = clamp(-(event.clientX - d.lastX) * 1000 / Math.max(C.config.shell.frameMs, now - d.at), -cfg.maxFlickPxPerSecond, cfg.maxFlickPxPerSecond);
     d.lastX = event.clientX; d.at = now; C.fx.wake();
   }
@@ -198,22 +225,30 @@
     if (d.moved) {
       guardUntil = root.performance.now() + cfg.dragClickGuardMs;
       var velocity = C.motion.reduced || cancel ? 0 : d.velocity * Math.exp(-(root.performance.now() - d.at) / cfg.flickDecayMs);
-      snapTo(Math.round(((shelf.scrollLeft || 0) + velocity * cfg.flickProjectionMs / 1000) / pitch), velocity);
+      snapTo(Math.round((carousel.target + velocity * cfg.flickProjectionMs / 1000) / pitch), velocity);
     }
   }
   function renderWindow(dt) {
-    windowDirty = false; paintedScroll = shelf.scrollLeft || 0;
-    var position = (shelf.scrollLeft || 0) / pitch, next = clamp(Math.round(position), 0, Math.max(0, tiles.length - 1));
+    windowDirty = false; paintedScroll = carousel.position;
+    var position = (carousel.position) / pitch, next = clamp(Math.round(position), 0, Math.max(0, tiles.length - 1));
     if (next !== center) { center = next; snapAge = 0; stats.snaps += 1; C.events.emit('inventory:centered', model.entries[center]); }
     snapAge += dt;
     var min = Math.max(0, center - cfg.overscan), max = Math.min(tiles.length - 1, center + cfg.overscan);
-    rendered.forEach(function (tile, index) { if (index < min || index > max) { if (hovered === index) hovered = null; unmount(tile); } });
+    rendered.forEach(function (tile, index) { if ((index < min || index > max) && !sortRetained.has(index)) { if (hovered === index) hovered = null; unmount(tile); } });
     for (var i = min; i <= max; i++) {
       var tile = tiles[i]; mount(tile);
       var distance = i - position, weight = Math.min(1, Math.abs(distance));
       var pulse = i === center && snapAge < cfg.centerPulseMs && !C.motion.reduced ? Math.sin(snapAge / cfg.centerPulseMs * Math.PI) * cfg.centerPulseScale : 0;
-      tile.pose.style.transform = 'translateY(' + (!C.motion.reduced && hovered === i ? -cfg.hoverLiftPx : 0) + 'px) rotateY(' + (C.motion.reduced ? 0 : -Math.sign(distance) * weight * cfg.sideTurnDegrees) + 'deg) scale(' + (1 - (1 - cfg.sideScale) * weight + pulse) + ')';
-      tile.pose.style.opacity = 1 - (1 - cfg.sideOpacity) * weight;
+      var pose = { y: hovered === i ? -cfg.hoverLiftPx : 0, z: -Math.abs(distance) * C.config.carousel.depthPx,
+        turn: clamp(distance * -C.config.carousel.turnPerStep, -C.config.carousel.turnCap, C.config.carousel.turnCap),
+        scale: 1 - (1 - cfg.sideScale) * weight + pulse, opacity: 1 - (1 - C.config.carousel.sideOpacity) * weight };
+      if (sortAge !== null && tile.sortPose && !C.motion.reduced) {
+        Object.keys(pose).forEach(function (key) { pose[key] = tile.sortPose[key] + (pose[key] - tile.sortPose[key]) * tile.sortBlend; });
+        pose.turn = clamp(pose.turn, -C.config.carousel.turnCap, C.config.carousel.turnCap);
+      }
+      tile.currentPose = pose;
+      tile.pose.style.transform = C.motion.reduced ? 'none' : 'translateY(' + pose.y + 'px) translateZ(' + pose.z + 'px) rotateY(' + pose.turn + 'deg) scale(' + pose.scale + ')';
+      tile.pose.style.opacity = pose.opacity;
       tile.card.style.setProperty('--reflection-alpha', (1 - weight) * 0.1);
       tile.el.classList.toggle('is-centered', i === center); tile.el.setAttribute('aria-selected', i === center); tile.el.setAttribute('tabindex', i === center ? '0' : '-1');
       if (tile.view) {
@@ -223,14 +258,10 @@
     }
     stats.mounted = rendered.size; stats.maxMounted = Math.max(stats.maxMounted, rendered.size);
     shelf.setAttribute('aria-activedescendant', 'inventory-tile-' + center);
-    var selected = tiles[hovered === null ? center : hovered];
-    if (!detailId) {
-      rendered.forEach(function (tile) { if (tile.view && (!opened || tile !== selected) && tile.view.mode !== 'lite') tile.view.setMode('lite'); });
-      if (opened && selected && selected.view && selected.view.visible && C.cardView.active !== selected.view) selected.view.setMode('full');
-    }
+    if (!detailId) rendered.forEach(function (tile) { if (tile.view) tile.view.setMode('lite'); });
     if (focusAfterSnap && scrollTarget === null) { focusAfterSnap = false; if (tiles[center]) focus(tiles[center].el); }
     var selectedEntry = model.entries[center];
-    C.inventory.groupLabel.textContent = !selectedEntry || order === 'all' ? '' : order === 'generation' ? selectedEntry.generation.name : selectedEntry.rarity.name;
+    C.inventory.groupLabel.textContent = !selectedEntry || order === 'all' ? '' : order === 'generation' ? selectedEntry.generation.name : selectedEntry.rarity.code;
   }
   function openDetail(index) {
     if (!opened || detailId || drag || shelfDrag && shelfDrag.moved || root.document.hidden) return;
@@ -250,7 +281,7 @@
     detailId = null; shelf.inert = false; filters.inert = false; grip.inert = false;
     if (tile && session) {
       tile.card.style.visibility = ''; tile.card.appendChild(event.visual); tile.visual = event.visual; tile.view = event.view;
-      tile.el.classList.remove('is-placeholder'); rendered.set(tile.index, tile); focus(tile.el);
+      tile.el.classList.remove('is-placeholder'); rendered.set(tile.index, tile); if (tile.view) tile.view.setMode('lite'); focus(tile.el);
     } else { if (event.view) event.view.destroy(); else event.visual.remove(); }
     context(); C.fx.wake();
     if (pendingClose) { pendingClose = false; request(false); }
@@ -258,10 +289,11 @@
   function update(now, dt) {
     if (!session) return false;
     var fraction = Math.min(1, countAge / cfg.countMs);
-    var underlineMoving = !underlineX.settled() || !underlineScale.settled();
-    if (!profile && !drag && !shelfDrag && sheetSpring.settled() && !sheetDirty && !windowDirty && paintedScroll === (shelf.scrollLeft || 0) &&
-        scrollTarget === null && scrollIdle === null && fraction === 1 && shimmerAge === null && snapAge >= cfg.centerPulseMs && !underlineMoving) return false;
+    var underlineMoving = underlineAge !== null;
+    if (!profile && !drag && !shelfDrag && sheetSpring.settled() && !sheetDirty && !windowDirty && paintedScroll === (carousel.position) &&
+        sortAge === null && carousel.settled() && scrollTarget === null && scrollIdle === null && fraction === 1 && shimmerAge === null && snapAge >= cfg.centerPulseMs && !underlineMoving) return false;
     stats.updates += 1;
+    if (profile) carousel.move((0.5 + 0.5 * Math.sin(profile.elapsed / 900)) * Math.min(model.entries.length - 1, 20) * pitch);
     if (!drag) {
       if (C.motion.reduced) {
         var goal = opened ? 1 : 0, delta = goal - sheetSpring.value;
@@ -281,13 +313,29 @@
       root.document.body.style.setProperty('--inventory-menu-opacity', 1 - cfg.menuDim * p);
     }
     if (!opened && !drag && sheetSpring.settled()) { finishSession(); return false; }
-    if (scrollIdle !== null) { scrollIdle += dt; if (scrollIdle >= cfg.wheelSnapMs) snapTo(Math.round((shelf.scrollLeft || 0) / pitch)); }
-    if (scrollTarget !== null && !shelfDrag) {
-      if (C.motion.reduced) { scrollSpring.reset(scrollTarget); setScroll(scrollTarget); }
-      else setScroll(scrollSpring.step(dt, scrollTarget));
-      if (scrollSpring.settled()) { setScroll(scrollTarget); scrollTarget = null; shelf.style.scrollSnapType = ''; }
+    if (scrollIdle !== null) { scrollIdle += dt; if (scrollIdle >= cfg.wheelSnapMs) snapTo(Math.round(carousel.target / pitch)); }
+    var previousPosition = carousel.position;
+    carousel.step(dt, C.motion.reduced);
+    track.style.transform = 'translate3d(' + -carousel.position + 'px,0,0)';
+    if (carousel.settled()) scrollTarget = null;
+    if (sortAge !== null) {
+      sortAge += dt;
+      tiles.forEach(function (tile) {
+        if (!tile.visual && !sortRetained.has(tile.index)) return;
+        var p = clamp((sortAge - (tile.sortDelay || 0)) / C.config.carousel.sortMs, 0, 1);
+        var shape = C.config.carousel;
+        var eased = p === 1 ? 1 : 1 - Math.exp(-shape.sortDecay * p) * (Math.cos(shape.sortWave * p) + shape.sortDecay / shape.sortWave * Math.sin(shape.sortWave * p));
+        tile.sortBlend = eased;
+        tile.el.style.transform = 'translate3d(' + (tile.index * pitch + (C.motion.reduced ? 0 : (tile.sortOffset || 0) * (1 - eased))) + 'px,0,0)';
+        tile.el.style.opacity = C.motion.reduced || !tile.sortWasVisible ? Math.min(1, sortAge / C.config.cardView.crossfadeMs) : 1;
+      });
+      if (sortAge >= (C.motion.reduced ? C.config.cardView.crossfadeMs : sortDuration)) {
+        sortAge = null; sortRetained.clear(); tiles.forEach(function (tile) { tile.sortOffset = 0; tile.sortDelay = 0; tile.el.style.transform = 'translate3d(' + tile.index * pitch + 'px,0,0)'; tile.el.style.opacity = 1; });
+        C.inventory.groupLabel.style.opacity = 1;
+      }
+      windowDirty = true;
     }
-    if (windowDirty || paintedScroll !== (shelf.scrollLeft || 0) || snapAge < cfg.centerPulseMs) renderWindow(dt);
+    if (windowDirty || previousPosition !== carousel.position || paintedScroll !== carousel.position || snapAge < cfg.centerPulseMs) renderWindow(dt);
     if (fraction < 1) {
       countAge += dt; fraction = Math.min(1, countAge / cfg.countMs); var eased = 1 - Math.pow(1 - fraction, 3);
       countValue = countFrom + (model.owned - countFrom) * eased; numbers.set(Math.round(countValue) + ' / ' + model.total, false);
@@ -302,20 +350,21 @@
     }
     if (underlineMoving) {
       if (C.motion.reduced) { underlineX.reset(underlineTarget.x); underlineScale.reset(underlineTarget.scale); }
-      else { underlineX.step(dt, underlineTarget.x); underlineScale.step(dt, underlineTarget.scale); }
+      else { underlineAge += dt; var up = clamp(underlineAge / C.config.carousel.underlineMs, 0, 1), ue = 1 - Math.pow(1 - up, 3); underlineX.value = underlineFrom.x + (underlineTarget.x - underlineFrom.x) * ue; underlineScale.value = underlineFrom.scale + (underlineTarget.scale - underlineFrom.scale) * ue; }
+      if (C.motion.reduced || underlineAge >= C.config.carousel.underlineMs) { underlineX.reset(underlineTarget.x); underlineScale.reset(underlineTarget.scale); underlineAge = null; }
       underline.style.transform = 'translateX(' + underlineX.value + 'px) scaleX(' + underlineScale.value + ')';
     }
-    return !!profile || !!drag || !!shelfDrag || !sheetSpring.settled() || scrollTarget !== null || scrollIdle !== null || fraction < 1 || shimmerAge !== null ||
-      snapAge < cfg.centerPulseMs || !underlineX.settled() || !underlineScale.settled();
+    return sortAge !== null || !carousel.settled() || !!profile || !!drag || !!shelfDrag || !sheetSpring.settled() || scrollTarget !== null || scrollIdle !== null || fraction < 1 || shimmerAge !== null ||
+      snapAge < cfg.centerPulseMs || underlineAge !== null;
   }
   function reset() {
     C.events.emit('detail:reset'); detailId = null; pendingClose = false; releaseSheet(null, true); releaseShelf(null, true);
     fixture = null; if (session) finishSession(); refresh(true);
   }
   function measure() {
-    if (!session || !opened || detailId || C.motion.reduced || root.document.hidden || !C.cardView.active || !C.cardView.active.visible) return;
+    if (!session || !opened || detailId || C.motion.reduced || root.document.hidden) return;
     C.profiler.start('inventory · ' + model.total + ' tiles');
-    profile = { elapsed: 0, stamps: [], view: C.cardView.active, invalid: false }; lastProfile = null; profileButton.textContent = 'Measuring…'; C.fx.wake();
+    profile = { elapsed: 0, stamps: [], view: null, invalid: false }; lastProfile = null; profileButton.textContent = 'Measuring…'; C.fx.wake();
   }
   C.inventory = {
     initialized: false, stats: stats,
@@ -329,7 +378,7 @@
       cfg = C.config.inventoryMotion; openingPhase = C.opening.phase;
       fadeMs = parseFloat(root.getComputedStyle(root.document.documentElement).getPropertyValue('--t-sheet'));
       root.document.body.style.setProperty('--detail-backdrop-dim', cfg.detailBackdropDim); root.document.body.style.setProperty('--sheet-detail-opacity', cfg.sheetDetailOpacity);
-      sheetSpring = C.springs.create(0, cfg.sheetSpring); scrollSpring = C.springs.create(0, cfg.sheetSpring);
+      sheetSpring = C.springs.create(0, cfg.sheetSpring); carousel = C.carousel.create(); C.inventory.carousel = carousel;
       underlineX = C.springs.create(0, cfg.sheetSpring); underlineScale = C.springs.create(1, cfg.sheetSpring);
       sheet = node('section', 'inventory-sheet glass glass--sheet', root.document.body); sheet.hidden = true; sheet.inert = true;
       sheet.setAttribute('aria-label', 'Collection'); grip = node('div', 'inventory-grip', sheet); grip.setAttribute('aria-label', 'Drag collection sheet');
@@ -340,11 +389,11 @@
       [['all', 'All'], ['generation', 'By generation'], ['rarity', 'By rarity']].forEach(function (item) {
         var button = node('button', '', filters, item[1]); button.setAttribute('type', 'button'); button.setAttribute('role', 'tab'); button.dataset.order = item[0];
         button.setAttribute('aria-selected', order === item[0]);
-        button.addEventListener('click', function () { if (detailId) return; order = item[0]; controls.forEach(function (b) { b.setAttribute('aria-selected', b === button); }); refresh(true); setUnderline(); }); controls.push(button);
+        button.addEventListener('click', function () { if (detailId) return; reorder(item[0]); }); controls.push(button);
       });
       underline = node('i', 'inventory-filter-underline', filters); underline.setAttribute('aria-hidden', 'true');
       C.inventory.groupLabel = node('div', 'inventory-group-label', sheet);
-      shelf = node('div', 'inventory-shelf', sheet); shelf.scrollLeft = 0; shelf.setAttribute('role', 'listbox'); shelf.setAttribute('tabindex', '0'); shelf.setAttribute('aria-label', 'GPU card shelf');
+      shelf = node('div', 'inventory-shelf', sheet); track = node('div', 'inventory-track', shelf); shelf.setAttribute('role', 'listbox'); shelf.setAttribute('tabindex', '0'); shelf.setAttribute('aria-label', 'GPU card shelf');
       empty = node('p', 'inventory-empty', sheet);
       previewLabel = node('p', 'inventory-preview-label', sheet, cfg.previewCount + '-tile preview · temporary'); previewLabel.hidden = true;
       if (dev) {
@@ -353,8 +402,8 @@
         profileButton = node('button', '', tools, 'Measure 5 s FPS'); profileButton.addEventListener('click', measure);
         C.events.on('fx:frame', function (event) {
           if (!profile) return;
-          if (!session || detailId || C.motion.reduced || C.cardView.active !== profile.view || !profile.view.visible) profile.invalid = true;
-          profile.elapsed += event.dt; profile.stamps.push(event.now);
+          if (!session || detailId || C.motion.reduced) profile.invalid = true;
+          profile.elapsed += event.realDt; profile.stamps.push(event.now);
           if (profile.elapsed >= C.config.finishMotion.profileMs) {
             var sample = profile; profile = null; var gaps = sample.stamps.slice(1).map(function (stamp, i) { return stamp - sample.stamps[i]; }).sort(function (a, b) { return a - b; });
             lastProfile = { valid: !sample.invalid, fps: sample.stamps.length * 1000 / sample.elapsed, p95Ms: gaps[Math.ceil(gaps.length * 0.95) - 1], tiles: model.total, mounted: stats.mounted, fullCards: C.cardView.stats.fullCards };
@@ -364,7 +413,8 @@
       }
       arrowHome = root.document.getElementById('inventory-affordance'); arrow = arrowHome.querySelector('button');
       arrow.removeAttribute('aria-disabled'); arrow.setAttribute('aria-controls', 'inventory-sheet'); arrow.setAttribute('aria-expanded', 'false'); sheet.setAttribute('id', 'inventory-sheet');
-      arrow.addEventListener('click', function () { if (root.performance.now() >= guardUntil) request(); });
+      arrow.addEventListener('click', function () { if (suppressArrowClick) { suppressArrowClick = false; return; } request(); });
+      arrow.addEventListener('keydown', function (event) { if (event.key === ' ') prevent(event); else if (event.key === 'Enter' && !event.repeat) { prevent(event); request(); } });
       arrow.addEventListener('pointerdown', function (event) { startSheetDrag(event, arrow); });
       grip.addEventListener('pointerdown', function (event) { if (!arrow.contains(event.target)) startSheetDrag(event, grip); });
       var peek = arrowHome.querySelectorAll('.inventory-peek')[0]; peek.style.pointerEvents = 'auto'; peek.addEventListener('pointerdown', function (event) { startSheetDrag(event, peek); });
@@ -374,14 +424,12 @@
       root.document.addEventListener('pointercancel', function (event) { releaseSheet(event, true); releaseShelf(event, true); });
       root.addEventListener('blur', function () { releaseSheet(null, true); releaseShelf(null, true); });
       shelf.addEventListener('pointerdown', startShelfDrag); shelf.addEventListener('lostpointercapture', function () { releaseShelf(null, true); });
-      shelf.addEventListener('scroll', function () { if (!session || detailId || settingScroll) return; if (scrollTarget === null && !shelfDrag) scrollIdle = 0; C.fx.wake(); });
       shelf.addEventListener('wheel', function (event) {
         if (!opened || detailId) return;
-        if (Math.abs(event.deltaY) > Math.abs(event.deltaX || 0)) {
-          prevent(event); shelf.style.scrollSnapType = 'none';
-          var unit = event.deltaMode === 1 ? cfg.wheelLinePx : event.deltaMode === 2 ? root.innerWidth : 1;
-          setScroll((shelf.scrollLeft || 0) + event.deltaY * unit); scrollTarget = null; scrollIdle = 0; C.fx.wake();
-        }
+        prevent(event);
+        var unit = event.deltaMode === 1 ? cfg.wheelLinePx : event.deltaMode === 2 ? root.innerWidth : 1;
+        var delta = Math.abs(event.deltaY || 0) > Math.abs(event.deltaX || 0) ? event.deltaY : event.deltaX || 0;
+        carousel.move(carousel.target + delta * unit); scrollTarget = null; scrollIdle = 0; windowDirty = true; C.fx.wake();
       }, { passive: false });
       shelf.addEventListener('keydown', function (event) {
         if (detailId || !opened) return;
@@ -394,7 +442,7 @@
         if (preferencesActive) return;
         if (event.repeat || event.target && (event.target.isContentEditable || event.target.closest && event.target.closest('input, select, textarea, [contenteditable]'))) return;
         if (event.key === 'Escape' && session && !detailId) { prevent(event); request(false); }
-        else if ((event.key.toLowerCase() === 'i' || event.key === 'ArrowUp' && !session) && openingPhase === 'idle') { prevent(event); request(); }
+        else if ((event.key.toLowerCase() === 'i' || event.key === 'ArrowUp') && openingPhase === 'idle') { prevent(event); request(true); }
       });
       C.events.on('inventory:request', request); C.events.on('inventory:detailReturned', detailReturned);
       C.events.on('inventory:returnTarget', function (event) { var tile = tiles.find(function (item) { return item.entry.card.id === event.cardId; }); event.rect = tile ? tile.card.getBoundingClientRect() : null; });

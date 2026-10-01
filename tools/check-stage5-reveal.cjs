@@ -33,9 +33,9 @@ check('rise uses height, scale and Y turn; controlled card keys cannot flip it',
  v.el.fire('keydown',{key:'Enter',preventDefault(){}});assert.equal(v.side,'back');
  r.window.innerWidth=200;r.window.innerHeight=400;r.window.fire('resize');assert(parseFloat(r.C.opening.scene.style['--reveal-width'])<=72);
 });
-check('preFlip dims grid, retains a Secret halo and performs its one-pixel shift and back flourish',()=>{
+check('preFlip dims grid, retains a Secret halo and performs its one-pixel shift without a rarity-spoiling back flourish',()=>{
  const r=open('secret');until(r,'preFlip');r.advance(120);assert.equal(r.C.opening.scene.style.transform,'translateX(1px)');
- assert.notEqual(r.C.opening.view.revealFrame.backLogo,'cardable');assert.equal(r.C.opening.view.finishState,'found');
+ assert.equal(r.C.opening.view.revealFrame.backLogo,'cardable');assert.equal(r.C.opening.view.finishState,'found');
  assert(r.C.dots.stats.visibleDots>0);assert(r.drawing.arcs.every(p=>Math.hypot(p.x-640,p.y-360)<r.C.config.revealMotion.haloRadiusPx+5));
  const pending=clone(r.C.state.current.pendingReveal);assert.equal(r.C.state.current.inventory.length,0);assert(pending.cards[0].cardId.includes('secret'));
  until(r,'flipping');assert.equal(r.C.opening.scene.style.transform,'');
@@ -124,7 +124,7 @@ check('existing ten-layer stack and classic offline loading are retained',()=>{
 });
 check('New adds exactly 200ms at the final hold while low-tier duplicate info delays remain readable',()=>{
  const r=open();ready(r);const info=r.C.opening.infoClock;
- const d=open('common',true);ready(d);assert(Math.abs(info-d.C.opening.infoClock-200)<25);
+ const d=open('common',true);ready(d);assert(Math.abs(info-d.C.opening.infoClock-200)<25, 'New infoClock=' + info + ', duplicate infoClock=' + d.C.opening.infoClock);
 });
 check('holding original Space or tear Enter through reveal never activates Keep',()=>{
  const r=runtime();key(r,'keydown',' ');r.advance(4000);assert.equal(r.C.opening.phase,'cutting');

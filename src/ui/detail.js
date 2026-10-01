@@ -84,7 +84,7 @@
   }
   function flip() {
     if (phase !== 'detail' || !view || !payload.entry.owned) return;
-    side = side === 'front' ? 'back' : 'front'; view.setFace(side); flipButton.setAttribute('aria-pressed', side === 'back'); C.fx.wake();
+    if (!view.flip()) return; side = view.side; flipButton.setAttribute('aria-pressed', side === 'back'); C.fx.wake();
   }
   function browse(delta) {
     if (phase !== 'detail' || !payload.entry.owned || swapping) return;
@@ -186,6 +186,7 @@
         if (event.key === 'Escape') { prevent(event); close(); }
         else if (phase === 'detail' && (event.key === 'ArrowLeft' || event.key === 'ArrowRight') && payload.entry.owned) { prevent(event); browse(event.key === 'ArrowLeft' ? -1 : 1); }
       });
+      C.events.on('card:face', function (event) { if (event.view === view) { side = event.side; if (flipButton) flipButton.setAttribute('aria-pressed', side === 'back'); } });
       C.events.on('inventory:detailOpen', open); C.events.on('detail:requestClose', close); C.events.on('detail:reset', reset);
       C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
       C.events.on('motion:changed', function () { if (phase !== 'closed') C.fx.wake(); });

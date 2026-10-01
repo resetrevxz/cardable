@@ -112,7 +112,8 @@ check('F5 swaps are irregular, slide/fade/blur only and settle in random batches
 });
 check('F5 idle scramble uses a single slot, no automatic reveal; reduced motion resets all glyphs', () => {
   const r = quiet(runtime()); r.C.menu.holdVisible('check', true); r.C.events.emit('logo:wave');
-  for (let i = 0; i < 25; i++) { r.advance(50); assert(r.C.logo.stats.swapping <= 1); }
+  const bound = 2 * r.C.config.logo.swapMaxMs + r.C.config.logo.holdMaxMs + 4 * r.C.config.shell.frameMs;
+  for (let i = 0; i < Math.ceil(bound / 50); i++) { r.advance(50); assert(r.C.logo.stats.swapping <= 1); }
   assert.equal(r.C.logo.stats.active, false); r.wordmark.fire('pointerenter'); r.advance(500); r.reduced(true); r.advance(20);
   assert.equal(r.C.logo.stats.active, false); assert.equal(groups(r).map(group => group.children[0].children[0].textContent).join(''), 'cardable');
 });

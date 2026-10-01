@@ -49,7 +49,7 @@ check('content is data-driven: name, VRAM, three additional specs, serial on bot
   assert.equal(view.el.querySelectorAll('.card__meter-tick').length, 12);
   assert.equal(view.el.querySelectorAll('.card__meter-tick').filter(tick => String(tick.dataset.filled) === 'true').length, 4);
   assert.equal(view.el.querySelectorAll('.card__serial-char').map(char => char.textContent).join(''), view.instance.serial);
-  assert.equal(view.el.querySelectorAll('.card__back-serial')[0].textContent, view.instance.serial);
+  assert.equal(Array.from(view.el.querySelectorAll('.card__back-serial')[0].children).map(c => c.textContent).join(''), view.instance.serial);
   assert.equal(C.cardSpecs.rows(view.card).length, 4);
   assert.equal(C.cardSpecs.vram(view.card), '8 GB');
 });

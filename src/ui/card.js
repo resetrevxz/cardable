@@ -1,6 +1,6 @@
 (function (C, root) {
   'use strict';
-  var views = new Set(), active = null, subscribed = false;
+  var views = new Set(), active = null, subscribed = false, engravingId = 0;
   var layerNames = ['shadow', 'body', 'finish', 'art', 'foil', 'beam', 'glare', 'text', 'prop', 'edge'];
   var stats = { updates: 0, fullCards: 0 };
   function node(tag, className, text) {
@@ -56,11 +56,29 @@
   function backText(instance, context) {
     var text = layer(7), mark = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     mark.setAttribute('viewBox', '0 0 64 64'); mark.setAttribute('aria-hidden', 'true'); mark.classList.add('card__back-mark');
+    var defs = root.document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    var filter = root.document.createElementNS('http://www.w3.org/2000/svg', 'filter'), filterId = 'back-engraving-' + (++engravingId);
+    filter.setAttribute('id', filterId); filter.setAttribute('color-interpolation-filters', 'sRGB');
+    [['feGaussianBlur', { in: 'SourceAlpha', stdDeviation: '.7', result: 'soft' }],
+      ['feOffset', { in: 'soft', dy: '1', result: 'offset' }],
+      ['feComposite', { in: 'SourceAlpha', in2: 'offset', operator: 'out', result: 'inset' }],
+      ['feFlood', { 'flood-color': '#000', 'flood-opacity': '.85', result: 'ink' }],
+      ['feComposite', { in: 'ink', in2: 'inset', operator: 'in', result: 'engraving' }],
+      ['feComposite', { in: 'engraving', in2: 'SourceGraphic', operator: 'over' }]].forEach(function (entry) {
+        var primitive = root.document.createElementNS('http://www.w3.org/2000/svg', entry[0]);
+        Object.keys(entry[1]).forEach(function (key) { primitive.setAttribute(key, entry[1][key]); }); filter.appendChild(primitive);
+      });
+    defs.appendChild(filter); mark.appendChild(defs);
     var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', 'M44 20C40 16 35 15 31 16C21 18 16 25 16 32C16 42 22 49 32 49C37 49 41 47 44 44');
+    path.setAttribute('filter', 'url(#' + filterId + ')');
     mark.appendChild(path); text.appendChild(mark);
     text.appendChild(node('div', 'card__back-wordmark', 'cardable'));
-    if (!context.presentation.concealed) text.appendChild(node('div', 'card__back-serial', instance.serial));
+    if (!context.presentation.concealed && instance.serial) {
+      var serial = node('div', 'card__back-serial'); serial.setAttribute('role', 'img'); serial.setAttribute('aria-label', instance.serial);
+      Array.from(instance.serial).forEach(function (character) { var glyph = node('span', 'card__back-char', character); glyph.setAttribute('aria-hidden', 'true'); serial.appendChild(glyph); });
+      text.appendChild(serial);
+    }
     return text;
   }
   function buildFace(back, card, instance, rarity, generation, context) {
@@ -77,6 +95,7 @@
         binding = C.finishes.bind(rarity.finish, finish.live, card, finishContext);
         finish.lite.appendChild(binding.lite());
       }
+      if (i === 3 && back) { element.appendChild(node('div', 'card__back-dots')); element.appendChild(node('div', 'card__back-dots card__back-dots--lit')); }
       if (i === 3 && !back && !context.presentation.hideArt) { var artWindow = node('div', 'card__art-window'); artWindow.appendChild(C.art.render(card)); element.appendChild(artWindow); }
       if (i >= 4 && i <= 6) material(element, 'card__' + layerNames[i] + '-render');
       if (i === 7) {
@@ -98,12 +117,13 @@
     focus: function (view) {
       if (!views.has(view) || view.destroyed) return;
       if (active && active !== view) active.applyMode('lite');
-      active = view; view.applyMode('full'); stats.fullCards = 1;
+      active = view; view.applyMode('full'); stats.fullCards = 1; view.showFlipHint();
       C.events.emit('card:focused', view); C.fx.wake();
     },
     create: function (record, instance, options) {
       var card = typeof record === 'string' ? C.card(record) : record;
       options = options || {};
+      var params = new URLSearchParams(root.location.search), galleryScope = params.get('gallery') === '1' && params.get(C.config.dev.queryFlag) === '1';
       if (options.thumbnail) options = Object.assign({}, options, { autoFocus: false, keyboardFlip: false });
       if (!card || !instance || typeof instance.serial !== 'string') throw new Error('Card view needs a card and an instance serial');
       var rarity = C.rarity(card.rarity), generation = C.data.generations.find(function (g) { return g.id === card.generation; });
@@ -137,6 +157,8 @@
       var sx = C.springs.create(0), sy = C.springs.create(0), lift = C.springs.create(0);
       var pointer = { x: 0.5, y: 0.5 }, lastMove = root.performance.now(), idleTimer = null, stampTimer = null;
       var stamped = !!options.thumbnail || !!context.presentation.concealed, observer = null, renderedInfo = null, revealAngle = 180, revealReduced = null;
+      var turn = null, backStampAge = null, backStamped = false, hintAge = null;
+      var flipHint = node('kbd', 'card__flip-hint', 'R'); flipHint.setAttribute('aria-hidden', 'true'); el.appendChild(flipHint);
       var shine = node('div', 'card__reveal-shine'); shine.setAttribute('aria-hidden', 'true');
       if (options.controlledReveal) {
         front.el.querySelectorAll('.card__glare')[0].appendChild(shine);
@@ -169,13 +191,16 @@
       }
       var view = {
         el: el, card: card, instance: instance, mode: 'lite', side: 'front', visible: true, destroyed: false, followColorMode: !options.colorMode,
-        revealControlled: !!options.controlledReveal, revealFrame: null, backScramble: !!context.presentation.backScramble, revealAccent: context.presentation.revealAccent,
+        revealControlled: !!options.controlledReveal, revealFrame: null, backScramble: false, revealAccent: context.presentation.revealAccent,
         finishState: context.state, description: context.presentation.description || '',
         stats: { updates: 0, stamps: 0 },
         applyMode: function (mode) {
           if (view.mode === mode) return;
           view.mode = mode; el.dataset.mode = mode;
           if (mode === 'lite') {
+            turn = null; hintAge = null; el.dataset.flipAvailable = 'false'; flipHint.style.opacity = 0;
+            if (!view.revealControlled) { flipper.style.transform = ''; flipper.style.transition = ''; front.el.style.opacity = ''; back.el.style.opacity = ''; }
+            if (backStampAge !== null) { backStampAge = null; back.el.querySelectorAll('.card__back-char').forEach(function (char) { char.style.opacity = 1; char.style.transform = 'none'; }); }
             root.clearTimeout(idleTimer); sx.reset(); sy.reset(); lift.reset(); pose(0, 0, 0);
             root.clearTimeout(stampTimer);
             front.text.serial.classList.remove('is-stamping'); front.text.meter.classList.remove('is-stamping');
@@ -191,7 +216,25 @@
           if (side !== 'front' && side !== 'back') throw new Error('Unknown card face');
           view.side = side; el.dataset.side = side;
           front.el.setAttribute('aria-hidden', side === 'back'); back.el.setAttribute('aria-hidden', side === 'front');
-          C.events.emit('card:face', { view: view, side: side });
+          if (side === 'back' && !backStamped && instance.serial) { backStamped = true; backStampAge = 0; back.el.querySelectorAll('.card__back-char').forEach(function (char) { char.style.opacity = C.motion.reduced ? 1 : 0; }); C.fx.wake(); }
+          view.refreshFaceMotion(); C.events.emit('card:face', { view: view, side: side });
+        },
+        refreshFaceMotion: function () {
+          if (view.revealControlled || turn) return;
+          front.el.style.opacity = C.motion.reduced ? view.side === 'front' ? 1 : 0 : '';
+          back.el.style.opacity = C.motion.reduced ? view.side === 'back' ? 1 : 0 : '';
+          flipper.style.transform = C.motion.reduced ? 'none' : '';
+        },
+        canFlip: function () {
+          return view.mode === 'full' && view.visible && !view.revealControlled && !view.destroyed && !options.thumbnail &&
+            !(C.preferences && C.preferences.open) && (galleryScope || C.opening && C.opening.view === view && C.opening.phase === 'revealed' || C.detail && C.detail.view === view && C.detail.phase === 'detail');
+        },
+        showFlipHint: function () { if (view.canFlip()) { hintAge = 0; el.dataset.flipAvailable = 'true'; flipHint.style.opacity = 1; C.fx.wake(); } },
+        flip: function () {
+          if (!view.canFlip() || turn) return false;
+          turn = { from: view.side === 'front' ? 0 : 180, to: view.side === 'front' ? 180 : 0, age: 0 };
+          flipper.style.transition = 'none'; flipper.style.transform = C.motion.reduced ? 'none' : 'rotateY(' + turn.from + 'deg)';
+          view.setFace(turn.to === 180 ? 'back' : 'front'); view.showFlipHint(); C.fx.wake(); return true;
         },
         setColorMode: function (mode) {
           if (mode !== 'color' && mode !== 'mono') throw new Error('Unknown rarity color mode');
@@ -219,7 +262,7 @@
             tilter.style.transform = reduced ? 'none' : 'translateY(' + frame.pose.y + 'px) rotateY(' + (frame.pose.turn || 0) + 'deg) scale(' + frame.pose.scale + ')';
             el.style.setProperty('--shadow-blur', C.config.revealMotion.airShadowBlurPx + 'px');
           }
-          if (frame.angle != null || revealReduced !== reduced) {
+          if (frame.angle != null || view.revealControlled && revealReduced !== reduced) {
             if (frame.angle != null) revealAngle = frame.angle;
             revealReduced = reduced;
             flipper.style.transition = 'none'; flipper.style.transform = reduced ? 'none' : 'rotateY(' + revealAngle + 'deg)';
@@ -234,7 +277,7 @@
             shine.style.opacity = Math.sin(p * Math.PI) * (reduced ? 0.35 : 1);
             shine.style.transform = reduced ? 'none' : 'translateX(' + (-motion.shineTravelPercent + p * motion.shineTravelPercent * 2) + '%) rotate(' + motion.shineAngleDegrees + 'deg)';
           }
-          if (frame.backLogo != null) back.el.querySelectorAll('.card__back-wordmark')[0].textContent = frame.backLogo;
+          // The common engraved back never reveals rarity through logo changes.
           if (frame.infoMs == null) return;
           if (!stamped && frame.infoMs > C.config.revealMotion.serialDelayMs) { stamped = true; view.stats.stamps += 1; }
           var timing = C.config.revealMotion;
@@ -260,7 +303,7 @@
           Array.from(info.meter.children).forEach(function (tick, i) { opacity(tick, meterAt + i * cfg.meterTickMs); });
         },
         releaseReveal: function () {
-          view.revealControlled = false; tilter.style.transform = ''; sx.reset(); sy.reset(); lift.reset();
+          view.revealControlled = false; tilter.style.transform = ''; flipper.style.transform = ''; flipper.style.transition = ''; front.el.style.opacity = ''; back.el.style.opacity = ''; sx.reset(); sy.reset(); lift.reset();
           lastMove = root.performance.now(); idleWake(); C.fx.wake();
         },
         stamp: function () {
@@ -275,8 +318,25 @@
           }, Math.max(instance.serial.length * C.config.cardView.stampCharMs + C.config.cardView.stampFlickerMs, C.config.cardView.meterSegments * C.config.cardView.meterTickMs));
         },
         update: function (now, dt) {
-          var cfg = C.config.cardView, reduced = C.motion.reduced;
-          if (view.revealControlled) { stats.updates += 1; view.stats.updates += 1; return !reduced && view.side === 'front' && front.finish.update(dt, pointer); }
+          var cfg = C.config.cardView, reduced = C.motion.reduced, interacting = false;
+          el.dataset.flipAvailable = view.canFlip() ? 'true' : 'false';
+          if (hintAge !== null) { hintAge += dt; flipHint.style.opacity = clamp(1 - (hintAge - C.config.cardTurn.hintMs) / C.config.cardTurn.hintFadeMs, 0, 1); if (hintAge >= C.config.cardTurn.hintMs + C.config.cardTurn.hintFadeMs) hintAge = null; else interacting = true; }
+          if (backStampAge !== null) {
+            backStampAge += dt;
+            var chars = back.el.querySelectorAll('.card__back-char');
+            chars.forEach(function (char, i) { var p = reduced ? 1 : clamp((backStampAge - i * cfg.stampCharMs) / cfg.stampFlickerMs, 0, 1); char.style.opacity = p; char.style.transform = reduced ? 'none' : 'translateY(' + (1 - p) * 2 + 'px)'; });
+            if (reduced || backStampAge >= instance.serial.length * cfg.stampCharMs + cfg.stampFlickerMs) backStampAge = null; else interacting = true;
+          }
+          if (turn) {
+            turn.age += dt; var fraction = clamp(turn.age / C.config.cardTurn.durationMs, 0, 1), k = C.config.cardTurn;
+            var w = k.frequency * Math.sqrt(1 - k.dampingRatio * k.dampingRatio);
+            var spring = 1 - Math.exp(-k.dampingRatio * k.frequency * fraction) * (Math.cos(w * fraction) + k.dampingRatio * k.frequency / w * Math.sin(w * fraction));
+            flipper.style.transform = reduced ? 'none' : 'rotateY(' + (turn.from + (turn.to - turn.from) * (fraction === 1 ? 1 : spring)) + 'deg)';
+            front.el.style.opacity = reduced ? turn.to === 0 ? fraction : 1 - fraction : '';
+            back.el.style.opacity = reduced ? turn.to === 0 ? 1 - fraction : fraction : '';
+            if (fraction === 1) { turn = null; flipper.style.transform = ''; flipper.style.transition = ''; front.el.style.opacity = ''; back.el.style.opacity = ''; } else interacting = true;
+          }
+          if (view.revealControlled) { stats.updates += 1; view.stats.updates += 1; return (!reduced && view.side === 'front' && front.finish.update(dt, pointer)) || interacting; }
           var cap = reduced ? 0 : cfg.tiltCap;
           var sway = !reduced && now - lastMove >= cfg.idleMs;
           var time = (now - lastMove - cfg.idleMs) / 1000;
@@ -290,7 +350,7 @@
           pose(rx, ry, raised); stats.updates += 1; view.stats.updates += 1;
           var finishMoving = !reduced && view.side === 'front' && front.finish.update(dt, pointer);
           if (!options.controlledReveal && options.autoStamp !== false && !stamped && sx.settled() && sy.settled() && lift.settled()) view.stamp();
-          return sway || finishMoving || !sx.settled() || !sy.settled() || !lift.settled();
+          return interacting || sway || finishMoving || !sx.settled() || !sy.settled() || !lift.settled();
         },
         pointer: function (event) {
           if (C.motion.reduced || view.mode !== 'full' || !view.visible) return;
@@ -307,24 +367,33 @@
         }
       };
       views.add(view); pose(0, 0, 0);
+      el.addEventListener('pointerenter', function () { view.showFlipHint(); });
       if (options.autoFocus !== false) {
         el.addEventListener('pointerenter', function () { view.setMode('full'); });
         el.addEventListener('focus', function () { view.setMode('full'); });
       }
       if (!options.controlledReveal && options.keyboardFlip !== false) el.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); view.setFace(view.side === 'front' ? 'back' : 'front'); }
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); if (event.repeat) return; if (view.canFlip()) view.flip(); else view.setFace(view.side === 'front' ? 'back' : 'front'); }
       });
       if (root.IntersectionObserver) {
         observer = new root.IntersectionObserver(function (entries) { view.setVisible(entries[0].isIntersecting); }, { threshold: 0.02 }); observer.observe(el);
       }
       if (!subscribed) {
         subscribed = true; C.fx.subscribe(update, 'card');
+        root.document.addEventListener('keydown', function (event) {
+          var target = event.target;
+          if (event.repeat || String(event.key).toLowerCase() !== 'r' || root.document.hidden || event.ctrlKey || event.metaKey || event.altKey ||
+              target && (target.isContentEditable || target.closest && target.closest('input, select, textarea, [contenteditable], .dev-panel, .preferences-overlay'))) return;
+          if (active && active.flip()) event.preventDefault();
+        });
+        C.events.on('opening:context', function (event) { if (active && event.phase === 'revealed') active.showFlipHint(); });
+        C.events.on('detail:opened', function () { if (active) active.showFlipHint(); });
         C.events.on('pointer:move', function (event) { if (active && active.el.contains(event.pointer.target)) active.pointer(event); });
         C.events.on('motion:changed', function () {
           if (active) {
             if (C.motion.reduced && !active.revealControlled) active.resetMotion();
             active.el.querySelectorAll('.is-stamping').forEach(function (element) { element.classList.remove('is-stamping'); });
-            active.setVisible(active.visible);
+            active.refreshFaceMotion(); active.setVisible(active.visible);
           }
         });
         C.events.on('fx:visibility', function (visible) { if (visible && active) active.setVisible(active.visible); });

@@ -12,9 +12,9 @@
 }
 .inventory-grip { position: absolute; top: calc(var(--s-8) * -1); left: 0; right: 0; height: var(--s-8); cursor: grab; touch-action: none; }
 .inventory-grip:active { cursor: grabbing; }
-.inventory-sheet .inventory-arrow { cursor: pointer; opacity: 1; transform: rotate(180deg); }
-.inventory-sheet .inventory-arrow:hover { transform: rotate(180deg) translateY(3px); }
-.inventory-sheet .inventory-arrow:active { transform: rotate(180deg) translateY(1px); }
+.inventory-sheet .inventory-arrow { cursor: pointer; opacity: 1; transform: none; }
+.inventory-sheet .inventory-arrow:hover { transform: translateY(3px); }
+.inventory-sheet .inventory-arrow:active { transform: translateY(1px); }
 .inventory-header { display: flex; align-items: center; justify-content: space-between; gap: var(--s-5); padding: var(--s-5) var(--s-6) var(--s-3); }
 .inventory-header h2 { font: 500 15px/1.5 var(--font-ui); margin: 0; }
 .inventory-count { min-width: var(--s-8); text-align: right; font: 11px/1.5 var(--font-mono); color: var(--text-dim); font-variant-numeric: tabular-nums; }
@@ -29,15 +29,10 @@
 .inventory-filters button:active { opacity: .8; }
 .inventory-filter-underline { position: absolute; bottom: 0; left: 0; height: 1px; background: var(--text-dim); transform-origin: left; pointer-events: none; }
 .inventory-group-label { position: absolute; top: var(--s-5); left: 50%; transform: translateX(-50%); color: var(--text-dim); font: 10px/1.5 var(--font-mono); pointer-events: none; }
-.inventory-shelf {
-  display: flex; gap: var(--inventory-tile-gap); height: calc(100% - var(--s-8) - var(--s-6));
-  padding: var(--s-5) calc(50% - var(--inventory-tile-width) / 2) var(--s-5);
-  overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
-  scrollbar-width: none; touch-action: pan-y; cursor: grab; user-select: none;
-}
-.inventory-shelf::-webkit-scrollbar { display: none; }
+.inventory-shelf { position: relative; height: calc(100% - var(--s-8) - var(--s-6)); overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none; overscroll-behavior: contain; perspective: 1100px; }
 .inventory-shelf.is-dragging { cursor: grabbing; }
-.inventory-tile { position: relative; flex: 0 0 var(--inventory-tile-width); height: var(--inventory-tile-height); scroll-snap-align: center; scroll-snap-stop: normal; perspective: 1100px; border-radius: var(--r-card); cursor: pointer; }
+.inventory-track { position: absolute; top: var(--s-5); left: 50%; width: var(--inventory-tile-width); height: var(--inventory-tile-height); margin-left: calc(var(--inventory-tile-width) / -2); transform-style: preserve-3d; perspective: 1100px; }
+.inventory-tile { position: absolute; left: 0; top: 0; width: var(--inventory-tile-width); height: var(--inventory-tile-height); border-radius: var(--r-card); cursor: pointer; transform-style: preserve-3d; }
 .inventory-tile-pose { position: relative; width: 100%; height: 100%; transform-origin: 50% 55%; }
 .inventory-tile-card { position: relative; width: 100%; height: 100%; }
 .inventory-stack-back { position: absolute; inset: 0; border-radius: var(--r-card); background: var(--bg-elev); border: 1px solid var(--hairline); transform: translate(var(--s-1),calc(var(--s-1) * -1)); pointer-events: none; }
@@ -95,3 +90,9 @@
 .reduced-motion .inventory-silhouette::after { display: none; }
 @media (max-height: 540px) { .inventory-header { padding-top: var(--s-3); padding-bottom: var(--s-2); } .inventory-shelf { padding-top: var(--s-3); } }
 @media (prefers-reduced-motion: reduce) { .inventory-silhouette::after { display: none; } }
+
+.inventory-arrow { transition: transform 250ms var(--ease-out); }
+.inventory-arrow svg { rotate: 0deg; transition: rotate 250ms var(--ease-out); }
+.inventory-arrow[aria-expanded="true"] svg { rotate: 180deg; }
+.reduced-motion .inventory-arrow svg { transition: none; }
+.inventory-group-label { transition: opacity var(--t-fast) var(--ease-out); }

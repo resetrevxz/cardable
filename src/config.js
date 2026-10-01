@@ -4,6 +4,7 @@
 
   C.config = {
     gameName: 'Cardable',
+    version: '1.0.0',
 
     packs: {
       regenMs: 8 * 60 * 60 * 1000,   // OPEN-QUESTIONS #1 (brief says both "4 per day" and "every 8 hours")
@@ -87,6 +88,10 @@
     },
 
     // Card presentation only; existing game rules and data remain unchanged.
+    cardTurn: { durationMs: 600, hintMs: 4000, hintFadeMs: 150, dampingRatio: 0.78, frequency: 10 },
+    carousel: { stiffness: 160, damping: 2 * Math.sqrt(160), mass: 1, epsilon: 0.05,
+      snapDamping: 19, snapOvershoot: 0.06, turnPerStep: 34, turnCap: 50, depthPx: 56,
+      sideOpacity: 0.55, reducedSlideMs: 150, sortMs: 620, sortDecay: 7, sortWave: 8, sortStaggerMs: 20, sortMaxMs: 900, underlineMs: 250 },
     cardView: {
       spring: { stiffness: 140, damping: 16, mass: 1, stepMs: 1000 / 120, epsilon: 0.01 },
       tiltCap: 14, reducedTiltCap: 3, reducedDamping: 26,

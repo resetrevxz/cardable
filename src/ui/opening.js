@@ -396,7 +396,7 @@
     var toastActive = updateToast(dt);
     if (phase === 'idle') return errorUntil > 0 || toastActive;
     elapsed += dt;
-    if (currentView && ['rising', 'preFlip', 'flipping', 'settling', 'revealed'].indexOf(phase) !== -1) { revealClock += dt; if (phase === 'settling' || phase === 'revealed') infoClock += dt; }
+    if (currentView && ['rising', 'preFlip', 'flipping', 'settling', 'revealed'].indexOf(phase) !== -1) { revealClock += dt; if (phase === 'settling' || phase === 'revealed') infoClock = Math.min(keepAt, infoClock + dt); }
     if (phase === 'charging') {
       fill = clamp((now - chargeAt) / C.config.hold.chargeMs); paintFluid(dt);
       glass.el.style.opacity = 1; foil.style.opacity = 0;

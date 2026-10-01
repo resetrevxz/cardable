@@ -68,6 +68,7 @@
       overlay = node('div', 'preferences-overlay', root.document.body); overlay.hidden = true; overlay.inert = true; overlay.style.opacity = 0;
       panel = node('section', 'preferences-panel glass glass--sheet', overlay); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Save and display');
       var head = node('header', 'preferences-header', panel); node('h2', '', head, 'Save & display');
+      node('span', 'preferences-version', head, 'v' + C.config.version);
       C.preferences.closeButton = button('Close', head, close);
       node('p', 'preferences-caption', panel, 'Your collection stays on this device. Keep a file copy when you need one.');
       var actions = node('div', 'preferences-actions', panel);
@@ -87,7 +88,7 @@
       feedback = node('p', 'preferences-feedback', panel); feedback.setAttribute('role', 'status'); feedback.setAttribute('aria-live', 'polite');
       replace = button('Replace save', panel, function () { if (!staged) return; try { C.saveFiles.apply(staged); } catch (error) { message(error.message); } }); replace.hidden = true;
       var hosts = root.document.body.querySelectorAll('.inventory-header, .gallery-tools');
-      Array.from(hosts).forEach(function (host) { var control = button('Save & display', host, open); control.classList.add('preferences-entry'); if (host.classList.contains('inventory-header')) host.insertBefore(control, host.children[1]); });
+      Array.from(hosts).forEach(function (host) { var control = button('Save & display', host, open); control.classList.add('preferences-entry'); var version = node('span', 'preferences-version', control, 'v' + C.config.version); version.setAttribute('aria-hidden', 'true'); if (host.classList.contains('inventory-header')) host.insertBefore(control, host.children[1]); });
       overlay.addEventListener('click', function (event) { if (event.target === overlay) close(); });
       root.document.addEventListener('keydown', function (event) {
         if (opened && event.key === 'Escape') { event.preventDefault(); close(); }

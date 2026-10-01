@@ -20,7 +20,7 @@
       heading.appendChild(el('h1', '', 'Machined to catch the light.'));
       heading.appendChild(el('p', 'gallery-description', 'Hover or focus a card. One full render; the rest stay static. Both color modes are shown.'));
       var tools = el('div', 'gallery-tools');
-      tools.appendChild(button('Turn focused card', function () { if (selected) selected.setFace(selected.side === 'front' ? 'back' : 'front'); }));
+      tools.appendChild(button('Turn focused card', function () { if (selected) selected.flip(); }));
       tools.appendChild(button('Replay serial stamp', function () { if (selected) { selected.setFace('front'); selected.stamp(); } }));
       var modeButton = button('Use lite on all cards', function () {
         allLite = !allLite; modeButton.textContent = allLite ? 'Restore focused full render' : 'Use lite on all cards';

@@ -28,7 +28,9 @@ run('Reduced-motion ready menu', () => runtime(false, false, null, true, true), 
 run('300 tiles with one full Secret', () => runtime(true, false, null, true, true), r => {
   r.C.events.emit('inventory:preview', true); r.C.events.emit('inventory:request', true); r.advance(1200);
   const index = r.C.inventory.entries.findIndex(e => e.owned && e.rarity.finish === 'secret');
-  r.C.inventory.shelf.scrollLeft = index * (parseFloat(r.C.inventory.el.style['--inventory-tile-width']) + r.C.config.inventoryMotion.tileGapPx); r.C.inventory.shelf.fire('scroll');
+  r.C.inventory.carousel.snap(index * (parseFloat(r.C.inventory.el.style['--inventory-tile-width']) + r.C.config.inventoryMotion.tileGapPx)); r.C.fx.wake(); r.advance(1400);
+  r.C.inventory.rendered.get(r.C.inventory.center).el.fire('click');
 });
+run('300-tile carousel in motion', () => runtime(true, false, null, true, true), r => { r.C.events.emit('inventory:preview', true); r.C.events.emit('inventory:request', true); }, (r, i) => { r.C.inventory.carousel.move((80 + Math.sin(i / 24) * 30) * (parseFloat(r.C.inventory.el.style['--inventory-tile-width']) + r.C.config.inventoryMotion.tileGapPx)); r.C.fx.wake(); });
 run('Gallery: one full Secret, all other cards lite', () => runtime(true, true, null, false, true), r => r.C.gallery.views.find(v => v.finishState === 'found').el.fire('pointerenter'));
 console.log(JSON.stringify(samples, null, 2));

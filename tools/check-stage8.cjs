@@ -153,13 +153,13 @@ await check('burst clicks have bounded ripple storage and settle to a sleeping c
   const r = boot(); r.C.packView.setVisible(false); r.C.inventoryHint.setVisible(false); for (let i = 0; i < 100; i++) r.click(640, 300); r.advance(20);
   assert(r.C.dots.stats.ripples <= r.C.config.dots.ripple.maxSimultaneous); r.advance(1800); const draws = r.C.dots.stats.draws; r.advance(1000); assert.equal(r.C.dots.stats.draws, draws);
 });
-await check('300 tiles retain virtualization and one full render through settings and reset', () => {
-  const r = boot(save(), true); r.C.events.emit('inventory:preview', true); open(r); const index = r.C.inventory.entries.findIndex((e, i) => i >= 80 && e.owned); r.C.inventory.shelf.scrollLeft = index * (parseFloat(r.C.inventory.el.style['--inventory-tile-width']) + 24); r.C.inventory.shelf.fire('scroll'); r.advance(1200);
-  assert(r.C.inventory.rendered.size <= 13); assert.equal(r.C.cardView.stats.fullCards, 1); r.C.preferences.show(); r.advance(300); key(r, ' '); r.advance(3100); assert.equal(r.C.opening.phase, 'idle');
+await check('300 tiles retain virtualization and lite shelf renders through settings and reset', () => {
+  const r = boot(save(), true); r.C.events.emit('inventory:preview', true); open(r); const index = r.C.inventory.entries.findIndex((e, i) => i >= 80 && e.owned); r.C.inventory.carousel.snap(index * (parseFloat(r.C.inventory.el.style['--inventory-tile-width']) + 24)); r.C.fx.wake(); r.advance(1200);
+  assert(r.C.inventory.rendered.size <= 13); assert.equal(r.C.cardView.stats.fullCards, 0); r.C.preferences.show(); r.advance(300); key(r, ' '); r.advance(3100); assert.equal(r.C.opening.phase, 'idle');
   r.C.preferences.close(); r.C.state.reset(); r.advance(600); assert(!r.C.inventory.active); assert.equal(r.C.cardView.stats.fullCards, 0);
 });
 await check('profiling records labeled subscriber CPU, bounded raw cadence and one full card', () => {
-  const r = boot(); open(r); r.C.profiler.start('shelf'); r.advance(5100); const sample = r.C.profiler.last;
+  const r = boot(); open(r); r.C.inventory.rendered.get(r.C.inventory.center).el.fire('click'); r.advance(1200); r.C.profiler.start('detail over lite shelf'); r.advance(5100); const sample = r.C.profiler.last;
   assert(sample.valid); assert(sample.fps > 59 && sample.fps < 61); assert.equal(sample.fullCards, 1); assert(sample.subscribers.card.calls > 0); assert(sample.subscribers.dots.calls > 0); assert(sample.frames <= r.C.config.polish.profileMaxFrames);
 });
 await check('profiling reports dropped frames honestly rather than hiding them behind animation delta clamps', () => {
@@ -173,8 +173,8 @@ await check('focus rings, nonmoving equivalents and material polish preserve ten
   const css = fs.readFileSync('src/styles/polish.css', 'utf8'); assert(css.includes('1px solid var(--focus-ring)')); assert(css.includes('0 0 0 3px')); assert(css.includes('animation: none !important'));
   assert(css.includes('inventory-silhouette-generation { opacity: 1')); assert(css.includes('card__material--lite.card__glare-render')); assert(css.includes('card__body::after'));
   const r = boot(); open(r); const tile = r.C.inventory.rendered.get(0), width = r.C.inventory.el.style['--inventory-tile-width'];
-  r.move(1250, 700, tile.view.el); r.advance(200); assert(parseFloat(tile.view.el.style['--parallax-x']) > 0); assert.equal(r.C.inventory.el.style['--inventory-tile-width'], width);
-  assert.equal(tile.view.el.querySelectorAll('.card__face--front')[0].children.length, 9);
+  tile.el.fire('click'); r.advance(1200); const view = r.C.detail.view; r.move(1250, 700, view.el); r.advance(200); assert(parseFloat(view.el.style['--parallax-x']) > 0); assert.equal(r.C.inventory.el.style['--inventory-tile-width'], width);
+  assert.equal(view.el.querySelectorAll('.card__face--front')[0].children.length, 9);
 });
 await check('essential dim text and dimmed missing-card labels exceed 4.5:1 on dark surfaces', () => {
   function rgb(hex) { return hex.match(/[a-f\d]{2}/gi).map(x => parseInt(x, 16)); }

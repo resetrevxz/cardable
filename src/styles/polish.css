@@ -42,3 +42,10 @@ body::before { content: ''; position: fixed; inset: 0; z-index: var(--z-grid); p
 :is(.gallery-tools button,.gallery-profile button,.inventory-dev-tools button,.detail-close,.detail-serial-arrow,.detail-flip,.opening-keep,.tutorial-skip,.dev-panel button):active:not(:disabled) { translate: none; scale: .98; }
 .reduced-motion button { translate: none !important; scale: none !important; }
 .is-hidden *, .is-hidden *::before, .is-hidden *::after { animation-play-state: paused !important; }
+
+.preferences-version { margin-left: auto; font: 9px/1.5 var(--font-mono); color: var(--text-dim); opacity: 0; transition: opacity var(--t-fast) var(--ease-out); }
+.preferences-panel:hover .preferences-version, .preferences-panel:focus-within .preferences-version { opacity: .65; }
+
+.preferences-entry { position: relative; }
+.preferences-entry .preferences-version { position: absolute; top: 100%; right: 0; white-space: nowrap; pointer-events: none; }
+.preferences-entry:hover .preferences-version, .preferences-entry:focus-visible .preferences-version { opacity: .65; }
