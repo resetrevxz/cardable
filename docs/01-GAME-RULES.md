@@ -26,7 +26,7 @@ openPack():
   ready -= 1; if timerStartedAt == null: timerStartedAt = now
 ```
 
-Run `tick` on load, on `visibilitychange` (tab shown), and on a light 1 s timer while visible. Emit `pack:ready` when `ready` increases (drives the tab title and the ready animation).
+Run `tick` on load, on `visibilitychange` (tab shown), and on a light 1 s timer, including background tabs. Browsers may throttle the timer; reconciliation always uses timestamps. Emit `timer:tick` to refresh the title and `pack:ready` when `ready` increases (drives the ready animation).
 
 Countdown format: `7h 12m` when 1 h or more, `42m 10s` under 1 h, `38s` under 1 min. Digits are mono and tabular.
 
@@ -48,7 +48,7 @@ pullCard(pack):
 - `pack.cardsPerPack` (default **1**) cards are pulled per pack. If more than 1, reveal them one at a time (`docs/04-PACK-OPENING.md`).
 - The Limited tier is `pullable: false` and never appears in normal pulls.
 - **Commit at charge completion.** When the 3-second hold completes, consume the pack, resolve the pull, and store it as `save.pendingReveal`. This prevents refreshing to re-roll. On the next load, if `pendingReveal` exists, skip straight to the revealed state with the Keep button.
-- Pressing **Keep** moves the pending card(s) into `inventory`.
+- Pressing **Keep**, Enter or a fresh press of Space moves the pending card(s) into `inventory`. A key still held from charging never accepts a card. Ignore repeated Space presses and preserve control-specific Space behavior outside the revealed card.
 
 ## 3. Inventory model (built for a future market)
 
@@ -102,7 +102,7 @@ Robustness:
 
 ## 8. Browser title and favicon
 
-- Default title `Cardable`. When a pack is ready and the tab is hidden: `Cardable · pack ready`. When the tab is visible: `Cardable`.
+- While refilling, show the real countdown to the next pack and its remaining percentage, for example `Cardable · 1h 59m · 100%`, even if some packs are already stored. Update quietly once per second, writing the title only when its text changes. Remaining percentage counts down to zero. Once a pack arrives, show `Cardable · pack ready` until a pack is opened or the tab returns to the foreground; then resume the next refill countdown. At the four-pack cap the title stays `Cardable · pack ready`.
 - Favicon is the logo mark as an inline SVG data URI (no file needed).
 
 ## 9. Dev tools (`?dev=1` in the URL)

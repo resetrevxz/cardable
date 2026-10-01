@@ -30,9 +30,13 @@
       var stock = node('div', 'pack-stock', meta); stock.setAttribute('role', 'img');
       var vials = [];
       for (var i = 0; i < C.config.packs.maxStored; i++) {
-        var vial = node('div', 'stock-vial glass', stock); vial.setAttribute('aria-hidden', 'true');
-        var fill = node('div', 'stock-vial__fill', vial); node('div', 'stock-vial__meniscus', fill);
-        vials.push({ el: vial, fill: fill, value: i < C.state.current.packs.ready ? 1 : 0, from: 0, target: 0, start: null });
+        var vial = node('div', 'stock-card', stock); vial.setAttribute('aria-hidden', 'true');
+        var face = node('div', 'stock-card__face', vial);
+        var fill = node('div', 'stock-card__fill', face); node('div', 'stock-card__meniscus', fill);
+        node('span', 'stock-card__mark', face, 'c');
+        node('div', 'stock-card__shine', face);
+        var initialFill = i < C.state.current.packs.ready ? 1 : i === C.state.current.packs.ready ? C.timers.progress(Date.now()) : 0;
+        vials.push({ el: vial, fill: fill, value: initialFill, from: 0, target: 0, start: null, arrival: null });
       }
       var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); node('kbd', '', hint, 'Space');
       var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, handoff = null;
@@ -52,8 +56,13 @@
         timer.dataset.label = ready >= C.config.packs.maxStored ? 'PACK STORAGE' : ready > 0 ? 'NEXT PACK' : 'REGENERATING';
         vials.forEach(function (vial, i) {
           var target = i < ready ? 1 : 0;
-          if (initial) { vial.value = target; vial.target = target; }
-          else if (target !== vial.target) { vial.from = vial.value; vial.target = target; vial.start = now; }
+          if (initial) { vial.target = target; }
+          else if (target !== vial.target) {
+            vial.from = vial.value; vial.target = target; vial.start = now;
+            vial.arrival = target ? now : null;
+          }
+          vial.el.classList.toggle('is-ready', !!target);
+          vial.el.classList.toggle('is-refilling', i === ready && ready < C.config.packs.maxStored);
           vial.fill.style.transform = 'translateY(' + (1 - vial.value) * 100 + '%)';
         });
         C.fx.wake();
@@ -65,6 +74,7 @@
         C.packView.stats.readyMoments += 1; arrivalStart = root.performance.now(); host.classList.add('is-arriving'); C.fx.wake();
       }
       C.packView.el = host; C.packView.front = front; C.packView.back = back; C.packView.vials = vials; C.packView.digits = digits;
+      C.packView.stockCards = vials;
       C.events.on('save:written', function () { refresh(false); });
       C.events.on('pack:ready', arrival);
       C.events.on('pack:opened', function () { refresh(false); });
@@ -115,12 +125,22 @@
         var timerText = ready >= C.config.packs.maxStored ? 'Stock full' : C.timers.format(C.timers.remaining(Date.now()));
         if (timerText !== digits.text) { digits.set(timerText); timer.setAttribute('aria-label', timerText); }
         var active = digits.update(now);
-        vials.forEach(function (vial) {
-          if (vial.start === null) return;
-          var p = Math.min(1, (now - vial.start) / cfg.vialMs), ease = 1 - Math.pow(1 - p, 3);
-          vial.value = vial.from + (vial.target - vial.from) * ease;
-          vial.fill.style.transform = 'translateY(' + (1 - vial.value) * 100 + '%) rotate(' + (reduced ? 0 : Math.sin(p * Math.PI * cfg.vialOscillations) * (1 - p) * cfg.vialSloshDegrees) + 'deg)';
-          if (p === 1) vial.start = null; else active = true;
+        vials.forEach(function (vial, index) {
+          if (vial.start !== null) {
+            var p = Math.min(1, (now - vial.start) / cfg.vialMs), ease = 1 - Math.pow(1 - p, 3);
+            var endValue = index < ready ? 1 : index === ready ? progress : 0;
+            vial.value = vial.from + (endValue - vial.from) * ease;
+            if (p === 1) vial.start = null; else active = true;
+          } else vial.value = index < ready ? 1 : index === ready ? progress : 0;
+          vial.fill.style.transform = 'translateY(' + (1 - vial.value) * 100 + '%)';
+          if (vial.arrival !== null) {
+            var arriveP = Math.min(1, (now - vial.arrival) / cfg.stockShineMs);
+            vial.el.style.transform = reduced ? 'none' : 'translateY(' + -Math.sin(arriveP * Math.PI) * cfg.stockLiftPx + 'px)';
+            vial.el.style.setProperty('--stock-shine-x', (reduced ? 0 : -130 + arriveP * 260) + '%');
+            vial.el.style.setProperty('--stock-shine-opacity', Math.sin(arriveP * Math.PI));
+            if (arriveP === 1) { vial.arrival = null; vial.el.style.transform = ''; vial.el.style.setProperty('--stock-shine-opacity', 0); }
+            else active = true;
+          }
         });
         // Even with reduced motion the timestamp-derived fluid remains continuous.
         return !reduced || ready < C.config.packs.maxStored || active || arrivalStart !== null || handoff !== null;

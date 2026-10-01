@@ -53,14 +53,18 @@
       C.config.openingMotion.boundaryInset, 1 - C.config.openingMotion.boundaryInset);
     return next;
   }
-  function finish(points, width, height) {
-    if (points.length < 2) points = [{ x: 0, y: 0.5 }, { x: 1, y: 0.5 }];
+  function finish(points, width, height, options) {
+    options = options || {};
+    var fallbackY = options.lineY == null ? 0.5 : options.lineY;
+    if (points.length < 2) points = [{ x: 0, y: fallbackY }, { x: 1, y: fallbackY }];
     var info = metrics(points, width, height), chain = simple(points);
-    if (chain.length < 2) chain = [{ x: 0, y: 0.5 }, { x: 1, y: 0.5 }];
+    if (options.axis) info.axis = options.axis;
+    if (chain.length < 2) chain = [{ x: 0, y: fallbackY }, { x: 1, y: fallbackY }];
     if (chain[chain.length - 1][info.axis] < chain[0][info.axis]) chain.reverse();
     chain.unshift(edge(chain[0], chain[1], info.axis, 0));
     chain.push(edge(chain[chain.length - 1], chain[chain.length - 2], info.axis, 1));
     chain = simple(smooth(chain));
+    if (options.minY != null && options.maxY != null) chain = chain.map(function (point) { return { x: point.x, y: clamp(point.y, options.minY, options.maxY) }; });
     var first = chain[0], last = chain[chain.length - 1];
     var halves = info.axis === 'x' ? [chain.concat([{ x: 1, y: 0 }, { x: 0, y: 0 }]), chain.concat([{ x: 1, y: 1 }, { x: 0, y: 1 }])] :
       [chain.concat([{ x: 0, y: 1 }, { x: 0, y: 0 }]), chain.concat([{ x: 1, y: 1 }, { x: 1, y: 0 }])];

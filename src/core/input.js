@@ -89,7 +89,14 @@
             if (opening.phase === 'revealed' && !event.repeat && !wasSpaceDown && !enterDown && !root.document.hidden) C.events.emit('input:discard');
             return;
           }
-          if (spaceButton && spaceButton.classList.contains('opening-keep')) { spaceOwned = true; prevent(event); return; }
+          if (opening.phase === 'revealed') {
+            var keepTarget = chargeTarget(event.target) || (spaceButton && (spaceButton.classList.contains('opening-keep') || spaceButton.classList.contains('opening-delete')));
+            if (keepTarget) {
+              spaceOwned = true; prevent(event);
+              if (!event.repeat && !wasSpaceDown && !enterDown && !root.document.hidden) C.events.emit('input:keep');
+            }
+            return;
+          }
           if (!chargeTarget(event.target)) return;
           if (opening.phase !== 'idle' || opening.ready) { spaceOwned = true; prevent(event); }
           if (event.repeat || wasSpaceDown || opening.phase !== 'idle' || !opening.ready || root.document.hidden) return;

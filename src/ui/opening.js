@@ -1,6 +1,7 @@
 (function (C, root) {
   'use strict';
   var cfg, stage, host, glass, foil, halves, gap, hint, enterHint, status, error, seam, trails, particles, pack;
+  var cutGuide, cutTrack;
   var phase = 'idle', elapsed = 0, lastVisual = 0, chargeAt = 0, fill = 0, drainFrom = 0, pulseAt = 0;
   var path = [], hot = [], dirty = false, drag = null, split = null, cutIdle = 0, errorUntil = 0, savedFocus = null;
   var motion, scene, mount, bloom, keepButton, deleteButton, note, dust, currentView = null, rarity, timings, pendingCards = null;
@@ -47,7 +48,7 @@
     if (next !== 'cutting') enterHint.style.opacity = 0;
     if (next === 'charging') announce('Hold Space to open the pack.');
     if (next === 'draining') announce('Opening cancelled. Pack preserved.');
-    if (next === 'cutting') { announce('Drag across the foil wrapper, or press Enter to tear.'); focus(host); }
+    if (next === 'cutting') { announce('Drag across the highlighted top strip, or press Enter to tear.'); focus(host); }
     if (next === 'revealed') announce(C.card(C.state.current.pendingReveal.cards[cardIndex].cardId).name + '. ' + note.textContent + '.');
     keepButton.hidden = true; keepButton.disabled = true;
     deleteButton.hidden = true; deleteButton.disabled = true;
@@ -59,6 +60,9 @@
   function bounds() {
     var rect = host.getBoundingClientRect(); width = rect.width || C.config.shell.packWidth; height = rect.height || C.config.shell.packHeight;
     trails.setAttribute('viewBox', '0 0 ' + width + ' ' + height); dirty = true;
+    var guideY = height * C.config.cut.guideY;
+    var guidePath = 'M' + width * 0.06 + ' ' + guideY + ' C' + width * 0.3 + ' ' + (guideY - 2) + ' ' + width * 0.7 + ' ' + (guideY + 2) + ' ' + width * 0.94 + ' ' + guideY;
+    cutGuide.setAttribute('d', guidePath); cutTrack.setAttribute('d', guidePath);
     if (split) halves.forEach(function (half, i) { half.style.clipPath = C.cutGeometry.polygon(split.halves[i]); });
     return rect;
   }
@@ -69,6 +73,11 @@
   function inside(event) {
     var rect = host.getBoundingClientRect();
     return event.clientX >= rect.left && event.clientX <= rect.left + rect.width && event.clientY >= rect.top && event.clientY <= rect.top + rect.height;
+  }
+  function insideCut(event) {
+    if (!inside(event)) return false;
+    var point = local(event);
+    return point.y >= C.config.cut.topMin && point.y <= C.config.cut.topMax;
   }
   function clearCut() {
     release(); path = []; hot.forEach(function (item) { if (item.el) item.el.remove(); }); hot = []; split = null; cutIdle = 0;
@@ -135,7 +144,7 @@
     blade(false);
   }
   function cutStart(event) {
-    if (phase !== 'cutting' || event.button !== 0 || event.isPrimary === false || !host.contains(event.target) || !inside(event)) return;
+    if (phase !== 'cutting' || event.button !== 0 || event.isPrimary === false || !host.contains(event.target) || !insideCut(event)) return;
     var point = local(event);
     if (path.length) {
       var first = path[0], last = path[path.length - 1];
@@ -157,7 +166,8 @@
   }
   function cutMove(event) {
     if (phase !== 'cutting') return;
-    blade(inside(event));
+    var valid = insideCut(event); blade(valid);
+    if (!valid) { release(event); return; }
     if (!drag && C.config.cut.requirePress) return;
     if (drag && event.pointerId !== drag.id) return;
     if (!path.length) path.push(local(event));
@@ -171,14 +181,15 @@
     if (!count) return;
     if (drag) drag.at = now;
     cutIdle = 0; dirty = true;
-    var info = C.cutGeometry.metrics(path, width, height);
+    var xs = path.map(function (sample) { return sample.x; });
+    var info = { span: Math.max.apply(null, xs) - Math.min.apply(null, xs) };
     C.events.emit('cut:progress', info.span);
     if (info.span >= C.config.cut.autoFinishSpan) tear();
     C.fx.wake();
   }
   function tear() {
     if (phase !== 'cutting') return;
-    split = C.cutGeometry.finish(path, width, height);
+    split = C.cutGeometry.finish(path, width, height, { axis: 'x', lineY: C.config.cut.guideY, minY: C.config.cut.topMin, maxY: C.config.cut.topMax });
     halves.forEach(function (half, i) { half.style.clipPath = C.cutGeometry.polygon(split.halves[i]); half.style.opacity = 1; });
     gap.setAttribute('d', C.cutGeometry.svg(split.path, width, height));
     stats.tears += 1; C.events.emit('cut:complete', { axis: split.axis, path: split.path });
@@ -454,9 +465,14 @@
     }
     if (phase === 'cutting') {
       foil.style.opacity = 1; cutIdle += dt;
-      hint.style.opacity = elapsed >= cfg.cutHintMs ? 1 : 0;
+      hint.style.opacity = 1;
+      var guideP = (elapsed % cfg.cutGuideMs) / cfg.cutGuideMs;
+      var guideVisible = !path.length;
+      cutGuide.style.strokeDashoffset = C.motion.reduced ? 0 : 1 - ease(clamp(guideP / 0.72));
+      cutGuide.style.opacity = guideVisible ? (C.motion.reduced ? 0.65 : guideP > 0.82 ? (1 - guideP) / 0.18 * 0.65 : 0.65) : 0;
+      cutTrack.style.opacity = guideVisible ? 1 : 0;
       enterHint.style.opacity = cutIdle >= cfg.enterHintMs ? 1 : 0;
-      return cutIdle < cfg.enterHintMs || hot.length > 0 || particleActive;
+      return !C.motion.reduced && guideVisible || cutIdle < cfg.enterHintMs || hot.length > 0 || particleActive;
     }
     if (phase === 'tearing') {
       foil.style.opacity = 0; hint.style.opacity = 0; enterHint.style.opacity = 0;
@@ -488,7 +504,8 @@
       root.document.body.style.setProperty('--opening-chrome-opacity', cfg.chargeChromeOpacity);
       stage = node('section', 'opening-stage', root.document.body); stage.hidden = true; stage.setAttribute('aria-label', 'Pack opening');
       host = node('div', 'opening-pack', stage); host.setAttribute('tabindex', '0'); host.setAttribute('role', 'group');
-      host.setAttribute('aria-label', 'Pack wrapper. Hold Space to charge; drag or press Enter to tear.');
+      host.setAttribute('aria-label', 'Pack wrapper. Hold Space to charge; drag across the top strip or press Enter to tear.');
+      host.style.setProperty('--cut-guide-top', C.config.cut.guideY * 100 + '%');
       glass = C.packMarkup.unit(host, false, pack); glass.el.classList.add('opening-glass');
       foil = C.packMarkup.foil(host, pack);
       halves = [C.packMarkup.foil(host, pack), C.packMarkup.foil(host, pack)]; halves.forEach(function (half) { half.classList.add('opening-half'); });
@@ -496,10 +513,12 @@
       halfMaterials = halves.map(function (half) { return C.packMaterial.create(half, pack); });
       foilMaterial.update({ rx: 0, ry: 0 }, 0, true); halfMaterials.forEach(function (material) { material.update({ rx: 0, ry: 0 }, 0, true); });
       trails = svg('svg', host); trails.setAttribute('class', 'opening-seams'); trails.setAttribute('aria-hidden', 'true');
+      cutTrack = svg('path', trails); cutTrack.setAttribute('class', 'opening-cut-track');
+      cutGuide = svg('path', trails); cutGuide.setAttribute('class', 'opening-cut-guide'); cutGuide.setAttribute('pathLength', '1');
       gap = svg('path', trails); gap.setAttribute('class', 'opening-light-gap'); seam = svg('path', trails); seam.setAttribute('class', 'opening-cut-seam'); seam.setAttribute('stroke-width', cfg.seamPx);
       var particleHost = node('div', 'opening-particles', host);
       particles = C.particles.create(particleHost, Math.max(cfg.dissolveCount, cfg.fleckCount));
-      hint = node('div', 'opening-hint', host); node('kbd', 'opening-keycap', hint, 'Space'); node('span', 'opening-cut-hint', hint, 'cut here');
+      hint = node('div', 'opening-hint', host); node('kbd', 'opening-keycap', hint, 'Space'); node('span', 'opening-cut-hint', hint, 'cut along top');
       enterHint = node('div', 'opening-enter-hint', host, 'Enter to tear');
       status = node('div', 'visually-hidden', stage); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
       error = node('div', 'opening-error', root.document.body); error.setAttribute('role', 'status');
@@ -509,6 +528,8 @@
       var dustHost = node('div', 'opening-dust', scene); dust = C.particles.create(dustHost, motion.dustCount);
       note = node('div', 'opening-card-note', scene);
       keepButton = node('button', 'opening-keep glass', scene, 'Keep'); keepButton.setAttribute('type', 'button'); keepButton.hidden = true;
+      keepButton.setAttribute('aria-keyshortcuts', 'Space Enter'); keepButton.setAttribute('aria-label', 'Keep card. Space or Enter.');
+      node('kbd', 'opening-keep-key', keepButton, 'Space');
       keepButton.addEventListener('click', function () { C.input.keep(); });
       deleteButton = node('button', 'opening-delete glass', scene, 'Delete'); deleteButton.setAttribute('type', 'button'); deleteButton.hidden = true;
       deleteButton.setAttribute('aria-label', 'Delete this revealed card'); deleteButton.addEventListener('click', function () { C.input.discard(); });
@@ -530,7 +551,7 @@
       C.events.on('input:discard', function () { keep(true); });
       C.events.on('input:cutStart', cutStart); C.events.on('input:cutMove', cutMove); C.events.on('input:cutEnd', release); C.events.on('input:tear', tear);
       host.addEventListener('lostpointercapture', function () { release(); });
-      host.addEventListener('pointerenter', function () { if (phase === 'cutting') blade(true); });
+      host.addEventListener('pointerenter', function (event) { if (phase === 'cutting') blade(insideCut(event)); });
       host.addEventListener('pointerleave', function () { blade(false); });
       C.events.on('pointer:leave', function () { blade(false); });
       C.events.on('fx:visibility', function () { lastVisual = root.performance.now(); release(); blade(false); });

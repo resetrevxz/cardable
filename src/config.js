@@ -13,7 +13,7 @@
     },
 
     hold: { chargeMs: 3000, drainMs: 700 },
-    cut: { requirePress: true, autoFinishSpan: 0.8 },   // OPEN-QUESTIONS #15
+    cut: { requirePress: true, autoFinishSpan: 0.8, topMin: 0.08, topMax: 0.22, guideY: 0.09 },
 
     idleFadeMs: 2500,
 
@@ -73,6 +73,7 @@
       readyMomentMs: 850, arrivalLiftPx: 10, speckCount: 10, speckTravelPx: 8,
       fluidWavePx: 1.2, fluidWaveMs: 2400,
       vialMs: 450, vialSloshDegrees: 7, vialOscillations: 3,
+      stockShineMs: 700, stockLiftPx: 3,
       digitMs: 220, currencyMs: 700, shimmerMs: 850, shimmerOpacity: 0.4,
       arrowBreathMs: 6000, arrowNudgeMs: 14000, arrowNudgeDurationMs: 1000, arrowNudgePx: 2, arrowOpacity: 0.85, arrowOpacityRange: 0.15,
       previewReadyLeadMs: 2000, previewCurrencyAmount: 100, peekSlots: 3,
@@ -83,6 +84,7 @@
     openingMotion: {
       dissolveMs: 900, tearMs: 350, splitMs: 500, fallMs: 700, drainExitPortion: 0.25,
       cutHintMs: 2000, enterHintMs: 5000, samplePx: 8, snapPx: 16, maxPathSamples: 512,
+      cutGuideMs: 2800,
       smoothSteps: 6, geometryEpsilon: 0.00001, boundaryInset: 0.002,
       trailMs: 300, seamPx: 1, glintPx: 1.6, fastGlintPx: 0.8, glintSpeedPx: 1200,
       bladeFollow: 0.35, bladeLengthPx: 36, bladeWidthPx: 2,

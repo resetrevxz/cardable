@@ -55,9 +55,15 @@
 .pack-open-action:disabled { color: var(--text-dim); cursor: default; }
 .pack-open-action[hidden] { display: none; }
 .pack-stock { display: flex; gap: var(--s-2); justify-content: center; margin-top: var(--s-3); }
-.stock-vial { position: relative; width: 14px; height: 3px; border-radius: var(--r-chip); overflow: hidden; }
-.stock-vial__fill { position: absolute; inset: 0; transform-origin: center bottom; background: linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.16)); }
-.stock-vial__meniscus { position: absolute; top: 0; left: -50%; width: 200%; height: 1px; background: var(--hairline-strong); }
+.stock-card { position: relative; width: 18px; height: 26px; border-radius: var(--s-1); padding: 2px; border: 1px solid var(--hairline); background: var(--glass); box-shadow: inset 0 1px 0 rgba(255,255,255,.09),0 2px 4px rgba(0,0,0,.3); transition: border-color var(--t-ui) var(--ease-out); }
+.stock-card.is-ready { border-color: var(--hairline-strong); }
+.stock-card.is-refilling { border-color: rgba(255,255,255,.22); }
+.stock-card__face { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 2px; background: rgba(255,255,255,.018); }
+.stock-card__fill { position: absolute; inset: 0; background: linear-gradient(135deg,rgba(255,255,255,.45),rgba(255,255,255,.1) 55%,rgba(255,255,255,.2)); transform-origin: center bottom; }
+.stock-card__meniscus { position: absolute; inset: 0 0 auto; height: 1px; background: rgba(255,255,255,.6); }
+.stock-card__mark { position: absolute; inset: 0; display: grid; place-items: center; font: 600 10px/1 var(--font-ui); color: var(--text-faint); transition: color var(--t-ui) var(--ease-out); }
+.is-ready .stock-card__mark { color: var(--text); text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+.stock-card__shine { position: absolute; inset: -20% -60%; opacity: var(--stock-shine-opacity,0); background: linear-gradient(110deg,transparent 35%,rgba(255,255,255,.75) 50%,transparent 65%); transform: translateX(var(--stock-shine-x,-130%)); pointer-events: none; }
 .pack-key-hint { position: absolute; right: calc(100% + var(--s-5)); top: 50%; opacity: 0; transition: opacity var(--t-fast) var(--ease-out); pointer-events: none; }
 .is-hovered .pack-key-hint, .is-first-visit .pack-key-hint, .pack-stage:focus-visible .pack-key-hint { opacity: 1; }
 .pack-key-hint kbd { display: block; padding: var(--s-1) var(--s-2); font: 10px var(--font-mono); color: var(--text-dim); background: var(--glass); border: 1px solid var(--hairline); border-radius: var(--s-1); box-shadow: 0 2px 0 var(--surface-2); }

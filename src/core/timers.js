@@ -29,6 +29,7 @@
       if (packs.ready !== before) {
         C.events.emit('pack:ready', { ready: packs.ready, gained: packs.ready - before });
       }
+      C.events.emit('timer:tick', { now: now });
       return result;
     },
     progress: function (now) {
@@ -66,7 +67,7 @@
     start: function () {
       if (interval) return;
       C.timers.tick();
-      interval = root.setInterval(function () { if (!root.document || !root.document.hidden) C.timers.tick(); }, 1000);
+      interval = root.setInterval(function () { C.timers.tick(); }, 1000);
       if (root.document) unwatch = C.timers.watchVisibility(root.document);
     },
     stop: function () {

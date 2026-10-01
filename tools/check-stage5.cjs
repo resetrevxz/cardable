@@ -125,36 +125,39 @@ check('reload restores the same instances at Keep without another pull', () => {
   assert.equal(restored.C.state.current.packs.ready, 1); assert.equal(restored.C.state.current.serialCounter, 1); assert.equal(restored.C.opening.stats.commits, 0);
 });
 check('pointer must press; partial seams persist and resume only near either endpoint', () => {
-  const r = setup(); cutting(r); pointer(r, 'pointermove', 0.4, 0.5); assert.equal(r.C.opening.path.length, 0);
-  pointer(r, 'pointerdown', 0.2, 0.5); assert(r.C.opening.wrapper.hasPointerCapture(7));
-  pointer(r, 'pointermove', 0.55, 0.53); r.advance(20); assert(r.C.opening.path.length > 2); assert(r.C.opening.seam.getAttribute('d').includes('L'));
-  pointer(r, 'pointerup', 0.55, 0.53); assert(!r.C.opening.wrapper.hasPointerCapture(7));
+  const r = setup(); cutting(r); pointer(r, 'pointermove', 0.4, 0.15); assert.equal(r.C.opening.path.length, 0);
+  pointer(r, 'pointerdown', 0.2, 0.15); assert(r.C.opening.wrapper.hasPointerCapture(7));
+  pointer(r, 'pointermove', 0.55, 0.17); r.advance(20); assert(r.C.opening.path.length > 2); assert(r.C.opening.seam.getAttribute('d').includes('L'));
+  pointer(r, 'pointerup', 0.55, 0.17); assert(!r.C.opening.wrapper.hasPointerCapture(7));
   const before = stable(r.C.opening.path), first = r.C.opening.path[0], last = r.C.opening.path.at(-1);
   pointer(r, 'pointerdown', 0.9, 0.1); pointer(r, 'pointermove', 0.95, 0.2); assert.equal(stable(r.C.opening.path), before);
   pointer(r, 'pointerdown', first.x, first.y); assert.equal(stable(r.C.opening.path[0]), stable(last));
-  pointer(r, 'pointermove', 0.02, 0.49); pointer(r, 'pointerup', 0.02, 0.49);
+  pointer(r, 'pointermove', 0.02, 0.14); pointer(r, 'pointerup', 0.02, 0.14);
   assert.equal(r.C.opening.phase, 'cutting'); assert(r.C.opening.path.at(-1).x < first.x);
 });
 check('hot seam fades over 300ms while the dark smoothed seam remains', () => {
-  const r = setup(); cutting(r); pointer(r, 'pointerdown', 0.2, 0.5); pointer(r, 'pointermove', 0.5, 0.55); pointer(r, 'pointerup', 0.5, 0.55); r.advance(20);
+  const r = setup(); cutting(r); pointer(r, 'pointerdown', 0.2, 0.15); pointer(r, 'pointermove', 0.5, 0.18); pointer(r, 'pointerup', 0.5, 0.18); r.advance(20);
   const svg = r.C.opening.seam.parent; assert(svg.querySelectorAll('.opening-cut-glint').length > 0);
   const dark = r.C.opening.seam.getAttribute('d'); r.advance(350);
   assert.equal(svg.querySelectorAll('.opening-cut-glint').length, 0); assert.equal(r.C.opening.seam.getAttribute('d'), dark);
 });
 check('horizontal wandering cut reaches 80% span, uses its path for polygons and tears exactly once', () => {
-  const r = setup(); cutting(r); pointer(r, 'pointerdown', 0.04, 0.5);
-  pointer(r, 'pointermove', 0.4, 0.55); pointer(r, 'pointermove', 0.65, 0.45); assert.equal(r.C.opening.phase, 'cutting');
-  pointer(r, 'pointermove', 0.93, 0.53); assert.equal(r.C.opening.phase, 'tearing');
+  const r = setup(); cutting(r); pointer(r, 'pointerdown', 0.04, 0.15);
+  pointer(r, 'pointermove', 0.4, 0.18); pointer(r, 'pointermove', 0.65, 0.12); assert.equal(r.C.opening.phase, 'cutting');
+  pointer(r, 'pointermove', 0.93, 0.17); assert.equal(r.C.opening.phase, 'tearing');
   assert.equal(r.C.opening.split.axis, 'x'); assert.equal(r.C.opening.split.path[0].x, 0); assert.equal(r.C.opening.split.path.at(-1).x, 1);
   assert(r.C.opening.halves.every(el => el.style.clipPath.startsWith('polygon('))); assert.notEqual(r.C.opening.halves[0].style.clipPath, r.C.opening.halves[1].style.clipPath);
-  assert(!r.C.opening.wrapper.hasPointerCapture(7)); pointer(r, 'pointermove', 0.98, 0.55); assert.equal(r.C.opening.stats.tears, 1);
+  assert(!r.C.opening.wrapper.hasPointerCapture(7)); pointer(r, 'pointermove', 0.98, 0.18); assert.equal(r.C.opening.stats.tears, 1);
 });
-check('vertical cut splits left/right; repeated short travel cannot satisfy the span threshold', () => {
+check('middle and vertical cuts are rejected; repeated short travel cannot satisfy the width threshold', () => {
   const r = setup(); cutting(r); pointer(r, 'pointerdown', 0.5, 0.04); pointer(r, 'pointermove', 0.53, 0.9);
-  assert.equal(r.C.opening.phase, 'tearing'); assert.equal(r.C.opening.split.axis, 'y');
-  assert.equal(r.C.opening.split.path[0].y, 0); assert.equal(r.C.opening.split.path.at(-1).y, 1);
-  const s = setup(); cutting(s); pointer(s, 'pointerdown', 0.4, 0.5);
-  for (let i = 0; i < 30; i++) pointer(s, 'pointermove', i % 2 ? 0.4 : 0.6, i % 2 ? 0.5 : 0.55);
+  assert.equal(r.C.opening.phase, 'cutting'); assert.equal(r.C.opening.path.length, 0);
+  pointer(r, 'pointerdown', 0.2, 0.5); pointer(r, 'pointermove', 0.9, 0.5);
+  assert.equal(r.C.opening.path.length, 0);
+  pointer(r, 'pointerdown', 0.2, 0.15); pointer(r, 'pointermove', 0.25, 0.5);
+  assert(!r.C.opening.wrapper.hasPointerCapture(7)); assert.equal(r.C.opening.path.length, 1);
+  const s = setup(); cutting(s); pointer(s, 'pointerdown', 0.4, 0.15);
+  for (let i = 0; i < 30; i++) pointer(s, 'pointermove', i % 2 ? 0.4 : 0.6, i % 2 ? 0.15 : 0.18);
   assert.equal(s.C.opening.phase, 'cutting'); assert(s.C.cutGeometry.metrics(s.C.opening.path, 180, 252).span < 0.8);
 });
 check('loop removal produces a simple tear boundary without changing the recorded scratch path', () => {
@@ -165,26 +168,27 @@ check('loop removal produces a simple tear boundary without changing the recorde
   assert(result.path.every(p => p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= 1));
 });
 check('resize keeps normalized cuts and scales seam coordinates; the grid retains high-DPI sizing', () => {
-  const r = setup(); cutting(r); pointer(r, 'pointerdown', 0.2, 0.5); pointer(r, 'pointermove', 0.5, 0.55); pointer(r, 'pointerup', 0.5, 0.55); r.advance(20);
+  const r = setup(); cutting(r); pointer(r, 'pointerdown', 0.2, 0.15); pointer(r, 'pointermove', 0.5, 0.18); pointer(r, 'pointerup', 0.5, 0.18); r.advance(20);
   const before = stable(r.C.opening.path), old = r.C.opening.seam.getAttribute('d');
   r.C.opening.wrapper.rect = { left: 200, top: 100, width: 360, height: 504 }; r.window.devicePixelRatio = 2; r.window.fire('resize'); r.advance(20);
   assert.equal(stable(r.C.opening.path), before); assert.notEqual(r.C.opening.seam.getAttribute('d'), old); assert.equal(r.canvas.width, 2560);
 });
 check('blade has lag and native-cursor ownership clears on release, leave, blur and lost capture', () => {
-  const r = setup(); cutting(r); pointer(r, 'pointerdown', .2, .5); pointer(r, 'pointermove', .4, .52); r.advance(20);
+  const r = setup(); cutting(r); pointer(r, 'pointerdown', .2, .15); pointer(r, 'pointermove', .4, .17); r.advance(20);
   const cursor = r.document.getElementById('cursor-glow'); assert(cursor.classList.contains('is-blade')); assert(r.C.opening.wrapper.classList.contains('has-blade'));
-  pointer(r, 'pointermove', .6, .52); r.advance(20);
+  pointer(r, 'pointermove', .6, .17); r.advance(20);
   const x = Number(cursor.style.transform.match(/translate3d\(([^p]+)/)[1]); assert(x < 550 + 180 * .6);
   r.window.fire('blur'); assert(!r.C.opening.wrapper.hasPointerCapture(7)); assert(!r.C.opening.wrapper.classList.contains('has-blade')); assert.equal(r.C.opening.phase, 'cutting');
   const last = r.C.opening.path.at(-1); pointer(r, 'pointerdown', last.x, last.y); r.C.opening.wrapper.capture = null; r.C.opening.wrapper.fire('lostpointercapture');
   assert(!r.C.opening.wrapper.classList.contains('has-blade'));
   r.C.opening.wrapper.fire('pointerenter'); r.C.opening.wrapper.fire('pointerleave'); assert(!cursor.classList.contains('is-blade'));
 });
-check('cut hint appears at 2s, Enter hint at 5s, and Enter immediately completes a partial path', () => {
-  const r = setup(); cutting(r); assert.equal(r.C.opening.hint.style.opacity, 0); r.advance(2100); assert.equal(r.C.opening.hint.style.opacity, 1);
+check('top cut hint appears immediately, Enter hint at 5s, and Enter completes a top cap', () => {
+  const r = setup(); cutting(r); assert.equal(r.C.opening.hint.style.opacity, 1); r.advance(2100); assert.equal(r.C.opening.hint.style.opacity, 1);
   assert.equal(r.C.opening.enterHint.style.opacity, 0); r.advance(3000); assert.equal(r.C.opening.enterHint.style.opacity, 1);
-  pointer(r, 'pointerdown', .5, .3); pointer(r, 'pointermove', .52, .55); pointer(r, 'pointerup', .52, .55);
-  const pending = stable(r.C.state.current.pendingReveal); finish(r); assert.equal(r.C.opening.split.axis, 'y'); assert.equal(stable(r.C.state.current.pendingReveal), pending);
+  pointer(r, 'pointerdown', .5, .12); pointer(r, 'pointermove', .52, .18); pointer(r, 'pointerup', .52, .18);
+  const pending = stable(r.C.state.current.pendingReveal); finish(r); assert.equal(r.C.opening.split.axis, 'x'); assert.equal(stable(r.C.state.current.pendingReveal), pending);
+  assert(r.C.opening.split.path.every(point => point.y >= r.C.config.cut.topMin && point.y <= r.C.config.cut.topMax));
   const s = setup(); cutting(s); assert(key(s, 'keydown', 'Enter').prevented); assert.equal(s.C.opening.phase, 'tearing'); assert.equal(s.C.opening.split.axis, 'x');
 });
 check('tear lifts, emits bounded fibers, falls away and hands the reserved result to rising', () => {
@@ -202,8 +206,8 @@ check('live reduced motion removes ripples/vibration/particles and uses direct b
   const r = setup(); key(r, 'keydown', ' '); r.advance(2400); r.reduced(true); r.advance(20);
   assert.equal(r.C.dots.stats.ripples, 0); assert.equal(r.C.opening.glass.el.style['--meniscus-wave'], '0px'); assert.equal(r.C.opening.glass.pose.style.transform, 'translate(0px,0px)');
   r.advance(600); key(r, 'keyup', ' '); r.advance(930); assert.equal(r.C.opening.phase, 'cutting');
-  pointer(r, 'pointermove', .5, .5); r.advance(20);
-  assert(r.document.getElementById('cursor-glow').style.transform.startsWith('translate3d(640px,356px'));
+  pointer(r, 'pointermove', .5, .15); r.advance(20);
+  assert(r.document.getElementById('cursor-glow').style.transform.startsWith('translate3d(640px,267.8px'));
   key(r, 'keydown', 'Enter'); r.advance(200); assert.equal(r.C.opening.stats.particles, 0);
   assert(r.C.opening.halves.every(el => el.style.transform === 'none' && Number(el.style.opacity) < 1));
   r.reduced(false); r.advance(1400); assert.equal(r.C.opening.phase, 'rising');
@@ -236,9 +240,11 @@ check('forced Common and Secret use the real catalog and retain the configured e
     assert.equal(C.cardView.stats.fullCards, 0);
   }
 });
-check('stationary cutting sleeps after hints settle; hidden tearing pauses and resumes without reroll', () => {
+check('top guide draws while waiting; reduced motion sleeps and hidden tearing pauses without reroll', () => {
   const r = setup(); cutting(r); r.advance(5200); const frames = r.C.fx.stats.frameCount; r.advance(500);
-  assert.equal(r.C.fx.stats.frameCount, frames); assert(!r.C.fx.stats.running);
+  assert(r.C.fx.stats.frameCount > frames); r.reduced(true); r.advance(100);
+  const reducedFrames = r.C.fx.stats.frameCount; r.advance(500); assert.equal(r.C.fx.stats.frameCount, reducedFrames);
+  r.reduced(false);
   key(r, 'keydown', 'Enter'); r.advance(300); r.hidden(true);
   const transform = r.C.opening.halves[0].style.transform, pending = stable(r.C.state.current.pendingReveal);
   r.advance(50000); assert.equal(r.C.opening.halves[0].style.transform, transform); assert.equal(r.C.opening.phase, 'tearing');

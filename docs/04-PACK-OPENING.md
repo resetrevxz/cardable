@@ -39,17 +39,18 @@ Rules: only one pack can be in the sequence at a time; ignore input that is inva
 
 ### dissolving (900 ms)
 - The glass shell and fluid dissolve into fine particles that drift upward, leaving a flat **foil wrapper** (matte-metal sheet with the pack design printed on it, card silhouette inside).
-- A faint dashed "cut here" hint appears on the wrapper after 2 s (in the first-time tutorial it is a ghost cut path).
+- When the dissolve ends, the top-strip highlighter and cut label appear immediately. The tutorial uses the same guide.
 
 ### cutting (no time limit)
-- Input: press and drag across the wrapper (`config.cut.requirePress = true`, see OPEN-QUESTIONS #15). Cursor glow becomes a slim "blade" glint.
+- Input: press and drag across the wrapper's **top strip only**, between `config.cut.topMin` and `topMax` (8–22% down the wrapper). Cursor glow becomes a slim "blade" glint only in this strip. Leaving the strip ends the current drag; no scratch is added below it.
+- A restrained silver highlighter draws across the top strip repeatedly. The "cut along top" label sits above the line. Once cutting begins, the drawn seam replaces the guide. Reduced motion uses a static highlight.
 - Record pointer positions in wrapper-local coordinates every 8 px or so and smooth them.
 - Visuals: a thin bright line at the leading point, fading behind it over about 300 ms; thickness reduces slightly with speed. The cut remains as a thin dark seam.
 - Resistance: while cutting, the visual blade lags the real pointer (lerp about 0.35) so it feels like dragging through foil.
 - The cut does not need to be perfect and may wander.
-- Auto-finish: once the path has spanned at least 80 % of the wrapper along its main axis, extend it in a smooth line to the edges and go to `tearing`.
+- Auto-finish: once the path has spanned at least 80 % of the wrapper's width, extend it in a smooth line to the left and right edges, staying in the top strip, and go to `tearing`.
 - If the pointer is released early, the partial seam stays; the player can continue later.
-- Direction: if |dx| ≥ |dy| the cut splits top/bottom, otherwise left/right.
+- Direction: always remove the top cap. Enter uses the same top strip, including when no pointer path has been drawn.
 
 ### tearing (350 ms) and splitting (500 ms)
 - Split the wrapper along the cut path into two polygons (extended path + wrapper outline → two `clip-path` / canvas clips).
@@ -73,7 +74,7 @@ Rules: only one pack can be in the sequence at a time; ignore input that is inva
 - The card now tilts toward the cursor (full mode).
 - Info arrives in sequence: name (fade), serial (stamp, +180 ms), specs (one by one, 80 ms apart), tier badge, tier meter fills segment by segment (about 40 ms each).
 - **First time this card is pulled:** reveal +200 ms longer and a soft "New" label. **Duplicate:** 15 % shorter (not for tiers 7+) and a "x2" note.
-- A quiet **Keep** button appears 400 ms after the last item. Enter or click activates it. Guard against a still-held Space triggering it.
+- A quiet **Keep** button appears 400 ms after the last item, with a small Space keycap. A fresh Space press, Enter or click activates it. Guard against a still-held Space triggering it, key repeats, and acceptance before the button is available.
 
 ### collecting (about 900 ms)
 - On Keep: the card scales down and its thumbnail (lite mode) flies toward the inventory arrow. A small glass toast slides in from the bottom: thumbnail, name, "Added to inventory". The arrow pulses once when the thumbnail lands. The toast stays 2.4 s.

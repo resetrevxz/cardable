@@ -13,7 +13,7 @@
     var hours = C.config.packs.regenMs / 3600000;
     var interval = Number.isInteger(hours) ? hours + (hours === 1 ? ' hour' : ' hours') : C.config.packs.regenMs / 60000 + ' minutes';
     return { welcome: 'You have ' + C.state.current.packs.ready + (C.state.current.packs.ready === 1 ? ' pack.' : ' packs.'), hold: 'Hold Space to open.',
-      cut: 'Slide across to cut.', keep: 'Keep it.', inventory: 'Your cards live here.',
+      cut: 'Drag across the top to cut.', keep: 'Press Space to keep it.', inventory: 'Your cards live here.',
       timer: 'A new pack arrives every ' + interval + '.', done: '' }[step];
   }
   function clearTarget() { if (target) target.classList.remove('is-tutorial-target'); target = null; }

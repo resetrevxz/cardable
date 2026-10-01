@@ -259,8 +259,8 @@ check('a minute of idle queues one wave without revealing the logo until pointer
 check('hidden tabs cancel animation and expired ripples are not replayed', () => {
   r.click(800, 500); r.advance(20); r.hidden(true);
   const frames = r.C.fx.stats.frameCount; r.advance(2000); assert.equal(r.C.fx.stats.frameCount, frames);
-  assert.equal(r.document.title, 'Cardable · pack ready');
-  r.hidden(false); r.advance(20); assert.equal(r.C.dots.stats.ripples, 0); assert.equal(r.document.title, 'Cardable');
+  assert.match(r.document.title, /^Cardable · .+ · \d+%$/);
+  r.hidden(false); r.advance(20); assert.equal(r.C.dots.stats.ripples, 0); assert.match(r.document.title, /^Cardable · .+ · \d+%$/);
   assert(r.document.getElementById('favicon').getAttribute('href').startsWith('data:image/svg+xml,'));
   assert.equal(r.logs.filter(log => log.level === 'error').length, 0);
 });
@@ -277,14 +277,14 @@ check('dev integration runs six Stage 0 checks once and retains the real save', 
   assert(d.C.dev.panel.children.some(child => child.textContent.startsWith('FPS: idle')));
 });
 
-check('dev title test is transient and restores the normal title on return', () => {
+check('dev ready notification restores the refill countdown on return', () => {
   const button = d.C.dev.panel.children.find(child => child.textContent === 'Test pack-ready title');
   d.C.state.current.packs.ready = 0;
   const saved = d.store.get('cardable.save'), state = JSON.stringify(d.C.state.current);
-  d.click(70, 70, button); d.hidden(true); assert.equal(d.document.title, 'Cardable');
+  d.click(70, 70, button); d.hidden(true); assert.match(d.document.title, /^Cardable · .+ · \d+%$/);
   d.advance(1001); assert.equal(d.document.title, 'Cardable · pack ready');
   assert.equal(d.store.get('cardable.save'), saved); assert.equal(JSON.stringify(d.C.state.current), state);
-  d.hidden(false); assert.equal(d.document.title, 'Cardable');
+  d.hidden(false); assert.match(d.document.title, /^Cardable · .+ · \d+%$/);
 });
 
 console.log('\n' + passed + ' Stage 1 checks passed; 6 Stage 0 console checks passed. Browser visuals and measured FPS are unverified.');

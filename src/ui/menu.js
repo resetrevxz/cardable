@@ -32,9 +32,13 @@
   }
   function title() {
     var hidden = root.document.hidden;
-    if (!hidden) notifiedReady = false;
     var ready = C.state.current && C.state.current.packs.ready > 0;
-    root.document.title = C.config.gameName + (hidden && (ready || notifiedReady) ? ' · pack ready' : '');
+    var full = C.state.current && C.state.current.packs.ready >= C.config.packs.maxStored;
+    var waiting = C.state.current && !full && !notifiedReady;
+    var remaining = waiting ? C.timers.remaining(Date.now()) : 0;
+    var suffix = waiting ? ' · ' + C.timers.format(remaining) + ' · ' + Math.ceil(remaining / C.config.packs.regenMs * 100) + '%' : full || notifiedReady ? ' · pack ready' : '';
+    var nextTitle = C.config.gameName + suffix;
+    if (root.document.title !== nextTitle) root.document.title = nextTitle;
     var showReady = ready || hidden && notifiedReady;
     if (favicon && faviconReady !== showReady) { faviconReady = showReady; favicon.setAttribute('href', faviconStates[showReady ? 'ready' : 'normal']); }
   }
@@ -67,10 +71,13 @@
       C.events.on('menu:visibilityHold', function (event) { C.menu.holdVisible(event.reason, event.active); });
       root.document.addEventListener('focusin', keyboardHold);
       root.document.addEventListener('focusout', function () { root.setTimeout(keyboardHold, 0); });
-      C.events.on('pack:ready', function (event) { if (event && event.simulated) notifiedReady = event.ready > 0; title(); });
-      C.events.on('pack:opened', title);
+      C.events.on('pack:ready', function (event) { if (event) notifiedReady = event.ready > 0; title(); });
+      C.events.on('pack:opened', function () { notifiedReady = false; title(); });
+      C.events.on('save:reset', function () { notifiedReady = false; title(); });
+      C.events.on('save:imported', function () { notifiedReady = false; title(); });
+      C.events.on('timer:tick', title);
       C.events.on('save:written', title);
-      root.document.addEventListener('visibilitychange', function () { title(); arm(); });
+      root.document.addEventListener('visibilitychange', function () { if (!root.document.hidden) notifiedReady = false; title(); arm(); });
       title();
       favicon = root.document.getElementById('favicon');
       var tokens = root.getComputedStyle(root.document.documentElement);

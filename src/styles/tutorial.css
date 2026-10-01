@@ -28,10 +28,10 @@
 [data-tutorial="hold"] kbd { border-color: var(--hairline-strong); box-shadow: 0 0 var(--s-4) var(--glass-strong); opacity: var(--tutorial-pulse, 1); }
 [data-tutorial="inventory"] .inventory-arrow { color: var(--text); filter: brightness(calc(1 + var(--tutorial-pulse, 1))); }
 .tutorial-ghost { display: none; width: 100%; height: var(--s-5); overflow: visible; }
-.opening-cut-hint[data-tutorial="cut"] { display: block; border: 0; font-size: 0; }
+.opening-cut-hint[data-tutorial="cut"] { display: block; border: 0; }
 .opening-hint[data-tutorial="cut"] { opacity: 1 !important; }
-.opening-cut-hint[data-tutorial="cut"] .tutorial-ghost { display: block; }
+.opening-cut-hint[data-tutorial="cut"] .tutorial-ghost { display: none; }
 .tutorial-ghost path { fill: none; stroke: var(--text-dim); stroke-width: 1; stroke-linecap: round; stroke-dasharray: 1; }
 .opening-cut-hint.is-cut-started .tutorial-ghost { visibility: hidden; }
 .reduced-motion .tutorial-ghost path { stroke-dashoffset: 0 !important; }
-@media (prefers-reduced-motion: reduce) { .tutorial-ghost path { stroke-dashoffset: 0 !important; } }
+.reduced-motion .tutorial-ghost path { stroke-dashoffset: 0 !important; }

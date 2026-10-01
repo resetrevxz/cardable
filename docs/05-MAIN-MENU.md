@@ -31,7 +31,7 @@ After 2.5 s without pointer movement, everything except the pack fades out over 
 
 - Countdown under the pack, mono and tabular. Format from `docs/01-GAME-RULES.md` (`7h 12m`, `42m 10s`, `38s`). Digits roll like a mechanical counter; only the changed digit animates.
 - Show it small and dim; the exact time is fully visible on hover, and the fluid fill carries the meaning at a glance.
-- **Stock indicator:** two small glass vials/capsules under the pack (one per stored pack slot). A vial fills with fluid (snappy, with a small slosh) when a pack arrives and drains when one is opened.
+- **Stock indicator:** four miniature silver card backs under the pack, one per stored pack slot. Stored cards appear filled; the next empty slot fills continuously from the same two-hour timestamp as the countdown. Further slots stay empty. An arriving card lifts slightly and catches a quick silver sweep; opening a pack eases its slot back toward the current refill level. Reduced motion keeps the fill and replaces movement with a brief shine.
 
 ## 5. Currency
 

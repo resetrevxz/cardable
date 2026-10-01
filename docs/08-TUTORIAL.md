@@ -16,16 +16,16 @@ Shown to new players, who start with 2 packs. Short, quiet, skippable. It teache
 |---|---|---|---|
 | `welcome` | pack | "You have 2 packs." | pack hovered, or after 2.5 s |
 | `hold` | pack + `Space` keycap (pulsing) | "Hold Space to open." | the 3 s charge completes |
-| `cut` | wrapper with a ghost cut path animating across it | "Slide across to cut." | the tear completes |
-| `keep` | Keep button | "Keep it." | Keep pressed |
+| `cut` | wrapper's top strip with the shared draw-on highlighter | "Drag across the top to cut." | the tear completes |
+| `keep` | Keep button | "Press Space to keep it." | Keep pressed |
 | `inventory` | inventory arrow (pulses) | "Your cards live here." | sheet opened, or after 6 s |
-| `timer` | timer and stock vials | "A new pack arrives every 8 hours." (text uses `config.packs.regenMs`) | after 4 s |
+| `timer` | timer and miniature stock cards | "A new pack arrives every 2 hours." (text uses `config.packs.regenMs`) | after 4 s |
 | `done` | none | none | sets `tutorial.done = true` |
 
 ## Rules
 
 - During `hold` and `cut`, the rest of the UI stays hidden as in a normal opening.
-- The ghost path in `cut` repeats every 3 s until the player starts cutting.
-- The ghost path and the "cut here" hint are the same element, styled by a `tutorial` flag.
+- The top highlighter in `cut` repeats every `config.openingMotion.cutGuideMs` until the player starts cutting.
+- The top highlighter and label are shared with ordinary opening; the tutorial highlights that area.
 - Keyboard-only players: `cut` shows "Press Enter to tear" after 5 s (`docs/04-PACK-OPENING.md`).
 - Reduced motion: no pulsing or ghost animation; use static highlights.
