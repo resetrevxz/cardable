@@ -39,7 +39,7 @@
     return {
       id: id, name: row[1], generation: row[3], rarity: row[2],
       vram: { amount: row[5], unit: row[6], type: row[7], shared: shared },
-      specs: row[4], art: art, pullable: true
+      specs: row[4], art: art, pullable: true, type: 'gpu', brand: row[9]
     };
   }
 
@@ -118,5 +118,15 @@
     ['geforce-256', 'GeForce 256', 'secret', 'gen1', { pipelines: 4, coreClockMhz: 120, busBits: 128 }, 32, 'MB', 'SDR', 'die']
   ];
 
+  // Explicit catalog metadata; UI search never infers a manufacturer from a name.
+  var brands = {
+    amd: ['radeon-hd-2400-pro','radeon-hd-2600-pro','radeon-rx-5500','radeon-7000','radeon-9200','radeon-hd-2600-xt','radeon-rx-5600-xt','radeon-7500','radeon-8500','radeon-hd-2900-xt','radeon-rx-5700-xt','radeon-rx-6600','radeon-rx-7600','radeon-rx-6700-xt','radeon-rx-7700-xt','radeon-rx-9070-xt','radeon-vii','radeon-rx-6800-xt','radeon-rx-7900-xtx','radeon-rx-6900-xt'],
+    nvidia: ['geforce-gt-610','geforce-gt-710','geforce-gtx-650','geforce-gtx-750','geforce-fx-5200','geforce-2-mx','geforce-gtx-660','geforce-gtx-760','geforce-gtx-950','geforce-gtx-670','geforce-gtx-770','geforce-gtx-960','geforce-gtx-1050-ti','geforce-gtx-970','geforce-gtx-1060-6gb','geforce-gtx-1660-ti','geforce-rtx-2060','geforce-rtx-3060-ti','geforce-rtx-5090','geforce-rtx-4070-super','geforce-rtx-3080','geforce-gtx-1080-ti','geforce-rtx-2080-ti','geforce-gtx-980-ti','geforce-rtx-3090','geforce-rtx-4090','geforce-rtx-5080','geforce-256'],
+    intel: ['intel-iris-xe-max','intel-arc-a380','intel-arc-a580','intel-arc-a750','intel-arc-b580'],
+    apple: ['apple-m1-gpu','apple-m2-gpu','apple-m3-max-gpu','apple-m4-max-gpu','apple-m5-gpu'],
+    qualcomm: ['snapdragon-x','snapdragon-x2-elite']
+  };
+  catalog.forEach(function (row) { Object.keys(brands).forEach(function (brand) { if (brands[brand].indexOf(row[0]) >= 0) row[9] = brand; }); });
+  legacyCards.forEach(function (card) { card.brand = null; card.type = 'gpu'; });
   C.data.cards = legacyCards.concat(catalog.map(makeCard));
 })(window.Cardable = window.Cardable || {});

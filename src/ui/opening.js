@@ -274,6 +274,7 @@
       var owned = new Set(candidate.inventory.map(function (item) { return item.instanceId; }));
       cards.forEach(function (item) { if (!owned.has(item.instanceId)) { candidate.inventory.push(item); owned.add(item.instanceId); } });
       candidate.pendingReveal = null;
+      candidate.inventoryUi.pendingFocusCardId = cards[cards.length - 1].cardId;
     }
     C.events.emit('opening:prepareKeep', { candidate: candidate, final: final });
     writingKeep = true; var saved = C.state.commit(candidate); writingKeep = false;
@@ -295,6 +296,7 @@
     stats.collections += 1; collected = false; currentView.setMode('lite'); currentView.setVisible(false);
     currentView.el.inert = true; currentView.el.style.opacity = 1; currentView.el.style.transform = 'scale(1)'; dust.clear();
     collectionSource = mount.getBoundingClientRect();
+    C.events.emit('inventory:handoffSource', { cardId: pendingCards[pendingCards.length - 1].cardId, rect: collectionSource });
     var corner = parseFloat(root.getComputedStyle(currentView.el).getPropertyValue('--r-card'));
     toastThumb.style.setProperty('--thumbnail-radius', corner * motion.toastThumbnailWidthPx / collectionSource.width + 'px');
     var arrow = root.document.getElementById('inventory-affordance').querySelector('button'); collectionTarget = arrow.getBoundingClientRect();

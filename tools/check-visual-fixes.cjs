@@ -121,26 +121,25 @@ check('F6 every visible pack component shares one pose, with SVG seals and an ex
   const r = runtime(), front = r.C.packView.front, back = r.C.packView.back;
   assert.equal(front.shadow.parentElement, front.el); assert(!front.pose.contains(front.shadow));
   for (const item of [front, back]) for (const part of item.el.querySelectorAll('.pack-brand, .pack-label, .pack-wrapper, .pack-shine, .pack-sweep, .pack-reflection')) assert(item.pose.contains(part));
-  assert.equal(front.el.querySelectorAll('.pack-crimp').length, 2); assert(front.el.querySelectorAll('.pack-crimp').every(el => el.tagName === 'svg' && el.children[0].getAttribute('d').includes('V11')));
+  assert.equal(front.el.querySelectorAll('.pack-crimp').length, 2); assert(front.el.querySelectorAll('.pack-crimp').every(el => el.tagName === 'svg' && el.children[0].getAttribute('d').includes('V15')));
   assert.equal(front.el.querySelectorAll('.pack-brand')[0].tagName, 'svg'); assert.equal(front.el.querySelectorAll('.pack-label')[0].textContent, 'Standard Pack');
   assert.equal(r.C.config.shell.packHeight / r.C.config.shell.packWidth, 7.4 / 5);
   assert.equal(front.glass.style.transform, undefined);
 });
-check('F6 float stays aligned at both extrema, shadow breathes oppositely, rear phase differs, spring caps at 8deg', () => {
-  const r = runtime(), front = r.C.packView.front, back = r.C.packView.back;
-  r.advance(1500); const high = front.pose.style.transform, highShadow = Number(front.shadow.style.opacity), highScale = Number(front.shadow.style.transform.match(/scale\(([^)]+)/)[1]);
-  r.advance(3000); assert.notEqual(front.pose.style.transform, high); assert(Number(front.shadow.style.opacity) > highShadow); assert(Number(front.shadow.style.transform.match(/scale\(([^)]+)/)[1]) > highScale);
-  assert.notEqual(front.pose.style.transform, back.pose.style.transform); assert.equal(back.el.style.opacity, .45);
-  r.move(1280, 0); r.advance(20); const first = Number(front.pose.style.transform.match(/rotateY\(([^d]+)/)[1]); assert(first > 0 && first < 8);
-  for (let i = 0; i < 40; i++) { r.advance(20); for (const angle of front.pose.style.transform.matchAll(/rotate[XY]\(([^d]+)/g)) assert(Math.abs(Number(angle[1])) <= 8); }
-  assert.equal(front.glass.style.transform, undefined); assert(front.el.style['--pack-sweep-x']); assert(front.el.style['--pack-sweep-opacity']);
+check('F6 revised sealed rig stays grounded, tracks a nearby pointer and keeps material/outline in one pose', () => {
+  const r = runtime(), front = r.C.packView.front;
+  r.advance(1500); const rest = front.pose.style.transform; r.advance(3000); assert.equal(front.pose.style.transform, rest);
+  r.pack.rect={left:550,top:230,width:180,height:266}; r.pack.fire('pointerenter'); r.move(700,260,r.pack); r.advance(600);
+  const state=r.C.packView.snapshot(); assert(Math.abs(state.ry)>0); assert(Math.abs(state.ry)<=r.C.config.packObject.idleTilt); assert(Math.abs(state.rx)<=r.C.config.packObject.idleTilt);
+  assert.notEqual(front.pose.style.transform,rest); assert.equal(front.glass.style.transform,undefined); assert(front.el.style['--shine-x']); assert(front.el.style['--lamp-angle']);
+  r.pack.fire('pointerleave'); r.advance(1500); assert(Math.abs(r.C.packView.snapshot().ry)<.01);
 });
 check('F1–F6 live reduced motion and hidden tabs stop presentation and retain durable state', () => {
   const r = pending(), state = clone(r.C.state.current); r.reduced(true); keep(r); r.advance(200);
   assert.equal(r.C.opening.toast.style.transform, 'translateX(-50%)'); assert.equal(r.C.opening.toast.style.clipPath, 'none'); assert.equal(r.C.opening.toast.style.willChange, '');
   const clip = r.C.opening.toast.style.clipPath; r.hidden(true); r.advance(4000); assert.equal(r.C.opening.toast.style.clipPath, clip); assert.equal(r.C.opening.phase, 'collecting');
   r.hidden(false); r.advance(1200); assert.equal(r.C.opening.phase, 'idle'); assert.equal(r.C.state.current.inventory[0].serial, state.pendingReveal.cards[0].serial);
-  assert(r.C.packView.front.pose.style.transform.includes('translateY(0px)')); r.click(100, 100); r.advance(50); assert.equal(r.C.dots.stats.ripples, 0);
+  assert(r.C.packView.front.pose.style.transform.includes('translate3d(0px,0px,0px)')); r.click(100, 100); r.advance(50); assert.equal(r.C.dots.stats.ripples, 0);
   assert(!r.logs.some(log => log.level === 'error' || log.text.includes('FAIL')));
 });
 console.log('\n' + passed + ' F1–F6 checks passed. Screenshots, first-frame glass compositing and browser FPS remain unconfirmed.');

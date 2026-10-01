@@ -4,7 +4,7 @@
   var payload = null, view = null, visual = null, serialIndex = 0, side = 'front', phase = 'closed', spring, from, to;
   var shineAge = 0, drag = null, dragSpring, panelOpacity = 0, swapping = null, fadeMs, returnPanelFrom = 1, returnBackdropFrom = 1;
   var node = C.packMarkup.node;
-  var preferencesActive = false;
+  var preferencesActive = false, scrollPositions = new Map();
   function clamp(value, low, high) { return Math.max(low, Math.min(high, value)); }
   function prevent(event) { if (event.preventDefault) event.preventDefault(); }
   function focus(el) { if (el && el.focus) el.focus({ preventScroll: true }); }
@@ -53,6 +53,22 @@
     }
     var description = entry.owned ? view && view.description || entry.rarity.description : view && view.description || '';
     if (description) node('p', 'detail-description', panel, description);
+    if (entry.owned) {
+      node('p', 'detail-quantity', panel, entry.instances.length + (entry.instances.length === 1 ? ' copy owned' : ' copies owned'));
+      var acquired = Math.max.apply(null, entry.instances.map(function (i) { return i.pulledAt; }));
+      node('p', 'detail-acquired', panel, 'Latest acquisition · ' + new Date(acquired).toLocaleDateString());
+    }
+    var actions = node('div', 'detail-actions', panel);
+    C.inventoryIcons.button('back', 'Previous card', function () { navigate(-1); }, actions);
+    C.inventoryIcons.button('next', 'Next card', function () { navigate(1); }, actions);
+    if (entry.owned && !payload.preview) {
+      var favorite = C.inventoryIcons.button('favorite', 'Favorite card', function () {
+        C.inventoryModel.favorite(payload.entry.card.id);
+        favorite.setAttribute('aria-pressed', C.inventoryModel.current.favorites.indexOf(payload.entry.card.id) >= 0);
+      }, actions);
+      favorite.setAttribute('aria-pressed', C.inventoryModel.current.favorites.indexOf(entry.card.id) >= 0);
+      var collections = C.inventoryIcons.button('collection', 'Add to collection', function () { C.events.emit('inventory:detailMembership', { entry: payload.entry, anchor: collections }); }, actions);
+    }
     var browser = node('div', 'detail-serial-browser', panel); browser.hidden = !entry.owned;
     previous = node('button', 'detail-serial-arrow', browser); previous.setAttribute('type', 'button'); previous.setAttribute('aria-label', 'Previous serial'); icon(previous, 'M14 6l-6 6 6 6');
     var serial = node('div', 'detail-serial-values', browser); serialText = node('div', 'detail-serial', serial); serialText.setAttribute('role', 'status');
@@ -61,7 +77,7 @@
     previous.addEventListener('click', function () { browse(-1); }); next.addEventListener('click', function () { browse(1); });
     flipButton = node('button', 'detail-flip glass', panel); flipButton.setAttribute('type', 'button'); flipButton.setAttribute('aria-label', 'Flip card'); flipButton.setAttribute('aria-pressed', 'false'); flipButton.hidden = !entry.owned; icon(flipButton, 'M19 10a7 7 0 1 0-1 7M19 5v5h-5');
     flipButton.addEventListener('click', flip);
-    syncSerial();
+    syncSerial(); panel.scrollTop = scrollPositions.get(entry.card.id) || 0;
   }
   function syncSerial() {
     var instances = payload.entry.instances;
@@ -96,6 +112,23 @@
     visual = view.el; visual.style.opacity = 0; mount.appendChild(visual); view.setFace(side); view.setMode('full');
     swapping = { old: old, age: 0 }; shineAge = 0; syncSerial(); C.fx.wake();
   }
+  function navigate(delta) {
+    if (phase !== 'detail' || swapping) return;
+    var request = { delta: delta }; C.events.emit('inventory:detailNavigate', request);
+    if (!request.entry) return;
+    scrollPositions.set(payload.entry.card.id, panel.scrollTop || 0);
+    var old = view; if (old) old.destroy(); else if (visual) visual.remove();
+    payload.entry = request.entry; payload.preview = request.preview; serialIndex = 0; side = 'front';
+    var entry = payload.entry;
+    if (entry.owned || entry.rarity.finish === 'secret') {
+      view = C.cardView.create(entry.card, entry.instances[0] || { instanceId: 'unknown-' + entry.card.id, cardId: entry.card.id, serial: '', seen: true }, { owned: entry.owned, autoFocus: false, keyboardFlip: false, autoStamp: false, shine: true });
+      visual = view.el; view.setMode('full');
+    } else {
+      var tile = C.inventoryTiles.create(entry, 0, { activate: function () {}, context: function () {} });
+      view = null; visual = tile.visual; tile.el.remove();
+    }
+    visual.setAttribute('tabindex', '-1'); mount.appendChild(visual); shineAge = 0; fillPanel(); C.fx.wake();
+  }
   function releaseDrag(event, cancelled) {
     if (!drag || event && event.pointerId !== drag.id) return;
     var d = drag; drag = null;
@@ -106,7 +139,8 @@
   }
   function close() {
     if (phase === 'closed' || phase === 'returning') return;
-    releaseDrag(null, true);
+    scrollPositions.set(payload.entry.card.id, panel.scrollTop || 0);
+    releaseDrag(null, true); if (C.inventory.toolbar) C.inventory.toolbar.close();
     var target = { cardId: payload.entry.card.id, rect: null }; C.events.emit('inventory:returnTarget', target);
     returnPanelFrom = panelOpacity; returnBackdropFrom = clamp(spring.value, 0, 1);
     from = currentRect(); from.top += dragSpring.value; to = target.rect || payload.sourceRect;
@@ -124,6 +158,7 @@
     payload = null; view = null; visual = null;
   }
   function reset() {
+    scrollPositions.clear();
     if (phase === 'closed') return;
     releaseDrag(null, true); if (swapping) swapping.old.destroy(); swapping = null;
     if (view) view.destroy(); else if (visual) visual.remove();
@@ -183,8 +218,8 @@
       root.document.addEventListener('keydown', function (event) {
         if (preferencesActive) return;
         if (phase === 'closed' || event.repeat) return;
-        if (event.key === 'Escape') { prevent(event); close(); }
-        else if (phase === 'detail' && (event.key === 'ArrowLeft' || event.key === 'ArrowRight') && payload.entry.owned) { prevent(event); browse(event.key === 'ArrowLeft' ? -1 : 1); }
+        if (event.key === 'Escape') { prevent(event); if (!(C.inventory.toolbar && C.inventory.toolbar.escape())) close(); }
+        else if (phase === 'detail' && !(C.inventory.toolbar && C.inventory.toolbar.modal) && !(event.target && event.target.closest && event.target.closest('input,select,textarea')) && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) { prevent(event); navigate(event.key === 'ArrowLeft' ? -1 : 1); }
       });
       C.events.on('card:face', function (event) { if (event.view === view) { side = event.side; if (flipButton) flipButton.setAttribute('aria-pressed', side === 'back'); } });
       C.events.on('inventory:detailOpen', open); C.events.on('detail:requestClose', close); C.events.on('detail:reset', reset);

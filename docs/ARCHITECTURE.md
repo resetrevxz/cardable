@@ -30,6 +30,10 @@ cardable/
       namespace.js      creates window.Cardable and registries (load first)
       events.js         tiny event bus
       state.js          save/load/migrate, autosave on change
+      inventory-model.js  schema-2 preferences, favorites, collections, safe mutations (before state)
+      collection.js     ownership projection and dev fixtures
+      inventory-query.js  parsing, generated facets, filters, stable sorts and groups
+      inventory-checks.js isolated dev regressions (after UI modules)
       timers.js         pack timer (tick/progress/open)
       pull.js           weighted pull, emptyTierPolicy
       serial.js         serial generation and format
@@ -46,11 +50,16 @@ cardable/
     ui/
       menu.js  pack.js  opening.js  card.js  card-specs.js
       inventory.js  detail.js  tutorial.js  toast.js  logo.js
+      inventory-icons.js  inventory-toolbar.js  inventory-shelf.js  inventory-grid.js
+      inventory-reorder.js  inventory-transition.js  (before inventory controller)
     styles/
       tokens.css  base.css  glass.css  card.css  pack.css  menu.css  inventory.css
+      inventory-controls.css  inventory-views.css (after inventory.css)
 ```
 
 Script order in `index.html`: `namespace.js`, `config.js`, data files, `core/*`, `fx/*`, `finishes/*`, `ui/*`, then a final `boot.js`.
+
+Inventory dependencies: events → inventory-model → state; collection → inventory-query; card/pack-markup/accessibility → inventory-icons/shelf/grid/toolbar/reorder/transition → inventory controller → detail → inventory-checks → boot. The HTML is the executable classic-script order. No runtime imports or fetches.
 
 ## 3. Registries
 
@@ -67,6 +76,10 @@ C.screens.register(id, { open(), close() })   // future market lives here, behin
 ## 4. Events (`Cardable.events.on/emit`)
 
 `pack:ready`, `pack:opened`, `charge:start`, `charge:progress` (0-1), `charge:end`, `charge:complete`, `cut:progress`, `cut:complete`, `reveal:phase` (name), `card:revealed`, `card:kept`, `inventory:open`, `inventory:close`, `tutorial:step`, `currency:changed`, `save:written`. UI modules talk through events, never by calling each other directly.
+
+Inventory also emits `inventory:selection {cardId}`, `inventory:modelChanged {shown,total}`, `inventory:preferencesChanged`, `inventory:collectionsChanged`, `inventory:viewChanged`, `inventory:dragContext`, `inventory:handoffSource {cardId,rect}` and `inventory:handoffTarget {cardId,rect}`, `inventory:handoffComplete {cardId}`. Detail integrates through detailOpen/detailReturned/returnTarget/detailNavigate/detailMembership events. View modules share the controller's query result, not separate ownership stores.
+
+Schema 2 stores `inventoryUi` preferences separately from owned instances: view/sort/group, Show Unowned, active collection, last/pending card focus, favorite IDs, named collections of card IDs, and per-collection customOrders. Schema 1 migration preserves ownership and pending reveals. Query/session state and presentation rectangles are never saved. New catalog entries append in projection; saved order arrays are not rewritten just for catalog growth. Card records explicitly provide `brand` and `type: 'gpu'` for generated facets.
 
 ## 5. Dev validation (runs at boot when `?dev=1`)
 

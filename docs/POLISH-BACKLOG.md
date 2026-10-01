@@ -58,3 +58,14 @@ Rendered menu, half-filled tilted wrapper, and opening-stage foil were reviewed 
 10. Revisit the front microprint's registration offset after a human review at normal viewing distance.
 
 The detail someone would feel missing: the darker trough immediately beneath each compressed seal. It visually explains where the flat crimp becomes the card-filled body; keep that transition even when simplifying rendering.
+
+## Major inventory refresh — acceptance and deferred ideas
+
+Core refresh implementation and behavioral evidence are recorded in `INVENTORY-REFRESH.md`. The design critique is a source review; this task's file preview was blocked, so it does not claim a rendered Apple-style signoff.
+
+1. Render and critique centered/neighbor card spacing, mystery faces and edge masks at 1280, 1920, 2560, 3840 and ultrawide widths.
+2. Profile real sheet blur/compositing, moving Shelf, virtual Grid, live filters, detail and acquisition flight; target 60 fps on the intended laptop.
+3. Review narrow toolbar/tab density and the handoff landing against the moving sheet; tune only after screenshots and Performance recordings.
+4. Verify browser zoom 80–150%, physical pointer capture, native file requests and visible focus rings with both fonts and fallbacks.
+
+Deferred until those gates are stable: multi-select, bulk actions, saved filters, drag-to-tab, collapsible groups, alphabetical index and onboarding hints.

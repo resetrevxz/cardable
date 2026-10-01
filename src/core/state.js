@@ -12,7 +12,8 @@
       packs: { ready: C.config.packs.startingPacks, timerStartedAt: null },
       serialCounter: 0, inventory: [], pendingReveal: null, currency: 0,
       tutorial: { step: 'welcome', done: false },
-      settings: { reducedMotion: null }, stats: { packsOpened: 0 }
+      settings: { reducedMotion: null }, stats: { packsOpened: 0 },
+      inventoryUi: C.inventoryModel ? C.inventoryModel.defaults() : {}
     };
   }
   function migrate(value) {
@@ -21,6 +22,7 @@
     if (version > C.config.storage.schemaVersion) throw new Error('Save is from a newer version');
     while (version < C.config.storage.schemaVersion) {
       if (version === 0) { value.schemaVersion = 1; version = 1; }
+      else if (version === 1) { value.schemaVersion = 2; version = 2; }
       else throw new Error('No migration from save schema ' + version);
     }
     var base = freshState(value.createdAt || Date.now());
@@ -35,6 +37,7 @@
     base.tutorial = Object.assign({ step: 'welcome', done: false }, base.tutorial || {});
     base.settings = Object.assign({ reducedMotion: null }, base.settings || {});
     base.stats = Object.assign({ packsOpened: 0 }, base.stats || {});
+    base.inventoryUi = C.inventoryModel.normalize(base.inventoryUi);
     return base;
   }
   function validate(value, strict) {

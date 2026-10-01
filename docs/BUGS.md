@@ -62,3 +62,25 @@ Audit date: 2026-10-01. Scope: current Stage 8 implementation, including F1–F6
 ## Defaults and scope
 
 Preserved the game rules and defaults: eight-hour regen, normalized chances, cap two/no banking, one card with multi-card support, fixed three-second charge, downgrade empty tiers, standard pack, existing serial format, visual-only duplicate stacks, local font fallbacks and desktop scope. No data files, config values, save schema, market, audio or variants changed.
+
+## Inventory refresh — 2026-10-01
+
+The earlier sections record their historical pass. Current inventory is schema 2, and regression timer/cap expectations now follow configuration. The separate pack task's committed rules are preserved.
+
+| # | area | what | how to reproduce | status (fixed / deferred / won't fix) |
+|---|---|---|---|---|
+| inv-01 | Shelf geometry | Long-track coordinates and inherited perspective compressed far cards and retained sort offsets. Replaced with a bounded relative window. | Preview 1000 entries; Home/End, sort during motion, resize and switch views. Check finite transforms and at most 13 Shelf wrappers. | fixed |
+| inv-02 | Input | A second arrow activation during closing targeted the stale open flag. Toggle now uses the requested detent. | Click open, close before settling, then immediately click open again. | fixed |
+| inv-03 | Focus | Hidden Peek controls were still reachable and could trap menu keyboard navigation. Hidden regions are inert. | At Peek, Tab through the menu; then open and check the sheet's focus scope. | fixed |
+| inv-04 | Acquisition | Saved focus could be hidden by Favorites/filters or cleared before the flight completed. Focus escapes session filters and stays durable until completion. | Keep, select Favorites/filter, open inventory; interrupt the flight and reload. | fixed |
+| inv-05 | Detail focus | Membership popover could mount behind an inert detail overlay. It now belongs to detail and Escape restores its focus scope. | Open detail, Add to collection, Escape twice. | fixed |
+| inv-06 | Reorder input | Escape cancellation also reached the sheet dismissal handler. The reorder explicitly claims the event first. | In Custom sort, hold-drag then press Escape. Order remains unchanged and sheet stays open. | fixed |
+| inv-07 | Preference projection | Stale/unowned favorites or collection references inflated counts and disclosed invalid membership. Projection now excludes them without deleting saved references. | Import valid inventory with stale/unowned preference IDs; inspect collection results/counts. | fixed |
+| inv-08 | Grid selection | A filter from a distant scroll position could leave all matching tiles outside the render window. Model/resize changes reveal the preserved or replacement selection. | Scroll a 1000-entry Grid far down, filter to Secret, resize and switch views. | fixed |
+| inv-09 | Tile reuse | Recycled wrappers retained acquired/hover classes or stale duplicate/New accessible labels. Transient classes clear and labels refresh. | Highlight an acquired tile, scroll it out, reuse the slot; mark a duplicate design viewed. | fixed |
+| inv-10 | Detail return | Changing result membership during detail could return a view to a removed tile. Deferred model rebuild and per-card scroll restoration handle navigation/return. | Open a scrolled detail, change active collection/membership, navigate and close. | fixed |
+| inv-11 | Render lifecycle | Full effects or temporary clones could multiply during view switches, reorder and repeated open/close. Lifecycle checks enforce one full card and bounded wrappers/subscriptions. | Repeat 50 sheet open/close cycles; reorder and switch views; audit retained resources after 50 openings. | fixed |
+| inv-13 | Keyboard focus | Shelf navigation left focus attached to a recycled tile wrapper. Navigation now keeps focus on the stable listbox with the active descendant derived from logical position. | Focus the first tile, press End, let it settle, then press Enter. Detail must show the last selected design. | fixed |
+| inv-12 | Browser acceptance | Glass rendering, physical gesture feel, real font/file requests, screenshot critique, zoom and measured 60 fps have no permitted browser evidence. | Run the manual matrix in INVENTORY-REFRESH.md in a permitted local-file browser. | deferred |
+
+Fixed rows are reverified by `tools/check-inventory-refresh.cjs` (29 groups) and the retained detail/bug-pass checks. `src/core/inventory-checks.js` adds isolated dev console regressions for migration, query syntax, normalization/privacy, bounded windows, stale preferences, pending focus and reorder Escape. It does not mutate the player save. Final gate evidence is `INVENTORY-REFRESH-REGRESSIONS.json`.

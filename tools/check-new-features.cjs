@@ -22,7 +22,7 @@ function key(r, name, target = r.document.body, extra = {}) {
 function gallery() { const r = runtime(true, true); r.advance(50); return r; }
 function open(r, preview = false) { if (preview) r.C.events.emit('inventory:preview', true); r.C.events.emit('inventory:request', true); r.advance(1200); }
 function current(r) { return r.C.inventory.rendered.get(r.C.inventory.center); }
-function pitch(r) { return parseFloat(r.C.inventory.el.style['--inventory-tile-width']) + r.C.config.inventoryMotion.tileGapPx; }
+function pitch(r) { return parseFloat(r.C.inventory.shelf.style['--inventory-tile-width']) + r.C.config.inventoryMotion.tileGapPx; }
 function press(r, el, x, y) { el.fire('pointerdown', { pointerId: 1, clientX: x, clientY: y, button: 0, isPrimary: true, target: el }); }
 function move(r, x, y) { r.document.fire('pointermove', { pointerId: 1, clientX: x, clientY: y, target: r.document.body, preventDefault() {} }); }
 function release(r) { r.document.fire('pointerup', { pointerId: 1 }); }
@@ -109,7 +109,7 @@ check('vertical wheel and horizontal trackpad feed one smooth transform position
   r.advance(80); assert(c.position > 0 && c.position < c.target);
   shelf.fire('wheel', { deltaY: 0, deltaX: 180, preventDefault() {} }); assert.equal(c.target, 360); r.advance(1400);
   assert(Math.abs(c.position / pitch(r) - Math.round(c.position / pitch(r))) < .001);
-  assert.equal(shelf.scrollLeft, undefined); assert(shelf.children[0].style.transform.includes('translate3d'));
+  assert.equal(shelf.scrollLeft, undefined); assert([...r.C.inventory.rendered.values()].every(t => t.el.style.transform.includes('translate3d')));
 });
 check('carousel snap overshoot is bounded to six percent of a tile', () => {
   const r = boot(); const c = r.C.carousel.create(); c.bounds(10000, 200); c.reset(1000); c.snap(2000, 1800);
@@ -122,26 +122,28 @@ check('reduced carousel motion slides briefly without rotation or snap overshoot
   assert(c.position > 0 && c.position < 180); assert.equal(current(r).pose.style.transform, 'none');
   r.advance(1100); assert(c.settled()); assert(Math.abs(c.position / pitch(r) - Math.round(c.position / pitch(r))) < .001);
 });
-check('300 tiles virtualize to +/-6, remain lite on hover, and dial angles cap at fifty degrees', () => {
+check('300 tiles use relative +/-6 geometry; only the centered card is full and hover is static', () => {
   const r = boot(); open(r, true); r.C.inventory.carousel.snap(r.C.inventory.entries.findIndex((e, i) => i >= 100 && e.owned) * pitch(r)); r.C.fx.wake(); r.advance(1600);
-  assert.equal(r.C.inventory.rendered.size, 13); assert.equal(r.C.cardView.stats.fullCards, 0);
-  const tile = current(r), neighbor = r.C.inventory.rendered.get(r.C.inventory.center + 1); tile.el.fire('pointerenter'); r.advance(50); assert.equal(tile.view.mode, 'lite');
-  assert(Math.abs(parseFloat(neighbor.pose.style.transform.match(/rotateY\(([-.0-9]+)/)[1]) + 34) < .001); assert.equal(Number(neighbor.pose.style.opacity), .55);
-  const far = r.C.inventory.rendered.get(r.C.inventory.center + 6); assert(far.pose.style.transform.includes('rotateY(-50deg)'));
+  assert.equal(r.C.inventory.rendered.size, 13); assert.equal(r.C.cardView.stats.fullCards, 1);
+  const tile = current(r), neighbor = r.C.inventory.rendered.get(r.C.inventory.center + 1); neighbor.el.fire('pointerenter'); r.advance(50); if(neighbor.view)assert.equal(neighbor.view.mode, 'lite'); assert.equal(tile.view.mode, 'full');
+  assert(Math.abs(parseFloat(neighbor.pose.style.transform.match(/rotateY\(([-.0-9]+)/)[1]) + r.C.config.inventoryMotion.shelfTurnDegrees) < .001);
+  assert.equal(Number(neighbor.pose.style.opacity), r.C.config.inventoryMotion.shelfSideOpacity);
+  const far = r.C.inventory.rendered.get(r.C.inventory.center + 6); assert(far.pose.style.transform.includes('rotateY(-24deg)'));
 });
-check('sort FLIP retains visible DOM nodes, uses bounded staggering, and recenters', () => {
-  const r = boot(); open(r, true); r.C.inventory.carousel.snap(40 * pitch(r)); r.C.fx.wake(); r.advance(1400); const old = Array.from(r.C.inventory.rendered.values()), before = clone(r.C.state.current);
-  r.C.inventory.filters[2].fire('click'); r.advance(80); assert(old.every(t => !t.view || !t.view.destroyed)); assert(old.every(t => t.el.parent === r.C.inventory.shelf.children[0]));
-  assert(old.some(t => t.sortOffset !== 0)); assert(r.C.inventory.rendered.size <= 26); r.advance(1800);
-  assert.equal(r.C.inventory.center, 0); assert(r.C.inventory.rendered.size <= 13); assert.deepEqual(clone(r.C.state.current), before);
+check('sort FLIP uses a bounded lite overlay and preserves the selected card', () => {
+  const r = boot(); open(r, true); r.C.inventory.carousel.snap(40 * pitch(r)); r.C.fx.wake(); r.advance(1400); const id = current(r).entry.card.id;
+  r.C.inventory.toolbar.buttons.sort.fire('click'); r.C.inventory.toolbar.popover.querySelectorAll('button').find(b => b.textContent === 'Rarity low–high').fire('click');
+  r.advance(80); assert(r.C.inventory.rendered.size <= 13); assert.equal(current(r).entry.card.id, id); assert(r.C.cardView.stats.fullCards <= 1);
+  const overlays = r.document.body.querySelectorAll('.inventory-transition-card'); assert(overlays.length <= 13); r.advance(1800);
+  assert.equal(r.document.body.querySelectorAll('.inventory-transition-card').length, 0); assert.equal(r.C.inventoryModel.current.sortMode, 'rarity-asc');
   assert(r.C.inventory.entries.every((e, i, all) => !i || all[i - 1].rarity.tier <= e.rarity.tier));
 });
-check('rapid sorting stays bounded, preserves ids/focus geometry, pauses hidden and handles reduced motion', () => {
+check('rapid sorting stays bounded, preserves selection, pauses hidden and handles reduced motion', () => {
   const r = boot(); open(r, true);
-  for (let i = 0; i < 9; i++) { r.C.inventory.filters[i % 3].fire('click'); r.advance(40); assert(r.C.inventory.rendered.size <= 26); }
+  for (let i = 0; i < 9; i++) { r.C.inventoryModel.update({sortMode:['catalog','generation','rarity-asc'][i%3]}); r.advance(40); assert(r.C.inventory.rendered.size <= 13); }
   const pose = current(r).el.style.transform; r.hidden(true); r.advance(10000); assert.equal(current(r).el.style.transform, pose); r.hidden(false);
   r.reduced(true); r.advance(500); assert.equal(current(r).pose.style.transform, 'none'); assert(r.C.inventory.rendered.size <= 13);
-  assert.equal(current(r).el.getAttribute('id'), 'inventory-tile-' + r.C.inventory.center);
+  assert.equal(current(r).el.id, 'inventory-shelf-' + r.C.inventory.center);
 });
 check('version comes from config, settings expose it on hover/focus, and no runtime dependencies were added', () => {
   const r = boot(); assert.equal(r.C.config.version, '1.0.0'); assert(r.document.body.querySelectorAll('.preferences-version').every(x => x.textContent === 'v1.0.0'));

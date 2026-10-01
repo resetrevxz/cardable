@@ -1,44 +1,55 @@
 # 06 — Inventory
 
-A frosted-glass sheet that pulls up from the main menu. A shelf, not a grid.
+The approved major inventory refresh supersedes the original shelf-only brief. The inventory is a mounted glass sheet with Shelf and Grid views, discovery tools and saved collection preferences. Chrome remains monochrome. Ownership is still `save.inventory`; collections reference card IDs and never copy instances.
 
-## 1. The sheet
+## 1. Sheet and toolbar
 
-- Collapsed: only the arrow (plus a few pixels of the sheet's top edge) is visible.
-- Open via arrow click, drag up, ArrowUp or `I`. Close via drag down, arrow, Esc.
-- Drag follows the pointer, then springs to rest (stiffness 220, damping 26). Rubber-band resistance at the limits; a flick adds velocity.
-- **Depth:** when open, the main menu behind scales to about 0.96, blurs (about 8 px) and dims (about 40 %).
-- **Surface:** the glass recipe from `Designs.MD` section 5 (heavy blur, faint white tint, 1 px top highlight, soft shadow above). The dot grid stays faintly visible through it.
-- Sheet height: about 62 vh.
+Four detents are configured in `config.inventoryMotion.detents`: Peek (104 px), Normal (62 vh), Expanded (82 vh), and Full (16 px from the viewport top). Peek shows the owned/catalog count and a static selected-owned thumbnail. The handle owns sheet dragging; card gestures belong to Shelf/Grid. The spring remains stiffness 220, damping 26, with rubber-band limits and velocity-based settling.
 
-## 2. Header (tiny)
+Arrow click, focused Enter, I and ArrowUp open. Space remains reserved for pack opening. Collapse returns to Peek. Escape first cancels a reorder, closes a popover/search or detail, then closes the sheet. Background controls become inert while open; keyboard focus remains inside the current modal. The menu reaches scale .96, blur 8 px and dim .4 at Normal. Opening and settings retain input ownership.
 
-Left: "Collection" (Inter, small). Right: `12 / 40` (mono, counts up when the sheet opens) with a thin progress line beneath that fills in the same fluid style as the pack timer. Under it, one quiet row of text options: `All · By generation · By rarity` with a sliding underline for the active one.
+The restrained toolbar contains collapse, title/count/progress, Search, Filter, Sort, Shelf/Grid and More. Inline SVGs share a stroke style, delayed tooltips and visible focus rings. Tabs are All Cards, Favorites and custom collections. Show Unowned persists.
 
-## 3. Shelf
+## 2. Shared ownership and query model
 
-- One horizontal, snap-scrolling row (`scroll-snap-type: x mandatory`), momentum scrolling, a light tick and a small scale pulse as each card centers.
-- **Coverflow feel:** the card nearest the center scales up (about 1.0) and sharpens; others shrink (about 0.82) and dim slightly (opacity about 0.6). The centered card shows a soft reflection on the glass beneath it.
-- At rest, show **only the card art and its name**. Stats appear on hover or when opened.
-- **Duplicates stack:** one tile with a small `x3` count, not three tiles. Instances keep their own serials underneath.
-- **Not-owned cards** appear as faint silhouettes so the collection shows what is missing without clutter: dark outline of the card shape with the generation label only. Names are hidden (`???`), see OPEN-QUESTIONS #9. The **Secret** tier shows its Unfound design instead of a plain silhouette. On open, one very faint shimmer sweeps left to right across the silhouettes once.
-- **New badge:** a small dot on a tile until its card is first viewed (`seen` flag).
-- Order: by generation (`order`), then tier, then card id. Every card in `Cardable.data.cards` gets a tile (owned or silhouette).
-- Performance: virtualize. Render only tiles within about ±6 of the center; the rest are placeholders of the same width. Shelf cards use **lite** render mode; only the centered/hovered card is full.
+`C.collection.project` groups duplicate instances and supplies canonical generation/tier/card-ID order. Unowned retired placeholder records are omitted; owned retired instances remain available. `C.inventoryQuery` produces the result model for both views, with stable selection by card ID.
 
-## 4. Detail view
+Search covers owned names, brand/type metadata, generation, registry rarity, normalized VRAM, memory type and formatted specs. Unknown cards disclose only generation and rarity in text searches. Tags: `name`, `rarity`, `vram`, `generation`, `brand`, `owned`, `new`, `type`, `memoryType`. Quotes support spaces. VRAM examples: `vram:8`, `vram:>=16`, `vram:8-16`. MB values normalize to GB; shared memory has no numeric value. Terms combine with AND; selected facet values within a category combine with OR. Invalid tags report an inline error and retain the last valid result set.
 
-- Click or Enter on a card: it **lifts out of the sheet** with a shared-element transition into a full-screen detail view (the card visibly travels from its tile). The sheet dims behind it.
-- The detail card is in full mode with the same tilt, foil and shine as the reveal, and a slow idle sway.
-- Show: name, tier badge and meter, generation, VRAM, full specs, description text of the tier, and for stacks a small serial browser (left/right arrows through the instances' serials, mono).
-- Flip control: a small circular button flips the card to show the back (logo plus serial) with a 3D flip.
-- Close: click outside, Esc, or drag down; the card flies back to its tile.
+Filters include generated rarity/generation/brand/memory facets, ownership and duplicates, New, minimum quantity and VRAM range. Chips can be removed individually; Clear Filters is available. Suggestions use registry facets. No unsupported year/architecture/series/visual-color fields are invented.
 
-## 5. Empty states
+Sorts: Catalog, Custom, recent/oldest acquisition, name A–Z/Z–A, rarity low/high, generation, VRAM low/high, quantity and first owned serial. Missing values sort last; catalog index breaks ties. Group by None, Rarity, Generation, Brand, Ownership or New/Existing. Grid has group headers; Shelf has a quiet crossing label. Custom sort requires grouping None.
 
-- No cards yet: the shelf shows only silhouettes, and a single quiet line: "Open your first pack."
-- Collection count shows `0 / N`.
+## 3. Shelf and Grid
 
-## 6. Data
+Shelf keeps one floating position in card units. A recycled window contains at most ±6 neighbors, with translations relative to the viewport center. There is no catalog-length rail, no `index * pitch` world coordinate and no inherited perspective on the track. Shallow per-tile turning/depth avoids the old compressed faces. Wheel/trackpad, drag momentum, arrows, Home/End and PageUp/PageDown feed the same bounded position. The white focus light follows it and stretches with velocity.
 
-`ownedByCardId = group(save.inventory, 'cardId')` gives counts and instances. The catalog is `Cardable.data.cards`. No separate inventory data is stored beyond `save.inventory`.
+Only the centered owned Shelf card is full. Neighbors remain lite on hover; hover adds a static highlight/lift. Grid is entirely lite and virtualizes visible rows plus two overscan rows. It computes responsive columns and binary-searches row bounds before rendering. Selection survives view, sort, filter and viewport changes whenever the selected card remains in the results.
+
+Both views show one tile per design with duplicate quantity and New badges. Ordinary unknown cards use an etched GPU silhouette, technical dots, lock, UNKNOWN CARD, generation/rarity and static registered finish details. Names/specs remain hidden. Secret uses the registered Unfound face.
+
+View/sort transitions measure visible tiles, then animate lite overlays using transforms/opacity with bounded staggering. Reduced motion uses a short crossfade.
+
+## 4. Collections, reorder and detail
+
+Custom collections support create, rename, tab move, delete and an owned-card membership checklist. Counts ignore stale/unowned preference references without deleting saved arrays. Favorite and membership mutations require ownership. Each collection has an independent custom order; new registry IDs append in catalog order during projection.
+
+In Custom sort, hold a tile then drag to lift a lite clone, open a small insertion gap and auto-scroll at the view edges. Escape cancels without saving. Context Move Earlier/Move Later uses the same reorder command. Other sorts explain how to enable rearranging.
+
+Click/Enter lifts the same visible card into detail. Detail retains tilt, shine, R/button flip and explicit duplicate serial buttons, and adds quantity, latest acquisition, Favorite, collection membership and previous/next result navigation. Left/Right navigates designs, not serials. Scroll position is restored per design. Escape closes the membership popover before detail. Viewing detail clears New on that design's instances; selection alone does not.
+
+## 5. Acquisition and persistence
+
+Final Keep atomically sets `inventoryUi.pendingFocusCardId` to the last collected card alongside adding instances and clearing `pendingReveal`. It preserves `pulledAt`, `seen`, serials and pack statistics. A same-session handoff carries only a source rectangle and card ID. Opening inventory selects that card, animates a lite clone into the target and highlights it; after reload it selects/highlights directly. It switches to All and clears session filters to make the acquired card reachable. The pending focus clears after the handoff completes (or after the direct reload highlight); closing an unfinished flight retains it. New stays until detail is viewed.
+
+Save schema 2 adds `inventoryUi`: viewMode, sortMode, groupMode, showUnowned, activeCollectionId, lastSelectedCardId, pendingFocusCardId, favorites, collections and customOrders. Schema 1 migration supplies defaults without changing inventory, packs, serials, tutorial or pending reveals. Malformed preferences normalize independently; stale IDs are ignored in projection.
+
+Search, facets, popovers, gestures, sheet progress and momentum are session state. View/sort/group/Show Unowned, favorites, collections/orders and selection persist. Ordinary preference saves retain the existing session-only storage fallback; opening/Keep remain strict transactions.
+
+## 6. Accessibility, performance and acceptance
+
+All animation uses the shared scheduler and visible-time clock. Hidden tabs pause it and cancel captures. Full effects are limited globally to one card. Lite neighbors, mystery faces and Grid do no per-frame finish work. Reduced motion removes turning, lift, blur and rubber-band motion, with crossfades for transitions and static highlights.
+
+Dev fixture controls provide 60, 300, 500 and 1000 logical designs without changing the save. `tools/check-inventory-refresh.cjs` covers queries/preferences, geometry, focus, recovery and resources; Stage 7 retains detail contracts too. See `INVENTORY-REFRESH.md` for current evidence and manual acceptance. The browser preview tool blocked file://; screenshot, material quality and measured browser FPS remain unconfirmed.
+
+Deferred: multi-select, bulk actions, saved filters, drag-to-tab, collapsible groups, alphabetical index and onboarding hints. No market, selling, trading, prices, audio or variants.

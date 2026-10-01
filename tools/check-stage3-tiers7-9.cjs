@@ -25,7 +25,7 @@ check('gallery displays tiers 0–9 in color and mono without altering catalog o
   assert.equal(original.length, 20);
   assert.equal(original.filter(v => v.el.dataset.colorMode === 'mono').length, 10);
   ids.forEach(id => ['color', 'mono'].forEach(mode => assert(view(id, mode))));
-  assert.equal(C.data.cards.length, 6); assert.equal(C.state.current.serialCounter, 0);
+  assert.equal(C.data.cards.filter(card => !card.retired).length, 60); assert.equal(C.state.current.serialCounter, 0);
   assert.equal(C.state.current.packs.ready, 2);
   assert.equal(r.store.get('cardable.save'), JSON.stringify(C.state.current));
 });

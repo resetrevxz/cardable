@@ -25,7 +25,7 @@
 
     serial: { prefix: 'CBL', counterDigits: 6, playerCodeLength: 4 },
 
-    storage: { key: 'cardable.save', schemaVersion: 1 },
+    storage: { key: 'cardable.save', schemaVersion: 2 },
 
     polish: {
       maxSaveBytes: 8 * 1024 * 1024, downloadReleaseMs: 1000, profileMs: 5000,
@@ -134,6 +134,11 @@
     },
 
     inventoryMotion: {
+      detents: { peekPx: 104, normalVh: 62, expandedVh: 82, fullMarginPx: 16 },
+      shelfTurnDegrees: 10, shelfTurnCap: 24, shelfDepthPx: 12, shelfSideScale: 0.9,
+      shelfSideOpacity: 0.72, gridMinWidthPx: 160, gridMaxWidthPx: 220, gridGapPx: 24, gridOverscanRows: 2,
+      transitionMs: 450, transitionStaggerMs: 18, tooltipMs: 600, reorderHoldMs: 320, reorderEdgePx: 64, reorderScrollSpeed: 4, reorderGapPx: 16,
+      handoffMs: 700, indicatorWidthPx: 8, indicatorStretchMax: 2.4,
       sheetHeightVh: 62, sheetSpring: { stiffness: 220, damping: 26, mass: 1, epsilon: 0.002 },
       menuScale: 0.96, menuBlurPx: 8, menuDim: 0.4,
       rubberBandPx: 64, dragSlopPx: 6, flickProjectionMs: 180, flickDecayMs: 120, maxFlickPxPerSecond: 1800,

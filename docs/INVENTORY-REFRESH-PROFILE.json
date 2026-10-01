@@ -1,0 +1,122 @@
+[
+  {
+    "label": "Ready menu",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 0.043,
+    "maxStepMs": 0.207,
+    "averageStepMs": 0.031,
+    "simulatedFrames": 300,
+    "propertyWritesPerFrame": 19,
+    "fullCards": 0,
+    "gridDraws": 0,
+    "mountedShelfViews": 0
+  },
+  {
+    "label": "Waiting menu",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 0.03,
+    "maxStepMs": 0.188,
+    "averageStepMs": 0.027,
+    "simulatedFrames": 300,
+    "propertyWritesPerFrame": 12,
+    "fullCards": 0,
+    "gridDraws": 0,
+    "mountedShelfViews": 0
+  },
+  {
+    "label": "1920x1080 pointer trail and click ripples",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 1.908,
+    "maxStepMs": 2.008,
+    "averageStepMs": 1.423,
+    "simulatedFrames": 300,
+    "propertyWritesPerFrame": 19,
+    "fullCards": 0,
+    "gridDraws": 300,
+    "mountedShelfViews": 0
+  },
+  {
+    "label": "Reduced-motion ready menu",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 0.016,
+    "maxStepMs": 0.049,
+    "averageStepMs": 0.014,
+    "simulatedFrames": 300,
+    "propertyWritesPerFrame": 19,
+    "fullCards": 0,
+    "gridDraws": 0,
+    "mountedShelfViews": 0
+  },
+  {
+    "label": "300 tiles with one full Secret",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 0.024,
+    "maxStepMs": 0.048,
+    "averageStepMs": 0.019,
+    "simulatedFrames": 300,
+    "propertyWritesPerFrame": 17,
+    "fullCards": 1,
+    "gridDraws": 0,
+    "mountedShelfViews": 13
+  },
+  {
+    "label": "300-tile carousel in motion",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 0.491,
+    "maxStepMs": 4.124,
+    "averageStepMs": 0.196,
+    "simulatedFrames": 300,
+    "propertyWritesPerFrame": 2,
+    "fullCards": 0,
+    "gridDraws": 0,
+    "mountedShelfViews": 13
+  },
+  {
+    "label": "Gallery: one full Secret, all other cards lite",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 0.032,
+    "maxStepMs": 0.084,
+    "averageStepMs": 0.019,
+    "simulatedFrames": 300,
+    "propertyWritesPerFrame": 17,
+    "fullCards": 1,
+    "gridDraws": 0,
+    "mountedShelfViews": 0
+  },
+  {
+    "label": "1000-tile Grid in motion",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 1.13,
+    "maxStepMs": 9.624,
+    "averageStepMs": 0.304,
+    "simulatedFrames": 300,
+    "propertyWritesPerFrame": 2,
+    "fullCards": 0,
+    "gridDraws": 0,
+    "mountedShelfViews": 30
+  },
+  {
+    "label": "1000-entry live query changes",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 0.027,
+    "maxStepMs": 3.775,
+    "averageStepMs": 0.113,
+    "simulatedFrames": 155,
+    "propertyWritesPerFrame": 2.5,
+    "fullCards": 0,
+    "gridDraws": 0,
+    "mountedShelfViews": 7
+  },
+  {
+    "label": "Acquisition handoff with lite source clone",
+    "environment": "Node VM with simulated DOM; host CPU only",
+    "p95StepMs": 0.043,
+    "maxStepMs": 4.328,
+    "averageStepMs": 0.048,
+    "simulatedFrames": 370,
+    "propertyWritesPerFrame": 9.2,
+    "fullCards": 1,
+    "gridDraws": 0,
+    "mountedShelfViews": 7
+  }
+]

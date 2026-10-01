@@ -39,7 +39,7 @@ await check('invalid imports leave state/storage unchanged and reject unsupporte
   const r = boot(), before = r.C.saveFiles.exportText(), stored = r.store.get('cardable.save');
   const cases = ['{', 'null', '[]', '{}', '{"__proto__":{}}'];
   for (const text of cases) assert.throws(() => r.C.saveFiles.parse(text));
-  for (const mutate of [v => { v.schemaVersion = 99; }, v => { v.packs.ready = 3; }, v => { v.settings = []; }, v => { v.serialCounter = '2'; }, v => { v.currency = -1; }, v => { v.tutorial.step = 'unknown'; }]) {
+  for (const mutate of [v => { v.schemaVersion = 99; }, v => { v.packs.ready = r.C.config.packs.maxStored + 1; }, v => { v.settings = []; }, v => { v.serialCounter = '2'; }, v => { v.currency = -1; }, v => { v.tutorial.step = 'unknown'; }]) {
     const value = JSON.parse(before); mutate(value); assert.throws(() => r.C.saveFiles.parse(JSON.stringify(value)));
   }
   assert.equal(r.C.saveFiles.exportText(), before); assert.equal(r.store.get('cardable.save'), stored);

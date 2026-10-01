@@ -25,6 +25,7 @@
         var tier = (a.rarity ? a.rarity.tier : 0) - (b.rarity ? b.rarity.tier : 0);
         return (order === 'rarity' ? tier || generation : generation || tier) || a.card.id.localeCompare(b.card.id);
       });
+      entries.forEach(function (entry, index) { entry.catalogIndex = index; });
       return { entries: entries, owned: owned, total: entries.length };
     },
     markSeen: function (cardId, inventory) {

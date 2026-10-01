@@ -24,8 +24,8 @@ check('gallery retains four original tiers in both modes, uses an isolated Uncom
   assert.equal(original.length, 8);
   assert.equal(original.filter(view => view.el.dataset.colorMode === 'color').length, 4);
   assert.equal(original.filter(view => view.el.dataset.colorMode === 'mono').length, 4);
-  assert.equal(C.data.cards.length, 6);
-  assert(!C.data.cards.some(card => card.rarity === 'uncommon'));
+  assert.equal(C.data.cards.filter(card => !card.retired).length, 60);
+  assert.equal(C.data.cards.filter(card => !card.retired && card.rarity === 'uncommon').length, 8);
   assert.equal(C.gallery.views.filter(view => view.card.rarity === 'uncommon').length, 2);
   assert.equal(C.state.current.serialCounter, 0);
   assert.equal(C.state.current.packs.ready, 2);

@@ -6,6 +6,7 @@
     init: function () {
       if (C.inventoryHint.initialized) return; C.inventoryHint.initialized = true;
       var host = root.document.getElementById('inventory-affordance'), cfg = C.config.menuMotion;
+      // The mounted sheet owns Peek; this compatibility lip stays hidden to avoid two sheet edges.
       var peek = root.document.createElement('div'); peek.className = 'inventory-peek glass glass--sheet'; peek.setAttribute('aria-hidden', 'true'); host.appendChild(peek);
       var cards = [];
       function refresh() {

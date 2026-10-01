@@ -46,8 +46,9 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 
 ## Stage 7 — Inventory
 **Docs:** 06-INVENTORY, 03-CARD (render modes).
-- Sheet with drag and springs, menu depth effect, header, coverflow shelf with snap, stacks, silhouettes (including Secret unfound), New dots, virtualization, detail view with shared-element transition, back-of-card flip, serial browser.
-**Accept:** smooth with 300 tiles; opening/closing feels physical; detail transition is continuous.
+- Approved major refresh: four sheet detents, bounded recycled Shelf and virtualized Grid, monochrome toolbar, search/facets/sorts/grouping, favorites/custom collections, custom reorder, mystery faces/Secret Unfound, duplicate counts and New badges.
+- Shared-element detail with result navigation, membership/favorite controls, scroll restoration, flip and serial browser. Durable acquisition focus and schema-1-to-2 preference migration.
+**Accept:** bounded DOM/finite coordinates through 1000 logical designs; sole full card; stable selection; keyboard/RM/hidden behavior; smooth physical transitions at 60 fps in a permitted browser. See INVENTORY-REFRESH.md for verified versus manual evidence.
 
 ## Stage 8 — Polish and hardening
 **Docs:** Designs.MD, POLISH-BACKLOG.

@@ -23,7 +23,7 @@ check('tiers 4–6 remain registered as individual modules', () => {
 check('gallery retains tiers 0–6 in both modes and preserves catalog/save state', () => {
   assert.equal(C.gallery.views.filter(v => C.rarity(v.card.rarity).tier <= 6).length, 14);
   ids.forEach(id => ['color', 'mono'].forEach(mode => assert(view(id, mode))));
-  assert.equal(C.data.cards.length, 6);
+  assert.equal(C.data.cards.filter(card => !card.retired).length, 60);
   assert.equal(C.state.current.serialCounter, 0);
   assert.equal(C.state.current.packs.ready, 2);
   assert.equal(r.store.get('cardable.save'), JSON.stringify(C.state.current));

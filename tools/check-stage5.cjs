@@ -86,7 +86,7 @@ check('exact 3000ms key release commits once in a single complete storage write'
   r.window.localStorage.setItem = (name, value) => { writes.push(JSON.parse(value)); return original(name, value); };
   charge(r);
   assert.equal(writes.length, 1); assert.notEqual(C.state.current, old);
-  const saved = writes[0]; assert.equal(saved.packs.ready, 1); assert.equal(saved.packs.timerStartedAt, r.date());
+  const saved = writes[0]; assert.equal(saved.packs.ready, old.packs.ready - 1); assert.equal(saved.packs.timerStartedAt, old.packs.timerStartedAt == null ? r.date() : old.packs.timerStartedAt);
   assert.equal(saved.serialCounter, 1); assert.equal(saved.stats.packsOpened, 1); assert.equal(saved.inventory.length, 0);
   assert.equal(saved.pendingReveal.packId, C.data.packs.find(p => p.enabled && p.obtainable === 'timer').id);
   assert.equal(saved.pendingReveal.cards.length, 1); assert.match(saved.pendingReveal.cards[0].serial, /^CBL-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{4}-\d{6,}$/);

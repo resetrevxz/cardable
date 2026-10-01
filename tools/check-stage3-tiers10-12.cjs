@@ -30,7 +30,7 @@ check('gallery has fourteen states in each color mode, one full, and an unchange
   });
   assert.equal(C.gallery.views.filter(v => v.mode === 'full').length, 1);
   assert.equal(view('secret', 'color', 'found').el.querySelectorAll('.card__art-window').length, 1);
-  assert.equal(C.data.cards.length, 6); assert.equal(C.state.current.inventory.length, 0);
+  assert.equal(C.data.cards.filter(card => !card.retired).length, 60); assert.equal(C.state.current.inventory.length, 0);
   assert.equal(C.state.current.serialCounter, 0); assert.equal(C.state.current.packs.ready, 2);
   assert.equal(r.store.get('cardable.save'), JSON.stringify(C.state.current));
 });
