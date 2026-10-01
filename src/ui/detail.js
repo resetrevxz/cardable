@@ -198,7 +198,7 @@
       closeButton = node('button', 'detail-close', overlay); closeButton.setAttribute('type', 'button'); closeButton.setAttribute('aria-label', 'Close card detail'); icon(closeButton, 'M7 7l10 10M17 7L7 17'); closeButton.addEventListener('click', close);
       overlay.addEventListener('click', function (event) { if (event.target === overlay) close(); });
       mount.addEventListener('pointerdown', function (event) {
-        if (phase !== 'detail' || event.button !== 0 || event.isPrimary === false) return;
+        if (preferencesActive || phase !== 'detail' || event.button !== 0 || event.isPrimary === false) return;
         drag = { id: event.pointerId, y: event.clientY, lastY: event.clientY, at: root.performance.now(), moved: false, velocity: 0, distance: 0 };
       });
       root.document.addEventListener('pointermove', function (event) {
@@ -223,7 +223,7 @@
       });
       C.events.on('card:face', function (event) { if (event.view === view) { side = event.side; if (flipButton) flipButton.setAttribute('aria-pressed', side === 'back'); } });
       C.events.on('inventory:detailOpen', open); C.events.on('detail:requestClose', close); C.events.on('detail:reset', reset);
-      C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
+      C.events.on('preferences:context', function (event) { preferencesActive = event.active; if (preferencesActive) releaseDrag(null, true); });
       C.events.on('motion:changed', function () { if (phase !== 'closed') C.fx.wake(); });
       root.addEventListener('resize', function () { if (phase === 'closed') return; from = currentRect(); if (phase === 'returning') { var target = { cardId: payload.entry.card.id }; C.events.emit('inventory:returnTarget', target); to = target.rect || payload.sourceRect; } else to = detailRect(); spring.reset(0); C.fx.wake(); });
       C.detail.el = overlay; C.detail.mount = mount; C.detail.panel = panel; C.detail.closeButton = closeButton;

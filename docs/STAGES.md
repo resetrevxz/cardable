@@ -58,3 +58,20 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 ## Prompt to run after each stage
 
 > Review this like a senior Apple designer. List 10 subtle improvements ranked by impact, and the detail nobody would consciously notice but would feel missing. Do not implement them; append them to docs/POLISH-BACKLOG.md.
+
+## Stage 11a — Settings engine and panel
+
+**Docs:** 11-SETTINGS sections 1–5 and 7–9, 07-DOT-GRID-CURSOR.
+
+- Validated settingsVersion 1 in save schema 2; live motion, quality, dots, cursor, idle fade, card tilt/color/front serial, reveal speed, keys, assist and hints.
+- Gear/S entry, glass spring panel, sole full preview, keyboard focus, defaults confirmation/Undo, private About font licenses and performance nudge.
+- Existing color/mono option only; Sound and all five Data actions disabled.
+
+**Accept:** focused checks and integration evidence in SETTINGS-11A.md. Browser screenshots/material appearance and target-machine 60 FPS require manual verification. Data tools are Stage 11b.
+
+## Stage 11b — Data tools
+
+**Docs:** 11-SETTINGS section 6, 5.4, 5.5, 7 and 8; 01-GAME-RULES section 7.
+
+- Checksum exports, validated import/drop preview, automatic backups, safe reset, restore, tutorial replay and Undo.
+- Every replacement refreshes modules through save:replaced without reloading the page.

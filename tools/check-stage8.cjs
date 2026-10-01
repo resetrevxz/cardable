@@ -39,7 +39,7 @@ await check('invalid imports leave state/storage unchanged and reject unsupporte
   const r = boot(), before = r.C.saveFiles.exportText(), stored = r.store.get('cardable.save');
   const cases = ['{', 'null', '[]', '{}', '{"__proto__":{}}'];
   for (const text of cases) assert.throws(() => r.C.saveFiles.parse(text));
-  for (const mutate of [v => { v.schemaVersion = 99; }, v => { v.packs.ready = r.C.config.packs.maxStored + 1; }, v => { v.settings = []; }, v => { v.serialCounter = '2'; }, v => { v.currency = -1; }, v => { v.tutorial.step = 'unknown'; }]) {
+  for (const mutate of [v => { v.schemaVersion = 99; }, v => { v.packs.ready = r.C.config.packs.maxStored + 1; }, v => { v.serialCounter = '2'; }, v => { v.currency = -1; }, v => { v.tutorial.step = 'unknown'; }]) {
     const value = JSON.parse(before); mutate(value); assert.throws(() => r.C.saveFiles.parse(JSON.stringify(value)));
   }
   assert.equal(r.C.saveFiles.exportText(), before); assert.equal(r.store.get('cardable.save'), stored);
@@ -51,18 +51,17 @@ await check('imports validate unique instances/serials, catalog IDs, serial coun
     const value = clone(base); mutate(value); assert.throws(() => r.C.saveFiles.parse(JSON.stringify(value)));
   }
 });
-await check('oversized files and malformed JSON show a clean retryable error', async () => {
-  const r = boot(); open(r); r.C.preferences.show(); r.advance(300);
-  assert.equal(await r.C.preferences.read({ size: 9 * 1024 * 1024, text: () => Promise.resolve('{}') }), false);
-  assert(r.C.preferences.feedback.textContent.includes('too large'));
-  assert.equal(await r.C.preferences.read({ size: 1, text: () => Promise.resolve('{') }), false);
-  assert(r.C.preferences.feedback.textContent.includes('unchanged')); assert(r.C.preferences.replaceButton.hidden);
+await check('save-file core rejects oversized JSON while Stage 11a Data actions remain inactive', async () => {
+  const r = boot(); r.C.preferences.show(); const before = r.C.saveFiles.exportText();
+  assert.throws(() => r.C.saveFiles.parse(' '.repeat(r.C.config.polish.maxSaveBytes + 1)), /large/);
+  assert.throws(() => r.C.saveFiles.parse('{'));
+  assert.equal(await r.C.preferences.read({size: 1, text: () => Promise.resolve('{')}), false);
+  assert.equal(r.C.saveFiles.exportText(), before);
+  for (const label of ['Export save','Import save','Reset save','Restore previous save','Replay tutorial']) assert(r.C.preferences.panel.querySelectorAll('button').find(b => b.textContent === label).disabled);
 });
-await check('import previews counts and writes nothing until Replace save is activated', async () => {
-  const r = boot(); open(r); r.C.preferences.show(); const before = r.store.get('cardable.save');
-  assert(await r.C.preferences.read({ size: 100, text: () => Promise.resolve(JSON.stringify(save(true))) }));
-  assert(r.C.preferences.feedback.textContent.includes('reserved reveal')); assert(!r.C.preferences.replaceButton.hidden); assert.equal(r.store.get('cardable.save'), before);
-  r.C.preferences.replaceButton.fire('click'); r.advance(600); assert(!r.C.preferences.open); assert.equal(r.C.opening.phase, 'revealed'); assert(!r.C.opening.keepButton.hidden);
+await check('existing save replacement core keeps its backup and pending-reveal recovery', () => {
+  const r = boot(); const before = r.store.get('cardable.save'); r.C.saveFiles.apply(save(true)); r.advance(600);
+  assert.equal(r.C.opening.phase, 'revealed'); assert(!r.C.opening.keepButton.hidden);
   assert.equal(r.store.get('cardable.save.before-import'), JSON.stringify(JSON.parse(before), null, 2) + '\n');
 });
 await check('failed backup or replacement writes preserve the current save and progress', () => {
@@ -75,7 +74,7 @@ await check('the previous local save remains exportable for an undo import', () 
   const r = boot(), previous = r.C.saveFiles.exportText(); r.C.saveFiles.apply(save());
   assert.equal(r.C.saveFiles.previous(), previous); let text;
   r.window.URL.createObjectURL = blob => { text = blob; return 'blob:previous'; }; r.C.saveFiles.exportPrevious(); assert.equal(text.type, 'application/json');
-  r.C.preferences.show(); assert(!r.C.preferences.panel.querySelectorAll('button').find(b => b.textContent === 'Export previous save').hidden);
+  r.C.preferences.show(); assert(r.C.preferences.panel.querySelectorAll('button').find(b => b.textContent === 'Restore previous save').disabled);
 });
 await check('import recovery retains multi-card kept progress and never rerolls or consumes another pack', () => {
   const r = boot(); const imported = save(true), item = clone(imported.pendingReveal.cards[0]); imported.serialCounter = 3;
@@ -97,13 +96,14 @@ await check('ordinary save keeps its memory fallback if local storage throws, wi
   assert(r.C.preferences.notice); r.window.localStorage.getItem = () => { throw new Error('blocked'); }; r.C.state.load(); assert.equal(r.C.state.current.currency, 123);
 });
 await check('dev checks do not create a spurious corrupted-save notice on a good save', () => { const r = boot(save(), true); assert.equal(r.C.state.recovery, null); assert(!r.C.preferences.notice); });
-await check('closing/cancelling a file read discards its late result', async () => {
-  const r = boot(); r.C.preferences.show(); let finish; const pending = r.C.preferences.read({ size: 10, text: () => new Promise(resolve => { finish = resolve; }) });
-  r.C.preferences.close(); finish(JSON.stringify(save())); assert.equal(await pending, false); assert(!r.C.preferences.open);
+await check('the inactive import facade does not read files or stage a replacement', async () => {
+  const r = boot(); r.C.preferences.show(); let reads = 0;
+  assert.equal(await r.C.preferences.read({size: 10, text: () => { reads++; return Promise.resolve('{}'); }}), false);
+  r.C.preferences.close(); assert.equal(reads, 0); assert(!r.C.preferences.open);
 });
 await check('preferences fades in/out and Esc closes only the modal without closing inventory or skipping tutorial', () => {
-  const r = boot(); open(r); r.C.preferences.show(); r.advance(100); assert(Number(r.C.preferences.el.style.opacity) > 0 && Number(r.C.preferences.el.style.opacity) < 1);
-  key(r, 'Escape'); assert(!r.C.preferences.open); assert(r.C.inventory.open); r.advance(300); assert(r.C.preferences.el.hidden);
+  const r = boot(); open(r); r.C.preferences.show(); r.advance(100); assert(r.C.preferences.panel.style.transform.includes('translate3d')); assert(!r.C.preferences.el.hidden);
+  key(r, 'Escape'); assert(!r.C.preferences.open); assert(r.C.inventory.open); r.advance(700); assert(r.C.preferences.el.hidden);
 });
 await check('modal Tab/Shift-Tab cycle visible enabled controls and restore focus to the entry', () => {
   const r = boot(); open(r); const entry = r.document.body.querySelectorAll('.preferences-entry')[0]; entry.focus(); r.C.preferences.show(); r.advance(300);
@@ -134,13 +134,13 @@ await check('importing an unfinished cut lesson preserves its result and resumes
 await check('favicon and hidden-tab title reflect ready stock without changing pack state', () => {
   const r = boot(), favicon = r.document.getElementById('favicon'), ready = favicon.getAttribute('href');
   assert(decodeURIComponent(ready).includes('<circle')); r.C.state.current.packs.ready = 0; r.C.state.save();
-  assert(!decodeURIComponent(favicon.getAttribute('href')).includes('<circle')); r.hidden(true); assert.equal(r.document.title, 'Cardable');
-  r.C.events.emit('pack:ready', { ready: 1, simulated: true }); assert.equal(r.document.title, 'Cardable · pack ready'); assert(decodeURIComponent(favicon.getAttribute('href')).includes('<circle'));
-  assert.equal(r.C.state.current.packs.ready, 0); r.hidden(false); assert.equal(r.document.title, 'Cardable');
+  assert(!decodeURIComponent(favicon.getAttribute('href')).includes('<circle')); r.hidden(true); assert.match(r.document.title, /^Cardable \u00b7 .+ \u00b7 \d+%$/);
+  r.C.events.emit('pack:ready', { ready: 1, simulated: true }); assert.equal(r.document.title, 'Cardable \u00b7 pack ready'); assert(decodeURIComponent(favicon.getAttribute('href')).includes('<circle'));
+  assert.equal(r.C.state.current.packs.ready, 0); r.hidden(false); assert.match(r.document.title, /^Cardable \u00b7 .+ \u00b7 \d+%$/);
 });
 await check('rarity color setting persists with the save and updates normal cards without altering paired galleries', () => {
   const r = boot(); r.C.config.rarityColorMode = 'mono'; r.C.events.emit('settings:rarityColorMode', 'mono');
-  assert.equal(r.C.state.current.settings.rarityColorMode, 'mono'); const reload = boot(clone(r.C.state.current)); assert.equal(reload.C.config.rarityColorMode, 'mono');
+  assert.equal(r.C.state.current.settings.rarityColor, 'mono'); const reload = boot(clone(r.C.state.current)); assert.equal(reload.C.config.rarityColorMode, 'mono');
   const gallery = runtime(true, true, clone(r.C.state.current)); assert(gallery.C.gallery.views.some(v => v.el.dataset.colorMode === 'color'));
 });
 await check('reduced-motion cards have no tilt, lift, parallax, sway, finish animation or particle loops', () => {

@@ -113,14 +113,17 @@ check('2.9 s drains, 3.0 s commits, repeated releases and hidden holds are harml
   for (const ms of [2900, 3000]) { const r = boot(); charge(r, ms); key(r, ' ', 'keyup'); assert.equal(r.C.opening.stats.commits, ms === 3000 ? 1 : 0); if (ms === 2900) { r.advance(800); assert.equal(r.C.opening.phase, 'idle'); } }
   const r = boot(); key(r, ' ', 'keydown', { target: r.document.body }); r.advance(2900); r.hidden(true); r.advance(10000); assert.equal(r.C.opening.phase, 'draining'); assert.equal(r.C.state.current.pendingReveal, null); r.hidden(false); r.advance(800); assert.equal(r.C.opening.phase, 'idle');
 });
-check('cuts reject outside starts, preserve normalized resize coordinates and finish in every direction', () => {
-  for (const direction of ['right', 'left', 'up', 'down', 'diagonal']) { const r = boot(); cut(r); const host = r.C.opening.wrapper; host.rect = { left: 100, top: 100, width: 200, height: 280 }; r.window.fire('resize');
-    pointer(r, 'pointerdown', host, 50, 50); assert.equal(r.C.opening.path.length, 0);
-    const start = direction === 'left' ? [295, 240] : direction === 'up' ? [200, 375] : [105, 105];
-    pointer(r, 'pointerdown', host, ...start); pointer(r, 'pointermove', host, start[0] + 2, start[1] + 2); assert.equal(r.C.opening.phase, 'cutting');
-    const original = clone(r.C.opening.path); host.rect.width = 400; host.rect.height = 560; r.window.fire('resize'); assert.deepEqual(clone(r.C.opening.path), original);
-    const end = direction === 'left' ? [-1000, 380] : direction === 'up' ? [300, -1000] : direction === 'down' ? [110, 2000] : direction === 'diagonal' ? [2000, 2000] : [2000, 110];
-    pointer(r, 'pointermove', host, ...end); assert.equal(r.C.opening.phase, 'tearing'); assert(!host.hasPointerCapture(1)); assert.equal(r.C.opening.stats.tears, 1); assert(r.C.opening.path.length <= r.C.config.openingMotion.maxPathSamples);
+check('cuts reject outside and off-strip starts, preserve resize coordinates and finish either direction', () => {
+  for (const direction of ['right','left']) { const r=boot();cut(r);const host=r.C.opening.wrapper;
+    host.rect={left:100,top:100,width:200,height:280};r.window.fire('resize');
+    pointer(r,'pointerdown',host,50,50);assert.equal(r.C.opening.path.length,0);
+    pointer(r,'pointerdown',host,200,350);assert.equal(r.C.opening.path.length,0);
+    const x=direction==='left'?295:105,y=100+280*r.C.config.cut.guideY;
+    pointer(r,'pointerdown',host,x,y);pointer(r,'pointermove',host,x+(direction==='left'?-2:2),y);assert.equal(r.C.opening.phase,'cutting');
+    const original=clone(r.C.opening.path);host.rect.width=400;host.rect.height=560;r.window.fire('resize');assert.deepEqual(clone(r.C.opening.path),original);
+    const nextY=100+560*r.C.config.cut.guideY,endX=direction==='left'?105:495;
+    pointer(r,'pointermove',host,endX,nextY);assert.equal(r.C.opening.phase,'tearing');assert(!host.hasPointerCapture(1));assert.equal(r.C.opening.stats.tears,1);
+    assert(r.C.opening.path.length<=r.C.config.openingMotion.maxPathSamples);
   }
 });
 check('reload every committed phase resumes the same reserved serial without reroll or consumption', () => {

@@ -1,0 +1,71 @@
+[
+  {
+    "quality": "high",
+    "environment": "Node VM / simulated DOM; host CPU only",
+    "p95StepMs": 0.448,
+    "maxStepMs": 0.833,
+    "averageStepMs": 0.307,
+    "simulatedSeconds": 5,
+    "poseUpdates": 300,
+    "finishUpdates": 300,
+    "corePaints": 299,
+    "fullCards": 1,
+    "liveViews": 29,
+    "policy": {
+      "finishHz": 60,
+      "glareHz": 60,
+      "rippleLimit": 3,
+      "particles": 1,
+      "blur": 1,
+      "layers": 10,
+      "shadows": 3,
+      "trail": true
+    }
+  },
+  {
+    "quality": "medium",
+    "environment": "Node VM / simulated DOM; host CPU only",
+    "p95StepMs": 0.458,
+    "maxStepMs": 2.524,
+    "averageStepMs": 0.286,
+    "simulatedSeconds": 5,
+    "poseUpdates": 300,
+    "finishUpdates": 150,
+    "corePaints": 149,
+    "fullCards": 1,
+    "liveViews": 29,
+    "policy": {
+      "finishHz": 30,
+      "glareHz": 30,
+      "rippleLimit": 2,
+      "particles": 0.5,
+      "blur": 0.6,
+      "layers": 10,
+      "shadows": 2,
+      "trail": true
+    }
+  },
+  {
+    "quality": "low",
+    "environment": "Node VM / simulated DOM; host CPU only",
+    "p95StepMs": 0.239,
+    "maxStepMs": 2.763,
+    "averageStepMs": 0.18,
+    "simulatedSeconds": 5,
+    "poseUpdates": 300,
+    "finishUpdates": 75,
+    "corePaints": 74,
+    "fullCards": 1,
+    "liveViews": 29,
+    "policy": {
+      "finishHz": 15,
+      "glareHz": 15,
+      "rippleLimit": 1,
+      "particles": 0.15,
+      "blur": 0.3,
+      "layers": 7,
+      "shadows": 1,
+      "trail": false
+    }
+  }
+]

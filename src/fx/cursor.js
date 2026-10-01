@@ -6,7 +6,7 @@
   function update(_, dt) {
     if (!dirty) return false;
     var p = C.input.pointer, cfg = C.config.shell.cursor;
-    if (revealHidden || !p.inside || !finePointer.matches) {
+    if ((!C.settings.get('cursorGlow') && !blade) || revealHidden || !p.inside || !finePointer.matches) {
       present = false; element.classList.remove('is-present'); dirty = false; return false;
     }
     var amount = C.motion.reduced ? 1 : 1 - Math.pow(1 - (blade ? C.config.openingMotion.bladeFollow : cfg.follow), dt / C.config.shell.frameMs);
@@ -42,6 +42,7 @@
       C.events.on('pointer:move', function () { dirty = true; });
       C.events.on('pointer:leave', function () { dirty = true; });
       C.events.on('motion:changed', function () { dirty = true; });
+      C.settings.onChange('cursorGlow', function () { dirty = true; C.fx.wake(); });
       C.events.on('cursor:blade', function (value) {
         blade = value; element.classList.toggle('is-blade', blade); dirty = true; C.fx.wake();
       });

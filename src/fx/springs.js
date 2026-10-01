@@ -18,6 +18,7 @@
           if (Math.abs(this.target - this.value) < cfg.epsilon && Math.abs(this.velocity) < cfg.epsilon) { this.value = this.target; this.velocity = 0; }
           return this.value;
         },
+        configure: function (options) { Object.assign(cfg, options); },
         settled: function () { return Math.abs(this.target - this.value) < cfg.epsilon && Math.abs(this.velocity) < cfg.epsilon; },
         reset: function (next) { this.value = next || 0; this.velocity = 0; this.target = next || 0; }
       };

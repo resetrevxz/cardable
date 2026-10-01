@@ -51,27 +51,7 @@
   });
   root.document.documentElement.classList.toggle('is-hidden', root.document.hidden);
 
-  var query = root.matchMedia('(prefers-reduced-motion: reduce)'), defaultColorMode = C.config.rarityColorMode;
-  C.motion = { reduced: query.matches };
-  function motionChanged() {
-    var preference = C.state.current && C.state.current.settings.reducedMotion;
-    var reduced = typeof preference === 'boolean' ? preference : query.matches;
-    var changed = C.motion.reduced !== reduced;
-    C.motion.reduced = reduced;
-    root.document.documentElement.classList.toggle('reduced-motion', reduced);
-    if (changed) C.events.emit('motion:changed', reduced);
-    C.fx.wake();
-  }
-  if (query.addEventListener) query.addEventListener('change', motionChanged);
-  else query.addListener(motionChanged);
-  C.motion.setPreference = function (value) { C.state.current.settings.reducedMotion = value; C.state.save(); };
-  C.events.on('save:written', function () {
-    motionChanged();
-    var mode = C.state.current.settings.rarityColorMode || defaultColorMode;
-    if (mode && mode !== C.config.rarityColorMode) { C.config.rarityColorMode = mode; C.events.emit('settings:rarityColorMode', mode); }
-  });
-  C.events.on('settings:rarityColorMode', function (mode) {
-    if (C.state.current && C.state.current.settings.rarityColorMode !== mode) { C.state.current.settings.rarityColorMode = mode; C.state.save(); }
-  });
-  motionChanged();
+  C.motion = { reduced: root.matchMedia('(prefers-reduced-motion: reduce)').matches };
+  C.motion.setPreference = function (value) { C.settings.set('motion', value === true ? 'on' : value === false ? 'off' : 'auto'); };
+  C.settings.applyMotion();
 })(window.Cardable, window);

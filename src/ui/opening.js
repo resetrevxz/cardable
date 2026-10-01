@@ -46,9 +46,9 @@
     hint.classList.toggle('is-held', next === 'charging');
     hint.style.opacity = next === 'charging' || next === 'draining' ? 1 : 0;
     if (next !== 'cutting') enterHint.style.opacity = 0;
-    if (next === 'charging') announce('Hold Space to open the pack.');
+    if (next === 'charging') announce('Hold ' + C.settings.holdKey + ' to open the pack.');
     if (next === 'draining') announce('Opening cancelled. Pack preserved.');
-    if (next === 'cutting') { announce('Drag across the highlighted top strip, or press Enter to tear.'); focus(host); }
+    if (next === 'cutting') { announce('Drag across the highlighted top strip, or press ' + C.settings.actionKey + ' to tear.'); focus(host); }
     if (next === 'revealed') announce(C.card(C.state.current.pendingReveal.cards[cardIndex].cardId).name + '. ' + note.textContent + '.');
     keepButton.hidden = true; keepButton.disabled = true;
     deleteButton.hidden = true; deleteButton.disabled = true;
@@ -149,7 +149,7 @@
     if (path.length) {
       var first = path[0], last = path[path.length - 1];
       var a = Math.hypot((point.x - first.x) * width, (point.y - first.y) * height), b = Math.hypot((point.x - last.x) * width, (point.y - last.y) * height);
-      if (Math.min(a, b) > cfg.snapPx) return;
+      if (Math.min(a, b) > cfg.snapPx * C.settings.cutPolicy.tolerance) return;
       if (a < b) path.reverse();
     } else path.push(point);
     drag = { id: event.pointerId, last: point };
@@ -184,7 +184,7 @@
     var xs = path.map(function (sample) { return sample.x; });
     var info = { span: Math.max.apply(null, xs) - Math.min.apply(null, xs) };
     C.events.emit('cut:progress', info.span);
-    if (info.span >= C.config.cut.autoFinishSpan) tear();
+    if (info.span >= C.settings.cutPolicy.span) tear();
     C.fx.wake();
   }
   function tear() {
@@ -215,7 +215,7 @@
   }
   function paintCut(now) {
     // Coalesce native pointer samples into one DOM paint on the shared frame.
-    if (dirty) { seam.setAttribute('d', C.cutGeometry.svg(C.cutGeometry.smooth(path), width, height)); dirty = false; }
+    if (dirty) { seam.setAttribute('d', C.cutGeometry.svg(C.cutGeometry.smooth(path, C.settings.cutPolicy.smoothing), width, height)); dirty = false; }
     hot = hot.filter(function (item) {
       var age = now - item.at;
       if (age >= cfg.trailMs || C.motion.reduced) { if (item.el) item.el.remove(); return false; }
@@ -259,7 +259,7 @@
     var instance = pending.cards[cardIndex], card = C.card(instance.cardId); rarity = C.rarity(card.rarity);
     ownedCount = C.state.current.inventory.filter(function (item) { return item.cardId === card.id; }).length + pending.cards.slice(0, cardIndex).filter(function (item) { return item.cardId === card.id && (pending.discardedInstanceIds || []).indexOf(item.instanceId) === -1; }).length;
     var speed = ownedCount && rarity.tier < 7 ? motion.duplicateMotionScale : 1;
-    timings = { riseMs: rarity.reveal.riseMs * speed, preFlipPauseMs: rarity.reveal.preFlipPauseMs * speed, flipMs: rarity.reveal.flipMs * speed, settleMs: motion.settleMs * speed };
+    timings = Object.assign(C.settings.revealTiming(rarity.reveal, rarity.tier, speed), { settleMs: motion.settleMs * speed });
     currentView = C.cardView.create(card, instance, { controlledReveal: true, autoFocus: false, owned: true }); mount.appendChild(currentView.el); currentView.setMode('full');
     currentView.setFace(recover ? 'front' : 'back'); revealClock = 0; infoClock = 0; shineAt = null; keeping = false;
     var specs = C.cardSpecs.frontRows(card).length;
@@ -546,6 +546,21 @@
       root.document.getElementById('pack-stage').setAttribute('role', 'button');
       C.events.on('input:chargeStart', chargeStart); C.events.on('input:chargeEnd', chargeEnd); C.events.on('input:cancel', function (event) { cancel(event.reason); });
       C.events.on('inventory:context', function (event) { inventoryBlocked = event.active; });
+      function keyHints() {
+        var hold = C.settings.holdKey, action = C.settings.actionKey;
+        hint.querySelector('kbd').textContent = hold; enterHint.textContent = action + ' to tear';
+        var keepKey = keepButton.querySelector('kbd'); if (!keepKey) keepKey = node('kbd', 'opening-keep-key', keepButton); keepKey.textContent = 'Space';
+        keepButton.setAttribute('aria-keyshortcuts', action === 'Enter' ? 'Space Enter' : 'Space'); keepButton.setAttribute('aria-label', 'Keep card. Space.');
+        host.setAttribute('aria-label', 'Pack wrapper. Hold ' + hold + ' to charge; drag to cut or press ' + action + ' to tear.');
+      }
+      C.settings.onChange('openKey', keyHints); keyHints();
+      C.settings.onChange('revealSpeed', function () {
+        if (!currentView || !timings || !rarity) return;
+        var old = timings, speed = ownedCount && rarity.tier < 7 ? motion.duplicateMotionScale : 1;
+        timings = Object.assign(C.settings.revealTiming(rarity.reveal, rarity.tier, speed), { settleMs: old.settleMs });
+        var key = { rising: 'riseMs', preFlip: 'preFlipPauseMs', flipping: 'flipMs' }[phase];
+        if (key && old[key]) elapsed = elapsed / old[key] * timings[key];
+      });
       C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
       C.events.on('input:keep', keep);
       C.events.on('input:discard', function () { keep(true); });

@@ -52,7 +52,3 @@
 .dev-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: var(--s-2) 0 0; font: inherit; }
 .reduced-motion .cursor-glow__light, .reduced-motion .cursor-glow__ring { transition-property: opacity; }
 .reduced-motion .dev-panel button { transform: none; }
-@media (prefers-reduced-motion: reduce) {
-  .cursor-glow__light, .cursor-glow__ring { transition-property: opacity; }
-  .dev-panel button { transform: none; }
-}

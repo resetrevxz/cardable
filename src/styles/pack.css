@@ -94,7 +94,8 @@
 .reduced-motion .pack-wrapper { transition-property: opacity; }
 .reduced-motion .pack-speck { display: none; }
 .reduced-motion .pack-reflection { display: none; }
-@media (prefers-reduced-motion: reduce) { .inventory-arrow, .inventory-arrow:hover, .inventory-arrow:active, .inventory-peek { transform: none; transition-property: opacity,color; } .pack-speck { display: none; } }
+.reduced-motion .inventory-arrow, .reduced-motion .inventory-arrow:hover, .reduced-motion .inventory-arrow:active, .reduced-motion .inventory-peek { transform: none; transition-property: opacity,color; }
+.reduced-motion .pack-speck { display: none; }
 @media (max-height: 540px) { .pack-stage { top: 45%; } .pack-meta { top: calc(100% + var(--s-3)); } }
 
 .pack-print--transmitted { clip-path: inset(var(--fluid-top,100%) 0 0); opacity: calc(var(--foil-refraction,.32) * .32); transform: translate(calc(var(--film-x,0px) * -1 + .5px),calc(var(--meniscus-wave,0px) * .3 + .5px)); mix-blend-mode: normal; pointer-events: none; }

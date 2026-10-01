@@ -18,9 +18,9 @@
     bind: function (id, element, card, context) {
       var definition = registry[id];
       if (!definition) throw new Error('Unimplemented finish: ' + id);
-      var binding = definition.mount(element, card, context);
+      var binding = definition.mount(element, card, context), accumulated = 0, moving = false;
       return {
-        update: function (dt, pointer) { return definition.update(dt, pointer, binding); },
+        update: function (dt, pointer) { accumulated += dt; var interval = 1000 / C.settings.policy.finishHz; if (accumulated + 0.01 < interval) return moving; moving = definition.update(accumulated, pointer, binding); accumulated = 0; return moving; },
         destroy: function () { definition.destroy(binding); },
         lite: function () { return definition.lite(card, Object.assign({}, context, { propElement: context.litePropElement })); }
       };
@@ -62,7 +62,7 @@
       return stars;
     },
     twinkle: function (stars, time, speed) {
-      stars.forEach(function (star) { star.el.style.opacity = star.strength * (0.2 + 0.8 * Math.pow(Math.sin(time * speed + star.phase), 4)); });
+      stars.forEach(function (star, index) { if (C.settings.get('quality') === 'low' || C.settings.get('quality') === 'medium' && index % 2) { star.el.style.opacity = 0; return; } star.el.style.opacity = star.strength * (0.2 + 0.8 * Math.pow(Math.sin(time * speed + star.phase), 4)); });
     },
     flat: function (id) {
       return {

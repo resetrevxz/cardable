@@ -24,7 +24,7 @@
       if (!C.state.commit(candidate)) throw new Error('Could not save the import. Your current collection is unchanged.');
       C.events.emit('save:willReplace');
       C.events.emit('save:reset', candidate);
-      C.events.emit('save:imported', candidate);
+      C.events.emit('save:imported', candidate); C.events.emit('save:replaced', candidate);
       C.timers.tick();
       return candidate;
     }

@@ -1,6 +1,7 @@
 (function (C, root) {
   'use strict';
   C.state.load();
+  C.settings.init();
   root.document.body.style.setProperty('--page-grain-opacity', C.config.polish.grainOpacity);
   C.input.init();
   C.dots.init();

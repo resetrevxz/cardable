@@ -23,9 +23,11 @@
     });
     return out;
   }
-  function smooth(points) {
+  function smooth(points, strength) {
     if (points.length < 2) return points.slice();
-    var out = [points[0]], steps = C.config.openingMotion.smoothSteps;
+    if (strength === undefined) strength = C.settings.cutPolicy.smoothing;
+    if (strength > 1 && points.length > 2) points = points.map(function (p, i) { if (!i || i === points.length - 1) return p; return { x: (points[i-1].x + p.x * 2 + points[i+1].x) / 4, y: (points[i-1].y + p.y * 2 + points[i+1].y) / 4 }; });
+    var out = [points[0]], steps = C.config.openingMotion.smoothSteps * (strength || 1);
     for (var i = 0; i < points.length - 1; i++) {
       var a = points[Math.max(0, i - 1)], b = points[i], c = points[i + 1], d = points[Math.min(points.length - 1, i + 2)];
       for (var j = 1; j <= steps; j++) {

@@ -42,7 +42,7 @@ check('mixed decisions in a future multi-card pack survive reload and award per 
  assert.equal(D.state.current.currency,200);assert.equal(D.state.current.pendingReveal,null);assert.deepEqual(Array.from(D.state.current.inventory,x=>x.instanceId),[cards[1].instanceId]);assert.equal(D.opening.stats.collections,1);
 });
 check('Delete ignores held initiating Space and repeat Enter; focused Enter deletes explicitly',()=>{
- const r=runtime(true),C=r.C;r.advance(40);charge(r);ready(r);key(r,'keydown',' ');decide(r,true);assert(C.state.current.pendingReveal);key(r,'keyup',' ');
+ const r=runtime(true),C=r.C;r.advance(40);key(r,'keydown',' ');r.advance(3000);until(r,'cutting');C.events.emit('input:tear');until(r,'revealed');r.advance(3000);decide(r,true);assert(C.state.current.pendingReveal);key(r,'keyup',' ');
  key(r,'keydown','Enter',C.opening.deleteButton,{repeat:true});assert(C.state.current.pendingReveal);key(r,'keyup','Enter',C.opening.deleteButton);
  tap(r,'Enter',C.opening.deleteButton);assert.equal(C.state.current.pendingReveal,null);assert.equal(C.state.current.inventory.length,0);
 });

@@ -35,10 +35,10 @@ check('dev consumption drains vials with slosh, removes rear pack, starts the re
   assert.equal(C.packView.back.el.style.opacity, 0); assert.equal(C.state.current.packs.timerStartedAt, started == null ? r.date() : started);
   r.advance(100); assert(C.packView.vials[1].value < 1 && C.packView.vials[1].value > 0);
   assert(!C.packView.vials[1].fill.style.transform.includes('rotate(0deg)'));
-  r.advance(500); assert.equal(C.packView.vials[1].value, 0);
+  r.advance(500); assert(Math.abs(C.packView.vials[1].value-C.timers.progress(r.date()))<.000001);
   dev('Consume a pack (dev only)'); r.advance(500);
   assert.equal(C.state.current.packs.ready, 0); assert.equal(r.pack.dataset.state, 'waiting');
-  assert(C.packView.vials.every(vial => vial.value === 0));
+  assert(C.packView.vials.every((vial,i) => Math.abs(vial.value-(i===0?C.timers.progress(r.date()):0)) < C.config.shell.frameMs / C.config.packs.regenMs + 1e-8));
   assert.equal(r.store.get('cardable.save'), JSON.stringify(C.state.current));
 });
 check('waiting glass fill follows progress every frame, with meniscus and drifting specks', () => {
@@ -117,18 +117,18 @@ check('inventory arrow is visual only, and peek card lips reflect owned count wi
   const css = fs.readFileSync(path.join(__dirname, '../src/styles/pack.css'), 'utf8'); assert(css.includes('transform: translateY(-3px)'));
 });
 check('hidden tabs stop rendering, catch up on return, and update titles from real state', () => {
-  dev('Waiting: empty'); r.advance(100); r.hidden(true); assert.equal(r.document.title, 'Cardable');
+  dev('Waiting: empty'); r.advance(100); r.hidden(true); assert.match(r.document.title, /^Cardable(?: \u00b7 pack ready| \u00b7 .+ \u00b7 \d+%)$/);
   const updates = C.packView.stats.updates, before = snapshot(r.pack); r.advance(1000); assert.equal(C.packView.stats.updates, updates); assert.equal(snapshot(r.pack), before);
   r.wall(C.config.packs.regenMs * 1.5); const moments = C.packView.stats.readyMoments;
   r.hidden(false); r.advance(100); assert.equal(C.state.current.packs.ready, 1); assert.equal(C.packView.stats.readyMoments, moments + 1);
-  assert.equal(r.document.title, 'Cardable'); r.hidden(true); assert.equal(r.document.title, 'Cardable · pack ready');
+  assert.match(r.document.title, /^Cardable(?: \u00b7 pack ready| \u00b7 .+ \u00b7 \d+%)$/); r.hidden(true); assert.equal(r.document.title, 'Cardable \u00b7 pack ready');
   r.advance(1000); r.hidden(false); r.advance(100); assert(!r.pack.classList.contains('is-arriving')); assert.equal(C.packView.stats.readyMoments, moments + 1);
-  r.hidden(true); C.timers.openPack(r.date()); assert.equal(r.document.title, 'Cardable'); r.hidden(false);
+  r.hidden(true); C.timers.openPack(r.date()); assert.match(r.document.title, /^Cardable(?: \u00b7 pack ready| \u00b7 .+ \u00b7 \d+%)$/); r.hidden(false);
 });
 check('synthetic title events never mutate state or play a pack arrival', () => {
   const before = JSON.stringify(C.state.current), moments = C.packView.stats.readyMoments;
-  dev('Test pack-ready title'); r.hidden(true); r.advance(1100); assert.equal(r.document.title, 'Cardable · pack ready');
-  assert.equal(JSON.stringify(C.state.current), before); assert.equal(C.packView.stats.readyMoments, moments); r.hidden(false); assert.equal(r.document.title, 'Cardable');
+  dev('Test pack-ready title'); r.hidden(true); r.advance(1100); assert.equal(r.document.title, 'Cardable \u00b7 pack ready');
+  assert.equal(JSON.stringify(C.state.current), before); assert.equal(C.packView.stats.readyMoments, moments); r.hidden(false); assert.match(r.document.title, /^Cardable(?: \u00b7 pack ready| \u00b7 .+ \u00b7 \d+%)$/);
 });
 check('backwards and initially absent timer timestamps persist after reconciliation', () => {
   C.state.current.packs = { ready: 0, timerStartedAt: r.date() + 10000 }; C.state.save(); C.timers.tick(r.date());
@@ -158,7 +158,7 @@ check('a load-time twenty-hour catch-up plays once, respects the stock cap, and 
 });
 check('save reset refreshes all menu components and gallery keeps pack animation disabled', () => {
   dev('Reset save'); r.advance(1200); assert.equal(C.state.current.currency, 0); assert.equal(C.currencyView.digits.text, C.config.currency.symbol + '0');
-  assert.equal(C.state.current.packs.ready, C.config.packs.startingPacks); assert(C.packView.vials.every((v, i) => v.value === (i < C.config.packs.startingPacks ? 1 : 0)));
+  assert.equal(C.state.current.packs.ready, C.config.packs.startingPacks); assert(C.packView.vials.every((v, i) => Math.abs(v.value - (i < C.config.packs.startingPacks ? 1 : i === C.config.packs.startingPacks ? C.timers.progress(r.date()) : 0)) < C.config.shell.frameMs / C.config.packs.regenMs + 1e-8));
   assert.equal(C.state.current.pendingReveal, null); assert.equal(C.state.current.serialCounter, 0);
   const gallery = runtime(true, true); gallery.advance(200); assert.equal(gallery.C.packView.visible, false); assert.equal(gallery.C.packView.stats.updates, 0);
   assert.equal(gallery.C.gallery.views.length, 28); assert.equal(gallery.C.cardView.stats.fullCards, 1);

@@ -3,7 +3,7 @@
   var pending = null, path = [];
   var pointer = { x: 0, y: 0, inside: false, interactive: false, target: null };
   var controls = 'button, a[href], input, select, textarea, summary, [role="button"], [data-cursor="ring"]';
-  var opening = { enabled: false, phase: 'idle', ready: false }, spaceDown = false, enterDown = false, spaceOwned = false;
+  var opening = { enabled: false, phase: 'idle', ready: false }, spaceDown = false, enterDown = false, chargeKey = null;
   var inventoryActive = false;
   var preferencesActive = false;
   function prevent(event) { if (event.preventDefault) event.preventDefault(); }
@@ -15,7 +15,7 @@
     return !(target.isContentEditable || (target.closest && target.closest(controls + ', [contenteditable]')));
   }
   function cancel(reason) {
-    spaceDown = false; enterDown = false; spaceOwned = false;
+    spaceDown = false; enterDown = false; chargeKey = null;
     C.events.emit('input:cancel', { reason: reason });
   }
   function modality(value) {
@@ -39,11 +39,11 @@
         if (gesture && gesture.capture && gesture.capture.hasPointerCapture(gesture.id)) gesture.capture.releasePointerCapture(gesture.id);
       });
     },
-    chargeStart: function () { C.events.emit('input:chargeStart'); },
+    chargeStart: function () { if (!preferencesActive && !inventoryActive) C.events.emit('input:chargeStart'); },
     chargeEnd: function () { C.events.emit('input:chargeEnd'); },
     cutMove: function (event) { C.events.emit('input:cutMove', event); },
-    keep: function () { if (!spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:keep'); },
-    discard: function () { if (!spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:discard'); },
+    keep: function () { if (!preferencesActive && !spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:keep'); },
+    discard: function () { if (!preferencesActive && !spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:discard'); },
     init: function () {
       if (C.input.initialized) return;
       C.input.initialized = true;
@@ -79,51 +79,40 @@
       root.document.addEventListener('pointercancel', function (event) { C.events.emit('input:cutEnd', event); });
       root.document.addEventListener('keydown', function (event) {
         modality('keyboard');
-        if (preferencesActive) return;
-        if (!opening.enabled) return;
-        if (event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar') {
-          var wasSpaceDown = spaceDown; spaceDown = true;
-          var spaceButton = event.target && event.target.closest && event.target.closest('button');
-          if (spaceButton && spaceButton.classList.contains('opening-delete')) {
-            spaceOwned = true; prevent(event);
-            if (opening.phase === 'revealed' && !event.repeat && !wasSpaceDown && !enterDown && !root.document.hidden) C.events.emit('input:discard');
-            return;
-          }
-          if (opening.phase === 'revealed') {
-            var keepTarget = chargeTarget(event.target) || (spaceButton && (spaceButton.classList.contains('opening-keep') || spaceButton.classList.contains('opening-delete')));
-            if (keepTarget) {
-              spaceOwned = true; prevent(event);
-              if (!event.repeat && !wasSpaceDown && !enterDown && !root.document.hidden) C.events.emit('input:keep');
-            }
-            return;
-          }
+        var key = event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar' ? 'Space' : event.key === 'Enter' ? 'Enter' : null;
+        var wasDown = key === 'Space' ? spaceDown : enterDown;
+        if (key === 'Space') spaceDown = true;
+        if (key === 'Enter') enterDown = true;
+        if (preferencesActive || !opening.enabled) return;
+        if (event.key === 'Escape' && opening.phase === 'charging') { prevent(event); cancel('escape'); return; }
+        if (!key) return;
+        var button = event.target && event.target.closest && event.target.closest('button');
+        var discardTarget = button && button.classList.contains('opening-delete');
+        var actionTarget = chargeTarget(event.target) || discardTarget || button && button.classList.contains('opening-keep');
+        // Space resolves the focused card action, independent of the opening key setting.
+        if (key === 'Space' && opening.phase === 'revealed' && actionTarget) {
+          prevent(event);
+          if (!event.repeat && !wasDown && !enterDown && !root.document.hidden) C.events.emit(discardTarget ? 'input:discard' : 'input:keep');
+          return;
+        }
+        if (key === C.settings.holdKey) {
           if (!chargeTarget(event.target)) return;
-          if (opening.phase !== 'idle' || opening.ready) { spaceOwned = true; prevent(event); }
-          if (event.repeat || wasSpaceDown || opening.phase !== 'idle' || !opening.ready || root.document.hidden) return;
-          spaceDown = true; C.input.chargeStart();
-        } else if (event.key === 'Escape' && opening.phase === 'charging') {
-          prevent(event); cancel('escape');
-        } else if (event.key === 'Enter') {
-          var button = event.target && event.target.closest && event.target.closest('button');
-          var deleteTarget = button && button.classList.contains('opening-delete');
-          var valid = chargeTarget(event.target) || deleteTarget || (button && button.classList.contains('opening-keep'));
-          if (valid && (opening.phase === 'cutting' || opening.phase === 'revealed')) {
-            prevent(event);
-            if (!event.repeat && !enterDown && !spaceDown) {
-              if (opening.phase === 'cutting') C.events.emit('input:tear');
-              else if (deleteTarget) C.input.discard();
-              else C.input.keep();
-            }
-          }
-          enterDown = true;
+          if (opening.phase !== 'idle' || opening.ready) prevent(event);
+          if (event.repeat || wasDown || opening.phase !== 'idle' || !opening.ready || root.document.hidden) return;
+          chargeKey = key; C.input.chargeStart();
+        } else if (actionTarget && (opening.phase === 'cutting' || opening.phase === 'revealed')) {
+          prevent(event);
+          var otherDown = key === 'Space' ? enterDown : spaceDown;
+          if (event.repeat || wasDown || otherDown || root.document.hidden) return;
+          if (opening.phase === 'cutting') C.events.emit('input:tear');
+          else C.events.emit(discardTarget ? 'input:discard' : 'input:keep');
         }
       });
       root.document.addEventListener('keyup', function (event) {
-        if (event.key === 'Enter') enterDown = false;
-        if ((event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar') && spaceDown) {
-          if (spaceOwned) { prevent(event); C.input.chargeEnd(); }
-          spaceDown = false; spaceOwned = false;
-        }
+        var key = event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar' ? 'Space' : event.key === 'Enter' ? 'Enter' : null;
+        if (chargeKey !== null && key === chargeKey) { prevent(event); chargeKey = null; C.input.chargeEnd(); }
+        if (key === 'Space') spaceDown = false;
+        if (key === 'Enter') enterDown = false;
       });
       C.events.on('opening:context', function (event) { opening = event; });
       C.events.on('inventory:context', function (event) { inventoryActive = event.active; });

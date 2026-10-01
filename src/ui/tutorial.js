@@ -12,7 +12,7 @@
   function copy() {
     var hours = C.config.packs.regenMs / 3600000;
     var interval = Number.isInteger(hours) ? hours + (hours === 1 ? ' hour' : ' hours') : C.config.packs.regenMs / 60000 + ' minutes';
-    return { welcome: 'You have ' + C.state.current.packs.ready + (C.state.current.packs.ready === 1 ? ' pack.' : ' packs.'), hold: 'Hold Space to open.',
+    return { welcome: 'You have ' + C.state.current.packs.ready + (C.state.current.packs.ready === 1 ? ' pack.' : ' packs.'), hold: 'Hold ' + C.settings.holdKey + ' to open.',
       cut: 'Drag across the top to cut.', keep: 'Press Space to keep it.', inventory: 'Your cards live here.',
       timer: 'A new pack arrives every ' + interval + '.', done: '' }[step];
   }
@@ -79,7 +79,7 @@
     cutHint.dataset.tutorial = active && step === 'cut' && phase === 'cutting' ? 'cut' : '';
     cutHint.closest('.opening-hint').dataset.tutorial = cutHint.dataset.tutorial;
     cutHint.classList.toggle('is-cut-started', cutStarted);
-    if (enter) enter.textContent = cutHint.dataset.tutorial ? 'Press Enter to tear' : 'Enter to tear';
+    if (enter) enter.textContent = cutHint.dataset.tutorial ? 'Press ' + C.settings.actionKey + ' to tear' : C.settings.actionKey + ' to tear';
     var halo = null;
     if (target) {
       var rect = target.getBoundingClientRect();
@@ -161,6 +161,7 @@
       C.events.on('cut:started', function () { cutStarted = true; layoutDirty = true; layout(); C.fx.wake(); });
       C.events.on('inventory:open', function () { if (active && step === 'inventory' && phase === 'idle') advance('timer'); });
       C.events.on('inventory:context', function (event) { inventoryActive = event.active; layout(); C.fx.wake(); });
+      C.settings.onChange('openKey', function () { instruction.textContent = copy(); layoutDirty = true; C.fx.wake(); });
       C.events.on('preferences:context', function (event) { preferencesActive = event.active; layout(); C.fx.wake(); });
       C.events.on('motion:changed', function () { C.fx.wake(); });
       C.events.on('fx:visibility', function () { C.fx.wake(); });

@@ -69,3 +69,20 @@ Core refresh implementation and behavioral evidence are recorded in `INVENTORY-R
 4. Verify browser zoom 80–150%, physical pointer capture, native file requests and visible focus rings with both fonts and fallbacks.
 
 Deferred until those gates are stable: multi-select, bulk actions, saved filters, drag-to-tab, collapsible groups, alphabetical index and onboarding hints.
+
+## Stage 11a settings — ranked source-review follow-ups
+
+Rendered critique is pending the permitted browser gate. These are optional refinements, not additional implementation in this stage:
+
+1. Check preview text at normal viewing distance; the preview should explain a setting without competing with its controls.
+2. Inspect right-edge panel/gear alignment at narrow widths and browser zoom.
+3. Measure Low glass compositing on the intended laptop before tuning any blur further.
+4. Compare front-serial hidden/visible layouts in both original and remade card frames.
+5. Tune label/helper wrapping with actual local fonts and fallbacks.
+6. Inspect segmented highlight travel on quick alternating choices; retain stable control widths.
+7. Refine the defaults countdown ring after a frame-by-frame rendered review.
+8. Compare switch press stretch and the tiny settling overshoot at 60 and 120 Hz.
+9. Review credits scroll density and the return focus from the nested sheet.
+10. Evaluate performance-nudge placement with an acquisition toast visible.
+
+The detail people would feel missing: a stable footer height while the Saved message appears. Keep its reserved line even when no message is present.

@@ -103,7 +103,7 @@ check('same-card results inside a pack become x2/x3 without changing saved insta
 });
 check('hidden tabs pause flip, shine, stamp, collection and toast while timer/title remain real',()=>{
  const r=open('legendary');until(r,'flipping');r.advance(700);const frame=clone(r.C.opening.view.revealFrame),stats=r.C.opening.stats.shines;
- r.hidden(true);r.advance(20000);assert.deepEqual(clone(r.C.opening.view.revealFrame),frame);assert.equal(r.C.opening.stats.shines,stats);assert.equal(r.document.title,'Cardable · pack ready');
+ r.hidden(true);r.advance(20000);assert.deepEqual(clone(r.C.opening.view.revealFrame),frame);assert.equal(r.C.opening.stats.shines,stats);assert.match(r.document.title,/^Cardable\u0020\u00b7\u0020(?:pack ready|.+\u0020\u00b7\u0020\d+%)$/);
  r.hidden(false);ready(r);clickKeep(r);r.advance(200);const flight=r.C.opening.el.querySelectorAll('.collection-flight')[0],transform=flight.style.transform,toast=r.C.opening.toast.style.opacity;
  r.hidden(true);r.advance(10000);assert.equal(flight.style.transform,transform);assert.equal(r.C.opening.toast.style.opacity,toast);assert.equal(r.C.opening.phase,'collecting');r.hidden(false);r.advance(920);assert.equal(r.C.opening.phase,'idle');
 });
@@ -124,7 +124,9 @@ check('existing ten-layer stack and classic offline loading are retained',()=>{
 });
 check('New adds exactly 200ms at the final hold while low-tier duplicate info delays remain readable',()=>{
  const r=open();ready(r);const info=r.C.opening.infoClock;
- const d=open('common',true);ready(d);assert(Math.abs(info-d.C.opening.infoClock-200)<25, 'New infoClock=' + info + ', duplicate infoClock=' + d.C.opening.infoClock);
+ const d=open('common',true);ready(d);
+ function infoDuration(x){const m=x.C.config.revealMotion,c=x.C.config.cardView,v=x.C.opening.view;return Math.max(m.serialDelayMs+v.instance.serial.length*c.stampCharMs+c.stampFlickerMs,m.serialDelayMs+m.infoStepMs*(x.C.cardSpecs.frontRows(v.card).length+3)+(c.meterSegments-1)*c.meterTickMs+m.infoFadeMs)+m.keepDelayMs;}
+ assert(Math.abs((info-infoDuration(r))-(d.C.opening.infoClock-infoDuration(d))-r.C.config.revealMotion.newHoldMs)<25, 'New emphasis must remain data-driven across different spec counts');
 });
 check('holding original Space or tear Enter through reveal never activates Keep',()=>{
  const r=runtime();key(r,'keydown',' ');r.advance(4000);assert.equal(r.C.opening.phase,'cutting');
@@ -146,7 +148,7 @@ check('live reduced motion after landing keeps the front visible and immediately
 });
 check('live color/mono changes update finish/bloom, persist the display preference and preserve pending data',()=>{
  const r=open('secret');ready(r);const saved=clone(r.C.state.current), button=r.C.dev.panel.querySelectorAll('button').find(b=>b.textContent==='Toggle rarityColorMode');
- const original=r.C.config.rarityColorMode;r.click(10,10,button);assert.notEqual(r.C.config.rarityColorMode,original);assert.equal(r.C.opening.view.el.dataset.colorMode,r.C.config.rarityColorMode);saved.settings.rarityColorMode=r.C.config.rarityColorMode;assert.deepEqual(clone(r.C.state.current),saved);
+ const original=r.C.config.rarityColorMode;r.click(10,10,button);assert.notEqual(r.C.config.rarityColorMode,original);assert.equal(r.C.opening.view.el.dataset.colorMode,r.C.config.rarityColorMode);saved.settings.rarityColor=r.C.config.rarityColorMode;assert.deepEqual(clone(r.C.state.current),saved);
  r.click(10,10,button);assert.equal(r.C.config.rarityColorMode,original);assert.equal(r.C.opening.view.el.dataset.colorMode,original);
  assert.equal(r.C.opening.scene.querySelectorAll('.opening-bloom')[0].style['--reveal-accent'],original==='mono'?'white':'#FFFFFF');
 });

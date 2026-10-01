@@ -13,7 +13,7 @@
         clear: function () { pool.forEach(function (p) { p.life = 0; p.el.style.opacity = 0; }); this.count = 0; },
         emit: function (kind, points, width, height, normal) {
           this.clear(); if (C.motion.reduced) return;
-          var random = Math.random, count = Math.min(capacity, kind === 'dissolve' ? cfg.dissolveCount : cfg.fleckCount);
+          var random = Math.random, count = Math.ceil(Math.min(capacity, kind === 'dissolve' ? cfg.dissolveCount : cfg.fleckCount) * C.settings.policy.particles);
           for (var j = 0; j < count; j++) {
             var p = pool[j], position = points ? points[Math.floor(random() * points.length)] : { x: random(), y: random() };
             p.x = position.x * width; p.y = position.y * height; p.age = 0;
@@ -32,8 +32,9 @@
           this.count = count;
         },
         update: function (dt) {
-          var active = 0;
-          pool.forEach(function (p) {
+          var active = 0, limit = C.motion.reduced ? 0 : Math.ceil(capacity * C.settings.policy.particles);
+          pool.forEach(function (p, index) {
+            if (index >= limit) { p.life = 0; p.el.style.opacity = 0; }
             if (!p.life) return;
             p.age += dt;
             if (p.age >= p.life) { p.life = 0; p.el.style.opacity = 0; return; }

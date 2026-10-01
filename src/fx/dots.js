@@ -12,7 +12,7 @@
   }
   var points = [];
   function point(index) { return points[index]; }
-  function boundRipples() { if (ripples.length > C.config.dots.ripple.maxSimultaneous) ripples.splice(0, ripples.length - C.config.dots.ripple.maxSimultaneous); }
+  function boundRipples() { var limit = C.settings.policy.rippleLimit; if (ripples.length > limit) ripples.splice(0, ripples.length - limit); }
   function region(left, top, right, bottom, visit) {
     var pitch = C.config.dots.spacing;
     var minX = Math.max(0, Math.ceil(left / pitch - 0.5)), maxX = Math.min(cols - 1, Math.floor(right / pitch - 0.5));
@@ -46,8 +46,9 @@
     C.fx.wake();
   }
   function update(now, dt) {
+    if (C.settings.get('dots') === 'off') return false;
     if (!dirty && !heat.size && !ripples.length && !pendingPaths.length && !cursorFade) return false;
-    var cfg = C.config.dots, tuning = C.config.shell.dots, pointer = cursorPoint;
+    var cfg = C.settings.dotsPolicy(), tuning = C.config.shell.dots, pointer = cursorPoint;
     if (!cursorBlocked) { cursorPoint = { x: C.input.pointer.x, y: C.input.pointer.y, inside: C.input.pointer.inside }; pointer = cursorPoint; }
     if (cursorFade) {
       cursorFade.elapsed += dt;
@@ -68,7 +69,7 @@
       });
     }
     lastHeatAt = now;
-    if (!C.motion.reduced && !cursorBlocked) pendingPaths.forEach(stamp);
+    if (!C.motion.reduced && !cursorBlocked && cfg.trail) pendingPaths.forEach(stamp);
     pendingPaths = [];
     ripples = ripples.filter(function (r) { return now - r.born - r.delay < (r.kind === 'click' ? cfg.ripple.lifeMs : cfg.pulse.lifeMs); });
     var candidates = new Set(heat.keys());
@@ -132,10 +133,10 @@
       if (!ctx) { canvas.hidden = true; return; }
       ink = root.getComputedStyle(root.document.documentElement).getPropertyValue('--highlight').trim();
       resize();
-      C.events.on('pointer:move', function (event) { if (cursorBlocked) return; if (!C.motion.reduced) pendingPaths.push(event.path); dirty = true; });
+      C.events.on('pointer:move', function (event) { if (cursorBlocked || C.settings.get('dots') === 'off') return; if (!C.motion.reduced && C.settings.dotsPolicy().trail) pendingPaths.push(event.path); dirty = true; });
       C.events.on('pointer:leave', function () { if (!cursorBlocked) dirty = true; });
       C.events.on('pointer:click', function (event) {
-        if (C.motion.reduced || cursorBlocked) return;
+        if (C.motion.reduced || cursorBlocked || C.settings.get('dots') === 'off') return;
         // The cap includes queued echoes, so rapid clicks cannot accumulate hidden energy.
         ripples.push({ x: event.x, y: event.y, born: event.now, kind: 'click', delay: 0, scale: 1 });
         ripples.push({ x: event.x, y: event.y, born: event.now, kind: 'click', delay: C.config.dots.ripple.secondDelayMs, scale: C.config.dots.ripple.secondRingScale });
@@ -143,7 +144,7 @@
         dirty = true;
       });
       C.events.on('dots:pulse', function (event) {
-        if (C.motion.reduced || root.document.hidden) return;
+        if (C.motion.reduced || root.document.hidden || C.settings.get('dots') === 'off') return;
         ripples.push({ x: event.x, y: event.y, born: root.performance.now(), kind: 'pulse', intensity: event.intensity, delay: 0, scale: 1 });
         boundRipples();
         dirty = true; C.fx.wake();
@@ -159,6 +160,16 @@
       });
       C.events.on('motion:changed', function () { heat.clear(); ripples = []; pendingPaths = []; dirty = true; });
       C.events.on('fx:visibility', function (visible) { if (visible) dirty = true; });
+      function settingsChanged() {
+        heat.clear(); ripples = []; pendingPaths = []; lastHeatAt = null; dirty = true;
+        stats.trailCells = stats.ripples = stats.clickRipples = stats.pulseRipples = stats.rings = stats.visibleDots = 0;
+        ctx.clearRect(0, 0, width, height);
+        if (C.settings.get('dots') === 'off') { canvas.remove(); cursorFade = null; }
+        else { if (!root.document.body.contains(canvas)) root.document.body.insertBefore(canvas, root.document.body.children[0]); resize(); }
+        C.fx.wake();
+      }
+      C.settings.onChange('dots', settingsChanged); C.settings.onChange('quality', settingsChanged);
+      settingsChanged();
       root.addEventListener('resize', resize);
       C.fx.subscribe(update, 'dots');
     }

@@ -14,8 +14,10 @@
     root.clearTimeout(idleTimer); root.clearTimeout(waveTimer);
     if (root.document.hidden) return;
     var elapsed = root.performance.now() - lastActivity;
-    if (elapsed >= C.config.idleFadeMs) setIdle(true);
-    else idleTimer = root.setTimeout(function () { setIdle(true); }, C.config.idleFadeMs - elapsed);
+    var idleMs = C.settings.idleMs;
+    if (idleMs === Infinity) setIdle(false);
+    else if (elapsed >= idleMs) setIdle(true);
+    else idleTimer = root.setTimeout(function () { setIdle(true); }, idleMs - elapsed);
     if (elapsed >= C.config.shell.idleWaveMs) queuedWave = true;
     else waveTimer = root.setTimeout(function () { queuedWave = true; }, C.config.shell.idleWaveMs - elapsed);
   }
@@ -67,6 +69,7 @@
       lastActivity = root.performance.now(); arm();
       C.events.on('pointer:activity', activity);
       C.events.on('menu:activity', activity);
+      C.settings.onChange('idleFade', activity);
       C.events.on('input:modality', keyboardHold);
       C.events.on('menu:visibilityHold', function (event) { C.menu.holdVisible(event.reason, event.active); });
       root.document.addEventListener('focusin', keyboardHold);

@@ -61,7 +61,7 @@ check('failed pull commit cannot advance tutorial or consume packs', () => {
 check('ghost shares the cut hint, loops every three seconds, and never writes a seam', () => {
   const r = fresh(); charge(r); r.advance(50);
   const hint = r.document.body.querySelectorAll('.opening-cut-hint')[0];
-  assert.equal(hint.dataset.tutorial, 'cut'); assert.equal(r.C.tutorial.instruction.textContent, 'Slide across to cut.');
+  assert.equal(hint.dataset.tutorial, 'cut'); assert.equal(r.C.tutorial.instruction.textContent, 'Drag across the top to cut.');
   assert.equal(r.C.tutorial.ghost.parent.parent, hint); assert.equal(r.C.opening.path.length, 0);
   r.advance(3100); assert(r.C.tutorial.stats.ghostCycles >= 1); assert.equal(r.C.opening.path.length, 0);
   r.advance(2050); assert.equal(r.C.opening.enterHint.textContent, 'Press Enter to tear'); assert.equal(Number(r.C.opening.enterHint.style.opacity), 1);
@@ -70,7 +70,7 @@ check('ghost stops at a valid cut press and stays stopped after release', () => 
   const r = fresh(); charge(r); const host = r.C.opening.wrapper; host.rect = { left: 500, top: 240, width: 180, height: 252 };
   r.document.fire('pointerdown', { target: host, clientX: 900, clientY: 350, pointerId: 1, button: 0, preventDefault() {} });
   const hint = r.document.body.querySelectorAll('.opening-cut-hint')[0]; assert(!hint.classList.contains('is-cut-started'));
-  r.document.fire('pointerdown', { target: host, clientX: 510, clientY: 360, pointerId: 1, button: 0, preventDefault() {} });
+  r.document.fire('pointerdown', { target: host, clientX: 510, clientY: host.rect.top + host.rect.height * r.C.config.cut.guideY, pointerId: 1, button: 0, preventDefault() {} });
   assert(hint.classList.contains('is-cut-started')); r.advance(40); const offset = r.C.tutorial.ghost.style.strokeDashoffset;
   r.document.fire('pointerup', { pointerId: 1 }); r.advance(3500); assert.equal(r.C.tutorial.ghost.style.strokeDashoffset, offset);
 });
@@ -78,7 +78,7 @@ check('cut lesson advances only when the tear finishes; Keep instruction waits f
   const r = fresh(); charge(r); tap(r, 'Enter'); assert.equal(r.C.tutorial.step, 'cut'); r.advance(1000); assert.equal(r.C.tutorial.step, 'cut');
   until(r, 'rising'); assert.equal(r.C.tutorial.step, 'keep'); assert.equal(r.document.body.dataset.tutorial, '');
   until(r, 'revealed'); for (let t = 0; r.C.opening.keepButton.hidden && t < 5000; t += 20) r.advance(20);
-  r.advance(40); assert.equal(r.document.body.dataset.tutorial, 'keep'); assert.equal(r.C.tutorial.instruction.textContent, 'Keep it.');
+  r.advance(40); assert.equal(r.document.body.dataset.tutorial, 'keep'); assert.equal(r.C.tutorial.instruction.textContent, 'Press Space to keep it.');
   assert(r.C.opening.keepButton.classList.contains('is-tutorial-target'));
 });
 check('full fresh walkthrough uses one real pack and pull, then inventory, timer and done', () => {

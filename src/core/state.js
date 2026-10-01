@@ -12,7 +12,7 @@
       packs: { ready: C.config.packs.startingPacks, timerStartedAt: null },
       serialCounter: 0, inventory: [], pendingReveal: null, currency: 0,
       tutorial: { step: 'welcome', done: false },
-      settings: { reducedMotion: null }, stats: { packsOpened: 0 },
+      settings: C.settingsSchema.normalize(), stats: { packsOpened: 0 },
       inventoryUi: C.inventoryModel ? C.inventoryModel.defaults() : {}
     };
   }
@@ -35,7 +35,7 @@
     base.inventory = Array.isArray(base.inventory) ? base.inventory : [];
     base.serialCounter = Math.max(0, Number(base.serialCounter) || 0);
     base.tutorial = Object.assign({ step: 'welcome', done: false }, base.tutorial || {});
-    base.settings = Object.assign({ reducedMotion: null }, base.settings || {});
+    base.settings = C.settingsSchema.normalize(base.settings);
     base.stats = Object.assign({ packsOpened: 0 }, base.stats || {});
     base.inventoryUi = C.inventoryModel.normalize(base.inventoryUi);
     return base;
@@ -60,7 +60,7 @@
       require(value.packs.timerStartedAt == null || number(value.packs.timerStartedAt), 'Invalid timer');
     }
     if (value.inventory !== undefined) require(Array.isArray(value.inventory), 'Invalid collection');
-    ['settings', 'tutorial', 'stats'].forEach(function (key) { if (value[key] !== undefined) require(value[key] && typeof value[key] === 'object' && !Array.isArray(value[key]), 'Invalid ' + key); });
+    ['tutorial', 'stats'].forEach(function (key) { if (value[key] !== undefined) require(value[key] && typeof value[key] === 'object' && !Array.isArray(value[key]), 'Invalid ' + key); });
     if (value.serialCounter !== undefined) require(integer(value.serialCounter), 'Invalid serial counter');
     var candidate = migrate(value);
     require(typeof candidate.playerCode === 'string' && candidate.playerCode.length === C.config.serial.playerCodeLength &&
@@ -69,8 +69,6 @@
     require(candidate.stats && integer(candidate.stats.packsOpened), 'Invalid opening statistics');
     require(candidate.tutorial && ['welcome', 'hold', 'cut', 'keep', 'inventory', 'timer', 'done'].indexOf(candidate.tutorial.step) !== -1 &&
       typeof candidate.tutorial.done === 'boolean', 'Invalid tutorial progress');
-    require(candidate.settings && (candidate.settings.reducedMotion === null || typeof candidate.settings.reducedMotion === 'boolean'), 'Invalid motion setting');
-    require(!candidate.settings.rarityColorMode || ['color', 'mono'].indexOf(candidate.settings.rarityColorMode) !== -1, 'Invalid rarity color setting');
     var ids = new Set(), serials = new Set(), maxCounter = 0;
     function instance(item, reserved) {
       require(item && typeof item.instanceId === 'string' && item.instanceId.length > 0 && typeof item.cardId === 'string', 'Invalid card instance');
@@ -116,6 +114,7 @@
   }
   C.state = {
     current: null,
+    get persistenceAvailable() { return !cache.unavailable; },
     noticeShown: false,
     recovery: null,
     fresh: freshState,
@@ -176,13 +175,16 @@
       return C.state.current;
     },
     reset: function () {
+      var keptSettings = C.settingsSchema.normalize(C.state.current && C.state.current.settings);
       C.events.emit('save:willReset');
       var store = storage();
       if (store) try { store.removeItem(C.config.storage.key); } catch (_) { cache.unavailable = true; }
       cache.memory = null;
       C.state.current = freshState();
+      C.state.current.settings = keptSettings;
       C.state.save();
       C.events.emit('save:reset', C.state.current);
+      C.events.emit('save:replaced', C.state.current);
       return C.state.current;
     }
   };

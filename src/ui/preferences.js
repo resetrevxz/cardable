@@ -1,112 +1,133 @@
 (function (C, root) {
   'use strict';
-  var overlay, panel, feedback, replace, picker, motion, color, staged = null, opened = false, origin = null, blocked = [], reading = 0;
-  var opacity = 0, fadeMs;
-  var previousExport;
-  var node = C.packMarkup.node;
-  function button(text, parent, action) { var el = node('button', 'quiet-button', parent, text); el.setAttribute('type', 'button'); el.addEventListener('click', action); return el; }
+  var node = C.packMarkup.node, overlay, panel, gear, feedback, credits, previewHost, preview = null, previousCard = null;
+  var opened = false, blocked = [], controls = [], spring, position = 0, confirmation, undo = null, undoAge = 0, undoButton;
+  var saveAge = null, saved = true, tierIndex = 0, previewBase = null, nudge, nudgeShown = false, slowMs = 0, slowFrames = 0;
+  function button(text, parent, action) { var el = node('button', 'quiet-button', parent, text); el.type = 'button'; el.addEventListener('click', action); return el; }
   function message(text) { feedback.textContent = text; }
-  function close() {
-    if (!opened) return;
-    opened = false; staged = null; reading += 1; overlay.inert = true; C.fx.wake();
-    blocked.forEach(function (item) { item.el.inert = item.before; }); blocked = [];
-    C.accessibility.release(panel); C.events.emit('preferences:context', { active: false });
-    C.events.emit('menu:visibilityHold', { reason: 'preferences', active: false }); C.events.emit('menu:activity');
-    if (origin && C.accessibility.available(origin)) origin.focus({ preventScroll: true });
+  function announce(text) { C.preferences.status.textContent = text; }
+  function canOpen() { return !root.document.hidden && (!C.opening || C.opening.phase === 'idle'); }
+  function enabled() { gear.disabled = !canOpen(); gear.title = gear.disabled ? 'Finish opening first' : 'Settings (S)'; }
+  function buildPreview() {
+    if (preview) preview.destroy();
+    var rarity = C.data.rarities[tierIndex], owned = C.state.current.inventory.some(function (i) { var card = C.card(i.cardId); return card && card.rarity === rarity.id; });
+    var card = Object.assign({}, previewBase.card, { rarity: rarity.id });
+    preview = C.cardView.create(card, previewBase.instance, { autoFocus: false, autoStamp: false, keyboardFlip: false, owned: owned, finishState: rarity.tier === 11 && !owned ? 'unfound' : 'found' });
+    preview.el.setAttribute('tabindex', '-1'); previewHost.appendChild(preview.el); C.preferences.preview = preview; preview.setMode('full');
+    C.preferences.preview = preview; C.preferences.tierLabel.textContent = rarity.name; C.fx.wake();
   }
   function open() {
-    if (opened || root.document.hidden || C.opening.phase !== 'idle' && C.opening.phase !== 'revealed') return;
-    opened = true; origin = root.document.activeElement; staged = null; replace.hidden = true; message('');
-    previousExport.hidden = !C.saveFiles.previous();
-    motion.value = C.state.current.settings.reducedMotion === null ? 'system' : C.state.current.settings.reducedMotion ? 'reduce' : 'full'; color.value = C.config.rarityColorMode;
-    Array.from(root.document.body.querySelectorAll('.menu-shell, .inventory-sheet, .inventory-detail, .card-gallery, .dev-panel, .tutorial, .opening-stage, .save-notice')).forEach(function (el) {
-      blocked.push({ el: el, before: !!el.inert }); el.inert = true;
-    });
-    overlay.hidden = false; overlay.inert = false; C.accessibility.trap(panel);
-    C.fx.wake();
-    C.events.emit('preferences:context', { active: true }); C.events.emit('menu:visibilityHold', { reason: 'preferences', active: true });
-    C.preferences.closeButton.focus({ preventScroll: true });
+    if (opened || !canOpen()) return false;
+    opened = true; previousCard = C.cardView.active; C.events.emit('preferences:context', { active: true });
+    C.events.emit('settings:open'); C.events.emit('menu:visibilityHold', { reason: 'preferences', active: true });
+    root.document.body.classList.add('settings-open');
+    Array.from(root.document.body.querySelectorAll('.menu-shell, .inventory-sheet, .inventory-detail, .card-gallery, .dev-panel, .tutorial, .opening-stage, .save-notice')).forEach(function (el) { blocked.push({ el: el, before: !!el.inert }); el.inert = true; });
+    var instances = C.state.current.inventory.filter(function (i) { return !!C.card(i.cardId); }).slice().sort(function (a, b) { return b.pulledAt - a.pulledAt; });
+    var instance = instances[0], card = instance ? C.card(instance.cardId) : C.data.cards.find(function (c) { return !c.retired && c.active !== false; });
+    previewBase = { card: card, instance: instance || { instanceId: 'settings-preview', cardId: card.id, serial: C.serial.format(C.state.current.playerCode, 0), pulledAt: 0, seen: true } };
+    tierIndex = Math.max(0, C.data.rarities.findIndex(function (r) { return r.id === card.rarity; }));
+    overlay.hidden = false; overlay.inert = false; buildPreview(); C.accessibility.trap(panel); C.preferences.closeButton.focus({ preventScroll: true });
+    if (!C.settings.saved) message('Your browser is blocking saving. Settings last for this session only.');
+    spring.target = 1; C.fx.wake(); return true;
   }
-  function read(file) {
-    var token = ++reading; staged = null; replace.hidden = true;
-    if (!file) return Promise.resolve(false);
-    if (file.size > C.config.polish.maxSaveBytes) { message('This save file is too large. Your collection is unchanged.'); return Promise.resolve(false); }
-    message('Reading save…');
-    return file.text().then(function (text) {
-      if (token !== reading || !opened) return false;
-      staged = C.saveFiles.parse(text);
-      var unique = new Set(staged.inventory.map(function (item) { return item.cardId; })).size;
-      message(unique + ' collected cards · ' + staged.inventory.length + ' instances · ' + staged.packs.ready + ' packs' +
-        (staged.pendingReveal ? ' · a reserved reveal' : '') + '. Replace this device’s save? A local backup will be kept.');
-      replace.hidden = false; return true;
-    }).catch(function (error) { if (token === reading && opened) message('Could not import: ' + error.message + '. Your collection is unchanged.'); return false; });
+  function close() {
+    if (!opened) return;
+    if (confirmation) confirmation.cancel(); credits.hidden = true; C.accessibility.release(credits);
+    opened = false; overlay.inert = true; root.document.body.classList.remove('settings-open');
+    if (preview) preview.destroy(); preview = null; C.preferences.preview = null;
+    blocked.forEach(function (item) { item.el.inert = item.before; }); blocked = [];
+    C.events.emit('preferences:context', { active: false }); C.events.emit('settings:close');
+    if (previousCard && !previousCard.destroyed && previousCard.visible) previousCard.setMode('full'); previousCard = null;
+    C.accessibility.release(panel); C.events.emit('menu:visibilityHold', { reason: 'preferences', active: false }); C.events.emit('menu:activity');
+    gear.focus({ preventScroll: true }); spring.target = 0; C.fx.wake();
   }
   function recoverNotice() {
     var recovery = C.state.recovery; if (!recovery) return;
     var notice = node('aside', 'save-notice glass', root.document.body); notice.setAttribute('aria-label', 'Save recovery');
-    var copy = node('p', '', notice, recovery.backedUp ? 'Your save could not be read. A backup was kept and a fresh save is ready.' :
-      'Your save could not be read. A fresh save is ready. Download the unreadable file to keep a copy.'); copy.setAttribute('role', 'status');
-    var actions = node('div', 'save-notice-actions', notice);
-    button('Download backup', actions, C.saveFiles.exportBackup);
+    var copy = node('p', '', notice, recovery.backedUp ? 'Your save could not be read. A backup was kept and a fresh save is ready.' : 'Your save could not be read. A fresh save is ready. Download the unreadable file to keep a copy.'); copy.setAttribute('role', 'status');
+    var actions = node('div', 'save-notice-actions', notice); button('Download backup', actions, C.saveFiles.exportBackup);
     button('Dismiss', actions, function () { notice.remove(); C.preferences.notice = null; C.state.recovery = null; C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: false }); });
-    C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: true });
-    C.preferences.notice = notice;
+    C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: true }); C.preferences.notice = notice;
   }
   function storageNotice() {
     if (!C.state.noticeShown || C.preferences.notice) return;
-    var notice = node('aside', 'save-notice glass', root.document.body);
-    var copy = node('p', '', notice, 'This browser cannot save changes on this device. Export a file to keep your collection.'); copy.setAttribute('role', 'status');
-    var actions = node('div', 'save-notice-actions', notice);
-    button('Export save', actions, C.saveFiles.export);
-    button('Dismiss', actions, function () { notice.remove(); C.preferences.notice = null; }); C.preferences.notice = notice;
+    var notice = node('aside', 'save-notice glass', root.document.body); var copy = node('p', '', notice, 'Your browser is blocking saving. Changes last for this session only.'); copy.setAttribute('role', 'status');
+    button('Dismiss', notice, function () { notice.remove(); C.preferences.notice = null; }); C.preferences.notice = notice;
   }
   C.preferences = {
-    initialized: false, get open() { return opened; }, show: open, close: close, read: read,
+    initialized: false, get open() { return opened; }, show: open, close: close,
+    // Data UI is intentionally inactive in 11a; the existing save-file core remains available.
+    read: function () { return Promise.resolve(false); },
     init: function () {
       if (C.preferences.initialized) return; C.preferences.initialized = true;
-      fadeMs = parseFloat(root.getComputedStyle(root.document.documentElement).getPropertyValue('--t-ui'));
-      overlay = node('div', 'preferences-overlay', root.document.body); overlay.hidden = true; overlay.inert = true; overlay.style.opacity = 0;
-      panel = node('section', 'preferences-panel glass glass--sheet', overlay); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Save and display');
-      var head = node('header', 'preferences-header', panel); node('h2', '', head, 'Save & display');
-      node('span', 'preferences-version', head, 'v' + C.config.version);
-      C.preferences.closeButton = button('Close', head, close);
-      node('p', 'preferences-caption', panel, 'Your collection stays on this device. Keep a file copy when you need one.');
-      var actions = node('div', 'preferences-actions', panel);
-      button('Export save', actions, function () { try { C.saveFiles.export(); message('Save file exported.'); } catch (_) { message('Could not download the save. Try again.'); } });
-      button('Import JSON…', actions, function () { picker.value = ''; picker.click(); });
-      previousExport = button('Export previous save', actions, function () { try { C.saveFiles.exportPrevious(); message('Previous save exported.'); } catch (_) { message('Could not download the previous save. Try again.'); } }); previousExport.hidden = true;
-      picker = node('input', '', panel); picker.type = 'file'; picker.accept = '.json,application/json'; picker.hidden = true; picker.setAttribute('aria-label', 'Import Cardable save');
-      picker.addEventListener('change', function () { read(picker.files && picker.files[0]); });
-      function select(labelText, choices) {
-        var label = node('label', 'preferences-setting', panel, labelText), control = node('select', '', label); control.setAttribute('aria-label', labelText);
-        choices.forEach(function (choice) { var option = node('option', '', control, choice[1]); option.value = choice[0]; }); return control;
-      }
-      motion = select('Motion', [['system', 'Follow system'], ['reduce', 'Reduced'], ['full', 'Full']]);
-      motion.addEventListener('change', function () { C.motion.setPreference(motion.value === 'system' ? null : motion.value === 'reduce'); });
-      color = select('Card finishes', [['color', 'Color'], ['mono', 'Monochrome']]);
-      color.addEventListener('change', function () { C.config.rarityColorMode = color.value; C.events.emit('settings:rarityColorMode', color.value); });
-      feedback = node('p', 'preferences-feedback', panel); feedback.setAttribute('role', 'status'); feedback.setAttribute('aria-live', 'polite');
-      replace = button('Replace save', panel, function () { if (!staged) return; try { C.saveFiles.apply(staged); } catch (error) { message(error.message); } }); replace.hidden = true;
-      var hosts = root.document.body.querySelectorAll('.inventory-header, .gallery-tools');
-      Array.from(hosts).forEach(function (host) { var control = button('Save & display', host, open); control.classList.add('preferences-entry'); var version = node('span', 'preferences-version', control, 'v' + C.config.version); version.setAttribute('aria-hidden', 'true'); if (host.classList.contains('inventory-header')) host.insertBefore(control, host.children[1]); });
+      var corner = node('div', 'settings-corner idle-chrome entrance', root.document.body); corner.style.setProperty('--entry', 2);
+      gear = button('', corner, function () { if (opened) close(); else open(); }); gear.classList.add('settings-gear', 'preferences-entry'); gear.setAttribute('aria-label', 'Settings'); gear.setAttribute('aria-keyshortcuts', 'S');
+      var icon = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg'); icon.setAttribute('viewBox', '0 0 24 24'); icon.setAttribute('aria-hidden', 'true');
+      var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', 'M9 3h6l.5 2.4 2 1.2 2.3-.8 3 5.2-1.8 1.6v2.3l1.8 1.6-3 5.2-2.3-.8-2 1.2L15 24H9l-.5-2.4-2-1.2-2.3.8-3-5.2L3 15.4v-2.3L1.2 11.5l3-5.2 2.3.8 2-1.2z'); icon.setAttribute('viewBox', '0 0 24 27'); icon.appendChild(path); var circle = root.document.createElementNS('http://www.w3.org/2000/svg', 'circle'); circle.setAttribute('cx', '12'); circle.setAttribute('cy', '13.5'); circle.setAttribute('r', '4'); icon.appendChild(circle); gear.appendChild(icon); node('span', 'settings-version', corner, 'v' + C.config.version);
+      overlay = node('div', 'preferences-overlay settings-overlay', root.document.body); overlay.hidden = true; overlay.inert = true;
+      panel = node('section', 'preferences-panel settings-panel glass glass--sheet', overlay); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Settings');
+      var header = node('header', 'settings-header', panel); node('h2', '', header, 'Settings'); C.preferences.closeButton = button('Close', header, close);
+      var scroll = node('div', 'settings-scroll', panel), previewSection = node('div', 'settings-preview', scroll); previewHost = node('div', 'settings-preview-mount', previewSection);
+      var selector = node('div', 'settings-preview-selector', previewSection); button('‹', selector, function () { tierIndex = (tierIndex + C.data.rarities.length - 1) % C.data.rarities.length; buildPreview(); });
+      C.preferences.tierLabel = node('span', '', selector); button('›', selector, function () { tierIndex = (tierIndex + 1) % C.data.rarities.length; buildPreview(); });
+      var groups = {};
+      ['Motion and effects', 'Cards', 'Controls', 'Sound', 'Data', 'About'].forEach(function (name) { var group = node('section', 'settings-group', scroll); node('h3', '', group, name); groups[name] = group; });
+      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group) controls.push(C.settingsControls.create(d, groups[d.group])); });
+      ['Export save', 'Import save', 'Reset save', 'Restore previous save', 'Replay tutorial'].forEach(function (text) { var b = button(text, groups.Data, function () {}); b.disabled = true; b.title = 'Available in Stage 11b'; });
+      node('p', 'settings-helper', groups.Data, 'Data tools are not available yet.');
+      var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
+      button('Credits and licenses', groups.About, function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
+      credits = node('section', 'settings-credits glass', panel); credits.hidden = true; credits.setAttribute('role', 'dialog'); credits.setAttribute('aria-modal', 'true'); credits.setAttribute('aria-label', 'Credits and licenses');
+      node('h2', '', credits, 'Credits and licenses'); node('p', '', credits, 'Inter — Rasmus Andersson. JetBrains Mono — JetBrains. Both fonts use the SIL Open Font License 1.1.');
+      node('p', '', credits, 'Local font files are optional. System UI and monospace fallbacks keep the game readable.');
+      button('Read font licenses', credits, function () { C.preferences.licenseText.hidden = !C.preferences.licenseText.hidden; });
+      C.preferences.licenseText = node('pre', 'settings-license', credits, C.fontLicense || 'SIL Open Font License 1.1: fonts may be used, studied, modified and redistributed with their copyright and license notices; fonts may not be sold by themselves. See assets/fonts/LICENSES.md.'); C.preferences.licenseText.hidden = true;
+      C.preferences.creditsClose = button('Close credits', credits, function () { credits.hidden = true; C.accessibility.release(credits); });
+      var footer = node('footer', 'settings-footer', panel); feedback = node('p', 'preferences-feedback settings-feedback', footer); feedback.setAttribute('role', 'status'); feedback.setAttribute('aria-live', 'polite');
+      var defaults = button('Restore defaults', footer, function () {});
+      confirmation = C.settingsControls.confirmation(defaults, function () { undo = C.settings.snapshot; undoAge = 0; C.settings.resetToDefaults(); undoButton.hidden = false; announce('Settings restored. Undo available for eight seconds.'); }, { announce: announce });
+      undoButton = button('Undo', footer, function () { if (!undo) return; var previous = undo; undo = null; undoButton.hidden = true; C.settings.restore(previous); announce('Settings restored to your previous choices.'); }); undoButton.hidden = true;
+      C.preferences.status = node('span', 'visually-hidden', panel); C.preferences.status.setAttribute('aria-live', 'polite');
+      nudge = node('aside', 'settings-nudge glass', root.document.body); nudge.hidden = true; node('p', '', nudge, 'Smoother with Medium effects. Switch?');
+      button('Switch', nudge, function () { C.settings.set('quality', 'medium'); nudge.hidden = true; }); button('Dismiss', nudge, function () { C.settings.set('nudgeDismissed', true); nudge.hidden = true; });
+      spring = C.springs.create(0, { stiffness: 220, damping: 26 });
       overlay.addEventListener('click', function (event) { if (event.target === overlay) close(); });
+      gear.addEventListener('keydown', function (event) { if (event.key === ' ') event.preventDefault(); });
       root.document.addEventListener('keydown', function (event) {
-        if (opened && event.key === 'Escape') { event.preventDefault(); close(); }
+        if (event.settingsHandled) return;
+        if (opened && event.key === 'Escape') {
+          event.preventDefault(); event.settingsHandled = true;
+          if (confirmation.active) confirmation.cancel(); else if (!credits.hidden) { credits.hidden = true; C.accessibility.release(credits); C.preferences.closeButton.focus(); } else close();
+        } else if (!event.repeat && !event.ctrlKey && !event.metaKey && !event.altKey && String(event.key).toLowerCase() === 's' && !(event.target && (event.target.isContentEditable || event.target.closest('input,select,textarea,[contenteditable]')))) { event.preventDefault(); if (opened) close(); else open(); }
         else if ((event.ctrlKey || event.metaKey) && event.key === ',' && !event.repeat) { event.preventDefault(); open(); }
       });
-      C.events.on('preferences:open', open); C.events.on('save:willReplace', close); C.events.on('save:reset', close);
-      C.events.on('save:willReset', close);
+      C.events.on('preferences:open', open); C.events.on('opening:context', enabled); C.events.on('fx:visibility', enabled); C.events.on('save:willReset', close); C.events.on('save:willReplace', close); C.events.on('save:reset', close);
       C.events.on('save:imported', function () { if (C.preferences.notice) C.preferences.notice.remove(); C.preferences.notice = null; C.state.recovery = null; C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: false }); });
-      C.preferences.el = overlay; C.preferences.panel = panel; C.preferences.picker = picker; C.preferences.replaceButton = replace; C.preferences.feedback = feedback;
+      C.events.on('settings:persisted', function (event) { saved = event.saved; saveAge = 0; feedback.style.opacity = 1; message(saved ? '' : 'Your browser is blocking saving. Settings last for this session only.'); C.fx.wake(); });
+      C.events.on('fx:frame', function (event) {
+        if (nudgeShown || C.settings.get('nudgeDismissed') || C.settings.get('quality') !== 'high' || root.document.hidden) { slowMs = slowFrames = 0; return; }
+        if (event.realDt <= 0 || event.realDt > 250) { slowMs = slowFrames = 0; return; }
+        slowMs += event.realDt; slowFrames++;
+        if (slowFrames * 1000 / slowMs >= 45) { slowMs = slowFrames = 0; return; }
+        if (slowMs >= 5000) { nudgeShown = true; nudge.hidden = false; }
+      });
+      C.events.on('fx:sleep', function () { slowMs = slowFrames = 0; }); C.events.on('fx:visibility', function () { slowMs = slowFrames = 0; });
       C.fx.subscribe(function (now, dt) {
-        if (overlay.hidden) return false;
-        opacity = Math.max(0, Math.min(1, opacity + (opened ? 1 : -1) * dt / fadeMs));
-        overlay.style.opacity = 1 - Math.pow(1 - opacity, 3);
-        if (!opened && opacity === 0) overlay.hidden = true;
-        return opacity > 0 && opacity < 1;
-      }, 'preferences');
-      recoverNotice();
-      storageNotice(); C.events.on('save:unavailable', storageNotice);
+        var moving = false;
+        if (saveAge !== null) { saveAge += dt; if (saved) { message(saveAge >= 200 ? '✓ Saved' : ''); feedback.style.opacity = saveAge < 1400 ? 1 : 0; } if (saveAge >= 1400) saveAge = null; else moving = true; }
+        if (undo) { undoAge += dt; if (undoAge >= 8000) { undo = null; undoButton.hidden = true; } else moving = true; }
+        if (!overlay.hidden) {
+          if (C.motion.reduced) { position = Math.max(0, Math.min(1, position + (opened ? 1 : -1) * dt / 150)); spring.reset(position); } else { spring.step(dt, opened ? 1 : 0); position = spring.value; }
+          panel.style.transform = C.motion.reduced ? 'none' : 'translate3d(' + (1 - position) * 110 + '%,0,0)'; panel.style.opacity = C.motion.reduced ? position : 1;
+          var settled = C.motion.reduced ? position === (opened ? 1 : 0) : spring.settled();
+          moving = !settled || moving;
+          if (!opened && settled) overlay.hidden = true;
+          if (opened) { controls.forEach(function (control) { moving = control.update(now, dt) || moving; }); moving = confirmation.update(now, dt) || moving; moving = versionDigits.update(now) || moving; }
+        }
+        return moving;
+      }, 'settings');
+      C.preferences.el = overlay; C.preferences.panel = panel; C.preferences.gear = gear; C.preferences.feedback = feedback; C.preferences.controls = controls; C.preferences.defaults = defaults; C.preferences.undo = undoButton; C.preferences.confirmation = confirmation; C.preferences.credits = credits; C.preferences.nudge = nudge;
+      enabled(); recoverNotice(); storageNotice(); C.events.on('save:unavailable', storageNotice);
     }
   };
 })(window.Cardable, window);

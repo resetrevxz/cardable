@@ -26,10 +26,14 @@ cardable/
       rarities.js       tiers, chances, reveal params, design text
       cards.js          generations + cards
       packs.js          pack types
+      settings-schema.js validated settings defaults, descriptors and root application hooks
+      font-licenses.js  bundled offline font credits/licenses
     core/
       namespace.js      creates window.Cardable and registries (load first)
       events.js         tiny event bus
       state.js          save/load/migrate, autosave on change
+      settings.js       settings API and resolved live effect policies (after state)
+      settings-checks.js isolated dev settings checks
       inventory-model.js  schema-2 preferences, favorites, collections, safe mutations (before state)
       collection.js     ownership projection and dev fixtures
       inventory-query.js  parsing, generated facets, filters, stable sorts and groups
@@ -52,14 +56,21 @@ cardable/
       inventory.js  detail.js  tutorial.js  toast.js  logo.js
       inventory-icons.js  inventory-toolbar.js  inventory-shelf.js  inventory-grid.js
       inventory-reorder.js  inventory-transition.js  (before inventory controller)
+      settings-controls.js  reusable switches, segments and confirmation controls
+      preferences.js    settings modal, sole full preview and compatibility context events
     styles/
       tokens.css  base.css  glass.css  card.css  pack.css  menu.css  inventory.css
       inventory-controls.css  inventory-views.css (after inventory.css)
+      settings.css      settings controls and live quality/motion policies (loaded last)
 ```
 
 Script order in `index.html`: `namespace.js`, `config.js`, data files, `core/*`, `fx/*`, `finishes/*`, `ui/*`, then a final `boot.js`.
 
 Inventory dependencies: events → inventory-model → state; collection → inventory-query; card/pack-markup/accessibility → inventory-icons/shelf/grid/toolbar/reorder/transition → inventory controller → detail → inventory-checks → boot. The HTML is the executable classic-script order. No runtime imports or fetches.
+
+Settings dependencies: settings-schema before state; settings after state and before the effects loop; settings-controls before preferences. Boot loads the save, then initializes settings before input/effects/UI. Schema 2 retains game progress and stores normalized settingsVersion 1. Old reducedMotion/rarityColorMode fields migrate to motion/rarityColor. Runtime root attributes and the resolved reduced-motion class agree, including an explicit Off override of the OS preference.
+
+`C.settings.get/set/onChange/resetToDefaults` owns settings persistence. `onChange` returns an unsubscribe function. Effective quality, tilt, dot, cut and reveal policies leave registry data/config values unchanged. `settings:changed {key,value}`, `settings:open/close` and `save:replaced` coordinate live application; `settings:persisted {saved}` distinguishes durable storage from the session fallback. The compatibility preferences context blocks input/inventory/detail interaction. The modal owns the only full card and restores surviving focus on close.
 
 ## 3. Registries
 
