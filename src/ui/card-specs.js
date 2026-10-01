@@ -4,8 +4,13 @@
   function register(id, label, unit) {
     formatters.set(id, { label: label, format: function (value) { return String(value) + (unit ? ' ' + unit : ''); } });
   }
-  register('cores', 'Cores', ''); register('boostMhz', 'Boost', 'MHz');
-  register('busBits', 'Bus', 'bit'); register('tdpW', 'Power', 'W');
+  register('cores', 'Cores', ''); register('gpuCores', 'GPU cores', '');
+  register('cudaCores', 'CUDA cores', ''); register('streamProcessors', 'Stream processors', '');
+  register('xeCores', 'Xe cores', ''); register('executionUnits', 'Execution units', '');
+  register('pipelines', 'Pipelines', ''); register('gpuTflops', 'GPU compute', 'TFLOPS');
+  register('coreClockMhz', 'Core clock', 'MHz'); register('gpuClockMhz', 'GPU clock', 'MHz');
+  register('boostMhz', 'Boost', 'MHz'); register('busBits', 'Bus', 'bit');
+  register('boardPowerW', 'Board power', 'W'); register('tdpW', 'Power', 'W');
   C.cardSpecs = {
     register: function (id, formatter) { formatters.set(id, formatter); },
     rows: function (card) {
@@ -15,6 +20,6 @@
       });
       return rows;
     },
-    vram: function (card) { return card.vram.amount + ' ' + card.vram.unit; }
+    vram: function (card) { return card.vram.shared || card.vram.amount == null ? 'Shared' : card.vram.amount + ' ' + card.vram.unit; }
   };
 })(window.Cardable);

@@ -12,7 +12,9 @@
         grouped.get(instance.cardId).push(instance);
       });
       var owned = 0;
-      var entries = catalog.map(function (card) {
+      var entries = catalog.filter(function (card) {
+        return !card.retired || (grouped.get(card.id) || []).length > 0;
+      }).map(function (card) {
         var instances = (grouped.get(card.id) || []).slice().sort(function (a, b) { return (a.pulledAt || 0) - (b.pulledAt || 0) || String(a.instanceId).localeCompare(String(b.instanceId)); });
         if (instances.length) owned += 1;
         return { card: card, generation: generations.get(card.generation), rarity: rarities.get(card.rarity),
@@ -23,7 +25,7 @@
         var tier = (a.rarity ? a.rarity.tier : 0) - (b.rarity ? b.rarity.tier : 0);
         return (order === 'rarity' ? tier || generation : generation || tier) || a.card.id.localeCompare(b.card.id);
       });
-      return { entries: entries, owned: owned, total: catalog.length };
+      return { entries: entries, owned: owned, total: entries.length };
     },
     markSeen: function (cardId, inventory) {
       var changed = false;
@@ -32,9 +34,10 @@
     },
     preview: function (count) {
       var cards = [], instances = [], cfg = C.config.inventoryMotion;
+      var available = C.data.cards.filter(function (card) { return !card.retired && card.pullable !== false; });
       var tiers = C.data.rarities.filter(function (tier) { return C.finishes.registry[tier.finish]; });
       for (var i = 0; i < count; i++) {
-        var template = C.data.cards[i % C.data.cards.length], tier = tiers[i % tiers.length];
+        var template = available[i % available.length], tier = tiers[i % tiers.length];
         var card = Object.assign({}, template, { id: 'inventory-preview-' + String(i).padStart(4, '0'), name: 'GPU study ' + (i + 1),
           rarity: tier.id, generation: C.data.generations[i % C.data.generations.length].id,
           art: Object.assign({}, template.art, { seed: template.art.seed + i }) });

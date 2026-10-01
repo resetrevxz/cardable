@@ -42,10 +42,10 @@
         section.appendChild(el('h2', 'gallery-section-title', colorMode === 'color' ? 'Color finishes' : 'Monochrome finishes'));
         var row = el('div', 'gallery-cards');
         tiers.forEach(function (tier, index) {
-          var record = C.data.cards.find(function (card) { return card.rarity === tier.id; });
+          var record = C.data.cards.find(function (card) { return !card.retired && card.rarity === tier.id; });
           var preview = false;
           if (!record) {
-            var template = C.data.cards.find(function (card) { return card.art && card.art.kind === 'procedural'; });
+            var template = C.data.cards.find(function (card) { return !card.retired && card.art && card.art.kind === 'procedural'; });
             record = Object.assign({}, template, { id: 'gallery-preview-' + tier.id, name: tier.name + ' GPU study', rarity: tier.id,
               art: Object.assign({}, template.art, { seed: template.art.seed + tier.tier }) });
             preview = true;
