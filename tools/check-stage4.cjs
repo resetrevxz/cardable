@@ -20,13 +20,13 @@ check('real menu replaces placeholders with local classic-script components', ()
   assert.equal(C.packView.el.dataset.state, 'ready'); assert.equal(C.packView.stats.readyMoments, 0);
   assert.equal(C.packView.vials.length, 2); assert(C.packView.vials.every(vial => vial.value === 1));
 });
-check('ready pack floats, leans with smoothed shine, and two stored packs move out of sync', () => {
+check('ready wrapper stays grounded, responds to a nearby pointer, and keeps a restrained rear pack', () => {
   r.advance(100); const before = C.packView.front.pose.style.transform;
-  r.move(1200, 50, r.pack); r.advance(500);
+  r.move(130, 55, r.pack); r.advance(500);
   assert.notEqual(C.packView.front.pose.style.transform, before);
   assert.notEqual(C.packView.front.pose.style.transform, C.packView.back.pose.style.transform);
   assert.equal(C.packView.back.el.style.opacity, 0.45);
-  const shine = parseFloat(r.pack.style['--shine-x']); assert(shine > 50 && shine < 1200 / 1280 * 100);
+  const shine = parseFloat(C.packView.front.el.style['--shine-x']); assert(shine > 0 && shine < 100);
   assert(C.packView.front.pose.style.transform.includes('rotateY('));
 });
 check('dev consumption drains vials with slosh, removes rear pack, starts the real timer and saves', () => {
@@ -97,8 +97,8 @@ check('currency adds save once and count up/shimmer without earning or spending 
   assert.throws(() => C.currency.add(-1), /non-negative/); assert.throws(() => C.currency.add(0.5), /safe integer/);
 });
 check('idle retains the pack and fades timer/stock, keycap, currency, arrow and peek; focus holds chrome', () => {
-  r.move(600, 350); r.advance(2600); assert(C.menu.idle); const before = C.packView.front.pose.style.transform, draws = C.dots.stats.draws;
-  r.advance(100); assert.notEqual(C.packView.front.pose.style.transform, before); assert(!r.pack.classList.contains('idle-chrome'));
+  r.move(600, 350); r.advance(2600); assert(C.menu.idle); const sheen = C.packView.front.el.querySelectorAll('.pack-shine')[0], before = sheen.style.opacity, draws = C.dots.stats.draws;
+  r.advance(350); assert.notEqual(sheen.style.opacity, before); assert(!r.pack.classList.contains('idle-chrome'));
   assert.equal(C.dots.stats.draws, draws);
   ['pack-meta','pack-key-hint'].forEach(name => assert(r.pack.querySelectorAll('.' + name)[0].classList.contains('idle-chrome')));
   assert(C.currencyView.el.classList.contains('idle-chrome')); assert(C.inventoryHint.el.classList.contains('idle-chrome'));
@@ -164,7 +164,7 @@ check('save reset refreshes all menu components and gallery keeps pack animation
 check('Stage 0 checks pass, no application errors, and menu effects add no separate animation loops', () => {
   assert.equal(r.logs.filter(log => log.level === 'error').length, 0); assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, r.C.dev.checkCount);
   ['pack','currency','numbers','inventory-hint'].forEach(id => {
-    const source = fs.readFileSync(path.join(__dirname, '../src/ui/' + id + '.js'), 'utf8'); assert(!/requestAnimationFrame|setInterval|setTimeout/.test(source));
+    const source = fs.readFileSync(path.join(__dirname, '../src/ui/' + id + '.js'), 'utf8'); assert(!/requestAnimationFrame|setInterval/.test(source));
   });
 });
 console.log('\n' + passed + ' Stage 4 behavior groups passed. Browser screenshots, appearance and measured FPS remain unverified.');

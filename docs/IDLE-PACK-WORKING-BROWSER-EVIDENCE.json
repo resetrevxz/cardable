@@ -1,0 +1,163 @@
+{
+  "groups": [
+    "hover changes the wrapper normal without consuming or opening",
+    "tiny, slow, rapid and out-of-range grabs remain bounded, preserve saves and spring to rest",
+    "all six fill levels track timestamps, slosh on drag and settle without save writes",
+    "laptop, 1080p, 1440p, 4K and ultrawide keep the physical pack at a useful scale",
+    "keyboard inspection lifts closer and Escape returns",
+    "system reduced motion retains fill and foil while removing drag translation, tilt and slosh",
+    "blur cancels capture and returns the object",
+    "screen handoff cancels capture and pauses detailed pack updates",
+    "early Space release drains the foil body and preserves stock",
+    "charge, tear, reveal, reload recovery and Keep complete with the reserved result",
+    "direct file:// play produces no application errors or network requests"
+  ],
+  "errors": [],
+  "network": [],
+  "views": [
+    {
+      "name": "laptop",
+      "width": 1280,
+      "height": 720,
+      "pack": {
+        "x": 545,
+        "y": 219.40625,
+        "width": 190,
+        "height": 281.1875
+      }
+    },
+    {
+      "name": "1080p",
+      "width": 1920,
+      "height": 1080,
+      "pack": {
+        "x": 841.203125,
+        "y": 364.1796875,
+        "width": 237.59375,
+        "height": 351.640625
+      }
+    },
+    {
+      "name": "1440p",
+      "width": 2560,
+      "height": 1440,
+      "pack": {
+        "x": 1121.6015625,
+        "y": 485.5703125,
+        "width": 316.796875,
+        "height": 468.859375
+      }
+    },
+    {
+      "name": "4k",
+      "width": 3840,
+      "height": 2160,
+      "pack": {
+        "x": 1740,
+        "y": 813.6015625,
+        "width": 360,
+        "height": 532.796875
+      }
+    },
+    {
+      "name": "ultrawide",
+      "width": 3440,
+      "height": 1440,
+      "pack": {
+        "x": 1561.6015625,
+        "y": 485.5703125,
+        "width": 316.796875,
+        "height": 468.859375
+      }
+    }
+  ],
+  "frames": {
+    "samples": 117,
+    "medianMs": 16.700000000000728,
+    "p95Ms": 33.400000000001455,
+    "context": "headless Chromium 1920x1080; hardware-dependent",
+    "emptyPageMedianMs": 16.69999999999999
+  },
+  "profile": {
+    "label": "idle-wrapper",
+    "valid": true,
+    "frames": 100,
+    "fps": 49.18113411695267,
+    "p95Ms": 33.400000000001455,
+    "slowFrames": 22,
+    "subscribers": {
+      "profile": {
+        "totalMs": 0,
+        "maxMs": 0,
+        "calls": 100
+      },
+      "input": {
+        "totalMs": 0,
+        "maxMs": 0,
+        "calls": 100
+      },
+      "dots": {
+        "totalMs": 0.4000000059604645,
+        "maxMs": 0.10000000149011612,
+        "calls": 100
+      },
+      "cursor": {
+        "totalMs": 0,
+        "maxMs": 0,
+        "calls": 100
+      },
+      "logo": {
+        "totalMs": 0.19999999552965164,
+        "maxMs": 0.10000000149011612,
+        "calls": 100
+      },
+      "pack": {
+        "totalMs": 5.1999999806284904,
+        "maxMs": 0.20000000298023224,
+        "calls": 100
+      },
+      "currency": {
+        "totalMs": 0.10000000149011612,
+        "maxMs": 0.10000000149011612,
+        "calls": 100
+      },
+      "inventory-arrow": {
+        "totalMs": 0.3999999985098839,
+        "maxMs": 0.10000000149011612,
+        "calls": 100
+      },
+      "opening": {
+        "totalMs": 0.10000000149011612,
+        "maxMs": 0.10000000149011612,
+        "calls": 100
+      },
+      "inventory": {
+        "totalMs": 0.4999999925494194,
+        "maxMs": 0.10000000149011612,
+        "calls": 100
+      },
+      "detail": {
+        "totalMs": 0,
+        "maxMs": 0,
+        "calls": 100
+      },
+      "tutorial": {
+        "totalMs": 0.10000000149011612,
+        "maxMs": 0.10000000149011612,
+        "calls": 100
+      },
+      "preferences": {
+        "totalMs": 0.20000000298023224,
+        "maxMs": 0.10000000149011612,
+        "calls": 100
+      },
+      "idle-pack-qa": {
+        "totalMs": 0.5,
+        "maxMs": 0.10000000149011612,
+        "calls": 100
+      }
+    },
+    "fullCards": 0,
+    "gridDraws": 1036
+  }
+}

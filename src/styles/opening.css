@@ -70,3 +70,12 @@
 [data-phase="rising"] .opening-pack, [data-phase="preFlip"] .opening-pack, [data-phase="flipping"] .opening-pack, [data-phase="settling"] .opening-pack, [data-phase="revealed"] .opening-pack, [data-phase="collecting"] .opening-pack { pointer-events: none; }
 .is-collecting .opening-card-note { opacity: 0 !important; }
 .reduced-motion .card__reveal-shine { inset: 0; width: 100%; height: 100%; background: radial-gradient(ellipse,rgba(255,255,255,.7),transparent 70%); }
+/* The charge shell and cut fragments retain the sealed foil design. */
+.opening-pack { border-radius: 0; }
+.opening-glass .pack-wrapper { opacity: 1; }
+.opening-glass .pack-fluid { opacity: .65; }
+.opening-foil { border-radius: 0; clip-path: var(--wrapper-shape); }
+.opening-foil .pack-wrapper { border: 0; border-radius: 0; }
+.opening-foil .pack-shine { background: radial-gradient(ellipse at var(--shine-x,40%) var(--shine-y,35%),rgba(255,255,255,.5),transparent 56%); }
+.opening-half { clip-path: none; }
+.opening-half .pack-wrapper, .opening-half .pack-print { clip-path: var(--wrapper-shape); }

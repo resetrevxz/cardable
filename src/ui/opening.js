@@ -10,6 +10,7 @@
   var meniscus, enabled = false, width = 0, height = 0, inventoryBlocked = false;
   var finePointer = root.matchMedia('(hover: hover) and (pointer: fine)');
   var preferencesActive = false;
+  var packPose = null, packMaterial, foilMaterial, halfMaterials;
   var stats = { commits: 0, transitions: 0, tears: 0, updates: 0, particles: 0, shines: 0, keeps: 0, collections: 0, recoveries: 0 };
   function node(tag, className, parent, text) { return C.packMarkup.node(tag, className, parent, text); }
   function svg(tag, parent) { var el = root.document.createElementNS('http://www.w3.org/2000/svg', tag); if (parent) parent.appendChild(el); return el; }
@@ -83,6 +84,7 @@
     C.timers.tick(); if (C.state.current.packs.ready <= 0) return;
     savedFocus = root.document.activeElement; clearCut(); particles.clear(); meniscus.reset(0); fill = 0;
     errorUntil = 0; error.style.opacity = 0; chargeAt = root.performance.now(); pulseAt = 0;
+    packPose = C.packView.snapshot ? C.packView.snapshot() : null;
     phaseTo('charging'); glass.el.style.opacity = 1; foil.style.opacity = 0; paintFluid(0); focus(host); C.events.emit('charge:start');
   }
   function cancel(reason) {
@@ -184,9 +186,14 @@
     var wave = reduced ? 0 : meniscus.step(dt, target);
     var vibration = !reduced && phase === 'charging' ? clamp((fill - cfg.vibrationAt) / (1 - cfg.vibrationAt)) * cfg.vibrationPx : 0;
     glass.fluid.style.transform = 'translateY(' + (1 - fill) * 100 + '%)';
+    glass.el.style.setProperty('--fluid-top', (1 - fill) * 100 + '%');
     glass.el.style.setProperty('--meniscus-wave', wave + 'px');
     glass.el.style.setProperty('--charge-leak', fill * fill);
-    glass.pose.style.transform = 'translate(' + Math.sin(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration + 'px,' + Math.cos(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration * 0.5 + 'px)';
+    var transfer = reduced ? 0 : 1 - ease(Math.min(1, elapsed / C.config.packObject.handoffMs));
+    var source = packPose || { x: 0, y: 0, lift: 0, rx: 0, ry: 0, rz: 0 };
+    var pose = { rx: source.rx * transfer, ry: source.ry * transfer };
+    glass.pose.style.transform = reduced ? 'translate(0px,0px)' : 'translate3d(' + (source.x * transfer + Math.sin(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration) + 'px,' + ((source.y - source.lift) * transfer + Math.cos(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration * 0.5) + 'px,' + source.lift * transfer + 'px) rotateX(' + pose.rx + 'deg) rotateY(' + pose.ry + 'deg) rotateZ(' + source.rz * transfer + 'deg)';
+    if (packMaterial) packMaterial.update(pose, elapsed, reduced);
     glass.specks.forEach(function (speck) { speck.el.style.transform = 'translateY(' + (reduced ? 0 : -((elapsed / 1000 * cfg.speckSpeedPx + speck.phase * cfg.speckSpeedPx) % height)) + 'px)'; });
     C.events.emit('charge:progress', fill);
   }
@@ -464,6 +471,9 @@
       glass = C.packMarkup.unit(host, false, pack); glass.el.classList.add('opening-glass');
       foil = C.packMarkup.foil(host, pack);
       halves = [C.packMarkup.foil(host, pack), C.packMarkup.foil(host, pack)]; halves.forEach(function (half) { half.classList.add('opening-half'); });
+      packMaterial = C.packMaterial.create(glass.el, pack); foilMaterial = C.packMaterial.create(foil, pack);
+      halfMaterials = halves.map(function (half) { return C.packMaterial.create(half, pack); });
+      foilMaterial.update({ rx: 0, ry: 0 }, 0, true); halfMaterials.forEach(function (material) { material.update({ rx: 0, ry: 0 }, 0, true); });
       trails = svg('svg', host); trails.setAttribute('class', 'opening-seams'); trails.setAttribute('aria-hidden', 'true');
       gap = svg('path', trails); gap.setAttribute('class', 'opening-light-gap'); seam = svg('path', trails); seam.setAttribute('class', 'opening-cut-seam'); seam.setAttribute('stroke-width', cfg.seamPx);
       var particleHost = node('div', 'opening-particles', host);

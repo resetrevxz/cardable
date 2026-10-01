@@ -41,3 +41,20 @@ Implemented in `FIXES-F1-F6-REPORT.md`: atomic whole-card handoff and art-only t
 ## Requested N1–N6 features
 
 Implemented in `NEW-FEATURES-N1-N6-REPORT.md`: scoped R/button turns, the common engraved back, normal inventory-arrow activation, the transform carousel, bounded FLIP sort transitions and hover/focus version metadata. Shelf cards remain lite, with detail as the sole full card. Behavioral checks and host CPU samples are recorded; rendered material and 60 FPS acceptance remain in the gate above.
+
+## Sealed idle pack review — ranked future polish
+
+Rendered menu, half-filled tilted wrapper, and opening-stage foil were reviewed in Chromium. The pack now reads as a manufactured wrapper, with two recognizable seals and controlled silver highlights. These are optional follow-ups, outside this pass:
+
+1. Validate sustained 60 FPS on the target laptop, including paint/compositing at 4K and rapid grabs; headless evidence remains narrower.
+2. Refine the ground reflection into an attenuated silhouette rather than a broad metallic bounce.
+3. Tune the liquid boundary's edge meniscus against photographed sealed films at oblique angles.
+4. Add a tiny manufactured notch to the physical top edge when the opening animation can use it.
+5. Make the security strip's etched line spacing less uniform at inspection distance.
+6. Allow print batch metadata to be generated from an ephemeral visual seed, without changing pull randomness.
+7. Refine the focal relief's highlight thickness at high display density.
+8. Offer a secondary data-backed contents sheet if guarantees or eligible-generation filters are later authored.
+9. Consider a back overlap seam if larger inspection angles ever become useful.
+10. Revisit the front microprint's registration offset after a human review at normal viewing distance.
+
+The detail someone would feel missing: the darker trough immediately beneath each compressed seal. It visually explains where the flat crimp becomes the card-filled body; keep that transition even when simplifying rendering.

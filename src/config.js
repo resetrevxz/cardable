@@ -56,6 +56,15 @@
       dev: { fpsSampleMs: 1000, titleTestDelayMs: 1000 }
     },
 
+    // Sealed wrapper presentation only. No gameplay or persistence parameters.
+    packObject: {
+      idleTilt: 3, dragTilt: 15, inspectTilt: 19, dragRangeX: 92, dragRangeY: 64,
+      liftPx: 24, inspectLiftPx: 42, dragSlopPx: 5, massLagMs: 34,
+      spring: { stiffness: 180, damping: 22, mass: 1 },
+      fluidSpring: { stiffness: 100, damping: 15, mass: 1 },
+      fluidAngleCap: 9, fluidWaveCapPx: 3, idleMaterialMs: 11000, handoffMs: 320
+    },
+
     // Stage 4 presentation; timestamp rules and pack data stay unchanged.
     menuMotion: {
       floatMs: 6000, floatPx: 5, backPhaseMs: 650, backOpacity: 0.45, leanDegrees: 8, followMs: 180,

@@ -76,9 +76,19 @@ Warn (console plus a small panel) if: rarity chances do not sum to 100; a card r
 
 **Add a card:** append to `src/data/cards.js`. Done.
 **Add a generation:** append to `Cardable.data.generations`, then add cards with that `generation`.
-**Add a pack type:** append to `src/data/packs.js` (`tierWeightModifiers`, `cardsPerPack`, `design`); set `enabled: true`. Add its wrapper look in `pack.css` via `data-pack="<id>"`.
+**Add a pack type:** append to `src/data/packs.js` (`tierWeightModifiers`, `cardsPerPack`, `design`); set `enabled: true`. Wrapper parameters belong in `design`: material, wrapper, graphic, roughness, foilStrength, refraction, emboss, subtitle, series, batch, microprint and security. Register a graphic's SVG paths in `data.packGraphics`. Shared renderer code has no pack-id branches. No additional pack types or selector were introduced by the idle-pack refresh.
 **Add a rarity:** see `docs/02-RARITIES.md` section 6.
 **Add a finish or prop:** new file in `src/finishes/`, register it, add the script tag.
 **Add a spec type on cards:** add a row to the formatter table in `src/ui/card-specs.js`.
 **Add the market later:** register a screen, flip `config.flags.market`, and use the empty `#market-slot`. No core file needs to change; inventory instances already carry unique serials.
 **Add sound later:** add `src/core/audio.js` behind `config.flags.audio` and subscribe to the events in section 4.
+
+## 7. Sealed pack presentation
+
+- `ui/pack-markup.js` builds the same seal/body/print regions for menu, charge shell and cut fragments. The wrapper silhouette is shared in `pack.css`. The static local laminate texture contains subtle brushing; specular light, film, printed relief and fluid remain separate layers.
+- `ui/pack-material.js` caches lamp tokens and derives specular position, film offsets and relief from the same lamp/pointer-normal relationship used in `card.js`. Idle glint changes only a dedicated layer's opacity; gestures update the normal at display rate.
+- `ui/pack-interaction.js` owns bounded pointer capture, spring translation/tilt/lift, a 34 ms card-mass lag, inspection and cancellation. It has no timer, pull or save writes. Pointer press grabs the wrapper; Space and the separate hold action still charge the established opening sequence. V or right-click toggles inspection; Escape exits.
+- `ui/pack-fluid.js` renders timestamp progress and springs a gravity-relative surface angle and restrained acceleration-driven wave. The laminate carries a faint transmitted print image beneath the liquid boundary. This is a lightweight optical approximation, not ray tracing or a fluid solver.
+- `ui/pack.js` coordinates these controllers in its existing shared-loop subscription, maintains timer/stock presentation, and exposes an ephemeral pose snapshot for opening. Hidden/reveal/inventory contexts pause it. Detailed updates skip an unavailable rear pack.
+- `ui/opening.js` captures the idle pose before activating the opening context, then eases that pose into its existing charge stage. Commit, cancellation, pendingReveal and tear geometry retain their existing contracts.
+- Reduced motion retains silver material and timestamp fill, with no drag translation, tilt, overshoot or slosh. No save schema or gameplay changes belong to this presentation layer.

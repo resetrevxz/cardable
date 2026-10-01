@@ -6,6 +6,13 @@
 (function (C) {
   'use strict';
   C.data = C.data || {};
+  C.data.packGraphics = {
+    'die-ring': { viewBox: '0 0 100 100', paths: [
+      'M78 25A35 35 0 1 0 78 75', 'M72 32A25 25 0 1 0 72 68',
+      'M38 38H62V62H38Z', 'M43 43H57V57H43Z',
+      'M44 29V35M50 29V35M56 29V35M44 65V71M50 65V71M56 65V71M29 44H35M29 50H35M29 56H35M65 44H71M65 50H71M65 56H71'
+    ] }
+  };
 
   C.data.packs = [
     {
@@ -13,7 +20,10 @@
       cardsPerPack: 1,                       // OPEN-QUESTIONS #4
       tierWeightModifiers: {},
       guarantees: [],                        // future: [{ minTier: 2, slot: 0 }]
-      design: { material: 'glass', wrapper: 'matte-foil' },
+      design: { material: 'silver-foil', wrapper: 'satin-foil', graphic: 'die-ring',
+        roughness: 0.42, foilStrength: 0.65, refraction: 0.32, emboss: 0.7,
+        subtitle: 'Collectible graphics series', series: '01', batch: 'CB / 00018472',
+        microprint: 'Digital sealed pack / Offline collection system', security: 'CBL / AUTHENTIC' },
       obtainable: 'timer'                    // 'timer' = comes from the 8-hour pack timer
     },
     {

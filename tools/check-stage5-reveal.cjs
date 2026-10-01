@@ -12,7 +12,7 @@ function clone(o){return JSON.parse(JSON.stringify(o));}
 function open(tier='common',duplicate=false,count=1){
  const r=runtime(true);r.advance(40);const C=r.C, select=C.dev.panel.querySelector('select');select.value=tier;select.fire('change');
  const pack=C.data.packs.find(p=>p.enabled&&p.obtainable==='timer');pack.cardsPerPack=count;
- if(duplicate){const card=C.data.cards.find(c=>c.rarity===tier);C.state.current.inventory.push({cardId:card.id,instanceId:'owned-fixture',serial:'CBL-2345-000099',pulledAt:0,seen:false});C.state.save();}
+ if(duplicate){C.data.cards.filter(c=>c.rarity===tier).forEach((card,i)=>C.state.current.inventory.push({cardId:card.id,instanceId:'owned-fixture-'+i,serial:'CBL-2345-'+String(99+i).padStart(6,'0'),pulledAt:0,seen:false}));C.state.save();}
  key(r,'keydown',' ',{target:r.document.body});r.advance(3000);key(r,'keyup',' ');r.advance(930);tap(r,'Enter');
  return r;
 }
@@ -37,7 +37,7 @@ check('preFlip dims grid, retains a Secret halo and performs its one-pixel shift
  const r=open('secret');until(r,'preFlip');r.advance(120);assert.equal(r.C.opening.scene.style.transform,'translateX(1px)');
  assert.equal(r.C.opening.view.revealFrame.backLogo,'cardable');assert.equal(r.C.opening.view.finishState,'found');
  assert(r.C.dots.stats.visibleDots>0);assert(r.drawing.arcs.every(p=>Math.hypot(p.x-640,p.y-360)<r.C.config.revealMotion.haloRadiusPx+5));
- const pending=clone(r.C.state.current.pendingReveal);assert.equal(r.C.state.current.inventory.length,0);assert(pending.cards[0].cardId.includes('secret'));
+ const pending=clone(r.C.state.current.pendingReveal);assert.equal(r.C.state.current.inventory.length,0);assert.equal(r.C.card(pending.cards[0].cardId).rarity,'secret');
  until(r,'flipping');assert.equal(r.C.opening.scene.style.transform,'');
 });
 check('flip hides cursor, starts shine once at halfway, overshoots and lets the sweep finish in settle',()=>{

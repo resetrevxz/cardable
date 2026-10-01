@@ -11,8 +11,21 @@
       if (!pack) { host.hidden = true; C.packView.visible = false; return; }
       host.dataset.pack = pack.id;
       var back = unit(host, true, pack), front = unit(host, false, pack);
+      var interaction = C.packInteraction.create(host), frontMaterial = C.packMaterial.create(front.el, pack), backMaterial = C.packMaterial.create(back.el, pack);
+      var frontFluid = C.packFluid.create(front), backFluid = C.packFluid.create(back);
+      C.packView.interaction = interaction; C.packView.fluidController = frontFluid;
+      C.packView.snapshot = function () { return Object.assign({}, interaction.state); };
+      host.setAttribute('role', 'group');
+      host.setAttribute('aria-description', 'Drag to inspect the sealed wrapper. Hold Space to open when ready. Press V for a closer look; Escape returns.');
       var meta = node('div', 'pack-meta idle-chrome entrance', host); meta.style.setProperty('--entry', 2);
       var timer = node('div', 'pack-timer', meta); timer.setAttribute('role', 'timer'); timer.setAttribute('aria-live', 'off');
+      var action = node('button', 'pack-open-action', meta, 'Open pack'); action.type = 'button';
+      action.setAttribute('aria-label', 'Hold to open pack');
+      var chargePointer = null;
+      action.addEventListener('pointerdown', function (event) { if (event.button !== 0 || action.disabled) return; event.preventDefault(); chargePointer = event.pointerId; C.input.chargeStart(); });
+      function endCharge(event) { if (chargePointer !== null && event.pointerId === chargePointer) { chargePointer = null; C.input.chargeEnd(); } }
+      root.document.addEventListener('pointerup', endCharge); root.document.addEventListener('pointercancel', endCharge);
+      C.events.on('input:cancel', function () { chargePointer = null; });
       var digits = C.numbers.create(node('span', '', timer));
       var stock = node('div', 'pack-stock', meta); stock.setAttribute('role', 'img');
       var vials = [];
@@ -22,8 +35,7 @@
         vials.push({ el: vial, fill: fill, value: i < C.state.current.packs.ready ? 1 : 0, from: 0, target: 0, start: null });
       }
       var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); node('kbd', '', hint, 'Space');
-      var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, px = 0.5, py = 0.5, handoff = null;
-      var leanX = C.springs.create(0), leanY = C.springs.create(0);
+      var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, handoff = null;
       host.style.setProperty('--pack-reflection-opacity', cfg.reflectionOpacity);
       var gallery = new URLSearchParams(root.location.search).get('gallery') === '1' && new URLSearchParams(root.location.search).get(C.config.dev.queryFlag) === '1';
       if (gallery) C.packView.visible = false;
@@ -36,7 +48,8 @@
         host.classList.toggle('is-first-visit', !state.tutorial.done && state.stats.packsOpened === 0);
         stock.setAttribute('aria-label', ready + ' of ' + C.config.packs.maxStored + ' packs stored');
         host.setAttribute('aria-label', pack.name + ': ' + (ready ? ready + ' ready' : 'regenerating'));
-        host.setAttribute('aria-disabled', ready <= 0);
+        action.disabled = ready <= 0; action.hidden = ready <= 0;
+        timer.dataset.label = ready >= C.config.packs.maxStored ? 'PACK STORAGE' : ready > 0 ? 'NEXT PACK' : 'REGENERATING';
         vials.forEach(function (vial, i) {
           var target = i < ready ? 1 : 0;
           if (initial) { vial.value = target; vial.target = target; }
@@ -62,8 +75,6 @@
       C.events.on('inventory:context', function (event) { inventoryPaused = event.active; C.fx.wake(); });
       C.events.on('pack:handoff', function () { if (ready) handoff = 0; C.fx.wake(); });
       C.events.on('save:reset', function () { handoff = null; front.el.style.transform = ''; });
-      host.addEventListener('pointerenter', function () { host.classList.add('is-hovered'); });
-      host.addEventListener('pointerleave', function () { host.classList.remove('is-hovered'); });
       C.events.on('fx:visibility', function (visible) {
         // A completed one-shot is not replayed when returning from a hidden tab.
         if (visible && arrivalStart !== null && root.performance.now() - arrivalStart >= cfg.readyMomentMs) { arrivalStart = null; host.classList.remove('is-arriving'); }
@@ -77,12 +88,8 @@
           front.el.style.transform = C.motion.reduced ? 'none' : 'translate(' + (1 - slide) * C.config.revealMotion.packSlidePx + 'px,' + (slide - 1) * C.config.revealMotion.packSlidePx + 'px)';
           if (slide === 1) { handoff = null; front.el.style.transform = ''; }
         }
-        var reduced = C.motion.reduced, pointer = C.input.pointer;
-        var x = pointer.inside ? pointer.x / root.innerWidth : 0.5, y = pointer.inside ? pointer.y / root.innerHeight : 0.5;
-        var follow = reduced ? 1 : 1 - Math.exp(-dt / cfg.followMs); px += (x - px) * follow; py += (y - py) * follow;
-        if (reduced) { leanX.reset(); leanY.reset(); }
-        var rx = reduced ? 0 : Math.max(-cfg.leanDegrees, Math.min(cfg.leanDegrees, leanX.step(dt, Math.max(-cfg.leanDegrees, Math.min(cfg.leanDegrees, (0.5 - y) * cfg.leanDegrees * 2)))));
-        var ry = reduced ? 0 : Math.max(-cfg.leanDegrees, Math.min(cfg.leanDegrees, leanY.step(dt, Math.max(-cfg.leanDegrees, Math.min(cfg.leanDegrees, (x - 0.5) * cfg.leanDegrees * 2)))));
+        var reduced = C.motion.reduced; interaction.update(dt); var pose = interaction.state;
+        var rx = pose.rx, ry = pose.ry;
         var progress = C.timers.progress(Date.now());
         C.packView.progress = progress;
         var fill = ready > 0 ? 1 : progress;
@@ -91,18 +98,18 @@
         host.style.setProperty('--arrival-sweep', (reduced ? 0 : -cfg.sweepTravelPercent + (1 - Math.pow(1 - arrivalP, 3)) * cfg.sweepTravelPercent * 2) + '%');
         host.style.setProperty('--arrival-lift', reduced ? '0px' : -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx + 'px');
         host.style.setProperty('--arrival-opacity', arrivalStart === null ? 0 : Math.sin(arrivalP * Math.PI));
-        host.style.setProperty('--shine-x', px * 100 + '%'); host.style.setProperty('--shine-y', py * 100 + '%');
         [front, back].forEach(function (item, index) {
-          var wave = reduced ? 0 : Math.sin((time + index * cfg.backPhaseMs) / cfg.floatMs * Math.PI * 2);
-          var lift = index === 0 && !reduced ? -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx : 0;
-          item.pose.style.transform = 'translateY(' + (-wave * cfg.floatPx + lift) + 'px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
-          item.shadow.style.opacity = cfg.shadowOpacity - wave * cfg.shadowBreath;
-          item.shadow.style.transform = 'translate(8px,12px) scale(' + (1 - wave * cfg.shadowScaleBreath) + ')';
-          var sweep = ((time + index * cfg.backPhaseMs) % cfg.sweepMs) / cfg.sweepMs;
-          item.el.style.setProperty('--pack-sweep-x', (-cfg.sweepTravelPercent + sweep * cfg.sweepTravelPercent * 2) + '%');
-          item.el.style.setProperty('--pack-sweep-opacity', reduced ? 0 : Math.sin(sweep * Math.PI) * cfg.sweepOpacity);
-          item.fluid.style.transform = 'translateY(' + (1 - fill) * 100 + '%)';
-          item.el.style.setProperty('--meniscus-wave', reduced ? '0px' : Math.sin(time / cfg.fluidWaveMs * Math.PI * 2) * cfg.fluidWavePx + 'px');
+          if (index && ready < C.config.packs.maxStored) return;
+          var lift = index === 0 && !reduced && arrivalStart !== null ? -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx : 0;
+          var amount = index ? 0.35 : 1;
+          item.pose.style.transform = 'translate3d(' + pose.x * amount + 'px,' + (pose.y * amount - pose.lift * amount + lift) + 'px,' + pose.lift * amount + 'px) rotateX(' + rx * amount + 'deg) rotateY(' + ry * amount + 'deg) rotateZ(' + pose.rz * amount + 'deg) scale(' + (1 - pose.grip * 0.008) + ')';
+          item.shadow.style.opacity = cfg.shadowOpacity - pose.lift * 0.003;
+          item.shadow.style.transform = 'translate(' + (8 + pose.x * amount - ry * 0.4) + 'px,' + (12 + pose.y * amount + pose.lift * 0.35) + 'px) scale(' + (1 + pose.lift * 0.009) + ')';
+          item.el.style.setProperty('--mass-x', (pose.massX - pose.x) * 0.045 + 'px');
+          item.el.style.setProperty('--mass-y', (pose.massY - pose.y) * 0.045 + 'px');
+          item.el.style.setProperty('--wrapper-flex', pose.flex * pose.grip * 1.1 + 'deg');
+          (index ? backMaterial : frontMaterial).update(index ? { rx: rx * amount, ry: ry * amount } : pose, index ? 0 : time, reduced);
+          (index ? backFluid : frontFluid).update(dt, fill, pose, reduced);
           if (!ready) item.specks.forEach(function (speck) { speck.el.style.transform = 'translateY(' + (reduced ? 0 : Math.sin(time / cfg.fluidWaveMs * Math.PI * 2 + speck.phase) * cfg.speckTravelPx) + 'px)'; });
         });
         var timerText = ready >= C.config.packs.maxStored ? 'Stock full' : C.timers.format(C.timers.remaining(Date.now()));
