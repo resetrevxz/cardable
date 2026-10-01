@@ -1,0 +1,61 @@
+{
+  "environment": "Node VM / instrumented DOM; no browser paint, GPU, heap or file-open evidence",
+  "groups": [
+    "9c-01: I / ArrowUp cannot steal detail focus; preferences block inventory requests",
+    "9c-02: closing mid sheet or shelf drag releases capture and reaches closed",
+    "9c-03: sort mid drag cancels the old coordinate anchor and settles at the new first card",
+    "9c-04: resize mid drag cancels capture without leaving stale geometry",
+    "9c-05: recovered ordinary and strict writes cannot reload the stale fallback",
+    "9c-06: a corrupt reserved card is backed up and replaced without a startup error",
+    "9c-07: timer restart does not accumulate visibility handlers or scheduled intervals",
+    "9c-08: reconciliation exactly at release is one write; failed commit changes nothing",
+    "9c-09: console checks during revealed/detail are isolated from the reserved state",
+    "9c-10: local reload repairs a lagging serial counter and allocates the next unique serial",
+    "9c-11: console checks PASS when storage is blocked, with honest session-only coverage",
+    "9c-12: tutorial Skip is keyboard reachable with the inventory focus trap active",
+    "9c-13: dev persistence simulations cannot poison the player fallback cache",
+    "input matrix: Space / R / Enter / Esc / Up / I / Tab respect inventory, detail and typing",
+    "2.9 s drains, 3.0 s commits, repeated releases and hidden holds are harmless",
+    "cuts reject outside starts, preserve normalized resize coordinates and finish in every direction",
+    "reload every committed phase resumes the same reserved serial without reroll or consumption",
+    "timer hidden catch-up, forward/backward jumps and cap do not bank time or duplicate arrivals",
+    "blocked localStorage preserves the pack, failed Keep is retryable, import/export/reset are durable",
+    "tutorial skips and reloads every milestone, and dev replay preserves the collection",
+    "inventory 0 / 1 / 2 instances stacks duplicates, hides names, and shows unowned Secret unfound",
+    "300-tile rapid sort, detail close while lifting and live reduced motion remain bounded",
+    "all thirteen finishes and both Secret states in both modes pause offscreen and hidden",
+    "50 real openings with back-to-back toasts keep DOM, subscriptions, listeners and tasks bounded",
+    "responsive geometry remains finite at three viewports, 80–150% scale, and DPR 1–2",
+    "normal use emits no console errors or warnings; dev checks all print PASS",
+    "file compatibility audit: only existing local classic scripts, local font sources, no runtime fetch/modules"
+  ],
+  "resourceAudit": {
+    "packs": 50,
+    "initial": {
+      "nodes": 420,
+      "attachedDOMListeners": 61,
+      "globalListeners": 35,
+      "events": 126,
+      "subscribers": 14,
+      "liveViews": 0,
+      "tasks": 3,
+      "full": 0
+    },
+    "final": {
+      "nodes": 421,
+      "attachedDOMListeners": 61,
+      "globalListeners": 35,
+      "events": 126,
+      "subscribers": 14,
+      "liveViews": 0,
+      "tasks": 3,
+      "full": 0
+    },
+    "maxLiveViews": 1,
+    "maxTasks": 4,
+    "maxNodes": 642,
+    "minNodes": 420,
+    "heapMeasurement": "Not performed; retained DOM/listener/timer/subscriber counts only"
+  },
+  "passedGroups": 27
+}

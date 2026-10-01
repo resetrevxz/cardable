@@ -2,6 +2,7 @@
   'use strict';
   var listeners = Object.create(null);
   C.events = {
+    get listenerCount() { return Object.keys(listeners).reduce(function (n, name) { return n + listeners[name].length; }, 0); },
     on: function (name, fn) {
       if (typeof fn !== 'function') throw new TypeError('Event listener must be a function');
       (listeners[name] || (listeners[name] = [])).push(fn);

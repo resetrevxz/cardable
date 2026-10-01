@@ -145,6 +145,6 @@ check('FPS sampler counts one full plus twenty-seven lite cards with simulated 6
 check('all-lite mode stops card work, Stage 0 checks pass, and the harness logs no errors', () => {
   C.gallery.views.forEach(v => v.setMode('lite')); r.advance(100); const before = C.cardView.stats.updates; r.advance(3000); assert.equal(C.cardView.stats.updates, before);
   assert.equal(r.logs.filter(log => log.level === 'error').length, 0);
-  assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, 6);
+  assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, r.C.dev.checkCount);
 });
 console.log('\n' + passed + ' Stage 3 (tiers 10–12) behavior checks passed. Browser visuals and measured rendering FPS remain unverified.');

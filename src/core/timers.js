@@ -1,24 +1,35 @@
 (function (C, root) {
   'use strict';
   var interval = null;
+  var unwatch = null;
+  function onVisibility() { if (!root.document.hidden) C.timers.tick(); }
   function state() { if (!C.state.current) C.state.load(); return C.state.current; }
   C.timers = {
+    get running() { return interval !== null; },
+    watchVisibility: function (target) {
+      target.addEventListener('visibilitychange', onVisibility);
+      return function () { target.removeEventListener('visibilitychange', onVisibility); };
+    },
+    reconcileInto: function (candidate, now) {
+      var packs = candidate.packs, before = packs.ready, max = C.config.packs.maxStored;
+      if (packs.ready >= max) packs.timerStartedAt = null;
+      else {
+        if (packs.timerStartedAt == null || now < packs.timerStartedAt) packs.timerStartedAt = now;
+        var gained = Math.floor((now - packs.timerStartedAt) / C.config.packs.regenMs);
+        packs.ready = Math.min(max, packs.ready + gained);
+        packs.timerStartedAt = packs.ready >= max ? null : packs.timerStartedAt + gained * C.config.packs.regenMs;
+      }
+      return { ready: packs.ready, gained: packs.ready - before };
+    },
     tick: function (now) {
       now = now == null ? Date.now() : now;
-      var packs = state().packs, before = packs.ready, started = packs.timerStartedAt, max = C.config.packs.maxStored;
-      if (packs.ready >= max) { packs.timerStartedAt = null; if (started !== null) C.state.save(); return { ready: packs.ready, gained: 0 }; }
-      if (packs.timerStartedAt == null) packs.timerStartedAt = now;
-      var elapsed = now - packs.timerStartedAt;
-      if (elapsed < 0) { packs.timerStartedAt = now; C.state.save(); return { ready: packs.ready, gained: 0 }; }
-      var gained = Math.floor(elapsed / C.config.packs.regenMs);
-      packs.ready = Math.min(max, packs.ready + gained);
-      if (packs.ready >= max) packs.timerStartedAt = null;
-      else packs.timerStartedAt += gained * C.config.packs.regenMs;
+      var candidate = state(), packs = candidate.packs, before = packs.ready, started = packs.timerStartedAt;
+      var result = C.timers.reconcileInto(candidate, now);
       if (packs.ready !== before || packs.timerStartedAt !== started) C.state.save();
       if (packs.ready !== before) {
         C.events.emit('pack:ready', { ready: packs.ready, gained: packs.ready - before });
       }
-      return { ready: packs.ready, gained: packs.ready - before };
+      return result;
     },
     progress: function (now) {
       var packs = state().packs;
@@ -56,10 +67,11 @@
       if (interval) return;
       C.timers.tick();
       interval = root.setInterval(function () { if (!root.document || !root.document.hidden) C.timers.tick(); }, 1000);
-      if (root.document) root.document.addEventListener('visibilitychange', function () {
-        if (!root.document.hidden) C.timers.tick();
-      });
+      if (root.document) unwatch = C.timers.watchVisibility(root.document);
     },
-    stop: function () { if (interval) root.clearInterval(interval); interval = null; }
+    stop: function () {
+      if (interval) root.clearInterval(interval); interval = null;
+      if (unwatch) unwatch(); unwatch = null;
+    }
   };
 })(window.Cardable, window);

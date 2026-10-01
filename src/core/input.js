@@ -32,6 +32,13 @@
   }
   C.input = {
     initialized: false, pointer: pointer, modality: 'pointer',
+    // Detach gestures first so capture-loss handlers cannot reuse stale state.
+    cancelGestures: function (gestures) {
+      var pending = Object.keys(gestures).map(function (key) { var gesture = gestures[key]; gestures[key] = null; return gesture; });
+      pending.forEach(function (gesture) {
+        if (gesture && gesture.capture && gesture.capture.hasPointerCapture(gesture.id)) gesture.capture.releasePointerCapture(gesture.id);
+      });
+    },
     chargeStart: function () { C.events.emit('input:chargeStart'); },
     chargeEnd: function () { C.events.emit('input:chargeEnd'); },
     cutMove: function (event) { C.events.emit('input:cutMove', event); },

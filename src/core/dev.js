@@ -3,6 +3,22 @@
   var forcedTier = null;
   var fpsValue = 0;
   var openingPhase = 'idle';
+  var bugChecks = [];
+  function registerCheck(label, check) { bugChecks.push({ label: label, check: check }); }
+  function canRunStateChecks(context) { return context.phase === 'idle' && !context.inventory && !context.preferences; }
+  function storageAvailable(store, key) {
+    try { store.setItem(key, '1'); return store.getItem(key) === '1'; }
+    catch (_) { return false; }
+    finally { try { store.removeItem(key); } catch (_) {} }
+  }
+  function runBugChecks() {
+    var passed = true;
+    bugChecks.forEach(function (test) {
+      try { passed = report(test.check() === true, '9c: ' + test.label) && passed; }
+      catch (error) { passed = report(false, '9c: ' + test.label, error.message) && passed; }
+    });
+    return passed;
+  }
   function node(tag, text) { var el = root.document.createElement(tag); if (text) el.textContent = text; return el; }
   function button(label, action) {
     var el = node('button', label);
@@ -39,6 +55,10 @@
     return { errors: errors, warnings: warnings };
   }
   function runChecks() {
+    if (!canRunStateChecks({ phase: C.opening.phase, inventory: C.inventory.active, preferences: C.preferences.open })) {
+      root.console.info('[Cardable check] State simulations postponed until the menu is idle; running isolated 9c checks.');
+      return runBugChecks();
+    }
     var passed = true, cfg = C.config, oldState = C.state.current;
     var oldSave = C.state.save;
     // Simulations must not overwrite the player's real saved state.
@@ -48,10 +68,10 @@
       packs: { ready: 0, timerStartedAt: 0 }, serialCounter: 0, inventory: [], pendingReveal: null, currency: 0,
       tutorial: { step: 'welcome', done: false }, settings: {}, stats: {} });
     C.state.current = timerState;
-    var catchup = C.timers.tick(20 * 60 * 60 * 1000);
+    var catchup = C.timers.reconcileInto(timerState, 20 * 60 * 60 * 1000);
     passed = report(catchup.ready === 2, 'timer catch-up after 20 hours respects cap 2', 'ready=' + catchup.ready) && passed;
     timerState.packs = { ready: 0, timerStartedAt: 10000 };
-    var backwards = C.timers.tick(9000);
+    var backwards = C.timers.reconcileInto(timerState, 9000);
     passed = report(backwards.gained === 0 && timerState.packs.timerStartedAt === 9000, 'timer ignores a backwards clock') && passed;
 
     var fixtures = C.data.rarities.filter(function (r) { return r.pullable; }).map(function (r) {
@@ -97,32 +117,35 @@
     var storageKey = cfg.storage.key, testKey = storageKey + '.stage0-check';
     var storage = null;
     try { storage = root.localStorage; } catch (_) {}
-    if (!storage) passed = report(false, 'save survives reload and corrupted-save recovery', 'localStorage unavailable') && passed;
+    if (!storageAvailable(storage, testKey + '.probe')) passed = report(C.state.current === oldState,
+      'unavailable storage preserves session state', 'persistent reload check unavailable; blocked-write commit safety is checked in the 9c integration suite') && passed;
     else {
-      var prior = cfg.storage.key, priorRecovery = C.state.recovery;
-      try {
-        cfg.storage.key = testKey;
-        C.state.current = C.state.fresh(123);
-        C.state.current.playerCode = '7K3F';
-        C.state.save();
-        C.state.current = null;
-        var reloaded = C.state.load();
-        var persisted = reloaded.playerCode === '7K3F' && Number(reloaded.createdAt) === 123;
-        storage.setItem(testKey, '{broken json');
-        C.state.current = null;
-        var recovered = C.state.load();
-        var corruptHandled = storage.getItem(testKey + '.corrupt') === '{broken json' && recovered.playerCode !== undefined;
-        passed = report(persisted && corruptHandled, 'save survives reload and corrupted save is backed up and replaced') && passed;
-      } catch (error) {
-        passed = report(false, 'save survives reload and corrupted-save recovery', error.message) && passed;
-      } finally {
-        cfg.storage.key = prior;
-        try { storage.removeItem(testKey); storage.removeItem(testKey + '.corrupt'); } catch (_) {}
-        C.state.current = oldState;
-        C.state.recovery = priorRecovery; C.events.emit('save:written', oldState);
-      }
+      C.state.withIsolatedCache(function () {
+        var prior = cfg.storage.key, priorRecovery = C.state.recovery;
+        try {
+          cfg.storage.key = testKey;
+          C.state.current = C.state.fresh(123);
+          C.state.current.playerCode = '7K3F';
+          C.state.save();
+          C.state.current = null;
+          var reloaded = C.state.load();
+          var persisted = reloaded.playerCode === '7K3F' && Number(reloaded.createdAt) === 123;
+          storage.setItem(testKey, '{broken json');
+          C.state.current = null;
+          var recovered = C.state.load();
+          var corruptHandled = storage.getItem(testKey + '.corrupt') === '{broken json' && recovered.playerCode !== undefined;
+          passed = report(persisted && corruptHandled, 'save survives reload and corrupted save is backed up and replaced') && passed;
+        } catch (error) {
+          passed = report(false, 'save survives reload and corrupted-save recovery', error.message) && passed;
+        } finally {
+          cfg.storage.key = prior;
+          try { storage.removeItem(testKey); storage.removeItem(testKey + '.corrupt'); } catch (_) {}
+          C.state.current = oldState;
+          C.state.recovery = priorRecovery; C.events.emit('save:written', oldState);
+        }
+      });
     }
-    return passed;
+    return runBugChecks() && passed;
   }
   function init() {
     var params;
@@ -206,7 +229,9 @@
     var mode = node('div', 'rarityColorMode: ' + C.config.rarityColorMode);
     var fps = node('div', 'FPS: idle'), titleHint = node('div');
     panel.appendChild(mode); panel.appendChild(fps); panel.appendChild(titleHint);
-    C.dev = { panel: panel, output: node('pre'), validateData: validateData, runChecks: runChecks,
+    C.dev = { panel: panel, output: node('pre'), validateData: validateData, runChecks: runChecks, registerCheck: registerCheck, runBugChecks: runBugChecks, canRunStateChecks: canRunStateChecks,
+      storageAvailable: storageAvailable,
+      get checkCount() { return 6 + bugChecks.length; },
       peekForcedTier: function () { return forcedTier; },
       consumeForcedTier: function () { var tier = forcedTier; forcedTier = null; select.value = ''; return tier; },
       get fps() { return fpsValue; } };
@@ -228,7 +253,9 @@
     });
     C.events.on('fx:sleep', function (stats) { fpsValue = 0; fps.textContent = 'FPS: idle · frames ' + stats.frameCount; });
   }
-  C.dev = { init: init, validateData: validateData, runChecks: runChecks,
+  C.dev = { init: init, validateData: validateData, runChecks: runChecks, registerCheck: registerCheck, runBugChecks: runBugChecks, canRunStateChecks: canRunStateChecks,
+    storageAvailable: storageAvailable,
+    get checkCount() { return 6 + bugChecks.length; },
     peekForcedTier: function () { return forcedTier; },
     consumeForcedTier: function () { var tier = forcedTier; forcedTier = null; return tier; } };
 })(window.Cardable, window);

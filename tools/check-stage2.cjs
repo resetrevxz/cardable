@@ -143,7 +143,7 @@ check('lite mode stops per-frame card work, gallery controls remain usable, and 
   r.advance(20); const updates = C.cardView.stats.updates; r.advance(4000); assert.equal(C.cardView.stats.updates, updates);
   assert.equal(C.cardView.stats.fullCards, 0);
   assert.equal(r.logs.filter(log => log.level === 'error').length, 0);
-  assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, 6);
+  assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, r.C.dev.checkCount);
   const css = fs.readFileSync(path.join(__dirname, '../src/styles/card.css'), 'utf8');
   assert(css.includes('[data-color-mode="mono"] .card__face { filter: grayscale(1); }'));
   assert(css.includes('outline: 2px solid var(--keyline)'));

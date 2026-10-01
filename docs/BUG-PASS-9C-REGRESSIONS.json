@@ -1,0 +1,67 @@
+[
+  {
+    "file": "check-new-features.cjs",
+    "status": 0,
+    "summary": "19 N1–N6 behavior groups passed. Browser screenshots, paint/compositing and measured 60 FPS remain unconfirmed."
+  },
+  {
+    "file": "check-stage1.cjs",
+    "status": 0,
+    "summary": "15 Stage 1 checks passed; 6 Stage 0 console checks passed. Browser visuals and measured FPS are unverified."
+  },
+  {
+    "file": "check-stage2.cjs",
+    "status": 0,
+    "summary": "13 Stage 2 behavior checks passed. Browser screenshots, actual material appearance, and measured 60 fps remain unverified."
+  },
+  {
+    "file": "check-stage3-tiers10-12.cjs",
+    "status": 0,
+    "summary": "15 Stage 3 (tiers 10–12) behavior checks passed. Browser visuals and measured rendering FPS remain unverified."
+  },
+  {
+    "file": "check-stage3-tiers7-9.cjs",
+    "status": 0,
+    "summary": "15 Stage 3 (tiers 7–9) behavior checks passed. Browser visuals, screenshots, and measured FPS remain unverified."
+  },
+  {
+    "file": "check-stage3.cjs",
+    "status": 0,
+    "summary": "14 Stage 3 (tiers 4–6) behavior checks passed. Visuals and measured browser FPS remain unverified."
+  },
+  {
+    "file": "check-stage4.cjs",
+    "status": 0,
+    "summary": "18 Stage 4 behavior groups passed. Browser screenshots, appearance and measured FPS remain unverified."
+  },
+  {
+    "file": "check-stage5-reveal.cjs",
+    "status": 0,
+    "summary": "24 reveal/collection behavior groups passed. Visuals, screenshots and measured FPS remain unverified."
+  },
+  {
+    "file": "check-stage5.cjs",
+    "status": 0,
+    "summary": "26 Stage 5 behavior groups passed. Browser appearance, screenshots and measured FPS remain unverified."
+  },
+  {
+    "file": "check-stage6.cjs",
+    "status": 0,
+    "summary": "25 Stage 6 checks passed. Browser appearance, screenshots and measured FPS remain unverified."
+  },
+  {
+    "file": "check-stage7.cjs",
+    "status": 0,
+    "summary": "39 Stage 7 behavior groups passed. Browser appearance, screenshots, paint cost and measured FPS remain unverified."
+  },
+  {
+    "file": "check-stage8.cjs",
+    "status": 0,
+    "summary": "32 Stage 8 checks passed. File-picker/download rendering, visual appearance and actual browser 60 fps remain unconfirmed."
+  },
+  {
+    "file": "check-visual-fixes.cjs",
+    "status": 0,
+    "summary": "15 F1–F6 checks passed. Screenshots, first-frame glass compositing and browser FPS remain unconfirmed."
+  }
+]

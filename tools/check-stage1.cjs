@@ -17,6 +17,7 @@ function runtime(dev = false, gallery = false, initialSave = null, tutorial = fa
   class Target {
     constructor() { this.listeners = new Map(); }
     addEventListener(type, fn) { if (!this.listeners.has(type)) this.listeners.set(type, []); this.listeners.get(type).push(fn); }
+    removeEventListener(type, fn) { const list = this.listeners.get(type) || [], index = list.indexOf(fn); if (index !== -1) list.splice(index, 1); }
     fire(type, event = {}) { event.type = type; event.target ||= this; (this.listeners.get(type) || []).slice().forEach(fn => fn(event)); }
   }
   class Element extends Target {
@@ -124,7 +125,7 @@ function runtime(dev = false, gallery = false, initialSave = null, tutorial = fa
   const click = (x, y, target = document.body) => { const event = { clientX: x, clientY: y, detail: 1, target }; target.fire('click', event); if (target !== document) document.fire('click', event); };
   const hidden = value => { document.hidden = value; document.fire('visibilitychange'); };
   const reduced = value => { const query = queries.get('(prefers-reduced-motion: reduce)'); query.matches = value; query.fire('change'); };
-  return { C, window, document, drawing, canvas, wordmark, pack, logs, store, advance, move, click, hidden, reduced, now: () => now, wall: ms => { wallOffset += ms; }, date: () => ClockDate.now(), Element };
+  return { C, window, document, drawing, canvas, wordmark, pack, logs, store, advance, move, click, hidden, reduced, tasks, now: () => now, wall: ms => { wallOffset += ms; }, date: () => ClockDate.now(), Element };
 }
 
 module.exports = { runtime, html, scripts };
@@ -268,7 +269,7 @@ const d = runtime(true);
 d.C.packView.setVisible(false);
 d.C.inventoryHint.setVisible(false);
 check('dev integration runs six Stage 0 checks once and retains the real save', () => {
-  assert.equal(d.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, 6);
+  assert.equal(d.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, d.C.dev.checkCount);
   assert.equal(d.logs.filter(log => log.level === 'error').length, 0);
   assert.equal(d.C.state.current.packs.ready, 2);
   assert.equal(d.store.get('cardable.save'), JSON.stringify(d.C.state.current));

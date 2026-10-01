@@ -1,7 +1,7 @@
 (function (C, root) {
   'use strict';
   var updates = [], raf = null, inFrame = false, requested = false, last = null;
-  var stats = { running: false, frameCount: 0, lastFrameMs: 0 };
+  var stats = { running: false, frameCount: 0, lastFrameMs: 0, get subscribers() { return updates.length; } };
   function sleep() {
     if (raf !== null) root.cancelAnimationFrame(raf);
     raf = null; last = null;

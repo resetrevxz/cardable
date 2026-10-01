@@ -162,7 +162,7 @@ check('save reset refreshes all menu components and gallery keeps pack animation
   assert.equal(gallery.C.gallery.views.length, 28); assert.equal(gallery.C.cardView.stats.fullCards, 1);
 });
 check('Stage 0 checks pass, no application errors, and menu effects add no separate animation loops', () => {
-  assert.equal(r.logs.filter(log => log.level === 'error').length, 0); assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, 6);
+  assert.equal(r.logs.filter(log => log.level === 'error').length, 0); assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, r.C.dev.checkCount);
   ['pack','currency','numbers','inventory-hint'].forEach(id => {
     const source = fs.readFileSync(path.join(__dirname, '../src/ui/' + id + '.js'), 'utf8'); assert(!/requestAnimationFrame|setInterval|setTimeout/.test(source));
   });

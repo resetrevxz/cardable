@@ -168,7 +168,7 @@ check('all-lite mode stops card work; finish modules add no separate loops and n
     assert(source.includes(C.rarity(id).designSpec)); assert(source.includes(C.rarity(id).propSpec));
   });
   assert.equal(r.logs.filter(log => log.level === 'error').length, 0);
-  assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, 6);
+  assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, r.C.dev.checkCount);
 });
 
 console.log('\n' + passed + ' Stage 3 (tiers 7–9) behavior checks passed. Browser visuals, screenshots, and measured FPS remain unverified.');

@@ -93,8 +93,8 @@
   }
   function commit() {
     if (phase !== 'charging' || root.document.hidden) return;
-    C.timers.tick();
     var candidate = JSON.parse(JSON.stringify(C.state.current)), now = Date.now();
+    C.timers.reconcileInto(candidate, now);
     if (candidate.pendingReveal || !C.timers.consumeInto(candidate, now)) { cancel('unavailable'); return; }
     var forced = C.dev.peekForcedTier ? C.dev.peekForcedTier() : null;
     try {

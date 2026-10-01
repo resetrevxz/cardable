@@ -2,7 +2,7 @@
   'use strict';
   var views = new Set(), active = null, subscribed = false, engravingId = 0;
   var layerNames = ['shadow', 'body', 'finish', 'art', 'foil', 'beam', 'glare', 'text', 'prop', 'edge'];
-  var stats = { updates: 0, fullCards: 0 };
+  var stats = { updates: 0, fullCards: 0, get liveViews() { return views.size; } };
   function node(tag, className, text) {
     var element = root.document.createElement(tag); element.className = className || '';
     if (text != null) element.textContent = text;

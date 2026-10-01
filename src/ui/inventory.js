@@ -6,7 +6,7 @@
   var model = { entries: [], owned: 0, total: 0 }, tiles = [], rendered = new Map(), center = 0, hovered = null;
   var sheetSpring, underlineX, underlineScale, underlineTarget = { x: 0, scale: 1 }, underlineWidth, underlineAge = null, underlineFrom = { x: 0, scale: 1 };
   var sheetHeight = 0, tileWidth = 0, pitch = 0, scrollTarget = null, scrollIdle = null;
-  var drag = null, shelfDrag = null, guardUntil = 0, snapAge = 0, shimmerAge = null, countAge = 0, countFrom = 0, countValue = 0;
+  var gestures = { sheet: null, shelf: null }, guardUntil = 0, snapAge = 0, shimmerAge = null, countAge = 0, countFrom = 0, countValue = 0;
   var focusAfterSnap = false, dev = false, lastProfile = null, profile = null, profileButton, controls = [], fadeMs;
   var stats = { updates: 0, mounted: 0, maxMounted: 0, opens: 0, closes: 0, snaps: 0 };
   var windowDirty = true, sheetDirty = true, paintedScroll = null, paintedSheet = null;
@@ -88,6 +88,7 @@
     previewLabel.hidden = !fixture; C.fx.wake();
   }
   function resize() {
+    cancelGestures();
     windowDirty = true; sheetDirty = true;
     var currentIndex = pitch ? (carousel.position) / pitch : center;
     sheetHeight = root.innerHeight * cfg.sheetHeightVh / 100;
@@ -126,11 +127,19 @@
     C.events.emit('menu:visibilityHold', { reason: 'inventory', active: false }); C.events.emit('menu:activity'); context();
     focus(arrow);
   }
+  function cancelGestures() {
+    if (gestures.sheet && gestures.sheet.moved && gestures.sheet.capture === arrow) suppressArrowClick = true;
+    if (gestures.shelf && gestures.shelf.moved) guardUntil = root.performance.now() + C.config.inventoryMotion.dragClickGuardMs;
+    C.input.cancelGestures(gestures);
+    if (shelf) shelf.classList.remove('is-dragging');
+    if (sheet) sheet.style.setProperty('--sheet-edge-alpha', C.config.polish.sheetRestHighlight);
+  }
   function request(value) {
-    if (openingPhase !== 'idle' || root.document.hidden) return;
     var next = typeof value === 'boolean' ? value : !opened;
+    if (!C.inventory.canRequest({ phase: openingPhase, hidden: root.document.hidden, preferences: preferencesActive, detail: !!detailId }, next)) return;
     if (detailId && !next) { pendingClose = true; C.events.emit('detail:requestClose'); return; }
     if (!session && !next) return;
+    cancelGestures();
     if (next) beginSession();
     windowDirty = true; sheetDirty = true;
     if (opened !== next) {
@@ -148,23 +157,24 @@
   }
   function startSheetDrag(event, capture) {
     if (openingPhase !== 'idle' || detailId || event.button !== 0 || event.isPrimary === false) return;
+    cancelGestures();
     if (capture === arrow) suppressArrowClick = false;
-    beginSession(); drag = { id: event.pointerId, capture: capture, x: event.clientX, y: event.clientY, value: sheetSpring.value, lastY: event.clientY, at: root.performance.now(), moved: false };
+    beginSession(); gestures.sheet = { id: event.pointerId, capture: capture, x: event.clientX, y: event.clientY, value: sheetSpring.value, lastY: event.clientY, at: root.performance.now(), moved: false };
     capture.setPointerCapture(event.pointerId); C.fx.wake();
     sheet.style.setProperty('--sheet-edge-alpha', C.config.polish.sheetDragHighlight);
   }
   function moveSheet(event) {
-    if (!drag || event.pointerId !== drag.id) return;
-    var dy = event.clientY - drag.y, now = root.performance.now();
-    if (Math.hypot(event.clientX - drag.x, dy) >= cfg.dragSlopPx) drag.moved = true;
-    if (!drag.moved) return;
-    prevent(event); sheetSpring.value = rubber(drag.value - dy / sheetHeight);
-    sheetSpring.velocity = -clamp((event.clientY - drag.lastY) * 1000 / Math.max(C.config.shell.frameMs, now - drag.at), -cfg.maxFlickPxPerSecond, cfg.maxFlickPxPerSecond) / sheetHeight;
-    drag.lastY = event.clientY; drag.at = now; C.fx.wake();
+    if (!gestures.sheet || event.pointerId !== gestures.sheet.id) return;
+    var dy = event.clientY - gestures.sheet.y, now = root.performance.now();
+    if (Math.hypot(event.clientX - gestures.sheet.x, dy) >= cfg.dragSlopPx) gestures.sheet.moved = true;
+    if (!gestures.sheet.moved) return;
+    prevent(event); sheetSpring.value = rubber(gestures.sheet.value - dy / sheetHeight);
+    sheetSpring.velocity = -clamp((event.clientY - gestures.sheet.lastY) * 1000 / Math.max(C.config.shell.frameMs, now - gestures.sheet.at), -cfg.maxFlickPxPerSecond, cfg.maxFlickPxPerSecond) / sheetHeight;
+    gestures.sheet.lastY = event.clientY; gestures.sheet.at = now; C.fx.wake();
   }
   function releaseSheet(event, cancel) {
-    if (!drag || event && event.pointerId !== drag.id) return;
-    var current = drag; drag = null;
+    if (!gestures.sheet || event && event.pointerId !== gestures.sheet.id) return;
+    var current = gestures.sheet; gestures.sheet = null;
     sheet.style.setProperty('--sheet-edge-alpha', C.config.polish.sheetRestHighlight);
     if (current.capture.hasPointerCapture(current.id)) current.capture.releasePointerCapture(current.id);
     if (current.moved) {
@@ -182,6 +192,7 @@
   }
   function reorder(nextOrder) {
     if (detailId || nextOrder === order) return;
+    cancelGestures();
     var oldTiles = new Map(tiles.map(function (tile) { return [tile.entry.card.id, tile]; }));
     var oldVisible = Array.from(rendered.values()).filter(function (tile) { return Math.abs(tile.index - carousel.position / pitch) <= cfg.overscan; });
     rendered.forEach(function (tile) { if (oldVisible.indexOf(tile) < 0) unmount(tile); });
@@ -207,11 +218,11 @@
   }
   function startShelfDrag(event) {
     if (!opened || detailId || event.button !== 0 || event.isPrimary === false) return;
-    shelfDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: carousel.target, lastX: event.clientX, at: root.performance.now(), velocity: 0, moved: false };
+    gestures.shelf = { id: event.pointerId, capture: shelf, x: event.clientX, y: event.clientY, left: carousel.target, lastX: event.clientX, at: root.performance.now(), velocity: 0, moved: false };
   }
   function moveShelf(event) {
-    if (!shelfDrag || event.pointerId !== shelfDrag.id) return;
-    var d = shelfDrag, dx = event.clientX - d.x, now = root.performance.now();
+    if (!gestures.shelf || event.pointerId !== gestures.shelf.id) return;
+    var d = gestures.shelf, dx = event.clientX - d.x, now = root.performance.now();
     if (!d.moved && Math.abs(dx) > cfg.dragSlopPx && Math.abs(dx) > Math.abs(event.clientY - d.y)) { d.moved = true; shelf.setPointerCapture(d.id); shelf.classList.add('is-dragging'); }
     if (!d.moved) return;
     prevent(event); carousel.move(d.left - dx); windowDirty = true; scrollTarget = null; scrollIdle = null;
@@ -219,8 +230,8 @@
     d.lastX = event.clientX; d.at = now; C.fx.wake();
   }
   function releaseShelf(event, cancel) {
-    if (!shelfDrag || event && event.pointerId !== shelfDrag.id) return;
-    var d = shelfDrag; shelfDrag = null; shelf.classList.remove('is-dragging');
+    if (!gestures.shelf || event && event.pointerId !== gestures.shelf.id) return;
+    var d = gestures.shelf; gestures.shelf = null; shelf.classList.remove('is-dragging');
     if (shelf.hasPointerCapture(d.id)) shelf.releasePointerCapture(d.id);
     if (d.moved) {
       guardUntil = root.performance.now() + cfg.dragClickGuardMs;
@@ -264,7 +275,7 @@
     C.inventory.groupLabel.textContent = !selectedEntry || order === 'all' ? '' : order === 'generation' ? selectedEntry.generation.name : selectedEntry.rarity.code;
   }
   function openDetail(index) {
-    if (!opened || detailId || drag || shelfDrag && shelfDrag.moved || root.document.hidden) return;
+    if (!opened || detailId || gestures.sheet || gestures.shelf && gestures.shelf.moved || root.document.hidden) return;
     var tile = tiles[index]; if (!tile) return; mount(tile);
     detailId = tile.entry.card.id; hovered = null; pendingClose = false;
     shelf.inert = true; filters.inert = true; grip.inert = true;
@@ -290,11 +301,11 @@
     if (!session) return false;
     var fraction = Math.min(1, countAge / cfg.countMs);
     var underlineMoving = underlineAge !== null;
-    if (!profile && !drag && !shelfDrag && sheetSpring.settled() && !sheetDirty && !windowDirty && paintedScroll === (carousel.position) &&
+    if (!profile && !gestures.sheet && !gestures.shelf && sheetSpring.settled() && !sheetDirty && !windowDirty && paintedScroll === (carousel.position) &&
         sortAge === null && carousel.settled() && scrollTarget === null && scrollIdle === null && fraction === 1 && shimmerAge === null && snapAge >= cfg.centerPulseMs && !underlineMoving) return false;
     stats.updates += 1;
     if (profile) carousel.move((0.5 + 0.5 * Math.sin(profile.elapsed / 900)) * Math.min(model.entries.length - 1, 20) * pitch);
-    if (!drag) {
+    if (!gestures.sheet) {
       if (C.motion.reduced) {
         var goal = opened ? 1 : 0, delta = goal - sheetSpring.value;
         sheetSpring.target = goal; sheetSpring.velocity = 0;
@@ -312,7 +323,7 @@
       root.document.body.style.setProperty('--inventory-menu-blur', (C.motion.reduced ? 0 : cfg.menuBlurPx * p) + 'px');
       root.document.body.style.setProperty('--inventory-menu-opacity', 1 - cfg.menuDim * p);
     }
-    if (!opened && !drag && sheetSpring.settled()) { finishSession(); return false; }
+    if (!opened && !gestures.sheet && sheetSpring.settled()) { finishSession(); return false; }
     if (scrollIdle !== null) { scrollIdle += dt; if (scrollIdle >= cfg.wheelSnapMs) snapTo(Math.round(carousel.target / pitch)); }
     var previousPosition = carousel.position;
     carousel.step(dt, C.motion.reduced);
@@ -354,7 +365,7 @@
       if (C.motion.reduced || underlineAge >= C.config.carousel.underlineMs) { underlineX.reset(underlineTarget.x); underlineScale.reset(underlineTarget.scale); underlineAge = null; }
       underline.style.transform = 'translateX(' + underlineX.value + 'px) scaleX(' + underlineScale.value + ')';
     }
-    return sortAge !== null || !carousel.settled() || !!profile || !!drag || !!shelfDrag || !sheetSpring.settled() || scrollTarget !== null || scrollIdle !== null || fraction < 1 || shimmerAge !== null ||
+    return sortAge !== null || !carousel.settled() || !!profile || !!gestures.sheet || !!gestures.shelf || !sheetSpring.settled() || scrollTarget !== null || scrollIdle !== null || fraction < 1 || shimmerAge !== null ||
       snapAge < cfg.centerPulseMs || underlineAge !== null;
   }
   function reset() {
@@ -368,6 +379,8 @@
   }
   C.inventory = {
     initialized: false, stats: stats,
+    canRequest: function (context, next) { return context.phase === 'idle' && !context.hidden && !context.preferences && !(context.detail && next); },
+    get gesturesActive() { return !!(gestures.sheet || gestures.shelf); },
     get open() { return opened; }, get active() { return session; }, get progress() { return sheetSpring ? sheetSpring.value : 0; },
     get entries() { return model.entries; }, get rendered() { return rendered; }, get center() { return center; }, get order() { return order; },
     get preview() { return !!fixture; }, get lastProfile() { return lastProfile; },
@@ -442,7 +455,7 @@
         if (preferencesActive) return;
         if (event.repeat || event.target && (event.target.isContentEditable || event.target.closest && event.target.closest('input, select, textarea, [contenteditable]'))) return;
         if (event.key === 'Escape' && session && !detailId) { prevent(event); request(false); }
-        else if ((event.key.toLowerCase() === 'i' || event.key === 'ArrowUp') && openingPhase === 'idle') { prevent(event); request(true); }
+        else if (!detailId && (event.key.toLowerCase() === 'i' || event.key === 'ArrowUp') && openingPhase === 'idle') { prevent(event); request(true); }
       });
       C.events.on('inventory:request', request); C.events.on('inventory:detailReturned', detailReturned);
       C.events.on('inventory:returnTarget', function (event) { var tile = tiles.find(function (item) { return item.entry.card.id === event.cardId; }); event.rect = tile ? tile.card.getBoundingClientRect() : null; });

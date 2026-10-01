@@ -1,7 +1,9 @@
 (function (C, root) {
   'use strict';
-  var memory = null;
-  var unavailable = false;
+  function createStorageCache() {
+    return { memory: null, unavailable: false, written: function (json) { this.memory = json; this.unavailable = false; } };
+  }
+  var cache = createStorageCache();
   function freshState(now) {
     return {
       schemaVersion: C.config.storage.schemaVersion,
@@ -67,36 +69,40 @@
     require(candidate.settings && (candidate.settings.reducedMotion === null || typeof candidate.settings.reducedMotion === 'boolean'), 'Invalid motion setting');
     require(!candidate.settings.rarityColorMode || ['color', 'mono'].indexOf(candidate.settings.rarityColorMode) !== -1, 'Invalid rarity color setting');
     var ids = new Set(), serials = new Set(), maxCounter = 0;
-    function instance(item) {
+    function instance(item, reserved) {
       require(item && typeof item.instanceId === 'string' && item.instanceId.length > 0 && typeof item.cardId === 'string', 'Invalid card instance');
       require(!ids.has(item.instanceId), 'Repeated card instance'); ids.add(item.instanceId);
       require(typeof item.serial === 'string' && item.serial.length > 0 && !serials.has(item.serial), 'Invalid or repeated serial'); serials.add(item.serial);
       require(number(item.pulledAt) && typeof item.seen === 'boolean', 'Invalid card progress');
+      if (reserved) require(!!C.card(item.cardId), 'Reserved card is outside this catalog');
+      var parts = item.serial.split('-'), count = Number(parts[2]);
+      if (parts.length === 3 && parts[0] === C.config.serial.prefix && parts[1] === candidate.playerCode &&
+          /^\d+$/.test(parts[2]) && integer(count)) maxCounter = Math.max(maxCounter, count);
       if (strict) {
         require(!!C.card(item.cardId), 'Save refers to a card outside this catalog: ' + item.cardId);
-        var parts = item.serial.split('-'), count = Number(parts[2]);
         require(parts.length === 3 && parts[0] === C.config.serial.prefix && parts[1].length === C.config.serial.playerCodeLength &&
           Array.from(parts[1]).every(function (c) { return C.serial.alphabet.indexOf(c) !== -1; }) && /^\d+$/.test(parts[2]) &&
           parts[2].length >= C.config.serial.counterDigits && integer(count) && count > 0, 'Invalid card serial');
         if (parts[1] === candidate.playerCode) maxCounter = Math.max(maxCounter, count);
       }
     }
-    candidate.inventory.forEach(instance);
+    candidate.inventory.forEach(function (item) { instance(item, false); });
     if (candidate.pendingReveal !== null) {
       var pending = candidate.pendingReveal;
       require(pending && typeof pending === 'object' && Array.isArray(pending.cards) && pending.cards.length > 0 &&
         typeof pending.packId === 'string' && !!C.pack(pending.packId) && number(pending.committedAt), 'Invalid reserved pack');
-      pending.cards.forEach(instance);
+      pending.cards.forEach(function (item) { instance(item, true); });
       require(pending.keptCount === undefined || integer(pending.keptCount) && pending.keptCount < pending.cards.length, 'Invalid reserved pack progress');
     }
     if (strict) require(candidate.serialCounter >= maxCounter, 'Serial counter precedes existing cards');
+    else candidate.serialCounter = Math.max(candidate.serialCounter, maxCounter);
     return candidate;
   }
   function storage() {
-    try { return root.localStorage; } catch (_) { unavailable = true; return null; }
+    try { return root.localStorage; } catch (_) { cache.unavailable = true; return null; }
   }
   function notifyUnavailable() {
-    if (!unavailable || C.state.noticeShown) return;
+    if (!cache.unavailable || C.state.noticeShown) return;
     C.state.noticeShown = true;
     if (root.console) root.console.info('Cardable: local storage is unavailable; changes are kept in memory for this session.');
     C.events.emit('save:unavailable');
@@ -108,14 +114,21 @@
     fresh: freshState,
     migrate: migrate,
     validate: validate,
+    createStorageCache: createStorageCache,
+    withIsolatedCache: function (check) {
+      var previous = cache; cache = createStorageCache();
+      try { return check(); } finally { cache = previous; }
+    },
     // Opening is irrevocable only after this single durable write succeeds.
     // Ordinary saves keep their existing session-only fallback.
     commit: function (candidate) {
       try {
         var store = root.localStorage;
         if (!store) return false;
-        store.setItem(C.config.storage.key, JSON.stringify(candidate));
+        var json = JSON.stringify(candidate);
+        store.setItem(C.config.storage.key, json);
       } catch (_) { return false; }
+      cache.written(json);
       C.state.current = candidate;
       C.events.emit('save:written', candidate);
       return true;
@@ -125,9 +138,9 @@
       var json = JSON.stringify(C.state.current);
       var store = storage();
       if (store) {
-        try { store.setItem(C.config.storage.key, json); }
-        catch (_) { unavailable = true; memory = json; notifyUnavailable(); }
-      } else { memory = json; notifyUnavailable(); }
+        try { store.setItem(C.config.storage.key, json); cache.written(json); }
+        catch (_) { cache.unavailable = true; cache.memory = json; notifyUnavailable(); }
+      } else { cache.memory = json; cache.unavailable = true; notifyUnavailable(); }
       C.events.emit('save:written', C.state.current);
       return C.state.current;
     },
@@ -135,9 +148,9 @@
       var raw = null, store = storage();
       if (store) {
         try { raw = store.getItem(C.config.storage.key); }
-        catch (_) { unavailable = true; raw = memory; notifyUnavailable(); }
-      } else { raw = memory; notifyUnavailable(); }
-      if (unavailable && memory !== null) raw = memory;
+        catch (_) { cache.unavailable = true; raw = cache.memory; notifyUnavailable(); }
+      } else { cache.unavailable = true; raw = cache.memory; notifyUnavailable(); }
+      if (cache.unavailable && cache.memory !== null) raw = cache.memory;
       if (!raw) C.state.current = freshState(now);
       else {
         try { C.state.current = validate(JSON.parse(raw), false); }
@@ -145,8 +158,8 @@
           var backedUp = false;
           if (store) {
             try { store.setItem(C.config.storage.key + '.corrupt', raw); backedUp = true; }
-            catch (_) { unavailable = true; }
-          } else memory = null;
+            catch (_) { cache.unavailable = true; }
+          } else cache.memory = null;
           if (root.console) root.console.warn('Cardable: invalid save backed up and replaced.', error);
           C.state.current = freshState(now);
           C.state.recovery = { backedUp: backedUp, raw: raw };
@@ -158,8 +171,8 @@
     reset: function () {
       C.events.emit('save:willReset');
       var store = storage();
-      if (store) try { store.removeItem(C.config.storage.key); } catch (_) { unavailable = true; }
-      memory = null;
+      if (store) try { store.removeItem(C.config.storage.key); } catch (_) { cache.unavailable = true; }
+      cache.memory = null;
       C.state.current = freshState();
       C.state.save();
       C.events.emit('save:reset', C.state.current);

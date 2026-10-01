@@ -142,7 +142,7 @@ check('no extra frame loops or infinite CSS animations were added; no harness ap
     assert(!/requestAnimationFrame|setInterval|setTimeout/.test(source));
   });
   assert.equal(r.logs.filter(log => log.level === 'error').length, 0);
-  assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, 6);
+  assert.equal(r.logs.filter(log => log.text.includes('[Cardable check] PASS')).length, r.C.dev.checkCount);
 });
 
 console.log('\n' + passed + ' Stage 3 (tiers 4–6) behavior checks passed. Visuals and measured browser FPS remain unverified.');
