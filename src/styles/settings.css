@@ -94,3 +94,25 @@
 [data-quality="low"] .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail,.card-gallery) { filter: blur(1.2px); }
 [data-quality="medium"] .inventory-depth-active:not(.settings-open) .menu-shell { filter: blur(calc(var(--inventory-menu-blur,0px) * .6)); }
 [data-quality="low"] .inventory-depth-active:not(.settings-open) .menu-shell { filter: blur(calc(var(--inventory-menu-blur,0px) * .3)); }
+
+.settings-drop-zone { margin: var(--s-3) 0; padding: var(--s-4); border: 1px dashed var(--hairline); border-radius: var(--r-button); background: var(--glass); transition: border-color var(--t-fast), background var(--t-fast); }
+.settings-drop-zone.is-drag-over { border-color: var(--text-dim); background: var(--glass-strong); }
+.settings-drop-zone p { margin: 0 0 var(--s-3); font: 12px/1.5 var(--font-ui); color: var(--text-dim); }
+.settings-data-feedback:empty { display: none; }
+.settings-drop-zone .settings-data-feedback { margin-top: var(--s-3); margin-bottom: 0; color: var(--text); overflow-wrap: anywhere; }
+.settings-import-preview { padding: var(--s-4); margin-block: var(--s-3); border-radius: var(--r-button); }
+.settings-import-preview p { white-space: pre-line; font: 11px/1.7 var(--font-mono); color: var(--text-dim); overflow-wrap: anywhere; }
+.settings-import-preview button + button { margin-top: var(--s-2); }
+.is-exporting { position: relative; color: transparent !important; overflow: hidden; }
+.is-exporting::after { content: ''; position: absolute; left: var(--s-4); right: var(--s-4); top: 50%; height: 1px; background: var(--text); transform: scaleX(var(--export-progress,0)); transform-origin: left; }
+.settings-data-toast { position: fixed; bottom: var(--s-5); left: 50%; display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4); max-width: calc(100vw - 32px); box-sizing: border-box; border-radius: var(--r-button); z-index: calc(var(--z-toast) + 3); transform: translate(-50%,calc(100% + 32px)); clip-path: inset(100% 0 0 0 round var(--r-button)); transition: transform var(--t-ui) var(--ease-out), clip-path var(--t-ui) var(--ease-out); }
+.settings-data-toast[hidden] { visibility: hidden; pointer-events: none; }
+.settings-data-toast.is-visible { transform: translate(-50%,0); clip-path: inset(0 round var(--r-button)); }
+.settings-data-toast p { margin: 0; font: 12px/1.5 var(--font-ui); }
+.settings-data-toast::after { content: ''; position: absolute; bottom: 0; left: var(--s-4); right: var(--s-4); height: 1px; background: var(--text-dim); transform: scaleX(var(--undo-progress,1)); transform-origin: left; }
+.is-hold-confirm.is-confirming::before { background: radial-gradient(circle at 22% 72%,var(--hairline-strong) 1px,transparent 2px), radial-gradient(circle at 66% 28%,var(--hairline-strong) 1px,transparent 2px), var(--glass-strong); }
+.is-hold-confirm.is-confirmed { animation: settings-confirm-pulse var(--t-ui) var(--ease-out); }
+@keyframes settings-confirm-pulse { from { box-shadow: inset 0 0 28px var(--hairline-strong); } to { box-shadow: inset 0 0 0 transparent; } }
+[data-quality="low"] .settings-data-toast { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface-2); }
+.reduced-motion .settings-data-toast { transition: none; transform: translate(-50%,0); }
+.reduced-motion .is-confirmed { animation: none; }

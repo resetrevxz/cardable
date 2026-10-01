@@ -34,6 +34,9 @@ cardable/
       state.js          save/load/migrate, autosave on change
       settings.js       settings API and resolved live effect policies (after state)
       settings-checks.js isolated dev settings checks
+      save-files.js     legacy raw JSON and offline Blob downloads
+      save-tools.js     checksum envelopes, backup, durable replacement and Undo
+      data-checks.js    isolated dev Data safety checks
       inventory-model.js  schema-2 preferences, favorites, collections, safe mutations (before state)
       collection.js     ownership projection and dev fixtures
       inventory-query.js  parsing, generated facets, filters, stable sorts and groups
@@ -57,6 +60,7 @@ cardable/
       inventory-icons.js  inventory-toolbar.js  inventory-shelf.js  inventory-grid.js
       inventory-reorder.js  inventory-transition.js  (before inventory controller)
       settings-controls.js  reusable switches, segments and confirmation controls
+      settings-data.js  Data drop zone, preview, progress, hold and Undo toast
       preferences.js    settings modal, sole full preview and compatibility context events
     styles/
       tokens.css  base.css  glass.css  card.css  pack.css  menu.css  inventory.css
@@ -71,6 +75,8 @@ Inventory dependencies: events → inventory-model → state; collection → inv
 Settings dependencies: settings-schema before state; settings after state and before the effects loop; settings-controls before preferences. Boot loads the save, then initializes settings before input/effects/UI. Schema 2 retains game progress and stores normalized settingsVersion 1. Old reducedMotion/rarityColorMode fields migrate to motion/rarityColor. Runtime root attributes and the resolved reduced-motion class agree, including an explicit Off override of the OS preference.
 
 `C.settings.get/set/onChange/resetToDefaults` owns settings persistence. `onChange` returns an unsubscribe function. Effective quality, tilt, dot, cut and reveal policies leave registry data/config values unchanged. `settings:changed {key,value}`, `settings:open/close` and `save:replaced` coordinate live application; `settings:persisted {saved}` distinguishes durable storage from the session fallback. The compatibility preferences context blocks input/inventory/detail interaction. The modal owns the only full card and restores surviving focus on close.
+
+Data dependencies: state/settings/save-files → save-tools; settings-controls → settings-data → preferences; data-checks after the UI modules and before boot. `C.saveTools` owns checked exports, import preview parsing, durable backup-before-commit replacement, restore and timed Undo. Its injectable `create(adapter)` supports isolated checks without touching player storage. `save:replaced` bridges existing reset/imported cleanup and recovery listeners, so opening, inventory, tutorial, timer/title, currency and settings re-read the adopted state. `data:changed` refreshes backup/Undo presentation. File reading, confirmations, progress and toast motion use the existing lifecycle/shared scheduler; no network or reload is involved.
 
 ## 3. Registries
 

@@ -175,6 +175,7 @@
       return C.state.current;
     },
     reset: function () {
+      if (C.saveTools) return C.saveTools.reset();
       var keptSettings = C.settingsSchema.normalize(C.state.current && C.state.current.settings);
       C.events.emit('save:willReset');
       var store = storage();
@@ -183,7 +184,6 @@
       C.state.current = freshState();
       C.state.current.settings = keptSettings;
       C.state.save();
-      C.events.emit('save:reset', C.state.current);
       C.events.emit('save:replaced', C.state.current);
       return C.state.current;
     }

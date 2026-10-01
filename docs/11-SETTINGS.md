@@ -131,9 +131,11 @@ Before any level 2 or 3 action, copy the current save to `cardable.save.backup` 
 Button "Export save". It morphs: the label becomes a thin progress line (about 600 ms), then a check mark, and the file downloads as `cardable-save-YYYY-MM-DD.json`. Contents:
 
 ```json
-{ "app": "cardable", "schemaVersion": 1, "exportedAt": "...", "save": { }, "checksum": "..." }
+{ "app": "cardable", "schemaVersion": 2, "exportedAt": "...", "save": { }, "checksum": "fnv1a-..." }
 ```
 The checksum (a simple hash of the `save` JSON) detects corrupted or hand-edited files. Settings are included in the export.
+
+Stage 11b uses FNV-1a over recursively sorted object keys (array order is preserved). This is an offline integrity check, not cryptographic authentication. Schema-1 exports with a valid envelope/checksum migrate through the existing validator. The older raw save-file API remains for compatibility; the Data panel requires the checked envelope.
 
 ### 6.3 Import save
 - A glass **drop zone** inside the panel ("Drop a save file here or choose a file"), with a dashed border that brightens on drag-over.
@@ -157,6 +159,8 @@ Sets `save.tutorial` back to the first step and closes the panel; the tutorial s
 - Storage unavailable: show an inline note "Your browser is blocking saving. Settings last for this session only." Export still works.
 - Backup fails (storage full): block level 2 and 3 actions and say why. Never delete data without a backup.
 - Undo after the toast expired: use "Restore previous save" in Data instead.
+
+Import, reset, restore and their Undo adopt state only after the durable main-save write succeeds. A failed main write leaves the previous state active and the backup available. Backup restore follows local-load compatibility for retired owned catalog records; external imports use strict catalog and serial validation. Replay Undo changes only tutorial progress. A stale asynchronous file read cannot reopen a preview after the panel closes.
 
 ---
 

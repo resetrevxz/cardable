@@ -86,3 +86,20 @@ Rendered critique is pending the permitted browser gate. These are optional refi
 10. Evaluate performance-nudge placement with an acquisition toast visible.
 
 The detail people would feel missing: a stable footer height while the Saved message appears. Keep its reserved line even when no message is present.
+
+## Stage 11b Data — ranked source-review follow-ups
+
+Rendered critique is pending the permitted browser acceptance pass. These are future refinements, not additional implementation:
+
+1. Inspect first-frame toast glass and content together in a Performance recording.
+2. Review destructive helper placement and import summary at normal viewing distance.
+3. Tune reset meniscus/speck contrast from actual rendered footage; keep the fill restrained.
+4. Review early-release drain/slosh with mouse and keyboard holds.
+5. Compare export line/check rhythm with the operating system download prompt.
+6. Inspect the confirmation countdown outline at high display density.
+7. Check long acquisition dates and large counts in the narrow import preview.
+8. Review Undo placement alongside tutorial hints and an acquisition toast.
+9. Verify focus-ring contrast on the dashed drop surface in all quality modes.
+10. Inspect the final toast exit at expiry with reduced motion enabled and disabled.
+
+The detail people would feel missing: the restore label retains its date/count after a cancelled confirmation. Those details explain exactly what the next click would restore.

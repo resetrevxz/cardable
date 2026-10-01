@@ -56,8 +56,7 @@
   }
   C.preferences = {
     initialized: false, get open() { return opened; }, show: open, close: close,
-    // Data UI is intentionally inactive in 11a; the existing save-file core remains available.
-    read: function () { return Promise.resolve(false); },
+    read: function (file) { return C.settingsData.current.read(file); },
     init: function () {
       if (C.preferences.initialized) return; C.preferences.initialized = true;
       var corner = node('div', 'settings-corner idle-chrome entrance', root.document.body); corner.style.setProperty('--entry', 2);
@@ -73,8 +72,7 @@
       var groups = {};
       ['Motion and effects', 'Cards', 'Controls', 'Sound', 'Data', 'About'].forEach(function (name) { var group = node('section', 'settings-group', scroll); node('h3', '', group, name); groups[name] = group; });
       Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group) controls.push(C.settingsControls.create(d, groups[d.group])); });
-      ['Export save', 'Import save', 'Reset save', 'Restore previous save', 'Replay tutorial'].forEach(function (text) { var b = button(text, groups.Data, function () {}); b.disabled = true; b.title = 'Available in Stage 11b'; });
-      node('p', 'settings-helper', groups.Data, 'Data tools are not available yet.');
+      C.preferences.data = C.settingsData.create(groups.Data, { close: close, announce: announce });
       var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
       button('Credits and licenses', groups.About, function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
       credits = node('section', 'settings-credits glass', panel); credits.hidden = true; credits.setAttribute('role', 'dialog'); credits.setAttribute('aria-modal', 'true'); credits.setAttribute('aria-label', 'Credits and licenses');
@@ -97,11 +95,11 @@
         if (event.settingsHandled) return;
         if (opened && event.key === 'Escape') {
           event.preventDefault(); event.settingsHandled = true;
-          if (confirmation.active) confirmation.cancel(); else if (!credits.hidden) { credits.hidden = true; C.accessibility.release(credits); C.preferences.closeButton.focus(); } else close();
+          if (confirmation.active) confirmation.cancel(); else if (C.preferences.data.escape()) { /* Confirmation consumes this Escape. */ } else if (!credits.hidden) { credits.hidden = true; C.accessibility.release(credits); C.preferences.closeButton.focus(); } else close();
         } else if (!event.repeat && !event.ctrlKey && !event.metaKey && !event.altKey && String(event.key).toLowerCase() === 's' && !(event.target && (event.target.isContentEditable || event.target.closest('input,select,textarea,[contenteditable]')))) { event.preventDefault(); if (opened) close(); else open(); }
         else if ((event.ctrlKey || event.metaKey) && event.key === ',' && !event.repeat) { event.preventDefault(); open(); }
       });
-      C.events.on('preferences:open', open); C.events.on('opening:context', enabled); C.events.on('fx:visibility', enabled); C.events.on('save:willReset', close); C.events.on('save:willReplace', close); C.events.on('save:reset', close);
+      C.events.on('preferences:open', open); C.events.on('opening:context', enabled); C.events.on('fx:visibility', enabled); C.events.on('save:willReset', close); C.events.on('save:willReplace', function () { undo = null; undoButton.hidden = true; close(); }); C.events.on('save:reset', close);
       C.events.on('save:imported', function () { if (C.preferences.notice) C.preferences.notice.remove(); C.preferences.notice = null; C.state.recovery = null; C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: false }); });
       C.events.on('settings:persisted', function (event) { saved = event.saved; saveAge = 0; feedback.style.opacity = 1; message(saved ? '' : 'Your browser is blocking saving. Settings last for this session only.'); C.fx.wake(); });
       C.events.on('fx:frame', function (event) {

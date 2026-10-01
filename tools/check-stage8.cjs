@@ -51,13 +51,13 @@ await check('imports validate unique instances/serials, catalog IDs, serial coun
     const value = clone(base); mutate(value); assert.throws(() => r.C.saveFiles.parse(JSON.stringify(value)));
   }
 });
-await check('save-file core rejects oversized JSON while Stage 11a Data actions remain inactive', async () => {
+await check('save-file core and Data import reject oversized or invalid JSON without changing progress', async () => {
   const r = boot(); r.C.preferences.show(); const before = r.C.saveFiles.exportText();
   assert.throws(() => r.C.saveFiles.parse(' '.repeat(r.C.config.polish.maxSaveBytes + 1)), /large/);
   assert.throws(() => r.C.saveFiles.parse('{'));
   assert.equal(await r.C.preferences.read({size: 1, text: () => Promise.resolve('{')}), false);
   assert.equal(r.C.saveFiles.exportText(), before);
-  for (const label of ['Export save','Import save','Reset save','Restore previous save','Replay tutorial']) assert(r.C.preferences.panel.querySelectorAll('button').find(b => b.textContent === label).disabled);
+  assert(r.C.preferences.data.feedback.textContent.includes('JSON'));
 });
 await check('existing save replacement core keeps its backup and pending-reveal recovery', () => {
   const r = boot(); const before = r.store.get('cardable.save'); r.C.saveFiles.apply(save(true)); r.advance(600);
@@ -74,7 +74,7 @@ await check('the previous local save remains exportable for an undo import', () 
   const r = boot(), previous = r.C.saveFiles.exportText(); r.C.saveFiles.apply(save());
   assert.equal(r.C.saveFiles.previous(), previous); let text;
   r.window.URL.createObjectURL = blob => { text = blob; return 'blob:previous'; }; r.C.saveFiles.exportPrevious(); assert.equal(text.type, 'application/json');
-  r.C.preferences.show(); assert(r.C.preferences.panel.querySelectorAll('button').find(b => b.textContent === 'Restore previous save').disabled);
+  r.C.preferences.show(); assert(r.C.preferences.data.restore.hidden); // Legacy raw backup is separate from the verified Stage 11b backup.
 });
 await check('import recovery retains multi-card kept progress and never rerolls or consumes another pack', () => {
   const r = boot(); const imported = save(true), item = clone(imported.pendingReveal.cards[0]); imported.serialCounter = 3;
@@ -96,10 +96,10 @@ await check('ordinary save keeps its memory fallback if local storage throws, wi
   assert(r.C.preferences.notice); r.window.localStorage.getItem = () => { throw new Error('blocked'); }; r.C.state.load(); assert.equal(r.C.state.current.currency, 123);
 });
 await check('dev checks do not create a spurious corrupted-save notice on a good save', () => { const r = boot(save(), true); assert.equal(r.C.state.recovery, null); assert(!r.C.preferences.notice); });
-await check('the inactive import facade does not read files or stage a replacement', async () => {
+await check('the import facade reads a file but rejects a wrong envelope without staging a replacement', async () => {
   const r = boot(); r.C.preferences.show(); let reads = 0;
   assert.equal(await r.C.preferences.read({size: 10, text: () => { reads++; return Promise.resolve('{}'); }}), false);
-  r.C.preferences.close(); assert.equal(reads, 0); assert(!r.C.preferences.open);
+  r.C.preferences.close(); assert.equal(reads, 1); assert(!r.C.preferences.open); assert(r.C.preferences.data.preview.hidden);
 });
 await check('preferences fades in/out and Esc closes only the modal without closing inventory or skipping tutorial', () => {
   const r = boot(); open(r); r.C.preferences.show(); r.advance(100); assert(r.C.preferences.panel.style.transform.includes('translate3d')); assert(!r.C.preferences.el.hidden);

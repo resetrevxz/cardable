@@ -192,7 +192,7 @@
       panel.appendChild(button('Waiting: ' + unit, function () { waiting(1 - C.config.menuMotion.previewCountdownsMs[unit] / C.config.packs.regenMs); }));
     });
     panel.appendChild(button('Add currency (dev only)', function () { C.currency.add(C.config.menuMotion.previewCurrencyAmount); }));
-    panel.appendChild(button('Reset save', function () { C.state.reset(); }));
+    panel.appendChild(button('Reset save', function () { try { C.state.reset(); } catch (error) { C.dev.output.textContent = error.message; } }));
     var replay = button('Replay committed reveal', function () { C.events.emit('opening:replay'); });
     replay.disabled = true; panel.appendChild(replay);
     var openingStatus = node('div', 'Opening: idle'); panel.appendChild(openingStatus);

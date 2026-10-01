@@ -75,3 +75,5 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 
 - Checksum exports, validated import/drop preview, automatic backups, safe reset, restore, tutorial replay and Undo.
 - Every replacement refreshes modules through save:replaced without reloading the page.
+
+**Accept:** focused Data safety and lifecycle checks in SETTINGS-11B.md; rendered glass/hold/download interactions and actual file-open behavior require the manual acceptance pass. Stage 11a remains a separate committed checkpoint.

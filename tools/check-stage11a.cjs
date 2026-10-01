@@ -126,9 +126,9 @@ check('repeated modal cycles and tier changes do not retain card views, subscrip
 check('the preview keeps sole focus through live inventory rebuilds and restores the surviving selection',()=>{
  const r=boot();r.C.events.emit('inventory:preview',300);r.C.inventory.request(true);r.advance(1200);const index=r.C.inventory.entries.findIndex(e=>e.owned);r.C.inventory.carousel.snap(index*(parseFloat(r.C.inventory.shelf.style['--inventory-tile-width'])+r.C.config.inventoryMotion.tileGapPx));r.advance(1400);const id=r.C.cardView.active.card.id;r.C.preferences.show();r.C.settings.set('rarityColor','mono');r.C.settings.set('motion','on');r.advance(200);assert.equal(r.C.cardView.active,r.C.preferences.preview);assert.equal(r.C.cardView.stats.fullCards,1);r.C.preferences.close();r.advance(200);assert.equal(r.C.cardView.active.card.id,id);assert.equal(r.C.cardView.stats.fullCards,1);
 });
-check('focus trap, disabled Sound/Data, segmented arrows and keyboard keycaps are accessible',()=>{
+check('focus trap, disabled Sound, active Data tools, segmented arrows and keyboard keycaps are accessible',()=>{
  const r=boot();r.C.preferences.show();const p=r.C.preferences,list=r.C.accessibility.focusables(p.panel);list.at(-1).focus();const e=key(r,'Tab','keydown',r.document.activeElement);assert(e.prevented);assert.equal(r.document.activeElement,list[0]);
- for(const name of ['Export save','Import save','Reset save','Restore previous save','Replay tutorial'])assert(p.panel.querySelectorAll('button').find(b=>b.textContent===name).disabled);
+ for(const name of ['Export save','Import save','Reset save','Restore previous save','Replay tutorial'])assert(!p.panel.querySelectorAll('button').find(b=>b.textContent===name).disabled);
  assert(p.controls.filter(c=>c.row.querySelectorAll('input').length).every(c=>c.el.disabled));
  const c=p.controls.find(c=>c.el.getAttribute('aria-labelledby')==='setting-motion');c.buttons[0].fire('keydown',{key:'ArrowRight',preventDefault(){}});assert.equal(r.C.settings.get('motion'),'on');const k=p.controls.find(c=>c.el.getAttribute('aria-labelledby')==='setting-openKey');k.buttons[0].fire('keydown',{key:'Enter',preventDefault(){}});assert.equal(r.C.settings.get('openKey'),'enter');
 });

@@ -73,11 +73,11 @@ Duplicates stack visually ("x3") in the inventory. No selling or converting in v
 
 ## 7. Save data
 
-Storage: `localStorage`, one key (`config.storage.key`), JSON, versioned.
+Storage: `localStorage`, main key `config.storage.key`, JSON, versioned. Stage 11b keeps one durable previous snapshot under `<key>.backup`; corrupt recovery remains under `<key>.corrupt`.
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "playerCode": "7K3F",
   "createdAt": 0,
   "packs": { "ready": 2, "timerStartedAt": null },
@@ -88,8 +88,9 @@ Storage: `localStorage`, one key (`config.storage.key`), JSON, versioned.
   "pendingReveal": null,
   "currency": 0,
   "tutorial": { "step": "welcome", "done": false },
-  "settings": { "reducedMotion": null },
-  "stats": { "packsOpened": 0 }
+  "settings": { "settingsVersion": 1, "motion": "auto", "quality": "high", "dots": "on", "cursorGlow": true, "idleFade": "2.5", "rarityColor": "color", "tilt": "normal", "revealSpeed": "normal", "serialOnFront": true, "openKey": "space", "cutAssist": "normal", "keyHints": true, "volume": 70, "muted": false, "nudgeDismissed": false },
+  "stats": { "packsOpened": 0 },
+  "inventoryUi": { "viewMode": "shelf", "sortMode": "catalog", "groupMode": "none", "showUnowned": true, "activeCollectionId": "all", "lastSelectedCardId": null, "pendingFocusCardId": null, "favorites": [], "collections": [], "customOrders": { "all": [], "favorites": [] } }
 }
 ```
 
@@ -97,7 +98,8 @@ Robustness:
 - Wrap all storage access in try/catch. If storage is unavailable, run in memory and show a small quiet notice.
 - If the save fails to parse, keep a copy under `<key>.corrupt`, then start fresh.
 - `save.schemaVersion` drives migrations in `src/core/state.js`.
-- Include export and import of the save as a JSON file in the polish stage (clearing browser data would otherwise erase the collection).
+- Data exports use `{app, schemaVersion, exportedAt, save, checksum}`. Import validates before preview, backs up before committing, and replaces through `save:replaced` without reloading. See 11-SETTINGS section 6 for confirmations and Undo.
+- Reset preserves normalized settings. A failed backup or durable replacement blocks the action; ordinary settings and tutorial saves retain the session fallback.
 - Save on every meaningful change (pack consumed, Keep pressed, tutorial step), not on a timer.
 
 ## 8. Browser title and favicon

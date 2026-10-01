@@ -11,6 +11,7 @@
   }
   C.saveFiles = {
     parse: parse,
+    download: download,
     exportText: function () { return JSON.stringify(C.state.current, null, 2) + '\n'; },
     export: function () { download(C.saveFiles.exportText(), 'cardable-save.json'); },
     exportBackup: function () { if (C.state.recovery) download(C.state.recovery.raw, 'cardable-save-recovery.json'); },
@@ -23,8 +24,7 @@
       catch (_) { throw new Error('Could not save a backup. Your current collection is unchanged.'); }
       if (!C.state.commit(candidate)) throw new Error('Could not save the import. Your current collection is unchanged.');
       C.events.emit('save:willReplace');
-      C.events.emit('save:reset', candidate);
-      C.events.emit('save:imported', candidate); C.events.emit('save:replaced', candidate);
+      C.events.emit('save:replaced', candidate);
       C.timers.tick();
       return candidate;
     }
