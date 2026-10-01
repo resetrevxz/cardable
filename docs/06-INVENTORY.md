@@ -52,4 +52,8 @@ All animation uses the shared scheduler and visible-time clock. Hidden tabs paus
 
 Dev fixture controls provide 60, 300, 500 and 1000 logical designs without changing the save. `tools/check-inventory-refresh.cjs` covers queries/preferences, geometry, focus, recovery and resources; Stage 7 retains detail contracts too. See `INVENTORY-REFRESH.md` for current evidence and manual acceptance. The browser preview tool blocked file://; screenshot, material quality and measured browser FPS remain unconfirmed.
 
-Deferred: multi-select, bulk actions, saved filters, drag-to-tab, collapsible groups, alphabetical index and onboarding hints. No market, selling, trading, prices, audio or variants.
+Deferred: multi-select, bulk actions, saved filters, drag-to-tab, collapsible groups, alphabetical index and onboarding hints. No market, selling, trading, prices or audio. Stage 12 adds cosmetic variants and Card Tags.
+
+## Stage 12 additions
+
+Current inventory uses schema-3 GPU/finish stacks, artwork-only card presentations, neutral Card Tags and finish search/filter/grouping. Favorite/membership/order and selection IDs are stack keys; individual serials remain stored instances. Detail tags track the selected serial while stack summary dates use the newest copy. Completion still counts GPU designs; All Cards counts rows and the summary reports owned finishes/variant copies. See VARIANTS-AND-TAGS.md for current identities, migration and accessibility.

@@ -3,12 +3,13 @@
   var node = C.packMarkup.node;
   function clamp(v,a,b) { return Math.max(a,Math.min(b,v)); }
   C.inventoryTiles = {
+    label: function(entry){return (entry.owned?entry.card.name:'Unknown '+entry.rarity.name+' card')+', '+(entry.variant?entry.variant.name:entry.owned?'Normal finish':'Undiscovered')+', '+entry.rarity.name+(entry.instances.length>1?', '+entry.instances.length+' copies':'')+(entry.isNew?', New':'')+(C.inventoryModel.current.favorites.indexOf(entry.stackKey)>=0?', Favorite':'');},
     create: function (entry, index, callbacks) {
       var el = node('div','inventory-tile'), pose = node('div','inventory-tile-pose',el), card = node('div','inventory-tile-card',pose);
-      el.dataset.cardId = entry.card.id; el.dataset.owned = entry.owned; el.setAttribute('role','option'); el.setAttribute('tabindex','-1');
+      el.dataset.cardId = entry.card.id; el.dataset.stackKey = entry.stackKey; el.dataset.owned = entry.owned; el.setAttribute('role','option'); el.setAttribute('tabindex','-1');
       var tile = { el:el, pose:pose, card:card, entry:entry, index:index, view:null, visual:null };
       if (entry.owned || entry.rarity.finish === 'secret') {
-        tile.view = C.cardView.create(entry.card,entry.instances[0] || { instanceId:'unknown-'+entry.card.id,cardId:entry.card.id,serial:'',seen:true }, { owned:entry.owned,autoFocus:false,autoStamp:false,keyboardFlip:false,shine:true });
+        tile.view = C.cardView.create(entry.card,entry.instances[0] || { instanceId:'unknown-'+entry.stackKey,cardId:entry.card.id,serial:'',seen:true }, { owned:entry.owned,autoFocus:false,autoStamp:false,keyboardFlip:false,shine:true,presentation:'art-only' });
         tile.visual=tile.view.el; tile.visual.setAttribute('tabindex','-1'); tile.visual.setAttribute('role','img'); tile.visual.setAttribute('aria-label',entry.owned ? entry.card.name : 'Unknown Secret card'); tile.view.setMode('lite');
       } else {
         tile.visual = node('div','inventory-mystery'); tile.visual.dataset.rarity = entry.rarity.id; tile.visual.dataset.colorMode = C.config.rarityColorMode;
@@ -21,28 +22,35 @@
         node('div','inventory-mystery-meta',tile.visual,(entry.generation ? entry.generation.name : '')+' · '+entry.rarity.name);
       }
       card.appendChild(tile.visual);
+      tile.tagRail=node('div','inventory-tag-rail',pose);
+      tile.caption=node('div','inventory-card-caption',pose);node('strong','',tile.caption);node('small','',tile.caption);
+      this.decorate(tile,entry);
       tile.count=node('span','inventory-stack-count',pose,entry.instances.length > 1 ? '×'+entry.instances.length : ''); tile.count.hidden=entry.instances.length<2;
       tile.newDot=node('span','inventory-new-dot',pose,'NEW'); tile.newDot.hidden=!entry.isNew;
       if (entry.instances.length>1) el.classList.add('has-stack');
-      el.setAttribute('aria-label',(entry.owned ? entry.card.name : 'Unknown '+entry.rarity.name+' card, '+entry.generation.name)+(entry.instances.length>1?', '+entry.instances.length+' copies':'')+(entry.isNew?', New':''));
+      el.setAttribute('aria-label',this.label(entry));
       el.addEventListener('click',function(event){ callbacks.activate(tile,event); });
       el.addEventListener('contextmenu',function(event){ event.preventDefault(); callbacks.context(tile,event); });
       el.addEventListener('pointerenter',function(){el.classList.add('is-hovered');}); el.addEventListener('pointerleave',function(){el.classList.remove('is-hovered');});
       el.addEventListener('keydown',function(event){ if(event.key==='Enter' && !event.repeat){event.preventDefault();callbacks.activate(tile,event);} if(event.key==='ContextMenu'||event.key==='F10'&&event.shiftKey){event.preventDefault();callbacks.context(tile,event);} });
       return tile;
     },
+    decorate:function(tile,entry){
+      var outset=entry.rarity.propOutset||{};tile.pose.style.setProperty('--tag-prop-top',(outset.top||0)*100+'%');tile.pose.style.setProperty('--tag-prop-bottom',(outset.bottom||0)*100+'%');
+      C.cardTags.render(tile.tagRail,entry,entry.instances[0],'compact');tile.caption.children[0].textContent=entry.owned?entry.card.name:'Unknown '+entry.rarity.name;tile.caption.children[1].textContent=entry.rarity.name+' · '+(entry.instances.length>1?entry.instances.length+' copies':entry.generation.name);
+    },
     destroy:function(tile){if(tile.view) tile.view.destroy(); if(tile.el.parentElement) tile.el.remove();},
     recycle:function(tile,entry,index){
       if(tile.view)tile.view.destroy();else if(tile.visual)tile.visual.remove();
       var next=this.create(entry,index,{activate:function(){},context:function(){}});
       tile.entry=entry;tile.index=index;tile.view=next.view;tile.visual=next.visual;tile.card.appendChild(next.visual);tile.card.style.visibility='';
-      tile.el.dataset.cardId=entry.card.id;tile.el.dataset.owned=entry.owned;tile.el.setAttribute('aria-label',next.el.getAttribute('aria-label'));
+      tile.el.dataset.cardId=entry.card.id;tile.el.dataset.stackKey=entry.stackKey;tile.el.dataset.owned=entry.owned;tile.el.setAttribute('aria-label',next.el.getAttribute('aria-label'));next.el.remove();
       tile.el.classList.toggle('has-stack',entry.instances.length>1);tile.el.classList.remove('is-acquired','is-hovered');tile.el.style.opacity='';tile.pose.style.translate='';this.refresh(tile,entry);
       return tile;
     },
-    refresh:function(tile,entry){tile.entry=entry;tile.count.textContent=entry.instances.length>1?'×'+entry.instances.length:'';tile.count.hidden=entry.instances.length<2;tile.newDot.hidden=!entry.isNew;tile.el.classList.toggle('has-stack',entry.instances.length>1);tile.el.setAttribute('aria-label',(entry.owned?entry.card.name:'Unknown '+entry.rarity.name+' card, '+entry.generation.name)+(entry.instances.length>1?', '+entry.instances.length+' copies':'')+(entry.isNew?', New':''));},
+    refresh:function(tile,entry){tile.entry=entry;this.decorate(tile,entry);tile.count.textContent=entry.instances.length>1?'×'+entry.instances.length:'';tile.count.hidden=entry.instances.length<2;tile.newDot.hidden=!entry.isNew;tile.el.classList.toggle('has-stack',entry.instances.length>1);tile.el.setAttribute('aria-label',this.label(entry));},
     take:function(tile){var result={entry:tile.entry,view:tile.view,visual:tile.visual,sourceRect:tile.card.getBoundingClientRect()};tile.view=null;tile.visual=null;tile.card.style.visibility='hidden';return result;},
-    restore:function(tile,event){tile.card.style.visibility='';tile.card.appendChild(event.visual);tile.view=event.view;tile.visual=event.visual;if(tile.view)tile.view.setMode('lite');}
+    restore:function(tile,event){tile.card.style.visibility='';tile.card.appendChild(event.visual);tile.view=event.view;tile.visual=event.visual;if(tile.view){tile.view.setPresentation('art-only');tile.view.setMode('lite');}}
   };
   C.inventoryShelf = {
     range:function(position,count){var center=clamp(Math.round(position),0,Math.max(0,count-1)),radius=C.config.inventoryMotion.overscan;return {center:center,min:Math.max(0,center-radius),max:Math.min(count-1,center+radius)};},
@@ -57,9 +65,9 @@
       var tileCallbacks={activate:function(tile,event){if(root.performance.now()<clickUntil||callbacks.blocked())return;snap(tile.index);callbacks.activate(tile,event);},context:callbacks.context};
       function paint(){
         dirty=false;var range=C.inventoryShelf.range(spring.value,entries.length);center=range.center;var min=range.min,max=range.max,pool=[];
-        tiles.forEach(function(tile,index){if(index<min||index>max||entries[index].card.id!==tile.entry.card.id){pool.push(tile);tiles.delete(index);}});
+        tiles.forEach(function(tile,index){if(index<min||index>max||entries[index].stackKey!==tile.entry.stackKey){pool.push(tile);tiles.delete(index);}});
         for(var i=min;i<=max;i++){
-          if(entries[i].card.id===detailId)continue;
+          if(entries[i].stackKey===detailId)continue;
           var tile=tiles.get(i);if(tile&&!tile.visual){C.inventoryTiles.destroy(tile);tiles.delete(i);tile=null;}if(!tile){tile=pool.length?C.inventoryTiles.recycle(pool.pop(),entries[i],i):C.inventoryTiles.create(entries[i],i,tileCallbacks);track.appendChild(tile.el);tiles.set(i,tile);}else C.inventoryTiles.refresh(tile,entries[i]);
           var delta=i-spring.value,d=Math.min(1,Math.abs(delta)),turn=C.motion.reduced?0:clamp(-delta*cfg.shelfTurnDegrees,-cfg.shelfTurnCap,cfg.shelfTurnCap);
           tile.el.style.transform='translate3d('+delta*pitch+'px,0,0)';tile.el.style.zIndex=String(20-Math.round(Math.abs(delta)));
@@ -82,15 +90,15 @@
       el.addEventListener('keydown',function(event){if(!active||callbacks.blocked()||event.target.closest('input,textarea,select'))return;var key=event.key,to=key==='Home'?0:key==='End'?entries.length-1:key==='PageUp'?center-5:key==='PageDown'?center+5:key==='ArrowLeft'?center-1:key==='ArrowRight'?center+1:null;if(to!=null){event.preventDefault();el.focus({preventScroll:true});snap(to);}else if(key==='Enter'&&event.target===el&&tiles.get(center)){event.preventDefault();tileCallbacks.activate(tiles.get(center),event);}});
       return {el:el,tiles:tiles,get center(){return center;},get position(){return spring.value;},get pitch(){return pitch;},get dragging(){return !!drag;},
         setActive:function(value){active=value;el.hidden=!value;tiles.forEach(function(t){if(t.view){t.view.setMode('lite');t.view.setVisible(value);}});dirty=true;},
-        setModel:function(next,id){cancel();entries=next;tiles.forEach(C.inventoryTiles.destroy);tiles.clear();var i=entries.findIndex(function(e){return e.card.id===id;});spring.reset(bounds(i<0?center:i));dirty=true;},
+        setModel:function(next,id){cancel();entries=next;tiles.forEach(C.inventoryTiles.destroy);tiles.clear();var i=entries.findIndex(function(e){return e.stackKey===id;});spring.reset(bounds(i<0?center:i));dirty=true;},
         refreshModel:function(next){entries=next;dirty=true;},
-        resize:function(height){cancel();width=clamp(Math.min(height-200,height*.62),80,360)*5/7;pitch=width+cfg.tileGapPx;el.style.setProperty('--inventory-tile-width',width+'px');el.style.setProperty('--inventory-tile-height',width*7/5+'px');dirty=true;},
-        focus:function(id,instant){var i=entries.findIndex(function(e){return e.card.id===id;});if(i>=0){snap(i);if(instant)spring.reset(i);}},
+        resize:function(height){cancel();width=clamp((height-144-156)/1.18,80,360)*5/7;pitch=width+cfg.tileGapPx;el.style.setProperty('--inventory-tile-width',width+'px');el.style.setProperty('--inventory-tile-height',width*7/5+'px');dirty=true;},
+        focus:function(id,instant){var i=entries.findIndex(function(e){return e.stackKey===id;});if(i>=0){snap(i);if(instant)spring.reset(i);}},
         update:function(now,dt){if(!active)return false;if(idle!=null){idle+=dt;if(idle>=cfg.wheelSnapMs)snap(spring.target);}var old=spring.value;if(!drag){if(C.motion.reduced){spring.value+= (spring.target-spring.value)*Math.min(1,dt/70);spring.velocity=0;if(Math.abs(spring.value-spring.target)<.001)spring.reset(spring.target);}else spring.step(dt,spring.target);}spring.value=bounds(spring.value);if(dirty||old!==spring.value)paint();return !spring.settled()||idle!=null||!!drag;},
-        rect:function(id){var tile=Array.from(tiles.values()).find(function(t){return t.entry.card.id===id;});return tile?tile.card.getBoundingClientRect():null;},
-        take:function(tile){detailId=tile.entry.card.id;return C.inventoryTiles.take(tile);},
-        reserve:function(id){detailId=id;tiles.forEach(function(t){if(t.entry.card.id===id){if(t.view)t.view.destroy();else if(t.visual)t.visual.remove();t.view=null;t.visual=null;t.card.style.visibility='hidden';}});dirty=true;},
-        restore:function(event){detailId=null;var tile=Array.from(tiles.values()).find(function(t){return t.entry.card.id===event.cardId;});if(tile){C.inventoryTiles.restore(tile,event);tile.el.focus({preventScroll:true});}else if(event.view)event.view.destroy();else event.visual.remove();dirty=true;},
+        rect:function(id){var tile=Array.from(tiles.values()).find(function(t){return t.entry.stackKey===id;});return tile?tile.card.getBoundingClientRect():null;},
+        take:function(tile){detailId=tile.entry.stackKey;return C.inventoryTiles.take(tile);},
+        reserve:function(id){detailId=id;tiles.forEach(function(t){if(t.entry.stackKey===id){if(t.view)t.view.destroy();else if(t.visual)t.visual.remove();t.view=null;t.visual=null;t.card.style.visibility='hidden';}});dirty=true;},
+        restore:function(event){detailId=null;var tile=Array.from(tiles.values()).find(function(t){return t.entry.stackKey===event.stackKey;});if(tile){C.inventoryTiles.restore(tile,event);tile.el.focus({preventScroll:true});}else if(event.view)event.view.destroy();else event.visual.remove();dirty=true;},
         cancel:cancel,clear:function(){cancel();tiles.forEach(C.inventoryTiles.destroy);tiles.clear();detailId=null;},snap:function(index){snap(index);},move:function(delta){setTarget(spring.target+delta);},settled:function(){return spring.settled();},get target(){return spring.target;}
       };
     }

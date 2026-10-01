@@ -37,7 +37,7 @@ cardable/
       save-files.js     legacy raw JSON and offline Blob downloads
       save-tools.js     checksum envelopes, backup, durable replacement and Undo
       data-checks.js    isolated dev Data safety checks
-      inventory-model.js  schema-2 preferences, favorites, collections, safe mutations (before state)
+      inventory-model.js  schema-3 stack preferences, favorites, collections, safe mutations (before state)
       collection.js     ownership projection and dev fixtures
       inventory-query.js  parsing, generated facets, filters, stable sorts and groups
       inventory-checks.js isolated dev regressions (after UI modules)
@@ -122,3 +122,7 @@ Warn (console plus a small panel) if: rarity chances do not sum to 100; a card r
 - `ui/pack.js` coordinates these controllers in its existing shared-loop subscription, maintains timer/stock presentation, and exposes an ephemeral pose snapshot for opening. Hidden/reveal/inventory contexts pause it. Detailed updates skip an unavailable rear pack.
 - `ui/opening.js` captures the idle pose before activating the opening context, then eases that pose into its existing charge stage. Commit, cancellation, pendingReveal and tear geometry retain their existing contracts.
 - Reduced motion retains silver material and timestamp fill, with no drag translation, tilt, overshoot or slosh. No save schema or gameplay changes belong to this presentation layer.
+
+## Stage 12 — Permanent variants and stack identities
+
+The variant data and core stack/roll helpers load before inventory-model/state; material bindings load before card views. Card Tags load after pack-markup and before opening/inventory/detail. Save schema 3 adds immutable per-instance variantId, migrates legacy preferences to normal stack keys and keeps settingsVersion 1. Inventory entries and handoff/selection events carry stackKey alongside base cardId, and acquisition handoffs carry instanceId. Named collection membership uses stackKeys. See VARIANTS-AND-TAGS.md for complete current contracts and material extension rules; earlier GPU-only inventory references above describe Stage 7.

@@ -103,3 +103,18 @@ Rendered critique is pending the permitted browser acceptance pass. These are fu
 10. Inspect the final toast exit at expiry with reduced motion enabled and disabled.
 
 The detail people would feel missing: the restore label retains its date/count after a cancelled confirmation. Those details explain exactly what the next click would restore.
+
+## Stage 12 screenshot critique — future refinements, ranked
+
+1. Profile accelerated-browser compositing of the existing card reflection before expanding optical complexity.
+2. Review Spotlight outlines under extreme tilt, particularly thin brackets and integrated chip portraits.
+3. Tune the final material lock at normal viewing distance; keep the alignment distinct without a harsh flash.
+4. Compare foil legibility against the darkest and lightest supplied GPU photographs.
+5. Review compact finish capsules at high display density, where etched edges can disappear.
+6. Check long localized unpacking dates in the narrow detail panel.
+7. Compare neighboring finish stacks of one GPU so the variants remain easy to distinguish without hover.
+8. Reassess grid row spacing for crown/flame cards alongside ordinary cards on tablets.
+9. Inspect the first artwork-only return frame in slow footage for a perceptible text-removal discontinuity.
+10. Review one-day-old New/Favorite stacks to keep status pictograms subordinate to the finish label.
+
+The detail people would feel missing: the flying card and destination share the same finish and serial stack, so the coating never changes during the handoff. That continuity makes the collection feel like physical objects rather than replaceable thumbnails.

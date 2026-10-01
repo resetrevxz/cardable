@@ -255,6 +255,6 @@ check('top guide draws while waiting; reduced motion sleeps and hidden tearing p
 check('shared scheduler is the only animation loop and market/audio remain absent', () => {
   const source = fs.readFileSync(path.join(__dirname, '../src/ui/opening.js'), 'utf8');
   assert(!source.includes('requestAnimationFrame(')); assert(!source.includes('setInterval(')); assert(source.includes('card:revealed')); assert(source.includes('card:kept'));
-  const r = setup(); assert.equal(r.C.config.flags.market, false); assert.equal(r.C.config.flags.audio, false); assert.equal(r.C.config.flags.variants, false);
+  const r = setup(); assert.equal(r.C.config.flags.market, false); assert.equal(r.C.config.flags.audio, false); assert.equal(r.C.config.flags.variants, true);
 });
 console.log('\n' + passed + ' Stage 5 behavior groups passed. Browser appearance, screenshots and measured FPS remain unverified.');

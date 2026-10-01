@@ -15,7 +15,7 @@ check('defaults, enums, booleans, finite volume and unknown-field removal',()=>{
  const r=boot(),s=r.C.settingsSchema.normalize({motion:'wrong',quality:null,cursorGlow:'true',volume:101,nudgeDismissed:1,extra:1});
  assert.equal(s.motion,'auto');assert.equal(s.quality,'high');assert.equal(s.cursorGlow,true);assert.equal(s.volume,100);assert.equal(s.nudgeDismissed,false);assert(!('extra'in s));
  assert.equal(r.C.settingsSchema.normalize({volume:-4}).volume,0);assert.equal(r.C.settingsSchema.normalize({volume:Infinity}).volume,70);
- assert.equal(r.C.state.current.settings.settingsVersion,1);assert.equal(r.C.state.current.schemaVersion,2);
+ assert.equal(r.C.state.current.settings.settingsVersion,1);assert.equal(r.C.state.current.schemaVersion,3);
 });
 check('legacy preferences migrate without touching game progress',()=>{
  const r=boot(),s=clone(r.C.state.current);s.settings={reducedMotion:false,rarityColorMode:'mono'};s.currency=123;const next=boot({save:s});next.reduced(true);

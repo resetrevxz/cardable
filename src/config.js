@@ -4,7 +4,8 @@
 
   C.config = {
     gameName: 'Cardable',
-    version: '1.0.0',
+    version: '1.1.0',
+    variants: { chance: 0.10, revealMs: 1200, reducedRevealMs: 180 },
 
     packs: {
       regenMs: 2 * 60 * 60 * 1000,   // One pack every two hours.
@@ -25,7 +26,7 @@
 
     serial: { prefix: 'CBL', counterDigits: 6, playerCodeLength: 4 },
 
-    storage: { key: 'cardable.save', schemaVersion: 2 },
+    storage: { key: 'cardable.save', schemaVersion: 3 },
 
     polish: {
       maxSaveBytes: 8 * 1024 * 1024, downloadReleaseMs: 1000, profileMs: 5000,
@@ -184,7 +185,7 @@
 
     flags: {
       market: false,     // future: the owner builds this later. Do not implement.
-      variants: false,   // not made yet
+      variants: true,
       audio: false       // no music or sound yet
     },
 

@@ -8,7 +8,7 @@ let passed = 0;
 async function check(name, fn) { try { await fn(); passed++; console.log('PASS ' + name); } catch (error) { console.error('FAIL ' + name); throw error; } }
 function save(pending = false) {
   const r = runtime(), data = clone(r.C.state.current); data.tutorial = { step: 'done', done: true }; data.serialCounter = 2;
-  const item = (i, cardId = r.C.data.cards[0].id) => ({ instanceId: 'owned-' + i, cardId, serial: r.C.serial.format(data.playerCode, i), pulledAt: i, seen: false });
+  const item = (i, cardId = r.C.data.cards[0].id) => ({ instanceId: 'owned-' + i, cardId, serial: r.C.serial.format(data.playerCode, i), pulledAt: i, seen: false, variantId: null });
   data.inventory = [item(1)];
   if (pending) data.pendingReveal = { packId: r.C.data.packs[0].id, committedAt: 10, cards: [item(2)], keptCount: 0 };
   return data;

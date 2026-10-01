@@ -12,11 +12,11 @@ Cardable is a local, offline, single-player HTML game. Players collect GPU cards
 ## Hard rules
 
 - **No market.** Do not build it, stub UI for it, or read `marketValueUsd`. The only allowed hooks are an empty `#market-slot` element and `config.flags.market = false`.
-- **No variants system. No music or sound (yet).** Both are flagged off in `src/config.js`.
+- **Variants are authorized in Stage 12. No music or sound (yet).** Variants are cosmetic, rolled once per new instance; audio remains flagged off in `src/config.js`.
 - **Offline and self-contained.** No network requests at runtime, no CDN links. Libraries go in `vendor/`, fonts in `assets/fonts/`.
 - **Must run by double-clicking `index.html`** (file://). Use classic `<script>` tags and the `window.Cardable` namespace. Do NOT use ES module imports; browsers block them on file://.
-- **Data-driven.** Cards, rarities, packs and generations live only in `src/data/`. UI code reads them through the registries and never hard-codes a card, tier or pack.
-- **Palette.** UI chrome is black, white and gray only. Rarity colors appear only on card faces (see `Designs.MD` section 4).
+- **Data-driven.** Cards, rarities, variants, packs and generations live only in `src/data/`. UI code reads them through the registries and never hard-codes a card, tier or pack.
+- **Palette.** UI chrome is black, white and gray only. Rarity and variant colors appear only on card faces (see `Designs.MD` section 4).
 - **Two fonts only:** Inter plus a mono (JetBrains Mono), both with system fallbacks.
 - **Never invent game rules.** If a rule is missing, use the default in `docs/OPEN-QUESTIONS.md` and say that you did.
 - Respect `prefers-reduced-motion`. Keep 60 fps: full card effects only on the focused card.

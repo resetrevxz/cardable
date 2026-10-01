@@ -23,6 +23,21 @@
     while (version < C.config.storage.schemaVersion) {
       if (version === 0) { value.schemaVersion = 1; version = 1; }
       else if (version === 1) { value.schemaVersion = 2; version = 2; }
+      else if (version === 2) {
+        var ui = value.inventoryUi && typeof value.inventoryUi === 'object' && !Array.isArray(value.inventoryUi) ? value.inventoryUi : {};
+        function legacyIds(ids) { return Array.isArray(ids) ? ids.filter(function(id){return typeof id === 'string' && id.length;}).map(function(id){return C.stacks.key(id,null);}) : []; }
+        ui.lastSelectedStackKey = ui.lastSelectedCardId ? C.stacks.key(ui.lastSelectedCardId, null) : null;
+        ui.pendingFocusStackKey = ui.pendingFocusCardId ? C.stacks.key(ui.pendingFocusCardId, null) : null;
+        delete ui.lastSelectedCardId; delete ui.pendingFocusCardId;
+        ui.collections = (Array.isArray(ui.collections) ? ui.collections : []).filter(function(c){return c && typeof c === 'object';});
+        ui.collections.forEach(function (c) { c.stackKeys = legacyIds(c.cardIds); delete c.cardIds; });
+        ui.favorites = legacyIds(ui.favorites);
+        if (!ui.customOrders || typeof ui.customOrders !== 'object' || Array.isArray(ui.customOrders)) ui.customOrders = {};
+        Object.keys(ui.customOrders || {}).forEach(function (key) { ui.customOrders[key] = legacyIds(ui.customOrders[key]); });
+        value.inventoryUi = ui;
+        (value.inventory || []).concat(value.pendingReveal && value.pendingReveal.cards || []).forEach(function (i) { if(i && typeof i === 'object') i.variantId = null; });
+        value.schemaVersion = 3; version = 3;
+      }
       else throw new Error('No migration from save schema ' + version);
     }
     var base = freshState(value.createdAt || Date.now());
@@ -62,6 +77,7 @@
     if (value.inventory !== undefined) require(Array.isArray(value.inventory), 'Invalid collection');
     ['tutorial', 'stats'].forEach(function (key) { if (value[key] !== undefined) require(value[key] && typeof value[key] === 'object' && !Array.isArray(value[key]), 'Invalid ' + key); });
     if (value.serialCounter !== undefined) require(integer(value.serialCounter), 'Invalid serial counter');
+    (Array.isArray(value.inventory) ? value.inventory : []).concat(value.pendingReveal && Array.isArray(value.pendingReveal.cards) ? value.pendingReveal.cards : []).forEach(function(i){if(i && i.variantId !== undefined && i.variantId !== null)require(typeof i.variantId === 'string' && !!C.variant(i.variantId), 'Unsupported card variant');});
     var candidate = migrate(value);
     require(typeof candidate.playerCode === 'string' && candidate.playerCode.length === C.config.serial.playerCodeLength &&
       Array.from(candidate.playerCode).every(function (c) { return C.serial.alphabet.indexOf(c) !== -1; }), 'Invalid player code');
@@ -74,6 +90,8 @@
       require(item && typeof item.instanceId === 'string' && item.instanceId.length > 0 && typeof item.cardId === 'string', 'Invalid card instance');
       require(!ids.has(item.instanceId), 'Repeated card instance'); ids.add(item.instanceId);
       require(typeof item.serial === 'string' && item.serial.length > 0 && !serials.has(item.serial), 'Invalid or repeated serial'); serials.add(item.serial);
+      if (item.variantId === undefined) item.variantId = null;
+      require(item.variantId === null || typeof item.variantId === 'string' && !!C.variant(item.variantId), 'Unsupported card variant');
       require(number(item.pulledAt) && typeof item.seen === 'boolean', 'Invalid card progress');
       if (reserved) require(!!C.card(item.cardId), 'Reserved card is outside this catalog');
       var parts = item.serial.split('-'), count = Number(parts[2]);

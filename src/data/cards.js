@@ -34,7 +34,7 @@
 
   function makeCard(row, index) {
     var id = row[0], shared = row[5] == null;
-    var art = suppliedImages.has(id) ? { kind: 'image', src: 'assets/cards/' + id + '.webp' } :
+    var art = suppliedImages.has(id) ? { kind: 'image', src: 'assets/cards/' + id + '.webp', subjectMask: 'assets/cards/masks/' + id + '.png' } :
       { kind: 'procedural', motif: row[8] || 'fan', seed: 3000 + index };
     return {
       id: id, name: row[1], generation: row[3], rarity: row[2],

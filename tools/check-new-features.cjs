@@ -146,7 +146,7 @@ check('rapid sorting stays bounded, preserves selection, pauses hidden and handl
   assert.equal(current(r).el.id, 'inventory-shelf-' + r.C.inventory.center);
 });
 check('version comes from config, settings expose it on hover/focus, and no runtime dependencies were added', () => {
-  const r = boot(); assert.equal(r.C.config.version, '1.0.0'); assert(r.document.body.querySelectorAll('.preferences-version').every(x => x.textContent === 'v1.0.0'));
+  const r = boot(); assert.equal(r.C.config.version, '1.1.0'); assert(r.document.body.querySelectorAll('.preferences-version').every(x => x.textContent === 'v1.1.0'));
   const css = fs.readFileSync('src/styles/polish.css', 'utf8'); assert(css.includes('.preferences-entry:hover .preferences-version'));
   const inventory = fs.readFileSync('src/ui/inventory.js', 'utf8'); assert(!inventory.includes('scrollLeft')); assert(!inventory.includes('requestAnimationFrame'));
   assert(!r.logs.some(x => x.level === 'error' || x.text.includes('FAIL')));

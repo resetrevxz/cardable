@@ -79,8 +79,8 @@ Big type is quiet: large size, light contrast steps, lots of empty space around 
 ## 4. Palette rules (important)
 
 - **UI chrome is black, white and gray only.** Backgrounds, glass, text, buttons, dots, cursor glow, toasts, the inventory sheet, the pack wrapper.
-- **The one exception is rarity finishes on card faces.** Each rarity defines its own colors and animation in `docs/02-RARITIES.md`. Those colors appear only on: the card face and its frame/props, the small tier badge on that card, and the soft light bloom behind a card during its reveal. Nothing else in the UI ever takes a rarity color.
-- Iridescence on the metallic foil is a silver-white shimmer with only faint cool and warm tints in the highlights. It never adds saturated color by itself.
+- **The exceptions are rarity finishes and variant coatings on card faces.** Each rarity defines its own colors and animation in `docs/02-RARITIES.md`. Those colors appear only on: the card face and its frame/props, the small tier badge on that card, and the soft light bloom behind a card during its reveal. Nothing else in the UI ever takes a rarity color.
+- Iridescence on the metallic foil is a silver-white shimmer with only faint cool and warm tints in the highlights. Normal foil never adds saturated color by itself. Owner-approved Rainbow Holo and Aurora coatings may use their specified colors on the card face; Card Tags remain neutral. Matte removes front reflections while retaining the rarity frame and props.
 - `config.rarityColorMode` = `"color"` (default) or `"mono"`. In `"mono"` every finish renders using only white/gray/black variations of its motion and pattern. Build finishes so both modes work.
 
 ## 5. Glass recipe

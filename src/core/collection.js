@@ -11,14 +11,16 @@
         if (!grouped.has(instance.cardId)) grouped.set(instance.cardId, []);
         grouped.get(instance.cardId).push(instance);
       });
-      var owned = 0;
-      var entries = catalog.filter(function (card) {
-        return !card.retired || (grouped.get(card.id) || []).length > 0;
-      }).map(function (card) {
-        var instances = (grouped.get(card.id) || []).slice().sort(function (a, b) { return (a.pulledAt || 0) - (b.pulledAt || 0) || String(a.instanceId).localeCompare(String(b.instanceId)); });
-        if (instances.length) owned += 1;
-        return { card: card, generation: generations.get(card.generation), rarity: rarities.get(card.rarity),
-          instances: instances, owned: instances.length > 0, isNew: instances.some(function (i) { return !i.seen; }) };
+      var owned = 0, ownedStacks = 0, variantCopies = 0, newCopies = 0, entries = [];
+      catalog.filter(function (card) { return !card.retired || (grouped.get(card.id) || []).length > 0; }).forEach(function (card) {
+        var all = grouped.get(card.id) || [], finishes = new Map();
+        all.forEach(function (i) { var id = i.variantId || null; if (!finishes.has(id)) finishes.set(id, []); finishes.get(id).push(i); if (id) variantCopies++; if (!i.seen) newCopies++; });
+        if (all.length) owned++; else finishes.set(null, []);
+        Array.from(finishes.keys()).sort(function (a,b) { return a === null ? -1 : b === null ? 1 : C.data.variants.findIndex(function(v){return v.id===a;})-C.data.variants.findIndex(function(v){return v.id===b;}); }).forEach(function (variantId) {
+          var instances = finishes.get(variantId).slice().sort(function (a,b) { return a.pulledAt-b.pulledAt || a.instanceId.localeCompare(b.instanceId); });
+          if (instances.length) ownedStacks++;
+          entries.push({ card: card, stackKey: C.stacks.key(card.id, variantId), variantId: variantId, variant: C.variant(variantId), generation: generations.get(card.generation), rarity: rarities.get(card.rarity), instances: instances, owned: instances.length > 0, isNew: instances.some(function(i){return !i.seen;}) });
+        });
       });
       entries.sort(function (a, b) {
         var generation = (a.generation ? a.generation.order : 0) - (b.generation ? b.generation.order : 0);
@@ -26,11 +28,11 @@
         return (order === 'rarity' ? tier || generation : generation || tier) || a.card.id.localeCompare(b.card.id);
       });
       entries.forEach(function (entry, index) { entry.catalogIndex = index; });
-      return { entries: entries, owned: owned, total: entries.length };
+      return { entries: entries, owned: owned, total: catalog.filter(function(c){return !c.retired || (grouped.get(c.id)||[]).length;}).length, stackCount: ownedStacks, variantCopies: variantCopies, newCopies: newCopies };
     },
     markSeen: function (cardId, inventory) {
       var changed = false;
-      inventory.forEach(function (instance) { if (instance.cardId === cardId && !instance.seen) { instance.seen = true; changed = true; } });
+      inventory.forEach(function (instance) { if (C.stacks.of(instance) === C.stacks.canonical(cardId) && !instance.seen) { instance.seen = true; changed = true; } });
       return changed;
     },
     preview: function (count) {
@@ -46,7 +48,7 @@
         if (i % (cfg.previewDuplicateMax + 1) !== 0) {
           for (var j = 0; j <= i % cfg.previewDuplicateMax; j++) instances.push({ cardId: card.id,
             instanceId: card.id + '-' + j, serial: C.serial.format(C.state.current.playerCode, i * cfg.previewDuplicateMax + j + 1),
-            pulledAt: i, seen: i % 2 === 0 });
+            pulledAt: Date.now() - i * 86400000, seen: i % 2 === 0, variantId: j ? C.data.variants[(i+j) % C.data.variants.length].id : null });
         }
       }
       return { cards: cards, instances: instances };

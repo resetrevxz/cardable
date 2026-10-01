@@ -1,7 +1,7 @@
 (function (C, root) {
   'use strict';
   var cfg, stage, host, glass, foil, halves, gap, hint, enterHint, status, error, seam, trails, particles, pack;
-  var cutGuide, cutTrack;
+  var cutGuide, cutTrack, variantLabel=null;
   var phase = 'idle', elapsed = 0, lastVisual = 0, chargeAt = 0, fill = 0, drainFrom = 0, pulseAt = 0;
   var path = [], hot = [], dirty = false, drag = null, split = null, cutIdle = 0, errorUntil = 0, savedFocus = null;
   var motion, scene, mount, bloom, keepButton, deleteButton, note, dust, currentView = null, rarity, timings, pendingCards = null;
@@ -54,7 +54,7 @@
     deleteButton.hidden = true; deleteButton.disabled = true;
     root.document.body.classList.toggle('is-collecting', next === 'collecting');
     if (next === 'idle' || next === 'rising') revealContext(false);
-    if (['preFlip', 'flipping', 'settling', 'revealed'].indexOf(next) !== -1) revealContext(true, next === 'preFlip' ? 0 : 1);
+    if (['preFlip', 'flipping', 'settling', 'variantReveal', 'revealed'].indexOf(next) !== -1) revealContext(true, next === 'preFlip' ? 0 : 1);
     C.fx.wake();
   }
   function bounds() {
@@ -230,6 +230,7 @@
     h = Math.max(1, h); sceneHeight = h; sceneWidth = h * 5 / 7; scene.style.setProperty('--reveal-height', h + 'px'); scene.style.setProperty('--reveal-width', sceneWidth + 'px');
     scene.style.setProperty('--reveal-center-y', Math.min(root.innerHeight / 2, root.innerHeight - h / 2 - motion.actionSpacePx) + 'px');
     scene.style.setProperty('--bloom-scale', motion.bloomScale);
+    if(variantLabel&&rarity)variantLabel.style.setProperty('--tag-prop-top',((rarity.propOutset?.top||0)*h)+'px');
   }
   function revealContext(active, strength) {
     stage.style.setProperty('--reveal-vignette', active && rarity && rarity.tier >= 7 && !C.motion.reduced ? C.config.polish.vignetteOpacity * (strength == null ? 1 : strength) : 0);
@@ -238,6 +239,7 @@
   }
   function cleanReveal() {
     if (currentView) currentView.destroy(); currentView = null;
+    if(variantLabel){variantLabel.remove();variantLabel=null;}
     flights.forEach(function (flight) { flight.view.destroy(); flight.el.remove(); }); flights = [];
     if (dust) dust.clear(); stats.particles = 0; if (scene) { scene.hidden = true; scene.style.transform = ''; }
     if (bloom) bloom.style.opacity = 0; if (keepButton) { keepButton.hidden = true; keepButton.disabled = true; }
@@ -254,13 +256,15 @@
   function bloomLevel() { return Math.min(1, rarity.reveal.bloom + (ownedCount ? 0 : rarity.reveal.bloom * C.config.polish.newBloomGain)); }
   function startReveal(recover) {
     var pending = C.state.current.pendingReveal; if (!pending || !pending.cards.length) { reset(); return; }
-    if (currentView) currentView.destroy();
+    if (currentView) currentView.destroy();if(variantLabel){variantLabel.remove();variantLabel=null;}
     cardIndex = Math.max(0, Math.min(pending.cards.length - 1, Math.floor(Number(pending.keptCount) || 0)));
     var instance = pending.cards[cardIndex], card = C.card(instance.cardId); rarity = C.rarity(card.rarity);
     ownedCount = C.state.current.inventory.filter(function (item) { return item.cardId === card.id; }).length + pending.cards.slice(0, cardIndex).filter(function (item) { return item.cardId === card.id && (pending.discardedInstanceIds || []).indexOf(item.instanceId) === -1; }).length;
     var speed = ownedCount && rarity.tier < 7 ? motion.duplicateMotionScale : 1;
     timings = Object.assign(C.settings.revealTiming(rarity.reveal, rarity.tier, speed), { settleMs: motion.settleMs * speed });
     currentView = C.cardView.create(card, instance, { controlledReveal: true, autoFocus: false, owned: true }); mount.appendChild(currentView.el); currentView.setMode('full');
+    currentView.setVariantProgress(recover ? 1 : 0);
+    if(instance.variantId){variantLabel=node('div','variant-reveal-label',mount);variantLabel.style.setProperty('--tag-prop-top',((rarity.propOutset?.top||0)*sceneHeight)+'px');C.cardTags.render(variantLabel,{card:card,rarity:rarity,owned:true,variantId:instance.variantId,stackKey:C.stacks.of(instance),isNew:false},instance,'compact');if(recover)variantLabel.classList.add('is-ready');}
     currentView.setFace(recover ? 'front' : 'back'); revealClock = 0; infoClock = 0; shineAt = null; keeping = false;
     var specs = C.cardSpecs.frontRows(card).length;
     infoEnd = Math.max(motion.serialDelayMs + instance.serial.length * C.config.cardView.stampCharMs + C.config.cardView.stampFlickerMs,
@@ -297,7 +301,7 @@
       var owned = new Set(candidate.inventory.map(function (item) { return item.instanceId; }));
       cards.forEach(function (item) { if (!owned.has(item.instanceId)) { candidate.inventory.push(item); owned.add(item.instanceId); } });
       candidate.pendingReveal = null;
-      if (cards.length) candidate.inventoryUi.pendingFocusCardId = cards[cards.length - 1].cardId;
+      if (cards.length) candidate.inventoryUi.pendingFocusStackKey = C.stacks.of(cards[cards.length - 1]);
     }
     C.events.emit('opening:prepareKeep', { candidate: candidate, final: final });
     writingKeep = true; var saved = C.state.commit(candidate); writingKeep = false;
@@ -317,10 +321,11 @@
     C.events.emit('menu:visibilityHold', { reason: 'collection-toast', active: false });
   }
   function beginCollect() {
+    if(variantLabel){variantLabel.remove();variantLabel=null;}currentView.setPresentation('art-only');
     stats.collections += 1; collected = false; currentView.setMode('lite'); currentView.setVisible(false);
     currentView.el.inert = true; currentView.el.style.opacity = 1; currentView.el.style.transform = 'scale(1)'; dust.clear();
     collectionSource = mount.getBoundingClientRect();
-    C.events.emit('inventory:handoffSource', { cardId: pendingCards[pendingCards.length - 1].cardId, rect: collectionSource });
+    C.events.emit('inventory:handoffSource', { cardId: pendingCards[pendingCards.length - 1].cardId, stackKey: C.stacks.of(pendingCards[pendingCards.length - 1]), instanceId: pendingCards[pendingCards.length - 1].instanceId, rect: collectionSource });
     var corner = parseFloat(root.getComputedStyle(currentView.el).getPropertyValue('--r-card'));
     toastThumb.style.setProperty('--thumbnail-radius', corner * motion.toastThumbnailWidthPx / collectionSource.width + 'px');
     var arrow = root.document.getElementById('inventory-affordance').querySelector('button'); collectionTarget = arrow.getBoundingClientRect();
@@ -403,9 +408,18 @@
       var land = clamp(infoClock / timings.settleMs);
       mount.style.transform = reduced ? 'none' : 'translateY(' + Math.sin(land * Math.PI * motion.bounceCycles) * (1 - land) * motion.bouncePx + 'px)';
       note.style.opacity = clamp((infoClock - infoEnd) / motion.infoFadeMs);
-      if (phase === 'settling' && land === 1 && infoClock >= infoEnd) phaseTo('revealed');
+      if (phase === 'settling' && land === 1 && infoClock >= infoEnd) phaseTo(currentView.instance.variantId ? 'variantReveal' : 'revealed');
       showKeep();
       return phase !== 'revealed' || infoClock < keepAt || (shineAt !== null && revealClock - shineAt < motion.shineMs) || dustActive;
+    }
+    if (phase === 'variantReveal') {
+      var duration=C.motion.reduced?C.config.variants.reducedRevealMs:C.config.variants.revealMs*(C.settings.get('revealSpeed')==='fast'?.7:1);
+      var fraction=clamp(elapsed/duration), coating=C.motion.reduced?fraction:clamp((fraction-.12)/.78);
+      var steps=[.12,.36,.55,.70,.81,.88,.94], snap=0;
+      if(!C.motion.reduced&&fraction<.94){for(var n=0;n<steps.length-1;n++){if(fraction>=steps[n]&&fraction<steps[n+1]){var k=(fraction-steps[n])/(steps[n+1]-steps[n]);snap=(1-k)*(7-n)*(n%2?-1:1);break;}}}
+      currentView.setVariantProgress(fraction>=.94?1:coating,snap);
+      if(fraction===1){currentView.setVariantProgress(1,0);variantLabel.classList.add('is-ready');infoClock=keepAt;phaseTo('revealed');showKeep();C.events.emit('card:variantRevealed',currentView.instance);}
+      return true;
     }
     if (phase === 'collecting') {
       p = clamp(elapsed / motion.collectMs);
@@ -435,7 +449,7 @@
     var toastActive = updateToast(dt);
     if (phase === 'idle') return errorUntil > 0 || toastActive;
     elapsed += dt;
-    if (currentView && ['rising', 'preFlip', 'flipping', 'settling', 'revealed'].indexOf(phase) !== -1) { revealClock += dt; if (phase === 'settling' || phase === 'revealed') infoClock = Math.min(keepAt, infoClock + dt); }
+    if (currentView && ['rising', 'preFlip', 'flipping', 'settling', 'variantReveal', 'revealed'].indexOf(phase) !== -1) { revealClock += dt; if (phase === 'settling' || phase === 'variantReveal' || phase === 'revealed') infoClock = Math.min(keepAt, infoClock + dt); }
     if (phase === 'charging') {
       fill = clamp((now - chargeAt) / C.config.hold.chargeMs); paintFluid(dt);
       glass.el.style.opacity = 1; foil.style.opacity = 0;
@@ -454,7 +468,7 @@
       if (drain === 1) { glass.el.style.opacity = 0; phaseTo('idle'); }
       return phase !== 'idle' || errorUntil > 0;
     }
-    if (['rising', 'preFlip', 'flipping', 'settling', 'revealed', 'collecting', 'discarding'].indexOf(phase) !== -1) return updateReveal(dt) || toastActive || errorUntil > 0;
+    if (['rising', 'preFlip', 'flipping', 'settling', 'variantReveal', 'revealed', 'collecting', 'discarding'].indexOf(phase) !== -1) return updateReveal(dt) || toastActive || errorUntil > 0;
     var particleActive = particles.update(dt); stats.particles = particles.count;
     paintCut(now);
     if (phase === 'dissolving') {

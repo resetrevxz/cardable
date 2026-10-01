@@ -27,3 +27,7 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 | 21 | Mobile and touch. | Desktop only in v1 | future |
 | 22 | The brief puts the serial on the card back; the settle sequence stamps it on the front. | Both: engraved on the back, small stamp on the front footer | `docs/03-CARD.md` |
 | 23 | Only `a` to `@` and `l` to `/` were specified for the logo morph. | Other letters use suggested glyphs | `config.logoMorph` |
+
+## Owner-approved Stage 12 defaults
+
+Variants are now in scope: one cosmetic variant per new instance with a flat 10% chance across Basic through Secret. Existing owned and reserved cards stay normal. Matte is Common and affects the front, preserving rarity borders/props. Finish stacks own their favorites, custom collections and reorder positions. Detailed metadata uses actual timestamps and serials; tags are neutral. The default transition is 1200 ms (180 ms reduced motion, 840 ms Fast). No new packs or manual rerolling. Conditional weights live in src/data/variants.js.

@@ -124,3 +124,7 @@ On settle, the front serial "prints": characters appear about 30-40 ms apart wit
 ## 8. Tests to run in dev
 
 Render one card of every tier in a `?dev=1` gallery page to check finishes, lite mode, and mono mode side by side.
+
+## 9. Stage 12 permanent coatings and Card Tags
+
+Variants are separate front materials layered inside the rarity rim, leaving attached props and the existing back intact. Read `VARIANTS-AND-TAGS.md` for the eleven finishes, Spotlight subject masks, Matte reflection policy, and shared mount/update/destroy/lite lifecycle. Inventory, peek, drag and transition cards use `presentation: 'art-only'`; detail restores the printed front. Tags sit above the full prop bounds and derive metadata from the selected serial or finish stack.

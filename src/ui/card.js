@@ -190,6 +190,8 @@
       var el = node('article', 'collectible-card');
       el.dataset.cardId = card.id; el.dataset.rarity = rarity.id; el.dataset.colorMode = context.colorMode;
       if (rarity.frontDesign) el.dataset.frontDesign = rarity.frontDesign;
+      el.dataset.variant = context.presentation.concealed ? 'normal' : instance.variantId || 'normal';
+      el.dataset.presentation = options.presentation || (options.thumbnail ? 'art-only' : 'full');
       el.dataset.mode = 'lite'; el.dataset.side = 'front'; el.dataset.visible = 'true';
       if (context.state) el.dataset.finishState = context.state;
       el.dataset.cursor = 'ring'; el.setAttribute('tabindex', 0); el.setAttribute('role', 'button');
@@ -204,11 +206,16 @@
       if (options.thumbnail) {
         el.dataset.thumbnail = 'true'; el.inert = true; el.setAttribute('tabindex', '-1'); el.setAttribute('aria-hidden', 'true');
         [front, back].forEach(function (face) {
-          face.el.querySelectorAll('.card__text, .card__prop').forEach(function (part) { while (part.children.length) part.children[0].remove(); part.hidden = true; });
+          face.el.querySelectorAll('.card__text').forEach(function (part) { while (part.children.length) part.children[0].remove(); part.hidden = true; });
         });
       }
       back.el.setAttribute('aria-hidden', 'true');
       flipper.appendChild(front.el); flipper.appendChild(back.el); tilter.appendChild(flipper); el.appendChild(tilter);
+      var variantBinding = null;
+      if (instance.variantId && !context.presentation.concealed) {
+        var coating = node('div', 'card__variant'), finishes = material(coating, 'card__variant-render');
+        variantBinding = C.variantMaterials.bind(instance.variantId, finishes.live, card, instance); finishes.lite.appendChild(variantBinding.lite()); front.el.appendChild(coating);
+      }
       var sx = C.springs.create(0), sy = C.springs.create(0), lift = C.springs.create(0);
       var pointer = { x: 0.5, y: 0.5 }, lastMove = root.performance.now(), idleTimer = null, stampTimer = null;
       var stamped = !!options.thumbnail || !!context.presentation.concealed, observer = null, renderedInfo = null, revealAngle = 180, revealReduced = null;
@@ -252,6 +259,8 @@
         revealControlled: !!options.controlledReveal, revealFrame: null, backScramble: false, revealAccent: context.presentation.revealAccent,
         finishState: context.state, description: context.presentation.description || '',
         stats: { updates: 0, stamps: 0 },
+        setPresentation: function (value) { if (value !== 'full' && value !== 'art-only') throw new Error('Unknown card presentation'); el.dataset.presentation = value; },
+        setVariantProgress: function (progress, snap) { el.style.setProperty('--variant-progress', clamp(progress, 0, 1)); el.style.setProperty('--variant-snap', (C.motion.reduced ? 0 : snap || 0) + 'px'); },
         applySettings: function () { var policy = C.settings.tiltPolicy; sx.configure({ stiffness: C.config.cardView.spring.stiffness * policy.stiffness }); sy.configure({ stiffness: C.config.cardView.spring.stiffness * policy.stiffness }); },
         applyMode: function (mode) {
           if (view.mode === mode) return;
@@ -407,9 +416,10 @@
           if (Math.abs(ry) > cap) { ry = clamp(ry, -cap, cap); sy.value = ry; sy.velocity = 0; }
           var raised = lift.step(dt, reduced ? 0 : cfg.focusedLift, reduced ? cfg.reducedDamping : undefined);
           pose(rx, ry, raised); stats.updates += 1; view.stats.updates += 1;
+          var variantMoving = !reduced && view.side === 'front' && variantBinding && variantBinding.update(dt, pointer);
           var finishMoving = !reduced && view.side === 'front' && front.finish.update(dt, pointer);
           if (!options.controlledReveal && options.autoStamp !== false && !stamped && sx.settled() && sy.settled() && lift.settled()) view.stamp();
-          return interacting || sway || finishMoving || !sx.settled() || !sy.settled() || !lift.settled();
+          return interacting || sway || finishMoving || variantMoving || !sx.settled() || !sy.settled() || !lift.settled();
         },
         pointer: function (event) {
           if (C.motion.reduced || view.mode !== 'full' || !view.visible) return;
@@ -422,7 +432,7 @@
           if (view.destroyed) return;
           view.setMode('lite'); view.destroyed = true;
           root.clearTimeout(idleTimer); root.clearTimeout(stampTimer);
-          if (observer) observer.disconnect(); front.finish.destroy(); views.delete(view); el.remove();
+          if (observer) observer.disconnect(); front.finish.destroy(); if (variantBinding) variantBinding.destroy(); views.delete(view); el.remove();
         }
       };
       views.add(view); pose(0, 0, 0);

@@ -77,3 +77,13 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 - Every replacement refreshes modules through save:replaced without reloading the page.
 
 **Accept:** focused Data safety and lifecycle checks in SETTINGS-11B.md; rendered glass/hold/download interactions and actual file-open behavior require the manual acceptance pass. Stage 11a remains a separate committed checkpoint.
+
+## Stage 12 — Variants and Card Tags
+
+**Docs:** VARIANTS-AND-TAGS, 03-CARD, 06-INVENTORY, 01-GAME-RULES.
+
+- Eleven permanent cosmetic finishes, independent 10% chance on every new pull, separate finish stacks and a dedicated accelerating coating reveal.
+- Artwork-only inventory and transition cards; shared premium metadata tags, finish search/filter/grouping, finish-specific favorites/collections.
+- Save schema 3; migration, checksum imports, backups, Restore and Undo preserve progress without rerolling old cards.
+
+**Accept:** check-variants.cjs plus real file:// Playwright coverage; screenshot review, all 132 rarity/variant combinations, hidden Secret, mobile crown clearance and bounded multi-finish inventory. See VARIANTS-AND-TAGS-QA for measured evidence and limits.

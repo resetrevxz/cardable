@@ -41,7 +41,8 @@ pullCard(pack):
        "downgrade" (default): move to the next lower tier that has cards
        "renormalize": redo step 1 using only tiers that have cards
   3. card = uniform pick among the tier's pullable cards
-  4. instance = { instanceId, cardId, serial, pulledAt, seen: false }
+  4. variantId = independent 10% gate, then weighted finish selection (else null)
+  5. instance = { instanceId, cardId, variantId, serial, pulledAt, seen: false }
 ```
 
 - Weights are normalized by their sum. In dev mode, log a warning if the chances do not sum to 100 (they currently sum to 100.5, see OPEN-QUESTIONS #2).
@@ -52,7 +53,7 @@ pullCard(pack):
 
 ## 3. Inventory model (built for a future market)
 
-Every pulled card is a unique **instance** with its own serial. Stacks ("x3") are a display grouping by `cardId`, not merged data. The owner-approved Delete action discards a revealed instance before collection; its serial is never reused. Keep/Delete require a durable write. Mixed decisions in multi-card packs persist their progress and collect only kept instances.
+Every pulled card is a unique **instance** with its own serial. Stacks ("x3") are a display grouping by `[cardId, variantId]`, not merged data. The owner-approved Delete action discards a revealed instance before collection; its serial is never reused. Keep/Delete require a durable write. Mixed decisions in multi-card packs persist their progress and collect only kept instances.
 
 ## 4. Serial numbers
 
@@ -77,20 +78,20 @@ Storage: `localStorage`, main key `config.storage.key`, JSON, versioned. Stage 1
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "playerCode": "7K3F",
   "createdAt": 0,
   "packs": { "ready": 2, "timerStartedAt": null },
   "serialCounter": 0,
   "inventory": [
-    { "instanceId": "…", "cardId": "gen1-basic-01", "serial": "CBL-7K3F-000001", "pulledAt": 0, "seen": false }
+    { "instanceId": "…", "cardId": "gen1-basic-01", "serial": "CBL-7K3F-000001", "pulledAt": 0, "seen": false, "variantId": null }
   ],
   "pendingReveal": null,
   "currency": 0,
   "tutorial": { "step": "welcome", "done": false },
   "settings": { "settingsVersion": 1, "motion": "auto", "quality": "high", "dots": "on", "cursorGlow": true, "idleFade": "2.5", "rarityColor": "color", "tilt": "normal", "revealSpeed": "normal", "serialOnFront": true, "openKey": "space", "cutAssist": "normal", "keyHints": true, "volume": 70, "muted": false, "nudgeDismissed": false },
   "stats": { "packsOpened": 0 },
-  "inventoryUi": { "viewMode": "shelf", "sortMode": "catalog", "groupMode": "none", "showUnowned": true, "activeCollectionId": "all", "lastSelectedCardId": null, "pendingFocusCardId": null, "favorites": [], "collections": [], "customOrders": { "all": [], "favorites": [] } }
+  "inventoryUi": { "viewMode": "shelf", "sortMode": "catalog", "groupMode": "none", "showUnowned": true, "activeCollectionId": "all", "lastSelectedStackKey": null, "pendingFocusStackKey": null, "favorites": [], "collections": [], "customOrders": { "all": [], "favorites": [] } }
 }
 ```
 
@@ -113,4 +114,4 @@ Needed to test 0.005 % rarities. Available only when `?dev=1`: a tiny mono panel
 
 ## 10. Out of scope for v1
 
-Market, trading, variants, music and sound, mobile/touch layouts, accounts, cloud saves.
+Market, trading, music and sound, mobile/touch layouts, accounts, cloud saves.

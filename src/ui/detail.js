@@ -1,6 +1,6 @@
 (function (C, root) {
   'use strict';
-  var cfg, overlay, mount, panel, closeButton, flipButton, serialText, previous, next, positionLabel;
+  var cfg, overlay, mount, panel, closeButton, flipButton, serialText, previous, next, positionLabel,topTags,detailTags;
   var payload = null, view = null, visual = null, serialIndex = 0, side = 'front', phase = 'closed', spring, from, to;
   var shineAge = 0, drag = null, dragSpring, panelOpacity = 0, swapping = null, fadeMs, returnPanelFrom = 1, returnBackdropFrom = 1;
   var node = C.packMarkup.node;
@@ -17,11 +17,11 @@
     var margin = cfg.safeMarginPx, width = root.innerWidth, height = root.innerHeight;
     var outset = payload.entry.rarity.propOutset || {}, above = outset.top || 0, below = outset.bottom || 0, sides = outset.side || 0;
     var stacked = width < cfg.detailStackWidthPx;
-    var cardHeight = Math.min(height * cfg.detailHeightVh / 100, (height - margin * 2) / (1 + above + below), (width - margin * 2) / (1 + sides * 2) * 7 / 5);
+    var cardHeight = Math.min(height * cfg.detailHeightVh / 100, (height - margin * 2 - 36) / (1 + above + below), (width - margin * 2) / (1 + sides * 2) * 7 / 5);
     if (stacked) cardHeight = Math.min(cardHeight, height * cfg.detailStackHeightVh / 100);
     var cardWidth = cardHeight * 5 / 7, groupWidth = cardWidth * (1 + sides * 2) + (stacked ? 0 : cfg.detailGapPx + cfg.detailInfoWidthPx);
     var rect = { left: (width - groupWidth) / 2 + sides * cardWidth,
-      top: (stacked ? margin : (height - cardHeight * (1 + above + below)) / 2) + above * cardHeight, width: cardWidth, height: cardHeight };
+      top: (stacked ? margin + 36 : (height - cardHeight * (1 + above + below) + 36) / 2) + above * cardHeight, width: cardWidth, height: cardHeight };
     panel.style.width = (stacked ? Math.min(cfg.detailInfoWidthPx, width - margin * 2) : cfg.detailInfoWidthPx) + 'px';
     panel.style.left = (stacked ? (width - Math.min(cfg.detailInfoWidthPx, width - margin * 2)) / 2 : rect.left + cardWidth * (1 + sides) + cfg.detailGapPx) + 'px';
     panel.style.top = (stacked ? rect.top + cardHeight * (1 + below) + cfg.detailGapPx / 2 : rect.top) + 'px';
@@ -45,6 +45,7 @@
     var entry = payload.entry, generation = entry.generation;
     node('p', 'detail-kicker', panel, generation ? generation.name : entry.card.generation);
     node('h1', 'detail-name', panel, entry.owned ? entry.card.name : '???');
+    detailTags=node('div','detail-tags',panel);
     if (entry.owned) {
       var tier = node('div', 'detail-tier', panel); node('span', 'detail-badge', tier, entry.rarity.code);
       var meter = node('div', 'detail-meter', tier); meter.setAttribute('aria-label', 'Tier ' + entry.rarity.tier + ' of 12');
@@ -65,10 +66,10 @@
     C.inventoryIcons.button('next', 'Next card', function () { navigate(1); }, actions);
     if (entry.owned && !payload.preview) {
       var favorite = C.inventoryIcons.button('favorite', 'Favorite card', function () {
-        C.inventoryModel.favorite(payload.entry.card.id);
-        favorite.setAttribute('aria-pressed', C.inventoryModel.current.favorites.indexOf(payload.entry.card.id) >= 0);
+        C.inventoryModel.favorite(payload.entry.stackKey);
+        favorite.setAttribute('aria-pressed', C.inventoryModel.current.favorites.indexOf(payload.entry.stackKey) >= 0);syncSerial();
       }, actions);
-      favorite.setAttribute('aria-pressed', C.inventoryModel.current.favorites.indexOf(entry.card.id) >= 0);
+      favorite.setAttribute('aria-pressed', C.inventoryModel.current.favorites.indexOf(entry.stackKey) >= 0);
       var collections = C.inventoryIcons.button('collection', 'Add to collection', function () { C.events.emit('inventory:detailMembership', { entry: payload.entry, anchor: collections }); }, actions);
     }
     var browser = node('div', 'detail-serial-browser', panel); browser.hidden = !entry.owned;
@@ -79,10 +80,12 @@
     previous.addEventListener('click', function () { browse(-1); }); next.addEventListener('click', function () { browse(1); });
     flipButton = node('button', 'detail-flip glass', panel); flipButton.setAttribute('type', 'button'); flipButton.setAttribute('aria-label', 'Flip card'); flipButton.setAttribute('aria-pressed', 'false'); flipButton.hidden = !entry.owned; icon(flipButton, 'M19 10a7 7 0 1 0-1 7M19 5v5h-5');
     flipButton.addEventListener('click', flip);
-    syncSerial(); panel.scrollTop = scrollPositions.get(entry.card.id) || 0;
+    syncSerial(); panel.scrollTop = scrollPositions.get(entry.stackKey) || 0;
   }
   function syncSerial() {
     var instances = payload.entry.instances;
+    C.cardTags.render(detailTags,payload.entry,instances[serialIndex],'detail');
+    if(!topTags)topTags=node('div','detail-top-tags',mount);mount.style.setProperty('--tag-prop-top',(payload.entry.rarity.propOutset?.top||0)*100+'%');C.cardTags.render(topTags,payload.entry,instances[serialIndex],'compact');
     serialText.textContent = instances.length ? instances[serialIndex].serial : '';
     positionLabel.textContent = instances.length > 1 ? (serialIndex + 1) + ' / ' + instances.length : '';
     previous.disabled = serialIndex === 0; next.disabled = serialIndex >= instances.length - 1;
@@ -90,13 +93,13 @@
   }
   function open(event) {
     if (phase !== 'closed') return;
-    payload = event; view = event.view; visual = event.visual; serialIndex = 0; side = 'front';
+    payload = event; if(payload.entry.owned)payload.entry.isNew=false; view = event.view; visual = event.visual; serialIndex = 0; side = 'front';
     overlay.hidden = false; overlay.inert = false; panelOpacity = 0; panel.style.opacity = 0;
     C.accessibility.trap(overlay);
     overlay.style.setProperty('--detail-dim', 0); root.document.body.style.setProperty('--detail-focus', 0);
     mount.appendChild(visual); from = event.sourceRect; to = detailRect(); spring.reset(0); dragSpring.reset(0);
     phase = 'lifting'; shineAge = 0; fillPanel(); pose(from, C.motion.reduced ? 0 : 1);
-    if (view) { view.setVisible(true); view.setFace('front'); view.setMode('full'); }
+    if (view) { view.setPresentation('full'); view.setVisible(true); view.setFace('front'); view.setMode('full'); }
     root.document.body.classList.add('inventory-detail-active'); C.events.emit('inventory:detailContext', { active: true });
     focus(closeButton); C.fx.wake();
   }
@@ -118,9 +121,9 @@
     if (phase !== 'detail' || swapping) return;
     var request = { delta: delta }; C.events.emit('inventory:detailNavigate', request);
     if (!request.entry) return;
-    scrollPositions.set(payload.entry.card.id, panel.scrollTop || 0);
+    scrollPositions.set(payload.entry.stackKey, panel.scrollTop || 0);
     var old = view; if (old) old.destroy(); else if (visual) visual.remove();
-    payload.entry = request.entry; payload.preview = request.preview; serialIndex = 0; side = 'front';
+    payload.entry = request.entry; if(payload.entry.owned)payload.entry.isNew=false; payload.preview = request.preview; serialIndex = 0; side = 'front';
     var entry = payload.entry;
     if (entry.owned || entry.rarity.finish === 'secret') {
       view = C.cardView.create(entry.card, entry.instances[0] || { instanceId: 'unknown-' + entry.card.id, cardId: entry.card.id, serial: '', seen: true }, { owned: entry.owned, autoFocus: false, keyboardFlip: false, autoStamp: false, shine: true });
@@ -141,18 +144,18 @@
   }
   function close() {
     if (phase === 'closed' || phase === 'returning') return;
-    scrollPositions.set(payload.entry.card.id, panel.scrollTop || 0);
+    scrollPositions.set(payload.entry.stackKey, panel.scrollTop || 0);
     releaseDrag(null, true); if (C.inventory.toolbar) C.inventory.toolbar.close();
-    var target = { cardId: payload.entry.card.id, rect: null }; C.events.emit('inventory:returnTarget', target);
+    var target = { cardId: payload.entry.card.id, stackKey: payload.entry.stackKey, rect: null }; C.events.emit('inventory:returnTarget', target);
     returnPanelFrom = panelOpacity; returnBackdropFrom = clamp(spring.value, 0, 1);
     from = currentRect(); from.top += dragSpring.value; to = target.rect || payload.sourceRect;
     spring.reset(0); dragSpring.reset(0); phase = 'returning';
-    if (view) { view.setMode('lite'); view.setShine(0); }
+    if (view) { view.setPresentation('art-only'); view.setMode('lite'); view.setShine(0); }
     if (swapping) { swapping.old.destroy(); swapping = null; visual.style.opacity = 1; }
     C.fx.wake();
   }
   function finish() {
-    var result = { cardId: payload.entry.card.id, view: view, visual: visual };
+    var result = { cardId: payload.entry.card.id, stackKey: payload.entry.stackKey, view: view, visual: visual };
     if (view) view.setFace('front');
     phase = 'closed'; overlay.hidden = true; overlay.inert = true; root.document.body.classList.remove('inventory-detail-active');
     C.accessibility.release(overlay);
@@ -227,7 +230,7 @@
       C.events.on('inventory:detailOpen', open); C.events.on('detail:requestClose', close); C.events.on('detail:reset', reset);
       C.events.on('preferences:context', function (event) { preferencesActive = event.active; if (preferencesActive) releaseDrag(null, true); });
       C.events.on('motion:changed', function () { if (phase !== 'closed') C.fx.wake(); });
-      root.addEventListener('resize', function () { if (phase === 'closed') return; from = currentRect(); if (phase === 'returning') { var target = { cardId: payload.entry.card.id }; C.events.emit('inventory:returnTarget', target); to = target.rect || payload.sourceRect; } else to = detailRect(); spring.reset(0); C.fx.wake(); });
+      root.addEventListener('resize', function () { if (phase === 'closed') return; from = currentRect(); if (phase === 'returning') { var target = { cardId: payload.entry.card.id, stackKey: payload.entry.stackKey }; C.events.emit('inventory:returnTarget', target); to = target.rect || payload.sourceRect; } else to = detailRect(); spring.reset(0); C.fx.wake(); });
       C.detail.el = overlay; C.detail.mount = mount; C.detail.panel = panel; C.detail.closeButton = closeButton;
       C.fx.subscribe(update, 'detail');
     }

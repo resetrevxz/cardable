@@ -94,3 +94,7 @@ Use `reveal` values from `docs/02-RARITIES.md`. Commons are quick; higher tiers 
 ## 6. Dot grid and cursor during the sequence
 
 See `docs/07-DOT-GRID-CURSOR.md`. Summary: hold ripples while charging, normal near-cursor dots while cutting, grid dims to `gridDim` from `preFlip` on, cursor glow off during the flip.
+
+## 7. Stage 12 variant transformation
+
+Roll one cosmetic finish after GPU selection, with an independent 10% gate. Persist `variantId` with the reserved serial in the original opening commit. Existing committed reveals migrate to Normal. After the ordinary front reveal settles, a variant enters `variantReveal` for 1200 ms (840 ms with Fast reveal, 180 ms with reduced motion): normal hold, accelerating coating alignment snaps, final lock and settle. Keep/Delete remain gated until the final tag appears. A reload recovers the final saved finish immediately without another roll, reward or animation. See `VARIANTS-AND-TAGS.md` and its QA report.

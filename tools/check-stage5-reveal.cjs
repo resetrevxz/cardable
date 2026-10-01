@@ -120,7 +120,7 @@ check('reset and replay clean up holds/views without rerolling or changing count
 check('existing ten-layer stack and classic offline loading are retained',()=>{
  const r=open();ready(r);assert.equal(r.C.opening.view.el.querySelectorAll('.card__face--front')[0].children.length,9);assert.equal(r.C.opening.view.el.querySelectorAll('.card__face--back')[0].children.length,9);
  const source=fs.readFileSync(path.join(__dirname,'../src/ui/opening.js'),'utf8');assert(!source.includes('requestAnimationFrame('));assert(!source.includes('setInterval('));assert(!source.includes('marketValueUsd'));
- assert.equal(r.C.config.flags.market,false);assert.equal(r.C.config.flags.audio,false);assert.equal(r.C.config.flags.variants,false);
+ assert.equal(r.C.config.flags.market,false);assert.equal(r.C.config.flags.audio,false);assert.equal(r.C.config.flags.variants,true);
 });
 check('New adds exactly 200ms at the final hold while low-tier duplicate info delays remain readable',()=>{
  const r=open();ready(r);const info=r.C.opening.infoClock;

@@ -40,7 +40,7 @@
       if (!eligible.length) throw new Error('No cards available for selected tier or downgrade policy');
       var card = eligible[Math.floor(random() * eligible.length)];
       var serial = options.allocateSerial ? options.allocateSerial() : C.serial.next();
-      return { instanceId: C.randomId('card'), cardId: card.id, serial: serial, pulledAt: Date.now(), seen: false };
+      return { instanceId: C.randomId('card'), cardId: card.id, serial: serial, pulledAt: Date.now(), seen: false, variantId: C.variants.roll(random) };
     }
   };
 })(window.Cardable);
