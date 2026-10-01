@@ -52,7 +52,7 @@ pullCard(pack):
 
 ## 3. Inventory model (built for a future market)
 
-Every pulled card is a unique **instance** with its own serial. Stacks ("x3") are a display grouping by `cardId`, not merged data. Nothing is ever deleted in v1.
+Every pulled card is a unique **instance** with its own serial. Stacks ("x3") are a display grouping by `cardId`, not merged data. The owner-approved Delete action discards a revealed instance before collection; its serial is never reused. Keep/Delete require a durable write. Mixed decisions in multi-card packs persist their progress and collect only kept instances.
 
 ## 4. Serial numbers
 
@@ -63,8 +63,9 @@ Every pulled card is a unique **instance** with its own serial. Stacks ("x3") ar
 
 ## 5. Currency
 
-- Name and symbol come from `config.currency` (placeholder values, OPEN-QUESTIONS #11).
-- v1: displayed only, starts at 0, count-up animation on change. Expose `Cardable.currency.add(n)` but wire **no** earning or spending yet.
+- Name and symbol come from `config.currency`: Credits, displayed with `$`.
+- Starts at 0. Every newly opened pack pays `config.currency.packOpenReward` (**$200**) at charge completion, in the same durable write that consumes the pack and reserves its results. Cancelled holds and failed commits pay nothing. Reload/replay and Keep/Delete never pay again. No backfill is applied to old saved openings.
+- The balance counts up while silver coins fly from the pack to the counter. Reduced motion uses a static reward receipt and count-up. No market or new spending UI is introduced.
 
 ## 6. Duplicates
 

@@ -48,10 +48,9 @@
     node('div', 'pack-graphic-caption', printLayer, 'GRAPHICS / ARCHIVE');
     var pool = C.data.generations.map(function (g) { return String(g.order); }).join(' / ');
     node('div', 'pack-pool', printLayer, 'GENERATION POOL  ' + pool);
-    node('div', 'pack-count', printLayer, pack.cardsPerPack + ' GPU ' + (pack.cardsPerPack === 1 ? 'CARD' : 'CARDS'));
     node('div', 'pack-security', printLayer, design.security || 'CBL / SEALED');
     node('div', 'pack-series', printLayer, 'SERIES ' + (design.series || '01') + '   /   ' + (design.batch || pack.id.toUpperCase()));
-    node('div', 'pack-microprint', printLayer, design.microprint || 'Digital sealed pack');
+    if (design.microprint) node('div', 'pack-microprint', printLayer, design.microprint);
     node('div', 'pack-open-mark', printLayer, '↑  OPEN / SEAL');
     return printLayer;
   }

@@ -21,7 +21,7 @@
 
     rarityColorMode: 'color',                 // 'color' | 'mono'             (OPEN-QUESTIONS #3)
 
-    currency: { name: 'Credits', symbol: '' },   // placeholder                 (OPEN-QUESTIONS #11)
+    currency: { name: 'Credits', symbol: '$', packOpenReward: 200, rewardFlightMs: 1100, rewardHoldMs: 1700, rewardCoins: 6 },
 
     serial: { prefix: 'CBL', counterDigits: 6, playerCodeLength: 4 },
 
@@ -107,18 +107,18 @@
       idleMs: 3000, swayDegrees: 1.2, swaySpeed: 0.45, liftPx: 16, focusedLift: 0.7,
       specularSpeed: 1.5, lampInfluence: 0.12,
       crossfadeMs: 150, stampCharMs: 35, stampFlickerMs: 100, meterTickMs: 40,
-      meterSegments: 12, maxFrontSpecs: 3, sparkleCount: 18
+      meterSegments: 12, maxFrontSpecs: 3, maxScreenSpecs: 4, sparkleCount: 18
     },
 
     // Reveal presentation only. Rarity pacing remains in each rarity's reveal data.
     revealMotion: {
-      heightVh: 62, viewportMarginPx: 64, risePortion: 0.12, riseScale: 1.06, riseTurnDegrees: 6,
+      heightVh: 62, viewportMarginPx: 64, actionSpacePx: 96, risePortion: 0.12, riseScale: 1.06, riseTurnDegrees: 6,
       flipScale: 1.08, flipLiftPx: 12, flipOvershootDegrees: 3, flipOvershootAt: 0.8, airShadowBlurPx: 36,
       shineMs: 700, shineAngleDegrees: 20, shineTravelPercent: 220,
       settleMs: 1200, bouncePx: 7, bounceCycles: 2, dustCount: 12, dustSpreadPx: 60, dustRisePx: 20,
       serialDelayMs: 180, infoStepMs: 80, infoFadeMs: 150, keepDelayMs: 400,
       newHoldMs: 200, duplicateMotionScale: 0.85, secretBackMs: 400,
-      collectMs: 900, thumbnailStaggerMs: 80, thumbnailWidthPx: 40, toastThumbnailWidthPx: 34,
+      collectMs: 900, discardMs: 300, thumbnailStaggerMs: 80, thumbnailWidthPx: 40, toastThumbnailWidthPx: 34,
       collectionHandoffMs: 150, collectionExitScale: 0.96,
       toastMs: 2400, menuReturnDelayMs: 200, arrowPulseMs: 500, arrowPulseScale: 1.15,
       packSlideMs: 500, packSlidePx: 12, haloRadiusPx: 260, haloStrength: 0.32,
@@ -153,6 +153,7 @@
     },
 
     finishMotion: {
+      common: { cycleMs: 7200 },
       superRare: { cycleMs: 12000, travelPercent: 12 },
       unusual: { cycleMs: 5500, glowMinScale: 0.35, glowMinOpacity: 0.4 },
       doubleSuperRare: { goldCycleMs: 9000, blueCycleMs: 27000, sparkleCount: 20,

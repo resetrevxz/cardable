@@ -96,6 +96,10 @@
         typeof pending.packId === 'string' && !!C.pack(pending.packId) && number(pending.committedAt), 'Invalid reserved pack');
       pending.cards.forEach(function (item) { instance(item, true); });
       require(pending.keptCount === undefined || integer(pending.keptCount) && pending.keptCount < pending.cards.length, 'Invalid reserved pack progress');
+      if (pending.discardedInstanceIds !== undefined) {
+        require(Array.isArray(pending.discardedInstanceIds) && new Set(pending.discardedInstanceIds).size === pending.discardedInstanceIds.length &&
+          pending.discardedInstanceIds.every(function (id) { return pending.cards.slice(0, pending.keptCount || 0).some(function (item) { return item.instanceId === id; }); }), 'Invalid discarded pack cards');
+      }
     }
     if (strict) require(candidate.serialCounter >= maxCounter, 'Serial counter precedes existing cards');
     else candidate.serialCounter = Math.max(candidate.serialCounter, maxCounter);

@@ -12,17 +12,18 @@
   }
   function append(parent, tag, attrs) { var el = shape(tag, attrs); parent.appendChild(el); return el; }
   function procedural(card) {
-    var rng = random(card.art.seed), svg = shape('svg', { viewBox: '0 0 400 280', role: 'img', 'aria-label': 'Original procedural GPU composition for ' + card.name });
+    var portrait = C.rarity(card.rarity).frontDesign === 'full-art';
+    var rng = random(card.art.seed), svg = shape('svg', { viewBox: portrait ? '0 0 400 560' : '0 0 400 280', role: 'img', 'aria-label': 'Original procedural GPU composition for ' + card.name });
     var background = append(svg, 'g', { class: 'gpu-art__board' });
-    append(background, 'rect', { x: 0, y: 0, width: 400, height: 280, rx: 12 });
+    append(background, 'rect', { x: 0, y: 0, width: 400, height: portrait ? 560 : 280, rx: 12 });
     var traces = append(svg, 'g', { class: 'gpu-art__traces', fill: 'none' });
     for (var i = 0; i < 36; i += 1) {
-      var startX = 15 + rng() * 370, startY = 16 + rng() * 248;
+      var startX = 15 + rng() * 370, startY = 16 + rng() * (portrait ? 520 : 248);
       var endX = 100 + rng() * 200, endY = 75 + rng() * 140, bend = startX + (endX - startX) * 0.4;
       append(traces, 'path', { d: 'M' + startX + ' ' + startY + 'H' + bend + 'V' + endY + 'H' + endX, opacity: 0.2 + rng() * 0.6 });
       append(traces, 'circle', { cx: startX, cy: startY, r: 1.6 });
     }
-    var hardware = append(svg, 'g', { transform: 'translate(200 141) rotate(-12)', class: 'gpu-art__hardware' });
+    var hardware = append(svg, 'g', { transform: portrait ? 'translate(200 245) rotate(-18) scale(1.35)' : 'translate(200 141) rotate(-12)', class: 'gpu-art__hardware' });
     append(hardware, 'rect', { x: -117, y: -83, width: 234, height: 166, rx: 14, class: 'gpu-art__shadow' });
     append(hardware, 'rect', { x: -110, y: -84, width: 220, height: 156, rx: 11, class: 'gpu-art__plate' });
     var fins = append(hardware, 'g', { class: 'gpu-art__fins' });

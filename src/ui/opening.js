@@ -3,7 +3,7 @@
   var cfg, stage, host, glass, foil, halves, gap, hint, enterHint, status, error, seam, trails, particles, pack;
   var phase = 'idle', elapsed = 0, lastVisual = 0, chargeAt = 0, fill = 0, drainFrom = 0, pulseAt = 0;
   var path = [], hot = [], dirty = false, drag = null, split = null, cutIdle = 0, errorUntil = 0, savedFocus = null;
-  var motion, scene, mount, bloom, keepButton, note, dust, currentView = null, rarity, timings, pendingCards = null;
+  var motion, scene, mount, bloom, keepButton, deleteButton, note, dust, currentView = null, rarity, timings, pendingCards = null;
   var cardIndex = 0, ownedCount = 0, revealClock = 0, infoClock = 0, shineAt = null, infoEnd = 0, keepAt = 0, sceneWidth = 0, sceneHeight = 0;
   var keeping = false, writingKeep = false, collected = false, flights = [], toast, toastView = null, toastAge = null, collectionSource, collectionTarget;
   var toastThumb, toastName, toastDetail;
@@ -50,6 +50,7 @@
     if (next === 'cutting') { announce('Drag across the foil wrapper, or press Enter to tear.'); focus(host); }
     if (next === 'revealed') announce(C.card(C.state.current.pendingReveal.cards[cardIndex].cardId).name + '. ' + note.textContent + '.');
     keepButton.hidden = true; keepButton.disabled = true;
+    deleteButton.hidden = true; deleteButton.disabled = true;
     root.document.body.classList.toggle('is-collecting', next === 'collecting');
     if (next === 'idle' || next === 'rising') revealContext(false);
     if (['preFlip', 'flipping', 'settling', 'revealed'].indexOf(next) !== -1) revealContext(true, next === 'preFlip' ? 0 : 1);
@@ -106,6 +107,9 @@
         allocateSerial: function () { candidate.serialCounter += 1; return C.serial.format(candidate.playerCode, candidate.serialCounter); }
       }));
       candidate.stats.packsOpened += 1;
+      var before = candidate.currency;
+      candidate.currency += C.config.currency.packOpenReward;
+      if (!Number.isSafeInteger(candidate.currency)) throw new Error('Currency exceeds its safe range');
       candidate.pendingReveal = { packId: pack.id, cards: cards, committedAt: now, keptCount: 0 };
       C.events.emit('opening:prepareCommit', candidate);
       if (!C.state.commit(candidate)) throw new Error('durable save unavailable');
@@ -115,6 +119,7 @@
     }
     if (forced) C.dev.consumeForcedTier();
     stats.commits += 1; fill = 1;
+    C.events.emit('pack:reward', { before: before, value: candidate.currency, amount: C.config.currency.packOpenReward, source: host.getBoundingClientRect() });
     C.events.emit('pack:opened', { ready: candidate.packs.ready }); C.events.emit('charge:complete', candidate.pendingReveal);
     phaseTo('dissolving'); particles.emit('dissolve', null, width, height);
   }
@@ -212,6 +217,7 @@
   function revealBounds() {
     var h = Math.min(root.innerHeight * motion.heightVh / 100, root.innerHeight - motion.viewportMarginPx * 2, (root.innerWidth - motion.viewportMarginPx * 2) * 7 / 5);
     h = Math.max(1, h); sceneHeight = h; sceneWidth = h * 5 / 7; scene.style.setProperty('--reveal-height', h + 'px'); scene.style.setProperty('--reveal-width', sceneWidth + 'px');
+    scene.style.setProperty('--reveal-center-y', Math.min(root.innerHeight / 2, root.innerHeight - h / 2 - motion.actionSpacePx) + 'px');
     scene.style.setProperty('--bloom-scale', motion.bloomScale);
   }
   function revealContext(active, strength) {
@@ -224,12 +230,14 @@
     flights.forEach(function (flight) { flight.view.destroy(); flight.el.remove(); }); flights = [];
     if (dust) dust.clear(); stats.particles = 0; if (scene) { scene.hidden = true; scene.style.transform = ''; }
     if (bloom) bloom.style.opacity = 0; if (keepButton) { keepButton.hidden = true; keepButton.disabled = true; }
+    if (deleteButton) { deleteButton.hidden = true; deleteButton.disabled = true; }
     pendingCards = null; shineAt = null; revealContext(false);
   }
   function updateBloom() {
     if (!currentView) return;
     currentView.setColorMode(C.config.rarityColorMode);
-    var accent = C.config.rarityColorMode === 'mono' ? 'white' : currentView.revealAccent || root.getComputedStyle(currentView.el).getPropertyValue('--art-accent').trim() || 'white';
+    var style = root.getComputedStyle(currentView.el);
+    var accent = C.config.rarityColorMode === 'mono' ? 'white' : currentView.revealAccent || style.getPropertyValue('--border-accent').trim() || style.getPropertyValue('--art-accent').trim() || 'white';
     bloom.style.setProperty('--reveal-accent', accent);
   }
   function bloomLevel() { return Math.min(1, rarity.reveal.bloom + (ownedCount ? 0 : rarity.reveal.bloom * C.config.polish.newBloomGain)); }
@@ -238,12 +246,12 @@
     if (currentView) currentView.destroy();
     cardIndex = Math.max(0, Math.min(pending.cards.length - 1, Math.floor(Number(pending.keptCount) || 0)));
     var instance = pending.cards[cardIndex], card = C.card(instance.cardId); rarity = C.rarity(card.rarity);
-    ownedCount = C.state.current.inventory.filter(function (item) { return item.cardId === card.id; }).length + pending.cards.slice(0, cardIndex).filter(function (item) { return item.cardId === card.id; }).length;
+    ownedCount = C.state.current.inventory.filter(function (item) { return item.cardId === card.id; }).length + pending.cards.slice(0, cardIndex).filter(function (item) { return item.cardId === card.id && (pending.discardedInstanceIds || []).indexOf(item.instanceId) === -1; }).length;
     var speed = ownedCount && rarity.tier < 7 ? motion.duplicateMotionScale : 1;
     timings = { riseMs: rarity.reveal.riseMs * speed, preFlipPauseMs: rarity.reveal.preFlipPauseMs * speed, flipMs: rarity.reveal.flipMs * speed, settleMs: motion.settleMs * speed };
     currentView = C.cardView.create(card, instance, { controlledReveal: true, autoFocus: false, owned: true }); mount.appendChild(currentView.el); currentView.setMode('full');
     currentView.setFace(recover ? 'front' : 'back'); revealClock = 0; infoClock = 0; shineAt = null; keeping = false;
-    var specs = C.cardSpecs.rows(card).slice(0, C.config.cardView.maxFrontSpecs).length;
+    var specs = C.cardSpecs.frontRows(card).length;
     infoEnd = Math.max(motion.serialDelayMs + instance.serial.length * C.config.cardView.stampCharMs + C.config.cardView.stampFlickerMs,
       motion.serialDelayMs + motion.infoStepMs * (specs + 3) + (C.config.cardView.meterSegments - 1) * C.config.cardView.meterTickMs + motion.infoFadeMs);
     keepAt = Math.max(timings.settleMs, infoEnd + motion.keepDelayMs) + (ownedCount ? 0 : motion.newHoldMs);
@@ -261,31 +269,36 @@
     if (phase !== 'revealed' || infoClock < keepAt || keeping) return;
     var first = keepButton.hidden || keepButton.disabled;
     keepButton.hidden = false; keepButton.disabled = false;
+    deleteButton.hidden = false; deleteButton.disabled = false;
     if (first) C.events.emit('opening:keepReady');
     if (first && C.input.modality === 'keyboard') focus(keepButton);
   }
-  function keep() {
+  function keep(discard) {
+    discard = discard === true;
     if (preferencesActive || phase !== 'revealed' || keeping || keepButton.hidden || keepButton.disabled || root.document.hidden) return;
     var candidate = JSON.parse(JSON.stringify(C.state.current)), pending = candidate.pendingReveal;
     if (!pending || (Number(pending.keptCount) || 0) !== cardIndex) return;
-    keeping = true; keepButton.disabled = true; pending.keptCount = cardIndex + 1;
-    var final = pending.keptCount >= pending.cards.length, cards = pending.cards.slice();
+    keeping = true; keepButton.disabled = true; deleteButton.disabled = true; pending.keptCount = cardIndex + 1;
+    if (discard) { pending.discardedInstanceIds = pending.discardedInstanceIds || []; pending.discardedInstanceIds.push(pending.cards[cardIndex].instanceId); }
+    var final = pending.keptCount >= pending.cards.length, discarded = pending.discardedInstanceIds || [];
+    var cards = pending.cards.filter(function (item) { return discarded.indexOf(item.instanceId) === -1; }), decided = pending.cards[cardIndex];
     if (final) {
       var owned = new Set(candidate.inventory.map(function (item) { return item.instanceId; }));
       cards.forEach(function (item) { if (!owned.has(item.instanceId)) { candidate.inventory.push(item); owned.add(item.instanceId); } });
       candidate.pendingReveal = null;
-      candidate.inventoryUi.pendingFocusCardId = cards[cards.length - 1].cardId;
+      if (cards.length) candidate.inventoryUi.pendingFocusCardId = cards[cards.length - 1].cardId;
     }
     C.events.emit('opening:prepareKeep', { candidate: candidate, final: final });
     writingKeep = true; var saved = C.state.commit(candidate); writingKeep = false;
     if (!saved) {
-      keeping = false; keepButton.disabled = false; error.textContent = 'Could not save. Your card is still reserved. Try Keep again.';
+      keeping = false; keepButton.disabled = false; deleteButton.disabled = false; error.textContent = 'Could not save. Your card is still reserved. Try again.';
       errorUntil = root.performance.now() + cfg.errorMs; announce(error.textContent); C.fx.wake(); return;
     }
-    stats.keeps += 1; var kept = cards[cardIndex];
+    if (!discard) stats.keeps += 1;
     if (!final) startReveal(false);
-    else { pendingCards = cards; beginCollect(); }
-    C.events.emit('card:kept', kept);
+    else if (cards.length) { pendingCards = cards; beginCollect(); }
+    else { currentView.setMode('lite'); currentView.el.inert = true; phaseTo('discarding'); announce('Card deleted. Pack reward kept.'); }
+    C.events.emit(discard ? 'card:discarded' : 'card:kept', decided);
   }
   function closeToast() {
     if (toastView) toastView.destroy(); toastView = null; toastAge = null;
@@ -335,6 +348,12 @@
     if (!currentView) return false;
     var reduced = C.motion.reduced, p, pose, angle, h = sceneHeight;
     var dustActive = dust.update(dt); stats.particles = dust.count;
+    if (phase === 'discarding') {
+      p = clamp(elapsed / motion.discardMs); mount.style.opacity = 1 - ease(p);
+      mount.style.transform = reduced ? 'none' : 'translateY(' + ease(p) * 16 + 'px) scale(' + (1 - ease(p) * .04) + ')';
+      if (p === 1) { cleanReveal(); phaseTo('idle'); host.style.visibility = ''; C.events.emit('pack:handoff'); }
+      return phase !== 'idle';
+    }
     if (phase === 'rising') {
       p = clamp(elapsed / timings.riseMs); pose = { y: (1 - ease(p)) * h * motion.risePortion, scale: 1 + (motion.riseScale - 1) * ease(p), turn: Math.sin(p * Math.PI) * motion.riseTurnDegrees };
       scene.style.opacity = reduced ? ease(p) : 1;
@@ -424,7 +443,7 @@
       if (drain === 1) { glass.el.style.opacity = 0; phaseTo('idle'); }
       return phase !== 'idle' || errorUntil > 0;
     }
-    if (['rising', 'preFlip', 'flipping', 'settling', 'revealed', 'collecting'].indexOf(phase) !== -1) return updateReveal(dt) || toastActive || errorUntil > 0;
+    if (['rising', 'preFlip', 'flipping', 'settling', 'revealed', 'collecting', 'discarding'].indexOf(phase) !== -1) return updateReveal(dt) || toastActive || errorUntil > 0;
     var particleActive = particles.update(dt); stats.particles = particles.count;
     paintCut(now);
     if (phase === 'dissolving') {
@@ -491,6 +510,8 @@
       note = node('div', 'opening-card-note', scene);
       keepButton = node('button', 'opening-keep glass', scene, 'Keep'); keepButton.setAttribute('type', 'button'); keepButton.hidden = true;
       keepButton.addEventListener('click', function () { C.input.keep(); });
+      deleteButton = node('button', 'opening-delete glass', scene, 'Delete'); deleteButton.setAttribute('type', 'button'); deleteButton.hidden = true;
+      deleteButton.setAttribute('aria-label', 'Delete this revealed card'); deleteButton.addEventListener('click', function () { C.input.discard(); });
       toast = node('aside', 'collection-toast glass', root.document.body); toast.setAttribute('role', 'status');
       toastThumb = node('div', 'collection-toast-thumb', toast); toastThumb.style.width = motion.toastThumbnailWidthPx + 'px'; toastThumb.setAttribute('aria-hidden', 'true'); toastThumb.inert = true;
       var toastText = node('div', 'collection-toast-text', toast);
@@ -499,12 +520,14 @@
       meniscus = C.springs.create(0); bounds(); revealBounds();
       C.opening.el = stage; C.opening.wrapper = host; C.opening.glass = glass; C.opening.foil = foil; C.opening.halves = halves;
       C.opening.scene = scene; C.opening.keepButton = keepButton; C.opening.note = note; C.opening.toast = toast;
+      C.opening.deleteButton = deleteButton;
       C.opening.hint = hint; C.opening.enterHint = enterHint; C.opening.seam = seam; C.opening.error = error;
       root.document.getElementById('pack-stage').setAttribute('role', 'button');
       C.events.on('input:chargeStart', chargeStart); C.events.on('input:chargeEnd', chargeEnd); C.events.on('input:cancel', function (event) { cancel(event.reason); });
       C.events.on('inventory:context', function (event) { inventoryBlocked = event.active; });
       C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
       C.events.on('input:keep', keep);
+      C.events.on('input:discard', function () { keep(true); });
       C.events.on('input:cutStart', cutStart); C.events.on('input:cutMove', cutMove); C.events.on('input:cutEnd', release); C.events.on('input:tear', tear);
       host.addEventListener('lostpointercapture', function () { release(); });
       host.addEventListener('pointerenter', function () { if (phase === 'cutting') blade(true); });

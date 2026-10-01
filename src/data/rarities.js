@@ -15,8 +15,8 @@
       id: 'basic', tier: 0, code: 'B', name: 'Basic', group: 'Common Tiers',
       chance: 46.5, pullable: true, targetCardCount: 34,
       description: 'A basic card with no distinction.',
-      designSpec: 'A basic white color', propSpec: null,
-      finish: 'basic',
+      designSpec: 'A basic white color which changes to gray based on viewing angles', propSpec: null,
+      finish: 'basic', frontDesign: 'full-art',
       reveal: { riseMs: 900, preFlipPauseMs: 0, flipMs: 700, bloom: 0, gridDim: 0.6, shiftPx: 0 },
       marketValueUsd: null   // source said ">1$" (probably "<$1")
     },
@@ -24,8 +24,8 @@
       id: 'common', tier: 1, code: 'C', name: 'Common', group: 'Common Tiers',
       chance: 23.5, pullable: true, targetCardCount: 23,
       description: 'Common cards found in almost every pack.',
-      designSpec: 'A basic gray color', propSpec: null,
-      finish: 'common',
+      designSpec: 'A gray color that spins around the card border in a shiny white outline', propSpec: null,
+      finish: 'common', frontDesign: 'full-art',
       reveal: { riseMs: 900, preFlipPauseMs: 0, flipMs: 750, bloom: 0, gridDim: 0.6, shiftPx: 0 },
       marketValueUsd: null   // source said ">1$"
     },
@@ -33,8 +33,8 @@
       id: 'uncommon', tier: 2, code: 'UC', name: 'Uncommon', group: 'Common Tiers',
       chance: 15, pullable: true, targetCardCount: 18,
       description: 'More uncommon than common cards, but still usual.',
-      designSpec: 'A basic lime color at the start fading to light green', propSpec: null,
-      finish: 'uncommon',
+      designSpec: 'A basic lime color going to gradient green, and changes from green to dark green based on moving it', propSpec: null,
+      finish: 'uncommon', frontDesign: 'full-art',
       reveal: { riseMs: 950, preFlipPauseMs: 0, flipMs: 800, bloom: 0.1, gridDim: 0.65, shiftPx: 0 },
       marketValueUsd: null   // source said ">1$"
     },
@@ -43,7 +43,7 @@
       chance: 7.5, pullable: true, targetCardCount: 39,
       description: 'A rare card mostly found in rare card packs.',
       designSpec: 'A light blue shade with sparkles going to a less light blue without sparkles', propSpec: null,
-      finish: 'rare',
+      finish: 'rare', frontDesign: 'full-art',
       reveal: { riseMs: 1000, preFlipPauseMs: 300, flipMs: 900, bloom: 0.2, gridDim: 0.7, shiftPx: 0 },
       marketValueUsd: 1.1
     },
@@ -53,7 +53,7 @@
       description: 'A super rare card mostly found rarely in rare card packs.',
       designSpec: 'A blue color with ocean-like animated waves on the blue going/fading to a darker blue with a checkerbox pattern non-animated',
       propSpec: null,
-      finish: 'super-rare',
+      finish: 'super-rare', frontDesign: 'full-art',
       reveal: { riseMs: 1050, preFlipPauseMs: 350, flipMs: 1000, bloom: 0.3, gridDim: 0.75, shiftPx: 0 },
       marketValueUsd: 6.3
     },
@@ -63,7 +63,7 @@
       description: 'A strangely unique unusual card to come across.',
       designSpec: 'A purple color with animated white shining coming from the top with slowly boosting down and up (the white)',
       propSpec: null,
-      finish: 'unusual',
+      finish: 'unusual', frontDesign: 'full-art',
       reveal: { riseMs: 1100, preFlipPauseMs: 350, flipMs: 1050, bloom: 0.35, gridDim: 0.78, shiftPx: 0 },
       marketValueUsd: 8.9
     },
@@ -73,7 +73,7 @@
       description: 'A double super rare card found rarest in rare card packs',
       designSpec: 'A dark blue checkerbox pattern moving to a gold color with animated sparkles and the gold shifting colors with the dark blue following too slowly',
       propSpec: null,
-      finish: 'double-super-rare',
+      finish: 'double-super-rare', frontDesign: 'full-art',
       reveal: { riseMs: 1200, preFlipPauseMs: 400, flipMs: 1150, bloom: 0.45, gridDim: 0.8, shiftPx: 0 },
       marketValueUsd: 12.5
     },

@@ -2,6 +2,8 @@
 
 The most important sequence in the game. Build it as a state machine driven by a single timeline, with the pull already decided (`docs/01-GAME-RULES.md`).
 
+Owner-approved remake pass 1 adds **Delete** beside Keep after the same reveal delay. Delete durably resolves the current reserved instance, fades the card away, and returns to the menu without an inventory flight or collection pulse. A pack now awards **$200** in its charge-completion write; a separate silver coin flight heads to the balance. Failed writes preserve both stock and balance. Recovery exposes both decisions and does not pay again. Actions remain within the viewport on short windows. In future multi-card packs, discarded IDs are saved alongside the existing decision count, and only kept instances enter inventory.
+
 ## 1. States
 
 ```

@@ -5,7 +5,9 @@
     for (var i = 0; i < C.config.cardView.sparkleCount; i += 1) {
       var star = root.document.createElement('i');
       star.className = 'finish-sparkle';
-      star.style.left = (8 + random() * 84) + '%'; star.style.top = (5 + random() * 38) + '%';
+      var side = i % 4, along = 7 + random() * 86;
+      star.style.left = (side === 0 ? 1.4 : side === 1 ? 98.6 : along) + '%';
+      star.style.top = (side >= 2 ? 1.1 : along * 0.56) + '%';
       var phase = random() * Math.PI * 2, strength = 0.25 + random() * 0.6;
       star.style.opacity = strength;
       element.appendChild(star); stars.push({ el: star, phase: phase, strength: strength });

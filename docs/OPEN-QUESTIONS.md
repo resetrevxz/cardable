@@ -14,14 +14,14 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 | 8 | Many tiers will have no cards while the card set is small. | `downgrade`: an empty tier falls to the next lower tier that has cards | `config.pull.emptyTierPolicy` |
 | 9 | What do silhouettes show? | Card outline plus generation label, name hidden (`???`). Unowned Secret shows its Unfound design. | `docs/06-INVENTORY.md` section 3 |
 | 10 | Market values for Basic/Common read ">1$" (probably "<$1"). Card counts add up to 286, not the stated 289. | Values stored but reserved, never read. Counts are reference only. | `rarities.js` |
-| 11 | Currency name, symbol, earning and spending are not defined. | Placeholder name "Credits", display only, no earning or spending in v1 | `config.currency` |
+| 11 | Currency name, symbol, earning and spending are not defined. | Owner approved $200 per pack opening; retain name Credits and use `$`. No new spending UI. | `config.currency` |
 | 12 | Can duplicates be sold or converted? | No. They stack visually only. | future |
 | 13 | Limited tier: pull chance and dates are undefined. | `pullable: false`, `availableUntil: null`, date text shown as `<date>` until set | `rarities.js` |
 | 14 | What happens to the timer when 4 packs are stored? | Timer pauses at the cap; time is not banked | `docs/01-GAME-RULES.md` section 1 |
 | 15 | Cutting: hover-slide or press-and-drag? | Press and drag | `config.cut.requirePress` |
 | 16 | The tier text mentions "rare card packs". How many pack types now? | One pack type (`standard`). A disabled second entry shows the pattern. | `src/data/packs.js` |
 | 17 | The Limited design text is identical to Unusual. Intended? | Treated as intended: Unusual-style base plus crimson border prop | `docs/02-RARITIES.md` tier 12 |
-| 18 | Which specs appear on a card? | VRAM plus up to 3 of: cores, boost clock, memory bus, power. Full list in the detail view. | `src/ui/card-specs.js` |
+| 18 | Which specs appear on a card? | Remade tiers 0–6: memory capacity/type plus up to 4 available specs, using icons. Remaining tiers keep up to 3 until pass 2. | `src/ui/card-specs.js` |
 | 19 | Font files must be supplied. | Inter and JetBrains Mono woff2 in `assets/fonts/`; fallbacks work without them | `assets/fonts/` |
 | 20 | "Squircle" corners are not fully supported in all browsers. | `corner-shape: squircle` where available, else SVG path clip | `card.css` |
 | 21 | Mobile and touch. | Desktop only in v1 | future |

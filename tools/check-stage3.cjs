@@ -49,7 +49,7 @@ check('Unusual white top glow extends then retracts over a 5.5-second cycle', ()
   definition.destroy(state); assert.equal(host.children.length, 0);
 });
 
-check('Double Super Rare drifts gold faster than blue and twinkles only in its gold region', () => {
+check('Double Super Rare drifts gold faster than blue and places sparkles along its frame', () => {
   const definition = C.finishes.registry['double-super-rare'], host = new r.Element('div');
   const state = definition.mount(host, view('double-super-rare').card, { colorMode: 'color' });
   definition.update(0, {}, state); const gold = state.el.style['--ssr-gold'], blue = state.el.style['--ssr-blue'];
@@ -57,7 +57,7 @@ check('Double Super Rare drifts gold faster than blue and twinkles only in its g
   assert.notEqual(state.el.style['--ssr-gold'], gold); assert.notEqual(state.el.style['--ssr-blue'], blue);
   assert.equal(C.config.finishMotion.doubleSuperRare.blueCycleMs, C.config.finishMotion.doubleSuperRare.goldCycleMs * 3);
   assert.equal(state.stars.length, 20);
-  assert(state.stars.every(star => parseFloat(star.el.style.top) >= 55));
+  assert(state.stars.every(star => { const x = parseFloat(star.el.style.left), y = parseFloat(star.el.style.top); return x < 3 || x > 97 || y < 3 || y > 97; }));
   assert(state.stars.every(star => Number(star.el.style.opacity) >= 0 && Number(star.el.style.opacity) <= 1));
   assert(state.el.style['--ssr-gold-mono'].startsWith('hsl(0 0%'));
   definition.destroy(state); assert.equal(host.children.length, 0);

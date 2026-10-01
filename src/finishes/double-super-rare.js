@@ -6,7 +6,9 @@
     var element = C.finishes.surface('double-super-rare', context), stars = [], random = C.art.random(card.art.seed);
     for (var i = 0; i < C.config.finishMotion.doubleSuperRare.sparkleCount; i += 1) {
       var star = root.document.createElement('i'); star.className = 'finish-sparkle finish-ssr-sparkle';
-      star.style.left = (8 + random() * 84) + '%'; star.style.top = (55 + random() * 38) + '%';
+      var side = i % 4, along = 7 + random() * 86;
+      star.style.left = (side === 0 ? 1.4 : side === 1 ? 98.6 : along) + '%';
+      star.style.top = (side === 2 ? 1.1 : side === 3 ? 98.9 : along) + '%';
       var strength = 0.25 + random() * 0.65;
       star.style.opacity = strength; element.appendChild(star);
       stars.push({ el: star, phase: random() * Math.PI * 2, strength: strength });

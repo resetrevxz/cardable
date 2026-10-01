@@ -21,6 +21,7 @@
     return { live: live, lite: lite };
   }
   function frontText(card, instance, rarity, generation, context) {
+    if (rarity.frontDesign === 'full-art') return screenText(card, instance, rarity, generation);
     var text = layer(7), header = node('div', 'card__header');
     header.appendChild(node('span', 'card__badge', rarity.code));
     header.appendChild(node('span', 'card__generation', generation ? generation.name : card.generation));
@@ -35,7 +36,7 @@
     memory.appendChild(node('span', 'card__vram', C.cardSpecs.vram(card)));
     memory.appendChild(node('span', 'card__memory-type', card.vram.type)); info.appendChild(memory);
     var specs = node('dl', 'card__specs');
-    C.cardSpecs.rows(card).slice(0, C.config.cardView.maxFrontSpecs).forEach(function (row) {
+    C.cardSpecs.frontRows(card).forEach(function (row) {
       var spec = node('div', 'card__spec'); spec.appendChild(node('dt', '', row.label)); spec.appendChild(node('dd', '', row.value)); specs.appendChild(spec);
     });
     info.appendChild(specs);
@@ -52,6 +53,54 @@
     }
     info.appendChild(meter); text.appendChild(info);
     return { el: text, serial: serial, meter: meter, name: info.querySelector('h2'), memory: memory, specs: Array.from(specs.children), badge: header.children[0] };
+  }
+  function icon(kind, label) {
+    var paths = {
+      brand: 'M19 6a9 9 0 1 0 0 12M17 9a5 5 0 1 0 0 6M10 10h4v4h-4z',
+      memory: 'M4 6h16v11H4zM7 9h3v4H7zM14 9h3v4h-3zM7 17v3m3-3v3m4-3v3m3-3v3',
+      chip: 'M6 6h12v12H6zM9 9h6v6H9zM9 3v3m6-3v3M9 18v3m6-3v3M3 9h3m-3 6h3m12-6h3m-3 6h3',
+      clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 7v5l4 2',
+      bus: 'M4 4h6v6H4zM14 14h6v6h-6zM7 10v7h7M14 7h6m-3-3v6',
+      power: 'M13 2 5 13h6l-1 9 9-13h-6z'
+    };
+    var svg = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('class', 'card__spec-icon'); svg.setAttribute('aria-hidden', 'true');
+    var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', paths[kind] || paths.chip); svg.appendChild(path);
+    if (label) svg.setAttribute('data-spec', label);
+    return svg;
+  }
+  function screenText(card, instance, rarity, generation) {
+    var text = layer(7), header = node('div', 'card__header');
+    var identity = node('div', 'card__identity'), brand = node('div', 'card__brand');
+    brand.appendChild(icon('brand')); brand.appendChild(node('span', 'card__brand-wordmark', C.config.gameName.toLowerCase())); identity.appendChild(brand);
+    var serial = node('div', 'card__serial'); serial.setAttribute('aria-label', instance.serial);
+    Array.from(instance.serial).forEach(function (character, i) {
+      var char = node('span', 'card__serial-char', character); char.setAttribute('aria-hidden', 'true');
+      char.style.setProperty('--char-delay', i * C.config.cardView.stampCharMs + 'ms'); serial.appendChild(char);
+    });
+    identity.appendChild(serial); header.appendChild(identity);
+    var meta = node('div', 'card__meta'), badge = node('span', 'card__badge', rarity.name);
+    badge.appendChild(node('span', 'card__rarity-code', rarity.code)); meta.appendChild(badge);
+    meta.appendChild(node('span', 'card__generation', generation ? generation.name : card.generation)); header.appendChild(meta); text.appendChild(header);
+    var info = node('div', 'card__info'), title = node('div', 'card__title-block');
+    title.appendChild(node('span', 'card__category', 'GRAPHICS PROCESSOR'));
+    var name = node('h2', 'card__name', card.name); title.appendChild(name); info.appendChild(title);
+    var memory = node('div', 'card__memory'); memory.appendChild(icon('memory', 'VRAM'));
+    var memoryValues = node('div', 'card__memory-values'); memoryValues.appendChild(node('span', 'card__vram', C.cardSpecs.vram(card)));
+    memoryValues.appendChild(node('span', 'card__memory-type', card.vram.type)); memory.appendChild(memoryValues); memory.setAttribute('aria-label', 'Memory: ' + C.cardSpecs.vram(card) + ', ' + card.vram.type); info.appendChild(memory);
+    var specs = node('dl', 'card__specs');
+    C.cardSpecs.frontRows(card).forEach(function (row) {
+      var spec = node('div', 'card__spec'), term = node('dt'); term.appendChild(icon(C.cardSpecs.icon(row.key), row.label));
+      term.appendChild(node('span', 'visually-hidden', row.label)); spec.setAttribute('title', row.label + ': ' + row.value);
+      spec.appendChild(term); spec.appendChild(node('dd', '', row.value)); specs.appendChild(spec);
+    }); info.appendChild(specs);
+    var footer = node('div', 'card__footer'); footer.appendChild(node('span', 'card__edition', 'CB / ' + String(rarity.tier).padStart(2, '0')));
+    var meter = node('div', 'card__meter'); meter.setAttribute('aria-label', 'Tier ' + rarity.tier + ' of 12');
+    for (var i = 0; i < C.config.cardView.meterSegments; i += 1) {
+      var tick = node('span', 'card__meter-tick'); tick.dataset.filled = i <= rarity.tier;
+      tick.style.setProperty('--tick-delay', i * C.config.cardView.meterTickMs + 'ms'); tick.setAttribute('aria-hidden', 'true'); meter.appendChild(tick);
+    } footer.appendChild(meter); info.appendChild(footer); text.appendChild(info);
+    return { el: text, serial: serial, meter: meter, name: name, memory: memory, specs: Array.from(specs.children), badge: badge };
   }
   function backText(instance, context) {
     var text = layer(7), mark = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -70,7 +119,7 @@
       });
     defs.appendChild(filter); mark.appendChild(defs);
     var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', 'M44 20C40 16 35 15 31 16C21 18 16 25 16 32C16 42 22 49 32 49C37 49 41 47 44 44');
+    path.setAttribute('d', 'M49 16A23 23 0 1 0 49 48M45 23A14 14 0 1 0 45 41M26 26H38V38H26Z');
     path.setAttribute('filter', 'url(#' + filterId + ')');
     mark.appendChild(path); text.appendChild(mark);
     text.appendChild(node('div', 'card__back-wordmark', 'cardable'));
@@ -135,6 +184,7 @@
       context.state = context.presentation.state || context.state;
       var el = node('article', 'collectible-card');
       el.dataset.cardId = card.id; el.dataset.rarity = rarity.id; el.dataset.colorMode = context.colorMode;
+      if (rarity.frontDesign) el.dataset.frontDesign = rarity.frontDesign;
       el.dataset.mode = 'lite'; el.dataset.side = 'front'; el.dataset.visible = 'true';
       if (context.state) el.dataset.finishState = context.state;
       el.dataset.cursor = 'ring'; el.setAttribute('tabindex', 0); el.setAttribute('role', 'button');
@@ -216,7 +266,7 @@
           if (side !== 'front' && side !== 'back') throw new Error('Unknown card face');
           view.side = side; el.dataset.side = side;
           front.el.setAttribute('aria-hidden', side === 'back'); back.el.setAttribute('aria-hidden', side === 'front');
-          if (side === 'back' && !backStamped && instance.serial) { backStamped = true; backStampAge = 0; back.el.querySelectorAll('.card__back-char').forEach(function (char) { char.style.opacity = C.motion.reduced ? 1 : 0; }); C.fx.wake(); }
+          if (side === 'back' && !backStamped && instance.serial) { backStamped = true; backStampAge = view.mode === 'full' && !C.motion.reduced ? 0 : null; back.el.querySelectorAll('.card__back-char').forEach(function (char) { char.style.opacity = backStampAge === null ? 1 : 0; }); C.fx.wake(); }
           view.refreshFaceMotion(); C.events.emit('card:face', { view: view, side: side });
         },
         refreshFaceMotion: function () {

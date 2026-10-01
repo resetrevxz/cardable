@@ -43,6 +43,7 @@
     chargeEnd: function () { C.events.emit('input:chargeEnd'); },
     cutMove: function (event) { C.events.emit('input:cutMove', event); },
     keep: function () { if (!spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:keep'); },
+    discard: function () { if (!spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:discard'); },
     init: function () {
       if (C.input.initialized) return;
       C.input.initialized = true;
@@ -83,6 +84,11 @@
         if (event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar') {
           var wasSpaceDown = spaceDown; spaceDown = true;
           var spaceButton = event.target && event.target.closest && event.target.closest('button');
+          if (spaceButton && spaceButton.classList.contains('opening-delete')) {
+            spaceOwned = true; prevent(event);
+            if (opening.phase === 'revealed' && !event.repeat && !wasSpaceDown && !enterDown && !root.document.hidden) C.events.emit('input:discard');
+            return;
+          }
           if (spaceButton && spaceButton.classList.contains('opening-keep')) { spaceOwned = true; prevent(event); return; }
           if (!chargeTarget(event.target)) return;
           if (opening.phase !== 'idle' || opening.ready) { spaceOwned = true; prevent(event); }
@@ -92,11 +98,13 @@
           prevent(event); cancel('escape');
         } else if (event.key === 'Enter') {
           var button = event.target && event.target.closest && event.target.closest('button');
-          var valid = chargeTarget(event.target) || (button && button.classList.contains('opening-keep'));
+          var deleteTarget = button && button.classList.contains('opening-delete');
+          var valid = chargeTarget(event.target) || deleteTarget || (button && button.classList.contains('opening-keep'));
           if (valid && (opening.phase === 'cutting' || opening.phase === 'revealed')) {
             prevent(event);
             if (!event.repeat && !enterDown && !spaceDown) {
               if (opening.phase === 'cutting') C.events.emit('input:tear');
+              else if (deleteTarget) C.input.discard();
               else C.input.keep();
             }
           }

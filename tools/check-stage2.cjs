@@ -42,10 +42,10 @@ check('each face has layers 1–9 above its shared layer-0 shadow in the specifi
   faces.forEach(face => assert.deepEqual(face.children.map(layer => Number(layer.dataset.layerIndex)), [1,2,3,4,5,6,7,8,9]));
 });
 
-check('content is data-driven: name, VRAM, three additional specs, serial on both sides, and 12 meter ticks', () => {
+check('content is data-driven: name, VRAM, four additional specs, serial on both sides, and 12 meter ticks', () => {
   const view = C.gallery.views[3], face = view.el.children[1].children[0].children[0];
   assert.equal(face.querySelector('h2').textContent, view.card.name);
-  assert.equal(face.querySelector('dl').children.length, 3);
+  assert.equal(face.querySelector('dl').children.length, 4);
   assert.equal(view.el.querySelectorAll('.card__meter-tick').length, 12);
   assert.equal(view.el.querySelectorAll('.card__meter-tick').filter(tick => String(tick.dataset.filled) === 'true').length, 4);
   assert.equal(view.el.querySelectorAll('.card__serial-char').map(char => char.textContent).join(''), view.instance.serial);

@@ -12,6 +12,8 @@
   register('boostMhz', 'Boost', 'MHz'); register('busBits', 'Bus', 'bit');
   register('boardPowerW', 'Board power', 'W'); register('tdpW', 'Power', 'W');
   C.cardSpecs = {
+    icon: function (key) { return /clock|boost/i.test(key) ? 'clock' : /bus/i.test(key) ? 'bus' : /power|tdp/i.test(key) ? 'power' : 'chip'; },
+    frontRows: function (card) { return C.cardSpecs.rows(card).slice(0, C.rarity(card.rarity).frontDesign === 'full-art' ? C.config.cardView.maxScreenSpecs : C.config.cardView.maxFrontSpecs); },
     register: function (id, formatter) { formatters.set(id, formatter); },
     rows: function (card) {
       var rows = [];

@@ -88,13 +88,13 @@ check('grant/skip controls use real ready events, stock cap pauses time without 
   dev('Skip timer'); assert.equal(C.state.current.packs.ready, C.config.packs.maxStored); assert.equal(C.packView.stats.readyMoments, before + gained + 1);
   dev('Skip timer'); assert.equal(C.state.current.packs.ready, C.config.packs.maxStored); assert.equal(C.packView.stats.readyMoments, before + gained + 2);
 });
-check('currency adds save once and count up/shimmer without earning or spending actions', () => {
+check('currency adds save once and count up/shimmer with the configured currency symbol', () => {
   let writes = 0; const stop = C.events.on('save:written', () => writes++);
   const before = C.state.current.currency; dev('Add currency (dev only)'); assert.equal(writes, 1); stop();
   assert.equal(C.state.current.currency, before + C.config.menuMotion.previewCurrencyAmount);
-  r.advance(100); const n = Number(C.currencyView.digits.text); assert(n > before && n < C.state.current.currency);
+  r.advance(100); const n = Number(C.currencyView.digits.text.replace(/[^0-9.-]/g, '')); assert(n > before && n < C.state.current.currency);
   const shimmer = C.currencyView.el.querySelectorAll('.currency-shimmer')[0]; assert(shimmer.style.opacity > 0);
-  r.advance(1100); assert.equal(Number(C.currencyView.digits.text), C.state.current.currency);
+  r.advance(1100); assert.equal(Number(C.currencyView.digits.text.replace(/[^0-9.-]/g, '')), C.state.current.currency);
   assert(shimmer.style.opacity < 0.000001); assert.equal(r.store.get('cardable.save'), JSON.stringify(C.state.current));
   assert.throws(() => C.currency.add(-1), /non-negative/); assert.throws(() => C.currency.add(0.5), /safe integer/);
 });
@@ -157,7 +157,7 @@ check('a load-time twenty-hour catch-up plays once, respects the stock cap, and 
   const reloaded = runtime(false, false, JSON.parse(loaded.store.get('cardable.save'))); assert.equal(reloaded.C.packView.stats.readyMoments, 0); assert.equal(reloaded.C.state.current.packs.timerStartedAt, null);
 });
 check('save reset refreshes all menu components and gallery keeps pack animation disabled', () => {
-  dev('Reset save'); r.advance(1200); assert.equal(C.state.current.currency, 0); assert.equal(C.currencyView.digits.text, '0');
+  dev('Reset save'); r.advance(1200); assert.equal(C.state.current.currency, 0); assert.equal(C.currencyView.digits.text, C.config.currency.symbol + '0');
   assert.equal(C.state.current.packs.ready, C.config.packs.startingPacks); assert(C.packView.vials.every((v, i) => v.value === (i < C.config.packs.startingPacks ? 1 : 0)));
   assert.equal(C.state.current.pendingReveal, null); assert.equal(C.state.current.serialCounter, 0);
   const gallery = runtime(true, true); gallery.advance(200); assert.equal(gallery.C.packView.visible, false); assert.equal(gallery.C.packView.stats.updates, 0);

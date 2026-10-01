@@ -1,0 +1,379 @@
+{
+  "behaviorGroups": {
+    "card": 13,
+    "finish": 14,
+    "menu": 18,
+    "opening": 26,
+    "reveal": 24,
+    "flipInventory": 19,
+    "remake": 7,
+    "total": 121
+  },
+  "browser": {
+    "groups": [
+      "seven local portrait compositions, inset rarity frames, top serials and contained glass panels",
+      "Shared and unified memory fit a compact card without inventing VRAM",
+      "Common orbit updates through the shared loop with only one full card",
+      "Super Rare waves and Double Super Rare gold drift animate only the focused border",
+      "monochrome and reduced motion keep static border materials",
+      "Keep and Delete stay on screen at laptop, portrait and landscape sizes",
+      "real Space opening pays once, reload retains reward, keyboard Delete consumes only the reserved card",
+      "Keep still collects the next card and a second pack pays exactly $200",
+      "no browser exceptions or network requests"
+    ],
+    "errors": [],
+    "network": [],
+    "layout": [
+      {
+        "id": "radeon-hd-2400-pro",
+        "rarity": "basic",
+        "art": {
+          "x": 88.09375,
+          "y": 48.09375,
+          "width": 283.8125,
+          "height": 403.8125,
+          "top": 48.09375,
+          "right": 371.90625,
+          "bottom": 451.90625,
+          "left": 88.09375
+        },
+        "card": {
+          "x": 80,
+          "y": 40,
+          "width": 300,
+          "height": 420,
+          "top": 40,
+          "right": 380,
+          "bottom": 460,
+          "left": 80
+        },
+        "specCount": 3,
+        "serial": {
+          "x": 296.53125,
+          "y": 73.375,
+          "width": 61.875,
+          "height": 9,
+          "top": 73.375,
+          "right": 358.40625,
+          "bottom": 82.375,
+          "left": 296.53125
+        },
+        "info": {
+          "x": 95.59375,
+          "y": 294.75,
+          "width": 268.8125,
+          "height": 148.453125,
+          "top": 294.75,
+          "right": 364.40625,
+          "bottom": 443.203125,
+          "left": 95.59375
+        },
+        "imageLoaded": true,
+        "mask": "exclude, exclude"
+      },
+      {
+        "id": "radeon-7000",
+        "rarity": "common",
+        "art": {
+          "x": 428.09375,
+          "y": 48.09375,
+          "width": 283.8125,
+          "height": 403.8125,
+          "top": 48.09375,
+          "right": 711.90625,
+          "bottom": 451.90625,
+          "left": 428.09375
+        },
+        "card": {
+          "x": 420,
+          "y": 40,
+          "width": 300,
+          "height": 420,
+          "top": 40,
+          "right": 720,
+          "bottom": 460,
+          "left": 420
+        },
+        "specCount": 3,
+        "serial": {
+          "x": 636.53125,
+          "y": 73.375,
+          "width": 61.875,
+          "height": 9,
+          "top": 73.375,
+          "right": 698.40625,
+          "bottom": 82.375,
+          "left": 636.53125
+        },
+        "info": {
+          "x": 435.59375,
+          "y": 294.75,
+          "width": 268.8125,
+          "height": 148.453125,
+          "top": 294.75,
+          "right": 704.40625,
+          "bottom": 443.203125,
+          "left": 435.59375
+        },
+        "imageLoaded": true,
+        "mask": "exclude, exclude"
+      },
+      {
+        "id": "radeon-7500",
+        "rarity": "uncommon",
+        "art": {
+          "x": 768.09375,
+          "y": 48.09375,
+          "width": 283.8125,
+          "height": 403.8125,
+          "top": 48.09375,
+          "right": 1051.90625,
+          "bottom": 451.90625,
+          "left": 768.09375
+        },
+        "card": {
+          "x": 760,
+          "y": 40,
+          "width": 300,
+          "height": 420,
+          "top": 40,
+          "right": 1060,
+          "bottom": 460,
+          "left": 760
+        },
+        "specCount": 3,
+        "serial": {
+          "x": 976.53125,
+          "y": 73.375,
+          "width": 61.875,
+          "height": 9,
+          "top": 73.375,
+          "right": 1038.40625,
+          "bottom": 82.375,
+          "left": 976.53125
+        },
+        "info": {
+          "x": 775.59375,
+          "y": 294.75,
+          "width": 268.8125,
+          "height": 148.453125,
+          "top": 294.75,
+          "right": 1044.40625,
+          "bottom": 443.203125,
+          "left": 775.59375
+        },
+        "imageLoaded": true,
+        "mask": "exclude, exclude"
+      },
+      {
+        "id": "radeon-rx-5700-xt",
+        "rarity": "rare",
+        "art": {
+          "x": 1108.09375,
+          "y": 48.09375,
+          "width": 283.8125,
+          "height": 403.8125,
+          "top": 48.09375,
+          "right": 1391.90625,
+          "bottom": 451.90625,
+          "left": 1108.09375
+        },
+        "card": {
+          "x": 1100,
+          "y": 40,
+          "width": 300,
+          "height": 420,
+          "top": 40,
+          "right": 1400,
+          "bottom": 460,
+          "left": 1100
+        },
+        "specCount": 4,
+        "serial": {
+          "x": 1316.53125,
+          "y": 73.375,
+          "width": 61.875,
+          "height": 9,
+          "top": 73.375,
+          "right": 1378.40625,
+          "bottom": 82.375,
+          "left": 1316.53125
+        },
+        "info": {
+          "x": 1115.59375,
+          "y": 294.75,
+          "width": 268.8125,
+          "height": 148.453125,
+          "top": 294.75,
+          "right": 1384.40625,
+          "bottom": 443.203125,
+          "left": 1115.59375
+        },
+        "imageLoaded": true,
+        "mask": "exclude, exclude"
+      },
+      {
+        "id": "radeon-rx-6700-xt",
+        "rarity": "super-rare",
+        "art": {
+          "x": 88.09375,
+          "y": 534.09375,
+          "width": 283.8125,
+          "height": 403.8125,
+          "top": 534.09375,
+          "right": 371.90625,
+          "bottom": 937.90625,
+          "left": 88.09375
+        },
+        "card": {
+          "x": 80,
+          "y": 526,
+          "width": 300,
+          "height": 420,
+          "top": 526,
+          "right": 380,
+          "bottom": 946,
+          "left": 80
+        },
+        "specCount": 4,
+        "serial": {
+          "x": 296.53125,
+          "y": 559.375,
+          "width": 61.875,
+          "height": 9,
+          "top": 559.375,
+          "right": 358.40625,
+          "bottom": 568.375,
+          "left": 296.53125
+        },
+        "info": {
+          "x": 95.59375,
+          "y": 780.75,
+          "width": 268.8125,
+          "height": 148.453125,
+          "top": 780.75,
+          "right": 364.40625,
+          "bottom": 929.203125,
+          "left": 95.59375
+        },
+        "imageLoaded": true,
+        "mask": "exclude, exclude"
+      },
+      {
+        "id": "geforce-rtx-5090",
+        "rarity": "unusual",
+        "art": {
+          "x": 428.09375,
+          "y": 534.09375,
+          "width": 283.8125,
+          "height": 403.8125,
+          "top": 534.09375,
+          "right": 711.90625,
+          "bottom": 937.90625,
+          "left": 428.09375
+        },
+        "card": {
+          "x": 420,
+          "y": 526,
+          "width": 300,
+          "height": 420,
+          "top": 526,
+          "right": 720,
+          "bottom": 946,
+          "left": 420
+        },
+        "specCount": 4,
+        "serial": {
+          "x": 636.53125,
+          "y": 559.375,
+          "width": 61.875,
+          "height": 9,
+          "top": 559.375,
+          "right": 698.40625,
+          "bottom": 568.375,
+          "left": 636.53125
+        },
+        "info": {
+          "x": 435.59375,
+          "y": 780.75,
+          "width": 268.8125,
+          "height": 148.453125,
+          "top": 780.75,
+          "right": 704.40625,
+          "bottom": 929.203125,
+          "left": 435.59375
+        },
+        "imageLoaded": true,
+        "mask": "exclude, exclude"
+      },
+      {
+        "id": "radeon-vii",
+        "rarity": "double-super-rare",
+        "art": {
+          "x": 768.09375,
+          "y": 534.09375,
+          "width": 283.8125,
+          "height": 403.8125,
+          "top": 534.09375,
+          "right": 1051.90625,
+          "bottom": 937.90625,
+          "left": 768.09375
+        },
+        "card": {
+          "x": 760,
+          "y": 526,
+          "width": 300,
+          "height": 420,
+          "top": 526,
+          "right": 1060,
+          "bottom": 946,
+          "left": 760
+        },
+        "specCount": 4,
+        "serial": {
+          "x": 976.53125,
+          "y": 559.375,
+          "width": 61.875,
+          "height": 9,
+          "top": 559.375,
+          "right": 1038.40625,
+          "bottom": 568.375,
+          "left": 976.53125
+        },
+        "info": {
+          "x": 775.59375,
+          "y": 780.75,
+          "width": 268.8125,
+          "height": 148.453125,
+          "top": 780.75,
+          "right": 1044.40625,
+          "bottom": 929.203125,
+          "left": 775.59375
+        },
+        "imageLoaded": true,
+        "mask": "exclude, exclude"
+      }
+    ]
+  },
+  "headlessProfile": [
+    {
+      "mode": "lite",
+      "frames": 181,
+      "durationMs": 3016.3999999999996,
+      "fps": 60.00530433629493,
+      "medianMs": 16.699999999999818,
+      "p95Ms": 16.799999999999727,
+      "fullCards": 1
+    },
+    {
+      "mode": "full",
+      "frames": 172,
+      "durationMs": 3016.5999999999995,
+      "fps": 57.01783464827953,
+      "medianMs": 16.699999999999818,
+      "p95Ms": 33.19999999999982,
+      "fullCards": 1
+    }
+  ],
+  "scope": "Owner-approved pass 1, Basic through Double Super Rare; isolated from concurrent settings/currency/cutting edits."
+}

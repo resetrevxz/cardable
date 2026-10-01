@@ -23,7 +23,7 @@
       design: { material: 'silver-foil', wrapper: 'satin-foil', graphic: 'die-ring',
         roughness: 0.42, foilStrength: 0.65, refraction: 0.32, emboss: 0.7,
         subtitle: 'Collectible graphics series', series: '01', batch: 'CB / 00018472',
-        microprint: 'Digital sealed pack / Offline collection system', security: 'CBL / AUTHENTIC' },
+        microprint: '', security: 'CBL / AUTHENTIC' },
       obtainable: 'timer'                    // 'timer' = regenerates on config.packs.regenMs
     },
     {
