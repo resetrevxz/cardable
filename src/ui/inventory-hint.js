@@ -32,11 +32,11 @@
         var pulsing = pulse !== null;
         if (pulsing) {
           pulse += dt; var amount = Math.min(1, pulse / C.config.revealMotion.arrowPulseMs);
-          svg.style.transform = C.motion.reduced ? 'none' : 'scale(' + (1 + Math.sin(amount * Math.PI) * (C.config.revealMotion.arrowPulseScale - 1)) + ')';
+          svg.style.transform = C.motion.reduced || !C.settings.policy.animation ? 'none' : 'scale(' + (1 + Math.sin(amount * Math.PI) * (C.config.revealMotion.arrowPulseScale - 1)) + ')';
           svg.style.opacity = 0.7 + Math.sin(amount * Math.PI) * 0.3;
           if (amount === 1) { pulse = null; svg.style.transform = ''; svg.style.opacity = ''; }
         }
-        if (!C.inventoryHint.visible || gallery || openingPaused || inventoryPaused || C.menu.idle || C.motion.reduced) { arrow.style.setProperty('--arrow-bob', '0px'); arrow.style.setProperty('--arrow-breath', 1); return pulse !== null; }
+        if (!C.inventoryHint.visible || gallery || openingPaused || inventoryPaused || C.menu.idle || C.motion.reduced || !C.settings.policy.ambient) { arrow.style.setProperty('--arrow-bob', '0px'); arrow.style.setProperty('--arrow-breath', 1); return pulse !== null; }
         time += dt;
         var p = time % cfg.arrowNudgeMs / cfg.arrowNudgeDurationMs;
         arrow.style.setProperty('--arrow-bob', (p < 1 ? -Math.sin(p * Math.PI) * cfg.arrowNudgePx : 0) + 'px');

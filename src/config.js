@@ -4,7 +4,7 @@
 
   C.config = {
     gameName: 'Cardable',
-    version: '1.1.0',
+    version: '1.2.0',
     variants: { chance: 0.10, revealMs: 1200, reducedRevealMs: 180 },
 
     packs: {

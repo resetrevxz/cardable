@@ -57,6 +57,7 @@
         return false;
       }, 'input');
       root.document.addEventListener('pointermove', function (event) {
+        if (opening.enabled && opening.phase === 'cutting') C.input.cutMove(event);
         if (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
         var previous = pending || pointer;
         if (previous.inside && previous.x === event.clientX && previous.y === event.clientY) return;
@@ -67,7 +68,6 @@
           interactive: !!(event.target.closest && event.target.closest(controls)) };
         modality('pointer');
         C.events.emit('pointer:activity', pending);
-        if (opening.enabled && opening.phase === 'cutting') C.input.cutMove(event);
         C.fx.wake();
       }, { passive: true });
       root.document.addEventListener('pointerout', function (event) { if (!event.relatedTarget) leave(); }, { passive: true });

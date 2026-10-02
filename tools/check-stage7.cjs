@@ -27,10 +27,10 @@ function press(r, el, x, y, id = 1) { const event = { button: 0, isPrimary: true
 function move(r, x, y, id = 1) { r.document.fire('pointermove', { pointerId: id, clientX: x, clientY: y, pointerType: 'mouse', target: r.document.body, preventDefault() {} }); }
 function release(r, id = 1, cancel = false) { r.document.fire(cancel ? 'pointercancel' : 'pointerup', { pointerId: id }); }
 
-check('shared-element lift moves the same owned card node and keeps the shelf geometry occupied', () => {
+check('detail promotion preserves the instance and shelf geometry while replacing the thumbnail', () => {
   const r = boot(); open(r); const tile = current(r), original = tile.visual, originalView = tile.view;
   tile.card.rect = { left: 510, top: 350, width: 180, height: 252 }; tile.el.fire('click');
-  assert.equal(r.C.detail.mount.children[0], original); assert.equal(r.C.detail.view, originalView); assert.equal(tile.card.style.visibility, 'hidden'); assert.equal(r.C.detail.phase, 'lifting');
+  assert(r.C.detail.mount.children[0] !== original); assert(originalView.destroyed); assert.equal(r.C.detail.view.instance.instanceId, originalView.instance.instanceId); assert.equal(tile.card.style.visibility, 'hidden'); assert.equal(r.C.detail.phase, 'lifting');
   const pose = r.C.detail.mount.style.transform; r.advance(150); assert.notEqual(r.C.detail.mount.style.transform, pose); r.advance(1000); assert.equal(r.C.detail.phase, 'detail');
   assert.equal(r.C.cardView.stats.fullCards, 1); assert(r.C.inventory.content.inert);
 });

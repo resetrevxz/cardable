@@ -26,7 +26,7 @@
     update: function (dt, pointer, state) {
       C.finishes.registry.unusual.update(dt, pointer, state.base); state.time += dt;
       var cfg = C.config.finishMotion.limited;
-      state.logo.style.transform = 'translate(' + ((pointer.x == null ? 0.5 : pointer.x) - 0.5) * cfg.parallaxPx + 'px,' + (-cfg.floatPx + Math.sin(state.time / cfg.floatCycleMs * Math.PI * 2) * cfg.floatPx) + 'px)';
+      if (C.finishes.propDue(state, dt)) state.logo.style.transform = 'translate(' + ((pointer.x == null ? 0.5 : pointer.x) - 0.5) * cfg.parallaxPx + 'px,' + (-cfg.floatPx + Math.sin(state.time / cfg.floatCycleMs * Math.PI * 2) * cfg.floatPx) + 'px)';
       return true;
     },
     destroy: function (state) { state.prop.remove(); C.finishes.registry.unusual.destroy(state.base); },

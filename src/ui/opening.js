@@ -1,7 +1,7 @@
 (function (C, root) {
   'use strict';
   var cfg, stage, host, glass, foil, halves, gap, hint, enterHint, status, error, seam, trails, particles, pack;
-  var cutGuide, cutTrack, variantLabel=null;
+  var cutGuide, cutTrack, variantLabel=null, touchTear, flipButton;
   var phase = 'idle', elapsed = 0, lastVisual = 0, chargeAt = 0, fill = 0, drainFrom = 0, pulseAt = 0;
   var path = [], hot = [], dirty = false, drag = null, split = null, cutIdle = 0, errorUntil = 0, savedFocus = null;
   var motion, scene, mount, bloom, keepButton, deleteButton, note, dust, currentView = null, rarity, timings, pendingCards = null;
@@ -52,6 +52,8 @@
     if (next === 'revealed') announce(C.card(C.state.current.pendingReveal.cards[cardIndex].cardId).name + '. ' + note.textContent + '.');
     keepButton.hidden = true; keepButton.disabled = true;
     deleteButton.hidden = true; deleteButton.disabled = true;
+    if (touchTear) touchTear.hidden = next !== 'cutting';
+    if (flipButton) flipButton.hidden = true;
     root.document.body.classList.toggle('is-collecting', next === 'collecting');
     if (next === 'idle' || next === 'rising') revealContext(false);
     if (['preFlip', 'flipping', 'settling', 'variantReveal', 'revealed'].indexOf(next) !== -1) revealContext(true, next === 'preFlip' ? 0 : 1);
@@ -196,7 +198,7 @@
     phaseTo('tearing'); particles.emit('tear', split.path, width, height, split.normal);
   }
   function paintFluid(dt) {
-    var reduced = C.motion.reduced, agitation = clamp((fill - cfg.chargeAgitationAt) / (1 - cfg.chargeAgitationAt));
+    var reduced = C.motion.reduced || !C.settings.policy.animation, agitation = clamp((fill - cfg.chargeAgitationAt) / (1 - cfg.chargeAgitationAt));
     var target = Math.sin(elapsed / cfg.waveMs * Math.PI * 2) * (cfg.meniscusPx + agitation * cfg.agitationPx);
     if (phase === 'draining') target += Math.sin(elapsed / C.config.hold.drainMs * Math.PI * cfg.sloshCycles) * cfg.sloshPx * (1 - elapsed / C.config.hold.drainMs);
     var wave = reduced ? 0 : meniscus.step(dt, target);
@@ -210,7 +212,7 @@
     var pose = { rx: source.rx * transfer, ry: source.ry * transfer };
     glass.pose.style.transform = reduced ? 'translate(0px,0px)' : 'translate3d(' + (source.x * transfer + Math.sin(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration) + 'px,' + ((source.y - source.lift) * transfer + Math.cos(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration * 0.5) + 'px,' + source.lift * transfer + 'px) rotateX(' + pose.rx + 'deg) rotateY(' + pose.ry + 'deg) rotateZ(' + source.rz * transfer + 'deg)';
     if (packMaterial) packMaterial.update(pose, elapsed, reduced);
-    glass.specks.forEach(function (speck) { speck.el.style.transform = 'translateY(' + (reduced ? 0 : -((elapsed / 1000 * cfg.speckSpeedPx + speck.phase * cfg.speckSpeedPx) % height)) + 'px)'; });
+    if (C.settings.policy.particles > 0 && !reduced) glass.specks.forEach(function (speck) { speck.el.style.transform = 'translateY(' + (-((elapsed / 1000 * cfg.speckSpeedPx + speck.phase * cfg.speckSpeedPx) % height)) + 'px)'; });
     C.events.emit('charge:progress', fill);
   }
   function paintCut(now) {
@@ -285,6 +287,7 @@
     var first = keepButton.hidden || keepButton.disabled;
     keepButton.hidden = false; keepButton.disabled = false;
     deleteButton.hidden = false; deleteButton.disabled = false;
+    flipButton.hidden = false;
     if (first) C.events.emit('opening:keepReady');
     if (first && C.input.modality === 'keyboard') focus(keepButton);
   }
@@ -362,7 +365,7 @@
   }
   function updateReveal(dt) {
     if (!currentView) return false;
-    var reduced = C.motion.reduced, p, pose, angle, h = sceneHeight;
+    var reduced = C.motion.reduced || !C.settings.policy.animation, p, pose, angle, h = sceneHeight;
     var dustActive = dust.update(dt); stats.particles = dust.count;
     if (phase === 'discarding') {
       p = clamp(elapsed / motion.discardMs); mount.style.opacity = 1 - ease(p);
@@ -413,10 +416,10 @@
       return phase !== 'revealed' || infoClock < keepAt || (shineAt !== null && revealClock - shineAt < motion.shineMs) || dustActive;
     }
     if (phase === 'variantReveal') {
-      var duration=C.motion.reduced?C.config.variants.reducedRevealMs:C.config.variants.revealMs*(C.settings.get('revealSpeed')==='fast'?.7:1);
-      var fraction=clamp(elapsed/duration), coating=C.motion.reduced?fraction:clamp((fraction-.12)/.78);
+      var duration=reduced?C.config.variants.reducedRevealMs:C.config.variants.revealMs*(C.settings.get('revealSpeed')==='fast'?.7:1);
+      var fraction=clamp(elapsed/duration), coating=reduced?fraction:clamp((fraction-.12)/.78);
       var steps=[.12,.36,.55,.70,.81,.88,.94], snap=0;
-      if(!C.motion.reduced&&fraction<.94){for(var n=0;n<steps.length-1;n++){if(fraction>=steps[n]&&fraction<steps[n+1]){var k=(fraction-steps[n])/(steps[n+1]-steps[n]);snap=(1-k)*(7-n)*(n%2?-1:1);break;}}}
+      if(!reduced&&fraction<.94){for(var n=0;n<steps.length-1;n++){if(fraction>=steps[n]&&fraction<steps[n+1]){var k=(fraction-steps[n])/(steps[n+1]-steps[n]);snap=(1-k)*(7-n)*(n%2?-1:1);break;}}}
       currentView.setVariantProgress(fraction>=.94?1:coating,snap);
       if(fraction===1){currentView.setVariantProgress(1,0);variantLabel.classList.add('is-ready');infoClock=keepAt;phaseTo('revealed');showKeep();C.events.emit('card:variantRevealed',currentView.instance);}
       return true;
@@ -453,7 +456,7 @@
     if (phase === 'charging') {
       fill = clamp((now - chargeAt) / C.config.hold.chargeMs); paintFluid(dt);
       glass.el.style.opacity = 1; foil.style.opacity = 0;
-      if (!C.motion.reduced && elapsed >= pulseAt) {
+      if (!C.motion.reduced && C.settings.policy.particles > 0 && elapsed >= pulseAt) {
         var rect = host.getBoundingClientRect();
         C.events.emit('dots:pulse', { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, intensity: cfg.pulseIntensity });
         pulseAt = elapsed + cfg.pulseStartMs + (cfg.pulseEndMs - cfg.pulseStartMs) * fill;
@@ -482,16 +485,16 @@
       hint.style.opacity = 1;
       var guideP = (elapsed % cfg.cutGuideMs) / cfg.cutGuideMs;
       var guideVisible = !path.length;
-      cutGuide.style.strokeDashoffset = C.motion.reduced ? 0 : 1 - ease(clamp(guideP / 0.72));
-      cutGuide.style.opacity = guideVisible ? (C.motion.reduced ? 0.65 : guideP > 0.82 ? (1 - guideP) / 0.18 * 0.65 : 0.65) : 0;
+      cutGuide.style.strokeDashoffset = C.motion.reduced || !C.settings.policy.animation ? 0 : 1 - ease(clamp(guideP / 0.72));
+      cutGuide.style.opacity = guideVisible ? (C.motion.reduced || !C.settings.policy.animation ? 0.65 : guideP > 0.82 ? (1 - guideP) / 0.18 * 0.65 : 0.65) : 0;
       cutTrack.style.opacity = guideVisible ? 1 : 0;
       enterHint.style.opacity = cutIdle >= cfg.enterHintMs ? 1 : 0;
-      return !C.motion.reduced && guideVisible || cutIdle < cfg.enterHintMs || hot.length > 0 || particleActive;
+      return !C.motion.reduced && C.settings.policy.animation > 0 && guideVisible || cutIdle < cfg.enterHintMs || hot.length > 0 || particleActive;
     }
     if (phase === 'tearing') {
       foil.style.opacity = 0; hint.style.opacity = 0; enterHint.style.opacity = 0;
       var lift = ease(elapsed / cfg.tearMs), separation = ease((elapsed - cfg.tearMs) / cfg.splitMs);
-      var fall = ease((elapsed - cfg.tearMs - cfg.splitMs) / cfg.fallMs), reduced = C.motion.reduced;
+      var fall = ease((elapsed - cfg.tearMs - cfg.splitMs) / cfg.fallMs), reduced = C.motion.reduced || !C.settings.policy.animation;
       var gapPx = cfg.separationMinPx * lift + (cfg.separationMaxPx - cfg.separationMinPx) * separation;
       gap.style.opacity = reduced ? 0 : lift * (1 - fall); gap.setAttribute('stroke-width', gapPx);
       halves.forEach(function (half, i) {
@@ -534,6 +537,7 @@
       particles = C.particles.create(particleHost, Math.max(cfg.dissolveCount, cfg.fleckCount));
       hint = node('div', 'opening-hint', host); node('kbd', 'opening-keycap', hint, 'Space'); node('span', 'opening-cut-hint', hint, 'cut along top');
       enterHint = node('div', 'opening-enter-hint', host, 'Enter to tear');
+      touchTear = node('button', 'opening-tear-touch', host, 'Tear pack'); touchTear.type = 'button'; touchTear.hidden = true; touchTear.addEventListener('click', tear);
       status = node('div', 'visually-hidden', stage); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
       error = node('div', 'opening-error', root.document.body); error.setAttribute('role', 'status');
       scene = node('div', 'opening-reveal', stage); scene.hidden = true;
@@ -541,6 +545,7 @@
       mount = node('div', 'opening-card-mount', scene);
       var dustHost = node('div', 'opening-dust', scene); dust = C.particles.create(dustHost, motion.dustCount);
       note = node('div', 'opening-card-note', scene);
+      flipButton = node('button', 'opening-flip', stage, 'Flip card'); flipButton.type = 'button'; flipButton.hidden = true; flipButton.addEventListener('click', function () { if (currentView) currentView.flip(); });
       keepButton = node('button', 'opening-keep glass', scene, 'Keep'); keepButton.setAttribute('type', 'button'); keepButton.hidden = true;
       keepButton.setAttribute('aria-keyshortcuts', 'Space Enter'); keepButton.setAttribute('aria-label', 'Keep card. Space or Enter.');
       node('kbd', 'opening-keep-key', keepButton, 'Space');
@@ -556,6 +561,7 @@
       C.opening.el = stage; C.opening.wrapper = host; C.opening.glass = glass; C.opening.foil = foil; C.opening.halves = halves;
       C.opening.scene = scene; C.opening.keepButton = keepButton; C.opening.note = note; C.opening.toast = toast;
       C.opening.deleteButton = deleteButton;
+      C.opening.flipButton = flipButton; C.opening.tearButton = touchTear;
       C.opening.hint = hint; C.opening.enterHint = enterHint; C.opening.seam = seam; C.opening.error = error;
       root.document.getElementById('pack-stage').setAttribute('role', 'button');
       C.events.on('input:chargeStart', chargeStart); C.events.on('input:chargeEnd', chargeEnd); C.events.on('input:cancel', function (event) { cancel(event.reason); });

@@ -16,7 +16,7 @@
         get text() { return text; }, get changes() { return changes; }, get slots() { return slots; },
         set: function (value, animate) {
           value = String(value); if (value === text) return;
-          var canAnimate = animate !== false && text !== '';
+          var canAnimate = C.settings.policy.animation > 0 && animate !== false && text !== '';
           // Preserve positions from the right during carries such as 9 -> 10.
           while (slots.length > value.length) slots.shift().el.remove();
           while (slots.length < value.length) {

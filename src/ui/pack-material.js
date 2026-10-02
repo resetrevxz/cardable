@@ -17,10 +17,13 @@
       set('--foil-emboss', design.emboss == null ? 0.6 : design.emboss);
       return {
         update: function (pose, time, reduced) {
+          var hz = C.settings.policy.glareHz;
+          if (!hz) return;
           var rx = pose.rx || 0, ry = pose.ry || 0;
           // Idle glint is almost imperceptible; avoid repainting its optical layers
           // at display rate when the normal has not changed. Gestures stay full-rate.
-          if (rx === lastRx && ry === lastRy && time - lastTime < 50) return;
+          if (rx === lastRx && ry === lastRy && (reduced || time - lastTime < Math.max(50, 1000 / hz))) return;
+          if (time - lastTime + 0.01 < 1000 / hz) return;
           lastRx = rx; lastRy = ry; lastTime = time;
           var x = clamp(0.5 + ry / 32, 0, 1), y = clamp(0.5 - rx / 32, 0, 1);
           var drift = reduced ? 0 : Math.sin(time / C.config.packObject.idleMaterialMs * Math.PI * 2) * 0.04;

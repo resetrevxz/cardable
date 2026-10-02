@@ -4,16 +4,21 @@
   C.particles = {
     create: function (parent, capacity) {
       var pool = [], cfg = C.config.openingMotion;
-      for (var i = 0; i < capacity; i++) {
-        var el = root.document.createElement('i'); el.className = 'opening-particle'; el.setAttribute('aria-hidden', 'true');
-        el.style.opacity = 0; parent.appendChild(el); pool.push({ el: el, life: 0, age: 0 });
+      function allocate(count) {
+        while (pool.length > count) pool.pop().el.remove();
+        while (pool.length < count) {
+          var el = root.document.createElement('i'); el.className = 'opening-particle'; el.setAttribute('aria-hidden', 'true');
+          el.style.opacity = 0; parent.appendChild(el); pool.push({ el: el, life: 0, age: 0 });
+        }
       }
       return {
         count: 0,
+        get allocated() { return pool.length; },
         clear: function () { pool.forEach(function (p) { p.life = 0; p.el.style.opacity = 0; }); this.count = 0; },
         emit: function (kind, points, width, height, normal) {
           this.clear(); if (C.motion.reduced) return;
           var random = Math.random, count = Math.ceil(Math.min(capacity, kind === 'dissolve' ? cfg.dissolveCount : cfg.fleckCount) * C.settings.policy.particles);
+          allocate(count);
           for (var j = 0; j < count; j++) {
             var p = pool[j], position = points ? points[Math.floor(random() * points.length)] : { x: random(), y: random() };
             p.x = position.x * width; p.y = position.y * height; p.age = 0;
@@ -33,6 +38,7 @@
         },
         update: function (dt) {
           var active = 0, limit = C.motion.reduced ? 0 : Math.ceil(capacity * C.settings.policy.particles);
+          if (pool.length > limit) allocate(limit);
           pool.forEach(function (p, index) {
             if (index >= limit) { p.life = 0; p.el.style.opacity = 0; }
             if (!p.life) return;

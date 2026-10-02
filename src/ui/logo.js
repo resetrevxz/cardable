@@ -15,7 +15,7 @@
     return axis((low + high) / 2, curve[1], curve[3]);
   }
   function hold() { return random(C.config.logo.holdMinMs, C.config.logo.holdMaxMs); }
-  function eligible() { return !openingPaused && !C.motion.reduced && !root.document.hidden && visible; }
+  function eligible() { return C.settings.policy.animation > 0 && !openingPaused && !C.motion.reduced && !root.document.hidden && visible; }
   function paint(letter, progress) {
     var travel = C.config.shell.logo.cellHeight * C.config.logo.travelPortion, e = ease(progress);
     var outgoing = letter.snapshot || letter.real, incoming = letter.returnText || letter.alternate;
@@ -134,7 +134,7 @@
       host.addEventListener('pointerleave', function () { hovered = false; if (!focused) settle(); });
       host.addEventListener('focus', function () { focused = C.input.modality === 'keyboard'; if (focused) start(false); });
       host.addEventListener('blur', function () { focused = false; if (!hovered) settle(); });
-      C.events.on('logo:wave', function () { start(true); });
+      C.events.on('logo:wave', function () { if (C.settings.policy.ambient) start(true); });
       C.events.on('opening:context', function (event) { openingPaused = event.active; if (openingPaused) reset(); });
       C.events.on('menu:idle', function (idle) { visible = !idle; if (idle) reset(); else if (hovered || focused) start(false); });
       C.events.on('input:modality', function (value) { focused = value === 'keyboard' && root.document.activeElement === host; if (focused) start(false); else if (!hovered) settle(); });

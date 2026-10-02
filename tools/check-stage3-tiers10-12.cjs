@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { runtime, scripts } = require('./check-stage1.cjs');
 const r = runtime(true, true), C = r.C, ids = ['ascendant', 'secret', 'limited'];
+C.settings.applyPreset('high');
 let passed = 0;
 function check(name, callback) { callback(); passed++; console.log('PASS ' + name); }
 function view(id, mode = 'color', state) { return C.gallery.views.find(v => v.card.rarity === id && v.el.dataset.colorMode === mode && (!state || v.finishState === state)); }
@@ -38,7 +39,7 @@ check('all new states preserve ten layers and separate live/lite props at layer 
     assert.equal(v.el.children[0].dataset.layer, 'shadow');
     const face = v.el.children[1].children[0].children[0];
     assert.deepEqual(face.children.map(el => el.dataset.layer), ['body','finish','art','foil','beam','glare','text','prop','edge']);
-    assert.equal(face.children[7].querySelectorAll('.finish-prop').length, 2);
+    assert.equal(face.children[7].querySelectorAll('.finish-prop').length, v.mode==='full'?2:1);
     assert.equal(face.children[1].querySelectorAll('.finish-prop').length, 0);
   });
 });

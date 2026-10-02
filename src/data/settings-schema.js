@@ -7,7 +7,11 @@
   }
   var schema = {
     motion: entry('Reduced motion', 'Auto follows your system.', 'Motion and effects', 'auto', ['auto', 'on', 'off']),
-    quality: entry('Effects quality', 'Keeps the card in focus.', 'Motion and effects', 'high', ['high', 'medium', 'low']),
+    quality: entry('Graphics preset', 'A complete graphics profile. FPS stays independent.', 'Graphics', 'medium', ['very-low', 'low', 'medium', 'high']),
+    fpsLimit: entry('FPS limit', 'Display refresh uses your screen’s available cadence.', 'Performance', 'display', ['display', '30', '60', '90', '120', '144', '165', '240'], 'select'),
+    backgroundMode: entry('Hidden tab', 'Packs refill by real time in either mode.', 'Performance', 'sleep', ['sleep', 'timer'], 'select'),
+    unfocusedMode: entry('Unfocused window', 'For a visible window while using another app.', 'Performance', 'normal', ['normal', '30', 'pause'], 'select'),
+    showFps: entry('Performance display', 'Animation FPS and frame time; sleeps with the game.', 'Performance', false),
     dots: entry('Dot grid', 'A quiet response to the pointer.', 'Motion and effects', 'on', ['on', 'subtle', 'off']),
     cursorGlow: entry('Cursor glow', 'The native cursor stays visible.', 'Motion and effects', true),
     idleFade: entry('Idle fade', 'Hide chrome after stillness.', 'Motion and effects', '2.5', ['2.5', '5', 'never']),
@@ -22,6 +26,19 @@
     muted: entry('Mute', 'Coming soon', 'Sound', false),
     nudgeDismissed: entry('', '', null, false)
   };
+  var tiers = ['very-low', 'low', 'medium', 'high'];
+  var graphics = {
+    finishQuality: ['Card finishes', 'Rarity materials and cosmetic coatings.'],
+    reflectionQuality: ['Reflections', 'Foil, beams, glare and pack highlights.'],
+    propQuality: ['Borders and props', 'Rarity ornaments, glow and geometry detail.'],
+    particleQuality: ['Particles', 'Dust, sparkles and currency flights.'],
+    shadowQuality: ['Shadows', 'Depth and grounding beneath objects.'],
+    glassQuality: ['Glass and blur', 'Very Low and Low use solid tinted surfaces.'],
+    backgroundQuality: ['Background effects', 'Dots, ripples, trails and cursor glow.'],
+    animationQuality: ['Ambient animation', 'Sway, fluid, logo and decorative motion.'],
+    canvasQuality: ['Canvas resolution', 'Pixel ratio ceiling: 1 / 1.25 / 1.5 / 2. Text stays sharp.']
+  };
+  Object.keys(graphics).forEach(function (key) { schema[key] = entry(graphics[key][0], graphics[key][1], 'Advanced graphics', 'medium', tiers, 'select'); });
   Object.keys(schema).forEach(function (key) { schema[key].key = key; });
   function valid(key, value) {
     var item = schema[key];
@@ -31,12 +48,13 @@
     return typeof value === 'boolean' ? value : item.defaultValue;
   }
   C.settingsSchema = {
-    entries: schema, version: 1, validate: valid,
+    entries: schema, graphicsKeys: Object.keys(graphics), tiers: tiers, version: 2, validate: valid,
     normalize: function (input) {
       input = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
-      var source = Object.assign({}, input), result = { settingsVersion: 1 };
+      var source = Object.assign({}, input), result = { settingsVersion: 2 };
       if (source.motion === undefined) source.motion = source.reducedMotion === true ? 'on' : source.reducedMotion === false ? 'off' : 'auto';
       if (source.rarityColor === undefined) source.rarityColor = source.rarityColorMode;
+      Object.keys(graphics).forEach(function (key) { if (source[key] === undefined) source[key] = valid('quality', source.quality); });
       Object.keys(schema).forEach(function (key) { result[key] = valid(key, source[key]); });
       return result;
     }

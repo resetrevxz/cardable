@@ -9,7 +9,7 @@
       el.dataset.cardId = entry.card.id; el.dataset.stackKey = entry.stackKey; el.dataset.owned = entry.owned; el.setAttribute('role','option'); el.setAttribute('tabindex','-1');
       var tile = { el:el, pose:pose, card:card, entry:entry, index:index, view:null, visual:null };
       if (entry.owned || entry.rarity.finish === 'secret') {
-        tile.view = C.cardView.create(entry.card,entry.instances[0] || { instanceId:'unknown-'+entry.stackKey,cardId:entry.card.id,serial:'',seen:true }, { owned:entry.owned,autoFocus:false,autoStamp:false,keyboardFlip:false,shine:true,presentation:'art-only' });
+        tile.view = C.cardView.createThumbnail(entry.card,entry.instances[0] || { instanceId:'unknown-'+entry.stackKey,cardId:entry.card.id,serial:'',seen:true }, { owned:entry.owned });
         tile.visual=tile.view.el; tile.visual.setAttribute('tabindex','-1'); tile.visual.setAttribute('role','img'); tile.visual.setAttribute('aria-label',entry.owned ? entry.card.name : 'Unknown Secret card'); tile.view.setMode('lite');
       } else {
         tile.visual = node('div','inventory-mystery'); tile.visual.dataset.rarity = entry.rarity.id; tile.visual.dataset.colorMode = C.config.rarityColorMode;
@@ -49,8 +49,8 @@
       return tile;
     },
     refresh:function(tile,entry){tile.entry=entry;this.decorate(tile,entry);tile.count.textContent=entry.instances.length>1?'×'+entry.instances.length:'';tile.count.hidden=entry.instances.length<2;tile.newDot.hidden=!entry.isNew;tile.el.classList.toggle('has-stack',entry.instances.length>1);tile.el.setAttribute('aria-label',this.label(entry));},
-    take:function(tile){var result={entry:tile.entry,view:tile.view,visual:tile.visual,sourceRect:tile.card.getBoundingClientRect()};tile.view=null;tile.visual=null;tile.card.style.visibility='hidden';return result;},
-    restore:function(tile,event){tile.card.style.visibility='';tile.card.appendChild(event.visual);tile.view=event.view;tile.visual=event.visual;if(tile.view){tile.view.setPresentation('art-only');tile.view.setMode('lite');}}
+    take:function(tile){var rect=tile.card.getBoundingClientRect();if(tile.view&&tile.view.thumbnail){var instance=tile.view.instance;tile.view.destroy();tile.view=C.cardView.create(tile.entry.card,instance,{owned:tile.entry.owned,autoFocus:false,autoStamp:false,keyboardFlip:false,shine:true});tile.visual=tile.view.el;}var result={entry:tile.entry,view:tile.view,visual:tile.visual,sourceRect:rect};tile.view=null;tile.visual=null;tile.card.style.visibility='hidden';return result;},
+    restore:function(tile,event){tile.card.style.visibility='';if(event.view){event.view.destroy();tile.view=C.cardView.createThumbnail(tile.entry.card,tile.entry.instances[0]||event.view.instance,{owned:tile.entry.owned});tile.visual=tile.view.el;}else{tile.view=null;tile.visual=event.visual;}tile.card.appendChild(tile.visual);}
   };
   C.inventoryShelf = {
     range:function(position,count){var center=clamp(Math.round(position),0,Math.max(0,count-1)),radius=C.config.inventoryMotion.overscan;return {center:center,min:Math.max(0,center-radius),max:Math.min(count-1,center+radius)};},

@@ -66,12 +66,22 @@
       overlay = node('div', 'preferences-overlay settings-overlay', root.document.body); overlay.hidden = true; overlay.inert = true;
       panel = node('section', 'preferences-panel settings-panel glass glass--sheet', overlay); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Settings');
       var header = node('header', 'settings-header', panel); node('h2', '', header, 'Settings'); C.preferences.closeButton = button('Close', header, close);
-      var scroll = node('div', 'settings-scroll', panel), previewSection = node('div', 'settings-preview', scroll); previewHost = node('div', 'settings-preview-mount', previewSection);
+      var scroll = node('div', 'settings-scroll', panel), graphics = node('section', 'settings-graphics', scroll);
+      node('h3', '', graphics, 'Graphics');
+      controls.push(C.settingsControls.create(C.settingsSchema.entries.quality, graphics));
+      var presetStatus = node('p', 'settings-preset-status', graphics);
+      function presetSummary() {
+        var tier = C.settings.get('quality'), descriptions = { 'very-low': 'Minimum effects. Built for basic devices.', low: 'Clean materials with lightweight motion.', medium: 'Balanced detail and rendering cost.', high: 'Full materials, lighting and focused effects.' };
+        presetStatus.textContent = (C.settings.customized ? 'Customized · ' : '') + descriptions[tier];
+      }
+      C.settings.onChange('*', presetSummary); presetSummary();
+      var previewSection = node('div', 'settings-preview', scroll); previewHost = node('div', 'settings-preview-mount', previewSection);
       var selector = node('div', 'settings-preview-selector', previewSection); button('‹', selector, function () { tierIndex = (tierIndex + C.data.rarities.length - 1) % C.data.rarities.length; buildPreview(); });
       C.preferences.tierLabel = node('span', '', selector); button('›', selector, function () { tierIndex = (tierIndex + 1) % C.data.rarities.length; buildPreview(); });
       var groups = {};
-      ['Motion and effects', 'Cards', 'Controls', 'Sound', 'Data', 'About'].forEach(function (name) { var group = node('section', 'settings-group', scroll); node('h3', '', group, name); groups[name] = group; });
-      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group) controls.push(C.settingsControls.create(d, groups[d.group])); });
+      var advanced = node('details', 'settings-advanced', scroll); node('summary', '', advanced, 'Advanced graphics'); groups['Advanced graphics'] = advanced;
+      ['Performance', 'Motion and effects', 'Cards', 'Controls', 'Sound', 'Data', 'About'].forEach(function (name) { var group = node('section', 'settings-group', scroll); node('h3', '', group, name); groups[name] = group; });
+      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group && key !== 'quality') controls.push(C.settingsControls.create(d, groups[d.group])); });
       C.preferences.data = C.settingsData.create(groups.Data, { close: close, announce: announce });
       var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
       button('Credits and licenses', groups.About, function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
@@ -86,8 +96,9 @@
       confirmation = C.settingsControls.confirmation(defaults, function () { undo = C.settings.snapshot; undoAge = 0; C.settings.resetToDefaults(); undoButton.hidden = false; announce('Settings restored. Undo available for eight seconds.'); }, { announce: announce });
       undoButton = button('Undo', footer, function () { if (!undo) return; var previous = undo; undo = null; undoButton.hidden = true; C.settings.restore(previous); announce('Settings restored to your previous choices.'); }); undoButton.hidden = true;
       C.preferences.status = node('span', 'visually-hidden', panel); C.preferences.status.setAttribute('aria-live', 'polite');
-      nudge = node('aside', 'settings-nudge glass', root.document.body); nudge.hidden = true; node('p', '', nudge, 'Smoother with Medium effects. Switch?');
-      button('Switch', nudge, function () { C.settings.set('quality', 'medium'); nudge.hidden = true; }); button('Dismiss', nudge, function () { C.settings.set('nudgeDismissed', true); nudge.hidden = true; });
+      nudge = node('aside', 'settings-nudge glass', root.document.body); nudge.hidden = true;
+      var nudgeCopy = node('p', '', nudge), suggested = null;
+      button('Apply', nudge, function () { if (suggested) C.settings.applyPreset(suggested); nudge.hidden = true; }); button('Dismiss', nudge, function () { C.settings.set('nudgeDismissed', true); nudge.hidden = true; });
       spring = C.springs.create(0, { stiffness: 220, damping: 26 });
       overlay.addEventListener('click', function (event) { if (event.target === overlay) close(); });
       gear.addEventListener('keydown', function (event) { if (event.key === ' ') event.preventDefault(); });
@@ -103,11 +114,15 @@
       C.events.on('save:imported', function () { if (C.preferences.notice) C.preferences.notice.remove(); C.preferences.notice = null; C.state.recovery = null; C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: false }); });
       C.events.on('settings:persisted', function (event) { saved = event.saved; saveAge = 0; feedback.style.opacity = 1; message(saved ? '' : 'Your browser is blocking saving. Settings last for this session only.'); C.fx.wake(); });
       C.events.on('fx:frame', function (event) {
-        if (nudgeShown || C.settings.get('nudgeDismissed') || C.settings.get('quality') !== 'high' || root.document.hidden) { slowMs = slowFrames = 0; return; }
+        if (nudgeShown || C.settings.get('nudgeDismissed') || C.settings.get('quality') === 'very-low' || root.document.hidden || C.fx.stats.paused) { slowMs = slowFrames = 0; return; }
         if (event.realDt <= 0 || event.realDt > 250) { slowMs = slowFrames = 0; return; }
         slowMs += event.realDt; slowFrames++;
-        if (slowFrames * 1000 / slowMs >= 45) { slowMs = slowFrames = 0; return; }
-        if (slowMs >= 5000) { nudgeShown = true; nudge.hidden = false; }
+        if (slowFrames * 1000 / slowMs >= (event.targetFps || 60) * 0.75) { slowMs = slowFrames = 0; return; }
+        if (slowMs >= 8000 && root.performance.now() > 2000) {
+          var tiers = C.settingsSchema.tiers, index = tiers.indexOf(C.settings.get('quality')); suggested = tiers[Math.max(0, index - 1)];
+          nudgeCopy.textContent = 'Low animation FPS. Try ' + (suggested === 'very-low' ? 'Very Low' : suggested.charAt(0).toUpperCase() + suggested.slice(1)) + ' graphics for smoother play?';
+          nudgeShown = true; nudge.hidden = false;
+        }
       });
       C.events.on('fx:sleep', function () { slowMs = slowFrames = 0; }); C.events.on('fx:visibility', function () { slowMs = slowFrames = 0; });
       C.fx.subscribe(function (now, dt) {

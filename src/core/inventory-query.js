@@ -30,12 +30,12 @@
       if (key !== 'text') return false;
       return lower([entry.generation && entry.generation.name, entry.rarity.name, 'unknown card'].join(' ')).includes(value);
     }
-    if (key === 'memorytype') return lower(card.vram.type).includes(value);
+    if (key === 'memorytype') return lower((card.vram && card.vram.type || '')).includes(value);
     if (key !== 'text') return lower(card[key]).includes(value);
-    var text = [entry.variant ? entry.variant.name : 'Normal', card.name, card.brand, card.type, card.generation, entry.generation && entry.generation.name, entry.rarity.name, card.vram.type, memory(card) == null ? 'shared' : memory(card) + 'gb', C.cardSpecs?C.cardSpecs.vram(card):'', C.cardSpecs ? C.cardSpecs.rows(card).map(function (row) { return row.label + ' ' + row.value; }).join(' ') : ''].join(' ');
+    var text = [entry.variant ? entry.variant.name : 'Normal', card.name, card.brand, card.type, card.generation, entry.generation && entry.generation.name, entry.rarity.name, (card.vram && card.vram.type || ''), memory(card) == null ? card.vram && card.vram.shared ? 'shared' : 'unknown' : memory(card) + 'gb', C.cardSpecs?C.cardSpecs.vram(card):'', C.cardSpecs ? C.cardSpecs.rows(card).map(function (row) { return row.label + ' ' + row.value; }).join(' ') : ''].join(' ');
     return lower(text).replace(/\s+(?=gb)/g, '').includes(value.replace(/\s+(?=gb)/g, ''));
   }
-  function facets(entries) { var result = { rarity: [], generation: [], brand: [], vram: [], memoryType: [], type: [], variant: [] }; entries.forEach(function (e) { [['variant', e.owned ? e.variantId || 'normal' : null], ['rarity', e.rarity.id], ['generation', e.card.generation], ['brand', e.card.brand], ['vram', memory(e.card)], ['memoryType', e.card.vram.type], ['type', e.card.type]].forEach(function (pair) { if (pair[1] != null && pair[1] !== '' && result[pair[0]].indexOf(pair[1]) < 0) result[pair[0]].push(pair[1]); }); }); result.vram.sort(function (a,b) { return a-b; }); return result; }
+  function facets(entries) { var result = { rarity: [], generation: [], brand: [], vram: [], memoryType: [], type: [], variant: [] }; entries.forEach(function (e) { [['variant', e.owned ? e.variantId || 'normal' : null], ['rarity', e.rarity.id], ['generation', e.card.generation], ['brand', e.card.brand], ['vram', memory(e.card)], ['memoryType', (e.card.vram && e.card.vram.type || '')], ['type', e.card.type]].forEach(function (pair) { if (pair[1] != null && pair[1] !== '' && result[pair[0]].indexOf(pair[1]) < 0) result[pair[0]].push(pair[1]); }); }); result.vram.sort(function (a,b) { return a-b; }); return result; }
   function group(entry, mode) { return mode === 'variant' ? entry.variant ? entry.variant.name : entry.owned ? 'Normal' : 'Undiscovered' : mode === 'rarity' ? entry.rarity.name : mode === 'generation' ? entry.generation.name : mode === 'brand' ? entry.card.brand || 'Other' : mode === 'ownership' ? entry.owned ? 'Owned' : 'Undiscovered' : mode === 'new' ? entry.isNew ? 'New' : 'Viewed' : ''; }
   function run(base, ui, text, filters) {
     var parsed = parse(text), f = filters || {}, collection = ui.collections.find(function (c) { return c.id === ui.activeCollectionId; });
@@ -47,7 +47,7 @@
       if (f.variantOnly && !e.variantId) return false;
       if ((f.variant || []).length && (!e.owned || f.variant.indexOf(e.variantId || 'normal') < 0)) return false;
       if (f.newOnly && !e.isNew || f.quantity && e.instances.length < Number(f.quantity)) return false;
-      if (['rarity', 'generation', 'brand', 'memoryType'].some(function (key) { var values = f[key] || [], value = key === 'memoryType' ? e.card.vram.type : e.card[key]; return values.length && values.indexOf(value) < 0; })) return false;
+      if (['rarity', 'generation', 'brand', 'memoryType'].some(function (key) { var values = f[key] || [], value = key === 'memoryType' ? (e.card.vram && e.card.vram.type || '') : e.card[key]; return values.length && values.indexOf(value) < 0; })) return false;
       var n = memory(e.card); if (f.vramMin !== '' && f.vramMin != null && (n == null || n < Number(f.vramMin)) || f.vramMax !== '' && f.vramMax != null && (n == null || n > Number(f.vramMax))) return false;
       return parsed.terms.every(function (term) { return matches(e, term); });
     });

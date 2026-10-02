@@ -171,7 +171,7 @@ check('resize keeps normalized cuts and scales seam coordinates; the grid retain
   const r = setup(); cutting(r); pointer(r, 'pointerdown', 0.2, 0.15); pointer(r, 'pointermove', 0.5, 0.18); pointer(r, 'pointerup', 0.5, 0.18); r.advance(20);
   const before = stable(r.C.opening.path), old = r.C.opening.seam.getAttribute('d');
   r.C.opening.wrapper.rect = { left: 200, top: 100, width: 360, height: 504 }; r.window.devicePixelRatio = 2; r.window.fire('resize'); r.advance(20);
-  assert.equal(stable(r.C.opening.path), before); assert.notEqual(r.C.opening.seam.getAttribute('d'), old); assert.equal(r.canvas.width, 2560);
+  assert.equal(stable(r.C.opening.path), before); assert.notEqual(r.C.opening.seam.getAttribute('d'), old); assert.equal(r.canvas.width, Math.round(1280*r.C.settings.policy.dpr));
 });
 check('blade has lag and native-cursor ownership clears on release, leave, blur and lost capture', () => {
   const r = setup(); cutting(r); pointer(r, 'pointerdown', .2, .15); pointer(r, 'pointermove', .4, .17); r.advance(20);

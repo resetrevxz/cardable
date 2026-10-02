@@ -70,15 +70,15 @@
         state: state, clear: clear, get dragging() { return !!gesture; }, get inspecting() { return inspecting; },
         update: function (dt) {
           Object.keys(targets).forEach(function (key) {
-            if (C.motion.reduced) { springs[key].reset(); state[key] = 0; }
+            if ((C.motion.reduced || C.settings.policy.animation === 0)) { springs[key].reset(); state[key] = 0; }
             else state[key] = springs[key].step(dt, targets[key]);
           });
           state.rx = limit(state.rx, cfg.inspectTilt); state.ry = limit(state.ry, cfg.inspectTilt);
           state.vx = springs.x.velocity;
-          var lag = C.motion.reduced ? 1 : 1 - Math.exp(-dt / cfg.massLagMs);
+          var lag = (C.motion.reduced || C.settings.policy.animation === 0) ? 1 : 1 - Math.exp(-dt / cfg.massLagMs);
           state.massX += (state.x - state.massX) * lag; state.massY += (state.y - state.massY) * lag;
           if (!gesture) state.flex *= Math.exp(-dt / 100);
-          return gesture || inspecting || hovered || Object.keys(springs).some(function (key) { return !springs[key].settled(); });
+          return !!gesture || Object.keys(springs).some(function (key) { return !springs[key].settled(); });
         }
       };
     }

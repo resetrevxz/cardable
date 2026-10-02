@@ -18,11 +18,30 @@
     bind: function (id, element, card, context) {
       var definition = registry[id];
       if (!definition) throw new Error('Unimplemented finish: ' + id);
-      var binding = definition.mount(element, card, context), accumulated = 0, moving = false;
+      var binding = null, staticView = null, accumulated = 0, moving = false;
+      function signature() { return ['finishQuality', 'propQuality', 'particleQuality'].map(C.settings.get).join('/'); }
+      var current = signature();
+      function clearBinding() { if (binding) definition.destroy(binding); binding = null; accumulated = 0; moving = false; }
+      var unsubscribe = C.settings.onChange('*', function () {
+        var next = signature(); if (next === current) return; current = next; clearBinding();
+        if (staticView) {
+          var parent = staticView.parentNode;
+          if (context.litePropElement) while (context.litePropElement.children.length) context.litePropElement.children[0].remove();
+          var replacement = definition.lite(card, Object.assign({}, context, { propElement: context.litePropElement }));
+          if (parent) parent.insertBefore(replacement, staticView); staticView.remove(); staticView = replacement;
+        }
+      });
       return {
-        update: function (dt, pointer) { accumulated += dt; var interval = 1000 / C.settings.policy.finishHz; if (accumulated + 0.01 < interval) return moving; moving = definition.update(accumulated, pointer, binding); accumulated = 0; return moving; },
-        destroy: function () { definition.destroy(binding); },
-        lite: function () { return definition.lite(card, Object.assign({}, context, { propElement: context.litePropElement })); }
+        activate: function () { if (!binding && C.settings.policy.finishHz) binding = definition.mount(element, card, context); },
+        deactivate: clearBinding,
+        update: function (dt, pointer) {
+          var hz = C.settings.policy.finishHz; if (!hz) return false;
+          if (!binding) binding = definition.mount(element, card, context);
+          accumulated += dt; if (accumulated + 0.01 < 1000 / hz) return moving;
+          moving = definition.update(accumulated, pointer, binding); accumulated = 0; return moving;
+        },
+        destroy: function () { unsubscribe(); clearBinding(); },
+        lite: function () { if (!staticView) staticView = definition.lite(card, Object.assign({}, context, { propElement: context.litePropElement })); return staticView; }
       };
     },
     surface: function (id, context) {
@@ -41,6 +60,7 @@
       if (parent) parent.appendChild(element); return element;
     },
     uid: function (prefix) { nextId += 1; return 'finish-' + prefix + '-' + nextId; },
+    propDue: function (state, dt) { var hz = [0, 15, 30, 60][C.settings.policy.prop]; if (!hz) return false; state.propClock = (state.propClock || 0) + dt; if (state.propClock + 0.01 < 1000 / hz) return false; state.propClock = 0; return true; },
     squircle: function (parent, className) {
       var svg = C.finishes.svg('svg', { viewBox: '0 0 100 140', class: 'finish-squircle-frame ' + className, 'data-shape': 'squircle', 'aria-hidden': 'true' }, parent);
       var defs = C.finishes.svg('defs', {}, svg), clipId = C.finishes.uid('frame-clip');
@@ -51,6 +71,7 @@
       return { el: svg, defs: defs, path: path };
     },
     sparkles: function (parent, count, seed, bounds, className) {
+      count = Math.ceil(count * C.settings.policy.particles);
       var stars = [], random = C.art.random(seed);
       for (var i = 0; i < count; i += 1) {
         var star = C.finishes.element('i', 'finish-sparkle ' + (className || ''), parent);
@@ -62,7 +83,8 @@
       return stars;
     },
     twinkle: function (stars, time, speed) {
-      stars.forEach(function (star, index) { if (C.settings.get('quality') === 'low' || C.settings.get('quality') === 'medium' && index % 2) { star.el.style.opacity = 0; return; } star.el.style.opacity = star.strength * (0.2 + 0.8 * Math.pow(Math.sin(time * speed + star.phase), 4)); });
+      var limit = stars.length;
+      stars.forEach(function (star, index) { if (index >= limit) { star.el.style.opacity = 0; return; } star.el.style.opacity = star.strength * (0.2 + 0.8 * Math.pow(Math.sin(time * speed + star.phase), 4)); });
     },
     flat: function (id) {
       return {

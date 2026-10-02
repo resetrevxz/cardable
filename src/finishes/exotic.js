@@ -5,7 +5,7 @@
   var framePath = 'M12 2H88C98 2 98 2 98 12V128C98 138 98 138 88 138H12C2 138 2 138 2 128V12C2 2 2 2 12 2Z';
   function surface(card, context) {
     var element = C.finishes.surface('exotic', context), cfg = C.config.finishMotion.exotic, random = C.art.random(card.art.seed), shapes = [];
-    for (var i = 0; i < cfg.shapeCount; i += 1) {
+    for (var i = 0; i < Math.ceil(cfg.shapeCount * [0, 0.5, 0.75, 1][C.settings.policy.prop]); i += 1) {
       var svg = C.finishes.svg('svg', { viewBox: '0 0 40 40', class: 'finish-exotic-shape', 'aria-hidden': 'true' }, element);
       svg.style.left = (i % 2 ? 96.8 : -0.8) + '%'; svg.style.top = (28 + random() * 34) + '%';
       var kind = Math.floor(random() * 3);
@@ -35,7 +35,7 @@
         shape.el.style.transform = 'translateY(' + Math.cos(phase * 0.8) * cfg.shapeTravelPx + 'px) rotate(' + Math.sin(phase) * cfg.shapeRotateDegrees + 'deg)';
         shape.el.style.opacity = 0.4 + 0.5 * (1 + Math.sin(phase)) / 2;
       });
-      state.highlight.style.strokeDashoffset = -(state.time / cfg.borderCycleMs * 1000 % 1000);
+      if (C.finishes.propDue(state, dt)) state.highlight.style.strokeDashoffset = -(state.time / cfg.borderCycleMs * 1000 % 1000);
       return true;
     },
     destroy: function (state) { state.prop.remove(); state.el.remove(); },

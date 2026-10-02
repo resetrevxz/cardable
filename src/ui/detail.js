@@ -50,7 +50,7 @@
       var tier = node('div', 'detail-tier', panel); node('span', 'detail-badge', tier, entry.rarity.code);
       var meter = node('div', 'detail-meter', tier); meter.setAttribute('aria-label', 'Tier ' + entry.rarity.tier + ' of 12');
       for (var i = 0; i < C.config.cardView.meterSegments; i++) { var tick = node('i', '', meter); tick.dataset.filled = i <= entry.rarity.tier; }
-      node('p', 'detail-vram', panel, C.cardSpecs.vram(entry.card) + ' ' + entry.card.vram.type);
+      node('p', 'detail-vram', panel, C.cardSpecs.vram(entry.card) + ' ' + C.cardSpecs.memoryType(entry.card));
       var specs = node('dl', 'detail-specs', panel);
       C.cardSpecs.rows(entry.card).forEach(function (row) { var item = node('div', '', specs); node('dt', '', item, row.label); node('dd', '', item, row.value); });
     }

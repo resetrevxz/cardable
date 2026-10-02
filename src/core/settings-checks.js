@@ -3,12 +3,12 @@
   function require(ok, what) { if (!ok) throw new Error(what); }
   C.dev.registerCheck('settings defaults and unknown-key removal', function () {
     var value = C.settingsSchema.normalize({ surprise: 'discard', settingsVersion: 999 });
-    require(value.settingsVersion === 1 && value.motion === 'auto' && value.quality === 'high' && value.volume === 70 && !('surprise' in value), 'normalization');
+    require(value.settingsVersion === 2 && value.motion === 'auto' && value.quality === 'medium' && value.volume === 70 && !('surprise' in value), 'normalization');
     return true;
   });
   C.dev.registerCheck('settings validation and finite volume clamp', function () {
     var value = C.settingsSchema.normalize({ quality: 'ultra', cursorGlow: 'true', volume: 200, tilt: null });
-    require(value.quality === 'high' && value.cursorGlow === true && value.volume === 100 && value.tilt === 'normal', 'validation');
+    require(value.quality === 'medium' && value.cursorGlow === true && value.volume === 100 && value.tilt === 'normal', 'validation');
     require(C.settingsSchema.normalize({ volume: NaN }).volume === 70, 'nonfinite volume');
     return true;
   });

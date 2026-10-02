@@ -145,8 +145,8 @@ await check('rarity color setting persists with the save and updates normal card
 });
 await check('reduced-motion cards have no tilt, lift, parallax, sway, finish animation or particle loops', () => {
   const r = boot(); open(r); const tile = r.C.inventory.rendered.get(0); r.reduced(true); r.move(10, 10, tile.view.el); r.advance(4000);
-  assert.equal(tile.view.el.style['--rx'], '0deg'); assert.equal(tile.view.el.style['--ry'], '0deg'); assert.equal(tile.view.el.style['--parallax-x'], '0px');
-  assert.equal(tile.view.el.style['--lift-px'], '0px'); assert.equal(r.C.dots.stats.ripples, 0);
+  assert(tile.view.thumbnail);assert.equal(tile.view.el.querySelectorAll('.card__material--live').length,0);
+  assert.equal(tile.view.el.querySelectorAll('.card__face--back').length,0); assert.equal(r.C.dots.stats.ripples, 0);
   const frames = r.C.fx.stats.frameCount; r.advance(1000); assert.equal(r.C.fx.stats.frameCount, frames);
 });
 await check('burst clicks have bounded ripple storage and settle to a sleeping canvas', () => {

@@ -36,8 +36,9 @@
     C.finishes.svg('rect', { x: 18, y: 0, width: 364, height: 60, fill: '#000' }, mask);
     var fire = C.finishes.svg('g', { mask: 'url(#' + maskId + ')' }, svg);
     var random = C.art.random(card.art.seed), flames = [];
-    for (var i = 0; i < cfg.flameCount; i += 1) {
-      var x = i / (cfg.flameCount - 1) * 400, side = i < 2 || i >= cfg.flameCount - 2;
+    var flameCount = Math.max(4, Math.ceil(cfg.flameCount * [0.2, 0.5, 0.75, 1][C.settings.policy.prop]));
+    for (var i = 0; i < flameCount; i += 1) {
+      var x = i / (flameCount - 1) * 400, side = i < 2 || i >= flameCount - 2;
       var height = side ? 72 + random() * 20 : 35 + random() * 38;
       var width = 7 + random() * 9, curl = -8 + random() * 16;
       var tongue = C.finishes.svg('path', { d: 'M' + (x - width) + ' 100C' + (x - width * 1.6) + ' ' + (100 - height * 0.5) + ' ' + (x + curl + 8) + ' ' + (100 - height * 0.7) + ' ' + (x + curl) + ' ' + (100 - height) + 'C' + (x + curl - 3) + ' ' + (100 - height * 0.5) + ' ' + (x + width * 1.5) + ' ' + (100 - height * 0.3) + ' ' + (x + width) + ' 100Z', fill: 'url(#' + fireId + ')', class: 'finish-flame' }, fire);
@@ -53,7 +54,7 @@
       var cfg = C.config.finishMotion.mythical;
       state.shine.style.opacity = 0.1 + 0.8 * (1 - Math.cos(state.time / cfg.shineCycleMs * Math.PI * 2)) / 2;
       state.shine.style.setProperty('--ruby-ray', (25 + Math.sin(state.time / cfg.shineCycleMs * Math.PI * 2) * 35) + '%');
-      state.flames.forEach(function (flame) {
+      if (C.finishes.propDue(state, dt)) state.flames.forEach(function (flame) {
         var phase = state.time / cfg.flameCycleMs * Math.PI * 2 + flame.phase, energy = (1 + Math.sin(phase)) / 2;
         flame.el.style.transform = 'scaleX(' + (0.82 + energy * 0.18) + ') scaleY(' + (cfg.flameScaleMin + energy * (cfg.flameScaleMax - cfg.flameScaleMin)) + ') rotate(' + Math.sin(phase) * 3 + 'deg)';
         flame.el.style.opacity = 0.45 + energy * 0.5;

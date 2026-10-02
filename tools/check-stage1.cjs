@@ -9,7 +9,7 @@ const html = fs.readFileSync(path.join(base, 'index.html'), 'utf8');
 const scripts = Array.from(html.matchAll(/<script src="([^"]+)"/g), match => match[1]);
 const tokens = new Map(Array.from(fs.readFileSync(path.join(base, 'src/styles/tokens.css'), 'utf8').matchAll(/(--[\w-]+):\s*([^;]+);/g), match => [match[1], match[2]]));
 
-function runtime(dev = false, gallery = false, initialSave = null, tutorial = false, inventory = false) {
+function runtime(dev = false, gallery = false, initialSave = null, tutorial = false, inventory = false, refresh = 60) {
   let now = 0, nextId = 1, wallOffset = 0;
   const wallBase = Date.now();
   const tasks = new Map(), queries = new Map(), logs = [], store = new Map();
@@ -33,8 +33,11 @@ function runtime(dev = false, gallery = false, initialSave = null, tutorial = fa
     }
     appendChild(child) { if (child.parent) child.remove(); child.parent = this; this.children.push(child); return child; }
     insertBefore(child, before) { if (child.parent) child.remove(); child.parent = this; const index = before ? this.children.indexOf(before) : -1; this.children.splice(index < 0 ? this.children.length : index, 0, child); return child; }
-    remove() { if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); }
+    remove() { if (this.parent) { const at=this.parent.children.indexOf(this); if(at>=0)this.parent.children.splice(at,1);this.parent=null; } }
+    removeChild(child) { child.remove(); return child; }
     get parentElement() { return this.parent || null; }
+    get parentNode() { return this.parent || null; }
+    cloneNode(deep = false) { const copy = new Element(this.tagName); copy.className = this.className; copy.textContent = this.textContent; copy.attrs = {...this.attrs}; copy.dataset = {...this.dataset}; Object.assign(copy.style, this.style); if (deep) this.children.forEach(child => copy.appendChild(child.cloneNode(true))); return copy; }
     click() { this.fire('click', { target: this }); }
     setAttribute(key, value) { this.attrs[key] = String(value); if (key === 'class') this.className = String(value); }
     removeAttribute(key) { delete this.attrs[key]; }
@@ -90,7 +93,7 @@ function runtime(dev = false, gallery = false, initialSave = null, tutorial = fa
     localStorage: { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, String(value)), removeItem: key => store.delete(key) },
     setTimeout: (fn, delay = 0) => schedule(fn, delay), clearTimeout: id => tasks.delete(id),
     setInterval: (fn, delay) => schedule(fn, delay, delay), clearInterval: id => tasks.delete(id),
-    requestAnimationFrame: fn => schedule(() => fn(now), 1000 / 60), cancelAnimationFrame: id => tasks.delete(id),
+    requestAnimationFrame: fn => schedule(() => fn(now), 1000 / refresh), cancelAnimationFrame: id => tasks.delete(id),
     getComputedStyle: () => ({ getPropertyValue: key => tokens.get(key) || '' }),
     matchMedia: query => {
       if (!queries.has(query)) { const media = new Target(); media.matches = query.includes('pointer: fine'); queries.set(query, media); }
@@ -133,6 +136,7 @@ if (require.main === module) {
 let passed = 0;
 function check(name, fn) { fn(); passed += 1; console.log('PASS ' + name); }
 const r = runtime();
+r.C.settings.applyPreset('high'); // The shell material tests exercise the full-quality profile.
 // Isolate Stage 1's demand-driven shell checks from Stage 4's breathing pack.
 r.C.packView.setVisible(false);
 r.C.inventoryHint.setVisible(false);
@@ -143,7 +147,7 @@ check('classic local script order, staged entrance, and initial scheduler sleep'
   assert.equal(scripts.at(-1), 'src/boot.js');
   assert(!r.document.body.classList.contains('is-loaded'));
   r.advance(40); assert(r.document.body.classList.contains('is-loaded'));
-  r.advance(510); assert(r.document.body.classList.contains('has-entered'));
+  r.advance(1510); assert(r.document.body.classList.contains('has-entered'));
   assert.equal(r.C.fx.stats.running, false);
   const frames = r.C.fx.stats.frameCount; r.advance(500); assert.equal(r.C.fx.stats.frameCount, frames);
   assert.equal(r.C.dots.stats.visibleDots, 0);

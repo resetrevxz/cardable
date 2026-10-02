@@ -14,7 +14,7 @@
     var receipt = root.document.createElement('span'); receipt.className = 'pack-reward__receipt'; receipt.textContent = '+' + cfg.symbol + change.amount;
     receipt.style.left = source.left + source.width / 2 + 'px'; receipt.style.top = source.top + source.height / 2 + 'px'; el.appendChild(receipt);
     var coins = [];
-    if (!C.motion.reduced) for (var i = 0; i < cfg.rewardCoins; i += 1) {
+    if (!C.motion.reduced) for (var i = 0; i < Math.ceil(cfg.rewardCoins * C.settings.policy.particles); i += 1) {
       var coin = root.document.createElement('span'); coin.className = 'pack-reward__coin'; coin.textContent = cfg.symbol; coin.setAttribute('aria-hidden', 'true');
       coin.style.left = source.left + source.width / 2 + 'px'; coin.style.top = source.top + source.height / 2 + 'px'; el.appendChild(coin);
       coins.push({ el: coin, delay: i * 55, arc: 80 + i * 18, spread: (i - (cfg.rewardCoins - 1) / 2) * 11 });

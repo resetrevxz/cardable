@@ -13,16 +13,16 @@ function until(r, phase) { for(let i=0;i<2000 && (r.C.opening.phase!==phase || p
 function freshPending(r) { const s=clone(r.C.state.current); s.serialCounter=1; const card=r.C.data.cards[0];s.pendingReveal={packId:r.C.data.packs[0].id,committedAt:1,keptCount:0,cards:[{instanceId:'pending-one',cardId:card.id,serial:r.C.serial.format(s.playerCode,1),pulledAt:1,seen:false}]}; return s; }
 check('defaults, enums, booleans, finite volume and unknown-field removal',()=>{
  const r=boot(),s=r.C.settingsSchema.normalize({motion:'wrong',quality:null,cursorGlow:'true',volume:101,nudgeDismissed:1,extra:1});
- assert.equal(s.motion,'auto');assert.equal(s.quality,'high');assert.equal(s.cursorGlow,true);assert.equal(s.volume,100);assert.equal(s.nudgeDismissed,false);assert(!('extra'in s));
+ assert.equal(s.motion,'auto');assert.equal(s.quality,'medium');assert.equal(s.cursorGlow,true);assert.equal(s.volume,100);assert.equal(s.nudgeDismissed,false);assert(!('extra'in s));
  assert.equal(r.C.settingsSchema.normalize({volume:-4}).volume,0);assert.equal(r.C.settingsSchema.normalize({volume:Infinity}).volume,70);
- assert.equal(r.C.state.current.settings.settingsVersion,1);assert.equal(r.C.state.current.schemaVersion,3);
+ assert.equal(r.C.state.current.settings.settingsVersion,2);assert.equal(r.C.state.current.schemaVersion,3);
 });
 check('legacy preferences migrate without touching game progress',()=>{
  const r=boot(),s=clone(r.C.state.current);s.settings={reducedMotion:false,rarityColorMode:'mono'};s.currency=123;const next=boot({save:s});next.reduced(true);
  assert.equal(next.C.settings.get('motion'),'off');assert.equal(next.C.config.rarityColorMode,'mono');assert(!next.C.motion.reduced);assert.equal(next.C.state.current.currency,123);assert(!('reducedMotion'in next.C.state.current.settings));
 });
 check('invalid settings containers default without replacing a valid save',()=>{
- const r=boot();for(const invalid of [null,[],42,'old']){const s=clone(r.C.state.current);s.currency=789;s.settings=invalid;const n=boot({save:s});assert.equal(n.C.state.current.currency,789);assert.equal(n.C.settings.get('quality'),'high');assert.equal(n.C.state.recovery,null);}
+ const r=boot();for(const invalid of [null,[],42,'old']){const s=clone(r.C.state.current);s.currency=789;s.settings=invalid;const n=boot({save:s});assert.equal(n.C.state.current.currency,789);assert.equal(n.C.settings.get('quality'),'medium');assert.equal(n.C.state.recovery,null);}
 });
 check('one write and one event per change; compatibility callers do not loop',()=>{
  const r=boot();let writes=0,events=0;const original=r.window.localStorage.setItem;r.window.localStorage.setItem=(k,v)=>{writes++;original(k,v);};const stop=r.C.settings.onChange('rarityColor',()=>events++);
@@ -55,7 +55,7 @@ check('quality matrix limits ripple, finish update rate, particle count and pres
  const pool=r.C.particles.create(new r.Element('div'),40);pool.emit('dissolve',null,100,100);assert.equal(pool.count,Math.ceil(40*scale));
  }
  r.C.preferences.show();const view=r.C.preferences.preview;assert.equal(view.el.querySelectorAll('.card__face--front')[0].children.length,9);assert.equal(view.el.querySelectorAll('.card__shadow').length,1);
- const css=fs.readFileSync('src/styles/settings.css','utf8');for(const layer of ['shadow','foil','beam'])assert(css.includes('[data-quality="low"] .card__'+layer));
+ const css=fs.readFileSync('src/styles/graphics.css','utf8');for(const layer of ['shadow','foil','beam'])assert(css.includes('.card__'+layer));assert(css.includes('[data-reflection-quality="low"]'));assert(css.includes('[data-shadow-quality="low"]'));
 });
 check('cursor Off sleeps but preserves cutting blade; idle Never and five seconds keep holds',()=>{
  const r=boot();r.C.settings.set('cursorGlow',false);r.move(200,200);r.advance(30);const cursor=r.document.getElementById('cursor-glow');assert(!cursor.classList.contains('is-present'));r.C.events.emit('cursor:blade',true);r.advance(30);assert(cursor.classList.contains('is-present'));r.C.events.emit('cursor:blade',false);
@@ -97,7 +97,7 @@ check('tilt changes caps live, serial preference targets front only and rarity s
  r.C.settings.set('rarityColor','mono');assert.equal(v.el.dataset.colorMode,'mono');r.C.settings.set('serialOnFront',false);assert.equal(r.document.documentElement.getAttribute('data-serial-on-front'),'false');const css=fs.readFileSync('src/styles/settings.css','utf8');assert(css.includes('.card__face--front .card__serial'));assert(!css.includes('.card__back-serial { visibility'));
 });
 check('quality throttles core glare while pose and controlled reveal remain at display cadence',()=>{
- for(const controlled of [false,true])for(const [quality,hz] of [['high',60],['medium',30],['low',15]]){
+ for(const controlled of [false,true])for(const [quality,hz] of [['high',120],['medium',30],['low',15]]){
   const r=boot();r.C.settings.set('quality',quality);const card=r.C.data.cards.find(c=>!c.retired),v=r.C.cardView.create(card,{serial:'PREVIEW',cardId:card.id},{controlledReveal:controlled,autoStamp:false});v.setMode('full');let writes=0;const original=v.el.style.setProperty;v.el.style.setProperty=function(k,value){if(k==='--core-x')writes++;return original.call(this,k,value);};
   const before=v.stats.updates;for(let i=0;i<120;i++){v.pointer({pointer:{x:100+Math.sin(i*.1)*8,y:70}});v.update(i*1000/120,1000/120);if(controlled)v.setRevealFrame({pose:{y:0,turn:i/100,scale:1},angle:180});}
   assert.equal(v.stats.updates-before,120);assert(writes>=hz-1&&writes<=hz+1,quality+' core paints '+writes);v.destroy();
@@ -124,7 +124,7 @@ check('repeated modal cycles and tier changes do not retain card views, subscrip
  assert.equal(r.C.events.listenerCount,listeners);assert.equal(r.C.cardView.stats.liveViews,views);assert.equal(r.C.fx.stats.subscribers,subscribers);assert.equal(r.C.cardView.stats.fullCards,0);assert(!key(r,'Tab').prevented);
 });
 check('the preview keeps sole focus through live inventory rebuilds and restores the surviving selection',()=>{
- const r=boot();r.C.events.emit('inventory:preview',300);r.C.inventory.request(true);r.advance(1200);const index=r.C.inventory.entries.findIndex(e=>e.owned);r.C.inventory.carousel.snap(index*(parseFloat(r.C.inventory.shelf.style['--inventory-tile-width'])+r.C.config.inventoryMotion.tileGapPx));r.advance(1400);const id=r.C.cardView.active.card.id;r.C.preferences.show();r.C.settings.set('rarityColor','mono');r.C.settings.set('motion','on');r.advance(200);assert.equal(r.C.cardView.active,r.C.preferences.preview);assert.equal(r.C.cardView.stats.fullCards,1);r.C.preferences.close();r.advance(200);assert.equal(r.C.cardView.active.card.id,id);assert.equal(r.C.cardView.stats.fullCards,1);
+ const r=boot();r.C.events.emit('inventory:preview',300);r.C.inventory.request(true);r.advance(1200);const index=r.C.inventory.entries.findIndex(e=>e.owned);r.C.inventory.carousel.snap(index*(parseFloat(r.C.inventory.shelf.style['--inventory-tile-width'])+r.C.config.inventoryMotion.tileGapPx));r.advance(1400);const id=r.C.inventory.entries[index].stackKey;r.C.preferences.show();r.C.settings.set('rarityColor','mono');r.C.settings.set('motion','on');r.advance(200);assert.equal(r.C.cardView.active,r.C.preferences.preview);assert.equal(r.C.cardView.stats.fullCards,1);r.C.preferences.close();r.advance(200);assert.equal(r.C.inventory.entries[index].stackKey,id);assert.equal(r.C.cardView.active,null);assert.equal(r.C.cardView.stats.fullCards,0);
 });
 check('focus trap, disabled Sound, active Data tools, segmented arrows and keyboard keycaps are accessible',()=>{
  const r=boot();r.C.preferences.show();const p=r.C.preferences,list=r.C.accessibility.focusables(p.panel);list.at(-1).focus();const e=key(r,'Tab','keydown',r.document.activeElement);assert(e.prevented);assert.equal(r.document.activeElement,list[0]);
@@ -137,10 +137,10 @@ check('Saved feedback follows successful storage; tutorial required hints reflec
  const seed=r.C.state.fresh();seed.settings.openKey='enter';seed.settings.keyHints=false;const t=boot({save:seed,tutorial:true});t.advance(3000);assert.equal(t.C.tutorial.instruction.textContent,'Hold Enter to open.');assert.equal(t.C.opening.hint.querySelector('kbd').textContent,'Enter');assert(t.document.body.classList.contains('has-tutorial'));
 });
 check('nudge excludes sleep and hidden gaps, offers Medium once and persists Dismiss',()=>{
- const r=boot(),p=r.C.preferences;for(let i=0;i<100;i++)r.C.events.emit('fx:frame',{realDt:25});r.C.events.emit('fx:sleep');for(let i=0;i<100;i++)r.C.events.emit('fx:frame',{realDt:25});assert(p.nudge.hidden);r.hidden(true);r.hidden(false);for(let i=0;i<201;i++)r.C.events.emit('fx:frame',{realDt:25});assert(!p.nudge.hidden);p.nudge.querySelectorAll('button').find(b=>b.textContent==='Dismiss').fire('click');assert(r.C.settings.get('nudgeDismissed'));assert(p.nudge.hidden);const n=boot({save:clone(r.C.state.current)});for(let i=0;i<250;i++)n.C.events.emit('fx:frame',{realDt:25});assert(n.C.preferences.nudge.hidden);
+ const r=boot(),p=r.C.preferences;r.C.settings.applyPreset('high');r.advance(2000);for(let i=0;i<100;i++)r.C.events.emit('fx:frame',{realDt:25});r.C.events.emit('fx:sleep');for(let i=0;i<100;i++)r.C.events.emit('fx:frame',{realDt:25});assert(p.nudge.hidden);r.hidden(true);r.hidden(false);for(let i=0;i<321;i++)r.C.events.emit('fx:frame',{realDt:25});assert(!p.nudge.hidden);p.nudge.querySelectorAll('button').find(b=>b.textContent==='Dismiss').fire('click');assert(r.C.settings.get('nudgeDismissed'));assert(p.nudge.hidden);const n=boot({save:clone(r.C.state.current)});for(let i=0;i<250;i++)n.C.events.emit('fx:frame',{realDt:25});assert(n.C.preferences.nudge.hidden);
 });
-check('nudge Switch changes quality once, and live reduced motion pauses hidden panel presentation',()=>{
- const r=boot(),p=r.C.preferences;for(let i=0;i<201;i++)r.C.events.emit('fx:frame',{realDt:25});p.nudge.querySelectorAll('button').find(b=>b.textContent==='Switch').fire('click');assert.equal(r.C.settings.get('quality'),'medium');assert(p.nudge.hidden);r.C.settings.set('quality','high');for(let i=0;i<201;i++)r.C.events.emit('fx:frame',{realDt:25});assert(p.nudge.hidden);
+check('nudge Apply changes quality once, and live reduced motion pauses hidden panel presentation',()=>{
+ const r=boot(),p=r.C.preferences;r.C.settings.applyPreset('high');r.advance(2000);for(let i=0;i<321;i++)r.C.events.emit('fx:frame',{realDt:25});p.nudge.querySelectorAll('button').find(b=>b.textContent==='Apply').fire('click');assert.equal(r.C.settings.get('quality'),'medium');assert(p.nudge.hidden);r.C.settings.set('quality','high');for(let i=0;i<321;i++)r.C.events.emit('fx:frame',{realDt:25});assert(p.nudge.hidden);
  p.show();r.advance(30);r.hidden(true);const transform=p.panel.style.transform;r.advance(4000);assert.equal(p.panel.style.transform,transform);r.hidden(false);r.C.settings.set('motion','on');r.advance(200);assert.equal(p.panel.style.transform,'none');assert.equal(p.panel.style.opacity,1);p.close();r.advance(200);assert(p.el.hidden);
 });
 check('isolated dev console checks all PASS, no application console errors',()=>{

@@ -1,0 +1,576 @@
+{
+  "workingCheckout": {
+    "groups": [
+      "four presets, all rarity materials, all coating renderers, clean teardown and desktop screenshots",
+      "custom graphics survive reload; visible blur pauses; hidden full sleep stops timers and return reconciles two timestamp refills",
+      "1000-entry collection has bounded front-only tiles and promotes one full card in detail then releases it",
+      "native phone touch holds for 3 seconds, tears, reveals, flips, Keeps and reloads once without keyboard or duplicate rewards",
+      "Low at 30 FPS accepts native touch cutting; reload recovers the reserved card and touch Delete preserves the one-time reward",
+      "native phone inventory and detail open and close with 44px targets",
+      "phone portrait/landscape fit, no script errors, no runtime network requests, no missing rendered images"
+    ],
+    "profiles": [
+      {
+        "type": "menu",
+        "tier": "very-low",
+        "material": [
+          {
+            "rarity": "basic",
+            "nodes": 240
+          },
+          {
+            "rarity": "common",
+            "nodes": 241
+          },
+          {
+            "rarity": "uncommon",
+            "nodes": 114
+          },
+          {
+            "rarity": "rare",
+            "nodes": 245
+          },
+          {
+            "rarity": "super-rare",
+            "nodes": 253
+          },
+          {
+            "rarity": "unusual",
+            "nodes": 246
+          },
+          {
+            "rarity": "double-super-rare",
+            "nodes": 245
+          },
+          {
+            "rarity": "legendary",
+            "nodes": 265
+          },
+          {
+            "rarity": "mythical",
+            "nodes": 191
+          },
+          {
+            "rarity": "exotic",
+            "nodes": 131
+          },
+          {
+            "rarity": "ascendant",
+            "nodes": 136
+          },
+          {
+            "rarity": "secret",
+            "nodes": 258
+          },
+          {
+            "rarity": "limited",
+            "nodes": 219
+          }
+        ],
+        "elapsed": 1809.3999999999069,
+        "frames": 2,
+        "packUpdates": 2,
+        "nodes": 1099,
+        "canvasPixels": 0,
+        "jsP95": 0,
+        "liveViews": 0,
+        "fullCards": 0
+      },
+      {
+        "type": "menu",
+        "tier": "low",
+        "material": [
+          {
+            "rarity": "basic",
+            "nodes": 241
+          },
+          {
+            "rarity": "common",
+            "nodes": 243
+          },
+          {
+            "rarity": "uncommon",
+            "nodes": 115
+          },
+          {
+            "rarity": "rare",
+            "nodes": 252
+          },
+          {
+            "rarity": "super-rare",
+            "nodes": 262
+          },
+          {
+            "rarity": "unusual",
+            "nodes": 248
+          },
+          {
+            "rarity": "double-super-rare",
+            "nodes": 252
+          },
+          {
+            "rarity": "legendary",
+            "nodes": 315
+          },
+          {
+            "rarity": "mythical",
+            "nodes": 275
+          },
+          {
+            "rarity": "exotic",
+            "nodes": 161
+          },
+          {
+            "rarity": "ascendant",
+            "nodes": 151
+          },
+          {
+            "rarity": "secret",
+            "nodes": 275
+          },
+          {
+            "rarity": "limited",
+            "nodes": 226
+          }
+        ],
+        "elapsed": 1804.1999999997206,
+        "frames": 2,
+        "packUpdates": 2,
+        "nodes": 1100,
+        "canvasPixels": 1229400,
+        "jsP95": 0.09999999962747097,
+        "liveViews": 0,
+        "fullCards": 0
+      },
+      {
+        "type": "menu",
+        "tier": "medium",
+        "material": [
+          {
+            "rarity": "basic",
+            "nodes": 241
+          },
+          {
+            "rarity": "common",
+            "nodes": 243
+          },
+          {
+            "rarity": "uncommon",
+            "nodes": 115
+          },
+          {
+            "rarity": "rare",
+            "nodes": 264
+          },
+          {
+            "rarity": "super-rare",
+            "nodes": 262
+          },
+          {
+            "rarity": "unusual",
+            "nodes": 248
+          },
+          {
+            "rarity": "double-super-rare",
+            "nodes": 266
+          },
+          {
+            "rarity": "legendary",
+            "nodes": 333
+          },
+          {
+            "rarity": "mythical",
+            "nodes": 287
+          },
+          {
+            "rarity": "exotic",
+            "nodes": 169
+          },
+          {
+            "rarity": "ascendant",
+            "nodes": 151
+          },
+          {
+            "rarity": "secret",
+            "nodes": 275
+          },
+          {
+            "rarity": "limited",
+            "nodes": 226
+          }
+        ],
+        "elapsed": 1802.0999999996275,
+        "frames": 108,
+        "packUpdates": 108,
+        "nodes": 1100,
+        "canvasPixels": 1229400,
+        "jsP95": 0.10000000009313226,
+        "liveViews": 0,
+        "fullCards": 0
+      },
+      {
+        "type": "menu",
+        "tier": "high",
+        "material": [
+          {
+            "rarity": "basic",
+            "nodes": 241
+          },
+          {
+            "rarity": "common",
+            "nodes": 243
+          },
+          {
+            "rarity": "uncommon",
+            "nodes": 115
+          },
+          {
+            "rarity": "rare",
+            "nodes": 282
+          },
+          {
+            "rarity": "super-rare",
+            "nodes": 262
+          },
+          {
+            "rarity": "unusual",
+            "nodes": 248
+          },
+          {
+            "rarity": "double-super-rare",
+            "nodes": 286
+          },
+          {
+            "rarity": "legendary",
+            "nodes": 363
+          },
+          {
+            "rarity": "mythical",
+            "nodes": 299
+          },
+          {
+            "rarity": "exotic",
+            "nodes": 177
+          },
+          {
+            "rarity": "ascendant",
+            "nodes": 151
+          },
+          {
+            "rarity": "secret",
+            "nodes": 275
+          },
+          {
+            "rarity": "limited",
+            "nodes": 226
+          }
+        ],
+        "elapsed": 1801.3000000002794,
+        "frames": 108,
+        "packUpdates": 108,
+        "nodes": 1100,
+        "canvasPixels": 1229400,
+        "jsP95": 0.10000000009313226,
+        "liveViews": 0,
+        "fullCards": 0
+      },
+      {
+        "type": "inventory1000",
+        "total": 1750,
+        "mounted": 7,
+        "nodes": 1352,
+        "backs": 0
+      }
+    ],
+    "errors": [],
+    "network": [],
+    "missingImages": []
+  },
+  "stagedSnapshot": {
+    "groups": [
+      "four presets, all rarity materials, all coating renderers, clean teardown and desktop screenshots",
+      "custom graphics survive reload; visible blur pauses; hidden full sleep stops timers and return reconciles two timestamp refills",
+      "1000-entry collection has bounded front-only tiles and promotes one full card in detail then releases it",
+      "native phone touch holds for 3 seconds, tears, reveals, flips, Keeps and reloads once without keyboard or duplicate rewards",
+      "Low at 30 FPS accepts native touch cutting; reload recovers the reserved card and touch Delete preserves the one-time reward",
+      "native phone inventory and detail open and close with 44px targets",
+      "phone portrait/landscape fit, no script errors, no runtime network requests, no missing rendered images"
+    ],
+    "profiles": [
+      {
+        "type": "menu",
+        "tier": "very-low",
+        "material": [
+          {
+            "rarity": "basic",
+            "nodes": 240
+          },
+          {
+            "rarity": "common",
+            "nodes": 241
+          },
+          {
+            "rarity": "uncommon",
+            "nodes": 114
+          },
+          {
+            "rarity": "rare",
+            "nodes": 245
+          },
+          {
+            "rarity": "super-rare",
+            "nodes": 253
+          },
+          {
+            "rarity": "unusual",
+            "nodes": 246
+          },
+          {
+            "rarity": "double-super-rare",
+            "nodes": 245
+          },
+          {
+            "rarity": "legendary",
+            "nodes": 265
+          },
+          {
+            "rarity": "mythical",
+            "nodes": 191
+          },
+          {
+            "rarity": "exotic",
+            "nodes": 131
+          },
+          {
+            "rarity": "ascendant",
+            "nodes": 136
+          },
+          {
+            "rarity": "secret",
+            "nodes": 258
+          },
+          {
+            "rarity": "limited",
+            "nodes": 219
+          }
+        ],
+        "elapsed": 1805.5,
+        "frames": 2,
+        "packUpdates": 2,
+        "nodes": 1090,
+        "canvasPixels": 0,
+        "jsP95": 0.10000000009313226,
+        "liveViews": 0,
+        "fullCards": 0
+      },
+      {
+        "type": "menu",
+        "tier": "low",
+        "material": [
+          {
+            "rarity": "basic",
+            "nodes": 241
+          },
+          {
+            "rarity": "common",
+            "nodes": 243
+          },
+          {
+            "rarity": "uncommon",
+            "nodes": 115
+          },
+          {
+            "rarity": "rare",
+            "nodes": 252
+          },
+          {
+            "rarity": "super-rare",
+            "nodes": 262
+          },
+          {
+            "rarity": "unusual",
+            "nodes": 248
+          },
+          {
+            "rarity": "double-super-rare",
+            "nodes": 252
+          },
+          {
+            "rarity": "legendary",
+            "nodes": 315
+          },
+          {
+            "rarity": "mythical",
+            "nodes": 275
+          },
+          {
+            "rarity": "exotic",
+            "nodes": 161
+          },
+          {
+            "rarity": "ascendant",
+            "nodes": 151
+          },
+          {
+            "rarity": "secret",
+            "nodes": 275
+          },
+          {
+            "rarity": "limited",
+            "nodes": 226
+          }
+        ],
+        "elapsed": 1803.4000000003725,
+        "frames": 2,
+        "packUpdates": 2,
+        "nodes": 1091,
+        "canvasPixels": 1229400,
+        "jsP95": 0.19999999972060323,
+        "liveViews": 0,
+        "fullCards": 0
+      },
+      {
+        "type": "menu",
+        "tier": "medium",
+        "material": [
+          {
+            "rarity": "basic",
+            "nodes": 241
+          },
+          {
+            "rarity": "common",
+            "nodes": 243
+          },
+          {
+            "rarity": "uncommon",
+            "nodes": 115
+          },
+          {
+            "rarity": "rare",
+            "nodes": 264
+          },
+          {
+            "rarity": "super-rare",
+            "nodes": 262
+          },
+          {
+            "rarity": "unusual",
+            "nodes": 248
+          },
+          {
+            "rarity": "double-super-rare",
+            "nodes": 266
+          },
+          {
+            "rarity": "legendary",
+            "nodes": 333
+          },
+          {
+            "rarity": "mythical",
+            "nodes": 287
+          },
+          {
+            "rarity": "exotic",
+            "nodes": 169
+          },
+          {
+            "rarity": "ascendant",
+            "nodes": 151
+          },
+          {
+            "rarity": "secret",
+            "nodes": 275
+          },
+          {
+            "rarity": "limited",
+            "nodes": 226
+          }
+        ],
+        "elapsed": 1808.5,
+        "frames": 109,
+        "packUpdates": 109,
+        "nodes": 1091,
+        "canvasPixels": 1229400,
+        "jsP95": 0.10000000009313226,
+        "liveViews": 0,
+        "fullCards": 0
+      },
+      {
+        "type": "menu",
+        "tier": "high",
+        "material": [
+          {
+            "rarity": "basic",
+            "nodes": 241
+          },
+          {
+            "rarity": "common",
+            "nodes": 243
+          },
+          {
+            "rarity": "uncommon",
+            "nodes": 115
+          },
+          {
+            "rarity": "rare",
+            "nodes": 282
+          },
+          {
+            "rarity": "super-rare",
+            "nodes": 262
+          },
+          {
+            "rarity": "unusual",
+            "nodes": 248
+          },
+          {
+            "rarity": "double-super-rare",
+            "nodes": 286
+          },
+          {
+            "rarity": "legendary",
+            "nodes": 363
+          },
+          {
+            "rarity": "mythical",
+            "nodes": 299
+          },
+          {
+            "rarity": "exotic",
+            "nodes": 177
+          },
+          {
+            "rarity": "ascendant",
+            "nodes": 151
+          },
+          {
+            "rarity": "secret",
+            "nodes": 275
+          },
+          {
+            "rarity": "limited",
+            "nodes": 226
+          }
+        ],
+        "elapsed": 1810.6999999997206,
+        "frames": 109,
+        "packUpdates": 109,
+        "nodes": 1091,
+        "canvasPixels": 1229400,
+        "jsP95": 0.10000000009313226,
+        "liveViews": 0,
+        "fullCards": 0
+      },
+      {
+        "type": "inventory1000",
+        "total": 1750,
+        "mounted": 7,
+        "nodes": 1343,
+        "backs": 0
+      }
+    ],
+    "errors": [],
+    "network": [],
+    "missingImages": []
+  }
+}

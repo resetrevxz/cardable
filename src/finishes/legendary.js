@@ -54,6 +54,7 @@
     var crownStars = C.finishes.sparkles(prop, cfg.crownSparkleCount, card.art.seed + 17, { x: 35, y: -10, width: 30, height: 12 });
     var sparks = [];
     [[1,1],[99,1],[1,99],[99,99],[35,-4],[50,-12],[65,-4]].forEach(function (position, i) {
+      if (i >= Math.ceil(7 * C.settings.policy.particles)) return;
       var spark = C.finishes.element('i', 'finish-tip-spark', prop); spark.style.left = position[0] + '%'; spark.style.top = position[1] + '%';
       sparks.push({ el: spark, phase: i * 0.83 });
     });
@@ -66,9 +67,11 @@
       state.time += dt;
       var cfg = C.config.finishMotion.legendary, seconds = state.time / 1000;
       state.wave.style.transform = 'translateY(' + Math.sin(state.time / cfg.waveCycleMs * Math.PI * 2) * cfg.waveTravelPercent + '%)';
-      state.redGlow.setAttribute('transform', 'rotate(' + (state.time / cfg.gemCycleMs * 360 % 360) + ' 34 41)');
+      var propDue = C.finishes.propDue(state, dt);
+      if (propDue) state.redGlow.setAttribute('transform', 'rotate(' + (state.time / cfg.gemCycleMs * 360 % 360) + ' 34 41)');
       C.finishes.twinkle(state.stars, seconds, cfg.sparkleSpeed);
       state.sparks.forEach(function (spark) {
+        if (!propDue) return;
         var phase = (seconds * cfg.tipSparkSpeed + spark.phase) % 1;
         spark.el.style.opacity = Math.pow(Math.sin(phase * Math.PI), 3);
         spark.el.style.transform = 'translateY(' + (-phase * cfg.tipSparkTravelPx) + 'px) scale(' + (1 - phase * 0.6) + ')';

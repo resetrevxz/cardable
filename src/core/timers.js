@@ -2,7 +2,12 @@
   'use strict';
   var interval = null;
   var unwatch = null;
-  function onVisibility() { if (!root.document.hidden) C.timers.tick(); }
+  var started = false;
+  function schedule() {
+    if (interval !== null) root.clearInterval(interval); interval = null;
+    if (started && (!root.document.hidden || C.settings.get('backgroundMode') === 'timer')) interval = root.setInterval(function () { C.timers.tick(); }, 1000);
+  }
+  function onVisibility() { schedule(); if (!root.document.hidden) C.timers.tick(); }
   function state() { if (!C.state.current) C.state.load(); return C.state.current; }
   C.timers = {
     get running() { return interval !== null; },
@@ -65,14 +70,16 @@
       return true;
     },
     start: function () {
-      if (interval) return;
+      if (started) return; started = true;
       C.timers.tick();
-      interval = root.setInterval(function () { C.timers.tick(); }, 1000);
+      schedule();
       if (root.document) unwatch = C.timers.watchVisibility(root.document);
     },
     stop: function () {
+      started = false;
       if (interval) root.clearInterval(interval); interval = null;
       if (unwatch) unwatch(); unwatch = null;
     }
   };
+  C.settings.onChange('backgroundMode', schedule);
 })(window.Cardable, window);

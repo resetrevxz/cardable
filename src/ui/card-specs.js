@@ -22,6 +22,7 @@
       });
       return rows;
     },
-    vram: function (card) { return card.vram.shared || card.vram.amount == null ? 'Shared' : card.vram.amount + ' ' + card.vram.unit; }
+    memoryType: function (card) { return card.vram && card.vram.type || ''; },
+    vram: function (card) { if (!card.vram) return 'Unknown'; return card.vram.shared || card.vram.amount == null ? 'Shared' : card.vram.amount + ' ' + card.vram.unit; }
   };
 })(window.Cardable);

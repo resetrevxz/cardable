@@ -1,0 +1,80 @@
+/* Graphics controls are independent: never infer an effect from the base preset. */
+.settings-graphics { padding: var(--s-4) var(--s-5) 0; }
+.settings-graphics h3 { margin: 0; color: var(--text-dim); font: 10px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+.settings-graphics .settings-row { flex-direction: column; align-items: stretch; gap: var(--s-3); padding: var(--s-3) 0; }
+.settings-graphics .settings-segments { border-radius: var(--r-button); }
+.settings-graphics .settings-segment { flex: 1; min-height: 44px; border-radius: 9px; font-size: 11px; }
+.settings-preset-status { margin: var(--s-3) 0 0; min-height: 32px; color: var(--text-dim); font: 12px/1.5 var(--font-ui); }
+.settings-select { max-width: 155px; min-width: 120px; min-height: 44px; border: 1px solid var(--hairline); border-radius: var(--r-button); padding: 8px; color: var(--text); background: var(--surface-2); font: 11px var(--font-mono); }
+.settings-advanced { margin: 0 var(--s-5) var(--s-4); }
+.settings-advanced summary { min-height: 44px; display: list-item; padding-top: 14px; box-sizing: border-box; cursor: pointer; font: 12px var(--font-ui); color: var(--text-dim); }
+.performance-display { position: fixed; left: var(--s-4); bottom: var(--s-4); z-index: 70; padding: 8px 10px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); color: var(--text-dim); font: 10px var(--font-mono); pointer-events: none; }
+.performance-display[hidden] { display: none; }
+
+[data-glass-quality="medium"] .glass { backdrop-filter: blur(16.8px) saturate(130%); -webkit-backdrop-filter: blur(16.8px) saturate(130%); }
+[data-glass-quality="medium"] .glass--sheet { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+[data-glass-quality="medium"] .card__info { backdrop-filter: blur(10.8px); -webkit-backdrop-filter: blur(10.8px); }
+[data-glass-quality="medium"] .currency-counter { backdrop-filter: blur(13.2px); -webkit-backdrop-filter: blur(13.2px); }
+[data-glass-quality="medium"] .currency-receipt { backdrop-filter: blur(10.8px); -webkit-backdrop-filter: blur(10.8px); }
+[data-glass-quality="medium"] .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail,.card-gallery) { filter: blur(2.4px); }
+[data-glass-quality="medium"] .inventory-depth-active:not(.settings-open) .menu-shell { filter: blur(calc(var(--inventory-menu-blur,0px) * .6)); }
+:is([data-glass-quality="very-low"],[data-glass-quality="low"]) :is(.glass,.glass--sheet,.card__info,.currency-counter,.currency-receipt,.collection-toast,.save-notice,.settings-data-toast) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background-color: var(--surface-2); }
+:is([data-glass-quality="very-low"],[data-glass-quality="low"]) .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail,.card-gallery),
+:is([data-glass-quality="very-low"],[data-glass-quality="low"]) .inventory-depth-active .menu-shell { filter: none; }
+:is([data-glass-quality="very-low"],[data-glass-quality="low"]) .inventory-detail { background: rgba(8,8,10,calc(var(--detail-dim,0) * .95)); }
+
+[data-shadow-quality="medium"] { --shadow-2: 0 2px 4px #0008, 0 12px 28px #0006; }
+[data-shadow-quality="low"] { --shadow-1: 0 6px 16px #0005; --shadow-2: 0 12px 28px #0006; }
+[data-shadow-quality="very-low"] { --shadow-1: 0 2px 4px #0006; --shadow-2: 0 2px 4px #0006; }
+[data-shadow-quality="medium"] .card__shadow { box-shadow: 0 2px 4px #0009, 0 12px var(--shadow-blur) #0007; }
+[data-shadow-quality="low"] .card__shadow { box-shadow: 0 8px 16px #0006; }
+[data-shadow-quality="very-low"] :is(.card__shadow,.pack-ground-shadow) { display: none; }
+[data-shadow-quality="very-low"] .card__body { box-shadow: 0 2px 4px #0006; }
+:is([data-shadow-quality="very-low"],[data-shadow-quality="low"]) :is(.inventory-focus-light,.inventory-tile.is-centered::after) { display: none; }
+
+:is([data-reflection-quality="very-low"],[data-reflection-quality="low"]) :is(.card__foil,.card__beam) { display: none; }
+[data-reflection-quality="very-low"] :is(.card__glare,.card__reveal-shine,.pack-reflection,.pack-shine,.pack-film,.pack-sweep,.opening-bloom,.pack-print--transmitted,.currency-shimmer) { display: none; }
+[data-reflection-quality="low"] .card__glare-render { background: radial-gradient(ellipse at var(--glare-x,30%) var(--glare-y,20%),#ffffff20,transparent 65%); filter: none; }
+:is([data-reflection-quality="very-low"],[data-reflection-quality="low"]) :is(.card__body::before,.card__body::after) { display: none; }
+[data-reflection-quality="high"] .card__glare-render { background: radial-gradient(ellipse at var(--core-x,19%) var(--core-y,14%),rgba(255,255,255,.47),rgba(255,255,255,.12) 18%,transparent 44%),radial-gradient(ellipse at var(--glare-x,31%) var(--glare-y,22%),rgba(255,255,255,.15),transparent 72%); }
+[data-reflection-quality="high"] .card__edge { box-shadow: inset 0 1px 0 #ffffff35, inset 1px 0 0 #ffffff15; }
+
+[data-finish-quality="very-low"] :is(.card__finish,.card__prop,.card__variant) .card__material--live { display: none; }
+[data-finish-quality="very-low"] :is(.card__finish,.card__prop,.card__variant) .card__material--lite { opacity: 1 !important; }
+:is([data-prop-quality="very-low"],[data-prop-quality="low"]) :is(.finish-prop,.finish-prop *,.card__back-mark,.card__back-mark *) { filter: none !important; }
+[data-prop-quality="very-low"] :is(.finish-tip-spark,.finish-exotic-shape,.finish-ascendant-splash,.crown-red-glow) { display: none; }
+[data-particle-quality="very-low"] :is(.finish-sparkle,.finish-tip-spark,.opening-particle,.pack-speck,.currency-flight,.pack-reward__coin,.finish-ascendant-splash) { display: none; }
+[data-animation-quality="very-low"] :is(.currency-receipt,.card-tag,.inventory-tile.is-acquired .inventory-tile-card,.card__serial-char,.card__meter-tick) { animation: none !important; }
+[data-animation-quality="very-low"] :is(.card__serial-char,.card__meter-tick[data-filled="true"]) { opacity: 1 !important; }
+[data-animation-quality="very-low"] .card__tilter { transform: none; }
+[data-background-quality="very-low"] :is(.cursor-glow__light,.cursor-glow__ring) { display: none; }
+.collectible-card[data-mode="lite"] .card__material { animation: none; }
+
+.opening-tear-touch,.opening-flip { pointer-events: auto; min-height: 44px; padding: 10px 16px; border: 1px solid var(--hairline); border-radius: var(--r-button); background: var(--surface); color: var(--text); font: 12px var(--font-ui); cursor: pointer; }
+.opening-tear-touch { position: absolute; left: 50%; bottom: -58px; transform: translateX(-50%); z-index: 5; }
+.opening-flip { position: fixed; top: var(--s-5); left: 50%; transform: translateX(-50%); z-index: 40; }
+.opening-tear-touch[hidden],.opening-flip[hidden] { display: none; }
+@media (hover: none), (pointer: coarse) {
+  button { min-width: 44px; min-height: 44px; }
+  .inventory-detail-active:not(.settings-open) .settings-corner { right: 72px; }
+  .quiet-button,.inventory-icon-button,.detail-serial-arrow,.settings-segment { min-height: 44px; min-width: 44px; }
+  .settings-switch { height: 44px; padding-top: 12px; padding-bottom: 12px; }
+  .is-idle .settings-corner,.is-idle .inventory-arrow,.is-idle .pack-meta { opacity: 1; pointer-events: auto; }
+  .pack-key-hint,.opening-keep-key,.card__flip-hint { display: none; }
+  .settings-preview-selector button { min-width: 44px; min-height: 44px; }
+}
+@media (max-width: 520px) {
+  .settings-select { min-width: 110px; max-width: 140px; }
+  .settings-panel { padding-bottom: env(safe-area-inset-bottom); }
+  .settings-graphics,.settings-preview,.settings-header { padding-left: 16px; padding-right: 16px; }
+  .settings-advanced { margin-left: 16px; margin-right: 16px; }
+  .settings-header { padding-right: 76px; }
+  .opening-flip { top: 12px; }
+}
+
+.opening-pack,.pack-open-action { touch-action: none; }
+
+button { -webkit-tap-highlight-color: transparent; }
+:is([data-finish-quality="very-low"],[data-finish-quality="low"]) :is(.finish-surface,.finish-surface *) { filter: none !important; }
+
+[data-reflection-quality="low"] .opening-bloom { filter: none; }

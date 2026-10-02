@@ -111,18 +111,18 @@
     instruction.style.opacity = 1 - Math.pow(1 - opacity, 3);
     if (visible) {
       elapsed += dt; pulseClock += dt;
-      var pulse = C.motion.reduced ? 1 : cfg.pulseMin + (1 - cfg.pulseMin) * (1 + Math.sin(pulseClock / cfg.pulseMs * Math.PI * 2)) / 2;
+      var pulse = C.motion.reduced || !C.settings.policy.animation ? 1 : cfg.pulseMin + (1 - cfg.pulseMin) * (1 + Math.sin(pulseClock / cfg.pulseMs * Math.PI * 2)) / 2;
       shell.style.setProperty('--tutorial-pulse', pulse); root.document.body.style.setProperty('--tutorial-pulse', pulse);
       if (step === 'cut' && !cutStarted) {
         ghostClock += dt; stats.ghostCycles = Math.floor(ghostClock / cfg.ghostMs);
-        ghost.style.strokeDashoffset = C.motion.reduced ? 0 : 1 - ghostClock % cfg.ghostMs / cfg.ghostMs;
+        ghost.style.strokeDashoffset = C.motion.reduced || !C.settings.policy.animation ? 0 : 1 - ghostClock % cfg.ghostMs / cfg.ghostMs;
       }
       if (step === 'welcome' && elapsed >= cfg.welcomeMs) advance('hold');
       else if (step === 'inventory' && elapsed >= cfg.inventoryMs) advance('timer');
       else if (step === 'timer' && elapsed >= cfg.timerMs) advance('done');
     }
     var timed = visible && ['welcome', 'inventory', 'timer'].indexOf(step) !== -1;
-    var moving = visible && !C.motion.reduced && (step === 'hold' || step === 'inventory' || step === 'cut' && !cutStarted);
+    var moving = visible && C.settings.policy.animation > 0 && !C.motion.reduced && (step === 'hold' || step === 'inventory' || step === 'cut' && !cutStarted);
     return active && (timed || moving || opacity > 0 && opacity < 1 || shellOpacity < 1);
   }
   C.tutorial = {

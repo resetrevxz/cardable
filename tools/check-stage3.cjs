@@ -6,6 +6,7 @@ const path = require('node:path');
 const { runtime, scripts } = require('./check-stage1.cjs');
 const r = runtime(true, true), C = r.C;
 const ids = ['super-rare', 'unusual', 'double-super-rare'];
+C.settings.applyPreset('high');
 let passed = 0;
 function check(name, run) { run(); passed += 1; console.log('PASS ' + name); }
 function view(id, mode = 'color') { return C.gallery.views.find(v => v.card.rarity === id && v.el.dataset.colorMode === mode); }

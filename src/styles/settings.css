@@ -59,20 +59,6 @@
 [data-key-hints="false"] .opening-hint, [data-key-hints="false"] .opening-enter-hint, [data-key-hints="false"] .opening-keep-key, [data-key-hints="false"] .card__flip-hint { visibility: hidden; }
 .has-tutorial .opening-hint, .has-tutorial .opening-enter-hint, .has-tutorial .opening-keep-key { visibility: visible !important; }
 [data-cursor-glow="false"] .cursor-glow__light, [data-cursor-glow="false"] .cursor-glow__ring { display: none; }
-[data-quality="medium"] .glass { backdrop-filter: blur(16.8px) saturate(140%); -webkit-backdrop-filter: blur(16.8px) saturate(140%); }
-[data-quality="medium"] .glass--sheet { backdrop-filter: blur(24px) saturate(150%); -webkit-backdrop-filter: blur(24px) saturate(150%); }
-[data-quality="low"] .glass { backdrop-filter: blur(8.4px); -webkit-backdrop-filter: blur(8.4px); }
-[data-quality="low"] :is(.glass--sheet,.collection-toast,.settings-nudge,.save-notice) { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface-2); }
-[data-quality="medium"] { --shadow-2: 0 2px 4px rgba(0,0,0,.5), 0 12px 28px rgba(0,0,0,.4); }
-[data-quality="low"] { --shadow-1: 0 6px 16px rgba(0,0,0,.35); --shadow-2: 0 12px 28px rgba(0,0,0,.4); }
-[data-quality="low"] .card__shadow, [data-quality="low"] .card__foil, [data-quality="low"] .card__beam { display: none; }
-[data-quality="low"] .card__body { box-shadow: 0 12px 28px rgba(0,0,0,.4); background-image: none; }
-[data-quality="low"] .card__body::after, [data-quality="low"] .card__body::before, [data-quality="low"] .finish-sparkle { display: none; }
-[data-quality="medium"] .finish-sparkle:nth-child(even) { display: none; }
-[data-quality="medium"] .card__info { backdrop-filter: blur(10.8px); -webkit-backdrop-filter: blur(10.8px); }
-[data-quality="low"] .card__info { backdrop-filter: blur(5.4px); -webkit-backdrop-filter: blur(5.4px); }
-[data-quality="medium"] .currency-counter { backdrop-filter: blur(13.2px); -webkit-backdrop-filter: blur(13.2px); }
-[data-quality="low"] .currency-counter { backdrop-filter: blur(6.6px); -webkit-backdrop-filter: blur(6.6px); }
 [data-dots="off"] .opening-stage[data-phase="charging"] .opening-pack { outline: 1px solid var(--hairline-strong); box-shadow: 0 0 28px var(--glass-strong); }
 .reduced-motion .settings-gear:hover svg, .reduced-motion .settings-switch-knob, .reduced-motion .settings-keycaps .is-pressed { transform: none; }
 .reduced-motion .settings-open .menu-shell { scale: 1; }
@@ -85,15 +71,7 @@
 [data-dots="off"] .opening-stage[data-phase="charging"] .opening-pack::after { content: ''; position: absolute; inset: -12%; border: 1px solid var(--hairline-strong); border-radius: 50%; box-shadow: 0 0 24px var(--glass-strong); pointer-events: none; }
 .reduced-motion .settings-switch.is-on .settings-switch-knob { transform: translateX(17px); }
 .reduced-motion .settings-panel { transition: none; }
-[data-quality="low"] .collectible-card[data-mode="lite"] .card__material { animation: none; }
 
-[data-quality="medium"] .card__shadow { box-shadow: 0 2px 4px rgba(0,0,0,.65), 0 12px var(--shadow-blur) rgba(0,0,0,.5); }
-[data-quality="medium"] .currency-receipt { backdrop-filter: blur(10.8px); -webkit-backdrop-filter: blur(10.8px); }
-[data-quality="low"] .currency-receipt { backdrop-filter: blur(5.4px); -webkit-backdrop-filter: blur(5.4px); }
-[data-quality="medium"] .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail,.card-gallery) { filter: blur(2.4px); }
-[data-quality="low"] .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail,.card-gallery) { filter: blur(1.2px); }
-[data-quality="medium"] .inventory-depth-active:not(.settings-open) .menu-shell { filter: blur(calc(var(--inventory-menu-blur,0px) * .6)); }
-[data-quality="low"] .inventory-depth-active:not(.settings-open) .menu-shell { filter: blur(calc(var(--inventory-menu-blur,0px) * .3)); }
 
 .settings-drop-zone { margin: var(--s-3) 0; padding: var(--s-4); border: 1px dashed var(--hairline); border-radius: var(--r-button); background: var(--glass); transition: border-color var(--t-fast), background var(--t-fast); }
 .settings-drop-zone.is-drag-over { border-color: var(--text-dim); background: var(--glass-strong); }
@@ -113,6 +91,5 @@
 .is-hold-confirm.is-confirming::before { background: radial-gradient(circle at 22% 72%,var(--hairline-strong) 1px,transparent 2px), radial-gradient(circle at 66% 28%,var(--hairline-strong) 1px,transparent 2px), var(--glass-strong); }
 .is-hold-confirm.is-confirmed { animation: settings-confirm-pulse var(--t-ui) var(--ease-out); }
 @keyframes settings-confirm-pulse { from { box-shadow: inset 0 0 28px var(--hairline-strong); } to { box-shadow: inset 0 0 0 transparent; } }
-[data-quality="low"] .settings-data-toast { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface-2); }
 .reduced-motion .settings-data-toast { transition: none; transform: translate(-50%,0); }
 .reduced-motion .is-confirmed { animation: none; }

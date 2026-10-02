@@ -11,7 +11,7 @@
       host.setAttribute('aria-label', C.config.currency.name + ': ' + value);
       function refresh() {
         var next = C.state.current.currency; if (next === target) return;
-        from = value; target = next; start = root.performance.now(); shimmerStart = start;
+        from = value; target = next; start = root.performance.now(); shimmerStart = C.settings.policy.glareHz > 0 ? start : null;
         host.setAttribute('aria-label', C.config.currency.name + ': ' + target); C.fx.wake();
       }
       C.events.on('save:written', refresh); C.events.on('currency:changed', refresh);
@@ -19,7 +19,7 @@
       C.fx.subscribe(function (now) {
         var cfg = C.config.menuMotion;
         if (start !== null) {
-          var p = Math.min(1, (now - start) / cfg.currencyMs);
+          var p = C.motion.reduced || !C.settings.policy.animation ? 1 : Math.min(1, (now - start) / cfg.currencyMs);
           value = p === 1 ? target : Math.round(from + (target - from) * (1 - Math.pow(1 - p, 3)));
           digits.set(C.config.currency.symbol + value, !C.motion.reduced);
           if (p === 1) start = null;

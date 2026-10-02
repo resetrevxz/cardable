@@ -1,0 +1,82 @@
+{
+  "environment": "Staged snapshot; instrumented DOM and simulated clock, not measured device FPS",
+  "pass": true,
+  "groups": 314,
+  "results": [
+    {
+      "suite": "check-stage1",
+      "pass": true,
+      "groups": 15
+    },
+    {
+      "suite": "check-stage2",
+      "pass": true,
+      "groups": 13
+    },
+    {
+      "suite": "check-stage3",
+      "pass": true,
+      "groups": 14
+    },
+    {
+      "suite": "check-stage3-tiers7-9",
+      "pass": true,
+      "groups": 15
+    },
+    {
+      "suite": "check-stage3-tiers10-12",
+      "pass": true,
+      "groups": 15
+    },
+    {
+      "suite": "check-stage4",
+      "pass": true,
+      "groups": 18
+    },
+    {
+      "suite": "check-stage5",
+      "pass": true,
+      "groups": 26
+    },
+    {
+      "suite": "check-stage5-reveal",
+      "pass": true,
+      "groups": 24
+    },
+    {
+      "suite": "check-stage6",
+      "pass": true,
+      "groups": 25
+    },
+    {
+      "suite": "check-stage7",
+      "pass": true,
+      "groups": 38
+    },
+    {
+      "suite": "check-stage8",
+      "pass": true,
+      "groups": 32
+    },
+    {
+      "suite": "check-stage11a",
+      "pass": true,
+      "groups": 29
+    },
+    {
+      "suite": "check-stage11b",
+      "pass": true,
+      "groups": 20
+    },
+    {
+      "suite": "check-variants",
+      "pass": true,
+      "groups": 19
+    },
+    {
+      "suite": "check-graphics",
+      "pass": true,
+      "groups": 11
+    }
+  ]
+}

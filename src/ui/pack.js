@@ -1,5 +1,10 @@
 (function (C, root) {
   'use strict';
+  function cachedStyle(el, key, value) {
+    var cache = el._packStyles || (el._packStyles = {}); value = String(value);
+    if (cache[key] === value) return; cache[key] = value;
+    if (key.indexOf('--') === 0) el.style.setProperty(key, value); else el.style[key] = value;
+  }
   var node = C.packMarkup.node, unit = C.packMarkup.unit, openingPaused = false, inventoryPaused = false;
   C.packView = {
     initialized: false, visible: true, stats: { updates: 0, readyMoments: 0 },
@@ -41,12 +46,13 @@
       var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); node('kbd', '', hint, 'Space');
       function updateOpeningKey() { hint.querySelector('kbd').textContent = C.settings.holdKey; var description = host.getAttribute('aria-description'); if (description) host.setAttribute('aria-description', description.replace(/Hold (Space|Enter)/, 'Hold ' + C.settings.holdKey)); }
       C.settings.onChange('openKey', updateOpeningKey); updateOpeningKey();
-      var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, handoff = null;
-      host.style.setProperty('--pack-reflection-opacity', cfg.reflectionOpacity);
+      var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, handoff = null, progress = C.timers.progress(Date.now());
+      cachedStyle(host, '--pack-reflection-opacity', cfg.reflectionOpacity);
       var gallery = new URLSearchParams(root.location.search).get('gallery') === '1' && new URLSearchParams(root.location.search).get(C.config.dev.queryFlag) === '1';
       if (gallery) C.packView.visible = false;
       function refresh(initial) {
         var state = C.state.current, next = state.packs.ready, now = root.performance.now();
+        progress = C.timers.progress(Date.now());
         if (!initial && next > ready) pendingGain = next - ready;
         if (next < ready) { pendingGain = 0; arrivalStart = null; host.classList.remove('is-arriving'); }
         ready = next; host.dataset.state = ready > 0 ? 'ready' : 'waiting'; host.dataset.ready = ready;
@@ -65,7 +71,7 @@
           }
           vial.el.classList.toggle('is-ready', !!target);
           vial.el.classList.toggle('is-refilling', i === ready && ready < C.config.packs.maxStored);
-          vial.fill.style.transform = 'translateY(' + (1 - vial.value) * 100 + '%)';
+          cachedStyle(vial.fill, 'transform', 'translateY(' + (1 - vial.value) * 100 + '%)');
         });
         C.fx.wake();
       }
@@ -83,6 +89,9 @@
       C.events.on('pointer:move', function () { C.fx.wake(); });
       C.events.on('pointer:leave', function () { C.fx.wake(); });
       C.events.on('motion:changed', function () { C.fx.wake(); });
+      C.events.on('timer:tick', function () { if (!root.document.hidden) { progress = C.timers.progress(Date.now()); if (C.packView.visible && !openingPaused && !inventoryPaused && ready < C.config.packs.maxStored) C.fx.wake(); } });
+      C.events.on('menu:idle', function () { C.fx.wake(); });
+      C.settings.onChange('*', function () { C.fx.wake(); });
       C.events.on('opening:context', function (event) { openingPaused = event.active; C.fx.wake(); });
       C.events.on('inventory:context', function (event) { inventoryPaused = event.active; C.fx.wake(); });
       C.events.on('pack:handoff', function () { if (ready) handoff = 0; C.fx.wake(); });
@@ -100,29 +109,30 @@
           front.el.style.transform = C.motion.reduced ? 'none' : 'translate(' + (1 - slide) * C.config.revealMotion.packSlidePx + 'px,' + (slide - 1) * C.config.revealMotion.packSlidePx + 'px)';
           if (slide === 1) { handoff = null; front.el.style.transform = ''; }
         }
-        var reduced = C.motion.reduced; interaction.update(dt); var pose = interaction.state;
+        var reduced = C.motion.reduced || C.settings.policy.animation === 0;
+        var interacting = interaction.update(dt), pose = interaction.state;
+        var ambient = C.settings.policy.ambient && !C.menu.idle && !reduced;
         var rx = pose.rx, ry = pose.ry;
-        var progress = C.timers.progress(Date.now());
         C.packView.progress = progress;
         var fill = ready > 0 ? 1 : progress;
         if (arrivalStart !== null && now - arrivalStart >= cfg.readyMomentMs) { arrivalStart = null; host.classList.remove('is-arriving'); }
         var arrivalP = arrivalStart === null ? 1 : Math.min(1, (now - arrivalStart) / cfg.readyMomentMs);
-        host.style.setProperty('--arrival-sweep', (reduced ? 0 : -cfg.sweepTravelPercent + (1 - Math.pow(1 - arrivalP, 3)) * cfg.sweepTravelPercent * 2) + '%');
-        host.style.setProperty('--arrival-lift', reduced ? '0px' : -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx + 'px');
-        host.style.setProperty('--arrival-opacity', arrivalStart === null ? 0 : Math.sin(arrivalP * Math.PI));
+        cachedStyle(host, '--arrival-sweep', (reduced ? 0 : -cfg.sweepTravelPercent + (1 - Math.pow(1 - arrivalP, 3)) * cfg.sweepTravelPercent * 2) + '%');
+        cachedStyle(host, '--arrival-lift', reduced ? '0px' : -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx + 'px');
+        cachedStyle(host, '--arrival-opacity', arrivalStart === null ? 0 : Math.sin(arrivalP * Math.PI));
         [front, back].forEach(function (item, index) {
           if (index && ready < 2) return;
           var lift = index === 0 && !reduced && arrivalStart !== null ? -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx : 0;
           var amount = index ? 0.35 : 1;
-          item.pose.style.transform = 'translate3d(' + pose.x * amount + 'px,' + (pose.y * amount - pose.lift * amount + lift) + 'px,' + pose.lift * amount + 'px) rotateX(' + rx * amount + 'deg) rotateY(' + ry * amount + 'deg) rotateZ(' + pose.rz * amount + 'deg) scale(' + (1 - pose.grip * 0.008) + ')';
-          item.shadow.style.opacity = cfg.shadowOpacity - pose.lift * 0.003;
-          item.shadow.style.transform = 'translate(' + (8 + pose.x * amount - ry * 0.4) + 'px,' + (12 + pose.y * amount + pose.lift * 0.35) + 'px) scale(' + (1 + pose.lift * 0.009) + ')';
-          item.el.style.setProperty('--mass-x', (pose.massX - pose.x) * 0.045 + 'px');
-          item.el.style.setProperty('--mass-y', (pose.massY - pose.y) * 0.045 + 'px');
-          item.el.style.setProperty('--wrapper-flex', pose.flex * pose.grip * 1.1 + 'deg');
-          (index ? backMaterial : frontMaterial).update(index ? { rx: rx * amount, ry: ry * amount } : pose, index ? 0 : time, reduced);
-          (index ? backFluid : frontFluid).update(dt, fill, pose, reduced);
-          if (!ready) item.specks.forEach(function (speck) { speck.el.style.transform = 'translateY(' + (reduced ? 0 : Math.sin(time / cfg.fluidWaveMs * Math.PI * 2 + speck.phase) * cfg.speckTravelPx) + 'px)'; });
+          cachedStyle(item.pose, 'transform', 'translate3d(' + pose.x * amount + 'px,' + (pose.y * amount - pose.lift * amount + lift) + 'px,' + pose.lift * amount + 'px) rotateX(' + rx * amount + 'deg) rotateY(' + ry * amount + 'deg) rotateZ(' + pose.rz * amount + 'deg) scale(' + (1 - pose.grip * 0.008) + ')');
+          cachedStyle(item.shadow, 'opacity', cfg.shadowOpacity - pose.lift * 0.003);
+          cachedStyle(item.shadow, 'transform', 'translate(' + (8 + pose.x * amount - ry * 0.4) + 'px,' + (12 + pose.y * amount + pose.lift * 0.35) + 'px) scale(' + (1 + pose.lift * 0.009) + ')');
+          cachedStyle(item.el, '--mass-x', (pose.massX - pose.x) * 0.045 + 'px');
+          cachedStyle(item.el, '--mass-y', (pose.massY - pose.y) * 0.045 + 'px');
+          cachedStyle(item.el, '--wrapper-flex', pose.flex * pose.grip * 1.1 + 'deg');
+          (index ? backMaterial : frontMaterial).update(index ? { rx: rx * amount, ry: ry * amount } : pose, time, reduced || !ambient || index > 0);
+          (index ? backFluid : frontFluid).update(dt, fill, pose, reduced || !ambient && !interacting);
+          if (!ready && C.settings.policy.particles > 0 && ambient) item.specks.forEach(function (speck) { speck.el.style.transform = 'translateY(' + Math.sin(time / cfg.fluidWaveMs * Math.PI * 2 + speck.phase) * cfg.speckTravelPx + 'px)'; });
         });
         var timerText = ready >= C.config.packs.maxStored ? 'Stock full' : C.timers.format(C.timers.remaining(Date.now()));
         if (timerText !== digits.text) { digits.set(timerText); timer.setAttribute('aria-label', timerText); }
@@ -134,18 +144,17 @@
             vial.value = vial.from + (endValue - vial.from) * ease;
             if (p === 1) vial.start = null; else active = true;
           } else vial.value = index < ready ? 1 : index === ready ? progress : 0;
-          vial.fill.style.transform = 'translateY(' + (1 - vial.value) * 100 + '%)';
+          cachedStyle(vial.fill, 'transform', 'translateY(' + (1 - vial.value) * 100 + '%)');
           if (vial.arrival !== null) {
             var arriveP = Math.min(1, (now - vial.arrival) / cfg.stockShineMs);
             vial.el.style.transform = reduced ? 'none' : 'translateY(' + -Math.sin(arriveP * Math.PI) * cfg.stockLiftPx + 'px)';
-            vial.el.style.setProperty('--stock-shine-x', (reduced ? 0 : -130 + arriveP * 260) + '%');
-            vial.el.style.setProperty('--stock-shine-opacity', Math.sin(arriveP * Math.PI));
-            if (arriveP === 1) { vial.arrival = null; vial.el.style.transform = ''; vial.el.style.setProperty('--stock-shine-opacity', 0); }
+            cachedStyle(vial.el, '--stock-shine-x', (reduced ? 0 : -130 + arriveP * 260) + '%');
+            cachedStyle(vial.el, '--stock-shine-opacity', Math.sin(arriveP * Math.PI));
+            if (arriveP === 1) { vial.arrival = null; vial.el.style.transform = ''; cachedStyle(vial.el, '--stock-shine-opacity', 0); }
             else active = true;
           }
         });
-        // Even with reduced motion the timestamp-derived fluid remains continuous.
-        return !reduced || ready < C.config.packs.maxStored || active || arrivalStart !== null || handoff !== null;
+        return ambient || interacting || active || arrivalStart !== null || handoff !== null;
       }, 'pack');
     }
   };

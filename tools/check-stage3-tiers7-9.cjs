@@ -5,9 +5,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { runtime, scripts } = require('./check-stage1.cjs');
 const r = runtime(true, true), C = r.C, ids = ['legendary', 'mythical', 'exotic'];
+C.settings.applyPreset('high');
 let passed = 0;
 function check(name, callback) { callback(); passed += 1; console.log('PASS ' + name); }
-function view(id, mode = 'color') { return C.gallery.views.find(v => v.card.rarity === id && v.el.dataset.colorMode === mode); }
+function view(id, mode = 'color') { const v=C.gallery.views.find(v => v.card.rarity === id && v.el.dataset.colorMode === mode);v.setMode('full');return v; }
 function finish(v) { return v.el.querySelectorAll('.finish-surface')[0]; }
 function prop(v, lite = false) { return v.el.querySelectorAll('.finish-prop')[lite ? 1 : 0]; }
 function snapshot(el) { return JSON.stringify({ attrs: el.attrs, style: el.style, children: el.children.map(snapshot) }); }

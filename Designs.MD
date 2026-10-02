@@ -183,3 +183,7 @@ Add a hover response to almost everything interactive. Hover states must never s
 - CodePen: search "text scramble hover" and "letter morph hover" for the wordmark.
 - Card foil technique: https://poke-holo.simey.me/ (study the light behavior; write original code, do not copy it, and render in the palette of this project).
 - Put image references in `references/` (see `references/README.md`).
+
+## Stage 13 graphics and accessibility update
+
+Four independent graphics tiers: Very Low, Low, Medium (fresh-save default), High. Presets set the nine graphics controls together; FPS and accessibility stay independent. High retains the full silver/card material language with refined glare and edge light. Very Low uses static finishes, no cosmetic particles, no backdrop blur or dots, and flat grounding. Low retains attractive static materials with interaction-only motion. Inventory thumbnails are front-only and static, with one full card mounted on entering detail. Coarse-pointer play uses visible 44px touch targets, a hold action, Tear and Flip buttons, and Keep/Delete. The shared loop supports display refresh plus explicit FPS caps; hidden visuals sleep and refill reconciles from timestamps. See docs/GRAPHICS-UPDATE.md.

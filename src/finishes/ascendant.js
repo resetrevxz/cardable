@@ -24,11 +24,11 @@
       state.time += dt;
       var cfg = C.config.finishMotion.ascendant, phase = state.time / cfg.auroraCycleMs * Math.PI * 2;
       state.el.style.setProperty('--asc-angle', (state.time / cfg.auroraCycleMs * 360 % 360) + 'deg');
-      for (var i = 1; i <= 3; i += 1) {
+      if (C.finishes.propDue(state, dt)) for (var i = 1; i <= 3; i += 1) {
         state.prop.style.setProperty('--aurora-color-' + i, 'hsl(' + ((i - 1) * 120 + Math.sin(phase) * 35) + ' 75% 86%)');
         state.prop.style.setProperty('--aurora-mono-' + i, 'hsl(0 0% ' + (80 + Math.sin(phase + i * 2) * 12) + '%)');
       }
-      if (state.time >= state.nextAt) {
+      if (C.settings.policy.particles > 0 && state.time >= state.nextAt) {
         state.birth = state.nextAt;
         var side = Math.floor(state.random() * 4), along = 8 + state.random() * 84;
         state.splash.style.setProperty('--splash-x', (side < 2 ? side * 100 : along) + '%');
@@ -37,7 +37,7 @@
         state.nextAt += cfg.splashMinDelayMs + state.random() * (cfg.splashMaxDelayMs - cfg.splashMinDelayMs);
       }
       var progress = state.birth === null ? 1 : Math.min(1, (state.time - state.birth) / cfg.splashMs);
-      state.splash.style.opacity = progress >= 1 ? 0 : Math.sin(progress * Math.PI) * cfg.splashOpacity;
+      state.splash.style.opacity = !C.settings.policy.particles || progress >= 1 ? 0 : Math.sin(progress * Math.PI) * cfg.splashOpacity;
       // Expand the splash around its edge anchor; scaling the full surface would move it behind the artwork.
       state.splash.style.setProperty('--splash-spread', (12 + progress * 24) + '%');
       return true;

@@ -34,7 +34,7 @@
     info.appendChild(node('h2', 'card__name', card.name));
     var memory = node('div', 'card__memory');
     memory.appendChild(node('span', 'card__vram', C.cardSpecs.vram(card)));
-    memory.appendChild(node('span', 'card__memory-type', card.vram.type)); info.appendChild(memory);
+    memory.appendChild(node('span', 'card__memory-type', C.cardSpecs.memoryType(card))); info.appendChild(memory);
     var specs = node('dl', 'card__specs');
     C.cardSpecs.frontRows(card).forEach(function (row) {
       var spec = node('div', 'card__spec'); spec.appendChild(node('dt', '', row.label)); spec.appendChild(node('dd', '', row.value)); specs.appendChild(spec);
@@ -92,7 +92,7 @@
     var name = node('h2', 'card__name', card.name); title.appendChild(name); info.appendChild(title);
     var memory = node('div', 'card__memory'); memory.appendChild(icon('memory', 'VRAM'));
     var memoryValues = node('div', 'card__memory-values'); memoryValues.appendChild(node('span', 'card__vram', C.cardSpecs.vram(card)));
-    memoryValues.appendChild(node('span', 'card__memory-type', card.vram.type)); memory.appendChild(memoryValues); memory.setAttribute('aria-label', 'Memory: ' + C.cardSpecs.vram(card) + ', ' + card.vram.type); info.appendChild(memory);
+    memoryValues.appendChild(node('span', 'card__memory-type', C.cardSpecs.memoryType(card))); memory.appendChild(memoryValues); memory.setAttribute('aria-label', 'Memory: ' + C.cardSpecs.vram(card) + ', ' + C.cardSpecs.memoryType(card)); info.appendChild(memory);
     var specs = node('dl', 'card__specs');
     C.cardSpecs.frontRows(card).forEach(function (row) {
       var spec = node('div', 'card__spec'), term = node('dt'); term.appendChild(icon(C.cardSpecs.icon(row.key), row.label));
@@ -168,6 +168,7 @@
   C.cardView = {
     stats: stats,
     get active() { return active; },
+    trackThumbnail: function (view) { views.add(view); return function () { views.delete(view); }; },
     focus: function (view) {
       if (!views.has(view) || view.destroyed || C.preferences && C.preferences.open && C.preferences.preview && view !== C.preferences.preview) return;
       if (active && active !== view) active.applyMode('lite');
@@ -233,7 +234,7 @@
       var tiltPolicy = C.settings.tiltPolicy; sx.configure({ stiffness: C.config.cardView.spring.stiffness * tiltPolicy.stiffness }); sy.configure({ stiffness: C.config.cardView.spring.stiffness * tiltPolicy.stiffness });
       function idleWake() {
         root.clearTimeout(idleTimer);
-        if (!view.revealControlled && !C.motion.reduced && view.mode === 'full' && view.visible) idleTimer = root.setTimeout(C.fx.wake, Math.max(0, C.config.cardView.idleMs - (root.performance.now() - lastMove)));
+        if (C.settings.policy.ambient && !view.revealControlled && !(C.motion.reduced || C.settings.policy.animation === 0) && view.mode === 'full' && view.visible) idleTimer = root.setTimeout(C.fx.wake, Math.max(0, C.config.cardView.idleMs - (root.performance.now() - lastMove)));
       }
       function pose(rx, ry, raised) {
         var cfg = C.config.cardView;
@@ -246,12 +247,12 @@
           '--core-y': clamp(0.5 + (pointer.y - 0.5) * cfg.specularSpeed - lampY * cfg.lampInfluence, 0, 1) * 100 + '%',
           '--shadow-x': -ry * 0.5 + 'px', '--shadow-y': 12 + rx * 0.5 + raised * 8 + 'px',
           '--shadow-blur': 18 + raised * 14 + 'px', '--far-edge-angle': Math.atan2(rx, ry) * 180 / Math.PI + 90 + 'deg',
-          '--parallax-x': (C.motion.reduced ? 0 : ry / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
-          '--parallax-y': (C.motion.reduced ? 0 : -rx / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
+          '--parallax-x': ((C.motion.reduced || C.settings.policy.animation === 0) ? 0 : ry / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
+          '--parallax-y': ((C.motion.reduced || C.settings.policy.animation === 0) ? 0 : -rx / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
           '--far-edge-alpha': Math.max(Math.abs(rx), Math.abs(ry)) / cfg.tiltCap * 0.2
         };
-        var glareDue = glareClock + 0.01 >= 1000 / C.settings.policy.glareHz;
-        Object.keys(values).forEach(function (key) { if ((key === '--core-x' || key === '--core-y') && !glareDue) return; if (painted[key] !== values[key]) { painted[key] = values[key]; el.style.setProperty(key, values[key]); } });
+        var glareDue = C.settings.policy.glareHz > 0 && glareClock + 0.01 >= 1000 / C.settings.policy.glareHz;
+        Object.keys(values).forEach(function (key) { if (/^--(core|glare|lamp|mx|my|far-edge|parallax)/.test(key) && !glareDue) return; if (painted[key] !== values[key]) { painted[key] = values[key]; el.style.setProperty(key, values[key]); } });
         if (glareDue) glareClock = 0;
       }
       var view = {
@@ -260,19 +261,20 @@
         finishState: context.state, description: context.presentation.description || '',
         stats: { updates: 0, stamps: 0 },
         setPresentation: function (value) { if (value !== 'full' && value !== 'art-only') throw new Error('Unknown card presentation'); el.dataset.presentation = value; },
-        setVariantProgress: function (progress, snap) { el.style.setProperty('--variant-progress', clamp(progress, 0, 1)); el.style.setProperty('--variant-snap', (C.motion.reduced ? 0 : snap || 0) + 'px'); },
+        setVariantProgress: function (progress, snap) { el.style.setProperty('--variant-progress', clamp(progress, 0, 1)); el.style.setProperty('--variant-snap', ((C.motion.reduced || C.settings.policy.animation === 0) ? 0 : snap || 0) + 'px'); },
         applySettings: function () { var policy = C.settings.tiltPolicy; sx.configure({ stiffness: C.config.cardView.spring.stiffness * policy.stiffness }); sy.configure({ stiffness: C.config.cardView.spring.stiffness * policy.stiffness }); },
         applyMode: function (mode) {
           if (view.mode === mode) return;
           view.mode = mode; el.dataset.mode = mode;
           if (mode === 'lite') {
+            front.finish.deactivate(); if (variantBinding) variantBinding.deactivate();
             turn = null; hintAge = null; el.dataset.flipAvailable = 'false'; flipHint.style.opacity = 0;
             if (!view.revealControlled) { flipper.style.transform = ''; flipper.style.transition = ''; front.el.style.opacity = ''; back.el.style.opacity = ''; }
             if (backStampAge !== null) { backStampAge = null; back.el.querySelectorAll('.card__back-char').forEach(function (char) { char.style.opacity = 1; char.style.transform = 'none'; }); }
             root.clearTimeout(idleTimer); sx.reset(); sy.reset(); lift.reset(); pose(0, 0, 0);
             root.clearTimeout(stampTimer);
             front.text.serial.classList.remove('is-stamping'); front.text.meter.classList.remove('is-stamping');
-          } else { lastMove = root.performance.now(); idleWake(); }
+          } else { front.finish.activate(); if (variantBinding) variantBinding.activate(); lastMove = root.performance.now(); idleWake(); }
         },
         setMode: function (mode) {
           if (mode !== 'full' && mode !== 'lite') throw new Error('Unknown card render mode');
@@ -284,14 +286,14 @@
           if (side !== 'front' && side !== 'back') throw new Error('Unknown card face');
           view.side = side; el.dataset.side = side;
           front.el.setAttribute('aria-hidden', side === 'back'); back.el.setAttribute('aria-hidden', side === 'front');
-          if (side === 'back' && !backStamped && instance.serial) { backStamped = true; backStampAge = view.mode === 'full' && !C.motion.reduced ? 0 : null; back.el.querySelectorAll('.card__back-char').forEach(function (char) { char.style.opacity = backStampAge === null ? 1 : 0; }); C.fx.wake(); }
+          if (side === 'back' && !backStamped && instance.serial) { backStamped = true; backStampAge = view.mode === 'full' && !(C.motion.reduced || C.settings.policy.animation === 0) ? 0 : null; back.el.querySelectorAll('.card__back-char').forEach(function (char) { char.style.opacity = backStampAge === null ? 1 : 0; }); C.fx.wake(); }
           view.refreshFaceMotion(); C.events.emit('card:face', { view: view, side: side });
         },
         refreshFaceMotion: function () {
           if (view.revealControlled || turn) return;
-          front.el.style.opacity = C.motion.reduced ? view.side === 'front' ? 1 : 0 : '';
-          back.el.style.opacity = C.motion.reduced ? view.side === 'back' ? 1 : 0 : '';
-          flipper.style.transform = C.motion.reduced ? 'none' : '';
+          front.el.style.opacity = (C.motion.reduced || C.settings.policy.animation === 0) ? view.side === 'front' ? 1 : 0 : '';
+          back.el.style.opacity = (C.motion.reduced || C.settings.policy.animation === 0) ? view.side === 'back' ? 1 : 0 : '';
+          flipper.style.transform = (C.motion.reduced || C.settings.policy.animation === 0) ? 'none' : '';
         },
         canFlip: function () {
           return view.mode === 'full' && view.visible && !view.revealControlled && !view.destroyed && !options.thumbnail &&
@@ -301,7 +303,7 @@
         flip: function () {
           if (!view.canFlip() || turn) return false;
           turn = { from: view.side === 'front' ? 0 : 180, to: view.side === 'front' ? 180 : 0, age: 0 };
-          flipper.style.transition = 'none'; flipper.style.transform = C.motion.reduced ? 'none' : 'rotateY(' + turn.from + 'deg)';
+          flipper.style.transition = 'none'; flipper.style.transform = (C.motion.reduced || C.settings.policy.animation === 0) ? 'none' : 'rotateY(' + turn.from + 'deg)';
           view.setFace(turn.to === 180 ? 'back' : 'front'); view.showFlipHint(); C.fx.wake(); return true;
         },
         setColorMode: function (mode) {
@@ -312,8 +314,8 @@
         setShine: function (progress) {
           if (!options.shine) return;
           var p = clamp(progress, 0, 1), motion = C.config.revealMotion;
-          shine.style.opacity = Math.sin(p * Math.PI) * (C.motion.reduced ? 0.35 : 1);
-          shine.style.transform = C.motion.reduced ? 'none' : 'translateX(' + (-motion.shineTravelPercent + p * motion.shineTravelPercent * 2) + '%) rotate(' + motion.shineAngleDegrees + 'deg)';
+          shine.style.opacity = Math.sin(p * Math.PI) * ((C.motion.reduced || C.settings.policy.animation === 0) ? 0.35 : 1);
+          shine.style.transform = (C.motion.reduced || C.settings.policy.animation === 0) ? 'none' : 'translateX(' + (-motion.shineTravelPercent + p * motion.shineTravelPercent * 2) + '%) rotate(' + motion.shineAngleDegrees + 'deg)';
         },
         setVisible: function (visible) {
           view.visible = visible; el.dataset.visible = visible;
@@ -324,7 +326,7 @@
         setRevealFrame: function (frame) {
           if (!options.controlledReveal) return;
           view.revealFrame = frame;
-          var reduced = C.motion.reduced, info = front.text, cfg = C.config.cardView;
+          var reduced = (C.motion.reduced || C.settings.policy.animation === 0), info = front.text, cfg = C.config.cardView;
           if (view.revealControlled && frame.pose) {
             pose(0, reduced ? 0 : frame.pose.turn || 0, 0);
             tilter.style.transform = reduced ? 'none' : 'translateY(' + frame.pose.y + 'px) rotateY(' + (frame.pose.turn || 0) + 'deg) scale(' + frame.pose.scale + ')';
@@ -378,7 +380,7 @@
           if (context.presentation.concealed) return;
           root.clearTimeout(stampTimer); view.stats.stamps += 1; stamped = true;
           front.text.serial.classList.remove('is-stamping'); front.text.meter.classList.remove('is-stamping');
-          if (C.motion.reduced || view.mode === 'lite') return;
+          if ((C.motion.reduced || C.settings.policy.animation === 0) || view.mode === 'lite') return;
           void front.text.serial.offsetWidth;
           front.text.serial.classList.add('is-stamping'); front.text.meter.classList.add('is-stamping');
           stampTimer = root.setTimeout(function () {
@@ -386,7 +388,7 @@
           }, Math.max(instance.serial.length * C.config.cardView.stampCharMs + C.config.cardView.stampFlickerMs, C.config.cardView.meterSegments * C.config.cardView.meterTickMs));
         },
         update: function (now, dt) {
-          var cfg = C.config.cardView, reduced = C.motion.reduced, interacting = false; glareClock += dt;
+          var cfg = C.config.cardView, reduced = (C.motion.reduced || C.settings.policy.animation === 0), interacting = false; glareClock += dt;
           el.dataset.flipAvailable = view.canFlip() ? 'true' : 'false';
           if (hintAge !== null) { hintAge += dt; flipHint.style.opacity = clamp(1 - (hintAge - C.config.cardTurn.hintMs) / C.config.cardTurn.hintFadeMs, 0, 1); if (hintAge >= C.config.cardTurn.hintMs + C.config.cardTurn.hintFadeMs) hintAge = null; else interacting = true; }
           if (backStampAge !== null) {
@@ -406,7 +408,7 @@
           }
           if (view.revealControlled) { stats.updates += 1; view.stats.updates += 1; return (!reduced && view.side === 'front' && front.finish.update(dt, pointer)) || interacting; }
           var cap = reduced ? 0 : C.settings.tiltPolicy.cap;
-          var sway = !reduced && now - lastMove >= cfg.idleMs;
+          var sway = C.settings.policy.ambient && !reduced && now - lastMove >= cfg.idleMs;
           var time = (now - lastMove - cfg.idleMs) / 1000;
           var tx = -(pointer.y - 0.5) * 2 * cap + (sway ? Math.sin(time * cfg.swaySpeed) * cfg.swayDegrees : 0);
           var ty = (pointer.x - 0.5) * 2 * cap + (sway ? Math.sin(time * cfg.swaySpeed * 0.8) * cfg.swayDegrees : 0);
@@ -422,7 +424,7 @@
           return interacting || sway || finishMoving || variantMoving || !sx.settled() || !sy.settled() || !lift.settled();
         },
         pointer: function (event) {
-          if (C.motion.reduced || view.mode !== 'full' || !view.visible) return;
+          if ((C.motion.reduced || C.settings.policy.animation === 0) || view.mode !== 'full' || !view.visible) return;
           var bounds = el.getBoundingClientRect();
           pointer.x = clamp((event.pointer.x - bounds.left) / bounds.width, 0, 1);
           pointer.y = clamp((event.pointer.y - bounds.top) / bounds.height, 0, 1);
@@ -460,13 +462,20 @@
         C.events.on('pointer:move', function (event) { if (active && active.el.contains(event.pointer.target)) active.pointer(event); });
         C.events.on('motion:changed', function () {
           if (active) {
-            if (C.motion.reduced && !active.revealControlled) active.resetMotion();
+            if ((C.motion.reduced || C.settings.policy.animation === 0) && !active.revealControlled) active.resetMotion();
             active.el.querySelectorAll('.is-stamping').forEach(function (element) { element.classList.remove('is-stamping'); });
             active.refreshFaceMotion(); active.setVisible(active.visible);
           }
         });
         C.events.on('fx:visibility', function (visible) { if (visible && active) active.setVisible(active.visible); });
-        C.settings.onChange('tilt', function () { views.forEach(function (view) { view.applySettings(); }); });
+        C.settings.onChange('*', function (_, key) {
+          if (key !== 'tilt' && key !== 'animationQuality') return;
+          views.forEach(function (view) { if (view.applySettings) view.applySettings(); view.setVisible(view.visible); });
+          if (key === 'animationQuality' && active && !active.revealControlled) {
+            if (!C.settings.policy.animation) active.resetMotion();
+            active.refreshFaceMotion(); active.setVisible(active.visible);
+          }
+        });
         C.events.on('settings:rarityColorMode', function (mode) { views.forEach(function (view) { if (view.followColorMode) view.setColorMode(mode); }); });
       }
       return view;

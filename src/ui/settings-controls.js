@@ -1,7 +1,7 @@
 (function (C, root) {
   'use strict';
   var node = C.packMarkup.node;
-  function title(value) { return value === '2.5' || value === '5' ? value + ' s' : value.charAt(0).toUpperCase() + value.slice(1); }
+  function title(value) { return ({ 'very-low': 'Very Low', display: 'Display refresh', sleep: 'Sleep completely', timer: 'Timer/title only', pause: 'Pause visuals' })[value] || (value === '2.5' || value === '5' ? value + ' s' : /^\d+$/.test(value) ? value + ' FPS' : value.charAt(0).toUpperCase() + value.slice(1)); }
   C.settingsControls = {
     create: function (descriptor, parent) {
       var key = descriptor.key, type = descriptor.control, control, buttons = [], indicator, knob, current = C.settings.get(key), pending = false;
@@ -13,6 +13,10 @@
         control = node('button', 'settings-switch', row); control.type = 'button'; control.setAttribute('role', 'switch');
         knob = node('i', 'settings-switch-knob', control); control.disabled = disabled;
         control.addEventListener('click', function () { if (control.disabled) return; C.settings.set(key, key === 'rarityColor' ? C.settings.get(key) === 'color' ? 'mono' : 'color' : !C.settings.get(key)); });
+      } else if (type === 'select') {
+        control = node('select', 'settings-select', row);
+        descriptor.choices.forEach(function (value) { var option = node('option', '', control, title(value)); option.value = value; });
+        control.addEventListener('change', function () { C.settings.set(key, control.value); });
       } else if (type === 'volume') {
         control = node('input', 'settings-volume', row); control.type = 'range'; control.min = 0; control.max = 100; control.value = current; control.disabled = true;
         control.setAttribute('aria-label', descriptor.label);
@@ -40,6 +44,7 @@
       function refresh(value) {
         current = value;
         if (type === 'switch') { var on = key === 'rarityColor' ? value === 'color' : value; control.setAttribute('aria-checked', on); control.classList.toggle('is-on', on); spring.target = on ? 1 : 0; pending = true; }
+        else if (type === 'select') control.value = value;
         else if (type === 'volume') { control.value = value; digits.set(value); }
         else {
           buttons.forEach(function (b) { var selected = b.value === value; b.setAttribute('aria-checked', selected); b.setAttribute('tabindex', selected ? '0' : '-1'); });

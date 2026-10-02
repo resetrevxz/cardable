@@ -87,3 +87,14 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 - Save schema 3; migration, checksum imports, backups, Restore and Undo preserve progress without rerolling old cards.
 
 **Accept:** check-variants.cjs plus real file:// Playwright coverage; screenshot review, all 132 rarity/variant combinations, hidden Secret, mobile crown clearance and bounded multi-finish inventory. See VARIANTS-AND-TAGS-QA for measured evidence and limits.
+
+## Stage 13 — Graphics and optimization
+
+**Docs:** GRAPHICS-UPDATE, GRAPHICS-QA.
+
+- Four presets and nine independently customized graphics controls; Medium new-save default.
+- Display-refresh / numeric FPS caps, optional frame display, hidden sleep or timer/title, visible-unfocused Normal/30 FPS/pause.
+- Lazy live materials, static front-only inventory thumbnails, bounded art cache and particle pools, canvas ceilings and effect update budgets.
+- Touch opening, Tear/Flip/Keep/Delete, portrait and landscape settings.
+
+**Accept:** check-graphics.cjs, existing behavior regression suites, check-graphics-browser.cjs file:// journeys and profile-graphics-browser.cjs captured before/after evidence. Browser/CPU measurements are scoped observations; physical low-end devices and 240 Hz hardware are not certified.

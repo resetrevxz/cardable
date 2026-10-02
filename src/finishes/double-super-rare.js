@@ -4,7 +4,7 @@
   // propSpec is null: this tier adds no prop.
   function surface(card, context) {
     var element = C.finishes.surface('double-super-rare', context), stars = [], random = C.art.random(card.art.seed);
-    for (var i = 0; i < C.config.finishMotion.doubleSuperRare.sparkleCount; i += 1) {
+    for (var i = 0; i < Math.ceil(C.config.finishMotion.doubleSuperRare.sparkleCount * C.settings.policy.particles); i += 1) {
       var star = root.document.createElement('i'); star.className = 'finish-sparkle finish-ssr-sparkle';
       var side = i % 4, along = 7 + random() * 86;
       star.style.left = (side === 0 ? 1.4 : side === 1 ? 98.6 : along) + '%';

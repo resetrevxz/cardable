@@ -2,7 +2,7 @@
   'use strict';
   function surface(card, context) {
     var element = C.finishes.surface('rare', context), stars = [], random = C.art.random(card.art.seed);
-    for (var i = 0; i < C.config.cardView.sparkleCount; i += 1) {
+    for (var i = 0; i < Math.ceil(C.config.cardView.sparkleCount * C.settings.policy.particles); i += 1) {
       var star = root.document.createElement('i');
       star.className = 'finish-sparkle';
       var side = i % 4, along = 7 + random() * 86;

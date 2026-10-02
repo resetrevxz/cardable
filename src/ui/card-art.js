@@ -1,6 +1,6 @@
 (function (C, root) {
   'use strict';
-  var generators = new Map(), NS = 'http://www.w3.org/2000/svg';
+  var generators = new Map(), cache = new Map(), NS = 'http://www.w3.org/2000/svg';
   function random(seed) {
     var value = Number(seed) >>> 0;
     return function () { value += 0x6D2B79F5; var n = value; n = Math.imul(n ^ n >>> 15, n | 1); n ^= n + Math.imul(n ^ n >>> 7, n | 61); return ((n ^ n >>> 14) >>> 0) / 4294967296; };
@@ -60,10 +60,22 @@
   C.art = {
     random: random,
     register: function (kind, generator) { generators.set(kind, generator); },
-    render: function (card) {
+    render: function (card, options) {
+      options = options || {};
       var generator = generators.get(card.art.kind);
       if (!generator) throw new Error('Unknown card art kind: ' + card.art.kind);
-      return generator(card);
+      if (card.art.kind === 'image') {
+        var image = generator(card); image.decoding = 'async';
+        if (options.thumbnail || C.settings.get('quality') === 'very-low') image.src = card.art.src.replace(/\.webp$/, '-thumb.webp');
+        return image;
+      }
+      var key = JSON.stringify([card.art, card.rarity, options.thumbnail]);
+      if (!cache.has(key)) {
+        var art = generator(card);
+        if (options.thumbnail) art.querySelectorAll('.gpu-art__traces,.gpu-art__die-grid').forEach(function (part) { part.remove(); });
+        cache.set(key, art); if (cache.size > 96) cache.delete(cache.keys().next().value);
+      }
+      var copy = cache.get(key).cloneNode(true); copy.setAttribute('aria-label', card.name); return copy;
     }
   };
 })(window.Cardable, window);

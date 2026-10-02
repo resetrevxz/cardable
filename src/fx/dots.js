@@ -1,7 +1,7 @@
 (function (C, root) {
   'use strict';
   var canvas, ctx, ink, width, height, cols, rows, heat = new Map(), ripples = [], dirty = true;
-  var pendingPaths = [], lastHeatAt = null;
+  var pendingPaths = [], lastHeatAt = null, pitch = 26, paintClock = 0, lastPaintAt = -Infinity;
   var reveal = { dim: 0, halo: null };
   var tutorial = { dim: 0, halo: null };
   var cursorBlocked = false, cursorGain = 1, cursorFade = null, cursorPoint = { x: 0, y: 0, inside: false };
@@ -14,7 +14,6 @@
   function point(index) { return points[index]; }
   function boundRipples() { var limit = C.settings.policy.rippleLimit; if (ripples.length > limit) ripples.splice(0, ripples.length - limit); }
   function region(left, top, right, bottom, visit) {
-    var pitch = C.config.dots.spacing;
     var minX = Math.max(0, Math.ceil(left / pitch - 0.5)), maxX = Math.min(cols - 1, Math.floor(right / pitch - 0.5));
     var minY = Math.max(0, Math.ceil(top / pitch - 0.5)), maxY = Math.min(rows - 1, Math.floor(bottom / pitch - 0.5));
     for (var y = minY; y <= maxY; y += 1) for (var x = minX; x <= maxX; x += 1) visit(y * cols + x);
@@ -36,18 +35,24 @@
   }
   function resize() {
     width = root.innerWidth; height = root.innerHeight;
-    var dpr = root.devicePixelRatio || 1;
+    if (!C.settings.dotsPolicy().enabled) { canvas.width = canvas.height = 1; points = []; dirty = false; return; }
+    pitch = C.settings.dotsPolicy().spacing;
+    var dpr = Math.min(root.devicePixelRatio || 1, C.settings.policy.dpr);
     canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    cols = Math.ceil(width / C.config.dots.spacing); rows = Math.ceil(height / C.config.dots.spacing);
-    points = Array.from({ length: cols * rows }, function (_, index) { return { x: (index % cols + 0.5) * C.config.dots.spacing, y: (Math.floor(index / cols) + 0.5) * C.config.dots.spacing }; });
+    cols = Math.ceil(width / pitch); rows = Math.ceil(height / pitch);
+    points = Array.from({ length: cols * rows }, function (_, index) { return { x: (index % cols + 0.5) * pitch, y: (Math.floor(index / cols) + 0.5) * pitch }; });
     stats.columns = cols; stats.rows = rows;
     heat.clear(); pendingPaths = []; lastHeatAt = null; dirty = true;
     C.fx.wake();
   }
   function update(now, dt) {
-    if (C.settings.get('dots') === 'off') return false;
+    if (!C.settings.dotsPolicy().enabled) return false;
     if (!dirty && !heat.size && !ripples.length && !pendingPaths.length && !cursorFade) return false;
+    paintClock += dt;
+    if (now - lastPaintAt + 0.01 < 1000 / C.settings.policy.dotsHz) return true;
+    dt = Math.min(paintClock, C.config.shell.maxFrameDeltaMs); paintClock = 0;
+    lastPaintAt = now;
     var cfg = C.settings.dotsPolicy(), tuning = C.config.shell.dots, pointer = cursorPoint;
     if (!cursorBlocked) { cursorPoint = { x: C.input.pointer.x, y: C.input.pointer.y, inside: C.input.pointer.inside }; pointer = cursorPoint; }
     if (cursorFade) {
@@ -133,10 +138,10 @@
       if (!ctx) { canvas.hidden = true; return; }
       ink = root.getComputedStyle(root.document.documentElement).getPropertyValue('--highlight').trim();
       resize();
-      C.events.on('pointer:move', function (event) { if (cursorBlocked || C.settings.get('dots') === 'off') return; if (!C.motion.reduced && C.settings.dotsPolicy().trail) pendingPaths.push(event.path); dirty = true; });
+      C.events.on('pointer:move', function (event) { if (cursorBlocked || !C.settings.dotsPolicy().enabled) return; if (!C.motion.reduced && C.settings.dotsPolicy().trail) pendingPaths.push(event.path); dirty = true; });
       C.events.on('pointer:leave', function () { if (!cursorBlocked) dirty = true; });
       C.events.on('pointer:click', function (event) {
-        if (C.motion.reduced || cursorBlocked || C.settings.get('dots') === 'off') return;
+        if (C.motion.reduced || cursorBlocked || !C.settings.dotsPolicy().enabled) return;
         // The cap includes queued echoes, so rapid clicks cannot accumulate hidden energy.
         ripples.push({ x: event.x, y: event.y, born: event.now, kind: 'click', delay: 0, scale: 1 });
         ripples.push({ x: event.x, y: event.y, born: event.now, kind: 'click', delay: C.config.dots.ripple.secondDelayMs, scale: C.config.dots.ripple.secondRingScale });
@@ -144,7 +149,7 @@
         dirty = true;
       });
       C.events.on('dots:pulse', function (event) {
-        if (C.motion.reduced || root.document.hidden || C.settings.get('dots') === 'off') return;
+        if (C.motion.reduced || root.document.hidden || !C.settings.dotsPolicy().enabled) return;
         ripples.push({ x: event.x, y: event.y, born: root.performance.now(), kind: 'pulse', intensity: event.intensity, delay: 0, scale: 1 });
         boundRipples();
         dirty = true; C.fx.wake();
@@ -164,11 +169,11 @@
         heat.clear(); ripples = []; pendingPaths = []; lastHeatAt = null; dirty = true;
         stats.trailCells = stats.ripples = stats.clickRipples = stats.pulseRipples = stats.rings = stats.visibleDots = 0;
         ctx.clearRect(0, 0, width, height);
-        if (C.settings.get('dots') === 'off') { canvas.remove(); cursorFade = null; }
+        if (!C.settings.dotsPolicy().enabled) { canvas.remove(); canvas.width = canvas.height = 1; cursorFade = null; }
         else { if (!root.document.body.contains(canvas)) root.document.body.insertBefore(canvas, root.document.body.children[0]); resize(); }
         C.fx.wake();
       }
-      C.settings.onChange('dots', settingsChanged); C.settings.onChange('quality', settingsChanged);
+      C.settings.onChange('dots', settingsChanged); C.settings.onChange('backgroundQuality', settingsChanged); C.settings.onChange('canvasQuality', settingsChanged);
       settingsChanged();
       root.addEventListener('resize', resize);
       C.fx.subscribe(update, 'dots');

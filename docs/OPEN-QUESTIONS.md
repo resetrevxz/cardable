@@ -24,7 +24,7 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 | 18 | Which specs appear on a card? | Remade tiers 0–11: memory capacity/type plus up to 4 available specs, using icons. Unfound Secret conceals them. Limited retains up to 3. | `src/ui/card-specs.js` |
 | 19 | Font files must be supplied. | Inter and JetBrains Mono woff2 in `assets/fonts/`; fallbacks work without them | `assets/fonts/` |
 | 20 | "Squircle" corners are not fully supported in all browsers. | `corner-shape: squircle` where available, else SVG path clip | `card.css` |
-| 21 | Mobile and touch. | Desktop only in v1 | future |
+| 21 | Mobile and touch. | Stage 13 adds full touch opening, cutting, flipping, Keep/Delete and inventory/settings. Very Low targets basic devices. | `docs/GRAPHICS-UPDATE.md` |
 | 22 | The brief puts the serial on the card back; the settle sequence stamps it on the front. | Both: engraved on the back, small stamp on the front footer | `docs/03-CARD.md` |
 | 23 | Only `a` to `@` and `l` to `/` were specified for the logo morph. | Other letters use suggested glyphs | `config.logoMorph` |
 
