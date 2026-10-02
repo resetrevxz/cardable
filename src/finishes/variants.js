@@ -20,9 +20,11 @@
     if (id === 'spotlight') {
       plane.classList.add('variant-spotlight-subject');
       var subject = element('div', 'variant-subject-gloss', plane);
-      if (card.art.kind === 'image') {
-        subject.style.maskImage = 'url("' + card.art.subjectMask + '")'; subject.style.webkitMaskImage = subject.style.maskImage;
-      } else {
+      // Local CSS image masks require CORS even for adjacent file:// assets.
+      // Offline image art keeps the coating's glint without an external mask.
+      if (card.art.kind === 'image' && root.location.protocol !== 'file:') {
+        subject.style.maskImage = 'url("' + (card.art.subjectMask || card.art.src) + '")'; subject.style.webkitMaskImage = subject.style.maskImage;
+      } else if (card.art.kind !== 'image') {
         var art = C.art.render(card), hardware = art.querySelector('.gpu-art__hardware'), svg = C.finishes.svg('svg', { viewBox: art.getAttribute('viewBox'), class: 'variant-procedural-gloss', preserveAspectRatio: 'xMidYMid slice' }, subject);
         var defs = C.finishes.svg('defs', {}, svg), maskId = C.finishes.uid('variant-subject'), mask = C.finishes.svg('mask', { id: maskId }, defs);
         if (hardware) { var silhouette = hardware.cloneNode(true); silhouette.querySelectorAll('*').forEach(function(p){p.setAttribute('fill','white');p.setAttribute('stroke','white');p.setAttribute('style','fill:white;stroke:white;opacity:1');}); mask.appendChild(silhouette); }

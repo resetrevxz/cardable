@@ -84,6 +84,14 @@
       if (next[key] === values[key]) return C.state.persistenceAvailable;
       return replace(next);
     },
+    // Scope thumbnail construction without applying DOM attributes or saving.
+    withPolicy: function (tier, fn) {
+      if (schema.tiers.indexOf(tier) < 0) return fn();
+      var before = values, beforePolicy = policy;
+      values = Object.assign({}, values, { quality: tier });
+      schema.graphicsKeys.forEach(function (key) { values[key] = tier; }); policy = resolvePolicy();
+      try { return fn(); } finally { values = before; policy = beforePolicy; }
+    },
     restore: replace,
     resetToDefaults: function () { return replace(schema.normalize()); },
     onChange: function (key, fn) { return C.events.on('settings:changed', function (event) { if (key === '*' || event.key === key) fn(event.value, event.key); }); },

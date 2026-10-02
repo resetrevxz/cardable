@@ -50,6 +50,43 @@
 @keyframes inventory-acquired { from { box-shadow: 0 0 0 1px rgba(255,255,255,.7), 0 0 22px rgba(255,255,255,.14); } to { box-shadow: 0 0 0 1px transparent, 0 0 22px transparent; } }
 .reduced-motion .inventory-tile.is-acquired .inventory-tile-card { animation: none; outline: 1px solid var(--hairline-strong); }
 .inventory-tile .card__face { transform-style: flat; }
+.inventory-tile .inventory-tile-card { -webkit-box-reflect: none !important; }
+.inventory-tile :is(.finish-surface,.finish-surface *,.card__variant,.card__variant *) { filter: none !important; }
 .reduced-motion .inventory-tile.is-hovered .inventory-tile-card { translate: none; }
 .reduced-motion .inventory-mystery::after { display: none; }
 @media(max-height:600px) { .inventory-header { min-height: 44px; } .inventory-shelf .inventory-track { top: 8px; } }
+
+/* Browsing is a flat scene: inherited card 3D layers otherwise rerasterize
+   every moving thumbnail through the sheet's glass and shelf mask. */
+.inventory-track { will-change: transform; }
+.inventory-tile .collectible-card { perspective: none; }
+.inventory-tile :is(.card__tilter,.card__flipper,.card__face) { transform-style: flat; backface-visibility: visible; }
+.inventory-tile .card__flipper { transform: none; transition: none; }
+.inventory-tile .card__finish { mask: none; padding: 0; }
+.inventory-tile .card__art-window { box-shadow: none; }
+.inventory-tile .card__variant { mix-blend-mode: normal; }
+[data-animation-quality="very-low"] .inventory-tile-card { transition: none; }
+:is([data-reflection-quality="very-low"],[data-reflection-quality="low"]) .inventory-shelf { mask-image: none; }
+[data-shadow-quality="very-low"] .inventory-mystery { box-shadow: none; }
+
+/* Large nested backdrop filters invalidate the entire scrolling surface.
+   Keep the premium depth using a prepainted panel and compositor-friendly fades. */
+.inventory-sheet.glass--sheet { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: linear-gradient(160deg,#202125f5,#111215fa 60%,#191a1ef8); }
+.inventory-depth-active:not(.settings-open) .menu-shell { filter: none !important; }
+.inventory-shelf { mask-image: none; }
+.inventory-shelf::after { content: ''; position: absolute; inset: 0; z-index: 30; pointer-events: none; background: linear-gradient(90deg,#191a1e,transparent 4%,transparent 96%,#191a1e); }
+:is([data-reflection-quality="very-low"],[data-reflection-quality="low"]) .inventory-shelf::after { display: none; }
+[data-reflection-quality="high"] .inventory-shelf::after { background: linear-gradient(90deg,#191a1e,transparent 6%,transparent 94%,#191a1e); }
+[data-glass-quality="very-low"] .inventory-sheet.glass--sheet { background: #151619; box-shadow: inset 0 1px #ffffff20; }
+[data-glass-quality="low"] .inventory-sheet.glass--sheet { background: #191a1e; }
+[data-shadow-quality="low"] .inventory-sheet { box-shadow: inset 0 1px #ffffff20,0 -8px 24px #0005; }
+[data-shadow-quality="medium"] .inventory-sheet { box-shadow: inset 0 1px #ffffff25,0 -12px 32px #0006; }
+[data-reflection-quality="very-low"] .inventory-tile :is(.variant-plane,.variant-shard) { mask-image: none; mix-blend-mode: normal; }
+[data-reflection-quality="very-low"] .inventory-mystery::before { display: none; }
+
+/* These layers are bounded by virtualization and released on close. */
+.inventory-grid .inventory-tile, .inventory-shelf .inventory-tile-pose { will-change: transform; }
+.reduced-motion .inventory-shelf .inventory-tile-pose { will-change: auto; }
+
+/* The inventory owns input; the gear must not cover its detail close button. */
+.inventory-depth-active .settings-corner { pointer-events: none; opacity: 0; }

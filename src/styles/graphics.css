@@ -78,3 +78,6 @@ button { -webkit-tap-highlight-color: transparent; }
 :is([data-finish-quality="very-low"],[data-finish-quality="low"]) :is(.finish-surface,.finish-surface *) { filter: none !important; }
 
 [data-reflection-quality="low"] .opening-bloom { filter: none; }
+
+/* Hide the blend container too: empty screen-blended layers still composite. */
+[data-background-quality="very-low"] #cursor-glow:not(.is-blade) { display: none; }

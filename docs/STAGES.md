@@ -98,3 +98,12 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 - Touch opening, Tear/Flip/Keep/Delete, portrait and landscape settings.
 
 **Accept:** check-graphics.cjs, existing behavior regression suites, check-graphics-browser.cjs file:// journeys and profile-graphics-browser.cjs captured before/after evidence. Browser/CPU measurements are scoped observations; physical low-end devices and 240 Hz hardware are not certified.
+
+## Stage 14 - Inventory optimization
+
+**Docs:** INVENTORY-PERFORMANCE.
+
+- Cached content updates, flat compositor motion, preset-aware virtualization and responsive grid geometry.
+- Shaded inventory surfaces, Very Low blend-container fix and offline Spotlight fallback.
+
+**Accept:** check-inventory-performance-browser.cjs and moving Shelf/Grid profiles across all presets. Scoped headless evidence; physical device and 240Hz performance are not certified.

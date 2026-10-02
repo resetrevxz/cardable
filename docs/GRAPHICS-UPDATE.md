@@ -28,3 +28,5 @@ Inventory Shelf/Grid uses bounded front-only static thumbnail DOM, local lower-r
 Touch play has a visible hold-to-open action, native top-strip cutting, a Tear fallback, Flip, Keep/Delete, inventory and settings. Coarse-pointer targets are at least 44px; essential controls survive idle fade. Keyboard controls and the fixed three-second hold remain supported. Reduced motion remains separate from graphics quality and continues to use static/fade equivalents.
 
 High improves core glare and edge illumination while retaining focused rarity and coating effects. Its performance depends on display, browser and device. See [GRAPHICS-QA.md](GRAPHICS-QA.md) for measured evidence and its limits.
+
+Stage 14 further optimizes inventory browsing: its sheet now uses shaded surfaces instead of full backdrop blur at every preset. Static card materials, bounded compositor layers, viewport-aware mount budgets and responsive grid layout keep moving inventory inexpensive. Other panels retain their independent glass controls. See [INVENTORY-PERFORMANCE.md](INVENTORY-PERFORMANCE.md).

@@ -187,3 +187,7 @@ Add a hover response to almost everything interactive. Hover states must never s
 ## Stage 13 graphics and accessibility update
 
 Four independent graphics tiers: Very Low, Low, Medium (fresh-save default), High. Presets set the nine graphics controls together; FPS and accessibility stay independent. High retains the full silver/card material language with refined glare and edge light. Very Low uses static finishes, no cosmetic particles, no backdrop blur or dots, and flat grounding. Low retains attractive static materials with interaction-only motion. Inventory thumbnails are front-only and static, with one full card mounted on entering detail. Coarse-pointer play uses visible 44px touch targets, a hold action, Tear and Flip buttons, and Keep/Delete. The shared loop supports display refresh plus explicit FPS caps; hidden visuals sleep and refill reconciles from timestamps. See docs/GRAPHICS-UPDATE.md.
+
+## Stage 14 inventory optimization
+
+Inventory browsing uses a shaded prepainted panel instead of full-sheet backdrop filtering, flat front-only thumbnail layers, a single shelf pan and native grid scroll. Viewport-based virtualization bounds the compositor layers; metadata updates only when content changes. Very Low retains the active cut blade while removing the empty cursor blend surface. See docs/INVENTORY-PERFORMANCE.md for measured moving-scene results and limitations.
