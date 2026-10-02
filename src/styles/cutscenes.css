@@ -1,0 +1,8 @@
+.cutscene-skip { position:fixed; right:max(24px,env(safe-area-inset-right)); bottom:max(18px,env(safe-area-inset-bottom)); z-index:5; border:0; border-radius:8px; padding:10px 12px; background:rgba(8,8,10,.28); color:rgba(255,255,255,.54); font:11px var(--font-mono,monospace); cursor:pointer; }
+.cutscene-skip:hover,.cutscene-skip:focus-visible { color:#fff; background:rgba(8,8,10,.64); outline:1px solid rgba(255,255,255,.35); }
+.cutscene-skip[hidden] { display:none; }
+.is-rarity-cinematic:not(.cutscene-cursor-available),.is-rarity-cinematic:not(.cutscene-cursor-available) * { cursor:none !important; }
+.is-rarity-cinematic.cutscene-cursor-available { cursor:auto; }
+.finish-ascendant-sides canvas { position:absolute; inset:0; width:100%; height:100%; }
+
+.is-rarity-cinematic #wordmark,.is-rarity-cinematic #currency-counter,.is-rarity-cinematic #inventory-affordance,.is-rarity-cinematic .tutorial,.is-rarity-cinematic .dev-chip { visibility:hidden !important; }

@@ -4,7 +4,9 @@
   // Prop: "A outside square with small squircle edges which shines and shifts colors like a aurora but with pastel colors"
   function surface(card, context, lite) {
     var cfg = C.config.finishMotion.ascendant, element = C.finishes.surface('ascendant', context);
-    C.finishes.element('div', 'finish-ascendant-sides', element);
+    var sides=C.finishes.element('div', 'finish-ascendant-sides', element), field=C.finishes.element('canvas', '', sides);
+    field.width=240;field.height=360;var seed=String(context.instance?context.instance.serial:card.art.seed);
+    C.ascendantBackground.draw(field.getContext('2d'),240,360,0,seed);
     var splash = C.finishes.element('div', 'finish-ascendant-splash', element); splash.style.opacity = lite ? 0.16 : 0;
     var prop = C.finishes.surface('ascendant-prop', context); prop.classList.add('finish-prop');
     var frame = C.finishes.squircle(prop, 'finish-ascendant-frame'), gradientId = C.finishes.uid('aurora');
@@ -14,14 +16,16 @@
     });
     frame.path.setAttribute('stroke', 'url(#' + gradientId + ')');
     (context.propElement || element).appendChild(prop);
-    var random = C.art.random(card.art.seed + 10);
-    return { el: element, prop: prop, splash: splash, random: random, time: 0, birth: null,
+    splash.hidden=true; var random = C.art.random(card.art.seed + 10);
+    return { el: element, field:field, seed:seed, fieldAt:0, prop: prop, splash: splash, random: random, time: 0, birth: null,
       nextAt: cfg.splashMinDelayMs + random() * (cfg.splashMaxDelayMs - cfg.splashMinDelayMs) };
   }
   C.finishes.register('ascendant', {
+    drawBackground: C.ascendantBackground.draw,
     mount: function (element, card, context) { var state = surface(card, context, false); element.appendChild(state.el); return state; },
     update: function (dt, pointer, state) {
       state.time += dt;
+      if (state.time-state.fieldAt>=100) { state.fieldAt=state.time; C.ascendantBackground.draw(state.field.getContext('2d'),240,360,C.ascendantBackground.sampleTime(state.seed,state.time/1000),state.seed); }
       var cfg = C.config.finishMotion.ascendant, phase = state.time / cfg.auroraCycleMs * Math.PI * 2;
       state.el.style.setProperty('--asc-angle', (state.time / cfg.auroraCycleMs * 360 % 360) + 'deg');
       if (C.finishes.propDue(state, dt)) for (var i = 1; i <= 3; i += 1) {
