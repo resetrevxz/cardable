@@ -8,6 +8,7 @@
     var url = root.URL.createObjectURL(new root.Blob([text], { type: 'application/json' }));
     var link = root.document.createElement('a'); link.href = url; link.download = filename; root.document.body.appendChild(link); link.click(); link.remove();
     root.setTimeout(function () { root.URL.revokeObjectURL(url); }, C.config.polish.downloadReleaseMs);
+    if (filename === 'cardable-save.json' || /^cardable-(save|sandbox)-\d/.test(filename)) C.events.emit('save:exported');
   }
   C.saveFiles = {
     parse: parse,

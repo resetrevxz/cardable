@@ -65,6 +65,8 @@
     base.settings = C.settingsSchema.normalize(base.settings);
     base.stats = Object.assign({ packsOpened: 0 }, base.stats || {});
     base.inventoryUi = C.inventoryModel.normalize(base.inventoryUi);
+    // Optional extension: preserve achievement progress through load/import/Undo.
+    if (value.achievements !== undefined) base.achievements = C.achievements ? C.achievements.normalize(value.achievements) : value.achievements;
     return base;
   }
   function validate(value, strict) {
@@ -81,6 +83,7 @@
       Object.keys(object).forEach(function (key) { require(key !== '__proto__' && key !== 'constructor' && key !== 'prototype', 'Unsupported save field'); keys(object[key], depth + 1); });
     }
     keys(value, 0);
+    if (C.achievements) C.achievements.validate(value.achievements);
     if (value.packs) {
       require(typeof value.packs === 'object' && !Array.isArray(value.packs), 'Invalid pack state');
       require(integer(value.packs.ready) && value.packs.ready <= C.config.packs.maxStored, 'Invalid pack stock');

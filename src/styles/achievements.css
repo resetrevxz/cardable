@@ -1,0 +1,16 @@
+.achievement-glyph { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.achievement-toast { position: fixed; z-index: var(--z-toast); top: var(--s-6); left: 50%; max-width: min(460px, calc(100vw - 32px)); display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4) var(--s-5); border-radius: var(--r-button); color: var(--text); text-align: left; opacity: 0; transform: translate(-50%, -8px); transition: opacity var(--t-ui) var(--ease-out), transform var(--t-ui) var(--ease-out); overflow: hidden; cursor: pointer; }
+.achievement-toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+.achievement-toast[hidden] { display: none; }
+.achievement-toast-copy { display: grid; gap: var(--s-1); }
+.achievement-eyebrow { font: 10px var(--font-mono); color: var(--text-dim); text-transform: uppercase; letter-spacing: .08em; }
+.achievement-toast strong { font: 500 14px var(--font-ui); }
+.achievement-toast::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.1), transparent 70%); transform: translateX(-100%); pointer-events: none; }
+[data-quality="high"] .achievement-toast.is-visible::after { animation: achievement-sweep 900ms var(--ease-out); }
+.achievement-toast:hover { border-color: var(--hairline-strong); }
+.achievement-toast:active { transform: translate(-50%, 1px); }
+.achievement-toast:focus-visible { outline: 1px solid var(--highlight); outline-offset: 3px; }
+@keyframes achievement-sweep { to { transform: translateX(100%); } }
+[data-quality="low"] .achievement-toast, .reduced-motion .achievement-toast { transform: translate(-50%, 0); transition-property: opacity; }
+[data-quality="very-low"] .achievement-toast { transform: translate(-50%, 0); transition: none; }
+.reduced-motion .achievement-toast::after, [data-quality="low"] .achievement-toast::after, [data-quality="very-low"] .achievement-toast::after { animation: none; display: none; }
