@@ -17,7 +17,9 @@
     var margin = cfg.safeMarginPx, width = root.innerWidth, height = root.innerHeight;
     var outset = payload.entry.rarity.propOutset || {}, above = outset.top || 0, below = outset.bottom || 0, sides = outset.side || 0;
     var stacked = width < cfg.detailStackWidthPx;
-    var cardHeight = Math.min(height * cfg.detailHeightVh / 100, (height - margin * 2 - 36) / (1 + above + below), (width - margin * 2) / (1 + sides * 2) * 7 / 5);
+    // Budget the whole composition, including the metadata column and props.
+    var cardSpace = width - margin * 2 - (stacked ? 0 : cfg.detailGapPx + cfg.detailInfoWidthPx);
+    var cardHeight = Math.min(height * cfg.detailHeightVh / 100, (height - margin * 2 - 36) / (1 + above + below), cardSpace / (1 + sides * 2) * 7 / 5);
     if (stacked) cardHeight = Math.min(cardHeight, height * cfg.detailStackHeightVh / 100);
     var cardWidth = cardHeight * 5 / 7, groupWidth = cardWidth * (1 + sides * 2) + (stacked ? 0 : cfg.detailGapPx + cfg.detailInfoWidthPx);
     var rect = { left: (width - groupWidth) / 2 + sides * cardWidth,
@@ -195,7 +197,7 @@
     initialized: false, get phase() { return phase; }, get view() { return view; }, get serialIndex() { return serialIndex; },
     init: function () {
       if (C.detail.initialized) return; C.detail.initialized = true;
-      var params = new URLSearchParams(root.location.search); if (params.get(C.config.dev.queryFlag) === '1' && params.get('gallery') === '1') return;
+      if (C.presentation.gallery) return;
       cfg = C.config.inventoryMotion; spring = C.springs.create(0, cfg.sheetSpring); dragSpring = C.springs.create(0, cfg.sheetSpring);
       fadeMs = parseFloat(root.getComputedStyle(root.document.documentElement).getPropertyValue('--t-sheet'));
       overlay = node('section', 'inventory-detail', root.document.body); overlay.hidden = true; overlay.inert = true; overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-label', 'Card detail');

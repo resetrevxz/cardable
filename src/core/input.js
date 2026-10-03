@@ -5,10 +5,10 @@
   var controls = 'button, a[href], input, select, textarea, summary, [role="button"], [data-cursor="ring"]';
   var opening = { enabled: false, phase: 'idle', ready: false }, spaceDown = false, enterDown = false, chargeKey = null;
   var inventoryActive = false;
-  var preferencesActive = false;
+  var preferencesActive = false, contextActive = false;
   function prevent(event) { if (event.preventDefault) event.preventDefault(); }
   function chargeTarget(target) {
-    if (inventoryActive) return false;
+    if (inventoryActive || contextActive) return false;
     if (!target) return true;
     var pack = root.document.getElementById('pack-stage');
     if (pack && pack.contains(target)) return true;
@@ -39,7 +39,7 @@
         if (gesture && gesture.capture && gesture.capture.hasPointerCapture(gesture.id)) gesture.capture.releasePointerCapture(gesture.id);
       });
     },
-    chargeStart: function () { if (!preferencesActive && !inventoryActive) C.events.emit('input:chargeStart'); },
+    chargeStart: function () { if (!preferencesActive && !inventoryActive && !contextActive) C.events.emit('input:chargeStart'); },
     chargeEnd: function () { C.events.emit('input:chargeEnd'); },
     cutMove: function (event) { C.events.emit('input:cutMove', event); },
     keep: function () { if (!preferencesActive && !spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:keep'); },
@@ -72,12 +72,14 @@
       }, { passive: true });
       root.document.addEventListener('pointerout', function (event) { if (!event.relatedTarget) leave(); }, { passive: true });
       root.document.addEventListener('pointerdown', function (event) {
+        if (event.button !== 0) return;
         modality('pointer');
         if (opening.enabled && opening.phase === 'cutting') C.events.emit('input:cutStart', event);
       });
-      root.document.addEventListener('pointerup', function (event) { C.events.emit('input:cutEnd', event); });
+      root.document.addEventListener('pointerup', function (event) { if(event.button === 0) C.events.emit('input:cutEnd', event); });
       root.document.addEventListener('pointercancel', function (event) { C.events.emit('input:cutEnd', event); });
       root.document.addEventListener('keydown', function (event) {
+        if (contextActive) return;
         modality('keyboard');
         var key = event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar' ? 'Space' : event.key === 'Enter' ? 'Enter' : null;
         var wasDown = key === 'Space' ? spaceDown : enterDown;
@@ -117,7 +119,10 @@
       C.events.on('opening:context', function (event) { opening = event; });
       C.events.on('inventory:context', function (event) { inventoryActive = event.active; });
       C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
+      C.events.on('contextmenu:open', function () { cancel('context-menu'); contextActive = true; });
+      C.events.on('contextmenu:close', function () { contextActive = false; });
       root.document.addEventListener('click', function (event) {
+        if (event.button !== 0 || event.target.closest && event.target.closest('[data-context-menu]')) return;
         var x = event.clientX, y = event.clientY;
         if (event.detail === 0 && event.target.getBoundingClientRect) {
           var rect = event.target.getBoundingClientRect(); x = rect.left + rect.width / 2; y = rect.top + rect.height / 2;

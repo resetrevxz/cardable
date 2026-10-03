@@ -1,0 +1,76 @@
+/* Owner-authorized brand color lives on wrappers, queue markers and provenance. */
+[data-brand-pack="true"] { --pack-brand-accent: #d7dbe4; --pack-brand-ink: #edf0f4; --pack-brand-dark: #0d1014; }
+[data-skin="nvidia"] { --pack-brand-accent: #76b900; --pack-brand-dark: #111416; }
+[data-skin="amd"] { --pack-brand-accent: #ed1c24; --pack-brand-dark: #180d12; }
+[data-skin="snapdragon"] { --pack-brand-accent: #dab777; --pack-brand-dark: #211c17; }
+[data-skin="apple"] { --pack-brand-accent: #c4c9d4; --pack-brand-dark: #b6bbc4; --pack-brand-ink: #181a1f; }
+[data-brand-pack="true"] .pack-wrapper { background: linear-gradient(115deg,#080a0c,var(--pack-brand-dark) 35%,#2b2d30 55%,var(--pack-brand-dark) 80%,#080a0c); }
+[data-brand-pack="true"] .pack-body { background: var(--pack-brand-dark); }
+[data-brand-pack="true"] .pack-body::after { border: 1px solid #e1e5eb65; box-shadow: inset 2px 0 7px #ffffff28,inset -2px 0 9px #000a; }
+[data-brand-pack="true"] .pack-thickness { background: linear-gradient(90deg,#bdc3cb,#26282d 15% 85%,#dce1e8); }
+[data-brand-pack="true"] .pack-print { color: var(--pack-brand-ink); }
+[data-brand-pack="true"] :is(.pack-wordmark,.pack-label,.pack-open-mark) { color: var(--pack-brand-ink); text-shadow: 0 -.5px .5px #ffffff25,0 1px .8px #0007; }
+[data-brand-pack="true"] .pack-wordmark { top: 13%; font-size: calc(var(--pack-width) * .112); font-weight: 600; letter-spacing: -.055em; text-transform: none; text-align: center; }
+[data-brand-pack="true"] .pack-edition { top: 23%; font-size: calc(var(--pack-width) * .021); opacity: .6; letter-spacing: .12em; }
+[data-brand-pack="true"] .pack-label { top: 29%; font-size: calc(var(--pack-width) * .038); font-weight: 500; letter-spacing: .22em; text-transform: uppercase; }
+[data-brand-pack="true"] .pack-graphic { top: 46%; height: 22%; width: 74%; left: 13%; display: grid; place-items: center; border: 0; border-radius: 0; box-shadow: none; background: none; }
+.pack-company-logo { display: block; width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; }
+[data-brand-pack="true"] .pack-graphic-caption { top: 76%; color: var(--pack-brand-ink); opacity: .8; font-size: calc(var(--pack-width) * .027); letter-spacing: .16em; }
+[data-brand-pack="true"] .pack-security { top: 84%; left: 10%; right: 10%; width: auto; height: auto; padding: 0; opacity: .45; text-align: center; writing-mode: horizontal-tb; border: 0; background: none; box-shadow: none; color: var(--pack-brand-ink); }
+[data-brand-pack="true"] .pack-series { top: 88%; color: var(--pack-brand-ink); font-size: calc(var(--pack-width) * .024); letter-spacing: .1em; }
+[data-brand-pack="true"] .pack-traces { display: none; }
+[data-brand-pack="true"] .pack-crimp { stroke: #c3c8d0; background: linear-gradient(180deg,#202329,#b0b6c0 35%,#edf0f6 52%,#363b45 72%,#9298a2); }
+[data-brand-pack="true"] .pack-crimp--bottom { border-top: 2px solid var(--pack-brand-accent); }
+.pack-brand-relief { position: absolute; inset: 5% 0; pointer-events: none; }
+[data-skin="nvidia"] .pack-brand-relief { background: linear-gradient(120deg,#464c52,#d4d8de 19%,#42494f 31%,#c4c9d0 45%,#22272c 60%,#d6dbe2 79%,#3c444c); clip-path: polygon(0 0,7% 0,37% 34%,37% 67%,7% 100%,0 100%,29% 65%,29% 36%,0 7%,0 0,100% 0,100% 7%,71% 36%,71% 65%,100% 100%,93% 100%,63% 67%,63% 34%,93% 0); }
+[data-skin="nvidia"] .pack-brand-relief::after { content: ''; position: absolute; inset: 0; background: #76b900; clip-path: polygon(0 20%,3% 20%,34% 42%,34% 63%,3% 83%,0 83%,30% 61%,30% 43%,0 20%,100% 20%,100% 83%,97% 83%,66% 63%,66% 42%,97% 20%,100% 20%,70% 43%,70% 61%,100% 83%); }
+[data-skin="nvidia"] .pack-company-logo { filter: invert(1); }
+[data-skin="nvidia"] .pack-graphic { top: 40%; height: 27%; }
+[data-skin="nvidia"] .pack-graphic::before { content: ''; position: absolute; top: 0; width: 48%; height: 59%; background: url('../../assets/packs/nvidia-eye.svg') center/contain no-repeat; }
+[data-skin="nvidia"] .pack-company-logo { align-self: end; width: 89%; margin-bottom: 2%; }
+[data-skin="amd"] .pack-wrapper { background: linear-gradient(115deg,#090a0d,#1d2026 40%,#35373d 53%,#121419 70%); }
+[data-skin="amd"] .pack-brand-relief { inset: 5% 0; background: repeating-linear-gradient(125deg,transparent 0 2px,#ffffff09 2px 3px),linear-gradient(140deg,#b70614,#ed1c24 45%,#5c0610); clip-path: polygon(0 0,100% 0,100% 18%,81% 18%,81% 31%,63% 14%,0 14%,0 0,0 75%,19% 75%,37% 94%,100% 94%,100% 100%,0 100%); }
+[data-skin="amd"] .pack-brand-softbox { background: linear-gradient(135deg,transparent 42%,#ff152215 50%,transparent 63%),radial-gradient(ellipse at var(--brand-light-x,45%) 25%,#ffffff32,transparent 50%); }
+[data-skin="snapdragon"] .pack-wrapper { background: linear-gradient(120deg,#0b0b0d,#332b21 22%,#141416 56%,#322c22 81%,#0b0b0d); }
+[data-skin="snapdragon"] .pack-brand-relief { inset: 9% 7%; border: 1px solid #dab7777d; border-radius: 24% 24% 8% 8% / 17% 17% 6% 6%; background: radial-gradient(ellipse at 50% 41%,transparent 32%,#dab7771c 33%,transparent 34%),repeating-linear-gradient(58deg,transparent 0 22px,#dab77713 23px,transparent 24px); }
+[data-skin="snapdragon"] .pack-crimp { stroke: #ead4ac; background: linear-gradient(#6e5735,#f4ddb1 42%,#bfa47a 58%,#45361f); }
+[data-skin="snapdragon"] .pack-graphic { top: 43%; height: 27%; width: 76%; left: 12%; }
+[data-skin="snapdragon"] .pack-graphic::before { content: ''; position: absolute; top: 0; width: 39%; height: 70%; border: 1px solid #dab777b0; border-radius: 50%; background: url('../../assets/packs/snapdragon-logo.png') 0 center/610% auto no-repeat,radial-gradient(circle at 40% 28%,#f1ddaa,#a17f4b 65%,#4f3e29); }
+[data-skin="snapdragon"] .pack-company-logo { position: relative; align-self: end; margin-bottom: 2%; }
+[data-skin="apple"] .pack-wrapper { background: linear-gradient(110deg,#a8afb9,#e9ecf1 20%,#fafbfe 42%,#c9cfd8 67%,#f1f2f6 86%,#a6adb7); }
+[data-skin="apple"] .pack-body { background: #c5cbd3; }
+[data-skin="apple"] .pack-wordmark { text-shadow: 0 -1px .5px #fffc,0 .5px .5px #686c7338; }
+[data-skin="apple"] .pack-label { letter-spacing: .12em; font-size: calc(var(--pack-width) * .045); }
+[data-skin="apple"] .pack-edition { letter-spacing: .04em; }
+[data-skin="apple"] .pack-graphic { top: 42%; height: 25%; }
+[data-skin="apple"] .pack-company-logo { width: 38%; height: 100%; }
+[data-skin="apple"] .pack-brand-relief { inset: 11% 9%; border: 1px solid #ffffff85; border-radius: 10% / 6%; box-shadow: 0 1px 1px #353c4b20,inset 0 1px 0 #ffffff8c; }
+[data-skin="apple"] .pack-crimp { stroke: #d4d9e1; background: linear-gradient(#b0b7c0,#fafbff 42%,#c0c7d0 60%,#eceff5); }
+.pack-brand-softbox { position: absolute; inset: 0; background: linear-gradient(128deg,transparent 29%,#ffffff09 33%,#ffffff36 43%,#ffffff09 49%,transparent 56%),radial-gradient(ellipse at var(--brand-light-x,45%) 22%,#ffffff55,transparent 40%); pointer-events: none; }
+.pack-brand-sheen { position: absolute; inset: -20% -50%; background: linear-gradient(118deg,transparent 40%,#ffffff56 50%,transparent 60%); transform: translateX(var(--brand-sheen-x,-140%)); opacity: var(--brand-sheen-opacity,0); pointer-events: none; }
+[data-brand-pack="true"] .pack-fluid__body { background: linear-gradient(180deg,var(--pack-fluid-start),color-mix(in srgb,var(--pack-fluid-end) 40%,transparent)); }
+[data-brand-pack="true"] .pack-meniscus { background: var(--pack-fluid-start); box-shadow: 0 2px 6px color-mix(in srgb,var(--pack-fluid-end) 55%,transparent); }
+[data-state="waiting"] [data-brand-pack="true"] .pack-wrapper { opacity: .16; }
+[data-state="waiting"] [data-brand-pack="true"] .pack-body { background: color-mix(in srgb,var(--pack-brand-accent) 8%,transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--pack-brand-accent) 45%,transparent); }
+[data-state="waiting"] [data-brand-pack="true"] .pack-print { opacity: .72; }
+[data-pack-quality="low"][data-brand-pack="true"] :is(.pack-metal,.pack-film,.pack-brand-sheen) { display: none; }
+[data-pack-quality="low"][data-brand-pack="true"] .pack-brand-softbox { background: linear-gradient(128deg,transparent 30%,#ffffff25 43%,transparent 60%); }
+[data-pack-quality="very-low"][data-brand-pack="true"] .pack-wrapper { background: var(--pack-brand-dark); }
+[data-pack-quality="very-low"][data-brand-pack="true"] :is(.pack-metal,.pack-film,.pack-brand-sheen,.pack-brand-softbox,.pack-shine) { display: none; }
+[data-pack-quality="very-low"][data-brand-pack="true"] .pack-brand-relief { box-shadow: none; }
+.pack-queue-marker[data-skin="nvidia"] .pack-counter-thumb { background: linear-gradient(125deg,#242a2f,#aeb5bf 48%,#14191d 52%,#76b900); }
+.pack-queue-marker[data-skin="amd"] .pack-counter-thumb { background: linear-gradient(140deg,#ed1c24 18%,#16191f 20% 78%,#ed1c24 80%); }
+.pack-queue-marker[data-skin="snapdragon"] .pack-counter-thumb { background: linear-gradient(120deg,#352d22,#dab777 48%,#211d19 54%); }
+.pack-queue-marker[data-skin="apple"] .pack-counter-thumb { background: linear-gradient(110deg,#a8afb9,#f6f8fc 44%,#c1c7d0); }
+.pack-queue-marker[data-skin="apple"] .pack-counter-thumb__brand { color: #15161b; }
+.pack-queue-marker .pack-counter-glyph { color: var(--queue-accent); }
+.pack-swap-shell { position: fixed; left: 0; top: 0; z-index: 8; perspective: 1200px; pointer-events: none; transform-origin: top left; }
+.pack-swap-shell .pack-unit { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 1; }
+.pack-swap-shell .pack-pose { transform: none; }
+.pack-swap-shell :is(.pack-ground-shadow,.pack-reflection,.pack-internal-cards) { display: none; }
+.pack-swap-shell .pack-body { width: 100%; height: 100%; }
+.pack-preview-back { position: absolute; inset: 0; backface-visibility: hidden; transform: rotateY(180deg); clip-path: var(--wrapper-shape); display: grid; place-items: center; color: #c9cdd5; background: linear-gradient(112deg,#1b1e24,#52565d 36%,#24272e 70%,#111419); border: 1px solid #9fa4ad; font: 600 24px var(--font-ui); letter-spacing: -.05em; }
+.is-pack-swapping .pack-pose { backface-visibility: hidden; }
+.is-pack-swapping { transform-style: preserve-3d; }
+.pack-swap-shell .pack-thickness { display: none; }
+.reduced-motion .pack-brand-sheen { display: none; }
