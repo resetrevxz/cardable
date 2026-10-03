@@ -44,10 +44,15 @@
     node('div', 'pack-label', printLayer, pack.name);
     var graphic = node('div', 'pack-graphic', printLayer); graphic.dataset.graphic = design.graphic || 'die-ring';
     var motif = C.data.packGraphics[graphic.dataset.graphic];
-    if (motif) svg('pack-brand', graphic, motif.viewBox, motif.paths);
-    node('div', 'pack-graphic-caption', printLayer, 'GRAPHICS / ARCHIVE');
-    var pool = C.data.generations.map(function (g) { return String(g.order); }).join(' / ');
-    node('div', 'pack-pool', printLayer, 'GENERATION POOL  ' + pool);
+    if (design.companyLogo) {
+      var logo = node('img', 'pack-company-logo', graphic);
+      logo.src = design.companyLogo; logo.alt = design.companyName + ' logo'; logo.draggable = false;
+    } else if (motif) svg('pack-brand', graphic, motif.viewBox, motif.paths);
+    node('div', 'pack-graphic-caption', printLayer, pack.tagline || 'GRAPHICS / ARCHIVE');
+    if (design.showGenerationPool !== false) {
+      var pool = C.data.generations.map(function (g) { return String(g.order); }).join(' / ');
+      node('div', 'pack-pool', printLayer, 'GENERATION POOL  ' + pool);
+    }
     node('div', 'pack-security', printLayer, design.security || 'CBL / SEALED');
     node('div', 'pack-series', printLayer, 'SERIES ' + (design.series || '01') + '   /   ' + (design.batch || pack.id.toUpperCase()));
     if (design.microprint) node('div', 'pack-microprint', printLayer, design.microprint);
@@ -73,14 +78,27 @@
     // A faint second transmitted image lives only beneath the liquid boundary.
     // It shifts relative to the etched print, giving the laminate optical depth.
     var transmitted = print(glass, pack); transmitted.classList.add('pack-print--transmitted');
+    C.packSkins.apply(el, pack, 'idle');
+    el.dataset.pack = pack.id;
     return { el: el, pose: pose, shadow: shadow, glass: glass, wrapper: wrapper, fluid: fluid, specks: specks };
   }
   C.packMarkup = {
     node: node, unit: unit,
+    setPack: function(el, pack, mode) {
+      el.dataset.pack = pack.id; el.dataset.material = pack.design.material; el.dataset.wrapper = pack.design.wrapper;
+      el.querySelectorAll('.pack-skin-layer,.pack-facets,.pack-clearcoat,.pack-gloss-sweep').forEach(function(layer) { layer.remove(); });
+      el.querySelectorAll('.pack-print').forEach(function(old) {
+        var next = print(old.parentNode, pack);
+        if (old.classList.contains('pack-print--transmitted')) next.classList.add('pack-print--transmitted');
+        old.replaceWith(next);
+      });
+      C.packSkins.apply(el, pack, mode || 'idle');
+    },
     foil: function (parent, pack) {
       var el = node('div', 'opening-foil', parent);
       el.dataset.material = pack.design.material; el.dataset.wrapper = pack.design.wrapper;
       texture(el); node('div', 'opening-silhouette', el); print(el, pack);
+      C.packSkins.apply(el, pack, 'wrapper'); el.dataset.pack = pack.id;
       return el;
     }
   };

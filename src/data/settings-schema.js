@@ -14,7 +14,7 @@
     showFps: entry('Performance display', 'Animation FPS and frame time; sleeps with the game.', 'Performance', false),
     dots: entry('Dot grid', 'A quiet response to the pointer.', 'Motion and effects', 'on', ['on', 'subtle', 'off']),
     cursorGlow: entry('Cursor glow', 'The native cursor stays visible.', 'Motion and effects', true),
-    idleFade: entry('Idle fade', 'Hide chrome after stillness.', 'Motion and effects', '2.5', ['2.5', '5', 'never']),
+    idleFade: entry('Idle fade', 'Keep the small logo and pack metrics while idle.', 'Motion and effects', '15', ['2.5', '5', '15', '30', 'never']),
     rarityColor: entry('Rarity color', 'Existing card colors on or off.', 'Cards', 'color', ['color', 'mono'], 'switch'),
     tilt: entry('Card tilt', 'Changes weight and maximum angle.', 'Cards', 'normal', ['low', 'normal', 'high']),
     revealSpeed: entry('Reveal speed', 'Hold and cut keep their timing.', 'Cards', 'normal', ['normal', 'fast']),
@@ -26,6 +26,7 @@
     muted: entry('Mute', 'Coming soon', 'Sound', false),
     nudgeDismissed: entry('', '', null, false)
   };
+  schema.idleFade.format = function (value) { return value === 'never' ? 'Never' : value + ' s'; };
   var tiers = ['very-low', 'low', 'medium', 'high'];
   var graphics = {
     finishQuality: ['Card finishes', 'Rarity materials and cosmetic coatings.'],

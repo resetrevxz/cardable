@@ -55,7 +55,15 @@
   generators.set('procedural', procedural);
   generators.set('image', function (card) {
     if (!/^assets\//.test(card.art.src)) throw new Error('Card art must use a local assets/ path');
-    var image = root.document.createElement('img'); image.src = card.art.src; image.alt = card.name; return image;
+    var image = root.document.createElement('img'); image.src = card.art.src; image.alt = card.name;
+    image.addEventListener('error', function () {
+      if (!image.parentNode) return;
+      var seed = 0;
+      String(card.id || card.name).split('').forEach(function (character) { seed = (seed * 31 + character.charCodeAt(0)) >>> 0; });
+      var fallback = procedural({ name: card.name, rarity: card.rarity, art: { kind: 'procedural', motif: 'fan', seed: seed || 1 } });
+      image.parentNode.replaceChild(fallback, image);
+    }, { once: true });
+    return image;
   });
   C.art = {
     random: random,

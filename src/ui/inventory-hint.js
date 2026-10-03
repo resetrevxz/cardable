@@ -22,7 +22,7 @@
       refresh(); C.events.on('save:written', refresh);
       C.events.on('menu:idle', function () { C.fx.wake(); });
       C.inventoryHint.el = host; C.inventoryHint.arrow = arrow; C.inventoryHint.peek = peek;
-      var gallery = new URLSearchParams(root.location.search).get('gallery') === '1' && new URLSearchParams(root.location.search).get(C.config.dev.queryFlag) === '1';
+      var gallery = C.presentation.gallery;
       var time = 0, openingPaused = false, inventoryPaused = false, pulse = null;
       C.events.on('inventory:collectPulse', function () { pulse = 0; C.fx.wake(); });
       C.events.on('save:reset', function () { pulse = null; svg.style.transform = ''; });

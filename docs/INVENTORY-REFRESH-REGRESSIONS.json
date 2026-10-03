@@ -1,91 +1,91 @@
 {
   "environment": "Real classic scripts in a Node VM/instrumented DOM; simulated clock. No browser rendering or FPS claim.",
-  "allPassed": true,
-  "totalExecutedPassGroups": 296,
+  "allPassed": false,
+  "totalExecutedPassGroups": 4,
   "results": [
     {
       "suite": "check-stage1",
-      "pass": true,
-      "groups": 15,
-      "output": "15 Stage 1 checks passed; 6 Stage 0 console checks passed. Browser visuals and measured FPS are unverified."
+      "pass": false,
+      "groups": 0,
+      "output": "node:internal/assert/utils:77\r\n    throw err;\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\r\n\r\n  assert(r.document.body.classList.contains('is-loaded'))\r\n\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage1.cjs:149:18\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage1.cjs:137:28)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage1.cjs:144:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47 {\r\n  generatedMessage: true,\r\n  code: 'ERR_ASSERTION',\r\n  actual: false,\r\n  expected: true,\r\n  operator: '==',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage2",
-      "pass": true,
-      "groups": 13,
-      "output": "13 Stage 2 behavior checks passed. Browser screenshots, actual material appearance, and measured 60 fps remain unverified."
+      "pass": false,
+      "groups": 1,
+      "output": "PASS tiers 0–3 remain registered with the required lifecycle methods\nD:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage2.cjs:23\r\n  const original = C.gallery.views.filter(view => C.rarity(view.card.rarity).tier <= 3);\r\n                             ^\r\n\r\nTypeError: Cannot read properties of undefined (reading 'views')\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage2.cjs:23:30\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage2.cjs:9:34)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage2.cjs:22:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage3",
-      "pass": true,
-      "groups": 14,
-      "output": "14 Stage 3 (tiers 4–6) behavior checks passed. Visuals and measured browser FPS remain unverified."
+      "pass": false,
+      "groups": 1,
+      "output": "PASS tiers 4–6 remain registered as individual modules\nD:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3.cjs:25\r\n  assert.equal(C.gallery.views.filter(v => C.rarity(v.card.rarity).tier <= 6).length, 14);\r\n                         ^\r\n\r\nTypeError: Cannot read properties of undefined (reading 'views')\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3.cjs:25:26\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3.cjs:11:29)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3.cjs:24:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage3-tiers7-9",
-      "pass": true,
-      "groups": 15,
-      "output": "15 Stage 3 (tiers 7–9) behavior checks passed. Browser visuals, screenshots, and measured FPS remain unverified."
+      "pass": false,
+      "groups": 1,
+      "output": "PASS tiers 7–9 remain separately registered\nD:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3-tiers7-9.cjs:25\r\n  const original = C.gallery.views.filter(v => C.rarity(v.card.rarity).tier <= 9);\r\n                             ^\r\n\r\nTypeError: Cannot read properties of undefined (reading 'views')\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3-tiers7-9.cjs:25:30\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3-tiers7-9.cjs:10:34)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3-tiers7-9.cjs:24:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage3-tiers10-12",
-      "pass": true,
-      "groups": 15,
-      "output": "SIMULATED sampler result: {\"valid\":true,\"fps\":60,\"p95Ms\":16.66666666666424,\"maxMs\":16.66666666666424,\"frames\":300,\"liteCards\":27,\"fullCards\":1}\n15 Stage 3 (tiers 10–12) behavior checks passed. Browser visuals and measured rendering FPS remain unverified."
+      "pass": false,
+      "groups": 1,
+      "output": "PASS all thirteen finishes register and tier modules preserve exact design and prop text\nD:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3-tiers10-12.cjs:25\r\n  assert.equal(C.gallery.views.length, 28);\r\n                         ^\r\n\r\nTypeError: Cannot read properties of undefined (reading 'views')\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3-tiers10-12.cjs:25:26\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3-tiers10-12.cjs:10:34)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage3-tiers10-12.cjs:24:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage4",
-      "pass": true,
-      "groups": 18,
-      "output": "18 Stage 4 behavior groups passed. Browser screenshots, appearance and measured FPS remain unverified."
+      "pass": false,
+      "groups": 0,
+      "output": "D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage4.cjs:19\r\n  assert.equal(C.packView.el.dataset.pack, C.data.packs.find(pack => pack.enabled && pack.obtainable === 'timer').id);\r\n                             ^\r\n\r\nTypeError: Cannot read properties of undefined (reading 'dataset')\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage4.cjs:19:30\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage4.cjs:9:28)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage4.cjs:14:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage5",
-      "pass": true,
-      "groups": 26,
-      "output": "26 Stage 5 behavior groups passed. Browser appearance, screenshots and measured FPS remain unverified."
+      "pass": false,
+      "groups": 0,
+      "output": "D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5.cjs:11\r\n  r.C.opening.wrapper.rect = { left: 550, top: 230, width: 180, height: 252 };\r\n                           ^\r\n\r\nTypeError: Cannot set properties of undefined (setting 'rect')\r\n    at setup (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5.cjs:11:28)\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5.cjs:34:13\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5.cjs:8:28)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5.cjs:29:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage5-reveal",
-      "pass": true,
-      "groups": 24,
-      "output": "24 reveal/collection behavior groups passed. Visuals, screenshots and measured FPS remain unverified."
+      "pass": false,
+      "groups": 0,
+      "output": "FAIL Common, Legendary and Secret retain distinct registered pacing and one full card\nD:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5-reveal.cjs:8\r\nfunction check(name,fn){try{fn();passed++;console.log('PASS '+name);}catch(e){console.error('FAIL '+name);throw e;}}\r\n                                                                                                          ^\r\n\r\nTypeError: Cannot read properties of undefined (reading 'panel')\r\n    at open (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5-reveal.cjs:13:64)\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5-reveal.cjs:23:59\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5-reveal.cjs:8:29)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage5-reveal.cjs:22:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage6",
-      "pass": true,
-      "groups": 25,
-      "output": "25 Stage 6 checks passed. Browser appearance, screenshots and measured FPS remain unverified."
+      "pass": false,
+      "groups": 0,
+      "output": "FAIL fresh save retains two real packs, exact welcome copy, one instruction and accessible Skip\nD:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage6.cjs:8\r\nfunction check(name, fn) { try { fn(); passed++; console.log('PASS ' + name); } catch (e) { console.error('FAIL ' + name); throw e; } }\r\n                                                                                                                           ^\r\n\r\nTypeError: Cannot read properties of null (reading 'packs')\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage6.cjs:21:34\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage6.cjs:8:34)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage6.cjs:19:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage7",
-      "pass": true,
-      "groups": 38,
-      "output": "29 inventory refresh groups passed. Browser rendering and measured FPS require manual acceptance.\n9 retained detail behavior groups passed."
+      "pass": false,
+      "groups": 0,
+      "output": "FAIL schema 1 migrates without changing owned instances, pending cards, serials or tutorial\nD:\\CardableV2\\cardable-spec\\cardable\\tools\\check-inventory-refresh.cjs:4\r\nlet passed=0;function check(name,fn){try{fn();passed++;console.log('PASS '+name);}catch(e){console.error('FAIL '+name);throw e;}}\r\n                                                                                                                       ^\r\n\r\nTypeError: Cannot set properties of null (setting 'tutorial')\r\n    at boot (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-inventory-refresh.cjs:6:97)\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-inventory-refresh.cjs:11:109\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-inventory-refresh.cjs:4:42)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-inventory-refresh.cjs:11:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.require (node:internal/modules/cjs/loader:1674:12)\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-stage8",
-      "pass": true,
-      "groups": 32,
-      "output": "32 Stage 8 checks passed. File-picker/download rendering, visual appearance and actual browser 60 fps remain unconfirmed."
+      "pass": false,
+      "groups": 0,
+      "output": "FAIL new save controls and profiler use local classic scripts and preserve boot order\nTypeError: Cannot set properties of null (setting 'tutorial')\n    at save (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage8.cjs:10:71)\n    at boot (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage8.cjs:16:25)\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage8.cjs:23:13\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage8.cjs:8:46)\n    at main (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage8.cjs:20:7)\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-stage8.cjs:195:1)\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\n"
     },
     {
       "suite": "check-new-features",
-      "pass": true,
-      "groups": 19,
-      "output": "19 N1–N6 behavior groups passed. Browser screenshots, paint/compositing and measured 60 FPS remain unconfirmed."
+      "pass": false,
+      "groups": 0,
+      "output": "D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-new-features.cjs:31\r\n  const r = gallery(), v = r.C.cardView.active, flipper = v.el.querySelectorAll('.card__flipper')[0];\r\n                                                            ^\r\n\r\nTypeError: Cannot read properties of null (reading 'el')\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-new-features.cjs:31:61\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-new-features.cjs:7:28)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-new-features.cjs:30:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n    at node:internal/main/run_main_module:33:47\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-visual-fixes",
-      "pass": true,
-      "groups": 15,
-      "output": "15 F1–F6 checks passed. Screenshots, first-frame glass compositing and browser FPS remain unconfirmed."
+      "pass": false,
+      "groups": 0,
+      "output": "FAIL F1 Keep fades/scales the entire ten-layer root, then hides it at thumbnail handoff\nD:\\CardableV2\\cardable-spec\\cardable\\tools\\check-visual-fixes.cjs:8\r\nfunction check(name, fn) { try { fn(); passed++; console.log('PASS ' + name); } catch (error) { console.error('FAIL ' + name); throw error; } }\r\n                                                                                                                               ^\r\n\r\nTypeError: Cannot set properties of null (setting 'tutorial')\r\n    at pending (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-visual-fixes.cjs:11:79)\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-visual-fixes.cjs:22:13\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-visual-fixes.cjs:8:34)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-visual-fixes.cjs:21:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)\r\n\r\nNode.js v24.20.0\r\n"
     },
     {
       "suite": "check-bug-pass",
-      "pass": true,
-      "groups": 27,
-      "output": "27 bug-pass behavior groups passed. Browser screenshots, file opening, heap growth and rendered FPS remain unconfirmed."
+      "pass": false,
+      "groups": 0,
+      "output": "FAIL 9c-01: I / ArrowUp cannot steal detail focus; preferences block inventory requests\nD:\\CardableV2\\cardable-spec\\cardable\\tools\\check-bug-pass.cjs:9\r\nfunction check(name, fn) { try { fn(); passed++; evidence.groups.push(name); console.log('PASS ' + name); } catch (error) { console.error('FAIL ' + name); throw error; } }\r\n                                                                                                                                                           ^\r\n\r\nTypeError: Cannot set properties of null (setting 'tutorial')\r\n    at save (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-bug-pass.cjs:10:74)\r\n    at boot (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-bug-pass.cjs:11:38)\r\n    at D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-bug-pass.cjs:25:13\r\n    at check (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-bug-pass.cjs:9:34)\r\n    at Object.<anonymous> (D:\\CardableV2\\cardable-spec\\cardable\\tools\\check-bug-pass.cjs:24:1)\r\n    at Module._compile (node:internal/modules/cjs/loader:1929:14)\r\n    at Object..js (node:internal/modules/cjs/loader:2060:10)\r\n    at Module.load (node:internal/modules/cjs/loader:1651:32)\r\n    at Module._load (node:internal/modules/cjs/loader:1443:12)\r\n    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)\r\n\r\nNode.js v24.20.0\r\n"
     }
   ],
   "browserQa": "Not executed: the preview tool explicitly blocked file:// and prohibited workarounds. check-idle-pack.cjs requires a browser and was not run in this task."

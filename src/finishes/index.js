@@ -18,6 +18,8 @@
     bind: function (id, element, card, context) {
       var definition = registry[id];
       if (!definition) throw new Error('Unimplemented finish: ' + id);
+      function policy() { return context.policy ? context.policy() : C.settings.policy; }
+      function run(fn) { return context.withPolicy ? context.withPolicy(fn) : fn(); }
       var binding = null, staticView = null, accumulated = 0, moving = false;
       function signature() { return ['finishQuality', 'propQuality', 'particleQuality'].map(C.settings.get).join('/'); }
       var current = signature();
@@ -27,21 +29,21 @@
         if (staticView) {
           var parent = staticView.parentNode;
           if (context.litePropElement) while (context.litePropElement.children.length) context.litePropElement.children[0].remove();
-          var replacement = definition.lite(card, Object.assign({}, context, { propElement: context.litePropElement }));
+          var replacement = run(function () { return definition.lite(card, Object.assign({}, context, { propElement: context.litePropElement })); });
           if (parent) parent.insertBefore(replacement, staticView); staticView.remove(); staticView = replacement;
         }
       });
       return {
-        activate: function () { if (!binding && C.settings.policy.finishHz) binding = definition.mount(element, card, context); },
+        activate: function () { if (!binding && policy().finishHz) binding = run(function () { return definition.mount(element, card, context); }); },
         deactivate: clearBinding,
         update: function (dt, pointer) {
-          var hz = C.settings.policy.finishHz; if (!hz) return false;
-          if (!binding) binding = definition.mount(element, card, context);
+          var hz = policy().finishHz; if (!hz) return false;
+          if (!binding) binding = run(function () { return definition.mount(element, card, context); });
           accumulated += dt; if (accumulated + 0.01 < 1000 / hz) return moving;
-          moving = definition.update(accumulated, pointer, binding); accumulated = 0; return moving;
+          moving = run(function () { return definition.update(accumulated, pointer, binding); }); accumulated = 0; return moving;
         },
         destroy: function () { unsubscribe(); clearBinding(); },
-        lite: function () { if (!staticView) staticView = definition.lite(card, Object.assign({}, context, { propElement: context.litePropElement })); return staticView; }
+        lite: function () { if (!staticView) staticView = run(function () { return definition.lite(card, Object.assign({}, context, { propElement: context.litePropElement })); }); return staticView; }
       };
     },
     surface: function (id, context) {

@@ -3,7 +3,7 @@
 Read `AGENTS.md`, `Designs.MD`, the opening, main menu, game rules, cursor, tutorial and current settings docs before implementation.
 
 - A fresh Space press accepts a revealed card once the Keep action is available. The original held charge key and repeated key events are guarded. The shortcut remains available when the opening key preference changes, and focused buttons keep their corresponding actions.
-- Pointer cuts begin and remain inside the wrapper's top strip (8–22% of height). Leaving it ends the drag. Horizontal span completes the cut. Keyboard tearing also removes a top cap.
+- The owner-approved swipe remake supersedes the old 8–22% pointer restriction: a larger upper-pack hit area and captured-drag tolerance feed an automatically aligned top seam. Normal coverage is 72% (Easy 60%), with a 130ms finishing sweep. Partial cuts resume broadly. See `CUT-SWIPE.md`. Keyboard tearing also removes a top cap.
 - A silver draw-on guide sits just below the top seal, with its label above the wrapper. A partial cut replaces it with the persistent seam. Reduced motion displays a static guide.
 - Four miniature card backs show stored packs, the next slot's continuous refill, and empty future slots. New arrivals lift subtly and catch a silver sweep. Reduced motion uses a shine without movement.
 - The existing four-pack maximum and two-hour refill cadence remain authoritative. At capacity the timer pauses without banking time.

@@ -124,7 +124,7 @@
       });
     defs.appendChild(filter); mark.appendChild(defs);
     var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', 'M49 16A23 23 0 1 0 49 48M45 23A14 14 0 1 0 45 41M26 26H38V38H26Z');
+    path.setAttribute('d', C.cutsceneCardBack.markPath);
     path.setAttribute('filter', 'url(#' + filterId + ')');
     mark.appendChild(path); text.appendChild(mark);
     text.appendChild(node('div', 'card__back-wordmark', 'cardable'));
@@ -159,6 +159,7 @@
       if (i === 8) element = propLayer;
       face.appendChild(element);
     }
+    C.cardSkins.apply(face,card,instance,context);
     return { el: face, finish: binding, text: textParts };
   }
   function update(now, dt) {
@@ -178,18 +179,24 @@
     create: function (record, instance, options) {
       var card = typeof record === 'string' ? C.card(record) : record;
       options = options || {};
-      var params = new URLSearchParams(root.location.search), galleryScope = params.get('gallery') === '1' && params.get(C.config.dev.queryFlag) === '1';
+      if (options.thumbnail) return C.cardView.createThumbnail(card, instance, options);
+      var localPolicy = options.quality ? C.settings.policyFor(options.quality) : null, tiltLock = null;
+      function policy() { return localPolicy || C.settings.policy; }
+      function withPolicy(fn) { return options.quality ? C.settings.withPolicy(options.quality, fn) : fn(); }
+      var galleryScope = C.presentation.gallery;
       if (options.thumbnail) options = Object.assign({}, options, { autoFocus: false, keyboardFlip: false });
       if (!card || !instance || typeof instance.serial !== 'string') throw new Error('Card view needs a card and an instance serial');
       var rarity = C.rarity(card.rarity), generation = C.data.generations.find(function (g) { return g.id === card.generation; });
       if (!rarity || !C.finishes.registry[rarity.finish]) throw new Error('Card finish is not implemented');
-      var context = { colorMode: options.colorMode || C.config.rarityColorMode, state: options.finishState,
+      var context = { instance: instance, colorMode: options.colorMode || C.config.rarityColorMode, state: options.finishState,
         owned: typeof options.owned === 'boolean' ? options.owned : C.state.current.inventory.some(function (owned) { return owned && owned.cardId === card.id; }) };
+      context.policy = policy; context.withPolicy = withPolicy;
       context.presentation = C.finishes.describe(rarity.finish, card, context);
       if (options.thumbnail) context.presentation.hideArt = false;
       context.state = context.presentation.state || context.state;
       var el = node('article', 'collectible-card');
       el.dataset.cardId = card.id; el.dataset.rarity = rarity.id; el.dataset.colorMode = context.colorMode;
+      el.dataset.cardSkin=instance.cardSkinId||'standard';
       if (rarity.frontDesign) el.dataset.frontDesign = rarity.frontDesign;
       el.dataset.variant = context.presentation.concealed ? 'normal' : instance.variantId || 'normal';
       el.dataset.presentation = options.presentation || (options.thumbnail ? 'art-only' : 'full');
@@ -203,7 +210,7 @@
       el.style.setProperty('--card-grain-opacity', C.config.polish.grainOpacity);
       var shadow = layer(0); el.appendChild(shadow);
       var tilter = node('div', 'card__tilter'), flipper = node('div', 'card__flipper');
-      var front = buildFace(false, card, instance, rarity, generation, context), back = buildFace(true, card, instance, rarity, generation, context);
+      var front = withPolicy(function () { return buildFace(false, card, instance, rarity, generation, context); }), back = withPolicy(function () { return buildFace(true, card, instance, rarity, generation, context); });
       if (options.thumbnail) {
         el.dataset.thumbnail = 'true'; el.inert = true; el.setAttribute('tabindex', '-1'); el.setAttribute('aria-hidden', 'true');
         [front, back].forEach(function (face) {
@@ -215,7 +222,7 @@
       var variantBinding = null;
       if (instance.variantId && !context.presentation.concealed) {
         var coating = node('div', 'card__variant'), finishes = material(coating, 'card__variant-render');
-        variantBinding = C.variantMaterials.bind(instance.variantId, finishes.live, card, instance); finishes.lite.appendChild(variantBinding.lite()); front.el.appendChild(coating);
+        variantBinding = C.variantMaterials.bind(instance.variantId, finishes.live, card, instance, context); finishes.lite.appendChild(variantBinding.lite()); front.el.appendChild(coating);
       }
       var sx = C.springs.create(0), sy = C.springs.create(0), lift = C.springs.create(0);
       var pointer = { x: 0.5, y: 0.5 }, lastMove = root.performance.now(), idleTimer = null, stampTimer = null;
@@ -234,7 +241,7 @@
       var tiltPolicy = C.settings.tiltPolicy; sx.configure({ stiffness: C.config.cardView.spring.stiffness * tiltPolicy.stiffness }); sy.configure({ stiffness: C.config.cardView.spring.stiffness * tiltPolicy.stiffness });
       function idleWake() {
         root.clearTimeout(idleTimer);
-        if (C.settings.policy.ambient && !view.revealControlled && !(C.motion.reduced || C.settings.policy.animation === 0) && view.mode === 'full' && view.visible) idleTimer = root.setTimeout(C.fx.wake, Math.max(0, C.config.cardView.idleMs - (root.performance.now() - lastMove)));
+        if (policy().ambient && !view.revealControlled && !(C.motion.reduced || policy().animation === 0) && view.mode === 'full' && view.visible) idleTimer = root.setTimeout(C.fx.wake, Math.max(0, C.config.cardView.idleMs - (root.performance.now() - lastMove)));
       }
       function pose(rx, ry, raised) {
         var cfg = C.config.cardView;
@@ -247,11 +254,11 @@
           '--core-y': clamp(0.5 + (pointer.y - 0.5) * cfg.specularSpeed - lampY * cfg.lampInfluence, 0, 1) * 100 + '%',
           '--shadow-x': -ry * 0.5 + 'px', '--shadow-y': 12 + rx * 0.5 + raised * 8 + 'px',
           '--shadow-blur': 18 + raised * 14 + 'px', '--far-edge-angle': Math.atan2(rx, ry) * 180 / Math.PI + 90 + 'deg',
-          '--parallax-x': ((C.motion.reduced || C.settings.policy.animation === 0) ? 0 : ry / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
-          '--parallax-y': ((C.motion.reduced || C.settings.policy.animation === 0) ? 0 : -rx / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
+          '--parallax-x': ((C.motion.reduced || policy().animation === 0) ? 0 : ry / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
+          '--parallax-y': ((C.motion.reduced || policy().animation === 0) ? 0 : -rx / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
           '--far-edge-alpha': Math.max(Math.abs(rx), Math.abs(ry)) / cfg.tiltCap * 0.2
         };
-        var glareDue = C.settings.policy.glareHz > 0 && glareClock + 0.01 >= 1000 / C.settings.policy.glareHz;
+        var glareDue = policy().glareHz > 0 && glareClock + 0.01 >= 1000 / policy().glareHz;
         Object.keys(values).forEach(function (key) { if (/^--(core|glare|lamp|mx|my|far-edge|parallax)/.test(key) && !glareDue) return; if (painted[key] !== values[key]) { painted[key] = values[key]; el.style.setProperty(key, values[key]); } });
         if (glareDue) glareClock = 0;
       }
@@ -260,8 +267,10 @@
         revealControlled: !!options.controlledReveal, revealFrame: null, backScramble: false, revealAccent: context.presentation.revealAccent,
         finishState: context.state, description: context.presentation.description || '',
         stats: { updates: 0, stamps: 0 },
+        setTiltLock: function (poseValue) { tiltLock = poseValue; C.fx.wake(); },
+        setLamp: function (x, y) { lampX = x; lampY = y; painted = Object.create(null); glareClock = Infinity; C.fx.wake(); },
         setPresentation: function (value) { if (value !== 'full' && value !== 'art-only') throw new Error('Unknown card presentation'); el.dataset.presentation = value; },
-        setVariantProgress: function (progress, snap) { el.style.setProperty('--variant-progress', clamp(progress, 0, 1)); el.style.setProperty('--variant-snap', ((C.motion.reduced || C.settings.policy.animation === 0) ? 0 : snap || 0) + 'px'); },
+        setVariantProgress: function (progress, snap) { el.style.setProperty('--variant-progress', clamp(progress, 0, 1)); el.style.setProperty('--variant-snap', ((C.motion.reduced || policy().animation === 0) ? 0 : snap || 0) + 'px'); },
         applySettings: function () { var policy = C.settings.tiltPolicy; sx.configure({ stiffness: C.config.cardView.spring.stiffness * policy.stiffness }); sy.configure({ stiffness: C.config.cardView.spring.stiffness * policy.stiffness }); },
         applyMode: function (mode) {
           if (view.mode === mode) return;
@@ -279,31 +288,31 @@
         setMode: function (mode) {
           if (mode !== 'full' && mode !== 'lite') throw new Error('Unknown card render mode');
           if (options.thumbnail) mode = 'lite';
-          if (mode === 'full') C.cardView.focus(view);
+          if (mode === 'full') { if (options.independent) view.applyMode('full'); else C.cardView.focus(view); }
           else { view.applyMode('lite'); if (active === view) { active = null; stats.fullCards = 0; } }
         },
         setFace: function (side) {
           if (side !== 'front' && side !== 'back') throw new Error('Unknown card face');
           view.side = side; el.dataset.side = side;
           front.el.setAttribute('aria-hidden', side === 'back'); back.el.setAttribute('aria-hidden', side === 'front');
-          if (side === 'back' && !backStamped && instance.serial) { backStamped = true; backStampAge = view.mode === 'full' && !(C.motion.reduced || C.settings.policy.animation === 0) ? 0 : null; back.el.querySelectorAll('.card__back-char').forEach(function (char) { char.style.opacity = backStampAge === null ? 1 : 0; }); C.fx.wake(); }
+          if (side === 'back' && !backStamped && instance.serial) { backStamped = true; backStampAge = view.mode === 'full' && !(C.motion.reduced || policy().animation === 0) ? 0 : null; back.el.querySelectorAll('.card__back-char').forEach(function (char) { char.style.opacity = backStampAge === null ? 1 : 0; }); C.fx.wake(); }
           view.refreshFaceMotion(); C.events.emit('card:face', { view: view, side: side });
         },
         refreshFaceMotion: function () {
           if (view.revealControlled || turn) return;
-          front.el.style.opacity = (C.motion.reduced || C.settings.policy.animation === 0) ? view.side === 'front' ? 1 : 0 : '';
-          back.el.style.opacity = (C.motion.reduced || C.settings.policy.animation === 0) ? view.side === 'back' ? 1 : 0 : '';
-          flipper.style.transform = (C.motion.reduced || C.settings.policy.animation === 0) ? 'none' : '';
+          front.el.style.opacity = (C.motion.reduced || policy().animation === 0) ? view.side === 'front' ? 1 : 0 : '';
+          back.el.style.opacity = (C.motion.reduced || policy().animation === 0) ? view.side === 'back' ? 1 : 0 : '';
+          flipper.style.transform = (C.motion.reduced || policy().animation === 0) ? 'none' : '';
         },
         canFlip: function () {
           return view.mode === 'full' && view.visible && !view.revealControlled && !view.destroyed && !options.thumbnail &&
-            !(C.preferences && C.preferences.open) && (galleryScope || C.opening && C.opening.view === view && C.opening.phase === 'revealed' || C.detail && C.detail.view === view && C.detail.phase === 'detail');
+            !(C.preferences && C.preferences.open) && (options.canFlip || galleryScope || C.opening && C.opening.view === view && C.opening.phase === 'revealed' || C.detail && C.detail.view === view && C.detail.phase === 'detail');
         },
         showFlipHint: function () { if (view.canFlip()) { hintAge = 0; el.dataset.flipAvailable = 'true'; flipHint.style.opacity = 1; C.fx.wake(); } },
         flip: function () {
           if (!view.canFlip() || turn) return false;
           turn = { from: view.side === 'front' ? 0 : 180, to: view.side === 'front' ? 180 : 0, age: 0 };
-          flipper.style.transition = 'none'; flipper.style.transform = (C.motion.reduced || C.settings.policy.animation === 0) ? 'none' : 'rotateY(' + turn.from + 'deg)';
+          flipper.style.transition = 'none'; flipper.style.transform = (C.motion.reduced || policy().animation === 0) ? 'none' : 'rotateY(' + turn.from + 'deg)';
           view.setFace(turn.to === 180 ? 'back' : 'front'); view.showFlipHint(); C.fx.wake(); return true;
         },
         setColorMode: function (mode) {
@@ -314,8 +323,8 @@
         setShine: function (progress) {
           if (!options.shine) return;
           var p = clamp(progress, 0, 1), motion = C.config.revealMotion;
-          shine.style.opacity = Math.sin(p * Math.PI) * ((C.motion.reduced || C.settings.policy.animation === 0) ? 0.35 : 1);
-          shine.style.transform = (C.motion.reduced || C.settings.policy.animation === 0) ? 'none' : 'translateX(' + (-motion.shineTravelPercent + p * motion.shineTravelPercent * 2) + '%) rotate(' + motion.shineAngleDegrees + 'deg)';
+          shine.style.opacity = Math.sin(p * Math.PI) * ((C.motion.reduced || policy().animation === 0) ? 0.35 : 1);
+          shine.style.transform = (C.motion.reduced || policy().animation === 0) ? 'none' : 'translateX(' + (-motion.shineTravelPercent + p * motion.shineTravelPercent * 2) + '%) rotate(' + motion.shineAngleDegrees + 'deg)';
         },
         setVisible: function (visible) {
           view.visible = visible; el.dataset.visible = visible;
@@ -326,7 +335,7 @@
         setRevealFrame: function (frame) {
           if (!options.controlledReveal) return;
           view.revealFrame = frame;
-          var reduced = (C.motion.reduced || C.settings.policy.animation === 0), info = front.text, cfg = C.config.cardView;
+          var reduced = (C.motion.reduced || policy().animation === 0), info = front.text, cfg = C.config.cardView;
           if (view.revealControlled && frame.pose) {
             pose(0, reduced ? 0 : frame.pose.turn || 0, 0);
             tilter.style.transform = reduced ? 'none' : 'translateY(' + frame.pose.y + 'px) rotateY(' + (frame.pose.turn || 0) + 'deg) scale(' + frame.pose.scale + ')';
@@ -380,7 +389,7 @@
           if (context.presentation.concealed) return;
           root.clearTimeout(stampTimer); view.stats.stamps += 1; stamped = true;
           front.text.serial.classList.remove('is-stamping'); front.text.meter.classList.remove('is-stamping');
-          if ((C.motion.reduced || C.settings.policy.animation === 0) || view.mode === 'lite') return;
+          if ((C.motion.reduced || policy().animation === 0) || view.mode === 'lite') return;
           void front.text.serial.offsetWidth;
           front.text.serial.classList.add('is-stamping'); front.text.meter.classList.add('is-stamping');
           stampTimer = root.setTimeout(function () {
@@ -388,7 +397,7 @@
           }, Math.max(instance.serial.length * C.config.cardView.stampCharMs + C.config.cardView.stampFlickerMs, C.config.cardView.meterSegments * C.config.cardView.meterTickMs));
         },
         update: function (now, dt) {
-          var cfg = C.config.cardView, reduced = (C.motion.reduced || C.settings.policy.animation === 0), interacting = false; glareClock += dt;
+          var cfg = C.config.cardView, reduced = (C.motion.reduced || policy().animation === 0), interacting = false; glareClock += dt;
           el.dataset.flipAvailable = view.canFlip() ? 'true' : 'false';
           if (hintAge !== null) { hintAge += dt; flipHint.style.opacity = clamp(1 - (hintAge - C.config.cardTurn.hintMs) / C.config.cardTurn.hintFadeMs, 0, 1); if (hintAge >= C.config.cardTurn.hintMs + C.config.cardTurn.hintFadeMs) hintAge = null; else interacting = true; }
           if (backStampAge !== null) {
@@ -406,14 +415,15 @@
             back.el.style.opacity = reduced ? turn.to === 0 ? 1 - fraction : fraction : '';
             if (fraction === 1) { turn = null; flipper.style.transform = ''; flipper.style.transition = ''; front.el.style.opacity = ''; back.el.style.opacity = ''; } else interacting = true;
           }
-          if (view.revealControlled) { stats.updates += 1; view.stats.updates += 1; return (!reduced && view.side === 'front' && front.finish.update(dt, pointer)) || interacting; }
+          var skinMoving=C.cardSkins.update(el,instance,now,!reduced&&policy().ambient&&view.mode==='full'&&view.side==='front');
+          if (view.revealControlled) { stats.updates += 1; view.stats.updates += 1; var coatingActive=variantBinding&&variantBinding.update(dt,pointer); return (!reduced && view.side === 'front' && front.finish.update(dt, pointer)) || coatingActive || interacting || skinMoving; }
           var cap = reduced ? 0 : C.settings.tiltPolicy.cap;
-          var sway = C.settings.policy.ambient && !reduced && now - lastMove >= cfg.idleMs;
+          var sway = !tiltLock && policy().ambient && !reduced && now - lastMove >= cfg.idleMs;
           var time = (now - lastMove - cfg.idleMs) / 1000;
           var tx = -(pointer.y - 0.5) * 2 * cap + (sway ? Math.sin(time * cfg.swaySpeed) * cfg.swayDegrees : 0);
           var ty = (pointer.x - 0.5) * 2 * cap + (sway ? Math.sin(time * cfg.swaySpeed * 0.8) * cfg.swayDegrees : 0);
-          var rx = sx.step(dt, clamp(tx, -cap, cap), reduced ? cfg.reducedDamping : undefined);
-          var ry = sy.step(dt, clamp(ty, -cap, cap), reduced ? cfg.reducedDamping : undefined);
+          var rx = tiltLock && !reduced ? tiltLock.x : sx.step(dt, clamp(tx, -cap, cap), reduced ? cfg.reducedDamping : undefined);
+          var ry = tiltLock && !reduced ? tiltLock.y : sy.step(dt, clamp(ty, -cap, cap), reduced ? cfg.reducedDamping : undefined);
           if (Math.abs(rx) > cap) { rx = clamp(rx, -cap, cap); sx.value = rx; sx.velocity = 0; }
           if (Math.abs(ry) > cap) { ry = clamp(ry, -cap, cap); sy.value = ry; sy.velocity = 0; }
           var raised = lift.step(dt, reduced ? 0 : cfg.focusedLift, reduced ? cfg.reducedDamping : undefined);
@@ -421,10 +431,10 @@
           var variantMoving = !reduced && view.side === 'front' && variantBinding && variantBinding.update(dt, pointer);
           var finishMoving = !reduced && view.side === 'front' && front.finish.update(dt, pointer);
           if (!options.controlledReveal && options.autoStamp !== false && !stamped && sx.settled() && sy.settled() && lift.settled()) view.stamp();
-          return interacting || sway || finishMoving || variantMoving || !sx.settled() || !sy.settled() || !lift.settled();
+          return interacting || sway || finishMoving || variantMoving || skinMoving || (!tiltLock && (!sx.settled() || !sy.settled())) || !lift.settled();
         },
         pointer: function (event) {
-          if ((C.motion.reduced || C.settings.policy.animation === 0) || view.mode !== 'full' || !view.visible) return;
+          if ((C.motion.reduced || policy().animation === 0) || view.mode !== 'full' || !view.visible) return;
           var bounds = el.getBoundingClientRect();
           pointer.x = clamp((event.pointer.x - bounds.left) / bounds.width, 0, 1);
           pointer.y = clamp((event.pointer.y - bounds.top) / bounds.height, 0, 1);
@@ -438,6 +448,7 @@
         }
       };
       views.add(view); pose(0, 0, 0);
+      if (options.independent) el.addEventListener('pointermove', function (event) { view.pointer({ pointer: { x: event.clientX, y: event.clientY, target: event.target } }); });
       el.addEventListener('pointerenter', function () { view.showFlipHint(); });
       if (options.autoFocus !== false) {
         el.addEventListener('pointerenter', function () { view.setMode('full'); });
@@ -454,7 +465,7 @@
         root.document.addEventListener('keydown', function (event) {
           var target = event.target;
           if (event.repeat || String(event.key).toLowerCase() !== 'r' || root.document.hidden || event.ctrlKey || event.metaKey || event.altKey ||
-              target && (target.isContentEditable || target.closest && target.closest('input, select, textarea, [contenteditable], .dev-panel, .preferences-overlay'))) return;
+              target && (target.isContentEditable || target.closest && target.closest('input, select, textarea, [contenteditable], [data-tool-surface], .preferences-overlay'))) return;
           if (active && active.flip()) event.preventDefault();
         });
         C.events.on('opening:context', function (event) { if (active && event.phase === 'revealed') active.showFlipHint(); });

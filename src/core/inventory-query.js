@@ -1,6 +1,6 @@
 (function (C) {
   'use strict';
-  var fields = ['name', 'rarity', 'vram', 'generation', 'brand', 'owned', 'new', 'type', 'memorytype', 'variant', 'finish', 'favorite'];
+  var fields = ['name', 'rarity', 'vram', 'generation', 'brand', 'owned', 'new', 'type', 'memorytype', 'variant', 'finish', 'favorite', 'era'];
   function lower(value) { return String(value == null ? '' : value).toLowerCase(); }
   function memory(card) { return card.vram && !card.vram.shared && card.vram.amount != null ? card.vram.amount / (card.vram.unit === 'MB' ? 1024 : 1) : null; }
   function parse(text) {
@@ -10,6 +10,7 @@
       var colon = token.indexOf(':'), key = colon > -1 ? lower(token.slice(0, colon)) : 'text', value = lower(colon > -1 ? token.slice(colon + 1) : token).replace(/^"|"$/g, '');
       if (key !== 'text' && fields.indexOf(key) < 0) { errors.push('Unknown tag: ' + key); return; }
       if (!value) { errors.push('Add a value after ' + key + ':'); return; }
+      if (key === 'era' && ['classic','modern'].indexOf(value)<0) { errors.push('Use era:classic or era:modern'); return; }
       if ((key === 'owned' || key === 'new' || key === 'favorite') && ['true', 'false'].indexOf(value) < 0) { errors.push(key + ' needs true or false'); return; }
       if (key === 'vram' && !/^(>=|<=|>|<)?\d+(\.\d+)?(gb|mb)?$|^\d+(\.\d+)?-\d+(\.\d+)?(gb|mb)?$/.test(value)) { errors.push('Use vram:16, vram:>=16 or vram:8-16'); return; }
       terms.push({ key: key, value: value, token: token });
@@ -18,6 +19,7 @@
   function numeric(n, value) { if (n == null) return false; var factor=/mb$/.test(value)?1/1024:1;value = value.replace(/gb$|mb$/, ''); var range = value.split('-'); if (range.length === 2) return n >= Number(range[0])*factor && n <= Number(range[1])*factor; var op = (value.match(/^(>=|<=|>|<)/) || [''])[0], target = Number(value.slice(op.length))*factor; return op === '>=' ? n >= target : op === '<=' ? n <= target : op === '>' ? n > target : op === '<' ? n < target : Math.abs(n - target) < 0.000001; }
   function matches(entry, term) {
     var card = entry.card, key = term.key, value = term.value;
+    if (key === 'era') return card.era === value;
     if (!entry.owned && ['name', 'vram', 'memorytype'].indexOf(key) >= 0) return false;
     if (key === 'variant' || key === 'finish') return entry.owned && (value === 'any' ? !!entry.variantId : [entry.variantId || 'normal', entry.variant ? entry.variant.name : 'Normal'].some(function(v){return lower(v).replace(/\s/g,'-') === value.replace(/\s/g,'-');}));
     if (key === 'favorite') return !!entry.isFavorite === (value === 'true');

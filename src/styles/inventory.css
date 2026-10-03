@@ -5,7 +5,6 @@
   filter: blur(var(--inventory-menu-blur, 0px)); opacity: var(--inventory-menu-opacity, 1);
 }
 .inventory-depth-active #inventory-affordance { opacity: 0; pointer-events: none; }
-.inventory-depth-active .dev-panel { opacity: 0; pointer-events: none; }
 .inventory-sheet {
   position: fixed; bottom: 0; left: var(--s-6); right: var(--s-6); z-index: var(--z-sheet);
   border-radius: var(--r-sheet) var(--r-sheet) 0 0; border-bottom: 0;
@@ -56,9 +55,6 @@
 .inventory-silhouette::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,transparent,var(--glass),transparent); opacity: var(--inventory-shimmer); transform: translateX(var(--inventory-shimmer-x, -100%)); pointer-events: none; }
 .inventory-empty { position: absolute; bottom: var(--s-3); left: var(--s-6); right: var(--s-6); margin: 0; text-align: center; font: 12px/1.5 var(--font-ui); color: var(--text-dim); pointer-events: none; }
 .inventory-preview-label { position: absolute; bottom: var(--s-2); right: var(--s-6); margin: 0; font: 10px/1.5 var(--font-mono); color: var(--text-dim); pointer-events: none; }
-.inventory-dev-tools { position: absolute; bottom: var(--s-2); left: var(--s-6); display: flex; gap: var(--s-2); }
-.inventory-dev-tools button { border: 1px solid var(--hairline); border-radius: var(--r-chip); padding: var(--s-1) var(--s-2); background: var(--bg-elev); color: var(--text-dim); font: 10px/1.5 var(--font-mono); cursor: pointer; }
-.inventory-dev-tools button:hover { color: var(--text); border-color: var(--hairline-strong); }
 .inventory-detail { position: fixed; inset: 0; z-index: var(--z-stage); background: rgba(0,0,0,calc(var(--detail-dim, 0) * var(--detail-backdrop-dim))); }
 .inventory-detail-active .inventory-sheet { filter: brightness(calc(1 - (1 - var(--sheet-detail-opacity)) * var(--detail-focus, 0))); pointer-events: none; }
 .detail-card-mount { position: fixed; left: 0; top: 0; transform-origin: top left; user-select: none; touch-action: none; }
@@ -66,7 +62,7 @@
 .detail-card-mount > .collectible-card + .collectible-card { position: absolute; inset: 0; }
 .detail-info { position: fixed; overflow-y: auto; padding: var(--s-4) 0; scrollbar-width: thin; }
 .detail-kicker { margin: 0 0 var(--s-3); color: var(--text-dim); font: 10px/1.5 var(--font-mono); }
-.detail-name { margin: 0 0 var(--s-5); font: 600 24px/1.15 var(--font-ui); letter-spacing: -.02em; }
+.detail-name { margin: 0 0 var(--s-5); font: 600 24px/1.2 var(--font-ui); letter-spacing: -.02em; overflow-wrap: anywhere; }
 .detail-tier { display: flex; gap: var(--s-3); align-items: center; margin-bottom: var(--s-5); }
 .detail-badge { padding: var(--s-1) var(--s-2); border: 1px solid var(--hairline); border-radius: var(--s-1); color: var(--text-dim); font: 10px/1.5 var(--font-mono); }
 .detail-meter { display: grid; grid-template-columns: repeat(12,1fr); gap: 3px; width: 120px; }
@@ -75,7 +71,7 @@
 .detail-vram { font: 14px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; margin: 0 0 var(--s-4); }
 .detail-specs { display: grid; gap: var(--s-2); margin: 0; font: 11px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; }
 .detail-specs > div { display: flex; justify-content: space-between; gap: var(--s-4); }
-.detail-specs dt { color: var(--text-dim); } .detail-specs dd { margin: 0; }
+.detail-specs dt { color: var(--text-dim); } .detail-specs dd { min-width: 0; margin: 0; text-align: right; overflow-wrap: anywhere; }
 .detail-description { margin: var(--s-5) 0; color: var(--text-dim); font: 14px/1.5 var(--font-ui); }
 .detail-serial-browser { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-5); }
 .detail-serial-values { flex: 1; text-align: center; font: 10px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; }

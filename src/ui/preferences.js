@@ -21,7 +21,7 @@
     opened = true; previousCard = C.cardView.active; C.events.emit('preferences:context', { active: true });
     C.events.emit('settings:open'); C.events.emit('menu:visibilityHold', { reason: 'preferences', active: true });
     root.document.body.classList.add('settings-open');
-    Array.from(root.document.body.querySelectorAll('.menu-shell, .inventory-sheet, .inventory-detail, .card-gallery, .dev-panel, .tutorial, .opening-stage, .save-notice')).forEach(function (el) { blocked.push({ el: el, before: !!el.inert }); el.inert = true; });
+    Array.from(root.document.body.querySelectorAll('.menu-shell, .inventory-sheet, .inventory-detail, [data-tool-surface], .tutorial, .opening-stage, .save-notice')).forEach(function (el) { blocked.push({ el: el, before: !!el.inert }); el.inert = true; });
     var instances = C.state.current.inventory.filter(function (i) { return !!C.card(i.cardId); }).slice().sort(function (a, b) { return b.pulledAt - a.pulledAt; });
     var instance = instances[0], card = instance ? C.card(instance.cardId) : C.data.cards.find(function (c) { return !c.retired && c.active !== false; });
     previewBase = { card: card, instance: instance || { instanceId: 'settings-preview', cardId: card.id, serial: C.serial.format(C.state.current.playerCode, 0), pulledAt: 0, seen: true } };
@@ -61,6 +61,15 @@
       if (C.preferences.initialized) return; C.preferences.initialized = true;
       var corner = node('div', 'settings-corner idle-chrome entrance', root.document.body); corner.style.setProperty('--entry', 2);
       gear = button('', corner, function () { if (opened) close(); else open(); }); gear.classList.add('settings-gear', 'preferences-entry'); gear.setAttribute('aria-label', 'Settings'); gear.setAttribute('aria-keyshortcuts', 'S');
+      C.events.on('pointer:move', function (event) {
+        var p = event.pointer, r = corner.getBoundingClientRect();
+        var distance = Math.hypot(Math.max(r.left-p.x,0,p.x-r.right),Math.max(r.top-p.y,0,p.y-r.bottom));
+        corner.classList.toggle('is-near', p.inside && distance < 120);
+      });
+      C.events.on('pointer:leave', function () { corner.classList.remove('is-near'); });
+      function occluded() { corner.classList.toggle('is-occluded', opened || C.inventory && C.inventory.active || C.opening && C.opening.phase !== 'idle'); }
+      ['inventory:context', 'opening:context', 'preferences:context', 'tutorial:context', 'menu:visibilityHold'].forEach(function (event) { C.events.on(event, occluded); });
+      occluded();
       var icon = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg'); icon.setAttribute('viewBox', '0 0 24 24'); icon.setAttribute('aria-hidden', 'true');
       var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', 'M9 3h6l.5 2.4 2 1.2 2.3-.8 3 5.2-1.8 1.6v2.3l1.8 1.6-3 5.2-2.3-.8-2 1.2L15 24H9l-.5-2.4-2-1.2-2.3.8-3-5.2L3 15.4v-2.3L1.2 11.5l3-5.2 2.3.8 2-1.2z'); icon.setAttribute('viewBox', '0 0 24 27'); icon.appendChild(path); var circle = root.document.createElementNS('http://www.w3.org/2000/svg', 'circle'); circle.setAttribute('cx', '12'); circle.setAttribute('cy', '13.5'); circle.setAttribute('r', '4'); icon.appendChild(circle); gear.appendChild(icon); node('span', 'settings-version', corner, 'v' + C.config.version);
       overlay = node('div', 'preferences-overlay settings-overlay', root.document.body); overlay.hidden = true; overlay.inert = true;

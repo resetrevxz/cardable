@@ -10,6 +10,7 @@
   register('pipelines', 'Pipelines', ''); register('gpuTflops', 'GPU compute', 'TFLOPS');
   register('coreClockMhz', 'Core clock', 'MHz'); register('gpuClockMhz', 'GPU clock', 'MHz');
   register('boostMhz', 'Boost', 'MHz'); register('busBits', 'Bus', 'bit');
+  register('memoryBandwidthGBps', 'Memory bandwidth', 'GB/s');
   register('boardPowerW', 'Board power', 'W'); register('tdpW', 'Power', 'W');
   C.cardSpecs = {
     icon: function (key) { return /clock|boost/i.test(key) ? 'clock' : /bus/i.test(key) ? 'bus' : /power|tdp/i.test(key) ? 'power' : 'chip'; },

@@ -4,7 +4,8 @@
   var C = root.Cardable = root.Cardable || {};
   C.data = C.data || {};
   C.registries = C.registries || {};
-  C.version = '0.1.0';
+  C.clock = { now: function () { return Date.now(); } };
+  C.presentation = { gallery: false };
   C.randomId = function (prefix) {
     var bytes = new Uint8Array(16);
     if (root.crypto && root.crypto.getRandomValues) root.crypto.getRandomValues(bytes);
