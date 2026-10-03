@@ -65,6 +65,7 @@
     base.settings = C.settingsSchema.normalize(base.settings);
     base.stats = Object.assign({ packsOpened: 0 }, base.stats || {});
     base.inventoryUi = C.inventoryModel.normalize(base.inventoryUi);
+    if (value.journal !== undefined && C.journal) base.journal = C.journal.normalize(value.journal, base);
     return base;
   }
   function validate(value, strict) {
