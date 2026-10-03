@@ -170,12 +170,13 @@
     var pulseTimeFactor=1,spinFactors=[1,1];var simulation=null,chainState=[],chainTime=null;var heroScreen=[.5,.3];var width=0,height=0,particleData=new Float32Array(1440),tendrilData=new Float32Array(22*32*6*6),particles=[];
     try { gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,preserveDrawingBuffer:false,powerPreference:'high-performance'}); } catch (_) {}
     canvas.addEventListener('webglcontextlost',function(e){e.preventDefault();lost=true;stats.backend='canvas';});
-    function shader(type,source){var s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){var error=gl.getShaderInfoLog(s);gl.deleteShader(s);throw new Error(error);}return s;}
-    function program(v,f){var vs=shader(gl.VERTEX_SHADER,v),fs=shader(gl.FRAGMENT_SHADER,f),p=gl.createProgram();gl.attachShader(p,vs);gl.attachShader(p,fs);gl.linkProgram(p);gl.deleteShader(vs);gl.deleteShader(fs);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));programs.push(p);return {p:p,u:Object.create(null)};}
-    function uniform(p,key){if(p.u[key]===undefined)p.u[key]=gl.getUniformLocation(p.p,key);return p.u[key];}
+    var gpu=null;
+    function helpers(){return gpu||(gpu=C.cutsceneGL.create(gl,{programs:programs,textures:textures,frames:frames,renderbuffers:renderbuffers}));}
+    function program(v,f){return helpers().program(v,f);}
+    function uniform(p,key){return helpers().uniform(p,key);}
     function mesh(data,dynamic){var b=gl.createBuffer();buffers.push(b);gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,data instanceof Float32Array?data:new Float32Array(data),dynamic?gl.DYNAMIC_DRAW:gl.STATIC_DRAW);return {buffer:b,count:data.length/6};}
-    function target(){var texture=gl.createTexture(),f=gl.createFramebuffer(),depth=gl.createRenderbuffer();textures.push(texture);frames.push(f);renderbuffers.push(depth);return {texture:texture,f:f,depth:depth,w:0,h:0};}
-    function sizeTarget(t,w,h){if(t.w===w&&t.h===h)return;t.w=w;t.h=h;gl.bindTexture(gl.TEXTURE_2D,t.texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.bindFramebuffer(gl.FRAMEBUFFER,t.f);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t.texture,0);gl.bindRenderbuffer(gl.RENDERBUFFER,t.depth);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,w,h);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,t.depth);if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE)throw new Error('Crimson render target unavailable');}
+    function target(){return helpers().target(true);}
+    function sizeTarget(t,w,h){helpers().sizeTarget(t,w,h);}
     function rockPlane(out,axis,origin,u,v,cols,rows){var grid=[],normals=[];for(var y=0;y<=rows;y++){var row=[];for(var x=0;x<=cols;x++){var p=origin.slice();p[axis]+=Math.sin(x*.41+y*.29)*.3+Math.sin(x*.9-y*.6)*.11+(random()-.5)*.13;p[(axis+1)%3]+=u*x/cols;p[(axis+2)%3]+=v*y/rows;row.push(p);}grid.push(row);}
       for(var ny=0;ny<=rows;ny++){var normalRow=[];for(var nx=0;nx<=cols;nx++)normalRow.push(normalize(cross(sub(grid[Math.min(rows,ny+1)][nx],grid[Math.max(0,ny-1)][nx]),sub(grid[ny][Math.min(cols,nx+1)],grid[ny][Math.max(0,nx-1)]))));normals.push(normalRow);}
       function vertexAt(x,y){var p=grid[y][x],n=normals[y][x];out.push(p[0],p[1],p[2],n[0],n[1],n[2]);}
@@ -185,18 +186,7 @@
       try{
         mainProgram=program(vertex,fragment);waterProgram=program(vertex,waterFragment);pointsProgram=program(pointVertex,pointFragment);
         if(dawn&&descriptor.ritual){sigilProgram=program(screenVertex,sigilFragment);windProgram=program(windVertex,windFragment);}
-        postProgram=program('#version 300 es\nprecision highp float;out vec2 uv;void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);uv=p;gl_Position=vec4(p*2.-1.,0.,1.);}',`#version 300 es
-          precision highp float;in vec2 uv;out vec4 result;uniform sampler2D uScene,uBloom;uniform vec2 uPixel;uniform float uPass,uTime,uDawn,uMono,uHigh,uBurst;
-          void main(){vec3 c=texture(uScene,uv).rgb;if(uPass>.5){vec3 sum=vec3(0.);for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec3 s=texture(uScene,uv+vec2(float(x),float(y))*uPixel*2.).rgb;sum+=max(s-vec3(.22),vec3(0.))/9.;}result=vec4(sum,1.);return;}
-          vec3 east=texture(uScene,uv+vec2(uPixel.x,0.)).rgb,west=texture(uScene,uv-vec2(uPixel.x,0.)).rgb,north=texture(uScene,uv+vec2(0.,uPixel.y)).rgb,south=texture(uScene,uv-vec2(0.,uPixel.y)).rgb;
-          float edge=length(max(max(east,west),max(north,south))-min(min(east,west),min(north,south)));c=mix(c,(east+west+north+south+c*4.)/8.,smoothstep(.10,.48,edge)*.7);
-          vec3 glow=vec3(0.);for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++)glow+=texture(uBloom,uv+vec2(float(x),float(y))*uPixel*5.).rgb/9.;c+=glow*.55;
-          if(uDawn>.5&&uHigh>.5&&length(uv-.5)>.47){vec3 soft=vec3(0.);for(int k=-2;k<=2;k++)soft+=texture(uScene,uv+vec2(float(k)*uPixel.x*2.,float(k)*uPixel.y)).rgb/5.;c=mix(c,soft,.65);}
-          if(uDawn>.5){vec2 off=(uv-.5)*uPixel*(2.2+uBurst*22.);c.r=texture(uScene,uv+off).r+glow.r*.55;c.b=texture(uScene,uv-off).b+glow.b*.55;
-            float streak=0.;for(int k=-4;k<=4;k++)streak+=max(0.,dot(texture(uScene,uv+vec2(float(k)*uPixel.x*9.,0.)).rgb,vec3(.213,.715,.072))-.65)/9.;c+=streak*.08;
-            if(uHigh>.5){vec3 ghost=texture(uBloom,vec2(1.)-uv*.9-.05).rgb;c+=ghost*.016;}float grain=fract(sin(dot(uv+uTime*.0001,vec2(12.9898,78.233)))*43758.5453)-.5;c+=grain*.023;}
-
-          float vignette=1.-smoothstep(.23,.83,length((uv-.5)*vec2(1.,.9)));c*=.55+.45*vignette;c=vec3(1.)-exp(-c*1.65);c=pow(c,vec3(.82));c=mix(c,vec3(dot(c,vec3(.213,.715,.072))),uMono);result=vec4(c,1.);}`);
+        postProgram=program(C.cutsceneGL.screenVertex,C.cutsceneGL.compositeFragment);
         var rocks=[],cluster=[],hero=[],water=[];
         rockPlane(rocks,1,[-9,5.7,-10],20,18,60,48);rockPlane(rocks,2,[-9,-2,-8],18,9,56,32);
         rockPlane(rocks,0,[-6,-2,-8],9,17,32,52);rockPlane(rocks,0,[6,-2,-8],9,17,32,52);

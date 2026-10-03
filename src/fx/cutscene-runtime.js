@@ -50,10 +50,11 @@
     create: function (kind) { return entries[kind] ? entries[kind]() : null; },
     warmup: function (rarity, serial) {
       if (rarity && rarity.reveal.cutscene === 'ascendant') C.ascendantIntro.warmup(rarity.openingIntro, String(serial));
+      if (rarity && rarity.reveal.cutscene === 'secret') C.secretIntro.warmup(rarity.openingIntro, String(serial));
     },
     get active() { return active; },
     createRuntime: function (parent) {
-      var spec, painter, clock = 0, playClock=0, runMode='full', previous = 0, rate = 1, hint, film, skipping = null;
+      var spec, painter, clock = 0, playClock=0, runMode='full', intensityProfile='safe', previous = 0, rate = 1, hint, film, skipping = null;
       var pulseKey='',pulseEvents=[],sparkKey='',sparkEvents=[];var meterPanel,meterSvg,meterLine,meterLabel,meterSample,meterLast=null,meterHistory=[],meterCount=0,meterMax=0;
       var level = 2, beats = Object.create(null), adaptive = { samples: 0, sum: 0, dropped: false }, current = false;
       function emit(id, time, key) {
@@ -90,6 +91,7 @@
           ensureHint(); spec = next; painter = renderer; film = sections(spec); clock = previous = playClock = 0;runMode=choice||mode(); skipping = null;meterLast=null;meterHistory=[];meterCount=0;meterMax=0;pulseKey='';pulseEvents=[];sparkKey='';sparkEvents=[];
           level = quality(); rate = 1; current = true; beats = Object.create(null);
           adaptive = { samples: 0, sum: 0, dropped: false }; active = api;
+          intensityProfile=C.cutscenes.profile();if(painter&&painter.setProfile)painter.setProfile(intensityProfile);
           hint.hidden = true; if (painter && painter.setQuality) painter.setQuality(level);
         },
         update: function (elapsed, duration, staticPolicy) {
@@ -118,7 +120,7 @@
           }else (spec.beats || []).filter(function(beat){return (!spec.ritual||beat.id!=='pulse')&&(spec.kind!=='prismatic'||!/^spark[123]$/.test(beat.id));}).concat(pulseEvents,spec.kind==='prismatic'?sparkEvents:[]).forEach(function (beat) { if (clock >= beat.ms) emit(beat.id, beat.ms, beat.key); });
           // Live adaptation is part of the presentation, not a separate profiling loop.
           // Programs and targets were warmed during cutting; ignore the first ten visible frames.
-          if (spec.kind === 'prismatic' && !staticPolicy && clock >= 1000 && clock < 10000 && dt > 0 && !adaptive.dropped) {
+          if ((spec.kind === 'prismatic' && clock >= 1000 && clock < 10000 || spec.kind === 'system' && clock >= 4000 && clock < 19000) && !staticPolicy && dt > 0 && !adaptive.dropped) {
             adaptive.samples += 1; if (adaptive.samples > 10) adaptive.sum += dt;
             var count = adaptive.samples - 10;
             if (count >= 60 && adaptive.sum / count > 24 && level >= 2) {
@@ -155,12 +157,12 @@
         seek: function (ms) { if (current) {clock = Math.max(0, Math.min(film.total - 1, ms));
           playClock=runMode==='light'?clock/film.total*playDuration(spec,runMode):runMode==='short'&&!spec.shortRoute?clock/film.total*playDuration(spec,runMode):playTime(spec,runMode,clock);skipping = null; C.fx.wake(); } },
         setMode:function(choice){if(['full','short','light'].indexOf(choice)<0)return;runMode=choice;api.seek(clock);},
-        get mode(){return runMode;},
+        get mode(){return runMode;},get profile(){return intensityProfile;},
         jump: function (id) { if (film.sections[id]) api.seek(film.sections[id].start); },
         setRate: function (value) { rate = Math.max(.1, Math.min(4, Number(value) || 1)); },
         setQuality: function (value) { level = Math.max(0, Math.min(3, value));if(level===0)api.setMode('light'); adaptive.dropped = true; if (painter.setQuality) painter.setQuality(level); },
         get presentationMs(){return previous;}, get timeMs() { return clock; }, get totalMs() { return film ? film.total : 0; },
-        get rate() { return rate; }, get level() { return level; }, get sections() { return film ? film.sections : {}; }
+        get skipState(){return skipping?{from:skipping.from,progress:math.clamp(skipping.age/500)}:null;}, get rate() { return rate; }, get level() { return level; }, get sections() { return film ? film.sections : {}; }
       };
       return api;
     }

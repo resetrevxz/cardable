@@ -1,0 +1,48 @@
+{
+  "milestone": "Secret A",
+  "normalization": "CRLF to LF, all other bytes preserved",
+  "alreadyApplied": true,
+  "notes": "Focused live integration only. Do not apply twice. Synthetic before versions retain concurrent Classic changes. Existing earlier rarity integrations are prerequisites in this shared worktree.",
+  "files": [
+    {
+      "path": "index.html",
+      "beforeSha256": "a082f9ae09fafd064ac0a7415effff06486f7387ba1905e9ca18e537170ecf10",
+      "afterSha256": "452a2f7cd67d885ca989c9ab6419f6b65d999833967dfc1c284d6a4d2e242478"
+    },
+    {
+      "path": "src/data/rarities.js",
+      "beforeSha256": "202bc3fc3b875e9de2cccf1f408ffe621c9e91de39419975bcee9646b6b49075",
+      "afterSha256": "8247932f1dbfbaad3f6c2d94234c818d4ce85b4b9ceb49033c6fb3b8d2ec6f46"
+    },
+    {
+      "path": "src/fx/rarity-intro.js",
+      "beforeSha256": "2277df15ee75a1d75a93319dc878ba112ca3a732657a447ab39b4ae77db68c93",
+      "afterSha256": "1e763ae39ad8bba5c164069fa37077fd3301939a28ad056fe4fe0e04e8976de9"
+    },
+    {
+      "path": "src/ui/opening.js",
+      "beforeSha256": "25dbc3e9c6c22f780b7d7247b524b35069c3a7064ae6a13f8c84e0267e1f2378",
+      "afterSha256": "5de92fe8d91403266529b0c643c729837d0d8565f78d64988881f3ab901d39d0"
+    },
+    {
+      "path": "src/ui/card.js",
+      "beforeSha256": "63e706d78f23aaf4cf0ec7d3161e335dcc4d4acede55f56f29ac7c823da554fa",
+      "afterSha256": "eb5055b4229c5baecd63f8ee7a4132ef2cdbebd2c56d3625c34f06fede1f129c"
+    },
+    {
+      "path": "Designs.MD",
+      "beforeSha256": "f8b5877c611b9824e564ae9f3b6db05db3f9ec40b281f38e7a1a24aadaf7fa53",
+      "afterSha256": "d42e8c7907d098dab6206cbcd15e5ac71842aa3cdd01516e7dbf88a9504cf626"
+    },
+    {
+      "path": "docs/RARITY-INTROS.md",
+      "beforeSha256": "1dc7e9a3d8e152c8f2c6c43437c787f37ffd4fd406f9b9e0095456e28f86d6ae",
+      "afterSha256": "6ff0c2c2dc9b6602d377da0bd664346057a9cf009716496693360bb3b8b628a3"
+    },
+    {
+      "path": "docs/04-PACK-OPENING.md",
+      "beforeSha256": "a2dd2741422353b7a9324720e1690cea5c9cc3f31b9edeb331a9f5c4a3524fab",
+      "afterSha256": "d3927abc0131195c5cdb736ca135ea9545913e24fe7dbe6e8480e895eec69342"
+    }
+  ]
+}
