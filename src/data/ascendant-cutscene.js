@@ -3,17 +3,25 @@
   // Presentation only: these descriptors never enter the pull sampler or saved instance.
   var rarity=C.data.rarities.find(function(r){return r.id==='ascendant';});
   var intro=rarity.openingIntro;
-  intro.milestone='B';
+  intro.milestone='C';
   intro.sections=intro.sections.concat([
     {id:'ascend',ms:800},{id:'topPulse',ms:2200},{id:'morph',ms:2000},
-    {id:'clock',ms:4000},{id:'title',ms:3000},{id:'shatter',ms:1000}
+    {id:'clock',ms:4000},{id:'title',ms:3000},{id:'shatter',ms:1000},
+    {id:'aurora',ms:2600},{id:'explosion',ms:400},{id:'card',ms:1500}
   ]);
   intro.palette=[[255,159,178],[168,240,198],[169,204,255],[213,195,255],[255,210,176],[255,241,168]];
   intro.ritual={pulseHzStart:1.2,pulseHzEnd:2.4,pulseScale:.12,pulseLight:.025,
     sigilRadius:.145,clockRadius:.34,windCount:2000,mistLayers:3,
     titleTrackingEm:.35,titleStaggerMs:90,titleSplitPx:12,titleBlurPx:12,
-    sideUpdateHz:2,splitPassMs:3000,starMaxRps:2,temporaryReleaseMs:350};
+    sideUpdateHz:2,splitPassMs:3000,starMaxRps:2};
   intro.clock={rates:[.045,.14,.36],acceleration:.18,jerk:.035,alignStartMs:3000,alignMs:200,holdMs:300};
+  intro.climax={curtainLayers:5,riseMs:2500,startHeight:.2,endHeight:.9,aberrationMs:700,flashRiseMs:110,flashDecayMs:590,flashOpacity:.76,shockwaveMs:700};
+  intro.cardScene={section:'card',ms:1500,flipMs:400,fadeMs:160,scaleFrom:.96,borderMs:1200};
+  intro.light={ms:3000,handoffMs:2600};
+  // The specified Short shot lengths total 15 seconds, plus the 1.5-second card shot.
+  intro.shortRoute=[{from:1000,to:4000,ms:1500},{from:4000,to:10000,ms:3000},
+    {from:10000,to:15000,ms:3000},{from:15000,to:20000,ms:3000},
+    {from:20000,to:28000,ms:2500},{from:28000,to:31000,ms:2000},{from:31000,to:32500,ms:1500}];
   var starts={},at=0;
   intro.sections.forEach(function(part){starts[part.id]={start:at,ms:part.ms};at+=part.ms;});
   function beat(id,section,fraction,key){intro.beats.push({id:id,key:key||id,ms:starts[section].start+starts[section].ms*fraction});}
@@ -34,5 +42,6 @@
     else {var v=(goal-turnsAtThree)/(aligned-turnsAtThree);lo=0;hi=1;for(var step=0;step<24;step++){var mid=(lo+hi)/2;if(mid*mid*(3-2*mid)<v)lo=mid;else hi=mid;}hi=3+(lo+hi)*.1;}
     beat('tick','clock',hi/4,'tick:'+tick);
   }
+  beat('auroraRise','aurora',0);beat('flash','explosion',0);beat('cardIn','card',0);
   intro.beats.sort(function(a,b){return a.ms-b.ms;});
 })(window.Cardable);

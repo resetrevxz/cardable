@@ -15,7 +15,9 @@
     }
     function prismatic(g,r,age,strength,style){
       var rgba=style.rgba,arc=style.arc,polygon=style.polygon,formation=smooth(age/1.4);
-      var angles=pose(age,style.config),colors=style.palette,alignAt=(style.config.alignStartMs+style.config.alignMs)/1000,hold=style.config.holdMs/1000;
+      var angles=pose(age,style.config),ascent=style.ascent||0;
+      angles=angles.map(function(angle,hand){return angle+ascent*ascent*TAU*(hand+1)*2;});
+      var colors=style.palette,alignAt=(style.config.alignStartMs+style.config.alignMs)/1000,hold=style.config.holdMs/1000;
       var mechanicalAge=age<alignAt?age:age<alignAt+hold?alignAt:age-hold;
       g.save();g.globalAlpha*=strength;
       // Same clock geometry and drawing primitives, with a luminous glass engraving style.
@@ -54,7 +56,7 @@
         // Leave the central sigil open by clipping away the hand's inner segment.
         g.save();g.beginPath();g.arc(0,0,r*1.2,0,TAU);g.arc(0,0,r*.42,0,TAU,true);g.clip('evenodd');
         g.rotate(angles[hand]-Math.PI/2);
-        for(var fringe=0;fringe<3;fringe++){g.save();g.translate(0,(fringe-1)*(hand===2?.9:1.2));handPath(g,r,hand,polygon);g.fillStyle=rgba(fringe===1?[255,255,255]:colors[fringe*2],formation*(fringe===1?.8:.25));g.fill();g.restore();}
+        for(var sample=0;sample<(ascent>0?4:1);sample++){g.save();g.rotate(-sample*ascent*(hand+1)*.032);g.globalAlpha/=ascent>0?4:1;for(var fringe=0;fringe<3;fringe++){g.save();g.translate(0,(fringe-1)*(hand===2?.9:1.2));handPath(g,r,hand,polygon);g.fillStyle=rgba(fringe===1?[255,255,255]:colors[fringe*2],formation*(fringe===1?.8:.25));g.fill();g.restore();}g.restore();}
         g.restore();
       }
       (style.beats||[]).forEach(function(beat){if(beat.id!=='tick')return;var dt=age-(beat.ms-style.startMs)/1000;if(dt<0||dt>.3)return;arc(g,r*(.75+smooth(dt/.3)*.13),0,TAU,rgba(colors[2],(1-dt/.3)*.035),.7);});

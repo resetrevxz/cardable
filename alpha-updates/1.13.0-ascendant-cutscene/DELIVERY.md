@@ -1,31 +1,25 @@
-# Ascendant Prismatic Dawn - milestones A and B
+# Ascendant Prismatic Dawn - milestone C
 
-Milestone A was committed as `08fc340`. This revision completes milestone B (S4-S6) and stops before C. SPEC remains intact in this delivery folder.
+A (`08fc340`) and B (`33f9a6a`) remain the foundation. C completes S7/S8 and the remaining presentation controls. SPEC remains intact in this delivery folder.
 
-## Built in B
+## Built
 
-- A continuous overhead camera arc and hexagon match, local 1.00-1.12 elastic pulses at 1.2-2.4 Hz, prismatic water rings and small camera kicks. Local light modulation is limited to the descriptor's 2.5%; no explosion flash was added.
-- One WebGL SDF carries the hexagon through circle, 12-point star and two-ring/rising-chevron sigil. Thin RGB-split mandala lines, 2000/1000/500 instanced history streak quads, clockwise/curl motion and three upward FBM mist strata reuse the existing native engine, targets, post passes and resource lifetime. Pool geometry fades into haze before the clock. Canvas fallback includes the ritual; composition respects the portrait cinematic frame.
-- The shared Mythical clock now supports a prismatic style: progressively drawn thin rings, 60 marks with 12 major lengths, XII/III/VI/IX in the existing mono font, counter-rotating ratchets, shared three-hand geometry, accelerating hands and a prismatic trail wedge. It aligns at 23.2 seconds and holds for 300 ms; its mechanical frames and wind hold together.
-- Locally bundled, unmodified OFL Bodoni Moda for ASCENDANT only, with Georgia/Times fallback. Cached letter canvases use 0.35em tracking, 90 ms stagger, rise/12 px blur and 12-to-1 px pastel split convergence. A soft inversion mask sweeps in three seconds per pass; side readouts scramble-resolve and update no faster than 2 Hz. The star accelerates to at most two revolutions per second with shutter samples. Title triangle facets drift apart and contract into the core.
-- Extracted Mythical's band-fragment primitive into shared `cutscene-text.js`, alongside seeded scramble and facet masks. The original Mythical band choreography uses the same helper. No second engine, timeline, skip system or post stack was introduced.
-- Presentation-only B descriptor extension keeps sections, palette, pulse/clock/title controls and beats together. The shared runtime now supports distinct keys for repeated pulse/tick events. Four pulse beats and 48 major tick crossings accompany clockStart/clockAlign/titleIn/titleBreak. No durable/pull/reward logic changed.
-- Dev play/scrub/jump now covers all fourteen S0-S6 sections and 28 seconds at Normal. Fast retains the existing 70% scale. Existing quality, Mono, hidden pause, skip and recovery architecture remain.
-- B ends gently on the shared procedural Ascendant field, carries its age into the retained card background and uses the existing 400 ms direct flip. This temporary milestone ending contains no explosion. GPU resources retire at handoff.
+- S7 (28-31 seconds): 3-5 independently pleated, dispersive aurora layers rise from 20% to 90% height over 2.5 seconds; rising sparks, inward wind, maximum-speed sigil, blurred clock hands, camera pullback/push-in and progressive white. The final B inversion mask dissolves smoothly into these layers.
+- At 30.6 seconds: prismatic shockwave and halo, horizontal flare, the shared post-stack's 700 ms chromatic envelope, and exactly one global white flash (110 ms rise, 590 ms smooth decay). Flash replay is suppressed after backward dev seeking. Letterboxing exits at the climax. No audio.
+- S8 (31-32.5 seconds): direct 400 ms flip at final position, 0.96-to-1 card materialization/soft bloom, 1200 ms outer squircle aurora stroke draw and foreground fade over the first 160 ms. Metadata/variants/readiness resume after S8. Native 3D resources retire at mount.
+- One shared serial-seeded white/pastel field supplies the final scenes, retained backdrop and card finish, with continuous age, smoothly interpolated colors and seeded faded edge splashes. Light playback freezes this field. Keep/Delete fades and immediate saved-card recovery continue through existing handlers.
+- Cards setting Full / Short / Off extends the current schema before normalization; older saves default to Full. All rarity intros read this setting through the same controller. Ascendant Short retains the specified shot lengths, clock/title and ending: **16.5 seconds** including S8 (the listed pre-card durations sum to 15 seconds, rather than the approximate 14). Full is 32.5 seconds. Fast keeps the existing 70% scale.
+- Very Low, reduced motion and Off use a three-second Canvas-only sequence: indigo, calm point, sigil/thin rings, local serif title and fade into the field/card. No flash, camera shake or 3D initialization.
+- Dev Full/Short controls, S7/S8 scrub/jumps, and an optional small 10 Hz linear-luminance-change graph with declared flash count. The graph is an inspection aid, not a photosensitivity certification. Local pulse spacing and spin are capped in compressed playback and dev rate overrides. Existing registry, scheduler, skip, engine/post, clock and seeded presentation code are reused.
 
-## Exactly unfinished - milestone C
+## Exactly unfinished
 
-- S7 (28-31 seconds): 3-5 pleated aurora curtains/rising sparks, accelerating inward convergence, camera pull/push, clock-hand blur and progressive whitening; the 30.6-second shockwave/halo, anamorphic flare, 700 ms aberration envelope, exactly one bright flash and letterbox exit.
-- S8 (31-32.5 seconds): final explosion-to-shared-background choreography and complete exact-frame continuity, card 0.96-to-1 materialization/soft bloom and drawn outer squircle aurora border. The shared field/retained-time foundation exists; this final sequence is not built.
-- Full/Short/Off Cards setting applied to all cutscenes, specified Short choreography and prescribed three-second no-flash/no-shake light sequence. Existing reduced/static alternatives remain, not the finished C alternative.
-- Short/Full dev toggle, safe-flash luminance-change graph and remaining auroraRise/flash/cardIn beats. The full 32.5-second film is unfinished.
-
-No wider visual, FPS, narrow-screen, resize, context-loss, reload, skip or graphics-matrix acceptance is claimed from the single allowed launch. Those configurations were not exercised.
+No milestone C scene or requested control remains unfinished in the implementation. Broader visual/safety/performance acceptance remains unverified: Short, Fast, Light, Mono, skip, reload, narrow viewports/resize, context loss, other graphics tiers and FPS targets were not exercised under the owner's single-playthrough restriction. No measured FPS or photosensitivity certification is claimed.
 
 ## Testing
 
-One headed file:// game launch and one Medium/Normal dev-triggered playthrough reached the revealed card through all fourteen S0-S6 sections with WebGL2 and the local font loaded; zero console errors/warnings. No tests, screenshots or profiling runs.
+One headed file:// game launch and one Full/Medium/Normal dev-triggered playthrough completed all 17 sections and reached the revealed card with WebGL2, zero console errors/warnings, one flash beat, a retained backdrop and completed border; GPU resources and cinematic UI were released. No tests, screenshots, recording or profiling runs.
 
 ## Focused Git checkpoint
 
-The tracked A renderer/runtime/dev/CSS changes and B's new descriptor, shared text utility and bundled font are committed directly. Overlapping B changes to index.html, the previously uncommitted Mythical painter, Designs.MD and reveal docs are saved exactly in B-INTEGRATION.patch with LF-normalized byte hashes in B-INTEGRATION-BASE.json. They are already applied in the live workspace; do not apply twice. The patch applies with git apply --unidiff-zero against the milestone A live workspace plus its earlier revisions. The earlier A integration patch remains its prerequisite. This preserves the unrelated prior work rather than adding those entire revisions to B's commit.
+C commits its renderer/runtime/descriptor/dev/finish changes and the settings extension directly. Overlapping index.html, rarity-intro.js, opening.js and documentation edits are captured as the exact C-only delta in C-INTEGRATION.patch, with LF-normalized byte hashes in C-INTEGRATION-BASE.json. Those changes are already applied to this live workspace; do not apply twice. The patch is based on the live B workspace plus its prior uncommitted revisions, and is applied using git apply --unidiff-zero when reconstructing that state. A and B integration artifacts remain prerequisites. Unrelated changes are not staged or committed.

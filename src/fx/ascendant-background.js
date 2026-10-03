@@ -15,16 +15,18 @@
     return 'rgba('+c.join(',')+','+a+')';
   }
   C.ascendantBackground = {
-    begin:function(seed,time){session={seed:String(seed),time:time||0,active:true};},
+    begin:function(seed,time){session={seed:String(seed),time:time||0,active:true,border:1};},
     setTime:function(seed,time){if(session&&session.seed===String(seed))session.time=time;},
+    setBorder:function(seed,value){if(session&&session.seed===String(seed))session.border=Math.max(0,Math.min(1,value));},
+    sampleBorder:function(seed){return session&&session.seed===String(seed)&&session.active?session.border:1;},
     end:function(){if(session)session.active=false;},
     sampleTime:function(seed,fallback){return session&&session.seed===String(seed)&&session.active?session.time:fallback;},
     draw:function(g,w,h,time,seed) {
-      var field=material(seed),t=time*1000,phase=time/12*Math.PI*2+field.phase;
+      var field=material(seed);time=Math.floor(time*10+.000001)/10;var t=time*1000,phase=time/12*Math.PI*2+field.phase;
       g.fillStyle='#fff';g.fillRect(0,0,w,h);
       for(var side=0;side<4;side++){
         var x=side<2?side*w:w*(.5+.18*Math.sin(phase+side)),y=side>=2?(side-2)*h:h*(.5+.18*Math.cos(phase+side));
-        var c=palette[(side+Math.floor((phase%(Math.PI*2)+Math.PI*2)/(Math.PI*2)*6))%6],r=Math.max(w,h)*.62;
+        var hue=(phase%(Math.PI*2)+Math.PI*2)/(Math.PI*2)*6,index=Math.floor(hue),blend=hue-index,c=palette[(side+index)%6].map(function(v,ch){return Math.round(v+(palette[(side+index+1)%6][ch]-v)*blend);}),r=Math.max(w,h)*.62;
         var grad=g.createRadialGradient(x,y,0,x,y,r);grad.addColorStop(0,rgba(c,.52));grad.addColorStop(.6,rgba(c,.13));grad.addColorStop(1,rgba(c,0));
         g.fillStyle=grad;g.fillRect(0,0,w,h);
       }
