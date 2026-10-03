@@ -150,7 +150,10 @@
         else if (def.track.event) index(eventIndex, def.track.event, def);
         else if (typeof def.track.derive === 'function') (def.track.events || ['card:kept', 'card:discarded']).forEach(function (name) { index(derivedIndex, name, def); });
         else throw new Error('Achievement needs a tracker');
-        if (adapter.listen && def.track.event) adapter.listen(def.track.event, handle);
+        if (adapter.listen) {
+          if (def.track.event) adapter.listen(def.track.event, handle);
+          if (def.track.derive) (def.track.events || ['card:kept', 'card:discarded']).forEach(function (name) { adapter.listen(name, handle); });
+        }
         return def;
       },
       progress: progress,
