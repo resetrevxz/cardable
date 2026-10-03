@@ -9,7 +9,7 @@
   }
   function quality() { return ['very-low', 'low', 'medium', 'high'].indexOf(C.settings.get('quality')); }
   C.cutscenes = {
-    registry: entries,
+    registry: entries, timeline: sections,
     register: function (kind, factory) { entries[kind] = factory; },
     create: function (kind) { return entries[kind] ? entries[kind]() : null; },
     warmup: function (rarity, serial) {
@@ -19,9 +19,10 @@
     createRuntime: function (parent) {
       var spec, painter, clock = 0, previous = 0, rate = 1, hint, film, skipping = null;
       var level = 2, beats = Object.create(null), adaptive = { samples: 0, sum: 0, dropped: false }, current = false;
-      function emit(id, time) {
-        if (beats[id]) return;
-        beats[id] = true;
+      function emit(id, time, key) {
+        key = key || id;
+        if (beats[key]) return;
+        beats[key] = true;
         C.events.emit('cutscene:beat', { cutscene: spec.cutscene || spec.kind, id: id, timeMs: time });
       }
       function ensureHint() {
@@ -62,7 +63,7 @@
           clock = Math.min(film.total, clock);
           hint.hidden = elapsed < 2000 || staticPolicy;
           root.document.body.classList.toggle('cutscene-cursor-available', !hint.hidden);
-          (spec.beats || []).forEach(function (beat) { if (clock >= beat.ms) emit(beat.id, beat.ms); });
+          (spec.beats || []).forEach(function (beat) { if (clock >= beat.ms) emit(beat.id, beat.ms, beat.key); });
           // Live adaptation is part of the presentation, not a separate profiling loop.
           // Programs and targets were warmed during cutting; ignore the first ten visible frames.
           if (spec.kind === 'prismatic' && !staticPolicy && clock >= 1000 && clock < 10000 && dt > 0 && !adaptive.dropped) {

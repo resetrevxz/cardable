@@ -1,3 +1,4 @@
+@font-face { font-family:"Ascendant Bodoni"; src:url("../../assets/fonts/bodoni-moda-variable.ttf") format("truetype"); font-weight:400 900; font-style:normal; font-display:swap; }
 .cutscene-skip { position:fixed; right:max(24px,env(safe-area-inset-right)); bottom:max(18px,env(safe-area-inset-bottom)); z-index:5; border:0; border-radius:8px; padding:10px 12px; background:rgba(8,8,10,.28); color:rgba(255,255,255,.54); font:11px var(--font-mono,monospace); cursor:pointer; }
 .cutscene-skip:hover,.cutscene-skip:focus-visible { color:#fff; background:rgba(8,8,10,.64); outline:1px solid rgba(255,255,255,.35); }
 .cutscene-skip[hidden] { display:none; }

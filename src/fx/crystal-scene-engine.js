@@ -93,6 +93,59 @@
   }`;
   var pointVertex = '#version 300 es\nprecision highp float;layout(location=0)in vec4 aPoint;uniform mat4 uVP;uniform float uDpr;out float vAlpha,vBubble;void main(){gl_Position=uVP*vec4(aPoint.xyz,1.);gl_PointSize=clamp(abs(aPoint.w)*uDpr*85./gl_Position.w,1.,34.);vAlpha=min(1.,abs(aPoint.w)*.45);vBubble=1.-step(0.,aPoint.w);}';
   var pointFragment = '#version 300 es\nprecision highp float;in float vAlpha,vBubble;uniform float uMono;uniform vec3 uRuby;out vec4 result;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;vec3 c=mix(uRuby,vec3(dot(uRuby,vec3(.213,.715,.072))),uMono);float shape=mix(pow(1.-d,2.),exp(-pow((d-.68)*8.,2.))*.65,vBubble);result=vec4(c,shape*vAlpha*.7);}';
+  var screenVertex='#version 300 es\nprecision highp float;out vec2 uv;void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);uv=p;gl_Position=vec4(p*2.-1.,0.,1.);}';
+  // One SDF carries the keystone silhouette through the complete four-shape transformation.
+  var sigilFragment=`#version 300 es
+    precision highp float;in vec2 uv;out vec4 result;
+    uniform vec2 uViewport,uCenter;uniform float uTime,uShape,uScale,uRotation,uOpacity,uMono,uFog,uLight,uRadius,uBackground,uMandala,uTitleAge;
+    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+    float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+1.),f.x),f.y);}
+    float fbm(vec2 p){float n=0.,a=.5;for(int k=0;k<4;k++){n+=a*noise(p);p=p*2.03+vec2(3.1,7.7);a*=.5;}return n;}
+    float segment(vec2 p,vec2 a,vec2 b){vec2 d=b-a;return length(p-a-d*clamp(dot(p-a,d)/dot(d,d),0.,1.));}
+    float field(vec2 p,float turn){
+      float co=cos(turn),si=sin(turn);p=mat2(co,-si,si,co)*p;
+      float a=atan(p.y,p.x),r=length(p),sector=6.2831853/6.;
+      float hex=cos(floor(.5+a/sector)*sector-a)*r-.87,circle=r-.91;
+      float tooth=pow(.5+.5*cos(a*12.),2.8),star=r-(.54+.46*tooth);
+      float rings=min(abs(r-1.35),abs(r-1.47))-.009;
+      float chevron=min(segment(p,vec2(-.19,1.67),vec2(0.,1.87)),segment(p,vec2(0.,1.87),vec2(.19,1.67)))-.012;
+      float sigil=min(abs(star)-.013,min(rings,chevron));
+      if(uShape<1.)return mix(hex,circle,smoothstep(0.,1.,uShape));
+      if(uShape<2.)return mix(circle,star,smoothstep(0.,1.,uShape-1.));
+      return mix(abs(star)-.014,sigil,smoothstep(0.,1.,uShape-2.));
+    }
+    float ink(vec2 p,float turn){float d=field(p,turn),line=exp(-abs(d)*105.);float halo=exp(-abs(d)*12.)*.11;float inside=(1.-smoothstep(-.3,0.,d))*(1.-smoothstep(1.6,2.1,uShape))*.06;return line+halo+inside;}
+    void main(){
+      if(uBackground>.5){vec3 haze=mix(vec3(.055,.065,.10),vec3(.071),uMono);result=vec4(haze,uOpacity);return;}
+      float shorter=min(uViewport.x,uViewport.y),radius=uRadius*shorter*uScale;vec2 p=(uv-uCenter)*uViewport/radius;
+      float split=1.1/radius;vec3 light=vec3(0.);
+      // Shutter integration keeps the accelerating star continuous rather than strobing.
+      for(int j=0;j<4;j++){float turn=uRotation-float(j)*min(.075,max(0.,uTitleAge)*.022);
+        light+=vec3(ink(p+vec2(split,0.),turn),ink(p,turn),ink(p-vec2(split,0.),turn))*.25;}
+      light=mix(light,vec3(dot(light,vec3(.213,.715,.072))),uMono)*uOpacity*(.8+uLight);
+      float mandala=0.;float r=length(p);for(int i=0;i<5;i++){float target=1.65+float(i)*.16;mandala+=exp(-abs(r-target)*145.)*.08*smoothstep(float(i)*.09,.85,uMandala);}
+      light+=vec3(.83,.9,1.)*mandala*uOpacity;
+      // Three upward FBM strata, at different scales and speeds, fade the pool into haze.
+      float mist=0.;for(int layer=0;layer<3;layer++){float z=float(layer);vec2 q=uv*vec2(3.5+z*1.8,3.+z)+vec2(z*4.,-uTime*(.055+z*.025));float f=fbm(q);float fringe=fbm(q+vec2(.009,0.))-f;mist+=pow(max(0.,f-.23),2.)*(1.-smoothstep(.15,.82,uv.y))*(.5-z*.1);light+=vec3(.91,.95,1.)*fringe*.03*uFog;}
+      light+=vec3(.83,.89,1.)*mist*uFog;
+      light=mix(light,vec3(dot(light,vec3(.213,.715,.072))),uMono);result=vec4(light,1.);
+    }`;
+  var windVertex=`#version 300 es
+    precision highp float;layout(location=0)in vec4 aWind;uniform vec2 uViewport;uniform float uTime,uStrength;out vec2 vStrip;out float vAlpha;out vec3 vColor;
+    vec2 orbit(float t){float age=max(0.,t),speed=.055+min(age,9.)*.055,angle=aWind.y+age*speed*aWind.z;
+      float r=aWind.x*(.98+.03*sin(age*.7+aWind.y*3.));vec2 p=vec2(cos(angle),sin(angle))*r;
+      // A smooth curl field bends each history strip without changing its root trajectory.
+      p+=vec2(sin(p.y*6.+age*.3),-cos(p.x*6.-age*.3))*.018*aWind.w;return p;}
+    void main(){
+      int corner=gl_VertexID;vec2 q=corner==0?vec2(0.,-1.):corner==1?vec2(1.,-1.):corner==2?vec2(0.,1.):corner==3?vec2(0.,1.):corner==4?vec2(1.,-1.):vec2(1.,1.);
+      float history=.06+aWind.w*.14;vec2 head=orbit(uTime),tail=orbit(uTime-history),d=head-tail;
+      vec2 normal=normalize(vec2(-d.y,d.x)+vec2(.0001));vec2 p=mix(tail,head,q.x)+normal*q.y*(.00028+aWind.w*.00045);
+      p*=min(uViewport.x,uViewport.y)/uViewport;gl_Position=vec4(p*2.,0.,1.);vStrip=q;vAlpha=(.06+.1*aWind.w)*uStrength;
+      vColor=.87+.11*cos(vec3(0.,2.1,4.2)+aWind.y);
+    }`;
+  var windFragment=`#version 300 es
+    precision highp float;in vec2 vStrip;in float vAlpha;in vec3 vColor;uniform float uMono;out vec4 result;
+    void main(){vec3 c=mix(vColor,vec3(dot(vColor,vec3(.213,.715,.072))),uMono);result=vec4(c,(1.-abs(vStrip.y))*sin(vStrip.x*3.1415926)*vAlpha);}`;
   C.crystalSceneEngine = { create: function (seed,descriptor) {
     descriptor=descriptor||C.rarity('mythical').openingIntro;
     var dawn=descriptor.kind==='prismatic',level=dawn?(descriptor.qualityLevel==null?2:descriptor.qualityLevel):2,resolution=dawn?[.5,.5,.75,1][level]:1;prismaticGeometry=dawn;
@@ -100,7 +153,7 @@
     var caveMs=timeline.cave.ms,tipStart=timeline.tip.start,tipMs=timeline.tip.ms,fallStart=timeline.fall.start,fallMs=timeline.fall.ms,impactStart=timeline.impact.start,underStart=timeline.underwater.start,underMs=timeline.underwater.ms,ascendStart=(timeline.ascend||{start:15}).start,ascendMs=(timeline.ascend||{ms:.8}).ms;
     var random=rng((dawn?'prismatic-cave:':'crimson-cave:')+seed), canvas=root.document.createElement('canvas'), gl=null, lost=false, disposed=false;
     var programs=[], buffers=[], textures=[], frames=[], renderbuffers=[], stats={backend:'canvas',frames:0,drawCalls:0};
-    var stoneMesh,crystalsMesh,heroMesh,waterMesh,tendrilMesh,splashMesh,pointBuffer,reflection,scene,bloom,mainProgram,waterProgram,pointsProgram,postProgram;
+    var stoneMesh,crystalsMesh,heroMesh,waterMesh,tendrilMesh,splashMesh,pointBuffer,reflection,scene,bloom,mainProgram,waterProgram,pointsProgram,postProgram,sigilProgram,windProgram,windBuffer;
     // 300 ambient points + 20 bubbles + 40 impact droplets can coexist at the side-shot cut.
     var simulation=null,chainState=[],chainTime=null;var heroScreen=[.5,.3];var width=0,height=0,particleData=new Float32Array(1440),tendrilData=new Float32Array(22*32*6*6),particles=[];
     try { gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,preserveDrawingBuffer:false,powerPreference:'high-performance'}); } catch (_) {}
@@ -119,6 +172,7 @@
       if(!gl)return;
       try{
         mainProgram=program(vertex,fragment);waterProgram=program(vertex,waterFragment);pointsProgram=program(pointVertex,pointFragment);
+        if(dawn&&descriptor.ritual){sigilProgram=program(screenVertex,sigilFragment);windProgram=program(windVertex,windFragment);}
         postProgram=program('#version 300 es\nprecision highp float;out vec2 uv;void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);uv=p;gl_Position=vec4(p*2.-1.,0.,1.);}',`#version 300 es
           precision highp float;in vec2 uv;out vec4 result;uniform sampler2D uScene,uBloom;uniform vec2 uPixel;uniform float uPass,uTime,uDawn,uMono,uHigh;
           void main(){vec3 c=texture(uScene,uv).rgb;if(uPass>.5){vec3 sum=vec3(0.);for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec3 s=texture(uScene,uv+vec2(float(x),float(y))*uPixel*2.).rgb;sum+=max(s-vec3(.22),vec3(0.))/9.;}result=vec4(sum,1.);return;}
@@ -142,6 +196,11 @@
         triangle(water,[-18,0,-18],[-18,0,18],[18,0,-18]);triangle(water,[18,0,-18],[-18,0,18],[18,0,18]);
         stoneMesh=mesh(rocks);crystalsMesh=mesh(cluster);heroMesh=mesh(hero);waterMesh=mesh(water);tendrilMesh=mesh(tendrilData,true);splashMesh=mesh(new Float32Array(40*6*6),true);
         pointBuffer=gl.createBuffer();buffers.push(pointBuffer);gl.bindBuffer(gl.ARRAY_BUFFER,pointBuffer);gl.bufferData(gl.ARRAY_BUFFER,particleData,gl.DYNAMIC_DRAW);
+        if(sigilProgram){
+          var wind=new Float32Array(descriptor.ritual.windCount*4),windRandom=rng('prismatic-wind:'+seed);
+          for(var wi=0;wi<wind.length;wi+=4){wind[wi]=.17+Math.sqrt(windRandom())*.58;wind[wi+1]=windRandom()*TAU;wind[wi+2]=.65+windRandom()*.7;wind[wi+3]=windRandom();}
+          windBuffer=gl.createBuffer();buffers.push(windBuffer);gl.bindBuffer(gl.ARRAY_BUFFER,windBuffer);gl.bufferData(gl.ARRAY_BUFFER,wind,gl.STATIC_DRAW);
+        }
         for(var k=0;k<300;k++)particles.push({x:(random()-.5)*13,y:-4+random()*10,z:-6+random()*13,size:.12+Math.pow(random(),5)*1.1,phase:random()*TAU});
         var size=256,pixels=new Uint8Array(size*size*4),noise=[];
         for(var q=0;q<32*32;q++)noise.push(random());
@@ -195,25 +254,50 @@
       }
       chainTime=t;gl.bindBuffer(gl.ARRAY_BUFFER,tendrilMesh.buffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,tendrilData);tendrilMesh.count=strands*segments*6;
     }
+    function ritualPass(t,w,h,opacity){
+      if(!sigilProgram||t<ascendStart)return;
+      var cfg=descriptor.ritual,holdStart=timeline.clock.start+(descriptor.clock.alignStartMs+descriptor.clock.alignMs)/1000,hold=descriptor.clock.holdMs/1000;
+      var animationTime=t<holdStart?t:t<holdStart+hold?holdStart:t-hold;var age=Math.max(0,t-timeline.topPulse.start),duration=timeline.topPulse.ms;
+      var cycles=age*cfg.pulseHzStart+age*age*(cfg.pulseHzEnd-cfg.pulseHzStart)/(2*duration),fraction=cycles-Math.floor(cycles);
+      var pulse=t>=timeline.topPulse.start&&t<timeline.morph.start?clamp(Math.exp(-fraction*8)*Math.sin(fraction*Math.PI*5)/.49):0;
+      var arrival=smooth((t-ascendStart)/ascendMs),shape=3*smooth((t-timeline.morph.start)/timeline.morph.ms),rotation=.015*Math.sin(animationTime*.3);
+      if(t>=timeline.title.start){var titleAge=Math.min(t-timeline.title.start,timeline.title.ms+timeline.shatter.ms),startRate=.1,accel=(cfg.starMaxRps-startRate)/(timeline.title.ms+timeline.shatter.ms);rotation=TAU*(startRate*titleAge+accel*.5*titleAge*titleAge);}
+      gl.disable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE);gl.useProgram(sigilProgram.p);
+      gl.uniform2f(uniform(sigilProgram,'uViewport'),width,height);gl.uniform2f(uniform(sigilProgram,'uCenter'),mix(heroScreen[0],.5,arrival),mix(1-heroScreen[1],.5,arrival));
+      gl.uniform1f(uniform(sigilProgram,'uRadius'),Math.min(cfg.sigilRadius,Math.min(h,w/2.39)*.23/Math.min(w,h)));gl.uniform1f(uniform(sigilProgram,'uTime'),animationTime);gl.uniform1f(uniform(sigilProgram,'uShape'),shape);
+      gl.uniform1f(uniform(sigilProgram,'uScale'),mix(.28,1,arrival)*(1+pulse*cfg.pulseScale));gl.uniform1f(uniform(sigilProgram,'uRotation'),rotation);
+      gl.uniform1f(uniform(sigilProgram,'uOpacity'),smooth((t-ascendStart)/.55)*opacity);gl.uniform1f(uniform(sigilProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);
+      gl.uniform1f(uniform(sigilProgram,'uMandala'),(t-timeline.topPulse.start)/timeline.topPulse.ms);gl.uniform1f(uniform(sigilProgram,'uTitleAge'),Math.max(0,t-timeline.title.start));
+      gl.uniform1f(uniform(sigilProgram,'uFog'),smooth((t-ascendStart)/3)*.7);gl.uniform1f(uniform(sigilProgram,'uLight'),pulse*cfg.pulseLight);
+      // Fade the reflected pool into haze before the scene geometry retires at the clock.
+      gl.uniform1f(uniform(sigilProgram,'uBackground'),1);gl.uniform1f(uniform(sigilProgram,'uOpacity'),smooth((t-timeline.morph.start)/timeline.morph.ms));gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLES,0,3);
+      gl.uniform1f(uniform(sigilProgram,'uBackground'),0);gl.uniform1f(uniform(sigilProgram,'uOpacity'),smooth((t-ascendStart)/.55)*opacity);gl.blendFunc(gl.ONE,gl.ONE);gl.drawArrays(gl.TRIANGLES,0,3);stats.drawCalls+=2;
+      gl.useProgram(windProgram.p);gl.uniform2f(uniform(windProgram,'uViewport'),width,height);gl.uniform1f(uniform(windProgram,'uTime'),animationTime-ascendStart);gl.uniform1f(uniform(windProgram,'uStrength'),smooth((t-ascendStart)/2)*opacity);gl.uniform1f(uniform(windProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);
+      gl.bindBuffer(gl.ARRAY_BUFFER,windBuffer);gl.enableVertexAttribArray(0);gl.disableVertexAttribArray(1);gl.vertexAttribPointer(0,4,gl.FLOAT,false,16,0);gl.vertexAttribDivisor(0,1);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+      gl.drawArraysInstanced(gl.TRIANGLES,0,6,Math.floor(cfg.windCount*[0,.25,.5,1][level]));gl.vertexAttribDivisor(0,0);gl.disable(gl.BLEND);stats.drawCalls++;
+    }
     function paint(w,h,t){
       if(!gl||lost||disposed)return null;
       try {
         var cfg=C.config.rarityIntro,budget=C.settings.get('quality')==='high'?cfg.mythicalMaxPixels:cfg.mythicalMediumPixels,dpr=Math.min(cfg.maxDpr,C.settings.policy.dpr,Math.sqrt(budget/(w*h))),rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
         if(dawn){var desired=[.5,.5,.75,1][level];resolution+=Math.max(-.015,Math.min(.015,desired-resolution));dpr=Math.min(2,C.settings.policy.dpr)*resolution;rw=Math.max(1,Math.floor(w*dpr));rh=Math.max(1,Math.floor(h*dpr));}
         if(width!==rw||height!==rh){width=rw;height=rh;canvas.width=rw;canvas.height=rh;sizeTarget(scene,rw,rh);sizeTarget(reflection,Math.max(1,rw>>1),Math.max(1,rh>>1));sizeTarget(bloom,Math.max(1,rw>>1),Math.max(1,rh>>1));}
-        simulateWater(t);var hero=4.35,heroX=0,angle=0,eye=[mix(2.6,1.1,smooth((t-timeline.cave.start)/caveMs)),2.6,mix(9.6,7.9,smooth((t-timeline.cave.start)/caveMs))],targetPoint=[0,2.55,-.35],impact=t>=impactStart?t-impactStart:-1,under=t>=underStart;
+        if(!dawn||!sigilProgram||t<timeline.clock.start)simulateWater(t);var hero=4.35,heroX=0,angle=0,eye=[mix(2.6,1.1,smooth((t-timeline.cave.start)/caveMs)),2.6,mix(9.6,7.9,smooth((t-timeline.cave.start)/caveMs))],targetPoint=[0,2.55,-.35],impact=t>=impactStart?t-impactStart:-1,under=t>=underStart;
         if(t>=tipStart){var tip=smooth((t-tipStart)/(tipMs*.86));angle=tip*.23+Math.sin(t*27)*.006*tip;if(dawn){var k=clamp((t-tipStart)/Math.max(.01,tipMs-.4));angle=(k<.34?mix(0,2,smooth(k/.34)):k<.68?mix(2,4,smooth((k-.34)/.34)):mix(4,7,smooth((k-.68)/.32)))*Math.PI/180;}heroX=Math.sin(angle)*1.1016;hero+=1.1016*(1-Math.cos(angle));}
         if(t>=fallStart){var fall=clamp((t-fallStart)/fallMs);if(dawn)fall=fall*(.35+.65*fall);var releaseAngle=dawn?7*Math.PI/180:.23;hero=mix(4.35+1.1016*(1-Math.cos(releaseAngle)),-.15,fall*fall);heroX=Math.sin(releaseAngle)*1.1016*(1-fall*.7);angle=releaseAngle+fall*.63;eye=[.9,mix(2.6,1.55,smooth(fall)),mix(7.9,6.3,smooth(fall))];targetPoint=[0,mix(2.55,.5,smooth(fall)),0];}
         if(t>=impactStart&&t<underStart){eye=[.9,1.55,6.3];targetPoint=[0,.5,0];}
-        if(under){var p=clamp((t-underStart)/(dawn?5:underMs));heroX=0;hero=-.15-1.8*(1-Math.pow(1-p,3));angle=(dawn?7*Math.PI/180+.63:.86)+(t-underStart)*.11;eye=[mix(3.9,3.1,smooth(p)),mix(-.7,-1.3,smooth(p)),mix(5.7,4.6,smooth(p))];targetPoint=[0,hero+.1,0];tendrils(t,hero,dawn?clamp((t-(timeline.tendrils||timeline.underwater).start)/2.5):p,angle);}
+        if(under){var p=clamp((t-underStart)/(dawn?5:underMs));heroX=0;hero=-.15-1.8*(1-Math.pow(1-p,3));angle=(dawn?7*Math.PI/180+.63:.86)+(t-underStart)*.11;eye=[mix(3.9,3.1,smooth(p)),mix(-.7,-1.3,smooth(p)),mix(5.7,4.6,smooth(p))];targetPoint=[0,hero+.1,0];if(!dawn||!sigilProgram||t<timeline.clock.start)tendrils(t,hero,dawn?clamp((t-(timeline.tendrils||timeline.underwater).start)/2.5):p,angle);}
         if(impact>=0&&impact<.8){var crown=[],r=.35+impact*.8,raise=Math.sin(impact/.8*Math.PI)*.38;for(var seg=0;seg<40;seg++){var a=seg*TAU/40,b=(seg+1)*TAU/40,h0=raise*(.5+.5*Math.pow(Math.sin(seg*2.1),2)),h1=raise*(.5+.5*Math.pow(Math.sin((seg+1)*2.1),2));triangle(crown,[Math.cos(a)*r,.015,Math.sin(a)*r],[Math.cos(b)*r,.015,Math.sin(b)*r],[Math.cos(a)*(r+.08),h0,Math.sin(a)*(r+.08)]);triangle(crown,[Math.cos(a)*(r+.08),h0,Math.sin(a)*(r+.08)],[Math.cos(b)*r,.015,Math.sin(b)*r],[Math.cos(b)*(r+.08),h1,Math.sin(b)*(r+.08)]);}gl.bindBuffer(gl.ARRAY_BUFFER,splashMesh.buffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,new Float32Array(crown));}
-        if(t>=ascendStart){var ascend=smooth((t-ascendStart)/ascendMs);eye=[mix(3.1,.03,ascend),mix(-1.3,4.6,ascend),mix(4.6,.5,ascend)];targetPoint=[0,mix(-1.85,0,ascend),0];under=eye[1]<0;}
+        if(t>=ascendStart){var ascend=smooth((t-ascendStart)/ascendMs);
+          var side=smooth(clamp((ascendStart-underStart)/(dawn?5:underMs)));
+          eye=[mix(dawn?mix(3.9,3.1,side):3.1,.03,ascend),mix(dawn?mix(-.7,-1.3,side):-1.3,4.6,ascend),mix(dawn?mix(5.7,4.6,side):4.6,.035,ascend)];
+          targetPoint=[0,mix(dawn?hero+.1:-1.85,0,ascend),0];under=eye[1]<0;}
         // Portrait widens the camera distance instead of cropping the hero's fall.
         if(w/h<.8){eye[2]*=1.65;eye[0]*=.75;}
-        var proj=projection(w/h),vp=multiply(proj,view(eye,targetPoint)),clipW=vp[3]*heroX+vp[7]*hero+vp[15];heroScreen=[.5+(vp[0]*heroX+vp[4]*hero+vp[12])/clipW*.5,.5-(vp[1]*heroX+vp[5]*hero+vp[13])/clipW*.5];var mirrorEye=[eye[0],-eye[1],eye[2]],mirrorTarget=[targetPoint[0],-targetPoint[1],targetPoint[2]],reflectVP=multiply(proj,view(mirrorEye,mirrorTarget,[0,-1,0]));
+        var roll=dawn&&t>=ascendStart?Math.sin(clamp((t-ascendStart)/ascendMs)*Math.PI)*.12:0;var proj=projection(w/h),vp=multiply(proj,view(eye,targetPoint,[Math.sin(roll),Math.cos(roll),0])),clipW=vp[3]*heroX+vp[7]*hero+vp[15];heroScreen=[.5+(vp[0]*heroX+vp[4]*hero+vp[12])/clipW*.5,.5-(vp[1]*heroX+vp[5]*hero+vp[13])/clipW*.5];var mirrorEye=[eye[0],-eye[1],eye[2]],mirrorTarget=[targetPoint[0],-targetPoint[1],targetPoint[2]],reflectVP=multiply(proj,view(mirrorEye,mirrorTarget,[0,-1,0]));
         gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);gl.disable(gl.DITHER);stats.drawCalls=0;
-        gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,mainProgram.stone);gl.bindFramebuffer(gl.FRAMEBUFFER,reflection.f);gl.viewport(0,0,reflection.w,reflection.h);gl.clearColor(dawn?.02:.005,dawn?.024:.001,dawn?.039:.003,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!under)scenePass(reflectVP,mirrorEye,hero,heroX,angle,t,false,true,reflectVP,impact);
-        gl.bindFramebuffer(gl.FRAMEBUFFER,scene.f);gl.viewport(0,0,rw,rh);gl.clearColor(dawn?.02:.008,dawn?.024:.001,dawn?.039:.004,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);scenePass(vp,eye,hero,heroX,angle,t,under,false,reflectVP,impact);
+        gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,mainProgram.stone);gl.bindFramebuffer(gl.FRAMEBUFFER,reflection.f);gl.viewport(0,0,reflection.w,reflection.h);gl.clearColor(dawn?.02:.005,dawn?.024:.001,dawn?.039:.003,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!under&&!(dawn&&sigilProgram&&t>=timeline.clock.start))scenePass(reflectVP,mirrorEye,hero,heroX,angle,t,false,true,reflectVP,impact);
+        gl.bindFramebuffer(gl.FRAMEBUFFER,scene.f);gl.viewport(0,0,rw,rh);gl.clearColor(dawn?.02:.008,dawn?.024:.001,dawn?.039:.004,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!(dawn&&sigilProgram&&t>=timeline.clock.start))scenePass(vp,eye,hero,heroX,angle,t,under,false,reflectVP,impact);
         var allowance=C.settings.policy.particles,count=Math.floor((C.settings.get('quality')==='high'?300:160)*allowance);
         for(var i=0;i<count;i++){var p=particles[i],at=i*4;particleData[at]=p.x+Math.sin(t*.15+p.phase)*.12;particleData[at+1]=p.y+Math.sin(t*.13+p.phase)*.1;particleData[at+2]=p.z;particleData[at+3]=p.size;}
         if(allowance>0&&t>=tipStart+tipMs*.28&&t<fallStart){for(var chip=0;chip<32;chip++){var age=Math.max(0,t-tipStart-tipMs*.28-chip*.023),pos=(count+chip)*4;particleData[pos]=Math.sin(chip*2.39)*age*.21;particleData[pos+1]=5.43-age*age*1.6;particleData[pos+2]=Math.cos(chip*2.39)*age*.18;particleData[pos+3]=.10+(chip%4)*.035;}count+=32;}
@@ -221,7 +305,8 @@
         if(dawn&&allowance>0&&under){for(var spore=0;spore<chainState.length;spore++){var chain=chainState[spore],tip=chain[chain.length-1].p,si=count*4,age=(t+spore*.618)%1.1;particleData[si]=tip[0]+Math.sin(spore*2.399+age)*age*.08;particleData[si+1]=tip[1]+age*.13;particleData[si+2]=tip[2];particleData[si+3]=.085*(1-age/1.1);count++;}}
         // Impact droplets follow analytic ballistic paths and never enter saved state.
         if(allowance>0&&impact>=0&&impact<1.4){for(var j=0;j<40;j++){var a=j*2.399,s=.7+(j%7)*.17,k=(count+j)*4;particleData[k]=Math.cos(a)*impact*s;particleData[k+1]=impact*(2.5+(j%5)*.2)-impact*impact*3;particleData[k+2]=Math.sin(a)*impact*s;particleData[k+3]=.13;}count+=40;}
-        gl.useProgram(pointsProgram.p);gl.uniformMatrix4fv(uniform(pointsProgram,'uVP'),false,vp);gl.uniform1f(uniform(pointsProgram,'uDpr'),dpr);gl.uniform3fv(uniform(pointsProgram,'uRuby'),descriptor.color.map(function(v){return v/255;}));gl.uniform1f(uniform(pointsProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);gl.bindBuffer(gl.ARRAY_BUFFER,pointBuffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,particleData);gl.enableVertexAttribArray(0);gl.disableVertexAttribArray(1);gl.vertexAttribPointer(0,4,gl.FLOAT,false,16,0);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.depthMask(false);gl.drawArrays(gl.POINTS,0,count);gl.depthMask(true);gl.disable(gl.BLEND);gl.disable(gl.DEPTH_TEST);
+        gl.useProgram(pointsProgram.p);gl.uniformMatrix4fv(uniform(pointsProgram,'uVP'),false,vp);gl.uniform1f(uniform(pointsProgram,'uDpr'),dpr);gl.uniform3fv(uniform(pointsProgram,'uRuby'),descriptor.color.map(function(v){return v/255;}));gl.uniform1f(uniform(pointsProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);gl.bindBuffer(gl.ARRAY_BUFFER,pointBuffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,particleData);gl.enableVertexAttribArray(0);gl.disableVertexAttribArray(1);gl.vertexAttribPointer(0,4,gl.FLOAT,false,16,0);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.depthMask(false);gl.drawArrays(gl.POINTS,0,dawn&&sigilProgram&&t>=timeline.clock.start?0:count);gl.depthMask(true);gl.disable(gl.BLEND);gl.disable(gl.DEPTH_TEST);
+        if(dawn&&sigilProgram)ritualPass(t,w,h,1);
         gl.useProgram(postProgram.p);gl.uniform1f(uniform(postProgram,'uDawn'),dawn?1:0);gl.uniform1f(uniform(postProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);gl.uniform1f(uniform(postProgram,'uHigh'),level===3?1:0);gl.uniform1f(uniform(postProgram,'uTime'),t);gl.uniform2f(uniform(postProgram,'uPixel'),1/rw,1/rh);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,scene.texture);gl.uniform1i(uniform(postProgram,'uScene'),0);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,mainProgram.stone);gl.uniform1i(uniform(postProgram,'uBloom'),1);gl.uniform1f(uniform(postProgram,'uPass'),1);gl.bindFramebuffer(gl.FRAMEBUFFER,bloom.f);gl.viewport(0,0,bloom.w,bloom.h);gl.drawArrays(gl.TRIANGLES,0,3);
         gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,rw,rh);gl.uniform1f(uniform(postProgram,'uPass'),0);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,bloom.texture);gl.uniform1i(uniform(postProgram,'uBloom'),1);gl.drawArrays(gl.TRIANGLES,0,3);stats.frames++;return canvas;
       }catch(error){stats.failure=error.message;dispose();return null;}
