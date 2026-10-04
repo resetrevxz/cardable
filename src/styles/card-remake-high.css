@@ -29,6 +29,7 @@
 [data-front-design="full-art"] .finish-exotic-shape { width: 4cqw; height: 4cqw; stroke: #FFF1FC; stroke-width: 2; opacity: .75; }
 [data-front-design="full-art"] .finish-exotic[data-color-mode="mono"] .finish-exotic-shape { stroke: #FFF; }
 [data-front-design="full-art"] .finish-exotic-frame { inset: -3.8%; width: 107.6%; height: 107.6%; filter: drop-shadow(0 0 3px var(--exotic-outline)) drop-shadow(0 0 9px var(--exotic-border)); }
+[data-front-design="full-art"] .finish-exotic-highlight-frame { filter: none; }
 
 [data-front-design="full-art"] .finish-ascendant-sides { mask-image: none; background: conic-gradient(from var(--asc-angle,0deg),#FFCEE3,#F8F6FF 15%,#CCF7DE 35%,#CEDCFF 50%,#FFF4DB 68%,#FFCEE3 85%,#F8F6FF); }
 [data-front-design="full-art"] .finish-ascendant[data-color-mode="mono"] .finish-ascendant-sides { background: conic-gradient(from var(--asc-angle,0deg),#FFF,#BBB,#EEE,#AAA,#FFF); }

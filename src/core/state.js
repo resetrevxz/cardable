@@ -3,13 +3,13 @@
   function createStorageCache() {
     return { memory: null, unavailable: false, written: function (json) { this.memory = json; this.unavailable = false; } };
   }
-  var cache = createStorageCache();
+  var cache = createStorageCache(), caches = Object.create(null);
   function freshState(now) {
     return {
       schemaVersion: C.config.storage.schemaVersion,
       playerCode: C.serial ? C.serial.makePlayerCode() : '2345',
       createdAt: now == null ? Date.now() : now,
-      packs: { ready: C.config.packs.startingPacks, timerStartedAt: null },
+      packs: { ready: C.config.packs.startingPacks, timerStartedAt: null, openedCount: 0, introSeen: {} },
       serialCounter: 0, inventory: [], pendingReveal: null, currency: 0,
       tutorial: { step: 'welcome', done: false },
       settings: C.settingsSchema.normalize(), stats: { packsOpened: 0 },
@@ -38,6 +38,17 @@
         (value.inventory || []).concat(value.pendingReveal && value.pendingReveal.cards || []).forEach(function (i) { if(i && typeof i === 'object') i.variantId = null; });
         value.schemaVersion = 3; version = 3;
       }
+      else if (version === 3) {
+        value.packs = value.packs || {};
+        if (value.packs.openedCount === undefined) value.packs.openedCount = value.stats && value.stats.packsOpened !== undefined ? value.stats.packsOpened : 0;
+        (value.inventory || []).forEach(function(i) { if (i.packId === undefined) i.packId = 'standard'; });
+        (value.pendingReveal && value.pendingReveal.cards || []).forEach(function(i) { if (i.packId === undefined) i.packId = value.pendingReveal.packId || 'standard'; });
+        value.schemaVersion = 4; version = 4;
+      }
+      else if (version === 4) {
+        (value.inventory || []).concat(value.pendingReveal && value.pendingReveal.cards || []).forEach(function(i) { if(i && i.cardSkinId === undefined) i.cardSkinId = null; });
+        value.schemaVersion = 5; version = 5;
+      }
       else throw new Error('No migration from save schema ' + version);
     }
     var base = freshState(value.createdAt || Date.now());
@@ -45,7 +56,8 @@
       if (value[key] !== undefined) base[key] = value[key];
     });
     base.schemaVersion = C.config.storage.schemaVersion;
-    base.packs = Object.assign({ ready: C.config.packs.startingPacks, timerStartedAt: null }, base.packs || {});
+    base.packs = Object.assign({ ready: C.config.packs.startingPacks, timerStartedAt: null,
+      openedCount: value.stats && value.stats.packsOpened !== undefined ? value.stats.packsOpened : 0, introSeen: {} }, base.packs || {});
     base.packs.ready = Math.max(0, Math.min(C.config.packs.maxStored, Number(base.packs.ready) || 0));
     base.inventory = Array.isArray(base.inventory) ? base.inventory : [];
     base.serialCounter = Math.max(0, Number(base.serialCounter) || 0);
@@ -53,6 +65,7 @@
     base.settings = C.settingsSchema.normalize(base.settings);
     base.stats = Object.assign({ packsOpened: 0 }, base.stats || {});
     base.inventoryUi = C.inventoryModel.normalize(base.inventoryUi);
+    if (value.journal !== undefined && C.journal) base.journal = C.journal.normalize(value.journal, base);
     return base;
   }
   function validate(value, strict) {
@@ -73,6 +86,7 @@
       require(typeof value.packs === 'object' && !Array.isArray(value.packs), 'Invalid pack state');
       require(integer(value.packs.ready) && value.packs.ready <= C.config.packs.maxStored, 'Invalid pack stock');
       require(value.packs.timerStartedAt == null || number(value.packs.timerStartedAt), 'Invalid timer');
+      if (value.packs.openedCount !== undefined) require(integer(value.packs.openedCount), 'Invalid pack opening count');
     }
     if (value.inventory !== undefined) require(Array.isArray(value.inventory), 'Invalid collection');
     ['tutorial', 'stats'].forEach(function (key) { if (value[key] !== undefined) require(value[key] && typeof value[key] === 'object' && !Array.isArray(value[key]), 'Invalid ' + key); });
@@ -83,6 +97,9 @@
       Array.from(candidate.playerCode).every(function (c) { return C.serial.alphabet.indexOf(c) !== -1; }), 'Invalid player code');
     require(number(candidate.createdAt) && integer(candidate.serialCounter) && number(candidate.currency), 'Invalid save counters');
     require(candidate.stats && integer(candidate.stats.packsOpened), 'Invalid opening statistics');
+    require(integer(candidate.packs.openedCount), 'Invalid pack opening count');
+    require(candidate.packs.introSeen && typeof candidate.packs.introSeen === 'object' && !Array.isArray(candidate.packs.introSeen) &&
+      Object.keys(candidate.packs.introSeen).every(function(id) { return !!C.pack(id) && typeof candidate.packs.introSeen[id] === 'boolean'; }), 'Invalid pack introduction flags');
     require(candidate.tutorial && ['welcome', 'hold', 'cut', 'keep', 'inventory', 'timer', 'done'].indexOf(candidate.tutorial.step) !== -1 &&
       typeof candidate.tutorial.done === 'boolean', 'Invalid tutorial progress');
     var ids = new Set(), serials = new Set(), maxCounter = 0;
@@ -91,6 +108,9 @@
       require(!ids.has(item.instanceId), 'Repeated card instance'); ids.add(item.instanceId);
       require(typeof item.serial === 'string' && item.serial.length > 0 && !serials.has(item.serial), 'Invalid or repeated serial'); serials.add(item.serial);
       if (item.variantId === undefined) item.variantId = null;
+      if (item.cardSkinId === undefined) item.cardSkinId = null;
+      require(item.cardSkinId === null || typeof item.cardSkinId === 'string' && !!C.cardSkin(item.cardSkinId), 'Unsupported card skin');
+      require(typeof item.packId === 'string' && !!C.pack(item.packId), 'Unsupported card pack');
       require(item.variantId === null || typeof item.variantId === 'string' && !!C.variant(item.variantId), 'Unsupported card variant');
       require(number(item.pulledAt) && typeof item.seen === 'boolean', 'Invalid card progress');
       if (reserved) require(!!C.card(item.cardId), 'Reserved card is outside this catalog');
@@ -111,6 +131,7 @@
       require(pending && typeof pending === 'object' && Array.isArray(pending.cards) && pending.cards.length > 0 &&
         typeof pending.packId === 'string' && !!C.pack(pending.packId) && number(pending.committedAt), 'Invalid reserved pack');
       pending.cards.forEach(function (item) { instance(item, true); });
+      require(pending.cards.every(function(item) { return item.packId === pending.packId; }), 'Reserved card pack mismatch');
       require(pending.keptCount === undefined || integer(pending.keptCount) && pending.keptCount < pending.cards.length, 'Invalid reserved pack progress');
       if (pending.discardedInstanceIds !== undefined) {
         require(Array.isArray(pending.discardedInstanceIds) && new Set(pending.discardedInstanceIds).size === pending.discardedInstanceIds.length &&
@@ -132,6 +153,14 @@
   }
   C.state = {
     current: null,
+    setStorageContext: function (key) {
+      caches[C.config.storage.key] = cache;
+      C.config.storage.key = key;
+      cache = caches[key] || (caches[key] = createStorageCache());
+      C.state.recovery = null; C.state.noticeShown = false;
+    },
+    encode: function (value) { return JSON.stringify(value); },
+    beforeWrite: null,
     get persistenceAvailable() { return !cache.unavailable; },
     noticeShown: false,
     recovery: null,
@@ -149,7 +178,8 @@
       try {
         var store = root.localStorage;
         if (!store) return false;
-        var json = JSON.stringify(candidate);
+        if (C.state.beforeWrite) C.state.beforeWrite(candidate);
+        var json = C.state.encode(candidate);
         store.setItem(C.config.storage.key, json);
       } catch (_) { return false; }
       cache.written(json);
@@ -159,7 +189,8 @@
     },
     save: function () {
       if (!C.state.current) C.state.current = freshState();
-      var json = JSON.stringify(C.state.current);
+      if (C.state.beforeWrite) C.state.beforeWrite(C.state.current);
+      var json = C.state.encode(C.state.current);
       var store = storage();
       if (store) {
         try { store.setItem(C.config.storage.key, json); cache.written(json); }

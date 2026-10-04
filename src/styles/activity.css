@@ -1,0 +1,40 @@
+/* Keep essential progress readable while the decorative scene rests. */
+.wordmark { transform-origin: top left; transition: transform var(--t-fade) var(--ease-out), opacity var(--t-fast) var(--ease-out); }
+.is-idle .wordmark, .is-idle .pack-meta { opacity: 1 !important; }
+.is-idle .wordmark { transform: scale(.65); }
+.pack-metrics { margin-top: var(--s-3); color: var(--text-dim); font: 10px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; }
+.is-idle .pack-open-action { opacity: 0; pointer-events: none; }
+.is-quiet #currency-counter, .is-idle #currency-counter { opacity: 0 !important; pointer-events: none; }
+.pack-open-action { transition: opacity var(--t-fade) var(--ease-out); }
+
+.inventory-sheet, .inventory-sheet.is-peek {
+  opacity: calc(.32 + var(--inventory-proximity, 0) * .68);
+  transition: opacity var(--t-fade) var(--ease-out);
+}
+.inventory-sheet:has(:focus-visible) { opacity: 1; }
+.inventory-depth-active .inventory-sheet { opacity: 1; }
+.inventory-sheet.is-peek.is-pulling .inventory-content { visibility: visible; }
+.is-idle .inventory-sheet.is-peek { opacity: .32; pointer-events: auto; }
+
+.settings-corner { opacity: 1; pointer-events: auto; transition: opacity var(--t-ui) var(--ease-out); }
+.settings-corner.is-near, .settings-corner:has(:focus-visible) { opacity: 1 !important; pointer-events: auto; }
+.settings-corner.is-occluded, .settings-open .settings-corner,
+.inventory-depth-active .settings-corner, .inventory-detail-active .settings-corner,
+.inventory-pulling .settings-corner,
+.is-opening .settings-corner, .is-idle .settings-corner { opacity: 0 !important; pointer-events: none; }
+@media (hover: none), (pointer: coarse) { .settings-corner { opacity: 1 !important; pointer-events: auto; } }
+
+.is-afk .menu-shell { transform: none; filter: none; opacity: 1; }
+.is-afk .wordmark { opacity: 1 !important; transform: scale(.65); }
+.is-afk #pack-stage { visibility: visible !important; opacity: 1 !important; pointer-events: none; }
+.is-afk .pack-meta { top: 50%; transform: translate(-50%,-50%); opacity: 1 !important; pointer-events: none; }
+.is-afk .pack-unit, .is-afk .pack-reflection, .is-afk .pack-key-hint,
+.is-afk .pack-open-action, .is-afk .inventory-sheet, .is-afk .inventory-detail,
+.is-afk .opening-stage, .is-afk .opening-toast, .is-afk .tutorial,
+.is-afk .collection-toast,
+.is-afk .settings-overlay, .is-afk .settings-corner, .is-afk .currency-counter,
+.is-afk #inventory-affordance, .is-afk #cursor-glow, .is-afk #dot-grid,
+.is-afk .performance-display { visibility: hidden !important; pointer-events: none; }
+.is-afk .stock-card { transform: none !important; }
+.is-afk .stock-card__shine { opacity: 0 !important; }
+.reduced-motion .wordmark { transition-property: opacity; }

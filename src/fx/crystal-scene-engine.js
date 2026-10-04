@@ -192,7 +192,7 @@
         rockPlane(rocks,0,[-6,-2,-8],9,17,32,52);rockPlane(rocks,0,[6,-2,-8],9,17,32,52);
         crystal(rocks,0,5.85,0,.19,.52,.2,rng('crimson-ceiling-socket'));
         // Strong foreground silhouettes and smaller nested clusters avoid a repeated picket fence.
-        var clusterX=0,clusterZ=0;for(var i=0;i<(dawn?(level===3?140:level===2?90:60):(C.settings.get('quality')==='high'?56:36));i++){var x=(random()-.5)*12,z=-7+random()*10;if(dawn){if(i%5===0){clusterX=x;clusterZ=z;}else{x=clusterX+(random()-.5)*.8;z=clusterZ+(random()-.5)*.8;}}if(Math.abs(x)<1.1&&z>-1) x+=x<0?-1.6:1.6;var length=(dawn?.6:.35)+Math.pow(random(),2)*(dawn?3.9:1.65);crystal(cluster,x,5.55-length*.5,z,.09+length*.14,length,random()*TAU,random);}
+        var clusterX=0,clusterZ=0;for(var i=0;i<(dawn?(level===3?140:level===2?90:60):(C.settings.get('cinematicQuality')==='high'?56:36));i++){var x=(random()-.5)*12,z=-7+random()*10;if(dawn){if(i%5===0){clusterX=x;clusterZ=z;}else{x=clusterX+(random()-.5)*.8;z=clusterZ+(random()-.5)*.8;}}if(Math.abs(x)<1.1&&z>-1) x+=x<0?-1.6:1.6;var length=(dawn?.6:.35)+Math.pow(random(),2)*(dawn?3.9:1.65);crystal(cluster,x,5.55-length*.5,z,.09+length*.14,length,random()*TAU,random);}
         for(var j=0;j<20;j++){var side=j%2?-1:1;crystal(cluster,side*(4.7+random()*.6),1+random()*3.5,-6+random()*9,.12+random()*.16,.4+random()*.7,random()*TAU,random);}
         crystal(hero,0,0,0,.35,1.2,.18,rng('crimson-hero:'+seed));
         triangle(water,[-18,0,-18],[-18,0,18],[18,0,-18]);triangle(water,[18,0,-18],[-18,0,18],[18,0,18]);
@@ -285,7 +285,7 @@
     function paint(w,h,t){
       if(!gl||lost||disposed)return null;
       try {
-        var cfg=C.config.rarityIntro,budget=C.settings.get('quality')==='high'?cfg.mythicalMaxPixels:cfg.mythicalMediumPixels,dpr=Math.min(cfg.maxDpr,C.settings.policy.dpr,Math.sqrt(budget/(w*h))),rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
+        var cfg=C.config.rarityIntro,budget=C.settings.get('cinematicQuality')==='high'?cfg.mythicalMaxPixels:cfg.mythicalMediumPixels,dpr=Math.min(cfg.maxDpr,C.settings.policy.dpr,Math.sqrt(budget/(w*h))),rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
         if(dawn){var desired=[.5,.5,.75,1][level];resolution+=Math.max(-.015,Math.min(.015,desired-resolution));dpr=Math.min(2,C.settings.policy.dpr)*resolution;rw=Math.max(1,Math.floor(w*dpr));rh=Math.max(1,Math.floor(h*dpr));}
         if(width!==rw||height!==rh){width=rw;height=rh;canvas.width=rw;canvas.height=rh;sizeTarget(scene,rw,rh);sizeTarget(reflection,Math.max(1,rw>>1),Math.max(1,rh>>1));sizeTarget(bloom,Math.max(1,rw>>1),Math.max(1,rh>>1));}
         if(!dawn||!sigilProgram||t<timeline.clock.start)simulateWater(t);var hero=4.35,heroX=0,angle=0,eye=[mix(2.6,1.1,smooth((t-timeline.cave.start)/caveMs)),2.6,mix(9.6,7.9,smooth((t-timeline.cave.start)/caveMs))],targetPoint=[0,2.55,-.35],impact=t>=impactStart?t-impactStart:-1,under=t>=underStart;
@@ -304,7 +304,7 @@
         gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);gl.disable(gl.DITHER);stats.drawCalls=0;
         gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,mainProgram.stone);gl.bindFramebuffer(gl.FRAMEBUFFER,reflection.f);gl.viewport(0,0,reflection.w,reflection.h);gl.clearColor(dawn?.02:.005,dawn?.024:.001,dawn?.039:.003,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!under&&!(dawn&&sigilProgram&&t>=timeline.clock.start))scenePass(reflectVP,mirrorEye,hero,heroX,angle,t,false,true,reflectVP,impact);
         gl.bindFramebuffer(gl.FRAMEBUFFER,scene.f);gl.viewport(0,0,rw,rh);gl.clearColor(dawn?.02:.008,dawn?.024:.001,dawn?.039:.004,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!(dawn&&sigilProgram&&t>=timeline.clock.start))scenePass(vp,eye,hero,heroX,angle,t,under,false,reflectVP,impact);
-        var allowance=C.settings.policy.particles,count=Math.floor((C.settings.get('quality')==='high'?300:160)*allowance);
+        var allowance=C.settings.policy.particles,count=Math.floor((C.settings.get('cinematicQuality')==='high'?300:160)*allowance);
         for(var i=0;i<count;i++){var p=particles[i],at=i*4;particleData[at]=p.x+Math.sin(t*.15+p.phase)*.12;particleData[at+1]=p.y+Math.sin(t*.13+p.phase)*.1;particleData[at+2]=p.z;particleData[at+3]=p.size;}
         if(allowance>0&&t>=tipStart+tipMs*.28&&t<fallStart){for(var chip=0;chip<32;chip++){var age=Math.max(0,t-tipStart-tipMs*.28-chip*.023),pos=(count+chip)*4;particleData[pos]=Math.sin(chip*2.39)*age*.21;particleData[pos+1]=5.43-age*age*1.6;particleData[pos+2]=Math.cos(chip*2.39)*age*.18;particleData[pos+3]=.10+(chip%4)*.035;}count+=32;}
         if(allowance>0&&under){for(var bubble=0;bubble<20;bubble++){var phase=bubble*.618,bi=(count+bubble)*4;particleData[bi]=Math.sin(bubble*2.399)*(.45+(bubble%3)*.22)+Math.sin(t+phase)*.025;particleData[bi+1]=hero+((t-underStart)*.28+phase)%2.6;particleData[bi+2]=Math.cos(bubble*2.399)*.6;particleData[bi+3]=-(.17+(bubble%4)*.035);}count+=20;}

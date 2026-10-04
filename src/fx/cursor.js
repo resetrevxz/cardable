@@ -2,10 +2,11 @@
   'use strict';
   var element, x = 0, y = 0, dirty = false, present = false;
   var finePointer = root.matchMedia('(hover: hover) and (pointer: fine)');
-  var blade = false, angle = 0, previous = null, bladeElement, revealHidden = false;
+  var blade = false, angle = 0, previous = null, bladeElement, revealHidden = false, cutTarget = null;
   function update(_, dt) {
     if (!dirty) return false;
-    var p = C.input.pointer, cfg = C.config.shell.cursor;
+    var pointer=C.input.pointer;
+    var p = blade && cutTarget ? {x:cutTarget.x,y:cutTarget.y,inside:pointer.inside,interactive:false} : pointer, cfg = C.config.shell.cursor;
     if ((!C.settings.get('cursorGlow') && !blade) || (!C.settings.policy.background && !blade) || revealHidden || !p.inside || !finePointer.matches) {
       present = false; element.classList.remove('is-present'); dirty = false; return false;
     }
@@ -20,7 +21,7 @@
     element.classList.toggle('is-blade', blade);
     if (previous && (p.x !== previous.x || p.y !== previous.y)) angle = Math.atan2(p.y - previous.y, p.x - previous.x) * 180 / Math.PI;
     previous = { x: p.x, y: p.y };
-    bladeElement.style.transform = 'translate(-50%,-50%) rotate(' + angle + 'deg)';
+    bladeElement.style.transform = 'translate(-50%,-50%) rotate(' + (blade ? 0 : angle) + 'deg)';
     dirty = moving;
     return moving;
   }
@@ -45,8 +46,9 @@
       C.settings.onChange('cursorGlow', function () { dirty = true; C.fx.wake(); });
       C.settings.onChange('backgroundQuality', function () { dirty = true; C.fx.wake(); });
       C.events.on('cursor:blade', function (value) {
-        blade = value; element.classList.toggle('is-blade', blade); dirty = true; C.fx.wake();
+        blade = value;if(!blade)cutTarget=null; element.classList.toggle('is-blade', blade); dirty = true; C.fx.wake();
       });
+      C.events.on('cursor:cutTarget', function(value){cutTarget=value;element.style.setProperty('--blade-strength',value?value.strength:0);dirty=true;C.fx.wake();});
       C.events.on('reveal:context', function (event) {
         revealHidden = !!event.hideCursor; element.classList.toggle('is-reveal-hidden', revealHidden);
         if (revealHidden) { element.classList.remove('is-present'); present = false; }

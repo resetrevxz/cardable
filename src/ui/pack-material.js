@@ -10,14 +10,18 @@
       var ly = parseFloat(lamp.getPropertyValue('--lamp-y')) || 0.8;
       var design = pack.design || {}, painted = {}, lastTime = -100, lastRx = null, lastRy = null;
       var shine = el.querySelectorAll('.pack-shine')[0];
+      var skin = C.packSkins.get(pack), skinState = {};
       function set(key, value) { if (painted[key] !== value) { painted[key] = value; el.style.setProperty(key, value); } }
       set('--foil-strength', design.foilStrength == null ? 0.55 : design.foilStrength);
       set('--foil-roughness', design.roughness == null ? 0.5 : design.roughness);
       set('--foil-refraction', design.refraction == null ? 0.25 : design.refraction);
       set('--foil-emboss', design.emboss == null ? 0.6 : design.emboss);
+      if ((pack.skin || 'standard') !== 'standard') { skin.quality(el, {rx:0,ry:0}, 0, true, skinState); skinState.appeared = null; }
       return {
         update: function (pose, time, reduced) {
+          var skinMoving = skin.quality(el, pose, time, reduced, skinState);
           var hz = C.settings.policy.glareHz;
+          if ((pack.skin || 'standard') !== 'standard' && el.dataset.packQuality !== 'high') return skinMoving;
           if (!hz) return;
           var rx = pose.rx || 0, ry = pose.ry || 0;
           // Idle glint is almost imperceptible; avoid repainting its optical layers

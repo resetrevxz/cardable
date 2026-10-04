@@ -21,7 +21,11 @@
     var border = C.finishes.svg('g', { 'clip-path': 'url(#' + clipId + ')' }, frame);
     C.finishes.svg('path', { d: framePath, class: 'exotic-pink-outline', fill: 'none', 'stroke-width': 5 }, border);
     C.finishes.svg('path', { d: framePath, class: 'exotic-dark-border', fill: 'none', 'stroke-width': 3 }, border);
-    var highlight = C.finishes.svg('path', { d: framePath, class: 'exotic-border-highlight', fill: 'none', 'stroke-width': 1.2, pathLength: 1000, 'stroke-dasharray': '85 915' }, border);
+    // Keep the travelling highlight out of the static filtered metal rim.
+    // Changing its dash offset otherwise re-rasterizes both full-size glow filters.
+    var highlightFrame = C.finishes.svg('svg', { viewBox: '0 0 100 140', class: 'finish-exotic-frame finish-exotic-highlight-frame', 'aria-hidden': 'true', 'data-shape': 'squircle' }, prop);
+    var highlightClip = C.finishes.svg('g', { 'clip-path': 'url(#' + clipId + ')' }, highlightFrame);
+    var highlight = C.finishes.svg('path', { d: framePath, class: 'exotic-border-highlight', fill: 'none', 'stroke-width': 1.2, pathLength: 1000, 'stroke-dasharray': '85 915' }, highlightClip);
     (context.propElement || element).appendChild(prop);
     return { el: element, prop: prop, shapes: shapes, highlight: highlight, time: 0 };
   }

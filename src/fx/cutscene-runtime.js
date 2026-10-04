@@ -7,7 +7,7 @@
     spec.sections.forEach(function (part) { result[part.id] = { start: offset, ms: part.ms }; offset += part.ms; });
     return { sections: result, total: offset };
   }
-  function mode(){return C.motion.reduced||C.settings.get('cutscenes')==='off'||C.settings.get('quality')==='very-low'||!C.settings.policy.animation?'light':C.settings.get('cutscenes')==='short'?'short':'full';}
+  function mode(){return C.motion.reduced||C.settings.get('cutscenes')==='off'||C.settings.get('cinematicQuality')==='very-low'||!C.settings.policy.animation?'light':C.settings.get('cutscenes')==='short'?'short':'full';}
   function playDuration(spec,choice){
     if(choice==='light')return spec.light?spec.light.ms:3000;
     var total=sections(spec).total;
@@ -43,7 +43,7 @@
     var count=Math.min(3,Math.floor((end-start-2*margin)/gap)+1),first=Math.max(start+margin,Math.min(times[0],end-margin-(count-1)*gap));
     return original.slice(0,count).map(function(beat,i){return {id:beat.id,ms:storyTime(spec,choice,first+i*gap),key:beat.id};});
   }
-  function quality() { return ['very-low', 'low', 'medium', 'high'].indexOf(C.settings.get('quality')); }
+  function quality() { return ['very-low', 'low', 'medium', 'high'].indexOf(C.settings.get('cinematicQuality')); }
   C.cutscenes = {
     registry: entries, timeline: sections, mode:mode, playDuration:playDuration,pulseFactor:pulseFactor,pulses:pulses, debug:{meter:false},
     register: function (kind, factory) { entries[kind] = factory; },

@@ -7,7 +7,7 @@
 .settings-preset-status { margin: var(--s-3) 0 0; min-height: 32px; color: var(--text-dim); font: 12px/1.5 var(--font-ui); }
 .settings-select { max-width: 155px; min-width: 120px; min-height: 44px; border: 1px solid var(--hairline); border-radius: var(--r-button); padding: 8px; color: var(--text); background: var(--surface-2); font: 11px var(--font-mono); }
 .settings-advanced { margin: 0 var(--s-5) var(--s-4); }
-.settings-advanced summary { min-height: 44px; display: list-item; padding-top: 14px; box-sizing: border-box; cursor: pointer; font: 12px var(--font-ui); color: var(--text-dim); }
+.settings-advanced summary { min-height: 44px; display: list-item; padding-top: 14px; box-sizing: border-box; cursor: pointer; font: 12px var(--font-ui); color: var(--text-dim); user-select: none; -webkit-tap-highlight-color: transparent; }
 .performance-display { position: fixed; left: var(--s-4); bottom: var(--s-4); z-index: 70; padding: 8px 10px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); color: var(--text-dim); font: 10px var(--font-mono); pointer-events: none; }
 .performance-display[hidden] { display: none; }
 
@@ -16,10 +16,11 @@
 [data-glass-quality="medium"] .card__info { backdrop-filter: blur(10.8px); -webkit-backdrop-filter: blur(10.8px); }
 [data-glass-quality="medium"] .currency-counter { backdrop-filter: blur(13.2px); -webkit-backdrop-filter: blur(13.2px); }
 [data-glass-quality="medium"] .currency-receipt { backdrop-filter: blur(10.8px); -webkit-backdrop-filter: blur(10.8px); }
-[data-glass-quality="medium"] .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail,.card-gallery) { filter: blur(2.4px); }
+/* A shaded background keeps the live preview clear without blurring the entire game. */
+.settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail) { filter: none !important; }
 [data-glass-quality="medium"] .inventory-depth-active:not(.settings-open) .menu-shell { filter: blur(calc(var(--inventory-menu-blur,0px) * .6)); }
 :is([data-glass-quality="very-low"],[data-glass-quality="low"]) :is(.glass,.glass--sheet,.card__info,.currency-counter,.currency-receipt,.collection-toast,.save-notice,.settings-data-toast) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background-color: var(--surface-2); }
-:is([data-glass-quality="very-low"],[data-glass-quality="low"]) .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail,.card-gallery),
+:is([data-glass-quality="very-low"],[data-glass-quality="low"]) .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail),
 :is([data-glass-quality="very-low"],[data-glass-quality="low"]) .inventory-depth-active .menu-shell { filter: none; }
 :is([data-glass-quality="very-low"],[data-glass-quality="low"]) .inventory-detail { background: rgba(8,8,10,calc(var(--detail-dim,0) * .95)); }
 
@@ -70,6 +71,12 @@
   .settings-advanced { margin-left: 16px; margin-right: 16px; }
   .settings-header { padding-right: 76px; }
   .opening-flip { top: 12px; }
+}
+/* Stacked controls preserve label width at narrow viewports and high zoom. */
+@media (max-width: 400px) {
+  .settings-row:has(.settings-segments) { flex-direction: column; align-items: stretch; padding-block: var(--s-3); }
+  .settings-row .settings-segments { max-width: 100%; }
+  .settings-row .settings-segment { flex: 1; min-width: 44px; overflow-wrap: anywhere; }
 }
 
 .opening-pack,.pack-open-action { touch-action: none; }

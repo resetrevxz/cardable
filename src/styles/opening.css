@@ -37,7 +37,7 @@
 .opening-enter-hint { position: absolute; top: calc(100% + var(--s-5)); width: 100%; text-align: center; opacity: 0; transition: opacity var(--t-fast) var(--ease-out); color: var(--text-dim); font: 11px/1.5 var(--font-mono); pointer-events: none; }
 .opening-error { position: fixed; left: var(--s-6); right: var(--s-6); bottom: var(--s-6); text-align: center; z-index: var(--z-toast); pointer-events: none; color: var(--text-dim); font: 12px var(--font-ui); opacity: 0; transition: opacity var(--t-fast) var(--ease-out); }
 .menu-shell { transition: opacity var(--t-ui) var(--ease-out); }
-.is-opening .menu-shell > *, .is-opening:not(.is-opening-revealed) .dev-panel { opacity: 0; pointer-events: none; }
+.is-opening .menu-shell > * { opacity: 0; pointer-events: none; }
 .is-collecting #inventory-affordance { opacity: 1; }
 .is-opening .cursor-glow.is-present:not(.is-blade) { opacity: var(--opening-chrome-opacity) !important; }
 .cursor-glow__blade { position: absolute; top: 50%; left: 50%; width: var(--blade-length); height: var(--blade-width); opacity: 0; background: linear-gradient(90deg,transparent,var(--hairline-strong) 20%,var(--highlight) 65%,transparent); border-radius: var(--r-chip); box-shadow: 0 0 8px var(--hairline-strong); }
