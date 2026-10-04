@@ -5,7 +5,7 @@
   function loadAlbum(){return files(['src/studio/album.js','src/studio/photo.js','src/studio/ui/album.js']);}
   function load() {
     if(C.studioController)return Promise.resolve();if(loading)return loading;
-    loading=files(['assets/art-data/manifest.js','src/studio/art-data.js','src/studio/camera.js','src/studio/lights.js','src/studio/presets.js','src/studio/card-face.js','src/studio/props.js','src/studio/renderer.js','src/studio/album.js','src/studio/photo.js','src/studio/ui/album.js','src/studio/ui/panels.js','src/studio/ui/gizmos.js','src/studio/ui/scenes.js','src/studio/ui/photo.js','src/studio/studio.js']).catch(function(error){loading=null;throw error;});return loading;
+    loading=files(['assets/art-data/manifest.js','src/studio/art-data.js','src/studio/camera.js','src/studio/lights.js','src/studio/presets.js','src/studio/materials.js','src/studio/card-face.js','src/studio/props.js','src/studio/renderer.js','src/studio/album.js','src/studio/photo.js','src/studio/ui/album.js','src/studio/ui/panels.js','src/studio/ui/gizmos.js','src/studio/ui/scenes.js','src/studio/ui/photo.js','src/studio/director.js','src/studio/recording.js','src/studio/ui/director.js','src/studio/studio.js']).catch(function(error){loading=null;throw error;});return loading;
   }
   function reopen(photo){
     if(reopening||busy)return Promise.resolve(false);
@@ -56,7 +56,7 @@
     C.dev.checkStudio = async function () {
       var at = root.performance.now(), cases = [], pending = [];
       function require(ok, label) { if (!ok) throw new Error('Studio: ' + label); cases.push(label); }
-      var scene = C.studioScenes.defaults();scene.props=[C.studioScenes.prop({type:'neon-tube',text:'STUDIO',scale:[.5,2,1],material:'emissive'})]; require(JSON.stringify(C.studioScenes.parse(C.studioScenes.serialize(scene))) === JSON.stringify(C.studioScenes.parse(scene)), 'scene JSON round-trip');
+      var scene = C.studioScenes.defaults();scene.props=[C.studioScenes.prop({type:'neon-tube',text:'STUDIO',scale:[.5,2,1],material:'emissive'})];scene.director={duration:10,repeat:'ping-pong',title:true,playhead:3,preview:true};scene.keyframes=[{id:'camera-a',time:0,track:'camera',target:'camera',easing:'ease-in-out',camera:C.studioScenes.clone(scene.camera)},{id:'light-a',time:3,track:'light',target:'key',easing:'linear',light:{position:[2,3,4],intensity:1.2,color:[.2,.6,1]}}]; require(JSON.stringify(C.studioScenes.parse(C.studioScenes.serialize(scene))) === JSON.stringify(C.studioScenes.parse(scene)), 'scene JSON round-trip');
       scene.lights = Array.from({ length: 20 }, function () { return scene.lights[0]; }); scene.props = Array.from({ length: 60 }, function (_, i) { return C.studioScenes.prop({id:'p'+i,type:'fan'}); });
       require(C.studioScenes.parse(scene).lights.length === 8 && ['high', 'medium', 'low', 'very-low'].every(function (tier) { var effective = C.studioScenes.effective(scene, tier), limits = C.studioScenes.limits(tier); return effective.lights.length <= limits.lights && effective.props.length <= limits.props; }), 'light and prop budget clamps');
       var first = C.studioScenes.defaults(), history = C.studioScenes.history(first), second = C.studioScenes.clone(first); second.props = [C.studioScenes.prop({type:'glass-case',position:[1,2,3],scale:[2,1,.5],locked:true})]; second.camera.roll = .4; second.lights[0].color = [.2, .7, 1]; history.begin(first); history.commit(second);
@@ -66,7 +66,7 @@
       var source=root.document.createElement('canvas');source.width=32;source.height=24;source.getContext('2d').fillRect(0,0,32,24);var image=C.studioPhoto.frame(source,{w:96,h:64,frame:'polaroid',caption:'Check',watermark:false},{}),blob,decoded;
       try{blob=await C.studioPhoto.encode(image,'image/png',1);decoded=await root.createImageBitmap(blob);require(decoded.width===96&&decoded.height===64,'photo pixel dimensions match request');}finally{if(decoded)decoded.close();source.width=source.height=image.width=image.height=1;}
       var recovered=await C.studioAlbum.probe(blob),expected=new Uint8Array(await blob.arrayBuffer()),actual=new Uint8Array(await recovered.arrayBuffer());require(recovered instanceof root.Blob&&recovered.type===blob.type&&recovered.size===blob.size&&expected.every(function(byte,index){return byte===actual[index];}),'album blob round-trip');
-      require(root.performance.now() - at < 2000, 'under two seconds'); var result = { milestone: 'D', passed: cases, pending: pending, elapsedMs:Math.round(root.performance.now()-at) }; root.console.info('checkStudio', result); return result;
+      require(root.performance.now() - at < 2000, 'under two seconds'); var result = { milestone: 'E', passed: cases, pending: pending, elapsedMs:Math.round(root.performance.now()-at) }; root.console.info('checkStudio', result); return result;
     };
     C.dev.register({ id: 'studio.check', group: 'Studio', label: 'Check Studio', type: 'button', helper: 'One explicit small check: scene, history, limits, photo pixels and album blob.', run: function () { return C.dev.checkStudio(); } });
   });

@@ -68,7 +68,7 @@
     for (var i = 0; i < 12; i++) { g.fillStyle = i <= rarity.tier ? '#D83D27' : '#773F2D'; g.fillRect(45 + i * 22, 543, 16, 5); } text(g, rarity.code, 329, 549, 9, 'JetBrains Mono', '#625846', 600);
   }
   if (C.cardSkins.registry.classic) C.cardSkins.registry.classic.studio = { paint: classic };
-  if (C.finishes.registry.ascendant) C.finishes.registry.ascendant.studio = { paint: function (g, time, context) { C.ascendantBackground.draw(g, 400, 560, 0, context.instance.serial); } };
+  if (C.finishes.registry.ascendant && !C.finishes.registry.ascendant.studio) C.finishes.registry.ascendant.studio = { paint: function (g, time, context) { C.ascendantBackground.draw(g, 400, 560, 0, context.instance.serial); } };
   C.studioFace = {
     paint: async function (card, instance, scene, tier, origin, entry, alive) {
       alive = alive || function () { return true; };
@@ -81,7 +81,7 @@
       var context = { card: card, instance: instance, scene: scene, origin: origin, side: 'front' };
       [front, rear].forEach(function (face, index) { var g = face.getContext('2d'); g.scale(width / 400, height / 560); round(g, 0, 0, 400, 560, 18); g.clip(); context.side = index ? 'back' : 'front';
         if (index) back(g, instance);
-        else { finish(g, card, context, styles); g.save(); round(g, 11, 11, 378, 538, 14); g.clip(); if (image) cover(g, image, 11, 11, 378, 538); else procedural(g, card, 11, 11, 378, 538); g.restore(); var shade = g.createLinearGradient(0, 0, 0, 560); shade.addColorStop(0, '#000000EF'); shade.addColorStop(0.22, '#000000CB'); shade.addColorStop(0.4, '#00000000'); shade.addColorStop(0.65, '#0000000F'); shade.addColorStop(1, '#00000070'); g.fillStyle = shade; g.fillRect(11, 11, 378, 538);
+        else { finish(g, card, context, styles); g.save(); round(g, 11, 11, 378, 538, 14); g.clip(); if (image) cover(g, image, 11, 11, 378, 538); else procedural(g, card, 11, 11, 378, 538); g.restore();var variant=C.variant(instance.variantId),coat=variant&&variant.studio;if(coat&&coat.paint){g.save();round(g,11,11,378,538,14);g.clip();coat.paint(g,0,context);g.restore();} var shade = g.createLinearGradient(0, 0, 0, 560); shade.addColorStop(0, '#000000EF'); shade.addColorStop(0.22, '#000000CB'); shade.addColorStop(0.4, '#00000000'); shade.addColorStop(0.65, '#0000000F'); shade.addColorStop(1, '#00000070'); g.fillStyle = shade; g.fillRect(11, 11, 378, 538);
           icon(g, 'brand', 29, 32, 26); text(g, 'cardable', 59, 51, 16.8, 'Inter', '#F5F5F7', 600); g.textAlign = 'right'; text(g, instance.serial, 371, 50, 9.8, 'JetBrains Mono', '#C8C9CE'); text(g, generation ? generation.name : card.generation, 371, 81, 9, 'JetBrains Mono', '#B7B8BE'); g.textAlign = 'left'; text(g, rarity.name + ' / ' + rarity.code, 29, 81, 10.4, 'JetBrains Mono', '#D9DBE0'); g.strokeStyle = '#FFFFFF30'; g.beginPath(); g.moveTo(29, 63); g.lineTo(371, 63); g.stroke(); if (scene.card.plate) plate(g, card, instance, rarity);
         }
         var skin = C.cardSkins.registry[instance.cardSkinId]; if (skin && skin.studio && skin.studio.paint) skin.studio.paint(g, card, instance, context);
@@ -91,7 +91,7 @@
       for (var y = 0; y < 358; y++) for (var x = 0; x < 256; x++) { var at = (y * 256 + x) * 4, dx = luminance((y * 256 + Math.min(255, x + 1)) * 4) - luminance((y * 256 + Math.max(0, x - 1)) * 4), dy = luminance((Math.min(357, y + 1) * 256 + x) * 4) - luminance((Math.max(0, y - 1) * 256 + x) * 4); out[at] = 128 - dx * 28; out[at + 1] = 128 + dy * 28; out[at + 2] = 255; out[at + 3] = y > 232 ? 190 : 125; } ng.putImageData(pixels, 0, 0);
       var tags = canvas(1024, 88), tg = tags.getContext('2d'); var tagEntry = entry || { card: card, rarity: rarity, variantId: instance.variantId, stackKey: C.stacks.key(card.id, instance.variantId), owned: true, isNew: false }; var labels = C.cardTags.derive(tagEntry, instance, 'compact').map(function (tag) { return tag.text || tag.label; }); var left = 12;
       tg.font = '500 19px "JetBrains Mono"'; labels.slice(0, 3).forEach(function (label) { var w = Math.min(430, tg.measureText(label).width + 28); round(tg, left, 18, w, 45, 22); tg.fillStyle = '#19191D'; tg.fill(); tg.strokeStyle = '#FFFFFF30'; tg.stroke(); tg.fillStyle = '#D8D8DC'; tg.fillText(label, left + 14, 47); left += w + 12; });
-      return { front: front, back: rear, normal: normal, tags: tags, source: embedded ? 'embedded' : 'procedural', width: width, height: height,
+      return { front: front, back: rear, normal: normal, tags: tags, material: Object.assign(C.studioMaterials.info(card,instance),{plate:scene.card.plate}), source: embedded ? 'embedded' : 'procedural', width: width, height: height,
         destroy: function () { [front, rear, normal, tags].forEach(function (el) { el.width = el.height = 1; }); image = null; } };
     }
   };

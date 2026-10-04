@@ -91,3 +91,15 @@ body.studio-album-active > :not(.studio-album),body.studio-album-active > :not(.
 .studio-field input[type="number"] { width:100%; min-height:44px; padding:10px; background:var(--surface-2); border:1px solid var(--hairline); border-radius:var(--r-button); color:var(--text); font:12px var(--font-mono); }
 .reduced-motion .studio-shutter-sweep { display:none; }.reduced-motion .studio-shutter-finder { transform:none; }
 .studio-album :focus-visible { outline:1px solid #FFFFFFB3; outline-offset:3px; }
+
+/* Director chrome stays neutral; titles are composited into exports too. */
+.studio-title-overlay { position:absolute; bottom:13%; left:10%; width:80%; padding:22px 12px; display:grid; gap:9px; text-align:center; background:#08080ccc; pointer-events:none; color:var(--text); z-index:2; }
+.studio-title-overlay[hidden] { display:none; }
+.studio-title-overlay strong { font-size:clamp(15px,2vw,24px); font-weight:600; }
+.studio-title-overlay span,.studio-timecode { font-family:var(--font-mono); font-size:11px; color:var(--text-dim); }
+.studio-timecode { display:block; padding:9px 0; font-variant-numeric:tabular-nums; }
+.studio-timeline { padding:14px 0; border-block:1px solid #ffffff1a; }
+.studio-keyframe-marks { display:flex; flex-wrap:wrap; gap:5px; max-height:120px; overflow:auto; }
+.studio-keyframe-marks button { font-size:10px; padding:6px; }
+.studio-keyframe { padding:10px 0; border-bottom:1px solid #ffffff18; }
+.studio-keyframe .studio-field { margin-block:8px; }

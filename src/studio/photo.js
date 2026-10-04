@@ -31,12 +31,12 @@
   function requireAlive(job,s){if(!alive(job,s))throw new Error('Capture cancelled.');}
   async function capture(s,value,job){
     var o=options(value,s.renderer.maxSize,s.renderer.kind==='Simple'),scene=C.studioScenes.parse(s.scene),tier=s.renderer.kind==='Simple'?'very-low':o.high?'high':s.tier,at=Date.now(),record;
-    scene.presentationTime=s.lightTime;var a=area(o),viewport=s.viewport.getBoundingClientRect();if(scene.camera.autoFrame){C.studioCamera.frame(scene,viewport.width/viewport.height);scene.camera.autoFrame=false;}var sceneJson=C.studioScenes.serialize(scene);
+    scene.presentationTime=s.lightTime;scene.director.playhead=s.director.time;scene.director.preview=s.director.preview;scene.card.tilt[1]=((scene.card.tilt[1]+s.director.turn*360+180)%360+360)%360-180;var a=area(o),viewport=s.viewport.getBoundingClientRect();if(scene.camera.autoFrame){C.studioCamera.frame(scene,viewport.width/viewport.height);scene.camera.autoFrame=false;}var sceneJson=C.studioScenes.serialize(scene);
     try{
       job.faces=await C.studioFace.paint(s.view.card,s.view.instance,scene,tier,s.view.el,s.entry,function(){return alive(job,s);});requireAlive(job,s);
       var surface=canvas(1,1);job.renderer=tier==='very-low'?C.studioRenderer.simple(surface,job.faces):C.studioRenderer.create(surface,job.faces,tier);
       if(job.renderer.kind==='Simple'&&tier!=='very-low')throw new Error('High-quality capture is unavailable. Use the Simple preview.');
-      var effective=C.studioScenes.effective(scene,tier);
+      var effective=C.studioScenes.effective(C.studioDirector.sample(scene,scene.director.playhead,0,scene.director.preview),tier);effective.materialTime=scene.presentationTime;
       var cropHeight=Math.min(viewport.height,viewport.width/(a.w/a.h))*.9;effective.camera.fov=2*Math.atan(Math.tan(effective.camera.fov*Math.PI/360)*cropHeight/viewport.height)*180/Math.PI;
       // Capture the exact sampled instant rather than advancing between tiles.
       effective.lights=C.studioLights.sample(effective.lights,scene.presentationTime,tier);effective.props=C.studioProps.sample(effective.props,scene.presentationTime,tier);
@@ -55,7 +55,7 @@
           s.api.status('Rendering photo · '+(++part)+' / '+total+' tiles');await new Promise(function(resolve){root.setTimeout(resolve,0);});
         }
       }
-      requireAlive(job,s);decorate(job.output,o,{name:s.view.card.name,serial:s.view.instance.serial,tier:C.rarity(s.view.card.rarity).name,at:at});
+      requireAlive(job,s);g.save();g.translate(a.x,a.y);s.director.paintTitle(g,a.w,a.h);g.restore();decorate(job.output,o,{name:s.view.card.name,serial:s.view.instance.serial,tier:C.rarity(s.view.card.rarity).name,at:at});
       var blob=await encode(job.output,formats[o.format],o.quality);requireAlive(job,s);
       var small=canvas(256,Math.max(1,Math.round(256*o.h/o.w)));if(small.height>256){small.height=256;small.width=Math.round(256*o.w/o.h);}small.getContext('2d').drawImage(job.output,0,0,small.width,small.height);
       var thumb;try{thumb=await encode(small,'image/jpeg',.72);}finally{small.width=small.height=1;}requireAlive(job,s);

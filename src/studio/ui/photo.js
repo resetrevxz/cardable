@@ -36,7 +36,7 @@
     var el=C.studioUI.node('div','studio-shutter',s.viewport),finder=C.studioUI.node('div','studio-shutter-finder',el);el.setAttribute('aria-hidden','true');C.studioUI.node('div','studio-shutter-sweep',el);var fly=C.studioUI.node('img','studio-photo-flight',s.root),from=s.viewport.getBoundingClientRect(),target=(s.photoFilm.el.querySelector('.studio-filmstrip-items button')||s.photoFilm.el.querySelector('button')).getBoundingClientRect(),dx=target.left+target.width/2-from.left-from.width/2,dy=target.top+target.height/2-from.top-from.height/2,url=URL.createObjectURL(record.thumb);fly.alt='';fly.style.left=(from.left+from.width/2-80)+'px';fly.style.top=(from.top+from.height/2-50)+'px';fly.src=url;fly.onload=fly.onerror=function(){URL.revokeObjectURL(url);};s.shutter={el:el,fly:fly,url:url,dx:dx,dy:dy,age:0};C.fx.wake();
   }
   async function capture(s){
-    if(s.photoBusy||s.closing||!s.renderer)return;try{C.studioPhoto.options(s.photoOptions,s.renderer.maxSize,s.renderer.kind==='Simple');}catch(error){s.api.status(error.message);return;}
+    if(s.photoBusy||s.recordJob||s.closing||!s.renderer)return;try{C.studioPhoto.options(s.photoOptions,s.renderer.maxSize,s.renderer.kind==='Simple');}catch(error){s.api.status(error.message);return;}
     s.api.commit();s.gizmos.cancel();var job=s.photoJob=C.studioPhoto.createJob();lock(s,true);s.api.status('Preparing photo…');
     try{var result=await C.studioPhoto.capture(s,s.photoOptions,job);if(s.closing||!s.root.isConnected)return;s.latestPhoto=result.record;s.api.status(result.notice);shutter(s,result.record);await s.photoFilm.refresh();}
     catch(error){if(!s.closing&&s.root.isConnected)s.api.status(error.message);}
