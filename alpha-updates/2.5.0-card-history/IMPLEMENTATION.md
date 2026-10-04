@@ -3,7 +3,11 @@
 Implemented in branch `update/card-history`, worktree `D:/CardableV2/card-history-work`.
 The separate `721be86` baseline snapshots the existing dirty shared checkout;
 only commits after it belong to this update. Do not cherry-pick the baseline.
-The shared checkout was read and copied, never changed by this update.
+The original milestone implementation left the shared checkout unchanged.
+On the owner's follow-up request, its Journal files and narrow hooks were
+applied to the main checkout, preserving the newer Royal Pack and Secret tags.
+Those main-checkout changes are left uncommitted to preserve other updates'
+existing staged and working-tree changes.
 
 ## A — data and engine
 
@@ -86,8 +90,9 @@ audio. Focus and inert state are restored on close/replacement.
 
 - No cutscene engine, pack registry, opening stylesheet, `packs.js`, cutscene
   finish, configuration version or save schema was edited.
-- `2.4.0-card-history` was the next available numbered folder in the captured
-  checkout. `card-history/SPEC.md` was moved intact there, inside this worktree.
+- The worktree initially used `2.4.0-card-history`. At main-checkout integration,
+  the concurrent Royal Pack occupied 2.4.0, so Journal moved to
+  `2.5.0-card-history`. The original spec remains intact.
 - Streak means consecutive local calendar days with a kept pull or committed
   pack opening. Backfill can prove pull days; it cannot invent past pack days.
 - Only actual instance `comboId` and emitted optional integration events create
