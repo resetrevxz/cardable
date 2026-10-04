@@ -1,4 +1,4 @@
-# Inspect / Director studio — milestone A
+# Inspect / Director studio — milestones A and B
 
 Milestone A is implemented on `update/inspect-director` in the isolated `D:/CardableV2/inspect-director-work` worktree. The prerequisite commit `ba57fdc` snapshots the live game unchanged; it is not part of the studio feature diff. Integrate the subsequent milestone commit against the corresponding live-game prerequisites rather than merging that snapshot as unrelated update work.
 
@@ -26,12 +26,24 @@ This creates 123 individual classic registration scripts plus an availability ma
 
 No cutscene engine, cutscene finish, pack registry, opening style or packs.js content changes in the studio feature diff. The small shared changes are script/style registration, optional save normalization, app version, scheduler scope and menu-timer suspension.
 
+## Milestone B — lights and camera
+
+- Six light types: point, spot, directional/sun, rectangular area softbox, strip and ambient/sky with separate top/bottom colors. The card's normal/roughness material receives every active light's diffuse/specular contribution, including beveled edges. Spot cones support procedural blinds, grid, leaves and stars gobos. Area/strip integration uses four bounded samples.
+- Light controls include name/type, position/rotation, intensity, HSV with an interactive neutral hue ring, pastel/neon/warm/cool presets, Kelvin temperature, size, falloff, cone softness, shadow toggle/softness and animation speed. Light rows support selection, visibility, locking and deletion; duplicate and delete also have the specified shortcuts. Counts are bounded by the live tier and warn near the limit.
+- Viewport light gizmos move on the camera plane, move in depth, rotate and change size; Shift snaps transforms. Projected cone/rectangle/strip shapes track their spatial orientation. Arrow keys provide handle adjustments. Offstage lights retain clamped edge handles so they remain reachable.
+- The studio owns analytic rounded-slab shadows on its floor/wall backdrop receivers. High uses bounded soft sampling; Medium basic shadows; Low/Very Low none. These receivers support B's card shadow; the editable floor/other shadow-casting geometry belongs to C's prop catalog.
+- Camera tools include orbit, Shift/right-drag pan, dolly, FOV, roll, target controls, auto-frame, lock-to-card and aspect guides for 1:1, 4:5, 16:9, 9:16 and card-only. High adds a world-space focus picker, aperture-controlled depth gather and tilt-shift. Post includes exposure, quarter-resolution bloom, vignette, static grain, chromatic aberration and a procedural flare approximation. Medium retains bloom; lower tiers omit DOF/bloom. Simple mode offers distance, roll, framing and one static colored light.
+- Fifty undo steps restore the full implemented scene; sliders/drags coalesce into gestures, keyboard actions and presets are atomic, redo clears on a new edit. Auto-frame affects the rendered scene without generating hidden history entries. Last scene preserves B data without a save schema bump.
+- Eight light rigs: Studio, Rim, Noir, Neon Alley, Sunset, Moonlight, Showroom and Vault. Scene presets: Studio, Museum, Neon Alley, Sunset Desk, Void, Vault, Showroom and Surprise me. These establish B's camera/light/backdrop/post compositions; prop arrangements arrive in C.
+- Pulse/flicker use continuous low-contrast ramps capped at 1.8 Hz Safe / 5 Hz Full by the current read-only cutscene profile. Sweep/orbit are slower spatial changes; ambient sky stays static. Reduced motion and Very Low pause animations. Animation uses presentation seconds from the shared scheduler, unaffected by developer timescale; hidden/unfocused pause does not advance its clock.
+- Static scenes render only when dirty. Transforms reuse card textures and render targets; GPU allocation occurs only on entry, card-face changes or viewport resize. Bloom skips its passes at zero strength. No private RAF, animation timer, profiling or normal-game rendering is added. All B edits are confined to studio files and this report.
+
 ## Milestone roadmap
 
 | Milestone | State | Remaining delivery |
 | --- | --- | --- |
 | A | Complete | Foundation described above. |
-| B | Pending | Editable light catalog/colors/gobos/gizmos, shadows, multi-light materials, full camera tools/DOF/post, undo/redo and rigs. |
+| B | Complete | Lights, camera, post, history and presets described above. |
 | C | Pending | Complete procedural prop catalog, editable outliner/inspectors, limits/warnings, ten scene slots and JSON import/export. |
 | D | Pending | Photo resolution/format/frame controls, tiled high-quality exports, album/filmstrip, toolbar/context entries, clipboard and photo events. |
 | E | Pending | Priority variant/finish ports, keyframes/timeline, turntable, auto-director, optional titles and supported WebM recording. |
@@ -40,10 +52,14 @@ There are no variant studio ports in A. Variant instances preserve their source 
 
 ## Validation policy
 
-Only `Cardable.dev.checkStudio()` is added, inside the existing studio entry module; it never runs automatically or through an old suite. In A it checks scene JSON round-trip and light/prop count clamping within two seconds. Undo/redo (B), requested photo dimensions (D) and album blob storage/retrieval (D) are explicitly pending, as approved. Future milestones extend this one check instead of adding test files.
+Only `Cardable.dev.checkStudio()` is added, inside the existing studio entry module; it never runs automatically or through an old suite. B extends it with undo/redo restoration and the 50-step bound, alongside JSON round-trip and light/prop count clamping within two seconds. Requested photo dimensions and album blob storage/retrieval remain pending D, as approved. Future milestones extend this one check instead of adding test files.
 
 Testing: one Chrome file:// game session confirmed Inspect/orbit/dolly/back/Last scene/keyboard return and cleanup with zero console errors; checkStudio ran once and passed available A logic, with B/D checks pending; no old tests, screenshots, recordings or profiling.
 
-## Explicit foundation limits
+B testing: one Chrome file:// game session exercised all six light types, color edits, gobos, shadows, gizmo dragging/keyboard transforms, undo/redo, camera pan/focus/lens/crop controls, presets, reduced-motion pause, four live tiers and exit restoration with zero console/WebGL errors; checkStudio ran once and passed A/B cases under two seconds, with photo dimensions/album pending D; no old tests, test files, screenshots, recordings or profiling.
+
+B acceptance is limited to that desktop Chrome session with a real image card, Classic skin and stored Rainbow Holo identity. The session found and repaired overlapping-handle/pointer-capture and undo focus defects in place without reopening/reloading the game. Full-profile flash measurements, physical-device performance and exported image fidelity are not claimed. There are still no variant ports; all priority ports and full finish hooks remain E. Light/scene preset prop arrangements, complete prop editing and scene slots remain C; captures and `studio:photo` remain D.
+
+## Historical A checkpoint limits
 
 Light controls, selectable transforms and advanced camera controls are not claimed complete in A. The outliner is a fixed card/key-light overview; future toolbar actions are disabled with milestone tooltips. Live simple mode has no orbit geometry, props or photo UI. Rarity ornaments/animated materials will gain full Studio hooks later; A paints the static rarity surface. The single manual session used a real catalog image with Classic skin and a stored Rainbow Holo identity at Medium. Other presets, physical devices and visual export fidelity are not certified by this checkpoint.
