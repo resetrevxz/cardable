@@ -171,7 +171,7 @@ Enabled definitions may declare `replacesPackId` and `replacementChance`. Cadenc
 
 The Royal skin registers original crown, faceted mesh and woven-band renderers. `goldShine` uses the existing transition registry for preview and collection handoffs. `cutThenBox` declares `usesSharedCut` and an `afterTear` hook; the state machine retains its standard upper cut, then delegates `boxWaiting`/`boxOpening` updates and `input:packActivate`. A strategy may provide `fallbackMs` and an `updateReveal` decoration when the reserved tier has no cinematic. Durable reservations, stock, rewards and recovery remain central. All temporary presentation nodes clean up on reset/replacement. See the Royal implementation notes.
 
-## 2.7.0 Picker offers
+## 2.8.0 Picker offers
 
 Data lives in data/picker-pack.js; slotRules.regularChance is exposed to the existing scheduler, preserving cadence and previous ordinary intervals. core/picker.js draws distinct IDs through the production probability table and per-option variant sampler, then applies the data guarantee. pendingReveal.options stores unminted results; choice is null until the durable decision creates one serial/instance in pendingReveal.cards. Optional guarantees and pickerChoice fields retain offer policy and provenance without a schema bump. state validation handles both unresolved and chosen shapes. Checksum imports/backups/Restore/Undo use the existing whole-save pipeline.
 

@@ -149,8 +149,8 @@ Secret's descriptor now ends the 40-second Fatal Exception in its own shared Fou
 
 C runtime acceptance is still pending: the only permitted launch reached the game with zero startup console errors/warnings, but its open dev workspace intercepted a tutorial-skip interaction before either Secret preview was started. No meter PASS, full-speed playback or handoff verification is asserted.
 
-## 2.7.0 Picker interaction
+## 2.8.0 Picker interaction
 
 Picker consumes shared stock/count/reward in the same charge-completion transaction but reserves three distinct unminted options, with at least one Rare or better. Drag either wing outward or press Enter; the cards flip one by one without a tier cinematic. Choose using 1/2/3, arrows/Enter or pointer. A quick second click/Enter (within 1.6 seconds) or 600 ms press confirms; failed storage leaves the original options and serial counter unchanged. Only the confirmed option mints the next serial. Its existing cinematic/reveal/variant/Keep sequence follows. Secret options are ??? with no disclosed name/tier/art until selected.
 
-Reload before choice resumes the same pick screen directly; reload after choice exposes the exact chosen card at Keep. Recovery never re-draws, consumes stock or rewards again. Reduced motion uses fades and omits travel/particles. See alpha-updates/2.7.0-picker-pack/SPEC.md and IMPLEMENTATION.md.
+Reload before choice resumes the same pick screen directly; reload after choice exposes the exact chosen card at Keep. Recovery never re-draws, consumes stock or rewards again. Reduced motion uses fades and omits travel/particles. See alpha-updates/2.8.0-picker-pack/SPEC.md and IMPLEMENTATION.md.
