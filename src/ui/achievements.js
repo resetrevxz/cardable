@@ -11,7 +11,12 @@
     variant: 'm12 3 9 9-9 9-9-9zM8 12l4-4 4 4-4 4z',
     serial: 'M8 3 6 21M16 3l-2 18M3 9h18M3 15h18',
     archive: 'M4 4h16v5H4zM6 9v12h12V9M10 13h4',
-    settings: 'M4 6h16M4 12h16M4 18h16M8 3v6M16 9v6M10 15v6'
+    settings: 'M4 6h16M4 12h16M4 18h16M8 3v6M16 9v6M10 15v6',
+    clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 7v5l4 2',
+    coin: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M15 8a5 5 0 1 0 0 8',
+    cut: 'M4 5l16 14M4 19 20 5M7 5a3 3 0 1 0-6 0 3 3 0 0 0 6 0M7 19a3 3 0 1 0-6 0 3 3 0 0 0 6 0',
+    camera: 'M3 7h4l2-3h6l2 3h4v13H3zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7',
+    eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6'
   };
   function node(tag, cls, parent, text) { return C.packMarkup.node(tag, cls, parent, text); }
   function glyph(name, parent) {
@@ -46,7 +51,7 @@
         showing = pending.splice(0); toast.replaceChildren(); var first = showing[0], def = C.achievements.list().find(function (d) { return d.id === first.id; });
         glyph(def ? def.glyph : 'star', toast); var copy = node('span', 'achievement-toast-copy', toast);
         node('span', 'achievement-eyebrow', copy, first.summary ? 'From your collection' : 'Achievement unlocked');
-        node('strong', '', copy, first.summary ? first.count + ' achievements unlocked from your collection' : showing.length > 1 ? showing.length + ' achievements unlocked' : def.name + (def.tiers.length > 1 ? ' · Tier ' + first.tier : ''));
+        node('strong', '', copy, first.summary ? first.count + ' achievements unlocked from your collection' : showing.length > 1 ? showing.length + ' achievements unlocked' : (def?.name || 'Achievement') + (def?.tiers.length > 1 ? ' · Tier ' + first.tier : ''));
         toast.hidden = false; toast.classList.add('is-visible'); until = now + 4000;
         C.events.emit('menu:visibilityHold', { reason: 'achievement-toast', active: true }); C.events.emit('ui:achievement', { beat: 'toast', id: first.id, count: showing.length });
       }
@@ -65,7 +70,7 @@
   function concealed(def, p) { return def.hidden && !p.tier; }
   function name(def) { return concealed(def, C.achievements.progress(def.id)) ? '???' : def.name; }
   function latest(def) { var entry = C.state.current.achievements.unlocked[def.id]; return entry ? Math.max(0, ...Object.values(entry.at).filter(Number.isFinite)) : -1; }
-  function ratio(def) { var p = C.achievements.progress(def.id); return p.tier === p.maxTier ? 1 : Math.min(1, p.value / p.goal); }
+  function ratio(def) { var p = C.achievements.progress(def.id); return concealed(def, p) ? 0 : p.tier === p.maxTier ? 1 : Math.min(1, p.value / p.goal); }
   function buildPanel() {
     overlay = node('div', 'achievements-overlay', root.document.body); overlay.hidden = true; overlay.inert = true;
     panel = node('section', 'achievements-panel glass glass--sheet', overlay); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-labelledby', 'achievements-title');
@@ -174,7 +179,7 @@
   function showDetail(id, tile) {
     var def = C.achievements.list().find(function (item) { return item.id === id; }); if (!def) return;
     var p = C.achievements.progress(id), hidden = concealed(def, p), entry = C.state.current.achievements.unlocked[id];
-    detailOrigin = tile; detail.replaceChildren(); detail.hidden = false;
+    closeDetail(false); detailOrigin = tile; detail.replaceChildren(); detail.hidden = false; detail.inert = false; detail.classList.remove('is-closing');
     var box = node('section', 'achievement-detail-box glass', detail); box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-labelledby', 'achievement-detail-title');
     var close = button('Close', box, closeDetail); close.setAttribute('aria-label', 'Close achievement detail');
     glyph(hidden ? 'secret' : def.glyph, box); node('h3', '', box, name(def)).id = 'achievement-detail-title';
@@ -195,7 +200,8 @@
   function detailOutside(event) { if (event.target === detail) closeDetail(); else if (!detail.hidden) detail.addEventListener('click', detailOutside, { once: true }); }
   function closeDetail(restore) {
     if (!detail || detail.hidden) return;
-    var box = detail.firstElementChild; if (box) C.accessibility.release(box); detail.hidden = true; detail.removeEventListener('click', detailOutside);
+    var box = detail.firstElementChild; if (box) C.accessibility.release(box); detail.inert = true; detail.classList.add('is-closing'); detail.removeEventListener('click', detailOutside);
+    root.setTimeout(function () { if (detail.firstElementChild === box && detail.classList.contains('is-closing')) detail.hidden = true; }, C.settings.get('quality') === 'very-low' ? 0 : 250);
     if (restore !== false && detailOrigin && detailOrigin.isConnected) detailOrigin.focus({ preventScroll: true });
   }
   function updatePanel(now, dt) {

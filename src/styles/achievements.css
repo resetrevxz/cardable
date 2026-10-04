@@ -60,7 +60,8 @@
 .achievement-ticks .is-earned { background: var(--text); }
 .achievement-date { font: 10px/1.5 var(--font-mono); color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .achievements-empty { grid-column: 1/-1; padding: var(--s-6); color: var(--text-dim); font: 14px var(--font-ui); }
-.achievement-detail { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; padding: var(--s-5); background: rgba(0,0,0,.6); }
+.achievement-detail { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; padding: var(--s-5); background: rgba(0,0,0,.6); opacity: 1; transition: opacity var(--t-ui) var(--ease-out); }
+.achievement-detail.is-closing { opacity: 0; pointer-events: none; }
 .achievement-detail-box { width: min(470px, 100%); max-height: 100%; overflow: auto; padding: var(--s-5); border-radius: var(--r-card); background: var(--surface); animation: achievement-fade var(--t-ui) var(--ease-out); }
 .achievement-detail-box > button:first-child { float: right; }
 .achievement-detail-box h3 { margin: var(--s-4) 0 var(--s-2); font: 600 22px var(--font-ui); letter-spacing: -.02em; }
@@ -76,7 +77,7 @@
 [data-quality="low"] .achievement-tile, .reduced-motion .achievement-tile { animation-name: achievement-fade; transition-property: opacity, border-color, background; }
 [data-quality="low"] .achievement-tile:hover, [data-quality="low"] .achievement-tile:active, .reduced-motion .achievement-tile:hover, .reduced-motion .achievement-tile:active { transform: none; }
 [data-quality="low"] .achievements-panel, .reduced-motion .achievements-panel { transform: none; transition: none; }
-[data-quality="very-low"] .achievements-overlay, [data-quality="very-low"] .achievements-panel, [data-quality="very-low"] .achievement-tile, [data-quality="very-low"] .achievement-detail-box { animation: none; transition: none; transform: none; }
+[data-quality="very-low"] .achievements-overlay, [data-quality="very-low"] .achievements-panel, [data-quality="very-low"] .achievement-tile, [data-quality="very-low"] .achievement-detail, [data-quality="very-low"] .achievement-detail-box { animation: none; transition: none; transform: none; }
 [data-quality="very-low"] .achievement-tile:hover, [data-quality="very-low"] .achievement-tile:active { transform: none; }
 @media (max-width: 700px) {
   .achievements-overlay { padding: var(--s-2); }
