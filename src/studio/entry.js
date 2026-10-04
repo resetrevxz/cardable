@@ -26,7 +26,8 @@
         C.events.emit('inventory:showCard',{cardId:photo.cardId,instanceId:photo.instanceId});
       }
       function detail(){
-        if(C.detail.phase==='detail'&&C.detail.view&&C.detail.view.card.id===photo.cardId)return enter();
+        var wanted=C.state.current.inventory.find(function(i){return i.instanceId===photo.instanceId;});
+        if(wanted&&C.detail.phase==='detail'&&C.detail.view&&C.stacks.of(C.detail.view.instance)===C.stacks.of(wanted))return enter();
         if(C.detail.phase==='closed')return show();
         pending.stage='returning';var off=C.events.on('inventory:detailReturned',function(){off();root.queueMicrotask(show);});pending.off.push(off);C.events.emit('detail:requestClose');
       }
