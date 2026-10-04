@@ -30,7 +30,7 @@
   C.contextMenu.register({target:'empty',build:function(){return [openPack(),action('inventory','Inventory','inventory',inventory,{shortcut:'I'}),action('settings','Settings','settings',settings,{shortcut:'S'}),separator(),
     {id:'quick-settings',type:'submenu',label:'Quick settings',icon:'settings',items:quickSettings},{id:'view',type:'submenu',label:'View',icon:'quality',items:view},separator(),collection(),
     {id:'data',type:'submenu',label:'Data',icon:'export',items:data},separator(),{id:'about',type:'submenu',label:'About',icon:'info',items:about}];}});
-  C.contextMenu.register({target:'pack',build:function(ctx){return [openPack(),readout('pack-kind',ctx.pack.name,ctx.pack.cardsPerPack+' card'+(ctx.pack.cardsPerPack===1?'':'s')+' per pack'),
+  C.contextMenu.register({target:'pack',build:function(ctx){return [openPack(),readout('pack-kind',ctx.pack.name,ctx.pack.cardsShown ? 'Choose '+ctx.pack.cardsKept+' of '+ctx.pack.cardsShown : ctx.pack.cardsPerPack+' card'+(ctx.pack.cardsPerPack===1?'':'s')+' per pack'),
     {id:'pack-info',type:'submenu',label:'Pack info',icon:'info',items:function(){var table=C.pull.probabilities(ctx.pack);return [{type:'group',label:ctx.pack.name},readout('pack-contents','Can contain'),separator()].concat(table.tiers.filter(function(t){return t.chance>0;}).map(function(t){return readout('tier-'+t.tier.id,t.tier.name);}));}}];}});
   function copyAmount() {
     var amount=String(C.state.current.currency),button=root.document.activeElement;

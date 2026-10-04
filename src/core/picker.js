@@ -3,13 +3,22 @@
   'use strict';
   function tier(result){return C.rarity(C.card(result.cardId).rarity).tier;}
   function isChoicePack(pack){return !!pack&&pack.cardsShown>pack.cardsKept;}
+  function effectivePack(pack,options){
+    options=options||{};var pool=pack.pool||{},rarities=options.rarities||C.data.rarities;
+    var tiers=(options.cards||C.data.cards).filter(function(card){var rarity=rarities.find(function(r){return r.id===card.rarity;});return card.pullable!==false&&rarity&&rarity.pullable&&rarity.chance>0&&(pool.minTier==null||rarity.tier>=pool.minTier)&&(pool.maxTier==null||rarity.tier<=pool.maxTier)&&(!pool.cardIds||pool.cardIds.includes(card.id))&&(!pool.brands||pool.brands.includes(card.brand))&&(!pool.generations||pool.generations.includes(card.generation));}).map(function(card){return rarities.find(function(r){return r.id===card.rarity;}).tier;});
+    if(!tiers.length)throw new Error('No choice cards available');
+    // A tiny catalog may have no low-tier entry. Keep downgrade within the
+    // existing pool and start its probability table at its first occupied tier.
+    return Object.assign({},pack,{pool:Object.assign({},pool,{minTier:Math.max(pool.minTier||0,Math.min.apply(null,tiers))})});
+  }
   function draw(pack,options){
     options=options||{};
+    pack=effectivePack(pack,options);
     var random=options.random||Math.random, table=C.pull.probabilities(pack,options),
       available=table.cards.filter(function(r){return r.chance>0;}), selected=[], count=Math.min(pack.cardsShown,available.length);
     if(!count)throw new Error('No choice cards available');
-    function next(minTier,forced){
-      var eligible=available.filter(function(r){return !selected.some(function(s){return s.cardId===r.card.id;})&&(minTier==null||C.rarity(r.card.rarity).tier>=minTier);});
+    function next(minTier,forced,forcedTier){
+      var eligible=available.filter(function(r){return !selected.some(function(s){return s.cardId===r.card.id;})&&(minTier==null||C.rarity(r.card.rarity).tier>=minTier)&&(!forcedTier||r.card.rarity===forcedTier);});
       if(!eligible.length)throw new Error('Choice guarantee cannot be satisfied');
       var row;
       if(forced){row=eligible.find(function(r){return r.card.id===forced;});if(!row)throw new Error('Forced option is duplicate or outside the pool');}
@@ -18,7 +27,7 @@
       // avoids rejection loops and retains normalized pool/card probabilities.
       return C.pull.createSampler(pack,Object.assign({},options,{random:random,forcedCard:row.card.id,forcedTier:null})).draw();
     }
-    for(var i=0;i<count;i++)selected.push(next(null,options.forcedCards&&options.forcedCards[i]||i===0&&options.forcedCard));
+    for(var i=0;i<count;i++)selected.push(next(null,options.forcedCards&&options.forcedCards[i]||i===0&&options.forcedCard,i===0&&options.forcedTier));
     (pack.guarantees||[]).forEach(function(g){
       var eligible=available.filter(function(r){return C.rarity(r.card.rarity).tier>=g.minTier;});
       var required=Math.min(g.count,count,eligible.length);
@@ -31,16 +40,19 @@
     });
     return selected;
   }
-  function reserve(pack,options,now){return {packId:pack.id,cards:[],options:draw(pack,options),choice:null,committedAt:now,keptCount:0};}
+  function reserve(pack,options,now){return {packId:pack.id,cards:[],options:draw(pack,options),choice:null,guarantees:JSON.parse(JSON.stringify(pack.guarantees||[])),committedAt:now,keptCount:0};}
   function validatePending(pending){
     var pack=C.pack(pending.packId), rows=pending.options;
     if(!isChoicePack(pack)||!Array.isArray(rows)||!rows.length||rows.length>pack.cardsShown)throw new Error('Invalid choice reservation');
-    var validIds=new Set(C.pull.probabilities(pack).cards.filter(function(r){return r.chance>0;}).map(function(r){return r.card.id;}));
+    var validIds=new Set(C.pull.probabilities(effectivePack(pack)).cards.filter(function(r){return r.chance>0;}).map(function(r){return r.card.id;}));
+    if(rows.length!==Math.min(pack.cardsShown,validIds.size))throw new Error('Incomplete choice reservation');
     var ids=new Set();rows.forEach(function(r){
       if(!r||!validIds.has(r.cardId)||ids.has(r.cardId)||r.packId!==pack.id||r.instanceId!==undefined||r.serial!==undefined||r.variantId!==null&&!C.variant(r.variantId))throw new Error('Invalid unminted choice option');
       ids.add(r.cardId);
     });
-    (pack.guarantees||[]).forEach(function(g){var possible=Array.from(validIds).filter(function(id){return C.rarity(C.card(id).rarity).tier>=g.minTier;}).length;if(rows.filter(function(r){return tier(r)>=g.minTier;}).length<Math.min(g.count,rows.length,possible))throw new Error('Invalid choice guarantee');});
+    var guarantees=pending.guarantees===undefined?pack.guarantees:pending.guarantees;
+    if(!Array.isArray(guarantees))throw new Error('Invalid choice guarantees');
+    guarantees.forEach(function(g){if(!g||!Number.isInteger(g.minTier)||g.minTier<0||g.minTier>11||!Number.isInteger(g.count)||g.count<0||g.count>pack.cardsShown)throw new Error('Invalid choice guarantee');var possible=Array.from(validIds).filter(function(id){return C.rarity(C.card(id).rarity).tier>=g.minTier;}).length;if(rows.filter(function(r){return tier(r)>=g.minTier;}).length<Math.min(g.count,rows.length,possible))throw new Error('Invalid choice guarantee');});
     if(pending.choice===null){if(pending.cards.length)throw new Error('Unchosen options cannot own instances');}
     else {
       if(!Number.isInteger(pending.choice)||pending.choice<0||pending.choice>=rows.length||pending.cards.length!==pack.cardsKept)throw new Error('Invalid saved choice');

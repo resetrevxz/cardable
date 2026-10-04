@@ -1,6 +1,6 @@
 (function(C){
   'use strict';
-  var pack={id:'picker',name:'Picker Pack',enabled:false,priority:0,cadence:null,
+  var pack={id:'picker',name:'Picker Pack',enabled:true,priority:0,cadence:null,
     slotRules:{regularChance:.03},pool:{},tierWeightModifiers:{},variantChanceMultiplier:1,
     cardsPerPack:1,cardsShown:3,cardsKept:1,guarantees:[{minTier:3,count:1}],unpickedRefund:0,
     skin:'picker',opening:'pickThree',swapIn:'fanCollapse',choiceLabel:'PICKED 1 OF 3',

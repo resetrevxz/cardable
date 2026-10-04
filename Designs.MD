@@ -276,3 +276,9 @@ Runtime acceptance remains outstanding: C's sole allowed browser launch stopped 
 ### Graphics refresh: shaded settings background
 
 Settings dims and gently scales the underlying game without applying a whole-scene blur. Its glass panel and focused preview retain their chosen quality. Independent cinematic detail follows the four presets by default; reduced motion and safety controls remain authoritative. No game rules, audio or network dependencies change.
+
+## 2.7.0 Picker wrapper exception
+
+Picker is an original pearl-white triptych with brushed aluminum window frames, three engraved numerals, a Cardable header, gatefold creases, a center reticle and P3 footer. Teal #2DE2B8 is authorized on its wrapper/windows, pick surface, queue marker and actual-instance provenance; chrome and card finishes retain existing color rules. Chase ramps are smooth, the seven-second sheen is shared-clock, and graphics/reflection/motion policies cap decoration. Low gets one appearance sheen and static windows; Very Low is flat. No extra fonts or flashes.
+
+Three static preview cards flip with 350 ms spacing. Only the hovered/focused preview mounts full materials; Secret stays an original black ??? placeholder. A second click or 600 ms hold confirms a saved choice. Reduced motion fades instead of traveling/turning, with static progress and no departure particles. Only the chosen card enters its existing tier cinematic, under the unchanged strobing profile.

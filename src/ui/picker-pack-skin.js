@@ -20,6 +20,7 @@
     var policy=C.settings.policy,rank=Math.min(C.settingsSchema.tiers.indexOf(C.settings.get('finishQuality')),policy.reflection);
     el.dataset.packQuality=C.settingsSchema.tiers[rank];
     var stage=el.closest('.opening-stage'),phase=stage&&stage.dataset.phase,waiting=!!el.closest('[data-state="waiting"]'),charge=phase==='charging'||phase==='draining';
+    if(phase!=='dissolving')el.style.removeProperty('--picker-dissolve');
     if(state.appeared==null||time<state.appeared||state.waiting!==waiting){state.appeared=time;state.waiting=waiting;state.last=-Infinity;}
     var age=time-state.appeared,move=!reduced&&policy.ambient&&policy.animation>=2;
     if(time-state.last<1000/(policy.animationHz||20)&&state.phase===phase)return state.active;
@@ -31,6 +32,7 @@
     var fill=charge?Number(el.dataset.chargeFill)||0:waiting?C.timers.progress():1;
     var windows=el.querySelectorAll('.picker-window');windows.forEach(function(w,i){
       var glow=charge?Math.max(.05,Math.min(1,fill*3-i)):waiting?.08+fill*.3:move&&rank>=2?.22+(1+Math.sin(age/3000*Math.PI*2-i*2.094))*(rank===3?.2:.12):.35;
+      if(!charge&&!waiting&&move&&rank>=2&&age<900)glow=.08+.7*Math.max(0,Math.min(1,(age-i*220)/240));
       w.style.setProperty('--picker-window-light',glow.toFixed(3));
       w.style.setProperty('--picker-back-y',move&&rank===3?(Math.sin(age/4200*Math.PI*2-i)*2)+'px':'0px');
       w.style.setProperty('--picker-back-turn',charge&&!reduced?(i-1)*fill*7+'deg':'0deg');
