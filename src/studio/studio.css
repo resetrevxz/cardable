@@ -61,3 +61,33 @@ body.studio-active > :not(.studio-shell),body.studio-active > :not(.studio-shell
 @media(max-width:700px){.studio-slots{grid-template-columns:1fr}.studio-topbar-actions .studio-button{padding:6px;font-size:10px}}
 
 .studio-outliner{max-height:100%;box-sizing:border-box}@media(min-width:781px){.studio-layout{grid-template-rows:minmax(0,1fr)}}
+
+/* Photo output is procedural. These controls never animate the normal game. */
+.studio-filmstrip { display:flex; align-items:center; gap:12px; min-width:0; margin:12px 0 4px; width:100%; }
+.studio-filmstrip-items { display:flex; gap:8px; overflow-x:auto; min-width:0; }
+.studio-filmstrip-items button { padding:2px; min-width:52px; height:44px; overflow:hidden; }
+.studio-filmstrip-items img { width:52px; height:38px; object-fit:contain; display:block; }
+.studio-album-usage { color:var(--text-dim); font:10px/1.5 var(--font-mono); margin:4px 0; }
+.studio-filmstrip .studio-album-usage { flex:1; text-align:right; min-width:100px; }
+.studio-shutter { position:absolute; inset:0; z-index:12; pointer-events:none; opacity:0; background:radial-gradient(ellipse at center,transparent 25%,#00000048 100%); }
+.studio-shutter-finder { position:absolute; inset:10%; border:1px solid #FFFFFF70; border-radius:10px; transform:scale(calc(1.035 - var(--shutter,0)*.035)); }
+.studio-shutter-sweep { position:absolute; inset:0; background:linear-gradient(110deg,transparent 48%,#FFFFFF28 49.9%,transparent 50.2%); transform:translateX(calc(-90% + var(--shutter,0)*180%)); }
+.studio-photo-flight { position:fixed; width:160px; height:100px; object-fit:contain; left:calc(50% - 80px); top:calc(50% - 50px); z-index:13; pointer-events:none; border-radius:8px; border:1px solid #FFFFFF40; box-shadow:var(--shadow-2); }
+.studio-album { position:fixed; inset:0; padding:clamp(16px,3vw,40px); display:flex; flex-direction:column; gap:12px; z-index:calc(var(--z-toast) + 30); background:#0B0B0E; color:var(--text); overflow:auto; }
+.studio-album-top { display:flex; justify-content:space-between; align-items:center; gap:16px; }
+.studio-album-top h1 { margin:8px 0; font:500 clamp(18px,2vw,26px)/1.25 var(--font-ui); letter-spacing:-.03em; }
+.studio-album-layout { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,34%); gap:24px; }
+.studio-album-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); align-content:start; gap:12px; overflow:auto; padding:4px; }
+.studio-album-tile { padding:10px; text-align:left; overflow:hidden; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.studio-album-tile img { width:100%; height:120px; object-fit:contain; border-radius:8px; }
+.studio-album-tile span { overflow-wrap:anywhere; }
+.studio-album-tile small { color:var(--text-dim); font:10px var(--font-mono); }
+.studio-album-preview { overflow:auto; padding:16px; background:var(--surface); border:1px solid var(--hairline); border-radius:var(--r-sheet); }
+.studio-album-photo { width:100%; max-height:55vh; object-fit:contain; border-radius:8px; display:block; }
+body.studio-album-active > :not(.studio-album),body.studio-album-active > :not(.studio-album) * { animation-play-state:paused!important; }
+@media(max-width:800px) { .studio-album-layout { display:flex; flex-direction:column; overflow:auto; } .studio-album-grid { overflow:visible; } .studio-album-preview { overflow:visible; flex-shrink:0; } .studio-filmstrip { flex-wrap:wrap; } .studio-filmstrip-items { max-width:calc(100% - 80px); } .studio-filmstrip .studio-album-usage { flex-basis:100%; text-align:left; } }
+@media(prefers-reduced-motion:reduce) { .studio-shutter-sweep { display:none; } .studio-shutter-finder { transform:none; } .studio-photo-flight { transform:none!important; } }
+
+.studio-field input[type="number"] { width:100%; min-height:44px; padding:10px; background:var(--surface-2); border:1px solid var(--hairline); border-radius:var(--r-button); color:var(--text); font:12px var(--font-mono); }
+.reduced-motion .studio-shutter-sweep { display:none; }.reduced-motion .studio-shutter-finder { transform:none; }
+.studio-album :focus-visible { outline:1px solid #FFFFFFB3; outline-offset:3px; }

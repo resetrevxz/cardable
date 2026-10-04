@@ -190,11 +190,13 @@
     if (!returning && shineAge < cfg.detailShineMs) { shineAge += dt; if (view) view.setShine(Math.min(1, shineAge / cfg.detailShineMs)); }
     if (swapping) {
       swapping.age += dt; var blend = Math.min(1, swapping.age / C.config.cardView.crossfadeMs); visual.style.opacity = blend; swapping.old.el.style.opacity = 1 - blend;
-      if (blend === 1) { swapping.old.destroy(); swapping = null; }
+      if (blend === 1) { var ready=swapping.ready;swapping.old.destroy(); swapping = null;if(ready)ready(view); }
     }
     return phase !== 'detail' || !!drag || !dragSpring.settled() || !!swapping || shineAge < cfg.detailShineMs;
   }
   C.detail = {
+    // Additive exact-serial selection for consumers such as studio photos.
+    selectInstance:function(id,ready){if(phase!=='detail'||!payload.entry.owned)return false;if(swapping){var prior=swapping.ready;swapping.ready=function(){if(prior)prior(view);C.detail.selectInstance(id,ready);};C.fx.wake();return true;}var index=payload.entry.instances.findIndex(function(i){return i.instanceId===id;});if(index<0)return false;if(index===serialIndex){if(ready)ready(view);}else{browse(index-serialIndex);swapping.ready=ready;}return true;},
     initialized: false, get phase() { return phase; }, get view() { return view; }, get serialIndex() { return serialIndex; },
     init: function () {
       if (C.detail.initialized) return; C.detail.initialized = true;

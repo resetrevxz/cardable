@@ -55,6 +55,7 @@
     scene.props = (Array.isArray(value.props) ? value.props : []).slice(0,40).map(prop);
     var cardsLeft = 10; scene.props.forEach(function (p) { if (p.type === 'collection') { p.instances = p.instances.slice(0,cardsLeft); cardsLeft -= p.instances.length; } });
     scene.props.forEach(function (p,i) { var base=p.id, suffix=i; while(ids.has(p.id)) p.id=base+'-'+suffix++; ids.add(p.id); });
+    if(typeof value.presentationTime==='number')scene.presentationTime=number(value.presentationTime,0,0,86400);
     // Director keyframes arrive in E.
     return scene;
   }

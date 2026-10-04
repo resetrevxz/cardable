@@ -7,7 +7,7 @@
   function disabled(item) { return typeof item.disabled === 'function' ? item.disabled(ctx) : !!item.disabled; }
   function editable(target) { return target && target.closest && target.closest('input,textarea,[contenteditable]:not([contenteditable="false"])'); }
   function blocked() {
-    return root.document.hidden || C.inventory && C.inventory.active || C.preferences && (C.preferences.open || C.preferences.el && !C.preferences.el.hidden) ||
+    return root.document.hidden || C.studio && C.studio.active || C.studioAlbumUI && C.studioAlbumUI.active || C.inventory && C.inventory.active || C.preferences && (C.preferences.open || C.preferences.el && !C.preferences.el.hidden) ||
       C.opening && C.opening.phase !== 'idle' || C.tutorial && (C.tutorial.active || C.tutorial.el && !C.tutorial.el.hidden) ||
       C.dev && (C.dev.opened || C.dev.immersive || C.dev.paletteOpen) ||
       !!root.document.querySelector('.save-notice, .settings-data-toast:not([hidden]), .collection-toast:not([hidden]), .dev-palette:not([hidden])');
