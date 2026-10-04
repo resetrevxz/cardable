@@ -5,3 +5,5 @@ Milestone A adds unminted distinct offers, production-pool guarantees, optional 
 Protected pack/cutscene registries, packs.js and finishes are read-only. Two small generic hooks in the central opening controller accept a custom pending builder and resume an unresolved choice through the registered strategy. Existing inventory/detail extension registries require no changes: chosen cards use the normal collection. Journal/Achievements receive the picker:chosen event only after a durable choice write.
 
 The worktree starts from a snapshot of completed dependencies present in the shared checkout; the dependency snapshot is a baseline, not this feature's delivery commit.
+
+Milestone B registers the pearl triptych skin (shared silhouette, aluminum windows, engraved numerals, Cardable header, reticle, P3 footer), pale-teal waiting fluid, sequential charge lighting, quality-capped chase/sheen and the teal 1/3 counter thumbnail. fanCollapse runs through the existing preview/collection subscriptions and fades on low animation or reduced motion. Decorative work has no private timer or scheduler.
