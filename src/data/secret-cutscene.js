@@ -1,14 +1,23 @@
 (function(C){
   'use strict';
   var rarity=C.data.rarities.find(function(r){return r.id==='secret';});
-  // B ends at the terminal; C replaces the temporary release with collapse/resurrection.
-  rarity.openingIntro={kind:'system',cutscene:'secret',milestone:'B',color:[250,250,250],background:[0,0,0],
-    sections:[{id:'fakeout',ms:2400},{id:'black',ms:1600},{id:'boot',ms:6000},{id:'desktop',ms:9000},{id:'breakdown',ms:8000},{id:'stop',ms:5000},{id:'release',ms:600}],
+  rarity.openingIntro={kind:'system',cutscene:'secret',milestone:'C',color:[250,250,250],background:[0,0,0],
+    sections:[{id:'fakeout',ms:2400},{id:'black',ms:1600},{id:'boot',ms:6000},{id:'desktop',ms:9000},{id:'breakdown',ms:8000},{id:'stop',ms:5000},{id:'collapse',ms:4000},{id:'resurrection',ms:4000}],
+    shortRoute:[{ms:3000,from:0,to:4000},{ms:3000,from:4000,to:10000},{ms:4000,from:10000,to:19000},
+      {ms:3000,from:19000,to:32000},{ms:1500,from:32000,to:36000},{ms:4000,from:36000,to:40000}],
     handoff:{flipMs:400,fadeMs:160},backdrop:{enabled:true,animated:true,exitMs:450},
-    light:{ms:4000,handoffMs:3600},
+    light:{ms:4000,handoffMs:4000},
     beats:[{id:'cut',ms:2400},{id:'black',ms:2400},{id:'hum',ms:3000},{id:'post',ms:4000},{id:'bootFail',ms:7300},
       {id:'desktop',ms:10000},{id:'click',key:'click:open:0',ms:11100},{id:'click',key:'click:open:1',ms:11300},
-      {id:'avalanche',ms:12650},{id:'hang',ms:14700},{id:'stopScreen',ms:27000},{id:'hex',ms:31050},{id:'cardIn',ms:32600}],
+      {id:'avalanche',ms:12650},{id:'hang',ms:14700},{id:'stopScreen',ms:27000},{id:'hex',ms:31050},
+      {id:'freeze',ms:32000},{id:'shutdown',ms:34100},{id:'crtLine',ms:35050},{id:'crtDot',ms:35500},
+      {id:'black',key:'black:poweroff',ms:35900},{id:'pixel',ms:36800},
+      {id:'lock',key:'lock:0',ms:37100},{id:'lock',key:'lock:1',ms:37400},{id:'lock',key:'lock:2',ms:37700},
+      {id:'lock',key:'lock:3',ms:38000},{id:'lock',key:'lock:4',ms:38300},{id:'lock',key:'lock:5',ms:38600},
+      {id:'cardIn',ms:40000}],
+    collapse:{holdMinMs:120,holdMaxMs:250,dialogMs:1750,tinyMs:2450,compressMs:2700,lineMs:3050,dotMs:3500,blackMs:3900},
+    resurrection:{blackMs:800,lockMs:300,holdMs:400,firstCycleMs:3000,safeCrossfadeMs:800,safePeriodMs:4800,
+      fullFirstCycleMs:1000,glyphs:'@#$&_-%/\\|'},
     os:{name:'NorthStar OS',buffers:[[400,225],[400,225],[480,270],[640,360]],windowCaps:[12,20,40,60],
       palette:{desktop:'#0B7285',bar:'#12206B',face:'#C8C8CC',stop:'#0A2A6B',magenta:'#FF00FF',cyan:'#00FFFF',green:'#39FF14'},
       icons:['My Collection','Packs','Recycle Bin','SECRET.DAT'],years:['1999','2007','2012','2018','2022'],

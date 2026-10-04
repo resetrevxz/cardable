@@ -3,7 +3,7 @@
   var chosen=null, linear=new Float32Array(256);
   for(var n=0;n<256;n++){var s=n/255;linear[n]=s<=.04045?s/12.92:Math.pow((s+.055)/1.055,2.4);}
   C.cutscenes.profile=function(){
-    if(C.motion.reduced||C.settings.get('cutscenes')==='off')return 'safe';
+    if(C.motion.reduced||C.settings.get('cutscenes')==='off'||C.cutscenes.mode()==='light')return 'safe';
     return chosen||C.cutscenes.debug.profile||C.settings.get('strobing')||'safe';
   };
   C.cutscenes.chooseProfile=function(value){chosen=value==='full'?'full':value==='safe'?'safe':null;};

@@ -16,9 +16,11 @@
     var field = C.finishes.element('div', 'finish-secret-lines', el);
     var canvas=C.finishes.element('canvas','',field);canvas.width=staticPolicy?64:256;canvas.height=Math.round(canvas.width*1.4);
     var g=canvas.getContext('2d',{alpha:false}),seed=String(context.instance&&context.instance.serial||card.id);
-    C.secretBackground.draw(g,canvas.width,canvas.height,0,seed,info.state==='found',C.cutscenes.profile(),true);
+    var initial=staticPolicy?{time:0,profile:C.cutscenes.profile()}:C.secretBackground.sample(seed,0);
+    var picture=C.secretBackground.draw(g,canvas.width,canvas.height,initial.time,seed,info.state==='found',initial.profile,!!staticPolicy||C.motion.reduced||!C.settings.policy.animation);
     var prop = C.finishes.surface('secret-prop', context); prop.classList.add('finish-prop');
     var frame = C.finishes.squircle(prop, 'finish-secret-frame'); frame.path.setAttribute('stroke', 'var(--secret-border)'); frame.path.setAttribute('opacity', '0.95');
+    var border=Math.round(picture.inversion*255);prop.style.setProperty('--secret-border','rgb('+border+','+border+','+border+')');
     (context.propElement || el).appendChild(prop);
     return { el: el, prop: prop, canvas:canvas,g:g,seed:seed, found: info.state === 'found', time: 0, phase: 'sweep' };
   }

@@ -25,7 +25,7 @@
   }
   function pulseFactor(spec,choice,rate){
     if(!spec.ritual)return 1;var film=sections(spec),part=film.sections.topPulse,actual=playTime(spec,choice,part.start+part.ms)-playTime(spec,choice,part.start);
-    return Math.min(1,actual/part.ms*(C.settings.get('revealSpeed')==='fast'?.7:1)/(rate||1));
+    return Math.min(1,actual/part.ms*(C.settings.get('revealSpeed')==='fast'?.7:1)/(rate||1))*(C.cutscenes.profile()==='safe'?Math.min(1,1.8/spec.ritual.pulseHzEnd):1);
   }
   function pulses(spec,factor){
     if(!spec.ritual)return [];var part=sections(spec).sections.topPulse,duration=part.ms/1000;
@@ -82,6 +82,9 @@
         }
       }, true);
       function stop() {
+        // Painters can discover a beat on the last rendered frame (e.g. the final
+        // field inversion). Flush it on the shared scheduler before releasing it.
+        if(current&&painter&&painter.getBeats)painter.getBeats().forEach(function(beat){if(clock>=beat.ms)emit(beat.id,beat.ms,beat.key);});
         current = false; skipping = null; if (hint) hint.hidden = true;if(meterPanel)meterPanel.hidden=true;
         root.document.body.classList.remove('cutscene-cursor-available');
         if (active === api) active = null;
@@ -97,6 +100,11 @@
         update: function (elapsed, duration, staticPolicy) {
           var dt = Math.max(0, elapsed - previous); previous = elapsed;
           if(staticPolicy&&runMode!=='light')api.setMode('light');
+          if(painter&&painter.setPresentationFactor){
+            var slowest=1,speed=(C.settings.get('revealSpeed')==='fast'?.7:1)/rate;
+            Object.keys(film.sections).forEach(function(id){var part=film.sections[id],actual=runMode==='short'&&!spec.shortRoute?part.ms*playDuration(spec,runMode)/film.total:playTime(spec,runMode,part.start+part.ms)-playTime(spec,runMode,part.start);slowest=Math.min(slowest,actual/part.ms*speed);});
+            painter.setPresentationFactor(slowest);
+          }
           if(spec.ritual){var factor=pulseFactor(spec,runMode,rate),key=String(factor);if(key!==pulseKey){pulseKey=key;pulseEvents=pulses(spec,factor);if(painter.setPulseFactor)painter.setPulseFactor(factor,pulseEvents);}}
           var nextSparkKey=runMode+':'+rate+':'+C.settings.get('revealSpeed');if(nextSparkKey!==sparkKey){
             sparkKey=nextSparkKey;sparkEvents=safeSparks(spec,runMode,rate);if(painter&&painter.setSparkBeats)painter.setSparkBeats(sparkEvents);

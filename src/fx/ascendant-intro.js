@@ -21,7 +21,7 @@
     },
     create: function () {
       var mist=null,mistKey=''; var scene = null, spec, serial = '', particles = [], sprites = Object.create(null), level = 2, time = 0;
-      var pulseTimeFactor=1,pulseBeats=[],sparkBeats=[],spinFactors=[1,1];var timeline=null;function at(id){return timeline[id].start/1000;}function span(id){return timeline[id].ms/1000;}
+      var pulseTimeFactor=1,pulseBeats=[],sparkBeats=[],spinFactors=[1,1],profile='safe';var timeline=null;function at(id){return timeline[id].start/1000;}function span(id){return timeline[id].ms/1000;}
       var stats = { backend: 'canvas' },titleCache=null,titleKey='',retainedTime=0,flashDone=false,flashLastAge=-1;
       function glow(g, x, y, rx, ry, c, alpha) {
         if (alpha <= 0) return;
@@ -217,7 +217,7 @@
         for(var fringe=0;fringe<3;fringe++)arc(g,radius+(fringe-1)*3,0,TAU,rgba(fringe===1?[255,255,255]:PASTELS[fringe*2],(1-p)*.55),Math.max(1,6*(1-p)));
         g.restore();glow(g,w*.5,h*.5,w*.85,h*.012,[255,255,255],Math.sin(p*Math.PI)*.65);
         // The only global flash envelope. A monotonic rise and smooth decay; never replay on seeking.
-        if(!flashDone){var rise=cfg.flashRiseMs/1000,alpha=age<rise?M.smooth(age/rise):1-M.smooth((age-rise)/(cfg.flashDecayMs/1000));g.fillStyle=rgba([255,255,255],alpha*cfg.flashOpacity);g.fillRect(0,0,w,h);}
+        if(!flashDone){var rise=cfg.flashRiseMs/1000,alpha=age<rise?M.smooth(age/rise):1-M.smooth((age-rise)/(cfg.flashDecayMs/1000));g.fillStyle=rgba([255,255,255],alpha*cfg.flashOpacity*(profile==='safe'?.55:1));g.fillRect(0,0,w,h);}
       }
       function climax(g,w,h,t,spatial){
         if(!spatial)curtainsFallback(g,w,h,t);
@@ -256,11 +256,12 @@
         return {progress:progress,scale:lightMode?1:M.mix(spec.cardScene.scaleFrom,1,progress),opacity:lightMode?1:M.smooth(age/160),done:age>=duration};
       }
       function start(next, seed, quiet) {
+        profile=C.cutscenes.profile();
         releaseScene();spec=next;pulseBeats=spec.beats.filter(function(b){return b.id==='pulse';});pulseTimeFactor=1;timeline=C.cutscenes.timeline(next).sections;sparkBeats=spec.beats.filter(function(b){return /^spark[123]$/.test(b.id);});serial=String(seed);time=0;retainedTime=0;flashDone=false;flashLastAge=-1;titleCache=null;level=['very-low','low','medium','high'].indexOf(C.settings.get('quality'));
         var random=M.random('prismatic-dawn:'+serial);particles=[];
         for(var i=0;i<360;i++)particles.push({x:random(),y:random(),z:.4+random()*1.5,phase:random()*TAU});
         if(!quiet&&!C.motion.reduced&&C.settings.policy.animation&&level>0){scene=warmed&&warmed.serial===serial?warmed.scene:build(spec,serial);if(warmed&&warmed.scene!==scene)warmed.scene.dispose();warmed=null;}
-        stats.backend=scene?scene.stats.backend:'canvas';stats.failure=scene&&scene.stats.failure||null;
+        if(scene)scene.setProfile(profile);stats.backend=scene?scene.stats.backend:'canvas';stats.failure=scene&&scene.stats.failure||null;
       }
       function paint(g,w,h,section,elapsed,staticProgress) {
         var offset=0;for(var i=0;i<spec.sections.length;i++){if(spec.sections[i].id===section.id)break;offset+=spec.sections[i].ms;}
@@ -277,10 +278,11 @@
         if(time<5.5){var k=M.smooth((time-4)/1.5),anchor=scene&&scene.anchor||[.5,.3],x=M.mix(w*.5,anchor[0]*w,k),y=M.mix(h*.5,anchor[1]*h,k);g.save();g.translate(x,y);point(g,Math.min(w,h)*M.mix(.16,.025,k),time,1-M.smooth((time-5.1)/.4));g.restore();}
         if(time<4.5){var cover=1-M.smooth((time-4)/.5);g.fillStyle=rgba([5,6,10],cover);g.fillRect(0,0,w,h);glow(g,w*.5,h*.5,w*.42,h*.52,[224,232,248],cover*.1);}
         if(timeline.aurora&&time>=at('aurora'))climax(g,w,h,time,spatial);
-        stats.backend=scene?scene.stats.backend:'canvas';stats.failure=scene&&scene.stats.failure||null;
+        if(scene)scene.setProfile(profile);stats.backend=scene?scene.stats.backend:'canvas';stats.failure=scene&&scene.stats.failure||null;
       }
       function releaseScene(){if(scene)scene.dispose();scene=null;}
       return {start:start,paint:paint,stop:releaseScene,releaseScene:releaseScene,handoff:handoff,cardFrame:cardFrame,
+        setProfile:function(value){profile=value;if(scene)scene.setProfile(value);},
         setPulseFactor:function(value,beats){pulseTimeFactor=value;pulseBeats=beats;if(scene)scene.setPulseFactor(value);},
         setSparkBeats:function(beats){sparkBeats=beats;},
         setSpinFactors:function(value){spinFactors=value;if(scene)scene.setSpinFactors(value);},

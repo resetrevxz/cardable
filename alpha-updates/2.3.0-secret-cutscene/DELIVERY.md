@@ -31,4 +31,8 @@ None for A. The explicit milestone boundary governs unfinished work. The global 
 
 Testing: one headed file:// game launch, Medium/Normal, dev Secret preview in Safe completed fakeout → black → boot → release with WebGL2 and retained backdrop; meter PASS, peak 1 opposing large-area change pair/s, red flag false, 0 warnings and 0 console errors. Full did not start because the between-profile advance timed out. No tests, screenshots or profiling were performed.
 
-Milestone B implementation and its limited playback evidence: see B-DELIVERY.md. C remains deferred.
+Milestone B implementation and its limited playback evidence: see B-DELIVERY.md.
+
+## Milestone C checkpoint
+
+See [C-DELIVERY.md](C-DELIVERY.md) for the completed C implementation and its outstanding runtime acceptance. The sole permitted C launch stopped during setup before either profile was triggered. C-INTEGRATION.patch is already applied to the live shared workspace and must not be applied twice.
