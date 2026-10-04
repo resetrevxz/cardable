@@ -123,3 +123,19 @@ The owner requested integration during E. The additive A–E payload is installe
 - No A–E implementation item is deferred. The acceptance limitations above remain explicitly unverified, especially actual recording and per-variant visual fidelity on different browsers/devices.
 - Horizontal Holo, Cross, Spotlight, Starlight and Shattered have no studio port and show the limited-preview note. They remain outside the approved initial six.
 - Assumptions: at most 96 keys; default 8-second shot; camera easing uses the destination key; light interpolation always uses soft easing for safety; title introduction ends by 1.8 seconds; WebM uses current quality and at most 1080p / 30 fps, and is downloaded within the session without durable clip storage. Existing D photo limits/frames/clipboard assumptions remain unchanged.
+
+## Director interface refinement
+
+The redesigned studio is installed in the main game at D:/CardableV2/cardable-spec/cardable/index.html through its existing studio stylesheet and lazy entry script. This pass changes only five studio-owned source files and this report; no additional entry point is required.
+
+- The header has explicit Inspect / Director workspace tabs, original thin SVG icons, compact history/actions and restrained monochrome styling. Bounded panels use static surface shading, a top-left edge highlight and layered shadows without backdrop blur. Controls have hover, pressed, disabled and keyboard focus states.
+- Director has a full-width timeline dock with a seconds ruler, current/duration timecode, previous/next key controls, Preview/Pause, repeat selection and turntable. Camera and each real scene light have separate scrollable tracks with diamond markers. Selected keys expose one time/easing/delete editor instead of generating a form for every keyframe.
+- Shot settings, key capture and clip export are grouped in collapsible inspector sections. The auto-director action is prominent for an empty shot; Preview becomes the primary action once keys exist. Pose loading retains the existing camera/light editing workflow.
+- Responsive controls and horizontally scrollable tools retain a usable stage on small screens. Key markers have 44-pixel hit targets, the playhead uses a native keyboard-accessible range control, and reduced motion disables playback while preserving still scrubbing.
+- Timeline updates remain on the existing session-owned studio clock. No animation loop, observer, interval, background subscription or rendering pass was added. Navigating away or deselecting removes the dock and its references; studio exit releases the existing session. Event contracts, save schema and protected cutscene/pack files are unchanged.
+
+Assumption: this is a polish pass within the existing 2.6.0 update, so the existing version folder and main index script wiring are retained. The six existing studio ports remain Rainbow Holo, Vertical Holo, Aurora, Matte, Galaxy Holo and Beam; this interface pass adds none.
+
+Testing: one main-game Chrome file:// opening confirmed orbit creation, selected-key/easing editing, repeat, preview/pause, dock removal, 390px layout, reduced-motion playback disabling and exit with zero console/WebGL errors; checkStudio ran once and passed seven cases in 116 ms; no old tests, new test files, screenshots, recordings or profiling.
+
+No interface implementation item remains unfinished. Actual clip recording and broader physical-device/per-variant visual acceptance remain unverified under the stated testing policy.
