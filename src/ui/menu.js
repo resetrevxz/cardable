@@ -57,7 +57,7 @@
     var remaining = waiting ? C.timers.remaining(Date.now()) : 0;
     var suffix = waiting ? ' · ' + C.timers.format(remaining) + ' · ' + Math.ceil(remaining / C.config.packs.regenMs * 100) + '%' : full || notifiedReady ? ' · pack ready' : '';
     var next = C.packs.upcoming(1)[0];
-    var nextTitle = ready && next && next.cadence ? C.config.gameName + ' - ' + next.name.replace(/ Pack$/, ' pack') + ' ready' : C.config.gameName + suffix;
+    var nextTitle = ready && next && (next.cadence || next.readyTitle) ? C.config.gameName + ' - ' + (next.readyTitle || next.name.replace(/ Pack$/, ' pack') + ' ready') : C.config.gameName + suffix;
     if (root.document.title !== nextTitle) root.document.title = nextTitle;
     var showReady = ready || hidden && notifiedReady;
     if (favicon && faviconReady !== showReady) { faviconReady = showReady; favicon.setAttribute('href', faviconStates[showReady ? 'ready' : 'normal']); }

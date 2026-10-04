@@ -1,6 +1,6 @@
 (function (C, root) {
   'use strict';
-  var files=['runtime','shell','saves','simulations','previews','tools','cutscenes','fun','checks','settings-checks','data-checks','bug-checks','inventory-checks','pack-checks','journal-check'];
+  var files=['runtime','shell','saves','simulations','previews','tools','cutscenes','fun','checks','settings-checks','data-checks','bug-checks','inventory-checks','pack-checks','journal-check','picker-check'];
   var css=root.document.createElement('link');css.rel='stylesheet';css.href='src/dev/workspace.css';root.document.head.appendChild(css);
   function load(index) {
     if(index===files.length){C.dev.prepare();C.events.on('app:ready',function(){C.dev.init();});C.boot();return;}

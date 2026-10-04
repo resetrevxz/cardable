@@ -31,7 +31,10 @@
     }
     if (entry.owned && instance && instance.packId) {
       var pack = C.pack(instance.packId);
-      if (pack) tags.push({kind:'pack',text:mode==='compact'?'':pack.counterStyle.label||pack.name.toUpperCase(),glyph:pack.counterStyle.glyph,label:'Opened from '+pack.name,accent:pack.counterStyle.accent});
+      if (pack) {
+        tags.push({kind:'pack',text:mode==='compact'?'':pack.counterStyle.label||pack.name.toUpperCase(),glyph:pack.counterStyle.glyph,label:'Opened from '+pack.name,accent:pack.counterStyle.accent});
+        if (mode !== 'compact' && instance.pickerChoice && pack.choiceLabel) tags.push({kind:'choice',text:pack.choiceLabel,label:pack.choiceLabel});
+      }
     }
     return tags;
   }

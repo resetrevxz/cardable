@@ -114,6 +114,7 @@
       require(typeof item.packId === 'string' && !!C.pack(item.packId), 'Unsupported card pack');
       require(item.variantId === null || typeof item.variantId === 'string' && !!C.variant(item.variantId), 'Unsupported card variant');
       require(number(item.pulledAt) && typeof item.seen === 'boolean', 'Invalid card progress');
+      if (item.pickerChoice !== undefined) require(item.pickerChoice && integer(item.pickerChoice.index) && integer(item.pickerChoice.count) && item.pickerChoice.count > item.pickerChoice.index && item.pickerChoice.count <= 3, 'Invalid choice provenance');
       if (reserved) require(!!C.card(item.cardId), 'Reserved card is outside this catalog');
       var parts = item.serial.split('-'), count = Number(parts[2]);
       if (parts.length === 3 && parts[0] === C.config.serial.prefix && parts[1] === candidate.playerCode &&
@@ -129,11 +130,13 @@
     candidate.inventory.forEach(function (item) { instance(item, false); });
     if (candidate.pendingReveal !== null) {
       var pending = candidate.pendingReveal;
-      require(pending && typeof pending === 'object' && Array.isArray(pending.cards) && pending.cards.length > 0 &&
+      var hasOptions = pending && pending.options !== undefined;
+      require(pending && typeof pending === 'object' && Array.isArray(pending.cards) && (pending.cards.length > 0 || hasOptions) &&
         typeof pending.packId === 'string' && !!C.pack(pending.packId) && number(pending.committedAt), 'Invalid reserved pack');
+      if (hasOptions) { require(!!C.picker, 'Choice support is unavailable'); C.picker.validatePending(pending); }
       pending.cards.forEach(function (item) { instance(item, true); });
       require(pending.cards.every(function(item) { return item.packId === pending.packId; }), 'Reserved card pack mismatch');
-      require(pending.keptCount === undefined || integer(pending.keptCount) && pending.keptCount < pending.cards.length, 'Invalid reserved pack progress');
+      require(pending.keptCount === undefined || integer(pending.keptCount) && (pending.keptCount < pending.cards.length || hasOptions && pending.choice === null && pending.keptCount === 0), 'Invalid reserved pack progress');
       if (pending.discardedInstanceIds !== undefined) {
         require(Array.isArray(pending.discardedInstanceIds) && new Set(pending.discardedInstanceIds).size === pending.discardedInstanceIds.length &&
           pending.discardedInstanceIds.every(function (id) { return pending.cards.slice(0, pending.keptCount || 0).some(function (item) { return item.instanceId === id; }); }), 'Invalid discarded pack cards');

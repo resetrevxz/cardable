@@ -156,7 +156,7 @@
     var forced = request.options.forcedTier || null;
     try {
       var cards = [];
-      for (var i = 0; i < pack.cardsPerPack; i++) cards.push(C.pull.pullCard(pack, {
+      for (var i = 0; !request.buildPending && i < pack.cardsPerPack; i++) cards.push(C.pull.pullCard(pack, {
         forcedTier: i === 0 ? forced : null,
         forcedCard: i === 0 ? request.options.forcedCard : null,
         forcedVariant: i === 0 ? request.options.forcedVariant : undefined,
@@ -169,7 +169,7 @@
       var before = candidate.currency;
       candidate.currency += C.config.currency.packOpenReward;
       if (!Number.isSafeInteger(candidate.currency)) throw new Error('Currency exceeds its safe range');
-      candidate.pendingReveal = { packId: pack.id, cards: cards, committedAt: now, keptCount: 0 };
+      candidate.pendingReveal = request.buildPending ? request.buildPending(candidate, now) : { packId: pack.id, cards: cards, committedAt: now, keptCount: 0 };
       C.events.emit('opening:prepareCommit', candidate);
       if (!C.state.commit(candidate)) throw new Error('durable save unavailable');
     } catch (_) {
@@ -334,7 +334,14 @@
   function startReveal(recover, introDone, customEntrance) {
     packEntrance=!!customEntrance;
     if(recover&&cutStrategy)cutStrategy.reset();
-    var pending = C.state.current.pendingReveal; if (!pending || !pending.cards.length) { reset(); return; }
+    var pending = C.state.current.pendingReveal;
+    if (pending && pending.options && pending.choice === null && cutStrategy && cutStrategy.resume) {
+      cleanReveal(); host.style.visibility = ''; foil.style.opacity = 0;
+      phaseTo('vaultOpening');
+      cutStrategy.resume({announce:announce,canActivate:function(){return phase==='vaultOpening'&&!preferencesActive&&!root.document.hidden;},reveal:function(){startReveal(false);}});
+      return;
+    }
+    if (!pending || !pending.cards.length) { reset(); return; }
     if (currentView) currentView.destroy(); currentView = null; if(variantLabel){variantLabel.remove();variantLabel=null;}
     cardIndex = Math.max(0, Math.min(pending.cards.length - 1, Math.floor(Number(pending.keptCount) || 0)));
     var instance = pending.cards[cardIndex], card = C.card(instance.cardId); rarity = C.rarity(card.rarity);
