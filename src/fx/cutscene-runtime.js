@@ -117,7 +117,7 @@
           root.document.body.classList.toggle('cutscene-cursor-available', !hint.hidden);
           if(runMode==='light'){
             if(clock>=film.total*((spec.light?spec.light.handoffMs:2600)/playDuration(spec,'light')))emit('cardIn',spec.light?spec.light.handoffMs:2600);
-          }else (spec.beats || []).filter(function(beat){return (!spec.ritual||beat.id!=='pulse')&&(spec.kind!=='prismatic'||!/^spark[123]$/.test(beat.id));}).concat(pulseEvents,spec.kind==='prismatic'?sparkEvents:[]).forEach(function (beat) { if (clock >= beat.ms) emit(beat.id, beat.ms, beat.key); });
+          }else (spec.beats || []).filter(function(beat){return (!spec.ritual||beat.id!=='pulse')&&(spec.kind!=='prismatic'||!/^spark[123]$/.test(beat.id));}).concat(pulseEvents,spec.kind==='prismatic'?sparkEvents:[],painter&&painter.getBeats?painter.getBeats():[]).forEach(function (beat) { if (clock >= beat.ms) emit(beat.id, beat.ms, beat.key); });
           // Live adaptation is part of the presentation, not a separate profiling loop.
           // Programs and targets were warmed during cutting; ignore the first ten visible frames.
           if ((spec.kind === 'prismatic' && clock >= 1000 && clock < 10000 || spec.kind === 'system' && clock >= 4000 && clock < 19000) && !staticPolicy && dt > 0 && !adaptive.dropped) {

@@ -1,0 +1,35 @@
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@ -100,0 +101 @@
++  <script src="src/fx/secret-os-scene.js"></script>
+diff --git a/Designs.MD b/Designs.MD
+--- a/Designs.MD
++++ b/Designs.MD
+@@ -247,0 +248,9 @@
++
++
++### Secret milestone B: the failing desktop
++
++Milestone B extends Fatal Exception through the desktop, era breakdown and stop/reboot terminal at 32 seconds. The original NorthStar desktop uses seeded procedural icons, dialog order/codes and hex bytes. The autonomous cursor opens SECRET.DAT and tries to dismiss an exponential popup avalanche; NORTH, hung-window trails, Task Manager, accelerating Explorer, defrag and clipboard windows make the failure specific to an operating system. The descriptor keeps the first five tiers and earlier cinematic implementations unchanged.
++
++The OS engine preserves raw low-resolution history under a persistent clean-area mask, before applying the shared CRT/bloom/composite. Healthy and current window footprints redraw; vacated hung regions retain copies. A Canvas mirror preserves fallback continuity. High has at most 60 windows and all post effects, Medium at most 40 with no sort/8x8 quantization, and Low at most 20 with bounded drawn trails. Safe births have 120 ms entrances and a rolling limit of twelve windows per presentation second, including Fast/scrub. Safe era changes crossfade for 800 ms, artifacts are irregular static low-contrast patches, and shake is at most 3 px at 2.5 Hz. Full bursts are gated to 500 ms with at least 1500 ms of calm, and checker patches are absent during those bursts. The existing final-output limiter remains authoritative.
++
++Three Full reboot attempts preserve the original POST and same corrupt desktop; rapid cuts stop after the permitted burst, with subsequent attempts blended. Safe has one 1500 ms crossfade reboot. Both terminate in the original recovery console and repeating highlighted SECRET hex. B retains A's temporary 600 ms release and 400 ms flip (33 seconds including flip), followed by the existing shared field. The four-second resurrection, exact final-scene continuity, authored Short/calm stories and other ceremonies' Safe caps are milestone C. No audio or runtime assets are added.
+diff --git a/docs/RARITY-INTROS.md b/docs/RARITY-INTROS.md
+--- a/docs/RARITY-INTROS.md
++++ b/docs/RARITY-INTROS.md
+@@ -124,0 +125,13 @@
++
++
++## Secret — Fatal Exception, milestone B
++
++B adds `desktop` 9000 / `breakdown` 8000 / `stop` 5000 ms to A's 10000 ms. The temporary release remains 600 ms plus the existing 400 ms direct flip: 33000 ms total at Normal and 23100 ms at Fast, excluding charge. The authored 40-second film remains C work. Its spec stays in `alpha-updates/2.3.0-secret-cutscene/SPEC.md`.
++
++`secret-os-scene.js` owns the tiny procedural desktop model and rasterization. All randomness comes from the reserved serial, separate from pull RNG. The dialog bank, scene timing, OS palette, buffer sizes, window caps and profile choreography live in `src/data/secret-cutscene.js`. The painter reads the shared runtime's presentation clock; Safe admissions and 120 ms entrances use real playback milliseconds instead of canonical story time. Scrub/Fast cannot exceed twelve admissions in a rolling second. Registered section jumps now include desktop/breakdown/stop.
++
++The screen engine's ping-pong buffers store nearest-sampled raw OS pixels at OS resolution. A persistent mask preserves swept hung-window footprints, while healthy/current windows draw through. CRT shading, noise and bloom are applied once after feedback, avoiding darkening history. The scene keeps a masked Canvas mirror for context failure and scales it when quality drops. Low draws bounded historical poses; Mono converts both GPU and Canvas output. Existing shared warm-up, adaptive quality, skip, hidden pause, recovery and direct flip are reused.
++
++D features original icons, the autonomous arrow/hourglass, exponential errors, NORTH, Task Manager's pegged CPU/off-chart memory graph, accelerating Explorer, a defrag map and SECRET clipboard. Diagnostic windows get readable beats before the avalanche buries them. E introduces four era treatments, year progression, detached falling icons, disappearing bars, block tears, held tiles displaced by cursor motion and static/pulsed VRAM patches. High adds sorting/8x8 quantization; Medium omits them. Full allows at most four 350 ms artifact bursts in E, inside 500 ms globally gated bursts; Safe uses fixed irregular low-contrast patches and 800 ms theme crossfades. Full checker patches appear only outside bursts. Safe shake is capped at 3 px and 2.5 Hz.
++
++F shows the original blue stop screen, backward progress and a deliberately non-QR fragment grid. Safe reboots once over 1500 ms; Full has three faster attempts, with rapid cuts restricted to the first allowed burst and later attempts blended. The console then types reveal/denied/override/force and scrolls seeded hex with repeated `53 45 43 52 45 54`. Scene-generated error/themeFlip/reboot beats join descriptor beats through the shared exact-once runtime, rather than emitting from a private loop. B releases the terminal into A's field; G/H and full Short/calm/background choreography remain C.

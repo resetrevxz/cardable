@@ -30,3 +30,5 @@
 None for A. The explicit milestone boundary governs unfinished work. The global photosensitivity caps take precedence over any later act's conflicting burst examples.
 
 Testing: one headed file:// game launch, Medium/Normal, dev Secret preview in Safe completed fakeout → black → boot → release with WebGL2 and retained backdrop; meter PASS, peak 1 opposing large-area change pair/s, red flag false, 0 warnings and 0 console errors. Full did not start because the between-profile advance timed out. No tests, screenshots or profiling were performed.
+
+Milestone B implementation and its limited playback evidence: see B-DELIVERY.md. C remains deferred.
