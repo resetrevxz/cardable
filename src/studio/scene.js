@@ -5,9 +5,29 @@
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
   function number(value, fallback, low, high) { return typeof value === 'number' && Number.isFinite(value) ? Math.max(low, Math.min(high, value)) : fallback; }
   function vector(value, fallback, low, high) { return fallback.map(function (n, i) { return number(Array.isArray(value) ? value[i] : null, n, low, high); }); }
+  var catalog = {
+    stage: [['floor','Floor'],['backdrop','Seamless backdrop'],['plinth-square','Square plinth'],['plinth-round','Round plinth'],['easel','Display easel'],['glass-case','Glass case'],['turntable','Turntable'],['grid-floor','Grid floor']],
+    fixtures: [['softbox','Softbox'],['ring-light','Ring light'],['neon-tube','Neon tube'],['spotlight-can','Spotlight can'],['led-strip','LED strip']],
+    effects: [['haze','Haze / volumetric fog'],['dust','Dust motes'],['sparks','Sparks'],['confetti','Confetti'],['snow','Snow'],['rain','Rain'],['fireflies','Fireflies'],['smoke','Smoke'],['lens-flare','Lens flare']],
+    hardware: [['fan','Fan'],['heatsink','Heatsink block'],['cables','Cable bundle'],['pcie-bracket','PCIe bracket'],['rgb-strip','RGB strip'],['screw','Screw'],['standoff','Standoff']],
+    decor: [['crown','Crown'],['trophy','Trophy cup'],['laurel','Laurel ribbon'],['plant','Plant'],['pack','Cardable pack'],['collection','Collection cards']]
+  }, propTypes = [].concat.apply([], Object.keys(catalog).map(function (k) { return catalog[k].map(function (v) { return v[0]; }); }));
+  function prop(value, index) {
+    value = value || {}; var type = choice(value.type, propTypes, 'plinth-square');
+    return { id: String(value.id || 'prop-' + (index || 0)).slice(0,80), type: type,
+      name: String(value.name || [].concat.apply([], Object.keys(catalog).map(function (k) { return catalog[k]; })).find(function (p) { return p[0] === type; })[1]).slice(0,60),
+      position: vector(value.position, [1,-.4,0],-20,20), rotation: vector(value.rotation,[0,0,0],-180,180), scale: vector(value.scale,[1,1,1],.05,6),
+      color: vector(value.color,[.45,.47,.5],0,1), material: choice(value.material,['matte','gloss','metal','emissive'],'matte'),
+      castShadow: value.castShadow !== false, animation: choice(value.animation,['none','spin','float'],'none'), speed: number(value.speed,.5,.1,3),
+      visible: value.visible !== false, locked: value.locked === true, text: String(value.text || 'CARDABLE').slice(0,12),
+      surface: choice(value.surface,['matte','glossy','mirror'],'matte'), gradient: vector(value.gradient,[.015,.015,.025],0,1),
+      arrangement: choice(value.arrangement,['stack','fan','wall'],'fan'),
+      instances: (Array.isArray(value.instances) ? value.instances : []).filter(function (id) { return typeof id === 'string'; }).slice(0,10).map(function (id) { return id.slice(0,120); }),
+      packId: String(value.packId || 'standard').slice(0,80), density: number(value.density,.5,.05,1) };
+  }
   function defaults(instance, pose) {
     pose = pose || {};
-    return { version: 1, card: { side: pose.side === 'back' ? 'back' : 'front', tilt: [pose.x || 0, pose.y || 0], plate: true,
+    return { version: 1, card: { side: pose.side === 'back' ? 'back' : 'front', tilt: [pose.x || 0, pose.y || 0], plate: true, visible: true, locked: false,
       source: instance ? { cardId: instance.cardId, instanceId: instance.instanceId, serial: instance.serial, variantId: instance.variantId || null, cardSkinId: instance.cardSkinId || null, packId: instance.packId || 'standard', pulledAt: instance.pulledAt } : null },
       lights: [light({ id: 'key', position: [-2.2, 3.2, 4], intensity: 1.4 })], props: [],
       camera: { yaw: 0, pitch: 0, distance: 3, fov: 35, target: [0, 0, 0], roll: 0, focus: [0, 0, 0], aperture: 0, aspect: 'free', autoFrame: false, lockToCard: false }, backdrop: { color: [0.035, 0.035, 0.045] }, keyframes: [], post: { exposure: 0, bloom: .12, vignette: .18, grain: 0, aberration: 0, flare: 0, tiltShift: 0 } };
@@ -25,25 +45,29 @@
     if (typeof value === 'string') value = JSON.parse(value);
     if (!value || value.version !== 1) throw new Error('Unsupported studio scene version.');
     var scene = defaults(value.card && value.card.source), card = value.card || {}, camera = value.camera || {};
-    scene.card.side = card.side === 'back' ? 'back' : 'front'; scene.card.tilt = vector(card.tilt, [0, 0], -180, 180); scene.card.plate = card.plate !== false;
+    scene.card.side = card.side === 'back' ? 'back' : 'front'; scene.card.tilt = vector(card.tilt, [0, 0], -180, 180); scene.card.plate = card.plate !== false; scene.card.visible = card.visible !== false; scene.card.locked = card.locked === true;
     if (card.source) { var source = card.source; scene.card.source = { cardId: String(source.cardId || '').slice(0, 120), instanceId: String(source.instanceId || '').slice(0, 120), serial: String(source.serial || '').slice(0, 120), variantId: typeof source.variantId === 'string' ? source.variantId.slice(0, 80) : null, cardSkinId: typeof source.cardSkinId === 'string' ? source.cardSkinId.slice(0, 80) : null, packId: String(source.packId || 'standard').slice(0, 80), pulledAt: number(source.pulledAt, 0, 0, 8640000000000000) }; }
     scene.camera = { yaw: number(camera.yaw, 0, -Math.PI * 20, Math.PI * 20), pitch: number(camera.pitch, 0, -1.35, 1.35), distance: number(camera.distance, 3, 1.3, 9), fov: number(camera.fov, 35, 15, 90), target: vector(camera.target, [0, 0, 0], -10, 10), roll: number(camera.roll, 0, -Math.PI, Math.PI), focus: vector(camera.focus, [0, 0, 0], -20, 20), aperture: number(camera.aperture, 0, 0, 10), aspect: choice(camera.aspect, ['free', '1:1', '4:5', '16:9', '9:16', 'card'], 'free'), autoFrame: camera.autoFrame === true, lockToCard: camera.lockToCard === true };
     scene.backdrop.color = vector(value.backdrop && value.backdrop.color, scene.backdrop.color, 0, 1);
     scene.lights = (Array.isArray(value.lights) ? value.lights : scene.lights).slice(0, 8).map(light);
     var ids = new Set(); scene.lights.forEach(function (l, i) { var base = l.id, suffix = i; while (ids.has(l.id)) l.id = base + '-' + suffix++; ids.add(l.id); });
     var post = value.post || {}; scene.post = { exposure: number(post.exposure, 0, -2, 2), bloom: number(post.bloom, .12, 0, 1), vignette: number(post.vignette, .18, 0, 1), grain: number(post.grain, 0, 0, .3), aberration: number(post.aberration, 0, 0, 1), flare: number(post.flare, 0, 0, 1), tiltShift: number(post.tiltShift, 0, 0, 1) };
-    // Props and Director keyframes are extended only by their later milestones.
+    scene.props = (Array.isArray(value.props) ? value.props : []).slice(0,40).map(prop);
+    var cardsLeft = 10; scene.props.forEach(function (p) { if (p.type === 'collection') { p.instances = p.instances.slice(0,cardsLeft); cardsLeft -= p.instances.length; } });
+    scene.props.forEach(function (p,i) { var base=p.id, suffix=i; while(ids.has(p.id)) p.id=base+'-'+suffix++; ids.add(p.id); });
+    // Director keyframes arrive in E.
     return scene;
   }
   function store(value) {
     var result = { slots: [], last: {} };
     if (!value || typeof value !== 'object') return result;
+    result.slots = Array.from({length:10},function (_,i) { var slot = Array.isArray(value.slots) && value.slots[i]; if (!slot) return null; try { return { name: String(slot.name || 'Scene '+(i+1)).slice(0,60), thumbnail: typeof slot.thumbnail === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(slot.thumbnail) && slot.thumbnail.length <= 80000 ? slot.thumbnail : '', scene: parse(slot.scene) }; } catch (_) { return null; } });
     Object.keys(value.last || {}).forEach(function (id) { if (id === '__proto__' || id === 'constructor' || id === 'prototype') return; try { result.last[id] = parse(value.last[id]); } catch (_) { /* An invalid scene never invalidates gameplay progress. */ } });
     return result;
   }
-  C.studioScenes = { tiers: tiers, clone: clone, defaults: defaults, light: light, parse: parse, serialize: function (scene) { return JSON.stringify(parse(scene)); }, normalize: store,
+  C.studioScenes = { tiers: tiers, clone: clone, defaults: defaults, light: light, prop: prop, catalog: catalog, parse: parse, serialize: function (scene) { return JSON.stringify(parse(scene)); }, normalize: store,
     limits: function (tier) { return tiers[tier] || tiers.medium; },
-    effective: function (scene, tier) { var result = clone(scene), limit = this.limits(tier); result.lights = result.lights.filter(function (l) { return l.visible; }).slice(0, limit.lights); result.props = result.props.slice(0, limit.props); return result; },
+    effective: function (scene, tier) { var result = clone(scene), limit = this.limits(tier); result.lights = result.lights.filter(function (l) { return l.visible; }).slice(0, limit.lights); result.props = result.props.filter(function (p) { return p.visible; }).slice(0, limit.props); return result; },
     history: function (initial) {
       var past = [], future = [], current = this.serialize(initial), before = null;
       function snapshot(scene) { return C.studioScenes.serialize(scene); }
