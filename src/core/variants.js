@@ -1,12 +1,12 @@
 (function (C) {
   'use strict';
   C.stacks = {
-    key: function (cardId, variantId) { return JSON.stringify([cardId, variantId || null]); },
-    of: function (instance) { return this.key(instance.cardId, instance.variantId); },
+    key: function (cardId, variantId, cardSkinId) { return JSON.stringify(cardSkinId ? [cardId, variantId || null, cardSkinId] : [cardId, variantId || null]); },
+    of: function (instance) { return this.key(instance.cardId, instance.variantId, instance.cardSkinId); },
     canonical: function (value) {
       if (typeof value !== 'string' || !value.length) return null;
       if (value.charAt(0) !== '[') return this.key(value, null);
-      try { var pair = JSON.parse(value); return Array.isArray(pair) && pair.length === 2 && typeof pair[0] === 'string' && pair[0].length > 0 && (pair[1] === null || !!C.variant(pair[1])) ? this.key(pair[0], pair[1]) : null; } catch (_) { return null; }
+      try { var pair = JSON.parse(value); return Array.isArray(pair) && (pair.length === 2 || pair.length === 3 && !!C.cardSkin(pair[2])) && typeof pair[0] === 'string' && pair[0].length > 0 && (pair[1] === null || !!C.variant(pair[1])) ? this.key(pair[0], pair[1], pair[2]) : null; } catch (_) { return null; }
     }
   };
   C.variants = {

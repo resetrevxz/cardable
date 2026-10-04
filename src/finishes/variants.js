@@ -38,24 +38,27 @@
   C.variantMaterials = {
     registry: registry,
     register: function (id, material) { ['mount','update','destroy','lite'].forEach(function(k){if(typeof material[k]!=='function')throw new Error('Variant material needs '+k);}); registry[id]=material; },
-    bind: function (id, host, card, instance) {
+    bind: function (id, host, card, instance, context) {
+      context = context || {};
+      function policy() { return context.policy ? context.policy() : C.settings.policy; }
+      function run(fn) { return context.withPolicy ? context.withPolicy(fn) : fn(); }
       var material=registry[id], binding=null, accumulated=0, staticView=null;
       function clear() { if(binding)material.destroy(binding);binding=null;accumulated=0; }
       var stop=C.settings.onChange('finishQuality',function(){
         clear();
-        if(staticView){var parent=staticView.parentNode,next=material.lite(card,instance);if(parent)parent.insertBefore(next,staticView);staticView.remove();staticView=next;}
+        if(staticView){var parent=staticView.parentNode,next=run(function(){return material.lite(card,instance);});if(parent)parent.insertBefore(next,staticView);staticView.remove();staticView=next;}
       });
       return {
-        activate:function(){if(!binding&&C.settings.policy.finishHz)binding=material.mount(host,card,instance);},
+        activate:function(){if(!binding&&policy().finishHz)binding=run(function(){return material.mount(host,card,instance);});},
         deactivate:clear,
         update:function(dt,pointer){
-          var hz=C.settings.policy.finishHz;if(!hz)return false;
-          if(!binding)binding=material.mount(host,card,instance);
+          var hz=policy().finishHz;if(!hz)return false;
+          if(!binding)binding=run(function(){return material.mount(host,card,instance);});
           accumulated+=dt;if(accumulated+0.01<1000/hz)return id==='aurora'||id==='galaxy-holo';
-          var moving=material.update(accumulated,pointer,binding);accumulated=0;return moving;
+          var moving=run(function(){return material.update(accumulated,pointer,binding);});accumulated=0;return moving;
         },
         destroy:function(){stop();clear();},
-        lite:function(){if(!staticView)staticView=material.lite(card,instance);return staticView;}
+        lite:function(){if(!staticView)staticView=run(function(){return material.lite(card,instance);});return staticView;}
       };
     }
   };

@@ -8,13 +8,13 @@
   var schema = {
     motion: entry('Reduced motion', 'Auto follows your system.', 'Motion and effects', 'auto', ['auto', 'on', 'off']),
     quality: entry('Graphics preset', 'A complete graphics profile. FPS stays independent.', 'Graphics', 'medium', ['very-low', 'low', 'medium', 'high']),
-    fpsLimit: entry('FPS limit', 'Display refresh uses your screen’s available cadence.', 'Performance', 'display', ['display', '30', '60', '90', '120', '144', '165', '240'], 'select'),
+    fpsLimit: entry('FPS limit', 'Lower caps save power. Display refresh follows your screen.', 'Performance', 'display', ['display', '20', '30', '45', '60', '90', '120', '144', '165', '240'], 'select'),
     backgroundMode: entry('Hidden tab', 'Packs refill by real time in either mode.', 'Performance', 'sleep', ['sleep', 'timer'], 'select'),
     unfocusedMode: entry('Unfocused window', 'For a visible window while using another app.', 'Performance', 'normal', ['normal', '30', 'pause'], 'select'),
     showFps: entry('Performance display', 'Animation FPS and frame time; sleeps with the game.', 'Performance', false),
     dots: entry('Dot grid', 'A quiet response to the pointer.', 'Motion and effects', 'on', ['on', 'subtle', 'off']),
     cursorGlow: entry('Cursor glow', 'The native cursor stays visible.', 'Motion and effects', true),
-    idleFade: entry('Idle fade', 'Hide chrome after stillness.', 'Motion and effects', '2.5', ['2.5', '5', 'never']),
+    idleFade: entry('Idle fade', 'Keep the small logo and pack metrics while idle.', 'Motion and effects', '15', ['2.5', '5', '15', '30', 'never']),
     rarityColor: entry('Rarity color', 'Existing card colors on or off.', 'Cards', 'color', ['color', 'mono'], 'switch'),
     tilt: entry('Card tilt', 'Changes weight and maximum angle.', 'Cards', 'normal', ['low', 'normal', 'high']),
     revealSpeed: entry('Reveal speed', 'Hold and cut keep their timing.', 'Cards', 'normal', ['normal', 'fast']),
@@ -26,6 +26,7 @@
     muted: entry('Mute', 'Coming soon', 'Sound', false),
     nudgeDismissed: entry('', '', null, false)
   };
+  schema.idleFade.format = function (value) { return value === 'never' ? 'Never' : value + ' s'; };
   var tiers = ['very-low', 'low', 'medium', 'high'];
   var graphics = {
     finishQuality: ['Card finishes', 'Rarity materials and cosmetic coatings.'],
@@ -36,7 +37,8 @@
     glassQuality: ['Glass and blur', 'Very Low and Low use solid tinted surfaces.'],
     backgroundQuality: ['Background effects', 'Dots, ripples, trails and cursor glow.'],
     animationQuality: ['Ambient animation', 'Sway, fluid, logo and decorative motion.'],
-    canvasQuality: ['Canvas resolution', 'Pixel ratio ceiling: 1 / 1.25 / 1.5 / 2. Text stays sharp.']
+    canvasQuality: ['Canvas resolution', 'Pixel ratio ceiling: 1 / 1.25 / 1.5 / 2. Text stays sharp.'],
+    cinematicQuality: ['Cinematic detail', 'Very Low uses calm Canvas scenes; higher tiers add geometry and post effects.']
   };
   Object.keys(graphics).forEach(function (key) { schema[key] = entry(graphics[key][0], graphics[key][1], 'Advanced graphics', 'medium', tiers, 'select'); });
   Object.keys(schema).forEach(function (key) { schema[key].key = key; });

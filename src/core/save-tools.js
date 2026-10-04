@@ -12,7 +12,7 @@
     for (var i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 16777619);
     return 'fnv1a-' + (hash >>> 0).toString(16).padStart(8, '0');
   }
-  function envelope(save, now) { var value = clone(save); return { app: 'cardable', schemaVersion: value.schemaVersion, exportedAt: new Date(now).toISOString(), save: value, checksum: checksum(value) }; }
+  function envelope(save, now) { var value = JSON.parse(C.state.encode(save)); return { app: 'cardable', schemaVersion: value.schemaVersion, exportedAt: new Date(now).toISOString(), save: value, checksum: checksum(value) }; }
   function parse(text) {
     if (typeof text !== 'string' || text.length > C.config.polish.maxSaveBytes) throw new Error('Save file is too large.');
     var value; try { value = JSON.parse(text); } catch (_) { throw new Error('This file is not readable JSON.'); }
@@ -24,23 +24,27 @@
   }
   function summary(save) { return { cardCount: save.inventory.length, uniqueCount: new Set(save.inventory.map(function (i) { return i.cardId; })).size, packs: save.packs.ready, currency: save.currency, tutorialDone: save.tutorial.done }; }
   function create(adapter) {
-    var undo = null, key = C.config.storage.key, backupKey = key + '.backup';
+    var undoByKey = Object.create(null), undo = null;
+    function backupKey() { return C.config.storage.key + '.backup'; }
+    var undoKey = C.config.storage.key;
+    function context() { if (undoKey !== C.config.storage.key) { undoByKey[undoKey] = undo; undoKey = C.config.storage.key; undo = undoByKey[undoKey] || null; } }
     function notify() { if (adapter.changed) adapter.changed(); }
     function backup(save) {
-      var value = { app: 'cardable', backedUpAt: adapter.now(), summary: summary(save), save: clone(save) };
+      var value = { app: 'cardable', backedUpAt: adapter.now(), summary: summary(save), save: JSON.parse(C.state.encode(save)) };
       value.checksum = checksum(value.save);
-      try { adapter.storage().setItem(backupKey, JSON.stringify(value)); }
+      try { adapter.storage().setItem(backupKey(), JSON.stringify(value)); }
       catch (_) { throw new Error('Could not save a backup. Your current progress is unchanged.'); }
       return value;
     }
     function previous() {
-      var raw; try { raw = adapter.storage().getItem(backupKey); } catch (_) { return null; }
+      var raw; try { raw = adapter.storage().getItem(backupKey()); } catch (_) { return null; }
       if (!raw) return null;
       try { var value = JSON.parse(raw); if (value.app !== 'cardable' || !Number.isFinite(value.backedUpAt) || value.checksum !== checksum(value.save)) return null;
         value.save = C.state.validate(value.save, false); value.summary = summary(value.save); return value;
       } catch (_) { return null; }
     }
     function adopt(next, kind, record) {
+      context();
       // Local backups follow load's catalog compatibility; external imports stay strict.
       var candidate = C.state.validate(clone(next), kind === 'import'), before = clone(adapter.current());
       backup(before);
@@ -56,17 +60,18 @@
         if (fresh.playerCode === current.playerCode) { var end = fresh.playerCode.slice(-1), alphabet = C.serial.alphabet; fresh.playerCode = fresh.playerCode.slice(0, -1) + alphabet.charAt((alphabet.indexOf(end) + 1) % alphabet.length); }
         fresh.settings = C.settingsSchema.normalize(current.settings); return adopt(fresh, 'reset'); },
       restore: function () { var value = previous(); if (!value) throw new Error('No readable previous save is available.'); return adopt(value.save, 'restore'); },
-      replay: function () { var next = clone(adapter.current()), before = clone(next.tutorial); next.tutorial = { step: 'welcome', done: false };
+      replay: function () { context(); var next = clone(adapter.current()), before = clone(next.tutorial); next.tutorial = { step: 'welcome', done: false };
         adapter.sessionSave(next); undo = { kind: 'replay', before: before, expiresAt: adapter.now() + 8000 }; if (adapter.replayed) adapter.replayed(); notify(); return next;
       },
       undo: function () {
+        context();
         if (!undo || adapter.now() >= undo.expiresAt) { undo = null; notify(); throw new Error('Undo has expired. Use Restore previous save in Data.'); }
         var record = undo;
         if (record.kind === 'replay') { var next = clone(adapter.current()); next.tutorial = record.before; adapter.sessionSave(next); undo = null; if (adapter.replayed) adapter.replayed(); notify(); return next; }
         return adopt(record.before, 'undo', false);
       },
-      expireUndo: function () { undo = null; notify(); },
-      get undoInfo() { return undo ? { kind: undo.kind, remainingMs: Math.max(0, undo.expiresAt - adapter.now()) } : null; },
+      expireUndo: function () { context(); undo = null; notify(); },
+      get undoInfo() { context(); return undo ? { kind: undo.kind, remainingMs: Math.max(0, undo.expiresAt - adapter.now()) } : null; },
       previous: previous, backup: backup
     };
   }

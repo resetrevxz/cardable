@@ -107,3 +107,10 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 - Shaded inventory surfaces, Very Low blend-container fix and offline Spotlight fallback.
 
 **Accept:** check-inventory-performance-browser.cjs and moving Shelf/Grid profiles across all presets. Scoped headless evidence; physical device and 240Hz performance are not certified.
+
+## Stage 15 - Graphics refresh
+
+**Docs:** GRAPHICS-REFRESH.
+
+- Independent four-tier cinematic detail, 20/45 FPS caps, shaded settings backdrop and redundant-write/canvas-reset fixes.
+- **Accept:** check-graphics-refresh-browser.cjs, four-preset inventory acceptance and paired settings/detail profiles.

@@ -48,9 +48,10 @@
         if (near) move({ clientX: p.x, clientY: p.y });
         else if (!hovered) { targets.rx = 0; targets.ry = 0; }
       });
-      host.addEventListener('pointerup', function (event) { if (gesture && gesture.id === event.pointerId) clear(); });
+      host.addEventListener('pointerup', function (event) { if (event.button === 0 && gesture && gesture.id === event.pointerId) clear(); });
       host.addEventListener('pointercancel', clear); host.addEventListener('lostpointercapture', clear);
       host.addEventListener('contextmenu', function (event) {
+        if (C.contextMenu) return;
         if (blocked) return; event.preventDefault(); inspecting = !inspecting; measure();
         host.classList.toggle('is-inspecting', inspecting); targets.lift = inspecting ? cfg.inspectLiftPx : 0; C.fx.wake();
       });

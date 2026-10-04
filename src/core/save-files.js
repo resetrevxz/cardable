@@ -12,7 +12,7 @@
   C.saveFiles = {
     parse: parse,
     download: download,
-    exportText: function () { return JSON.stringify(C.state.current, null, 2) + '\n'; },
+    exportText: function () { return JSON.stringify(JSON.parse(C.state.encode(C.state.current)), null, 2) + '\n'; },
     export: function () { download(C.saveFiles.exportText(), 'cardable-save.json'); },
     exportBackup: function () { if (C.state.recovery) download(C.state.recovery.raw, 'cardable-save-recovery.json'); },
     previous: function () { try { return root.localStorage.getItem(C.config.storage.key + '.before-import'); } catch (_) { return null; } },

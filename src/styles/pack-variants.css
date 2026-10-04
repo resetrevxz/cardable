@@ -1,0 +1,53 @@
+/* Pack skin exceptions are confined to sealed Rare surfaces and their provenance. */
+.pack-stock { position: relative; }
+[data-skin="rare"] .pack-wrapper { background: linear-gradient(100deg,var(--pack-rare-navy),#164399 23%,var(--pack-rare-blue) 54%,#174496 79%,var(--pack-rare-navy)); }
+[data-skin="rare"] .pack-body { background: var(--pack-rare-navy); }
+[data-skin="rare"] .pack-body::after { border: 1px solid #ffffff90; box-shadow: inset 2px 0 10px #b8d5ff48,inset -3px 0 12px #031437a0; }
+[data-skin="rare"] .pack-thickness { background: linear-gradient(100deg,#a4c5ff,var(--pack-rare-navy) 12% 90%,#91baff); }
+[data-skin="rare"] .pack-crimp { background: linear-gradient(180deg,#12315e,#dae9ff 31%,#7599c4 45%,#f6fbff 54%,#234d81 85%,#b9d5f7); stroke: #cfe5ff; }
+[data-skin="rare"] .pack-traces { display: none; }
+[data-skin="rare"] .pack-print { color: #e4efff; }
+[data-skin="rare"] .pack-wordmark { color: #edf5ff; text-shadow: var(--emboss-x,-.6px) var(--emboss-y,-.8px) .4px #ffffff88,1px 1px .4px #02183d; }
+[data-skin="rare"] .pack-label,[data-skin="rare"] .pack-pool,[data-skin="rare"] .pack-open-mark { color: #edf5ff; }
+[data-skin="rare"] .pack-brand { stroke: #d2e7ff; }
+[data-skin="rare"] .pack-emboss-shadow { stroke: #082757; }
+[data-skin="rare"] .pack-emboss-highlight { stroke: #edf5ff; }
+[data-skin="rare"] .pack-clearcoat { position: absolute; inset: 0; background: linear-gradient(128deg,transparent 20%,#ffffff08 28%,#ffffff4d 41%,#ffffff13 48%,transparent 57%),radial-gradient(ellipse at var(--rare-gloss-x,42%) 28%,#ffffffc0,transparent 7%); pointer-events: none; }
+[data-skin="rare"] .pack-facets { position: absolute; inset: 7% 4%; background: repeating-linear-gradient(60deg,transparent 0 16px,#e7f2ff38 16px 17px,transparent 17px 32px),repeating-linear-gradient(-60deg,transparent 0 16px,#c8e3ff2c 16px 17px,transparent 17px 32px); mask-image: radial-gradient(ellipse at var(--rare-gloss-x,42%) 34%,#0009,transparent 65%); opacity: .42; }
+[data-skin="rare"] .pack-gloss-sweep { position: absolute; inset: -20% -50%; pointer-events: none; background: linear-gradient(125deg,transparent 39%,#ffffff38 47%,#ffffff70 50%,#ffffff18 54%,transparent 61%); transform: translateX(var(--rare-sheen,-140%)); opacity: var(--rare-sheen-opacity,0); }
+[data-skin="rare"] .pack-body::after { opacity: calc(.5 + var(--rare-edge,.35)); }
+.opening-foil[data-skin="rare"]::after { content: ''; position: absolute; inset: 6% 2.4%; border: 1px solid #ffffff90; border-radius: 8% / 4%; pointer-events: none; }
+[data-skin="rare"] .pack-r-plus { position: absolute; top: 77%; left: 10%; border: 1px solid var(--pack-rare-fluid); border-radius: 50%; padding: 3px 4px; font: 500 clamp(5px,.65vh,10px)/1 var(--font-mono); box-shadow: 0 0 8px #7fb2ff40; }
+[data-skin="rare"] .pack-fluid__body { background: linear-gradient(180deg,var(--pack-rare-fluid),#7fb2ff38 8%,#2f7bff65 50%,#2f7bff26); }
+[data-skin="rare"] .pack-meniscus { background: var(--pack-rare-leak); box-shadow: 0 2px 7px #7fb2ff80; }
+[data-state="waiting"] [data-skin="rare"] .pack-wrapper { opacity: .12; }
+[data-state="waiting"] [data-skin="rare"] .pack-body { background: #0b2a6f16; box-shadow: inset 0 0 0 1px #7fb2ff75; }
+[data-state="waiting"] [data-skin="rare"] .pack-print { opacity: .65; }
+.opening-pack[data-skin="rare"] { --pack-leak: var(--pack-rare-leak); --pack-cut-glow: var(--pack-rare-leak); }
+.opening-pack[data-pack-tinted="true"] .pack-fluid__body { background: linear-gradient(180deg,var(--pack-fluid-start,var(--pack-rare-fluid)),var(--pack-fluid-end,var(--pack-rare-blue))); }
+.opening-pack[data-pack-tinted="true"] .opening-glass .pack-body::before { border-color: var(--pack-leak); box-shadow: inset 0 0 12px color-mix(in srgb,var(--pack-leak) 50%,transparent),0 0 20px color-mix(in srgb,var(--pack-fluid-end) 30%,transparent); }
+.opening-pack[data-pack-tinted="true"] :is(.opening-cut-guide,.opening-cut-seam,.opening-cut-glow,.opening-cut-tip,.opening-cut-glint,.opening-light-gap) { stroke: var(--pack-cut-glow); filter: drop-shadow(0 0 4px color-mix(in srgb,var(--pack-cut-glow) 50%,transparent)); }
+.opening-pack[data-pack-tinted="true"] .opening-cut-tip { fill: var(--pack-cut-glow); }
+[data-pack-quality="low"][data-skin="rare"] .pack-wrapper { background: linear-gradient(110deg,var(--pack-rare-navy),var(--pack-rare-blue)); }
+[data-pack-quality="low"][data-skin="rare"] :is(.pack-film,.pack-metal,.pack-facets,.pack-gloss-sweep) { display: none; }
+[data-pack-quality="low"][data-skin="rare"] .pack-clearcoat { background: linear-gradient(128deg,transparent 25%,#ffffff25 42%,transparent 57%); }
+[data-pack-quality="very-low"][data-skin="rare"] .pack-wrapper { background: var(--pack-rare-blue); }
+[data-pack-quality="very-low"][data-skin="rare"] :is(.pack-film,.pack-metal,.pack-facets,.pack-gloss-sweep,.pack-clearcoat,.pack-shine) { display: none; }
+.pack-queue-marker { position: absolute; top: 0; left: 0; pointer-events: none; color: var(--queue-accent); }
+.pack-queue-ring { position: absolute; inset: -3px; border: 1px solid var(--queue-accent); border-radius: 7px; opacity: calc(.65 + var(--queue-pulse,0)); box-shadow: 0 0 7px color-mix(in srgb,var(--queue-accent) 40%,transparent); }
+.pack-queue-marker.is-next .pack-queue-ring { box-shadow: 0 0 12px color-mix(in srgb,var(--queue-accent) 65%,transparent); border-width: 1.5px; }
+.pack-queue-marker.is-burst :is(.pack-counter-thumb,.pack-counter-glyph) { opacity: 0; }
+.pack-counter-thumb { position: absolute; inset: 3px; background: linear-gradient(120deg,#0b2a6f,#2f7bff80 48%,#ffffff65 54%,#0b2a6f); clip-path: polygon(0 0,100% 0,95% 10%,94% 90%,100% 100%,0 100%,6% 90%,5% 10%); opacity: .38; }
+.is-stored .pack-counter-thumb { opacity: .9; }
+.pack-counter-thumb__seal { position: absolute; inset: 0 0 auto; height: 2px; background: #d1e5ff; box-shadow: 0 18px 0 #bad7ff; }
+.pack-counter-thumb__brand { position: absolute; inset: 0; display: grid; place-items: center; font: 600 10px var(--font-ui); color: #f0f6ff; }
+.pack-counter-glyph { position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%); color: var(--pack-rare-fluid); font: 500 7px/1 var(--font-mono); white-space: nowrap; }
+.stock-card[data-queue-marked="true"] .stock-card__mark { opacity: 0; }
+.stock-card[data-queue-marked="true"] .stock-card__fill { background: linear-gradient(135deg,color-mix(in srgb,var(--queue-accent) 65%,white),color-mix(in srgb,var(--queue-accent) 40%,transparent)); }
+.pack-queue-beyond { position: absolute; top: 8px; white-space: nowrap; color: var(--pack-rare-fluid); font: 8px var(--font-mono); }
+.pack-intro-toast { position: fixed; z-index: var(--z-toast); left: 50%; bottom: var(--s-6); transform: translateX(-50%); max-width: calc(100vw - 64px); padding: var(--s-3) var(--s-4); border-radius: var(--r-button); color: var(--text); font: 12px/1.5 var(--font-ui); pointer-events: none; }
+.pack-intro-toast[hidden] { display: none; }
+.card-tag--pack { color: var(--pack-tag-accent,var(--text)); }
+.pack-tag-glyph { font: 500 9px/1 var(--font-mono); }
+.is-afk .pack-queue-marker { opacity: .8; }
+.reduced-motion .pack-gloss-sweep { display: none; }

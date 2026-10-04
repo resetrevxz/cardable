@@ -27,7 +27,7 @@
       return { ready: packs.ready, gained: packs.ready - before };
     },
     tick: function (now) {
-      now = now == null ? Date.now() : now;
+      now = now == null ? C.clock.now() : now;
       var candidate = state(), packs = candidate.packs, before = packs.ready, started = packs.timerStartedAt;
       var result = C.timers.reconcileInto(candidate, now);
       if (packs.ready !== before || packs.timerStartedAt !== started) C.state.save();
@@ -40,7 +40,7 @@
     progress: function (now) {
       var packs = state().packs;
       if (packs.ready >= C.config.packs.maxStored || packs.timerStartedAt == null) return 0;
-      return Math.max(0, Math.min(1, ((now == null ? Date.now() : now) - packs.timerStartedAt) / C.config.packs.regenMs));
+      return Math.max(0, Math.min(1, ((now == null ? C.clock.now() : now) - packs.timerStartedAt) / C.config.packs.regenMs));
     },
     remaining: function (now) {
       var packs = state().packs;
@@ -62,7 +62,7 @@
       return true;
     },
     openPack: function (now) {
-      now = now == null ? Date.now() : now;
+      now = now == null ? C.clock.now() : now;
       C.timers.tick(now);
       if (!C.timers.consumeInto(state(), now)) return false;
       C.state.save();

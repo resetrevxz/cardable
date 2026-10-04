@@ -1,0 +1,4 @@
+.inventory-dev-tools { position: absolute; bottom: var(--s-2); left: var(--s-6); display: flex; gap: var(--s-2); }
+.inventory-dev-tools button { border: 1px solid var(--hairline); border-radius: var(--r-chip); padding: var(--s-1) var(--s-2); background: var(--bg-elev); color: var(--text-dim); font: 10px/1.5 var(--font-mono); cursor: pointer; }
+.inventory-dev-tools button:hover { color: var(--text); border-color: var(--hairline-strong); }
+.inventory-dev-tools { z-index: 3; padding: 4px; background: var(--bg-elev); border-radius: var(--r-button); }

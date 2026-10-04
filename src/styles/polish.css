@@ -37,9 +37,9 @@ body::before { content: ''; position: fixed; inset: 0; z-index: var(--z-grid); p
 .reduced-motion .card__tilter, .reduced-motion .card__art, .reduced-motion .card__foil { transform: none; }
 .reduced-motion .inventory-arrow:hover, .reduced-motion .inventory-arrow:focus-visible { transform: none; }
 .reduced-motion .pack-unit--back { filter: none; }
-:is(.gallery-tools button,.gallery-profile button,.inventory-dev-tools button,.detail-close,.detail-serial-arrow,.detail-flip,.opening-keep,.tutorial-skip,.dev-panel button) { transition: translate var(--t-fast) var(--ease-out),scale var(--t-fast) var(--ease-out),opacity var(--t-fast) var(--ease-out),border-color var(--t-fast) var(--ease-out),background-color var(--t-fast) var(--ease-out); }
-:is(.gallery-tools button,.gallery-profile button,.inventory-dev-tools button,.detail-close,.detail-serial-arrow,.detail-flip,.opening-keep,.tutorial-skip,.dev-panel button):hover:not(:disabled) { translate: 0 -1px; scale: 1.02; }
-:is(.gallery-tools button,.gallery-profile button,.inventory-dev-tools button,.detail-close,.detail-serial-arrow,.detail-flip,.opening-keep,.tutorial-skip,.dev-panel button):active:not(:disabled) { translate: none; scale: .98; }
+:is(.detail-close,.detail-serial-arrow,.detail-flip,.opening-keep,.tutorial-skip) { transition: translate var(--t-fast) var(--ease-out),scale var(--t-fast) var(--ease-out),opacity var(--t-fast) var(--ease-out),border-color var(--t-fast) var(--ease-out),background-color var(--t-fast) var(--ease-out); }
+:is(.detail-close,.detail-serial-arrow,.detail-flip,.opening-keep,.tutorial-skip):hover:not(:disabled) { translate: 0 -1px; scale: 1.02; }
+:is(.detail-close,.detail-serial-arrow,.detail-flip,.opening-keep,.tutorial-skip):active:not(:disabled) { translate: none; scale: .98; }
 .reduced-motion button { translate: none !important; scale: none !important; }
 .is-hidden *, .is-hidden *::before, .is-hidden *::after { animation-play-state: paused !important; }
 

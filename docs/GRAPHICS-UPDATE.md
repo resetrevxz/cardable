@@ -15,9 +15,9 @@ Four presets apply instantly: **Very Low, Low, Medium, High**. Medium is the new
 | Ambient animation | Static | Interaction only | Focused ambient | Focused ambient |
 | Canvas pixel ratio ceiling | 1 | 1.25 | 1.5 | 2 |
 
-These are independent advanced settings, not sliders tied implicitly to the preset. Changing an effect displays **Customized**. Selecting any preset resets only these nine graphics controls. FPS, reduced motion, key mappings, color mode and other preferences are preserved. Text remains at native CSS resolution. Low and Very Low keep collectible identity, rarity ornaments and readable metadata.
+These are independent advanced settings, not sliders tied implicitly to the preset. Changing an effect displays **Customized**. Selecting any preset resets only these ten graphics controls. FPS, reduced motion, key mappings, color mode and other preferences are preserved. Text remains at native CSS resolution. Low and Very Low keep collectible identity, rarity ornaments and readable metadata.
 
-**FPS limit:** Display refresh (default for every preset), 30, 60, 90, 120, 144, 165 or 240. Caps never exceed actual display cadence. A carried deadline gives fractional caps their intended average on faster displays. The optional display reports rendered animation FPS, frame duration and subscriber JS time; it says Idle/Paused when work stops and never forces extra frames. It is not a GPU profiler.
+**FPS limit:** Display refresh (default for every preset), 20, 30, 45, 60, 90, 120, 144, 165 or 240. Caps never exceed actual display cadence. A carried deadline gives fractional caps their intended average on faster displays. The optional display reports rendered animation FPS, frame duration and subscriber JS time; it says Idle/Paused when work stops and never forces extra frames. It is not a GPU profiler.
 
 **Hidden tab:** Sleep completely (default) stops visual frames and the recurring refill interval. Returning reconciles timestamp-based refills immediately, respecting four stored packs without banking time. Timer/title only retains the one-second timer/title updates while all visuals sleep. **Unfocused visible window:** Normal (default), 30 FPS or Pause visuals. This setting leaves refill logic independent. Reveals resume from saved progress; uncommitted holds cancel on blur/hide.
 
@@ -30,3 +30,5 @@ Touch play has a visible hold-to-open action, native top-strip cutting, a Tear f
 High improves core glare and edge illumination while retaining focused rarity and coating effects. Its performance depends on display, browser and device. See [GRAPHICS-QA.md](GRAPHICS-QA.md) for measured evidence and its limits.
 
 Stage 14 further optimizes inventory browsing: its sheet now uses shaded surfaces instead of full backdrop blur at every preset. Static card materials, bounded compositor layers, viewport-aware mount budgets and responsive grid layout keep moving inventory inexpensive. Other panels retain their independent glass controls. See [INVENTORY-PERFORMANCE.md](INVENTORY-PERFORMANCE.md).
+
+The current refresh adds independent cinematic detail and removes full-game blur behind Settings. See [GRAPHICS-REFRESH.md](GRAPHICS-REFRESH.md) for current-checkout measurements and acceptance.

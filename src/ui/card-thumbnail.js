@@ -10,6 +10,7 @@
     el.dataset.cardId = card.id; el.dataset.rarity = rarity.id; el.dataset.frontDesign = rarity.frontDesign || '';
     el.dataset.visible = 'true'; el.dataset.mode = 'lite'; el.dataset.side = 'front'; el.dataset.presentation = 'art-only'; el.dataset.thumbnail = 'true'; el.dataset.colorMode = context.colorMode;
     el.dataset.variant = context.presentation.concealed ? 'normal' : instance.variantId || 'normal'; el.setAttribute('aria-hidden', 'true'); el.inert = true;
+    el.dataset.cardSkin=instance.cardSkinId||'standard';
     if (context.presentation.state) el.dataset.finishState = context.presentation.state;
     el.appendChild(layer('shadow')); el.appendChild(tilter); tilter.appendChild(flipper);
     function paintFace() {
@@ -22,6 +23,7 @@
       [layer('body'), finish, art, props, layer('edge')].forEach(function (part) { face.appendChild(part); });
       if (C.variantMaterials.registry[instance.variantId] && !context.presentation.concealed) { var coat = node('card__variant'), material = node('card__variant-render card__material card__material--lite'); material.appendChild(C.variantMaterials.registry[instance.variantId].lite(card, instance)); coat.appendChild(material); face.appendChild(coat); }
       flipper.appendChild(face);
+      C.cardSkins.apply(face,card,instance,context);
     }
     function paint() {
       // Browsing mounts static, bounded materials; only detail/reveal mounts full effects.
