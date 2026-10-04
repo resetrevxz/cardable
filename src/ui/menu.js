@@ -1,6 +1,7 @@
 (function (C, root) {
   'use strict';
   var holds = new Set(), idleTimer = null, afkTimer = null, waveTimer = null, lastActivity = 0, queuedWave = false;
+  var studioSuspended = 0;
   var notifiedReady = false, manualIdle = false;
   var favicon = null, faviconStates = {}, faviconReady = null;
   function setIdle(value) {
@@ -12,6 +13,7 @@
   }
   function arm() {
     root.clearTimeout(idleTimer); root.clearTimeout(afkTimer); root.clearTimeout(waveTimer);
+    if (studioSuspended) return;
     if (root.document.hidden) return;
     var elapsed = root.performance.now() - lastActivity;
     var idleMs = C.settings.idleMs;
@@ -33,6 +35,7 @@
     C.fx.wake();
   }
   function activity() {
+    if (studioSuspended) return;
     manualIdle = false;
     lastActivity = root.performance.now();
     quiet(false);
@@ -61,6 +64,10 @@
   }
   C.menu = {
     initialized: false, idle: false, afk: false,
+    suspendActivity: function () {
+      var at = root.performance.now(), released = false; studioSuspended++; arm();
+      return function () { if (released) return; released = true; studioSuspended--; lastActivity += root.performance.now() - at; if (!studioSuspended) arm(); };
+    },
     hideInterface: function () { manualIdle = true; quiet(true); setIdle(true); C.fx.wake(); },
     holdVisible: function (reason, value) {
       if (value === false) holds.delete(reason); else holds.add(reason);

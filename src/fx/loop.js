@@ -2,6 +2,7 @@
   'use strict';
   var updates = [], raf = null, inFrame = false, requested = false, last = null, nextDue = null, rawLast = null, focused = true, paused = false;
   var refreshHz = 60, bestGap = Infinity, failures = new WeakSet();
+  var scopes = [];
   var stats = { running: false, frameCount: 0, lastFrameMs: 0, jsMs: 0, skipped: 0,
     get subscribers() { return updates.length; }, get refreshHz() { return refreshHz; },
     get paused() { return paused; }, get targetFps() { return Math.min(refreshHz, cap()); } };
@@ -34,6 +35,7 @@
     var active = false;
     try {
       updates.slice().forEach(function (update) {
+        if (scopes.length && scopes[scopes.length - 1].label !== update.subscriberLabel) return;
         // AFK retains timestamp-driven pack metrics; decorative/rendering work sleeps.
         if (C.menu && C.menu.afk && update.subscriberLabel !== 'pack') return;
         try {
@@ -48,7 +50,7 @@
         }
       });
       stats.frameCount += 1; stats.lastFrameMs = realDt; stats.jsMs = root.performance.now() - frameBegin;
-      C.events.emit('fx:frame', { now: now, dt: dt, realDt: realDt, frameCount: stats.frameCount, targetFps: stats.targetFps, jsMs: stats.jsMs });
+      if (!scopes.length) C.events.emit('fx:frame', { now: now, dt: dt, realDt: realDt, frameCount: stats.frameCount, targetFps: stats.targetFps, jsMs: stats.jsMs });
     } finally {
       // Even a failed telemetry callback must release the scheduler's frame lock.
       inFrame = false;
@@ -58,6 +60,11 @@
   }
   C.fx = {
     presentationRate: 1,
+    get scopeLabel() { return scopes.length ? scopes[scopes.length - 1].label : null; },
+    scope: function (label) {
+      var token = { label: label }, released = false; scopes.push(token); last = nextDue = rawLast = null;
+      return function () { if (released) return; released = true; var index = scopes.indexOf(token); if (index >= 0) scopes.splice(index, 1); last = nextDue = rawLast = null; C.fx.wake(); };
+    },
     stats: stats,
     subscribe: function (update, label) {
       if (label) update.subscriberLabel = label;

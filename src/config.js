@@ -4,7 +4,7 @@
 
   C.config = {
     gameName: 'Cardable',
-    version: '2.5.0',
+    version: '2.6.0',
     titanPack: { coreMs:4000, rimMs:7000, swapMs:1200, tickRadians:Math.PI/2, tickCount:3,
       tickPulseMs:450, unsealMs:1400, dipPx:2, steamCount:6 },
     royalPack: { glintMs:5000, sheenMs:1400, swapMs:1100, boxRiseMs:900, boxHintMs:2000,
