@@ -18,8 +18,8 @@
     require(pulls[0].firstPull && pulls[0].firstTier && !pulls[0].firstVariant && pulls[1].firstPull && pulls[1].firstTier && !pulls[2].firstPull && !pulls[2].firstTier && pulls[2].firstVariant, 'first-of-each flags');
     require(j.entries.filter(function (e) { return e.type === 'firstPull'; }).length === 2 && j.entries.filter(function (e) { return e.type === 'variantFirst'; }).length === 1 && j.entries.filter(function (e) { return e.type === 'rarityFirst'; }).length === 2 && j.entries.every(function (e) { return e.retro; }), 'expected backfill entries');
     var protectedIds = j.entries.filter(C.journal.highlight).map(function (e) { return e.id; }), counts = JSON.stringify(j.counts), daily = JSON.stringify(j.days);
-    C.journal.compact(j, j.entries.length - 1);
-    require(JSON.stringify(j.counts) === counts && JSON.stringify(j.days) === daily && j.entries.reduce(function (n, e) { return n + (e.type === 'pull' ? 1 : e.type === 'daySummary' ? e.n : 0); }, 0) === 3 && protectedIds.every(function (id) { return j.entries.some(function (e) { return e.id === id; }); }), 'compaction counts and firsts');
+    var cap=j.entries.length-1;C.journal.compact(j, cap);
+    require(j.entries.length<=cap && JSON.stringify(j.counts) === counts && JSON.stringify(j.days) === daily && j.entries.reduce(function (n, e) { return n + (e.type === 'pull' ? 1 : e.type === 'daySummary' ? e.n : 0); }, 0) === 3 && protectedIds.every(function (id) { return C.journal.entries(j).some(function (e) { return e.id === id; }); }), 'compaction counts and firsts');
     var legacy = C.state.validate(C.state.fresh(1700000000000), false);
     require(!legacy.journal && C.journal.ensure(legacy).counts.pulls === 0, 'save without journal loads');
     require(performance.now() - start < 1000, 'under one second');

@@ -2,10 +2,10 @@
   'use strict';
   var node = C.packMarkup.node, data = C.data.journal, sheet, scroller, river, sticky, empty, search, jump, only, clearDay, status, heatmap, chart, heatHint, chartHint;
   var opened = false, closing = false, origin, inertBefore = [], dirty = true, layoutDirty = false, filter = '', selectedDay = '', cardFilter = null;
-  var rows = [], filtered = [], rendered = new Map(), textCache = new Map(), offset = 0, selected = null, chips = [], tiles = [], heatDays = [], heatFocus = 370, heatHover = null, growth = [], chartHover = null;
-  var intro = 0, closeAge = 0, totalHeight = 0, lastQuality = '', numbersAge = 0, rollFrom = [0,0,0,0], targets = [0,0,0,0], values = [0,0,0,0];
+  var rows = [], filtered = [], rendered = new Map(), textCache = new Map(), selected = null, chips = [], tiles = [], heatDays = [], heatFocus = 370, heatHover = null, growth = [], chartHover = null;
+  var intro = 0, closeAge = 0, totalHeight = 0, lastQuality = '', numbersAge = 0, rollFrom = [0,0,0,0], targets = [0,0,0,0], values = [0,0,0,0], anniversary, backToJournal = false, returningOptions = null;
   function now() { return C.clock ? C.clock.now() : Date.now(); }
-  function quality() { return C.settings.policy.animation; }
+  function quality() { return Math.min(C.settings.policy.animation, C.settingsSchema.tiers.indexOf(C.settings.get('quality'))); }
   function motion() { return quality() >= 2 && !C.motion.reduced; }
   function glyph(path, host) { var svg = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); var p = root.document.createElementNS(svg.namespaceURI, 'path'); p.setAttribute('d', path); svg.appendChild(p); host.appendChild(svg); }
   function button(label, host, action, cls) { var b = node('button', cls || 'journal-button', host, label); b.type = 'button'; b.addEventListener('click', action); return b; }
@@ -23,8 +23,10 @@
   function rebuild(animate) {
     if (!sheet || !opened) return;
     var before = animate && motion() ? snapshot() : null, j = C.journal.current, term = search.value.trim().toLowerCase();
-    filtered = j.entries.filter(function (e) { return (!filter || data.categories.find(function (c) { return c.id === filter; }).types.indexOf(e.type) >= 0) && (!selectedDay || C.journal.day(e.at) === selectedDay) && (!cardFilter || e.cardId === cardFilter) && (!only.checked || C.journal.highlight(e)) && (!term || cached(e).search.indexOf(term) >= 0); }).slice().reverse();
-    chips.forEach(function (chip) { var count = j.entries.filter(function (e) { return chip.category.types.indexOf(e.type) >= 0 && (!cardFilter || e.cardId === cardFilter); }).length; chip.button.textContent = chip.category.name + ' · ' + count; chip.button.setAttribute('aria-pressed', String(filter === chip.category.id)); });
+    var source = C.journal.entries(j);
+    var orders=new Map(source.map(function(e,i){return [e.id,i];}));
+    filtered = source.filter(function (e) { return (!filter || data.categories.find(function (c) { return c.id === filter; }).types.indexOf(e.type) >= 0) && (!selectedDay || C.journal.day(e.at) === selectedDay) && (!cardFilter || e.cardId === cardFilter) && (!only.checked || C.journal.highlight(e)) && (!term || cached(e).search.indexOf(term) >= 0); }).sort(function(a,b){return (b.at==null?-1:b.at)-(a.at==null?-1:a.at)||orders.get(b.id)-orders.get(a.id);});
+    chips.forEach(function (chip) { var count = source.filter(function (e) { return chip.category.types.indexOf(e.type) >= 0 && (!cardFilter || e.cardId === cardFilter); }).length; chip.button.textContent = chip.category.name + ' · ' + count; chip.button.setAttribute('aria-pressed', String(filter === chip.category.id)); });
     rows = []; var key = '', count = 0, header;
     filtered.forEach(function (e, index) {
       var next = C.journal.day(e.at); if (next !== key) { if (header) header.count = count; count = 0; key = next; header = { id: 'day-' + key, day: key, y: rows.length ? totalHeight : 0, height: 44, header: true }; rows.push(header); totalHeight = header.y + header.height; }
@@ -41,7 +43,7 @@
     if (before) rendered.forEach(function (r, id) { var a = before.get(id); if (!a || !r.entry) return; var b = r.el.getBoundingClientRect();
       // Same FLIP capture / inverse / cubic release as the inventory sort.
       r.el.animate([{ transform: 'translate(' + (a.left - b.left) + 'px,' + (a.top - b.top) + 'px)' }, { transform: 'translate(0,0)' }], { duration: C.config.inventoryMotion.transitionMs, easing: 'cubic-bezier(.22,1,.36,1)' }); });
-    dirty = true; C.fx.wake();
+    renderAnniversary();dirty = true; C.fx.wake();
   }
   function mount(row) {
     if (row.header) { var heading = button(label(row.day) + ' · ' + row.count, river, function () { dayFilter(row.day); }, 'journal-day'); heading.style.top = row.y + 'px'; return { el: heading, row: row }; }
@@ -93,10 +95,11 @@
   function prepareCharts() {
     var j = C.journal.current, d = new Date(now()); d.setHours(0,0,0,0); d.setDate(d.getDate() - d.getDay() - 52 * 7); heatDays = [];
     for (var i = 0; i < 371; i++) { heatDays.push(C.journal.day(d.getTime())); d.setDate(d.getDate() + 1); }
-    growth = []; var cumulative = j.entries.filter(function (e) { return e.type === 'firstPull' && e.at == null; }).length;
+    heatFocus = Math.max(0, heatDays.indexOf(C.journal.day(now())));
+    growth = []; var cumulative = C.journal.entries(j).filter(function (e) { return e.type === 'firstPull' && e.at == null; }).length;
     Object.keys(j.days).sort().forEach(function (key) { cumulative += j.days[key].unique; growth.push({ day: key, n: cumulative }); });
     heatmap.setAttribute('aria-label','Pull calendar, 53 weeks by 7 days. Arrow keys move by day or week; Enter filters a day.');
-    drawHeat(1); drawGrowth();
+    chart.setAttribute('aria-description',j.counts.unique+' unique cards in total.');drawHeat(1); drawGrowth();
     var nextTargets = [j.counts.packs, j.counts.unique, j.counts.variants, C.journal.streak(j, now())];
     rollFrom = values.slice(); targets = nextTargets; numbersAge = 0;
     tiles.forEach(function (t, i) { t.el.setAttribute('aria-label', t.label + ': ' + targets[i]); });
@@ -138,7 +141,12 @@
   }
   function finishClose(focus) { opened=false;closing=false;sheet.hidden=true;sheet.inert=true;clearRendered();unlock();C.accessibility.release(sheet);root.document.body.classList.remove('journal-active');C.events.emit('journal:context',{active:false});C.events.emit('menu:visibilityHold',{reason:'journal',active:false});if(focus&&origin&&origin.isConnected&&!origin.inert)origin.focus({preventScroll:true});beat('close'); }
   function close(immediate) { if(!opened||closing)return;if(immediate||quality()<2){finishClose(!immediate);return;}closing=true;closeAge=0;sheet.inert=true;C.fx.wake(); }
-  function openCard(e) { close(true);C.events.emit('inventory:showCard',{cardId:e.cardId,instanceId:e.instanceId});beat('card',e); }
+  function openCard(e) { returningOptions={origin:origin,cardId:cardFilter};backToJournal=true;close(true);C.events.emit('inventory:showCard',{cardId:e.cardId,instanceId:e.instanceId});if(C.detail.phase==='closed')backToJournal=false;beat('card',e); }
+  function renderAnniversary() {
+    if(!anniversary)return;anniversary.replaceChildren();var today=new Date(now()),old=C.journal.entries(C.journal.current).filter(function(e){if(e.at==null)return false;var d=new Date(e.at);return d.getFullYear()<today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate()&&(!cardFilter||e.cardId===cardFilter);});
+    anniversary.hidden=!old.length;if(!old.length)return;node('span','journal-kicker',anniversary,'On this day');
+    old.filter(function(e){return C.journal.highlight(e);}).concat(old.filter(function(e){return !C.journal.highlight(e);})).slice(0,3).forEach(function(e){var b=button(new Date(e.at).getFullYear()+' · '+C.journal.text(e),anniversary,function(){selectedDay=C.journal.day(e.at);jump.value=selectedDay;filter='';only.checked=false;search.value='';rebuild(true);beat('anniversary',e);},'journal-anniversary-entry');b.title=C.journal.text(e);});
+  }
   function update(time,dt) {
     if(!opened)return false;if(closing){closeAge+=dt;var p=Math.min(1,closeAge/180);sheet.style.opacity=1-p;if(!C.motion.reduced)sheet.style.transform='translateY('+p*8+'px)';if(p===1){sheet.style.transform='';finishClose(true);}return p<1;}
     var active=false;
@@ -153,6 +161,7 @@
     var top=node('div','journal-top',sheet),calendar=node('div','journal-calendar',top);node('p','journal-kicker',calendar,'A year of pulls');heatmap=node('canvas','journal-heatmap',calendar);heatmap.tabIndex=0;heatmap.setAttribute('role','button');heatHint=node('p','journal-chart-hint',calendar,'Choose a day to revisit.');heatHint.setAttribute('aria-live','polite');
     var stats=node('div','journal-stats',top);['Packs opened','Unique cards','Variants found','Current streak'].forEach(function(label){var el=node('div','journal-stat',stats),host=node('div','journal-stat-number',el),number=C.numbers.create(host);number.set(0,false);node('span','journal-kicker',el,label);tiles.push({el:el,number:number,label:label});});
     var growthHost=node('div','journal-growth',top);node('p','journal-kicker',growthHost,'Collection growth');chart=node('canvas','journal-growth-chart',growthHost);chart.tabIndex=0;chart.setAttribute('aria-label','Cumulative unique cards over time. Arrow keys explore days.');chartHint=node('p','journal-chart-hint',growthHost,'Each new card leaves a mark.');chartHint.setAttribute('aria-live','polite');
+    anniversary=node('aside','journal-anniversary',sheet);anniversary.setAttribute('aria-label','On this day');anniversary.hidden=true;
     var filters=node('div','journal-filters',sheet),chipHost=node('div','journal-chips',filters);data.categories.forEach(function(category){var b=button(category.name,chipHost,function(){filter=filter===category.id?'':category.id;rebuild(true);beat('filter');},'journal-chip');b.setAttribute('aria-pressed','false');chips.push({button:b,category:category});});
     var fields=node('div','journal-fields',filters);search=node('input','journal-search',fields);search.type='search';search.placeholder='Search your memories';search.setAttribute('aria-label','Search cards, variants and pack types');search.addEventListener('input',function(){rebuild(true);});
     var dateLabel=node('label','journal-jump',fields,'Jump to date');jump=node('input','',dateLabel);jump.type='date';jump.setAttribute('aria-label','Jump to date');jump.addEventListener('change',function(){selectedDay=jump.value;rebuild(true);beat('day');});
@@ -170,12 +179,27 @@
     });
     C.fx.subscribe(update,'journal');root.addEventListener('resize',function(){layoutDirty=true;if(opened)C.fx.wake();});
     C.events.on('journal:changed',function(){textCache.clear();if(opened){prepareCharts();rebuild(false);}});
-    C.events.on('save:willReplace',function(){close(true);textCache.clear();});C.events.on('save:willReset',function(){close(true);textCache.clear();});
+    C.events.on('save:willReplace',function(){backToJournal=false;close(true);textCache.clear();});C.events.on('save:willReset',function(){backToJournal=false;close(true);textCache.clear();});
+    C.events.on('inventory:detailContext',function(event){if(!event.active&&backToJournal){backToJournal=false;show(returningOptions);}});
     C.events.on('preferences:context',function(event){if(event.active)close(true);});C.events.on('opening:context',function(event){if(event.active)close(true);});
     C.events.on('settings:changed',function(){if(!opened)return;var next=String(quality());sheet.dataset.quality=next;sheet.dataset.reduced=String(C.motion.reduced);if(next!==lastQuality){lastQuality=next;rebuild(false);}drawHeat(1);drawGrowth();C.fx.wake();});
     C.events.on('motion:changed',function(){if(sheet)sheet.dataset.reduced=String(C.motion.reduced);});
   }
+  function cardHistory(host, context) {
+    if(!context.entry.owned||context.preview)return;
+    var cardId=context.entry.card.id,action=button('History',host,function(){var opening=section.hidden;section.hidden=!opening;action.setAttribute('aria-expanded',String(opening));if(opening){fill();beat('card-history',{cardId:cardId});}},'journal-card-action');
+    action.setAttribute('aria-expanded','false');var section=node('section','journal-card-history',context.panel);section.hidden=true;section.setAttribute('aria-label',context.entry.card.name+' history');
+    var title=node('h3','journal-card-title',section,'History'),summary=node('p','journal-card-summary',section),list=node('div','journal-card-scroll',section),canvas=node('div','journal-card-river',list),mounted=new Map(),memories=[];
+    list.tabIndex=0;list.setAttribute('aria-label','Card history. Use arrow keys to scroll.');
+    function renderCopies(){var min=Math.max(0,list.scrollTop-180),max=list.scrollTop+list.clientHeight+180,visible=new Set();var first=Math.floor(min/132),last=Math.min(memories.length,Math.ceil(max/132));
+      for(var i=first;i<last;i++){var e=memories[i];visible.add(e.id);if(mounted.has(e.id))continue;var row=node('article','journal-card-memory',canvas);row.style.top=i*132+'px';glyph(data.types[e.type].glyph,node('span','journal-glyph',row));var copy=node('div','',row);node('p','journal-text',copy,C.journal.text(e));node('p','journal-time',copy,label(C.journal.day(e.at))+(e.packId&&C.pack(e.packId)?' · '+C.pack(e.packId).name:''));if(e.type==='pull'){node('p','journal-card-serial',copy,(e.extra&&e.extra.serial||'')+' · '+(e.extra&&e.extra.variants||[]).map(function(id){return C.variant(id)?C.variant(id).name:id;}).join(' + '));}mounted.set(e.id,row);}
+      mounted.forEach(function(row,id){if(!visible.has(id)){row.remove();mounted.delete(id);}});
+    }
+    function fill(){mounted.forEach(function(row){row.remove();});mounted.clear();memories=C.journal.forCard(cardId);var instances=C.state.current.inventory.filter(function(i){return i.cardId===cardId;}).sort(function(a,b){return b.pulledAt-a.pulledAt;});summary.textContent=C.journal.format(data.copies,{n:instances.length,serial:instances[0]&&instances[0].serial||''});canvas.style.height=memories.length*132+'px';renderCopies();}
+    list.addEventListener('scroll',renderCopies,{passive:true});action.setAttribute('aria-controls','card-history-'+cardId);section.id='card-history-'+cardId;
+  }
   C.journalView={show:show,close:close,get open(){return opened;}};
+  C.detailActions.register('journal',cardHistory);
   C.inventoryTabs.register('journal',function(host){var tab=button('History',host,function(){show({origin:tab});},'inventory-menu-option');tab.setAttribute('role','tab');tab.setAttribute('aria-selected','false');C.events.on('journal:context',function(event){tab.setAttribute('aria-selected',String(event.active));});});
   C.contextMenu.register({target:'empty',build:function(){return [{id:'journal',type:'action',label:'History',icon:'timer',run:function(){show();}}];}});
   C.events.on('journal:request',show);C.events.on('app:ready',init);

@@ -64,6 +64,7 @@
       node('p', 'detail-acquired', panel, 'Latest acquisition · ' + new Date(acquired).toLocaleDateString());
     }
     var actions = node('div', 'detail-actions', panel);
+    C.detailActions.render(actions, { entry: entry, panel: panel, preview: !!payload.preview });
     C.inventoryIcons.button('back', 'Previous card', function () { navigate(-1); }, actions);
     C.inventoryIcons.button('next', 'Next card', function () { navigate(1); }, actions);
     if (entry.owned && !payload.preview) {
