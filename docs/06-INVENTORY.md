@@ -2,6 +2,12 @@
 
 The approved major inventory refresh supersedes the original shelf-only brief. The inventory is a mounted glass sheet with Shelf and Grid views, discovery tools and saved collection preferences. Chrome remains monochrome. Ownership is still `save.inventory`; collections reference card IDs and never copy instances.
 
+**Current presentation:** Stage 12 finish-stack identities and Stage 14 rendering rules supersede the historical card-ID and centered-full-card descriptions below. Shelf and Grid both use front-only static thumbnails; detail owns the full card. The sheet uses shaded prepainted surfaces without full-sheet backdrop filtering, and viewport-based mount budgets replace fixed overscan. See `VARIANTS-AND-TAGS.md` and `INVENTORY-PERFORMANCE.md`. Historical validation figures in the refresh report do not establish results for later edits.
+
+The collection summary spans the title/count columns and wraps at narrow widths. Search validation occupies a separate row below its input, retains the last valid results, and associates its message with the input. Search and chips share the header's responsive inset; long filter values wrap inside the sheet. These layout refinements add no frame subscribers or thumbnail effects.
+
+In side-by-side detail, the width budget includes the card's complete prop bounds, information column and intervening gap before centering the composition. Tall/narrow windows must not size the card against the entire viewport while adding the metadata column outside that budget. Stacked detail retains its existing height limits and scrollable information panel.
+
 ## 1. Sheet and toolbar
 
 Four detents are configured in `config.inventoryMotion.detents`: Peek (104 px), Normal (62 vh), Expanded (82 vh), and Full (16 px from the viewport top). Peek shows the owned/catalog count and a static selected-owned thumbnail. The handle owns sheet dragging; card gestures belong to Shelf/Grid. The spring remains stiffness 220, damping 26, with rubber-band limits and velocity-based settling.
@@ -57,3 +63,20 @@ Deferred: multi-select, bulk actions, saved filters, drag-to-tab, collapsible gr
 ## Stage 12 additions
 
 Current inventory uses schema-3 GPU/finish stacks, artwork-only card presentations, neutral Card Tags and finish search/filter/grouping. Favorite/membership/order and selection IDs are stack keys; individual serials remain stored instances. Detail tags track the selected serial while stack summary dates use the newest copy. Completion still counts GPU designs; All Cards counts rows and the summary reports owned finishes/variant copies. See VARIANTS-AND-TAGS.md for current identities, migration and accessibility.
+
+## 2.2.0 Permanent Classic frames
+
+Instances from Classic Pack carry `cardSkinId:'classic'`. Full reveal/detail cards, static Shelf/Grid thumbnails and collection/receipt copies render the same monitor bezel and terminal panel through `C.cardSkins`. Skinned instances form a separate stack from the same GPU/finish with an ordinary frame; ordinary tuple identities stay unchanged. Favorites, collections, serial browsing, ordering, acquisition focus and export/import preserve these identities. Rarity backgrounds and surface coatings remain visible beneath the bezel.
+
+`era:classic` filters the explicit pre-2007 catalog IDs, across all packs and both inventory views. `era:modern` is also recognized; other era values report an inline error. A neutral CLASSIC glyph identifies this hardware independently of the selected instance's pack provenance.
+
+
+## 2.7.0 detail panel (current)
+
+This replaces the historical detail information layout described above. Overview/History tabs reuse the settings segmented-control spring and the registered per-card journal renderer. The default panel contains only additional specs beyond the visible card plate, optional real lore, an ownership line and a collapsed selector for individual copies in the finish stack. Existing full journal access and studio inspection remain available.
+
+At most three provenance chips include the +N control. Variant/pack/freshness take priority; additional freshness, Normal, serial, rarity, exact unpack time and other tags live in a glass popover. All specs expands additional specs without repeating the plate. The registered Inspect action remains primary; Flip/Favorite/More are icon controls. More retains collection membership and adds selected-card JSON export, serial copying and selected-copy deletion through the shared three-second hold confirmation. Removal requires a successful durable write and never adjusts rewards, pulls, serial counters or pack consumption.
+
+Navigation arrows move outside the information panel. Left/Right navigates result cards; I opens Inspect, H selects History, F toggles Favorite, R uses the existing card flip handler, and Escape dismisses a detail/collection popover before closing. Serial copying on either face uses Clipboard API with a textarea fallback. Inactive panes are inert and cannot contribute overflow. Tabs expose tablist/tab/tabpanel semantics.
+
+The inventory sheet is hidden while detail owns its visual, preserving layout for its return. The panel is 360 px and vertically centered; below 900 px it stacks under the card with whole-view scrolling. Default 720p desktop content has no panel scroll, horizontal overflow or clipped actions. Expanded content/history use thin custom scrollbars. Card-plate specs, tier badge/meter and internal R hint are not repeated in the panel.

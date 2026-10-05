@@ -3,17 +3,35 @@
   C.cutsceneGL={
     screenVertex:'#version 300 es\nprecision highp float;out vec2 uv;void main(){vec2 p=vec2((gl_VertexID<<1)&2,gl_VertexID&2);uv=p;gl_Position=vec4(p*2.-1.,0.,1.);}',
     compositeFragment:`#version 300 es
-          precision highp float;in vec2 uv;out vec4 result;uniform sampler2D uScene,uBloom;uniform vec2 uPixel;uniform float uPass,uTime,uDawn,uMono,uHigh,uBurst;
-          void main(){vec3 c=texture(uScene,uv).rgb;if(uPass>.5){vec3 sum=vec3(0.);for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec3 s=texture(uScene,uv+vec2(float(x),float(y))*uPixel*2.).rgb;sum+=max(s-vec3(.22),vec3(0.))/9.;}result=vec4(sum,1.);return;}
-          vec3 east=texture(uScene,uv+vec2(uPixel.x,0.)).rgb,west=texture(uScene,uv-vec2(uPixel.x,0.)).rgb,north=texture(uScene,uv+vec2(0.,uPixel.y)).rgb,south=texture(uScene,uv-vec2(0.,uPixel.y)).rgb;
+          precision highp float;in vec2 uv;out vec4 result;uniform sampler2D uScene,uBloom,uBloomRaw;uniform vec2 uPixel;uniform float uPass,uTime,uDawn,uMono,uHigh,uBurst;
+          vec3 scenePixel(ivec2 p){return texelFetch(uScene,clamp(p,ivec2(0),textureSize(uScene,0)-ivec2(1)),0).rgb;}
+          void main(){if(uPass>.5){vec3 sum=vec3(0.);for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec3 s=texture(uScene,uv+vec2(float(x),float(y))*uPixel*2.).rgb;sum+=max(s-vec3(.22),vec3(0.))/9.;}result=vec4(sum,1.);return;}
+          ivec2 pixel=ivec2(gl_FragCoord.xy);vec3 c=scenePixel(pixel);
+          vec3 east=scenePixel(pixel+ivec2(1,0)),west=scenePixel(pixel-ivec2(1,0)),north=scenePixel(pixel+ivec2(0,1)),south=scenePixel(pixel-ivec2(0,1));
           float edge=length(max(max(east,west),max(north,south))-min(min(east,west),min(north,south)));c=mix(c,(east+west+north+south+c*4.)/8.,smoothstep(.10,.48,edge)*.7);
-          vec3 glow=vec3(0.);for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++)glow+=texture(uBloom,uv+vec2(float(x),float(y))*uPixel*5.).rgb/9.;c+=glow*.55;
-          if(uDawn>.5&&uHigh>.5&&length(uv-.5)>.47){vec3 soft=vec3(0.);for(int k=-2;k<=2;k++)soft+=texture(uScene,uv+vec2(float(k)*uPixel.x*2.,float(k)*uPixel.y)).rgb/5.;c=mix(c,soft,.65);}
+          vec3 glow=vec3(0.);
+          #ifdef SEPARABLE_BLOOM
+          for(int y=-1;y<=1;y++)glow+=texture(uBloom,uv+vec2(0.,float(y)*uPixel.y*5.)).rgb/3.;
+          #else
+          for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++)glow+=texture(uBloom,uv+vec2(float(x),float(y))*uPixel*5.).rgb/9.;
+          #endif
+          c+=glow*.55;
+          if(uDawn>.5&&uHigh>.5&&length(uv-.5)>.47){vec3 soft=vec3(0.);for(int k=-2;k<=2;k++)soft+=scenePixel(pixel+ivec2(k*2,k)).rgb/5.;c=mix(c,soft,.65);}
           if(uDawn>.5){vec2 off=(uv-.5)*uPixel*(2.2+uBurst*22.);c.r=texture(uScene,uv+off).r+glow.r*.55;c.b=texture(uScene,uv-off).b+glow.b*.55;
-            float streak=0.;for(int k=-4;k<=4;k++)streak+=max(0.,dot(texture(uScene,uv+vec2(float(k)*uPixel.x*9.,0.)).rgb,vec3(.213,.715,.072))-.65)/9.;c+=streak*.08;
-            if(uHigh>.5){vec3 ghost=texture(uBloom,vec2(1.)-uv*.9-.05).rgb;c+=ghost*.016;}float grain=fract(sin(dot(uv+uTime*.0001,vec2(12.9898,78.233)))*43758.5453)-.5;c+=grain*.023;}
+            float streak=0.;for(int k=-4;k<=4;k++)streak+=max(0.,dot(scenePixel(pixel+ivec2(k*9,0)),vec3(.213,.715,.072))-.65)/9.;c+=streak*.08;
+            if(uHigh>.5){
+              #ifdef SEPARABLE_BLOOM
+              vec3 ghost=texture(uBloomRaw,vec2(1.)-uv*.9-.05).rgb;
+              #else
+              vec3 ghost=texture(uBloom,vec2(1.)-uv*.9-.05).rgb;
+              #endif
+              c+=ghost*.016;}float grain=fract(sin(dot(uv+uTime*.0001,vec2(12.9898,78.233)))*43758.5453)-.5;c+=grain*.023;}
 
           float vignette=1.-smoothstep(.23,.83,length((uv-.5)*vec2(1.,.9)));c*=.55+.45*vignette;c=vec3(1.)-exp(-c*1.65);c=pow(c,vec3(.82));c=mix(c,vec3(dot(c,vec3(.213,.715,.072))),uMono);result=vec4(c,1.);}`,
+    bloomHorizontalFragment:`#version 300 es
+      precision highp float;in vec2 uv;out vec4 result;uniform sampler2D uBloom;uniform vec2 uPixel;
+      void main(){vec3 sum=vec3(0.);for(int x=-1;x<=1;x++)sum+=texture(uBloom,uv+vec2(float(x)*uPixel.x*5.,0.)).rgb/3.;result=vec4(sum,1.);}`,
+    separableComposite:function(){return this.compositeFragment.replace('#version 300 es', '#version 300 es\n#define SEPARABLE_BLOOM');},
     create:function(gl,resources){
       function shader(type,source){var s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){var error=gl.getShaderInfoLog(s);gl.deleteShader(s);throw new Error(error);}return s;}
       function program(v,f){var vs=null,fs=null,p=null;try{vs=shader(gl.VERTEX_SHADER,v);fs=shader(gl.FRAGMENT_SHADER,f);p=gl.createProgram();gl.attachShader(p,vs);gl.attachShader(p,fs);gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));resources.programs.push(p);return {p:p,u:Object.create(null)};}catch(error){if(p)gl.deleteProgram(p);throw error;}finally{if(vs)gl.deleteShader(vs);if(fs)gl.deleteShader(fs);}}

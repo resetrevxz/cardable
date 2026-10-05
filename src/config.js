@@ -4,8 +4,19 @@
 
   C.config = {
     gameName: 'Cardable',
-    version: '1.2.0',
+    version: '2.8.0',
+    titanPack: { coreMs:4000, rimMs:7000, swapMs:1200, tickRadians:Math.PI/2, tickCount:3,
+      tickPulseMs:450, unsealMs:1400, dipPx:2, steamCount:6 },
+    royalPack: { glintMs:5000, sheenMs:1400, swapMs:1100, boxRiseMs:900, boxHintMs:2000,
+      boxOpenMs:1100, fallbackMs:3000, facetColumns:8, facetRows:12, dustCount:12 },
+    classicPack: { modernCardWeight: 1, lightPassMs: 8000, ledStepMs: 600, pullDistance: .42,
+      pullSnap: .85, vortexMs: 1400, appearanceMs: 1200, mediumVortexMs: 850, lowFadeMs: 450,
+      pixelMax: 24, pixelColumns: 12, pixelRows: 20 },
     variants: { chance: 0.10, revealMs: 1200, reducedRevealMs: 180 },
+    rarityIntro: { reducedMs: 800, veryLowMs: 600, lowMs: 1200, fastScale: .7,
+      maxPixels: 2000000, refractionMaxPixels: 1500000, gildedMaxPixels: 1500000, mythicalMaxPixels: 1500000, mythicalMediumPixels: 975000,
+      exoticMaxPixels: 1500000, exoticMediumPixels: 975000, exoticMaterialSize: 768, exoticStellarSize: 1024, exoticStars: 1400, exoticGalaxyStars: 5800, backdropFrameMs: 100, maxDpr: 1.5,
+      cloudSize: 512, glassSize: 512, glassFieldSize: 640, gildedFieldSize: 640, stars: 32, motes: 32 },
 
     packs: {
       regenMs: 2 * 60 * 60 * 1000,   // One pack every two hours.
@@ -14,9 +25,12 @@
     },
 
     hold: { chargeMs: 3000, drainMs: 700 },
-    cut: { requirePress: true, autoFinishSpan: 0.8, topMin: 0.08, topMax: 0.22, guideY: 0.09 },
+    packSwap: { turnMs: 1100, reducedMs: 240, previewMs: 700 },
+    cut: { requirePress: true, autoFinishSpan: 0.72, topMin: 0.08, topMax: 0.22, guideY: 0.09,
+      captureTop: -0.10, captureBottom: 0.36, dragTop: -0.28, dragBottom: 0.55,
+      edgePaddingPx: 56, resumePaddingPx: 72, finishSnapMs: 130, heatDecayMs: 260, tipFollowMs: 38 },
 
-    idleFadeMs: 2500,
+    idleFadeMs: 15000,
 
     pull: { emptyTierPolicy: 'downgrade' },   // 'downgrade' | 'renormalize'  (OPEN-QUESTIONS #8)
 
@@ -26,11 +40,11 @@
 
     serial: { prefix: 'CBL', counterDigits: 6, playerCodeLength: 4 },
 
-    storage: { key: 'cardable.save', schemaVersion: 3 },
+    storage: { key: 'cardable.save', schemaVersion: 5 },
 
     polish: {
-      maxSaveBytes: 8 * 1024 * 1024, downloadReleaseMs: 1000, profileMs: 5000,
-      profileMaxFrames: 1200, slowFrameMs: 1000 / 60 + 1, parallaxPx: 2,
+      maxSaveBytes: 8 * 1024 * 1024, downloadReleaseMs: 1000,
+      slowFrameMs: 1000 / 60 + 1, parallaxPx: 2,
       grainOpacity: 0.025, vignetteOpacity: 0.12, newBloomGain: 0.08, digitStaggerMs: 20,
       sheetDragHighlight: 0.26, sheetRestHighlight: 0.18, faviconReadyDotPx: 4
     },
@@ -47,7 +61,7 @@
 
     // Shell layout/font metrics. Click breaths and the requested calm logo use their own tuning.
     shell: {
-      loadStaggerMs: 125, idleWaveMs: 60000,
+      loadStaggerMs: 125, idleWaveMs: 60000, afkMs: 10 * 60 * 1000,
       packWidth: 180, packHeight: 266.4,
       frameMs: 1000 / 60, maxFrameDeltaMs: 64,
       pointerSamples: 32,
@@ -81,14 +95,15 @@
       previewCountdownsMs: { hours: (1 * 60 + 12) * 60000, minutes: (42 * 60 + 10) * 1000, seconds: 38000 }
     },
 
-    // Stage 5 presentation. Charge/cut game rules above remain unchanged.
+    // Opening presentation and swipe feedback on the shared scheduler.
     openingMotion: {
-      dissolveMs: 900, tearMs: 350, splitMs: 500, fallMs: 700, drainExitPortion: 0.25,
-      cutHintMs: 2000, enterHintMs: 5000, samplePx: 8, snapPx: 16, maxPathSamples: 512,
+      dissolveMs: 900, tearMs: 180, splitMs: 240, fallMs: 420, drainExitPortion: 0.25,
+      cutHintMs: 2000, enterHintMs: 5000, samplePx: 4, snapPx: 72, maxPathSamples: 96,
       cutGuideMs: 2800,
       smoothSteps: 6, geometryEpsilon: 0.00001, boundaryInset: 0.002,
-      trailMs: 300, seamPx: 1, glintPx: 1.6, fastGlintPx: 0.8, glintSpeedPx: 1200,
-      bladeFollow: 0.35, bladeLengthPx: 36, bladeWidthPx: 2,
+      trailMs: 360, trailSegments: 24, seamPx: 1, glintPx: 2.2, fastGlintPx: 3.4, glintSpeedPx: 1200,
+      bladeFollow: 0.55, bladeLengthPx: 46, bladeWidthPx: 2.5,
+      cutRecoilPx: 2, cutRecoilDegrees: 0.45, cutFlashPx: 3.5, capPeelDegrees: 7, capSidePx: 36,
       chargeAgitationAt: 0.7, vibrationAt: 0.6, vibrationPx: 1.2, vibrationHz: 38,
       meniscusPx: 1.5, agitationPx: 3, waveMs: 900, speckSpeedPx: 24,
       sloshPx: 5, sloshCycles: 2, pulseStartMs: 750, pulseEndMs: 220, pulseIntensity: 0.65,
@@ -170,7 +185,6 @@
         lineCount: 8, lineHeightPercent: 3, lineScaleMax: 4.25, sweepHz: 2, maxSweepHz: 8, sweepPercent: 12,
         glyphs: '@#$&_-?!%+=/\\0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' },
       limited: { floatCycleMs: 6000, floatPx: 2.4, parallaxPx: 4 },
-      profileMs: 5000
     },
 
     // Only a -> @ and l -> / were specified; the rest are suggestions (OPEN-QUESTIONS #23)
@@ -189,6 +203,6 @@
       audio: false       // no music or sound yet
     },
 
-    dev: { queryFlag: 'dev' }   // ?dev=1 enables dev panel and validation
   };
+  C.version = C.config.version;
 })(window.Cardable = window.Cardable || {});

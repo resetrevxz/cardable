@@ -1,0 +1,1226 @@
+{
+  "_note": "Roster for Cardable. generation is a label: map it to your existing generation ids. noFirstPartyCard = best-knowledge flag that no Founders/first-party card existed (use the most common reference-style design for photos); verify. Specs are NOT included: fill and verify from a real source.",
+  "count": 122,
+  "cards": [
+    {
+      "order": 1,
+      "id": "radeon-hd-2400-pro",
+      "name": "Radeon HD 2400 Pro",
+      "brand": "AMD",
+      "generation": "Radeon HD 2000 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 2,
+      "id": "radeon-hd-2600-pro",
+      "name": "Radeon HD 2600 Pro",
+      "brand": "AMD",
+      "generation": "Radeon HD 2000 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 3,
+      "id": "geforce-gt-610",
+      "name": "GeForce GT 610",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 4,
+      "id": "geforce-gt-710",
+      "name": "GeForce GT 710",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 5,
+      "id": "geforce-gtx-650",
+      "name": "GeForce GTX 650",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 6,
+      "id": "geforce-gtx-750",
+      "name": "GeForce GTX 750",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 7,
+      "id": "intel-iris-xe-max",
+      "name": "Intel Iris Xe MAX",
+      "brand": "Intel",
+      "generation": "Intel Iris Xe MAX",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 8,
+      "id": "apple-m1-gpu",
+      "name": "Apple M1 GPU",
+      "brand": "Apple",
+      "generation": "Apple M1 Generation",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 9,
+      "id": "snapdragon-x",
+      "name": "Snapdragon X",
+      "brand": "Qualcomm",
+      "generation": "Snapdragon X Series",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 10,
+      "id": "radeon-rx-5500",
+      "name": "Radeon RX 5500",
+      "brand": "AMD",
+      "generation": "Radeon RX 5000 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 11,
+      "id": "radeon-9000",
+      "name": "Radeon 9000",
+      "brand": "AMD",
+      "generation": "Radeon R200 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 12,
+      "id": "radeon-hd-2400-xt",
+      "name": "Radeon HD 2400 XT",
+      "brand": "AMD",
+      "generation": "Radeon HD 2000 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 13,
+      "id": "geforce-fx-5500",
+      "name": "GeForce FX 5500",
+      "brand": "NVIDIA",
+      "generation": "GeForce FX Series",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 14,
+      "id": "geforce-2-mx-200",
+      "name": "GeForce 2 MX 200",
+      "brand": "NVIDIA",
+      "generation": "GeForce 2 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 15,
+      "id": "geforce-gt-630",
+      "name": "GeForce GT 630",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 16,
+      "id": "geforce-gt-730",
+      "name": "GeForce GT 730",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 17,
+      "id": "geforce-gt-1030",
+      "name": "GeForce GT 1030",
+      "brand": "NVIDIA",
+      "generation": "GeForce 10 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 18,
+      "id": "geforce-gtx-1050",
+      "name": "GeForce GTX 1050",
+      "brand": "NVIDIA",
+      "generation": "GeForce 10 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 19,
+      "id": "geforce-gtx-1650",
+      "name": "GeForce GTX 1650",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 20,
+      "id": "radeon-rx-6400",
+      "name": "Radeon RX 6400",
+      "brand": "AMD",
+      "generation": "Radeon RX 6000 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 21,
+      "id": "geforce-rtx-3060",
+      "name": "GeForce RTX 3060",
+      "brand": "NVIDIA",
+      "generation": "RTX 30 Series",
+      "rarity": "basic",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 22,
+      "id": "radeon-7000",
+      "name": "Radeon 7000",
+      "brand": "AMD",
+      "generation": "Radeon R100 Series",
+      "rarity": "common",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 23,
+      "id": "radeon-9200",
+      "name": "Radeon 9200",
+      "brand": "AMD",
+      "generation": "Radeon R200 Series",
+      "rarity": "common",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 24,
+      "id": "radeon-hd-2600-xt",
+      "name": "Radeon HD 2600 XT",
+      "brand": "AMD",
+      "generation": "Radeon HD 2000 Series",
+      "rarity": "common",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 25,
+      "id": "geforce-fx-5200",
+      "name": "GeForce FX 5200",
+      "brand": "NVIDIA",
+      "generation": "GeForce FX Series",
+      "rarity": "common",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 26,
+      "id": "geforce-2-mx",
+      "name": "GeForce 2 MX",
+      "brand": "NVIDIA",
+      "generation": "GeForce 2 Series",
+      "rarity": "common",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 27,
+      "id": "geforce-gtx-660",
+      "name": "GeForce GTX 660",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "common",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 28,
+      "id": "geforce-gtx-760",
+      "name": "GeForce GTX 760",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "common",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 29,
+      "id": "geforce-gtx-950",
+      "name": "GeForce GTX 950",
+      "brand": "NVIDIA",
+      "generation": "GeForce 900 Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 30,
+      "id": "radeon-rx-5600-xt",
+      "name": "Radeon RX 5600 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 5000 Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 31,
+      "id": "geforce-gtx-1650-super",
+      "name": "GeForce GTX 1650 Super",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 32,
+      "id": "geforce-gtx-1660",
+      "name": "GeForce GTX 1660",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 33,
+      "id": "geforce-gtx-1660-super",
+      "name": "GeForce GTX 1660 Super",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 34,
+      "id": "geforce-rtx-3050",
+      "name": "GeForce RTX 3050",
+      "brand": "NVIDIA",
+      "generation": "RTX 30 Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 35,
+      "id": "geforce-rtx-4060",
+      "name": "GeForce RTX 4060",
+      "brand": "NVIDIA",
+      "generation": "RTX 40 Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 36,
+      "id": "radeon-rx-5500-xt",
+      "name": "Radeon RX 5500 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 5000 Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 37,
+      "id": "radeon-rx-6500-xt",
+      "name": "Radeon RX 6500 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 6000 Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 38,
+      "id": "arc-a310",
+      "name": "Arc A310",
+      "brand": "Intel",
+      "generation": "Arc Alchemist Series",
+      "rarity": "common",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 39,
+      "id": "apple-m1-pro-gpu",
+      "name": "Apple M1 Pro GPU",
+      "brand": "Apple",
+      "generation": "Apple M1 Generation",
+      "rarity": "common",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 40,
+      "id": "snapdragon-x-plus",
+      "name": "Snapdragon X Plus",
+      "brand": "Qualcomm",
+      "generation": "Snapdragon X Series",
+      "rarity": "common",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 41,
+      "id": "radeon-7500",
+      "name": "Radeon 7500",
+      "brand": "AMD",
+      "generation": "Radeon R100 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 42,
+      "id": "radeon-8500",
+      "name": "Radeon 8500",
+      "brand": "AMD",
+      "generation": "Radeon R200 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 43,
+      "id": "radeon-hd-2900-xt",
+      "name": "Radeon HD 2900 XT",
+      "brand": "AMD",
+      "generation": "Radeon HD 2000 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 44,
+      "id": "geforce-gtx-670",
+      "name": "GeForce GTX 670",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 45,
+      "id": "geforce-gtx-770",
+      "name": "GeForce GTX 770",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 46,
+      "id": "geforce-gtx-960",
+      "name": "GeForce GTX 960",
+      "brand": "NVIDIA",
+      "generation": "GeForce 900 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 47,
+      "id": "geforce-gtx-1050-ti",
+      "name": "GeForce GTX 1050 Ti",
+      "brand": "NVIDIA",
+      "generation": "GeForce 10 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 48,
+      "id": "arc-a380",
+      "name": "Arc A380",
+      "brand": "Intel",
+      "generation": "Arc Alchemist Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 49,
+      "id": "geforce-gtx-750-ti",
+      "name": "GeForce GTX 750 Ti",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 50,
+      "id": "radeon-hd-2900-pro",
+      "name": "Radeon HD 2900 Pro",
+      "brand": "AMD",
+      "generation": "Radeon HD 2000 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 51,
+      "id": "geforce-2-gts",
+      "name": "GeForce 2 GTS",
+      "brand": "NVIDIA",
+      "generation": "GeForce 2 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 52,
+      "id": "geforce-fx-5600-ultra",
+      "name": "GeForce FX 5600 Ultra",
+      "brand": "NVIDIA",
+      "generation": "GeForce FX Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 53,
+      "id": "geforce-gtx-1060-3gb",
+      "name": "GeForce GTX 1060 3GB",
+      "brand": "NVIDIA",
+      "generation": "GeForce 10 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 54,
+      "id": "radeon-rx-6600-xt",
+      "name": "Radeon RX 6600 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 6000 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 55,
+      "id": "apple-m1-max-gpu",
+      "name": "Apple M1 Max GPU",
+      "brand": "Apple",
+      "generation": "Apple M1 Generation",
+      "rarity": "uncommon",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 56,
+      "id": "geforce-gt-740",
+      "name": "GeForce GT 740",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "uncommon",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 57,
+      "id": "radeon-rx-5700-xt",
+      "name": "Radeon RX 5700 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 5000 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 58,
+      "id": "radeon-rx-6600",
+      "name": "Radeon RX 6600",
+      "brand": "AMD",
+      "generation": "Radeon RX 6000 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 59,
+      "id": "radeon-rx-7600",
+      "name": "Radeon RX 7600",
+      "brand": "AMD",
+      "generation": "Radeon RX 7000 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 60,
+      "id": "geforce-gtx-970",
+      "name": "GeForce GTX 970",
+      "brand": "NVIDIA",
+      "generation": "GeForce 900 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 61,
+      "id": "geforce-gtx-1060-6gb",
+      "name": "GeForce GTX 1060 6GB",
+      "brand": "NVIDIA",
+      "generation": "GeForce 10 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 62,
+      "id": "geforce-gtx-1660-ti",
+      "name": "GeForce GTX 1660 Ti",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 63,
+      "id": "arc-a580",
+      "name": "Arc A580",
+      "brand": "Intel",
+      "generation": "Arc Alchemist Series",
+      "rarity": "rare",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 64,
+      "id": "geforce-2-ultra",
+      "name": "GeForce 2 Ultra",
+      "brand": "NVIDIA",
+      "generation": "GeForce 2 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 65,
+      "id": "geforce-gtx-680",
+      "name": "GeForce GTX 680",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 66,
+      "id": "geforce-gtx-780",
+      "name": "GeForce GTX 780",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 67,
+      "id": "geforce-gtx-1070",
+      "name": "GeForce GTX 1070",
+      "brand": "NVIDIA",
+      "generation": "GeForce 10 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 68,
+      "id": "apple-m2-pro-gpu",
+      "name": "Apple M2 Pro GPU",
+      "brand": "Apple",
+      "generation": "Apple M2 Generation",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 69,
+      "id": "snapdragon-x-elite",
+      "name": "Snapdragon X Elite",
+      "brand": "Qualcomm",
+      "generation": "Snapdragon X Series",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 70,
+      "id": "radeon-rx-7800-xt",
+      "name": "Radeon RX 7800 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 7000 Series",
+      "rarity": "rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 71,
+      "id": "radeon-rx-6700-xt",
+      "name": "Radeon RX 6700 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 6000 Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 72,
+      "id": "radeon-rx-7700-xt",
+      "name": "Radeon RX 7700 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 7000 Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 73,
+      "id": "geforce-rtx-2060",
+      "name": "GeForce RTX 2060",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 74,
+      "id": "geforce-rtx-3060-ti",
+      "name": "GeForce RTX 3060 Ti",
+      "brand": "NVIDIA",
+      "generation": "RTX 30 Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 75,
+      "id": "arc-a750",
+      "name": "Arc A750",
+      "brand": "Intel",
+      "generation": "Arc Alchemist Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 76,
+      "id": "apple-m2-gpu",
+      "name": "Apple M2 GPU",
+      "brand": "Apple",
+      "generation": "Apple M2 Generation",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 77,
+      "id": "geforce-rtx-2060-super",
+      "name": "GeForce RTX 2060 Super",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 78,
+      "id": "geforce-rtx-2070",
+      "name": "GeForce RTX 2070",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 79,
+      "id": "geforce-rtx-3070",
+      "name": "GeForce RTX 3070",
+      "brand": "NVIDIA",
+      "generation": "RTX 30 Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 80,
+      "id": "geforce-rtx-4060-ti",
+      "name": "GeForce RTX 4060 Ti",
+      "brand": "NVIDIA",
+      "generation": "RTX 40 Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 81,
+      "id": "arc-b570",
+      "name": "Arc B570",
+      "brand": "Intel",
+      "generation": "Arc Battlemage Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 82,
+      "id": "apple-m3-gpu",
+      "name": "Apple M3 GPU",
+      "brand": "Apple",
+      "generation": "Apple M3 Generation",
+      "rarity": "super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 83,
+      "id": "radeon-rx-9060-xt",
+      "name": "Radeon RX 9060 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 9000 Series",
+      "rarity": "super-rare",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 84,
+      "id": "geforce-rtx-5090",
+      "name": "GeForce RTX 5090",
+      "brand": "NVIDIA",
+      "generation": "RTX 50 Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 85,
+      "id": "radeon-rx-9070-xt",
+      "name": "Radeon RX 9070 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 9000 Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 86,
+      "id": "geforce-rtx-4070-super",
+      "name": "GeForce RTX 4070 Super",
+      "brand": "NVIDIA",
+      "generation": "RTX 40 Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 87,
+      "id": "arc-b580",
+      "name": "Arc B580",
+      "brand": "Intel",
+      "generation": "Arc Battlemage Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 88,
+      "id": "snapdragon-x2-elite",
+      "name": "Snapdragon X2 Elite",
+      "brand": "Qualcomm",
+      "generation": "Snapdragon X2 Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 89,
+      "id": "geforce-gtx-980",
+      "name": "GeForce GTX 980",
+      "brand": "NVIDIA",
+      "generation": "GeForce 900 Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 90,
+      "id": "geforce-rtx-4070",
+      "name": "GeForce RTX 4070",
+      "brand": "NVIDIA",
+      "generation": "RTX 40 Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 91,
+      "id": "geforce-rtx-5070",
+      "name": "GeForce RTX 5070",
+      "brand": "NVIDIA",
+      "generation": "RTX 50 Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 92,
+      "id": "arc-a770",
+      "name": "Arc A770",
+      "brand": "Intel",
+      "generation": "Arc Alchemist Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 93,
+      "id": "apple-m4-gpu",
+      "name": "Apple M4 GPU",
+      "brand": "Apple",
+      "generation": "Apple M4 Generation",
+      "rarity": "unusual",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 94,
+      "id": "radeon-rx-9070",
+      "name": "Radeon RX 9070",
+      "brand": "AMD",
+      "generation": "Radeon RX 9000 Series",
+      "rarity": "unusual",
+      "noFirstPartyCard": true,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 95,
+      "id": "radeon-vii",
+      "name": "Radeon VII",
+      "brand": "AMD",
+      "generation": "Radeon VII",
+      "rarity": "double-super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 96,
+      "id": "radeon-rx-6800-xt",
+      "name": "Radeon RX 6800 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 6000 Series",
+      "rarity": "double-super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 97,
+      "id": "geforce-rtx-3080",
+      "name": "GeForce RTX 3080",
+      "brand": "NVIDIA",
+      "generation": "RTX 30 Series",
+      "rarity": "double-super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 98,
+      "id": "apple-m3-max-gpu",
+      "name": "Apple M3 Max GPU",
+      "brand": "Apple",
+      "generation": "Apple M3 Generation",
+      "rarity": "double-super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 99,
+      "id": "geforce-gtx-1080",
+      "name": "GeForce GTX 1080",
+      "brand": "NVIDIA",
+      "generation": "GeForce 10 Series",
+      "rarity": "double-super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 100,
+      "id": "radeon-rx-6800",
+      "name": "Radeon RX 6800",
+      "brand": "AMD",
+      "generation": "Radeon RX 6000 Series",
+      "rarity": "double-super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 101,
+      "id": "geforce-rtx-4070-ti",
+      "name": "GeForce RTX 4070 Ti",
+      "brand": "NVIDIA",
+      "generation": "RTX 40 Series",
+      "rarity": "double-super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 102,
+      "id": "apple-m3-pro-gpu",
+      "name": "Apple M3 Pro GPU",
+      "brand": "Apple",
+      "generation": "Apple M3 Generation",
+      "rarity": "double-super-rare",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 103,
+      "id": "geforce-gtx-1080-ti",
+      "name": "GeForce GTX 1080 Ti",
+      "brand": "NVIDIA",
+      "generation": "GeForce 10 Series",
+      "rarity": "legendary",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 104,
+      "id": "geforce-rtx-2080-ti",
+      "name": "GeForce RTX 2080 Ti",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "legendary",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 105,
+      "id": "radeon-rx-7900-xtx",
+      "name": "Radeon RX 7900 XTX",
+      "brand": "AMD",
+      "generation": "Radeon RX 7000 Series",
+      "rarity": "legendary",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 106,
+      "id": "geforce-rtx-4080",
+      "name": "GeForce RTX 4080",
+      "brand": "NVIDIA",
+      "generation": "RTX 40 Series",
+      "rarity": "legendary",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 107,
+      "id": "radeon-rx-7900-xt",
+      "name": "Radeon RX 7900 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 7000 Series",
+      "rarity": "legendary",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 108,
+      "id": "apple-m3-ultra-gpu",
+      "name": "Apple M3 Ultra GPU",
+      "brand": "Apple",
+      "generation": "Apple M3 Generation",
+      "rarity": "legendary",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 109,
+      "id": "geforce-gtx-980-ti",
+      "name": "GeForce GTX 980 Ti",
+      "brand": "NVIDIA",
+      "generation": "GeForce 900 Series",
+      "rarity": "mythical",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 110,
+      "id": "geforce-rtx-3090",
+      "name": "GeForce RTX 3090",
+      "brand": "NVIDIA",
+      "generation": "RTX 30 Series",
+      "rarity": "mythical",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 111,
+      "id": "apple-m4-max-gpu",
+      "name": "Apple M4 Max GPU",
+      "brand": "Apple",
+      "generation": "Apple M4 Generation",
+      "rarity": "mythical",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 112,
+      "id": "geforce-gtx-690",
+      "name": "GeForce GTX 690",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "mythical",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 113,
+      "id": "titan-x-pascal",
+      "name": "TITAN X (Pascal)",
+      "brand": "NVIDIA",
+      "generation": "GeForce 10 Series",
+      "rarity": "mythical",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 114,
+      "id": "geforce-rtx-4090",
+      "name": "GeForce RTX 4090",
+      "brand": "NVIDIA",
+      "generation": "RTX 40 Series",
+      "rarity": "exotic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 115,
+      "id": "radeon-rx-6900-xt",
+      "name": "Radeon RX 6900 XT",
+      "brand": "AMD",
+      "generation": "Radeon RX 6000 Series",
+      "rarity": "exotic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 116,
+      "id": "geforce-gtx-titan",
+      "name": "GeForce GTX TITAN",
+      "brand": "NVIDIA",
+      "generation": "GeForce 600 & 700 Series",
+      "rarity": "exotic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 117,
+      "id": "geforce-rtx-3090-ti",
+      "name": "GeForce RTX 3090 Ti",
+      "brand": "NVIDIA",
+      "generation": "RTX 30 Series",
+      "rarity": "exotic",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 118,
+      "id": "geforce-rtx-5080",
+      "name": "GeForce RTX 5080",
+      "brand": "NVIDIA",
+      "generation": "RTX 50 Series",
+      "rarity": "ascendant",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 119,
+      "id": "apple-m5-gpu",
+      "name": "Apple M5 GPU",
+      "brand": "Apple",
+      "generation": "Apple M5 Generation",
+      "rarity": "ascendant",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 120,
+      "id": "titan-rtx",
+      "name": "TITAN RTX",
+      "brand": "NVIDIA",
+      "generation": "GeForce 16 & RTX 20 Series",
+      "rarity": "ascendant",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 121,
+      "id": "geforce-256",
+      "name": "GeForce 256",
+      "brand": "NVIDIA",
+      "generation": "GeForce 256",
+      "rarity": "secret",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    },
+    {
+      "order": 122,
+      "id": "radeon-ddr",
+      "name": "Radeon DDR",
+      "brand": "AMD",
+      "generation": "Radeon R100 Series",
+      "rarity": "secret",
+      "noFirstPartyCard": false,
+      "artStatus": "placeholder"
+    }
+  ]
+}

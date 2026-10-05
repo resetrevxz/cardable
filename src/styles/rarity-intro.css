@@ -1,0 +1,8 @@
+.rarity-intro { position:fixed; inset:0; width:100%; height:100%; z-index:2; pointer-events:none; }
+.rarity-intro[hidden] { display:none; }
+.rarity-backdrop { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+.rarity-backdrop[hidden] { display:none; }
+.opening-stage.has-rarity-backdrop .opening-reveal { z-index:1; }
+[data-phase="rarityIntro"] .opening-pack,[data-phase="rarityIntro"] .opening-reveal { visibility:hidden; pointer-events:none; }
+.is-rarity-cinematic .pack-reward,
+.is-rarity-cinematic .collection-toast { visibility:hidden !important; }

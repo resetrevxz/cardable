@@ -1,5 +1,9 @@
 # 05 — Main menu
 
+## 2.1.0 brand packs
+
+Normal slots have a combined 5% brand-pack chance, split equally across NVIDIA, AMD, Snapdragon and Apple. Every fourth slot stays Rare and the two starting tutorial packs stay Standard. The upcoming type is stable per save/opening number. Brand wrappers show a Cardable header above the company logo and brand-only caption, with colored waiting/refill fluid. Counter slots keep stock semantics while their markers, info menu and title follow the next type. Ordinary menu type changes turn through a foil back; reduced motion and low animation use fades. The post-Keep handoff arrives directly at the menu wrapper without replaying its old slide-in.
+
 Quiet, centered, lots of empty space. The pack is the hero.
 
 ## 1. Layout
@@ -16,7 +20,7 @@ Nothing else. A hidden `#market-slot` container exists for the future market and
 
 ## 2. Idle fade
 
-After 2.5 s without pointer movement, everything except the pack fades out over 600 ms. Movement restores it in 150 ms. Never fade during: open inventory, tutorial step, opening sequence, a visible toast. The pack keeps breathing.
+After 15 s without activity, secondary controls fade out over 600 ms. Keep the pack, timer, stock/refill visualizer, card/pack counts and a wordmark scaled to 65%. Activity restores the controls. Open inventory, tutorial, opening and visible-toast contexts retain their own presentation. After 10 minutes, the AFK view hides the scene and panels and pauses decorative rendering while timestamp-driven metrics remain live. See `IDLE-ACTIVITY.md`.
 
 ## 3. The pack
 
@@ -68,3 +72,8 @@ Set by the pack/timer system (`docs/01-GAME-RULES.md` section 8).
 ## 9. Load-in
 
 Wordmark fades in first, then the pack, then currency and arrow, staggered 100-150 ms.
+
+
+## 2.0.0 Queue presentation
+
+The front and rear wrappers display upcoming positions one and two, including during regeneration. The stock row still displays stored fills and first-empty refill progress; schedule markers overlay those slots independently. Rare positions have a blue ring, glossy thumbnail and R+ glyph. Markers retain lifetime keys through 250 ms spring advancement; consumed markers burst and retire, while new markers fade in four openings ahead. Reduced motion uses fades. Show R+ in N beyond the visible row and one saved introduction when Rare first becomes next, deferred while game dialogs/tutorial/opening are active. The ready Rare title is Cardable - Rare pack ready.

@@ -8,11 +8,12 @@
     var url = root.URL.createObjectURL(new root.Blob([text], { type: 'application/json' }));
     var link = root.document.createElement('a'); link.href = url; link.download = filename; root.document.body.appendChild(link); link.click(); link.remove();
     root.setTimeout(function () { root.URL.revokeObjectURL(url); }, C.config.polish.downloadReleaseMs);
+    if (filename === 'cardable-save.json' || /^cardable-(save|sandbox)-\d/.test(filename)) C.events.emit('save:exported');
   }
   C.saveFiles = {
     parse: parse,
     download: download,
-    exportText: function () { return JSON.stringify(C.state.current, null, 2) + '\n'; },
+    exportText: function () { return JSON.stringify(JSON.parse(C.state.encode(C.state.current)), null, 2) + '\n'; },
     export: function () { download(C.saveFiles.exportText(), 'cardable-save.json'); },
     exportBackup: function () { if (C.state.recovery) download(C.state.recovery.raw, 'cardable-save-recovery.json'); },
     previous: function () { try { return root.localStorage.getItem(C.config.storage.key + '.before-import'); } catch (_) { return null; } },

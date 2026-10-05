@@ -1,0 +1,16 @@
+/* A wide invisible input area feeds one precise top-seal cut. */
+.opening-cut-zone { display: none; position: absolute; top: var(--cut-capture-top); height: var(--cut-capture-height); left: calc(-1 * var(--cut-edge-padding)); right: calc(-1 * var(--cut-edge-padding)); z-index: 2; touch-action: none; }
+[data-phase="cutting"] .opening-cut-zone { display: block; }
+.opening-seams { z-index: 3; }
+.opening-hint { z-index: 4; }
+.opening-cut-glow { fill: none; stroke: var(--highlight); stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(0 0 5px rgba(255,255,255,.65)) drop-shadow(0 0 12px rgba(255,255,255,.35)); opacity: 0; }
+.opening-cut-tip { fill: var(--highlight); filter: drop-shadow(0 0 4px white) drop-shadow(0 0 10px rgba(255,255,255,.8)); }
+.opening-cut-glint { filter: drop-shadow(0 0 4px rgba(255,255,255,.8)); }
+.opening-cut-track { stroke: rgba(255,255,255,.26); stroke-width: 1.5; }
+.opening-cut-guide { stroke-width: 3; filter: drop-shadow(0 0 5px rgba(255,255,255,.42)); }
+.opening-light-gap { filter: drop-shadow(0 0 6px rgba(255,255,255,.65)) drop-shadow(0 0 14px rgba(255,255,255,.3)); }
+.is-cut-dragging .opening-cut-glow, .is-cut-finishing .opening-cut-glow { stroke-width: 3.2; }
+.is-cut-dragging .opening-cut-hint { color: var(--text); }
+.is-cut-finishing .opening-cut-hint { color: var(--highlight); }
+.cursor-glow__blade { background: linear-gradient(90deg,transparent,rgba(255,255,255,.6) 20%,white 55%,transparent); box-shadow: 0 0 8px rgba(255,255,255,.5), 0 0 18px rgba(255,255,255,calc(var(--blade-strength,0) * .6)); }
+.reduced-motion .opening-cut-glow, .reduced-motion .opening-cut-tip, .reduced-motion .opening-cut-glint { filter: none; }

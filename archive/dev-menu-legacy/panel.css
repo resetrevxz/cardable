@@ -1,0 +1,18 @@
+.dev-panel {
+  position: fixed; left: var(--s-4); bottom: var(--s-4); z-index: var(--z-toast);
+  display: grid; gap: var(--s-2); width: 280px; max-width: calc(100vw - var(--s-6)); max-height: 45vh; overflow: auto;
+  padding: var(--s-3); border-radius: var(--r-button); font-family: var(--font-mono); font-size: 10px;
+  line-height: 1.5; font-variant-numeric: tabular-nums; color: var(--text-dim);
+}
+.dev-panel button, .dev-panel select {
+  min-height: var(--s-6); padding: var(--s-1) var(--s-2); border: 1px solid var(--hairline);
+  border-radius: var(--s-2); background: var(--surface); text-align: left; cursor: pointer;
+  transition: background var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out), transform var(--t-fast) var(--ease-out);
+}
+.dev-panel button:hover, .dev-panel select:hover { border-color: var(--hairline-strong); background: var(--surface-2); }
+.dev-panel button:hover { transform: translateY(-1px); }
+.dev-panel button:active { transform: scale(.98); }
+.dev-panel button:disabled { opacity: .5; cursor: default; transform: none; }
+.dev-panel option { background: var(--surface); }
+.dev-panel summary { cursor: pointer; }
+.dev-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: var(--s-2) 0 0; font: inherit; }

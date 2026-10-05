@@ -1,8 +1,10 @@
 (function (C, root) {
   'use strict';
   var schema = C.settingsSchema, values = schema.normalize(), applying = false, initialized = false;
+  var overrides = Object.create(null);
+  function effective(key) { return Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : values[key]; }
   var media = root.matchMedia('(prefers-reduced-motion: reduce)');
-  function rank(key) { return schema.tiers.indexOf(values[key]); }
+  function rank(key) { return schema.tiers.indexOf(effective(key)); }
   function resolvePolicy() {
     var finish = rank('finishQuality'), reflection = rank('reflectionQuality'), background = rank('backgroundQuality'), animation = rank('animationQuality');
     return { finishHz: [0, 15, 30, 60][finish], glareHz: [0, 15, 30, Infinity][reflection],
@@ -16,7 +18,7 @@
   var policy = resolvePolicy();
   function attribute(key, value) { root.document.documentElement.setAttribute('data-' + key.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); }), String(value)); }
   function resolveMotion() {
-    var reduced = values.motion === 'on' || values.motion === 'auto' && media.matches;
+    var reduced = effective('motion') === 'on' || effective('motion') === 'auto' && media.matches;
     if (!C.motion) return;
     var changed = C.motion.reduced !== reduced;
     C.motion.reduced = reduced; root.document.documentElement.classList.toggle('reduced-motion', reduced);
@@ -37,17 +39,17 @@
     var next = schema.normalize(C.state.current && C.state.current.settings);
     if (C.state.current) C.state.current.settings = next;
     var before = values; values = next; policy = resolvePolicy();
-    Object.keys(schema.entries).forEach(function (key) { if (force || before[key] !== next[key]) apply(key, next[key]); });
+    Object.keys(schema.entries).forEach(function (key) { if (force || before[key] !== next[key]) apply(key, effective(key)); });
   }
   function replace(next) {
     next = schema.normalize(next); var before = values; values = next; policy = resolvePolicy();
     C.state.current.settings = next;
-    Object.keys(schema.entries).forEach(function (key) { if (before[key] !== next[key]) apply(key, next[key]); });
+    Object.keys(schema.entries).forEach(function (key) { if (before[key] !== next[key]) apply(key, effective(key)); });
     C.state.save(); C.events.emit('settings:persisted', { saved: C.state.persistenceAvailable });
     return C.state.persistenceAvailable;
   }
   C.settings = {
-    get: function (key) { return values[key]; },
+    get: function (key) { return effective(key); },
     get snapshot() { return Object.assign({}, values); },
     get saved() { return C.state.persistenceAvailable; },
     get policy() { return policy; },
@@ -70,8 +72,8 @@
         flipMs: reveal.flipMs * (duplicate || 1) * (fast ? Math.max(floor, 0.7) : 1) };
     },
     dotsPolicy: function () {
-      var subtle = values.dots === 'subtle', base = C.config.dots;
-      return Object.assign({}, base, { enabled: values.dots !== 'off' && policy.background > 0,
+      var subtle = effective('dots') === 'subtle', base = C.config.dots;
+      return Object.assign({}, base, { enabled: effective('dots') !== 'off' && policy.background > 0,
         spacing: base.spacing * (policy.background === 1 ? 1.5 : 1),
         maxAlpha: base.maxAlpha * (subtle ? 0.5 : 1) * (policy.background === 1 ? 0.7 : 1), influenceRadius: base.influenceRadius * (subtle ? 0.8 : 1),
         lean: subtle || policy.background < 2 ? 0 : base.lean, trail: !subtle && policy.trail,
@@ -84,13 +86,22 @@
       if (next[key] === values[key]) return C.state.persistenceAvailable;
       return replace(next);
     },
-    // Scope thumbnail construction without applying DOM attributes or saving.
     withPolicy: function (tier, fn) {
-      if (schema.tiers.indexOf(tier) < 0) return fn();
-      var before = values, beforePolicy = policy;
-      values = Object.assign({}, values, { quality: tier });
-      schema.graphicsKeys.forEach(function (key) { values[key] = tier; }); policy = resolvePolicy();
-      try { return fn(); } finally { values = before; policy = beforePolicy; }
+      if (!tier || schema.tiers.indexOf(tier) < 0) return fn();
+      var before = overrides, beforePolicy = policy;
+      overrides = Object.assign({}, overrides); overrides.quality = tier;
+      schema.graphicsKeys.forEach(function (key) { overrides[key] = tier; }); policy = resolvePolicy();
+      try { return fn(); } finally { overrides = before; policy = beforePolicy; }
+    },
+    policyFor: function (tier) { return C.settings.withPolicy(tier, function () { return Object.assign({}, policy); }); },
+    override: function (key, value) {
+      if (!schema.entries[key]) return;
+      if (value === undefined) delete overrides[key]; else overrides[key] = schema.validate(key, value);
+      policy = resolvePolicy(); apply(key, effective(key));
+    },
+    clearOverrides: function () {
+      var keys = Object.keys(overrides); overrides = Object.create(null); policy = resolvePolicy();
+      keys.forEach(function (key) { apply(key, effective(key)); });
     },
     restore: replace,
     resetToDefaults: function () { return replace(schema.normalize()); },

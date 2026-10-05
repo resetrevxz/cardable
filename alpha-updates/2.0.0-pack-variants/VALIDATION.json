@@ -1,0 +1,74 @@
+{
+  "logic": {
+    "pass": true,
+    "checks": [
+      {
+        "label": "100 openings: exactly every fourth is Rare (25 total)",
+        "pass": true
+      },
+      {
+        "label": "3,000 seeded Rare pulls: no tier below Rare",
+        "pass": true
+      },
+      {
+        "label": "Legacy openedCount migrates from stats.packsOpened",
+        "pass": true
+      }
+    ],
+    "elapsedMs": 6.76
+  },
+  "waiting": {
+    "state": "waiting",
+    "type": "rare",
+    "skin": "rare",
+    "wrapperOpacity": "0.12",
+    "material": "linear-gradient(100deg, rgb(11, 42, 111), rgb(22, 67, 153) 23%, rgb(47, 123, 255) 54%, rgb(23, 68, 150) 79%, rgb(11, 42, 111))",
+    "marker": "Pack 1: Rare Pack",
+    "markerCount": 1,
+    "progress": 0.5000868055555555,
+    "intro": "Every fourth pack is a Rare Pack. Rare or better."
+  },
+  "ready": {
+    "title": "Cardable - Rare pack ready",
+    "skin": "rare",
+    "quality": "medium",
+    "wrapperOpacity": "1",
+    "ringShadow": "color(srgb 0.184314 0.482353 1 / 0.65) 0px 0px 12px 0px",
+    "slots": [
+      {
+        "label": "Pack 1: Rare Pack",
+        "ready": true
+      },
+      {
+        "label": "Pack 2: Standard Pack",
+        "ready": true
+      },
+      {
+        "label": "Pack 3: Standard Pack",
+        "ready": false
+      },
+      {
+        "label": "Pack 4: Standard Pack",
+        "ready": false
+      }
+    ]
+  },
+  "opening": {
+    "inventory": 1,
+    "instancePackId": "standard",
+    "openedCount": 1,
+    "packsOpened": 1,
+    "stock": 1,
+    "reward": 200,
+    "front": "standard",
+    "queue": [
+      "standard",
+      "standard",
+      "rare",
+      "standard"
+    ]
+  },
+  "errors": [],
+  "network": [],
+  "inspection": "One headed file:// sandbox session; DOM and computed styles, no screenshots or profiling."
+}

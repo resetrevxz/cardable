@@ -4,12 +4,19 @@ const fs=require('node:fs'),path=require('node:path'),{pathToFileURL}=require('n
   const page=await browser.newPage({viewport:{width:1366,height:900}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(pathToFileURL(path.resolve(__dirname,'../index.html')).href);
-  const result=await page.evaluate(async()=>{
-    const C=Cardable,samples={},originals=[];
+  const result=await page.evaluate(async({kernelProfile,compositeFragment,scene})=>{
+    const C=Cardable,samples={},originals=[],programLabels=new WeakMap(),syncPixel=new Uint8Array(4);
+    if(compositeFragment)C.cutsceneGL.compositeFragment=compositeFragment;
     C.tutorial.skipButton.click();C.settings.applyPreset('high');C.settings.set('idleFade','never');C.packView.setVisible(false);
     function wrap(object,key,label){const original=object[key];originals.push(()=>object[key]=original);object[key]=function(...args){const start=performance.now();try{return original.apply(this,args);}finally{(samples[label]||(samples[label]=[])).push(performance.now()-start);}};}
     function factory(object,key,method,label){const original=object[key];originals.push(()=>object[key]=original);object[key]=function(...args){const value=original.apply(this,args);wrap(value,method,label);return value;};}
     factory(C.cutsceneScreenEngine,'create','render','GPU render');
+    factory(C.crystalSceneEngine,'create','paint','Crystal GPU render');
+    const originalHelpers=C.cutsceneGL.create;
+    C.cutsceneGL.create=function(...args){const helper=originalHelpers.apply(this,args),originalProgram=helper.program;helper.program=function(vertex,fragment){const p=originalProgram(vertex,fragment);programLabels.set(p.p,fragment.includes('uPrevious')?'Feedback kernel':fragment.includes('uCurve')?'CRT kernel':fragment.includes('uPass')?'Composite kernel':fragment.includes('uCurtainLayers')?'Sigil kernel':'Other kernel');return p;};return helper;};
+    originals.push(()=>C.cutsceneGL.create=originalHelpers);
+    const drawArrays=WebGL2RenderingContext.prototype.drawArrays;
+    if(kernelProfile)WebGL2RenderingContext.prototype.drawArrays=function(...args){const label=programLabels.get(this.getParameter(this.CURRENT_PROGRAM))||'Unlabelled kernel',output=this.getParameter(this.FRAMEBUFFER_BINDING)===null,start=performance.now();try{const result=drawArrays.apply(this,args);this.readPixels(0,0,1,1,this.RGBA,this.UNSIGNED_BYTE,syncPixel);return result;}finally{const key=label+(output?' output':' target');(samples[key]||(samples[key]=[])).push(performance.now()-start);}};
     factory(C.secretOSScene,'create','paint','Desktop drawing');
     factory(C.cutscenes,'createLimiter','apply','Safety sampler');
     const originalDraw=CanvasRenderingContext2D.prototype.drawImage;
@@ -18,15 +25,15 @@ const fs=require('node:fs'),path=require('node:path'),{pathToFileURL}=require('n
       (samples[label]||(samples[label]=[])).push(performance.now()-start);
     }};
     const host=document.createElement('div');document.body.appendChild(host);
-    const intro=C.rarityIntro.create(host),spec=C.rarity('secret').openingIntro;
-    intro.start(spec,'Secret','PIPELINE-PROFILE');
+    const intro=C.rarityIntro.create(host),spec=C.rarity(scene).openingIntro,offset={secret:14000,mythical:12000,ascendant:16000}[scene];
+    intro.start(spec,scene,'PIPELINE-PROFILE');
     let start=performance.now(),previous=start,frames=0;
-    await new Promise(resolve=>{function frame(now){intro.update(14000+now-start,now);frames++;previous=now;if(now-start<4000)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
+    await new Promise(resolve=>{function frame(now){intro.update(offset+now-start,now);frames++;previous=now;if(now-start<4000)requestAnimationFrame(frame);else resolve();}requestAnimationFrame(frame);});
     const elapsed=performance.now()-start;
     const rows={};Object.keys(samples).forEach(key=>{const values=samples[key].sort((a,b)=>a-b);rows[key]={count:values.length,totalMs:values.reduce((a,b)=>a+b,0),p50:values[Math.floor(values.length*.5)],p95:values[Math.floor(values.length*.95)]};});
-    intro.stop();host.remove();CanvasRenderingContext2D.prototype.drawImage=originalDraw;originals.reverse().forEach(restore=>restore());
+    intro.stop();host.remove();CanvasRenderingContext2D.prototype.drawImage=originalDraw;WebGL2RenderingContext.prototype.drawArrays=drawArrays;originals.reverse().forEach(restore=>restore());
     return {frames,elapsed,fps:frames*1000/elapsed,rows};
-  });
+  },{kernelProfile:process.env.CARDABLE_KERNEL_PROFILE==='1',scene:process.env.CARDABLE_PIPELINE_SCENE||'secret',compositeFragment:process.env.CARDABLE_PIPELINE_SHADER?fs.readFileSync(process.env.CARDABLE_PIPELINE_SHADER,'utf8'):null});
   result.errors=errors;
   const out=path.resolve(__dirname,'../../../outputs/graphics-profiles');fs.mkdirSync(out,{recursive:true});
   const label=process.env.CARDABLE_PIPELINE_LABEL||'pipeline';fs.writeFileSync(path.join(out,label+'.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));

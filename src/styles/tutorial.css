@@ -15,7 +15,7 @@
 .tutorial-skip:disabled { pointer-events: none; }
 .tutorial-skip:focus-visible { outline: 1px solid var(--highlight); outline-offset: var(--s-1); box-shadow: 0 0 0 3px var(--glass); }
 .has-tutorial #wordmark, .has-tutorial #currency-counter, .has-tutorial #inventory-affordance,
-.has-tutorial #pack-stage, .has-tutorial .dev-panel, .has-tutorial .pack-meta { opacity: var(--tutorial-dim); }
+.has-tutorial #pack-stage, .has-tutorial .pack-meta { opacity: var(--tutorial-dim); }
 .has-tutorial .is-tutorial-target { opacity: 1 !important; }
 .has-tutorial.is-opening:not(.is-collecting) .menu-shell > * { opacity: 0 !important; }
 .has-tutorial[data-tutorial="timer"] #pack-stage { opacity: 1; }

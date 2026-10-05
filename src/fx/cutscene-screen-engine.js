@@ -45,13 +45,13 @@ void main(){
   C.cutsceneScreenEngine={create:function(){
     // Raw history lives in explicit feedback targets; output is copied in this task.
     var canvas=root.document.createElement('canvas'),gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:false,preserveDrawingBuffer:false}),lost=false,disposed=false;
-    var resources={programs:[],textures:[],frames:[],renderbuffers:[]},gpu,raw,pass,composite,os,mask,feedback,processed,bloom,read=0;
+    var resources={programs:[],textures:[],frames:[],renderbuffers:[]},gpu,raw,pass,composite,horizontal,os,mask,feedback,processed,bloom,blur,read=0;
     var stats={backend:gl?'webgl2':'canvas',frames:0,textureAllocations:0,textureUpdates:0};
     var sourceSize={w:0,h:0},maskSize={w:1,h:1};
     function dispose(){if(disposed)return;disposed=true;if(gl){resources.programs.forEach(function(p){gl.deleteProgram(p);});resources.textures.forEach(function(t){gl.deleteTexture(t);});resources.frames.forEach(function(f){gl.deleteFramebuffer(f);});resources.renderbuffers.forEach(function(r){gl.deleteRenderbuffer(r);});}resources={programs:[],textures:[],frames:[],renderbuffers:[]};}
     canvas.addEventListener('webglcontextlost',function(e){e.preventDefault();lost=true;stats.backend='canvas';});
     function uploadTexture(){var t=gl.createTexture();resources.textures.push(t);gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t;}
-    if(gl)try{gpu=C.cutsceneGL.create(gl,resources);raw=gpu.program(C.cutsceneGL.screenVertex,rawFragment);pass=gpu.program(C.cutsceneGL.screenVertex,fragment);composite=gpu.program(C.cutsceneGL.screenVertex,C.cutsceneGL.compositeFragment);os=uploadTexture();mask=uploadTexture();gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));feedback=[gpu.target(false),gpu.target(false)];processed=gpu.target(false);bloom=gpu.target(false);}catch(error){dispose();lost=true;stats.backend='canvas';}
+    if(gl)try{gpu=C.cutsceneGL.create(gl,resources);raw=gpu.program(C.cutsceneGL.screenVertex,rawFragment);pass=gpu.program(C.cutsceneGL.screenVertex,fragment);composite=gpu.program(C.cutsceneGL.screenVertex,C.cutsceneGL.separableComposite());horizontal=gpu.program(C.cutsceneGL.screenVertex,C.cutsceneGL.bloomHorizontalFragment);os=uploadTexture();mask=uploadTexture();gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));feedback=[gpu.target(false),gpu.target(false)];processed=gpu.target(false);bloom=gpu.target(false);blur=gpu.target(false);}catch(error){dispose();lost=true;stats.backend='canvas';}
     function texture(p,name,t,unit){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);gl.uniform1i(gpu.uniform(p,name),unit);}
     function upload(source,size){
       if(size.w!==source.width||size.h!==source.height){
@@ -66,7 +66,7 @@ void main(){
       render:function(source,w,h,time,effect,level){
         if(!gl||lost||disposed||level<2)return source;
         var budget=level===3?1500000:975000,dpr=Math.min(1.5,C.settings.policy.dpr,Math.sqrt(budget/(w*h))),rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
-        if(canvas.width!==rw||canvas.height!==rh){canvas.width=rw;canvas.height=rh;gpu.sizeTarget(processed,rw,rh);gpu.sizeTarget(bloom,Math.max(1,rw>>1),Math.max(1,rh>>1));}
+        if(canvas.width!==rw||canvas.height!==rh){canvas.width=rw;canvas.height=rh;gpu.sizeTarget(processed,rw,rh);gpu.sizeTarget(bloom,Math.max(1,rw>>1),Math.max(1,rh>>1));gpu.sizeTarget(blur,rw,Math.max(1,rh>>1));}
         var resetFeedback=feedback[0].w!==source.width||feedback[0].h!==source.height;
         if(resetFeedback){feedback.forEach(function(t){gpu.sizeTarget(t,source.width,source.height);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);});}
         gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.useProgram(raw.p);texture(raw,'uOS',os,0);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);upload(source,sourceSize);
@@ -82,7 +82,8 @@ void main(){
         gl.useProgram(composite.p);texture(composite,'uScene',processed.texture,0);texture(composite,'uBloom',feedback[1-read].texture,1);gl.uniform2f(gpu.uniform(composite,'uPixel'),1/rw,1/rh);
         ['Time','Dawn','Mono','High','Burst'].forEach(function(name){gl.uniform1f(gpu.uniform(composite,'u'+name),name==='Time'?time:name==='Mono'&&C.config.rarityColorMode==='mono'?1:0);});
         gl.uniform1f(gpu.uniform(composite,'uPass'),1);gl.bindFramebuffer(gl.FRAMEBUFFER,bloom.f);gl.viewport(0,0,bloom.w,bloom.h);gl.drawArrays(gl.TRIANGLES,0,3);
-        texture(composite,'uBloom',bloom.texture,1);gl.uniform1f(gpu.uniform(composite,'uPass'),0);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,rw,rh);gl.drawArrays(gl.TRIANGLES,0,3);stats.frames++;return canvas;
+        gl.useProgram(horizontal.p);texture(horizontal,'uBloom',bloom.texture,1);gl.uniform2f(gpu.uniform(horizontal,'uPixel'),1/rw,1/rh);gl.bindFramebuffer(gl.FRAMEBUFFER,blur.f);gl.viewport(0,0,blur.w,blur.h);gl.drawArrays(gl.TRIANGLES,0,3);
+        gl.useProgram(composite.p);texture(composite,'uBloom',blur.texture,1);gl.uniform1f(gpu.uniform(composite,'uPass'),0);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,rw,rh);gl.drawArrays(gl.TRIANGLES,0,3);stats.frames++;return canvas;
       }
     };
   }};

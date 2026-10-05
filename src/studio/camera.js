@@ -1,0 +1,26 @@
+(function (C) {
+  'use strict';
+  function multiply(a, b) { var out = new Float32Array(16); for (var col = 0; col < 4; col++) for (var row = 0; row < 4; row++) for (var k = 0; k < 4; k++) out[col * 4 + row] += a[k * 4 + row] * b[col * 4 + k]; return out; }
+  function unit(v) { var length = Math.hypot.apply(Math, v) || 1; return v.map(function (x) { return x / length; }); }
+  function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function dot(a, b) { return a.reduce(function (s, n, i) { return s + n * b[i]; }, 0); }
+  function inverse(matrix) { var rows = Array.from({ length: 4 }, function (_, r) { return Array.from({ length: 8 }, function (_, c) { return c < 4 ? matrix[c * 4 + r] : +(c - 4 === r); }); });
+    for (var i = 0; i < 4; i++) { var pivot = i; for (var j = i + 1; j < 4; j++) if (Math.abs(rows[j][i]) > Math.abs(rows[pivot][i])) pivot = j; var swap = rows[i]; rows[i] = rows[pivot]; rows[pivot] = swap; var divisor = rows[i][i]; if (Math.abs(divisor) < 1e-10) return null; for (j = 0; j < 8; j++) rows[i][j] /= divisor; for (var r = 0; r < 4; r++) if (r !== i) { var scale = rows[r][i]; for (j = 0; j < 8; j++) rows[r][j] -= rows[i][j] * scale; } }
+    var out = new Float32Array(16); for (i = 0; i < 4; i++) for (j = 0; j < 4; j++) out[j * 4 + i] = rows[i][j + 4]; return out;
+  }
+  function transform(m, v) { return [0, 1, 2, 3].map(function (r) { return m[r] * v[0] + m[4 + r] * v[1] + m[8 + r] * v[2] + m[12 + r] * (v.length > 3 ? v[3] : 1); }); }
+  function basis(camera) { var z = [Math.sin(camera.yaw) * Math.cos(camera.pitch), Math.sin(camera.pitch), Math.cos(camera.yaw) * Math.cos(camera.pitch)], x = unit(cross([0, 1, 0], z)), y = cross(z, x), cos = Math.cos(camera.roll), sin = Math.sin(camera.roll); return { back: z, right: x.map(function (v, i) { return v * cos + y[i] * sin; }), up: y.map(function (v, i) { return v * cos - x[i] * sin; }) }; }
+  function view(eye, b) { return new Float32Array([b.right[0], b.up[0], b.back[0], 0, b.right[1], b.up[1], b.back[1], 0, b.right[2], b.up[2], b.back[2], 0, -dot(b.right, eye), -dot(b.up, eye), -dot(b.back, eye), 1]); }
+  function projection(fov, aspect) { var f = 1 / Math.tan(fov * Math.PI / 360), near = 0.05, far = 60; return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0]); }
+  function matrices(camera, aspect, card) { var b = basis(camera), target = camera.lockToCard ? [0, 0, 0] : camera.target, eye = b.back.map(function (x, i) { return x * camera.distance + target[i]; }); var rx = card.tilt[0] * Math.PI / 180, ry = card.tilt[1] * Math.PI / 180 + (card.side === 'back' ? Math.PI : 0), cx = Math.cos(rx), sx = Math.sin(rx), cy = Math.cos(ry), sy = Math.sin(ry), model = new Float32Array([cy, sx * sy, -cx * sy, 0, 0, cx, sx, 0, sy, -sx * cy, cx * cy, 0, 0, 0, 0, 1]), vp = multiply(projection(camera.fov, aspect), view(eye, b)); return { eye: eye, model: model, inverseModel: inverse(model), vp: vp, inverseVP: inverse(vp), basis: b }; }
+  function ray(m, x, y) { var a = transform(m.inverseVP, [x * 2 - 1, 1 - y * 2, -1, 1]), b = transform(m.inverseVP, [x * 2 - 1, 1 - y * 2, 1, 1]); a = a.slice(0, 3).map(function (v) { return v / a[3]; }); b = b.slice(0, 3).map(function (v) { return v / b[3]; }); return { origin: a, direction: unit(b.map(function (v, i) { return v - a[i]; })) }; }
+  C.studioCamera = { multiply: multiply, inverse: inverse, transform: transform, unit: unit, dot: dot, basis: basis, matrices: matrices, ray: ray,
+    project: function (m, position) { var p = transform(m.vp, position); return { x: (p[0] / p[3] + 1) / 2, y: (1 - p[1] / p[3]) / 2, front: p[3] > 0 }; },
+    plane: function (ray, point, normal) { var denominator = dot(ray.direction, normal); if (Math.abs(denominator) < .00001) return null; var t = dot(point.map(function (v, i) { return v - ray.origin[i]; }), normal) / denominator; return ray.origin.map(function (v, i) { return v + ray.direction[i] * t; }); },
+    orbit: function (camera, dx, dy) { camera.yaw -= dx * .008; camera.pitch = Math.max(-1.35, Math.min(1.35, camera.pitch + dy * .008)); camera.autoFrame = false; },
+    pan: function (camera, dx, dy, height) { if (camera.lockToCard) return; var b = basis(camera), scale = 2 * camera.distance * Math.tan(camera.fov * Math.PI / 360) / Math.max(1, height); camera.target = camera.target.map(function (v, i) { return Math.max(-10, Math.min(10, v - b.right[i] * dx * scale + b.up[i] * dy * scale)); }); camera.autoFrame = false; },
+    dolly: function (camera, delta) { camera.distance = Math.max(1.3, Math.min(9, camera.distance * Math.exp(delta * .001))); camera.autoFrame = false; },
+    frame: function (scene, aspect) { var camera = scene.camera, ratio = this.aspect(camera.aspect) || aspect || 1; camera.target = [0, .035, 0]; camera.distance = Math.max(1.3, Math.min(9, Math.max(.82, .6 / ratio) / Math.tan(camera.fov * Math.PI / 360) + .18)); },
+    aspect: function (name) { return { '1:1': 1, '4:5': .8, '16:9': 16 / 9, '9:16': 9 / 16, card: 5 / 7 }[name] || 0; }
+  };
+})(window.Cardable);

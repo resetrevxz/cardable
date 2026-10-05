@@ -1,0 +1,121 @@
+--- a/index.html
++++ b/index.html
+@@ -65,0 +66 @@
++  <script src="src/data/cutscene-settings.js"></script>
+--- a/src/fx/rarity-intro.js
++++ b/src/fx/rarity-intro.js
+@@ -34 +34 @@
+-    var active = false, handing = false, section = null, stageId = '', lastElapsed = 0, fadeMs = 160;
++    var active = false, handing = false, section = null, stageId = '', lastElapsed = 0, fadeMs = 160,runMode='full',cardStage=false,cardAgeMs=0,cardState=null;
+@@ -47 +47 @@
+-    function still() { return C.motion.reduced || C.settings.policy.animation === 0 || quality() === 'very-low' || quality() === 'low' && (!spec || spec.kind !== 'prismatic'); }
++    function still() { return (active?runtime.mode==='light':backSpec&&runMode==='light')||C.settings.get('cutscenes')==='off'||C.motion.reduced || C.settings.policy.animation === 0 || quality() === 'very-low' || quality() === 'low' && (!spec || spec.kind !== 'prismatic'); }
+@@ -50,3 +50,2 @@
+-      if (!spec) return 0;
+-      var total = spec.sections.reduce(function (n, s) { return n + s.ms; }, 0) * scale();
+-      return C.motion.reduced ? cfg.reducedMs : quality() === 'very-low' ? cfg.veryLowMs : still() ? Math.min(total, cfg.lowMs) : total;
++      if(!spec)return 0;
++      return C.cutscenes.playDuration(spec,active?runtime.mode:C.cutscenes.mode())*scale();
+@@ -70 +69 @@
+-      if (active) paint(lastElapsed);
++      if (active&&!handing) paint(lastElapsed);
+@@ -392,0 +392 @@
++      runtime.meter(canvas,runtime.presentationMs);
+@@ -396 +396 @@
+-      if (active) stop(); ensure(); spec = next; name = label; active = true; handing = false; stageId = ''; lastElapsed = 0;
++      if (active) stop(); ensure(); spec = next; name = label; active = true; handing = false; stageId = ''; lastElapsed = 0;cardStage=false;cardAgeMs=0;cardState=null;runMode=C.cutscenes.mode();if(quality()==='low'&&next.kind!=='prismatic')runMode='light';
+@@ -402,2 +402,2 @@
+-      if (spec.kind === 'prismatic') { ascendant.start(spec, seed); C.ascendantBackground.begin(seed, 0); }
+-      runtime.start(spec, spec.kind === 'prismatic' ? ascendant : spec.kind === 'crimson' ? mythical : exotic);
++      if (spec.kind === 'prismatic') { ascendant.start(spec, seed,runMode==='light'); C.ascendantBackground.begin(seed, 0); }
++      runtime.start(spec, spec.kind === 'prismatic' ? ascendant : spec.kind === 'crimson' ? mythical : exotic,runMode);
+@@ -422,0 +423 @@
++      if(spec.kind==='prismatic'&&spec.cardScene){var film=C.cutscenes.timeline(spec);return runtime.mode==='light'?elapsed>=duration()*spec.light.handoffMs/spec.light.ms:runtime.timeMs>=film.sections.card.start;}
+@@ -426,0 +428 @@
++      runMode=runtime.mode;cardStage=spec.kind==='prismatic'&&!!spec.cardScene;cardAgeMs=0;cardState=null;
+@@ -429,4 +431,4 @@
+-      if (spec.kind === 'prismatic') ascendant.releaseScene();
+-      if (spec.backdrop && spec.backdrop.enabled) { backSpec = spec; backAge = null; backTime = 0; backPaintAt = -Infinity; paintBackdrop(); }
+-    }
+-    function updateRelease(elapsed) {
++      if (spec.kind === 'prismatic') {if(cardStage)cardAgeMs=ascendant.handoff(runMode==='light');else ascendant.releaseScene();}
++      if (spec.backdrop && spec.backdrop.enabled) { backSpec = spec; backAge = null; backTime = cardStage?cardAgeMs:0; backPaintAt = -Infinity; paintBackdrop(); }
++    }
++    function updateRelease(elapsed,dt) {
+@@ -434,2 +436,7 @@
+-      canvas.style.opacity = String(1 - smooth(elapsed / fadeMs));
+-      if (elapsed >= fadeMs) endOverlay();
++      if(cardStage){
++        cardAgeMs+=Math.max(0,dt||0)/scale();backTime=cardAgeMs;cardState=ascendant.cardFrame(cardAgeMs,runMode==='light');
++        if(cardAgeMs<(spec.cardScene.fadeMs||160)){g.setTransform(dpr,0,0,dpr,0,0);ascendant.paintRelease(g,w,h,cardAgeMs,runMode==='light');}
++        canvas.style.opacity=String(1-smooth(cardAgeMs/(spec.cardScene.fadeMs||160)));
++        if(cardAgeMs>=spec.cardScene.fadeMs)canvas.hidden=true;
++        if(cardState.done){C.ascendantBackground.setBorder(seed,1);endOverlay();}
++      }else{canvas.style.opacity = String(1 - smooth(elapsed / fadeMs));if (elapsed >= fadeMs) endOverlay();}
+@@ -442 +449 @@
+-      active = false; handing = false; canvas.hidden = true; canvas.style.opacity = ''; spec = null; section = null;
++      active = false; handing = false;cardStage=false;cardState=null; canvas.hidden = true; canvas.style.opacity = ''; spec = null; section = null;
+@@ -464 +471 @@
+-      ensure(); backSpec = next; backAge = null; seed = instanceSeed; backTime = 0; backPaintAt = -Infinity;
++      ensure(); backSpec = next;runMode=C.cutscenes.mode(); backAge = null; seed = instanceSeed; backTime = 0; backPaintAt = -Infinity;
+@@ -477 +484 @@
+-        if (living) { backTime += dt; if (backTime - backPaintAt >= cfg.backdropFrameMs) paintBackdrop(); }
++        if (living) { if(!cardStage)backTime += dt; if (backTime - backPaintAt >= cfg.backdropFrameMs) paintBackdrop(); }
+@@ -486,0 +494 @@
++      get cardFrame(){return cardState;},get cardStageActive(){return cardStage;},
+--- a/src/ui/opening.js
++++ b/src/ui/opening.js
+@@ -36 +36 @@
+-    root.document.body.classList.toggle('is-rarity-cinematic', next === 'rarityIntro' || next === 'flipping' && !!(rarity && rarity.openingIntro && rarity.openingIntro.handoff));
++    root.document.body.classList.toggle('is-rarity-cinematic', next === 'rarityIntro' || (next === 'flipping'||next==='settling'&&intro&&intro.cardStageActive) && !!(rarity && rarity.openingIntro && rarity.openingIntro.handoff));
+@@ -473 +473 @@
+-      pose = { y: -Math.sin(p * Math.PI) * motion.flipLiftPx, scale: 1 + Math.sin(p * Math.PI) * (motion.flipScale - 1), turn: 0 };
++      pose = { y: intro.cardStageActive?0:-Math.sin(p * Math.PI) * motion.flipLiftPx, scale: intro.cardStageActive?1:1 + Math.sin(p * Math.PI) * (motion.flipScale - 1), turn: 0 };
+@@ -476 +476 @@
+-        currentView.setRevealFrame({ angle: 0, frontOpacity: 1 }); currentView.releaseReveal(); phaseTo('settling'); infoClock = 0;
++        currentView.setRevealFrame({ angle: 0, frontOpacity: 1 }); if(!intro.cardStageActive)currentView.releaseReveal(); phaseTo('settling'); infoClock = 0;
+@@ -482,0 +483,2 @@
++      if(intro.cardStageActive){currentView.setRevealFrame({angle:0,frontOpacity:1,infoMs:-1});return true;}
++      if(currentView.revealControlled)currentView.releaseReveal();root.document.body.classList.remove('is-rarity-cinematic');
+@@ -531 +533 @@
+-    var cinematic = (phase === 'rarityIntro' || phase === 'flipping') && rarity && rarity.openingIntro && (rarity.openingIntro.kind === 'crimson' || rarity.openingIntro.kind === 'cosmic' || rarity.openingIntro.kind === 'prismatic');
++    var cinematic = (phase === 'rarityIntro' || phase === 'flipping'||intro&&intro.cardStageActive) && rarity && rarity.openingIntro && (rarity.openingIntro.kind === 'crimson' || rarity.openingIntro.kind === 'cosmic' || rarity.openingIntro.kind === 'prismatic');
+@@ -546,2 +548,4 @@
+-    if (intro.active) intro.updateRelease(elapsed);
+-    if (currentView && ['rising', 'preFlip', 'flipping', 'settling', 'variantReveal', 'revealed'].indexOf(phase) !== -1) { revealClock += dt; if (phase === 'settling' || phase === 'variantReveal' || phase === 'revealed') infoClock = Math.min(keepAt, infoClock + dt); }
++    if (intro.active) intro.updateRelease(elapsed,dt);
++    if(currentView&&intro.cardFrame){currentView.el.style.opacity=String(intro.cardFrame.opacity);currentView.el.style.transform='scale('+intro.cardFrame.scale+')';C.finishes.registry.ascendant.drawBorder(currentView.el,C.ascendantBackground.sampleBorder(currentView.instance.serial));bloom.style.opacity=String(bloomLevel()*.22*(1-intro.cardFrame.progress));}
++    else if(currentView&&currentView.el.dataset.rarity==='ascendant'&&['flipping','settling','revealed','variantReveal'].indexOf(phase)!==-1){currentView.el.style.opacity='';currentView.el.style.transform='';C.finishes.registry.ascendant.drawBorder(currentView.el,1);}
++    if (currentView && ['rising', 'preFlip', 'flipping', 'settling', 'variantReveal', 'revealed'].indexOf(phase) !== -1) { revealClock += dt; if (!intro.cardStageActive&&(phase === 'settling' || phase === 'variantReveal' || phase === 'revealed')) infoClock = Math.min(keepAt, infoClock + dt); }
+--- a/Designs.MD
++++ b/Designs.MD
+@@ -223,0 +224,3 @@
++
++
++Ascendant milestone C completes S7/S8: three to five pleated pastel light curtains rise into white, with inward wind, sparks, blurred clock hands and a pullback/push-in. Its only global flash is a single 110 ms rise / 590 ms decay envelope at 30.6 s; seeking backwards cannot replay it. The title's final inversion dissolves gradually into the curtains. Normal and compressed playback cap local pulse rates at 2.4 Hz and star rotation at two revolutions per second. The shockwave resolves into the exact shared white/pastel finish field, using the reserved serial and continuous presentation age. The 400 ms direct flip runs within the 1.5-second materialization and squircle border draw; metadata follows. Full/Short/Off appear in Cards settings. Very Low, reduced motion and Off use a three-second Canvas-only, no-flash/no-shake sequence. The dev-only luminance-change graph is an inspection aid, not a safety certification. All geometry/materials remain procedural, classic-script and offline; no audio is added.
+--- a/docs/RARITY-INTROS.md
++++ b/docs/RARITY-INTROS.md
+@@ -98,0 +99,13 @@
++
++
++## Ascendant Prismatic Dawn - milestone C
++
++C supersedes A/B's temporary ending. Editable descriptor sections now cover aurora 2600, explosion 400 and card 1500 ms, completing 32,500 ms at Normal (22,750 ms at Fast). The shared engine extends the existing sigil/post passes with 3/4/5 pleated curtain layers, inward history streaks, a pullback/push-in, progressive whitening and a 700 ms chromatic-burst envelope. Shared clock hands acquire shutter trails. A prismatic shockwave, halo and horizontal flare accompany one white flash (110 ms rise, 590 ms decay, peak overlay 0.76). The remaining foreground fades through the first 160 ms of the card flip. GPU resources are disposed at handoff; the final decay and quiet field use Canvas. The title's final inversion mask dissolves through the curtains without a hard reset.
++
++S8 mounts the card at 31,000 ms, flips it directly over 400 ms and materializes from 0.96 to 1 over 1500 ms, with soft bloom and a 1200 ms stroke-dash squircle border reveal. Normal metadata/variant/Keep/Delete sequencing waits until the S8 materialization completes. The finish and retained viewport both sample the same serial-seeded field and continuous, 10 Hz presentation age; no field restart occurs at mount. Pastel side colors interpolate rather than jump, and faded edge splashes retain their seeded 2-3 second cadence. Recovery immediately restores the saved card and quiet field without initializing 3D or replaying the film.
++
++The schema extension adds Cards > Cutscenes > Full / Short / Off before save normalization, giving older saves Full without a schema migration. It applies to every rarity intro through the shared controller. Ascendant Short maps the listed shot lengths (15 seconds plus 1.5 seconds S8 = 16.5 seconds), preserving the clock/title and handoff; Fast applies the existing 70% scale. Other intros use a bounded shortened timeline. Very Low, reduced motion and Off use the three-second light sequence: indigo, a restrained point/sigil with thin rings, the local serif title, then a calm fade to the shared field/card. No GL scene, shake, flash or moving background is used for this alternative.
++
++Compressed modes/timescale overrides reduce pulse/spin phase speeds to keep local pulses at most 2.4 Hz and star rotation at most 2 revolutions/second. Dev Full/Short and the optional safe-flash graph join the existing tools; the graph samples a small copy of the current canvas at 10 Hz only when explicitly enabled. It shows linear-luminance change per second and declared flash count, without another frame loop, runtime network or audio. It is not a photosensitivity certification. auroraRise, flash and cardIn join the existing beat hooks.
++
++Verification remains restricted to a single launch and one Full/Medium/Normal dev-triggered playthrough; no automated tests, screenshots, recording or profiling. Short, Fast, Light, Mono, skip, reload, resize, context loss and other graphics configurations are implemented but do not receive runtime acceptance from that one run.
+--- a/docs/04-PACK-OPENING.md
++++ b/docs/04-PACK-OPENING.md
+@@ -114,0 +115,7 @@
++
++
++## Ascendant cinematic handoff (milestone C)
++
++Ascendant's registered intro replaces rise/preFlip after the foil tear. The shared timeline reaches cardIn at 31 seconds; the card mounts face-down and flips over the existing 400 ms while the foreground fades over 160 ms. The 1.5-second S8 scale/bloom/border presentation continues through flipping and settling. Hold infoClock and the controlled reveal until S8 completes, then resume the existing metadata, variant and Keep/Delete gates. Full is 32.5 seconds including S8; Short follows the specified shot lengths for 16.5 seconds including S8. Fast scales these presentation durations by 70%; charge/cut timing remains unchanged.
++
++Cards > Cutscenes applies Full/Short/Off to all rarity intros. Ascendant's Off, reduced-motion and Very Low path is a three-second quiet Canvas sequence, including its final 400 ms flip. The finish background and retained viewport share the reserved serial and continuous field time, with the quiet path frozen. Background decision fades, multi-card transition and pendingReveal recovery use the existing handlers. No pull RNG, serial assignment, pack/reward transaction or durable recovery logic is changed.

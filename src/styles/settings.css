@@ -20,7 +20,7 @@
 .settings-group h3 { position: sticky; top: 0; z-index: 2; margin: 0 calc(-1 * var(--s-5)); padding: var(--s-3) var(--s-5); background: var(--bg-elev); color: var(--text-dim); font: 500 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: 72px; border-bottom: 1px solid var(--hairline); }
 .settings-copy { min-width: 0; flex: 1; }
-.settings-label { display: block; font: 14px var(--font-ui); color: var(--text); }
+.settings-label { display: block; font: 14px/1.4 var(--font-ui); color: var(--text); }
 .settings-helper { display: block; margin-top: var(--s-1); font: 11px/1.5 var(--font-ui); color: var(--text-dim); }
 .settings-segments { flex-shrink: 0; display: flex; position: relative; isolation: isolate; padding: 3px; border: 1px solid var(--hairline); border-radius: var(--r-chip); background: var(--glass); }
 .settings-segment { border: 0; border-radius: var(--r-chip); background: transparent; color: var(--text-dim); padding: 8px 7px; min-width: 39px; font: 10px var(--font-mono); cursor: pointer; z-index: 1; }
@@ -54,7 +54,7 @@
 .settings-credits p { font: 13px/1.7 var(--font-ui); color: var(--text-dim); }
 .settings-license { white-space: pre-wrap; font: 10px/1.6 var(--font-mono); color: var(--text-dim); }
 .settings-nudge { position: fixed; bottom: var(--s-5); left: 50%; transform: translateX(-50%); padding: var(--s-4); border-radius: var(--r-button); z-index: var(--z-toast); font: 12px var(--font-ui); }
-.settings-open .menu-shell, .settings-open .inventory-sheet, .settings-open .inventory-detail, .settings-open .card-gallery { scale: .98; filter: blur(4px); opacity: .75; pointer-events: none; }
+.settings-open .menu-shell, .settings-open .inventory-sheet, .settings-open .inventory-detail { scale: .98; opacity: .6; pointer-events: none; }
 [data-serial-on-front="false"] .card__face--front .card__serial { visibility: hidden !important; }
 [data-key-hints="false"] .opening-hint, [data-key-hints="false"] .opening-enter-hint, [data-key-hints="false"] .opening-keep-key, [data-key-hints="false"] .card__flip-hint { visibility: hidden; }
 .has-tutorial .opening-hint, .has-tutorial .opening-enter-hint, .has-tutorial .opening-keep-key { visibility: visible !important; }

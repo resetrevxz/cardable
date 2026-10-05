@@ -13,6 +13,10 @@
   font-display: swap;
 }
 :root {
+  --pack-rare-blue: #2F7BFF;
+  --pack-rare-navy: #0B2A6F;
+  --pack-rare-fluid: #7FB2FF;
+  --pack-rare-leak: #E1EFFF;
   /* surfaces */
   --bg: #08080A;
   --bg-elev: #0E0E11;

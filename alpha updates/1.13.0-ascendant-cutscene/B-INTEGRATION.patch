@@ -1,0 +1,39 @@
+--- a/index.html
++++ b/index.html
+@@ -33,0 +34 @@
++  <link rel="stylesheet" href="src/styles/brand-packs.css">
+@@ -52,0 +54 @@
++  <script src="src/data/ascendant-cutscene.js"></script>
+@@ -54,0 +57 @@
++  <script src="src/data/brand-packs.js"></script>
+@@ -83,0 +87 @@
++  <script src="src/fx/cutscene-text.js"></script>
+@@ -114,0 +119 @@
++  <script src="src/ui/brand-pack-skins.js"></script>
+--- a/src/fx/mythical-intro.js
++++ b/src/fx/mythical-intro.js
+@@ -54 +54 @@
+-        if(rupture>.45){var breakage=smooth((rupture-.45)/.55);for(var band=0;band<4;band++){g.save();g.translate(Math.sin(i*2.3+band)*breakage*30,(band-1.5)*breakage*25);g.rotate(Math.sin(i+band)*breakage*.12);g.beginPath();g.rect(-2,band*25,64,25);g.clip();g.fill(word[i],'evenodd');g.stroke(word[i]);g.restore();}}
++        if(rupture>.45){var breakage=smooth((rupture-.45)/.55);C.cutsceneText.bands(g,{count:4,height:25,width:64,x:function(band){return Math.sin(i*2.3+band)*breakage*30;},y:function(band){return (band-1.5)*breakage*25;},turn:function(band){return Math.sin(i+band)*breakage*.12;}},function(){g.fill(word[i],'evenodd');g.stroke(word[i]);});}
+--- a/Designs.MD
++++ b/Designs.MD
+@@ -214,0 +215,3 @@
++
++
++Ascendant milestone B extends Prismatic Dawn through S4-S6. The top-down hexagon scales locally at 1.2-2.4 Hz with only 2.5% local light modulation, then becomes the 12-point/ring/chevron sigil in one SDF shader. Pastel history streaks and three rising FBM mist strata precede a thin glass clock; the clock rests at 12 from 23.2 to 23.5 seconds. The locally bundled OFL Bodoni Moda font is restricted to ASCENDANT's cinematic title; Inter and JetBrains Mono remain the UI fonts. The title sharpens from blur and separated pastel edges, a three-second spatial inversion mask sweeps the composition, and facet shards converge inward. Side readout updates are capped at 2 Hz. No explosion or extra flash exists in B; C owns that one climax and the full final border choreography.
+--- a/docs/RARITY-INTROS.md
++++ b/docs/RARITY-INTROS.md
+@@ -85,0 +86,13 @@
++
++
++## Ascendant Prismatic Dawn - milestone B
++
++The presentation-only `src/data/ascendant-cutscene.js` extends the A rarity descriptor with ascend 800, topPulse 2200, morph 2000, clock 4000, title 3000 and shatter 1000 ms: 28,000 ms through B, followed by the existing 400 ms flip. It contains editable pastel palette, pulse, clock, wind, title, sweep and alignment parameters. Normal/Fast scaling still comes from the shared controller. No pulls, serials, consumption, reservation or rewards were changed.
++
++The extracted WebGL engine adds one fullscreen SDF program for hexagon/circle/12-point-star/two-ring-chevron blending and one instanced history-streak program (2000/1000/500 by High/Medium/Low). They reuse the existing context, scene target, warmup, bloom/composite and disposal. The camera arcs continuously out of the side shot; pulse scale reaches 1.12 while light modulation remains local and bounded. Thin prismatic pulse rings and camera kicks accompany the growing mandala. The pool dissolves into haze before retiring geometry. Three rising FBM strata use different velocities and faint channel fringes. Canvas fallback supplies the same ritual silhouettes without WebGL. Dial/sigil sizes respect the cinematic frame in portrait.
++
++`cutscene-clock.js` now restyles its shared hand geometry and primitive library into engraved white/pastel rings, 60 marks with 12 major lengths, four mono numerals, counter-rotating ratchets, three accelerated hands and a faint trail wedge. Hands align at 23.2 seconds and hold for 300 ms; clock and wind hold their mechanical time together. Repeated `pulse` and `tick` beats have unique presentation keys, so the shared runtime emits each once while retaining its existing event IDs. Clock/title boundary beats are descriptor-driven.
++
++`cutscene-text.js` extracts Mythical's band-fragment primitive and supplies seeded scramble and triangular facet masks. ASCENDANT uses cached offscreen letter canvases, the bundled Bodoni Moda OFL serif (Georgia/Times fallback), 0.35em tracking, 90 ms stagger, 12 px blur/split convergence and triangle shatter/contraction. The scene inverts through a soft vertical spatial mask, three seconds per pass; tiny side values and scrambling update at most twice per second. The sigil accelerates to at most two revolutions per second with multi-sample shutter integration.
++
++B temporarily fades into the shared procedural finish field, carries its field age into the retained card background and uses the standard direct flip. It has no explosion flash. S7/S8, complete final-frame/border choreography, Full/Short/Off, prescribed light/Short sequences and safe-flash graph remain milestone C. The dev menu now exposes all fourteen S0-S6 sections and the 28-second scrub range.
