@@ -1,0 +1,73 @@
+{
+  "name": "cardable",
+  "productName": "Cardable",
+  "version": "4.0.0",
+  "description": "Cardable - GPU Card Collecting Game",
+  "author": "Cardable Team",
+  "main": "electron/main.js",
+  "private": true,
+  "scripts": {
+    "dev": "electron . --dev",
+    "electron:dev": "electron . --dev",
+    "start": "electron .",
+    "build": "electron-builder --dir",
+    "dist": "electron-builder",
+    "test": "node tools/verify-assets.cjs && node tools/test-electron.cjs",
+    "test:electron": "node tools/test-electron.cjs",
+    "generate-icons": "node tools/generate-icons.cjs"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.cardable.game",
+    "productName": "Cardable",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "index.html",
+      "package.json",
+      "src/**/*",
+      "assets/**/*",
+      "electron/**/*",
+      "vendor/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.ico",
+      "artifactName": "Cardable-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Cardable",
+      "uninstallDisplayName": "Cardable"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Cardable",
+      "repo": "Cardable"
+    }
+  }
+}
