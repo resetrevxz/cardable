@@ -9,12 +9,20 @@ cleanup. See [DESKTOP-DELIVERY.md](DESKTOP-DELIVERY.md). It does not install or 
 the app. The current 4.2.0 policy in [PROMPTING.md](PROMPTING.md) restricts testing;
 the historical test commands below are not authorization to run them for A–D.
 
+Player instructions are in [PLAY.md](../PLAY.md). Milestone B uses the existing
+offline NSIS installer with explicit one-click/per-user options, normal shortcuts,
+launch after setup, and retained player data. `tools/nsis-installer.nsh` is a small
+supported include: running apps must be closed by the player, uncertain legacy
+locations stop setup, and registered per-user custom paths remain in place.
+It is fingerprinted as a delivery input. No replacement installer or profile
+migration was added. Installer execution/upgrade acceptance remains separate.
+
 1. `npm ci` installs the lockfile and Electron binary.
 2. `npm run electron:dev` launches development with F12 DevTools.
 3. `npm test` runs assets, service tests and isolated Electron smoke tests.
 4. `npm run build` produces dist/win-unpacked/Cardable.exe.
 5. `npm run test:packaged` repeats the smoke tests against ASAR.
-6. `npm run dist` produces dist/Cardable-Setup-4.1.0.exe and its blockmap (version follows package.json).
+6. `npm run dist` produces dist/Cardable-Setup-4.1.1.exe and its blockmap (version follows package.json).
 
 After packaging, run `npm run test:package` for ASAR contents, `npm run test:regression` for game/lifecycle/persistence, and `npm run test:cinematics` for five full High/Safe rare timelines. `npm run test:nsis-update` builds and installs two isolated fixture versions, performs an actual local update/reinstall and retains evidence; it does not modify an existing Cardable installation. See electron-milestone-3.md and ELECTRON-CHECKLIST.md for verified scope. QA evidence is ignored under qa-output.
 

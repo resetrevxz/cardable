@@ -59,7 +59,7 @@ function source() {
   const entries=shipped.map(name=>({path:name,size:fs.statSync(path.join(root,name)).size,sha256:hash(path.join(root,name))}));
   const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json')));
   if(pkg.version!==JSON.parse(fs.readFileSync(path.join(root,'package-lock.json'))).version || !fs.readFileSync(path.join(root,'src/config.js'),'utf8').includes("version: '"+pkg.version+"'"))throw new Error('Version sources disagree');
-  const buildInputs=['package.json','package-lock.json','electron-builder.config.cjs','tools/deliver-desktop.cjs','tools/desktop-delivery.config.cjs','tools/desktop-delivery.ps1'].map(name=>({path:name,sha256:hash(path.join(root,name))}));
+  const buildInputs=['package.json','package-lock.json','electron-builder.config.cjs','tools/deliver-desktop.cjs','tools/desktop-delivery.config.cjs','tools/desktop-delivery.ps1','tools/nsis-installer.nsh'].map(name=>({path:name,sha256:hash(path.join(root,name))}));
   const fingerprint=sha(JSON.stringify(entries)+JSON.stringify(buildInputs));
   const status=git(['status','--porcelain=v1','--untracked-files=all']);
   const untracked=git(['ls-files','--others','--exclude-standard','-z']).split('\0').filter(Boolean).sort().map(name=>{const file=path.join(root,name);return [name,fs.lstatSync(file).isSymbolicLink()?'link':hash(file)];});

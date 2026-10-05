@@ -4,8 +4,9 @@ From the actual repository root, run `npm run deliver:desktop`. Windows x64 and
 the existing Node/Electron development dependencies are required for building;
 players only need the resulting offline installer. This command never installs,
 launches, publishes, elevates, kills Cardable or changes the game/save schema.
-Milestones B–D are separate: installer simplicity, helpful setup and documentation
-consolidation have not been implemented by A. The app remains 4.1.1 until the
+Milestone B adds the one-click per-user installer and [player guide](../PLAY.md).
+Milestones C–D (helpful setup and documentation consolidation) remain pending.
+The app remains 4.1.1 until the
 authorized 4.2.0 milestones finish; each delivery has a unique build ID.
 
 ## What the command does
@@ -36,6 +37,10 @@ authorized 4.2.0 milestones finish; each delivery has a unique build ID.
    is deferred. Records remain, with removal and recovery provenance.
 
 The normal installed Cardable shortcut belongs to NSIS and remains separate.
+NSIS now recreates it on reinstall; Start Menu shortcuts and launch after setup
+are enabled. The supported include never kills Cardable: interactive setup asks
+the player to close it and retry, while silent setup stops. Existing all-users or
+ambiguous locations stop for manual review, not a new origin/profile. See PLAY.md.
 Using the installer upgrades the stable app identity; A does not execute it or
 claim that an installation/upgrade has been accepted. No private absolute paths
 enter packaged build metadata: only build ID, revision and source fingerprint.

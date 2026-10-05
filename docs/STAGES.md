@@ -130,3 +130,12 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 - Implement one-command isolated delivery, stable preview/shortcut, transactional rollback and manifest-owned cleanup.
 - A completed; B (installer), C (help) and D (documentation/archive cleanup) require separate continuation.
 - **Accept:** build/hash/config/handoff validation and one app opening; follow the current spec's restricted testing policy. Evidence: alpha-updates/4.2.0-cleanup/A-DELIVERY.md.
+
+## Stage 18 - Friendly installer 4.2.0 milestone B
+
+**Docs:** alpha-updates/4.2.0-cleanup/SPEC.md, PLAY, BUILDING, DESKTOP-DELIVERY.
+
+- Explicit one-click per-user NSIS options, retained app data and normal shortcuts.
+- Supported include for manual app closing and legacy path review; player install/backup guide.
+- A and B implemented; C (help) and D (documentation/archive cleanup) require separate continuation.
+- **Accept:** installed-builder config/template validation, final delivery and one source-app opening under the restricted policy. Installer execution remains unverified. Evidence: alpha-updates/4.2.0-cleanup/B-DELIVERY.md.

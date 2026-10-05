@@ -73,10 +73,14 @@
       "artifactName": "Cardable-Setup-${version}.${ext}"
     },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "include": "tools/nsis-installer.nsh",
       "shortcutName": "Cardable",
       "uninstallDisplayName": "Cardable"
     }
