@@ -1,5 +1,14 @@
 # Cardable changelog
 
+## 4.1.1 — Graphics and desktop performance
+
+- Stop the layout resize feedback loop that repeated geometry, canvas and inventory work every display frame.
+- Keep real window resizing and display-scale changes responsive while skipping unchanged geometry and window-position notifications.
+- Skip repeated native pack/taskbar updates when stock is full, and avoid rebuilding unchanged Mini pack surfaces.
+- Apply independent graphics choices in Mini mode, including reflections, particles, materials and shadows.
+- Verify all four presets, Mini skins, background sleep/refill, desktop restoration and offline save behavior.
+- Retain the integrated inventory, shaded Settings and cinematic renderer optimizations with the same game rules and save schema.
+
 ## 4.1.0 — Desktop polish
 
 ### Window and interface

@@ -1,7 +1,7 @@
 'use strict';
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 const asar = require('@electron/asar');
-const root = path.resolve(__dirname, '..'), archive = path.join(root, 'dist/win-unpacked/resources/app.asar');
+const root = path.resolve(__dirname, '..'), packageDir = process.env.CARDABLE_PACKAGE_DIR || path.join(root, 'dist/win-unpacked'), archive = path.join(packageDir, 'resources/app.asar');
 const read = name => asar.extractFile(archive, path.normalize(name)).toString('utf8');
 const source = require('../package.json'), packaged = JSON.parse(read('package.json'));
 assert.equal(packaged.version, source.version); assert.equal(packaged.main, 'electron/main.js');
@@ -24,10 +24,10 @@ for (const file of appFiles) {
 const channels = require('../electron/ipc/channels').IPC_CHANNELS;
 const preload = read('electron/preload.js');
 for (const [key, value] of Object.entries(channels)) assert(preload.includes(`${key}: '${value}'`), 'Preload channel drift: ' + key);
-const metadataPath = path.join(root, 'dist/win-unpacked/resources/app-update.yml');
+const metadataPath = path.join(packageDir, 'resources/app-update.yml');
 if (packaged.cardableDesktop.releaseConfigured) {
   const metadata = fs.readFileSync(metadataPath, 'utf8'); assert(metadata.includes('provider: github'));
   assert(!/token:|password:|127\.0\.0\.1|localhost/i.test(metadata));
 }
-assert(fs.existsSync(path.join(root, 'dist/win-unpacked/Cardable.exe')));
+assert(fs.existsSync(path.join(packageDir, 'Cardable.exe')));
 console.log(`ASAR verified: ${references.length} local HTML resources, ${appFiles.length} JS/CSS files, version/icon/CSP/channel parity, no development fixture metadata or detected credential patterns.`);

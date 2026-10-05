@@ -56,13 +56,18 @@ test('logging: native Error causes survive serialization without arbitrary Error
   const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
   const lines = [], module = { exports: {} };
   const output = { log: line => lines.push(line), warn: line => lines.push(line), error: line => lines.push(line) };
-  vm.runInNewContext('(function(require,module){' + fs.readFileSync(path.join(__dirname,'../electron/logging/logger.js'),'utf8') + '\n})', { Error, console: output })((name) => name === 'electron' ? {} : require(name), module);
+  const streams = { stdout: new EventEmitter(), stderr: new EventEmitter() };
+  vm.runInNewContext('(function(require,module){' + fs.readFileSync(path.join(__dirname,'../electron/logging/logger.js'),'utf8') + '\n})', { Error, console: output, process: streams })((name) => name === 'electron' ? {} : require(name), module);
   const error = new Error('Native operation failed'); error.privatePayload = 'not diagnostic data';
   module.exports.error('Operation:', error);
   assert.match(lines[0], /Native operation failed/);
   assert(!lines[0].includes('privatePayload')); assert(!lines[0].includes('not diagnostic data'));
   module.exports.error('Bounded:', new Error('x'.repeat(10000)));
   assert(lines[1].length < 2300);
+  streams.stderr.emit('error', new Error('Closed launcher pipe'));
+  module.exports.error('Still alive:', new Error('Disk logger remains available'));
+  assert.equal(module.exports.consoleAvailable, false);
+  assert.equal(lines.length, 2);
 });
 test('desktop presence: Studio/Director and developer contexts are private and independently restored', () => {
   const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');

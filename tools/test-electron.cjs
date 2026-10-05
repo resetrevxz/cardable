@@ -6,11 +6,11 @@ const os = require('os');
 const packaged = process.argv.includes('--packaged');
 console.log(`--- Launching ${packaged ? 'Packaged' : 'Development'} Electron Smoke Test ---`);
 
-const electronBinary = packaged
+const electronBinary = process.env.CARDABLE_QA_BINARY || (packaged
   ? path.join(__dirname, '../dist/win-unpacked/Cardable.exe')
   : process.platform === 'win32'
     ? path.join(__dirname, '../node_modules/electron/dist/electron.exe')
-    : path.join(__dirname, '../node_modules/.bin/electron');
+    : path.join(__dirname, '../node_modules/.bin/electron'));
 
 const appPath = path.join(__dirname, '..');
 

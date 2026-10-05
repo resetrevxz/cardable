@@ -114,3 +114,11 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 
 - Independent four-tier cinematic detail, 20/45 FPS caps, shaded settings backdrop and redundant-write/canvas-reset fixes.
 - **Accept:** check-graphics-refresh-browser.cjs, four-preset inventory acceptance and paired settings/detail profiles.
+
+## Stage 16 - Desktop optimization 4.1.1
+
+**Docs:** OPTIMIZATION-4.1.1, GRAPHICS-REFRESH, INVENTORY-PERFORMANCE.
+
+- Remove the layout feedback loop and redundant native work; preserve real resize, scaling, visibility and refill.
+- Apply independent graphics choices in Mini and verify all four presets in Electron.
+- **Accept:** desktop optimization checks, current browser graphics/inventory regressions, sequential native profiles, release/package validation and native smoke/regression checks.

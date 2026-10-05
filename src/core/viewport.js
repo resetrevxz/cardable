@@ -1,6 +1,6 @@
 (function (C, root) {
   'use strict';
-  var frame = null, container = null, desktopSize = null, ready = false, zoom = 1, watch;
+  var frame = null, container = null, desktopSize = null, ready = false, zoom = 1, watch, lastLayout = null;
   function scale(width, height, userScale) { return Math.max(.62, Math.min(1.6, Math.min(width / 1920, height / 1080) * (userScale || 1))); }
   function update() {
     frame = null;
@@ -9,6 +9,9 @@
       var value = C.settings.get('interfaceSize'), next = scale(desktopSize.width, desktopSize.height, value === 'auto' ? 1 : Number(value) / 100);
       if (Math.abs(next - zoom) > .0001) { zoom = next; C.native.window.setUiScale(next).catch(function () {}); }
     }
+    var layout = [enabled, C.viewport.windowWidth, C.viewport.windowHeight, root.devicePixelRatio || 1, zoom].join(':');
+    if (layout === lastLayout) return;
+    lastLayout = layout;
     if (container) {
       container.classList.toggle('is-composed', enabled);
       var style = container.style;
@@ -30,6 +33,11 @@
     watch = root.matchMedia('(resolution: ' + (root.devicePixelRatio || 1) + 'dppx)'); watch.addEventListener('change', schedule, { once: true });
   }
   function schedule() { if (frame === null) frame = root.requestAnimationFrame(update); }
+  function runtime(state) {
+    var changed = !desktopSize || state.width !== desktopSize.width || state.height !== desktopSize.height;
+    desktopSize = state;
+    if (changed) schedule();
+  }
   C.viewport = {
     scale: scale,
     get root() { return container; }, get composed() { return !!C.native; },
@@ -48,13 +56,15 @@
         container = root.document.createElement('div'); container.className = 'qol-root';
         Array.from(root.document.body.children).forEach(function (element) { if (!['SCRIPT','CANVAS'].includes(element.tagName) && element.id !== 'cursor-glow') container.appendChild(element); });
         root.document.body.appendChild(container);
-        C.native.window.onRuntimeState(function (state) { desktopSize = state; schedule(); });
-        C.native.window.getRuntimeState().then(function (state) { desktopSize = state; schedule(); }).catch(function () {});
+        C.native.window.onRuntimeState(runtime);
+        C.native.window.getRuntimeState().then(runtime).catch(function () {});
         C.settings.onChange('interfaceSize', schedule);
         C.settings.onChange('aspectLock', function (value) { C.native.window.setAspectLock(value).catch(function () {}); });
         C.native.window.setAspectLock(C.settings.get('aspectLock')).catch(function () {});
       }
-      C.viewport.onResize( schedule); update();
+      // Listen to the browser resize, not our own layout notification. Subscribing
+      // to layout:resize here would schedule a new resize on every emitted frame.
+      root.addEventListener('resize', schedule); update();
     }
   };
 })(window.Cardable, window);

@@ -19,6 +19,15 @@ async function launch(dev = false) {
   page.on('console', message => { if (message.type() === 'error') evidence.errors.push(message.text()); });
   page.on('request', request => { if (/^https?:/.test(request.url())) evidence.network.push(request.url()); });
   await page.waitForFunction(() => window.Cardable && Cardable.state && Cardable.state.current && Cardable.preferences.initialized);
+  await page.evaluate(() => Cardable.tutorial.skipButton.click());
+  // 4.1 added real modal onboarding; complete it before testing pointer controls.
+  await page.waitForTimeout(250);
+  for (let step = 0; step < 5; step++) {
+    const panel = page.locator('.qol-friendly:visible');
+    if (!await panel.count()) break;
+    await panel.getByRole('button', { name: /^(Continue|Keep this collection|Done|Dismiss)$/ }).click();
+    await page.waitForTimeout(250);
+  }
   evidence.metrics.push({ startupMs: Math.round(performance.now() - start), mode: dev ? 'developer' : 'normal' });
   return page;
 }
@@ -34,7 +43,7 @@ async function shot(page, name) { await page.screenshot({ path: path.join(output
     assert(await page.evaluate(() => typeof require === 'undefined' && typeof process === 'undefined' && !cardableDesktop.ipcRenderer));
     await shot(page, 'menu');
     await page.keyboard.press('s'); await page.waitForFunction(() => Cardable.preferences.open);
-    assert(await page.locator('.settings-update-box').isVisible());
+    assert.equal(await page.locator('.settings-update-box:visible').count(), 1);
     await page.keyboard.press('Tab'); assert(await page.evaluate(() => Cardable.preferences.panel.contains(document.activeElement)));
     await page.evaluate(() => { const scroll = document.querySelector('.settings-scroll'); scroll.scrollTop = scroll.scrollHeight; });
     await page.waitForTimeout(350); await shot(page, 'desktop-settings');

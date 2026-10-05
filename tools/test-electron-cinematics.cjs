@@ -8,12 +8,18 @@ let application;
 (async () => {
   fs.mkdirSync(output, { recursive: true });
   try {
-    application = await _electron.launch({ executablePath: path.join(root,'dist/win-unpacked/Cardable.exe'), args:['--qa-test',`--test-user-data=${profile}`] });
+    application = await _electron.launch({ executablePath: process.env.CARDABLE_QA_BINARY || path.join(root,'dist/win-unpacked/Cardable.exe'), args:['--qa-test',`--test-user-data=${profile}`] });
     const page = await application.firstWindow();
     page.on('pageerror', error => evidence.errors.push(error.stack));
     page.on('console', message => { if(message.type()==='error')evidence.errors.push(message.text()); });
     page.on('request', request => { if(/^https?:/.test(request.url()))evidence.network.push(request.url()); });
     await page.waitForFunction(()=>window.Cardable && Cardable.state.current && Cardable.preferences.initialized);
+    await page.evaluate(()=>Cardable.tutorial.skipButton.click());
+    await page.waitForTimeout(250);
+    for(let step=0;step<5;step++){
+      const panel=page.locator('.qol-friendly:visible');if(!await panel.count())break;
+      await panel.getByRole('button',{name:/^(Continue|Keep this collection|Done|Dismiss)$/}).click();await page.waitForTimeout(250);
+    }
     await page.evaluate(()=>{const C=Cardable;C.tutorial.skipButton.click();C.settings.applyPreset('high');C.settings.set('motion','off');C.settings.set('cutscenes','full');C.settings.set('strobing','safe');C.settings.set('fpsLimit','60');C.settings.set('idleFade','never');});
     for (const id of ['legendary','mythical','exotic','ascendant','secret']) {
       await page.mouse.move(32,32);

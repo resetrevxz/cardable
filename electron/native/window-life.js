@@ -6,15 +6,17 @@ const windowState = require('../windows/window-state');
 const config = require('../config/desktop-config');
 let window = null, mini = null, pending = null, blocker = null, cueTimer = null, onBattery = false, signalled = false, lastReady = null;
 let prefs = { taskbarProgress:true, alwaysOnTop:false }, pack = null, queued = null;
+let lastState = null, progressValues = new WeakMap();
+const tiers=['very-low','low','medium','high'],graphicsKeys=['finishQuality','reflectionQuality','propQuality','particleQuality','shadowQuality','glassQuality','backgroundQuality','animationQuality','canvasQuality','cinematicQuality'];
 const miniUrl = pathToFileURL(path.join(__dirname,'mini.html')).href;
 function state() { const bounds = window && !window.isDestroyed() ? window.getContentBounds() : {width:1920,height:1080}; return {width:bounds.width,height:bounds.height,mini:!!mini,onBattery,fullscreen:!!window&&window.isFullScreen(),visible:!!window&&window.isVisible()&&!window.isMinimized()}; }
-function sendState() { pending = null; if(window && !window.isDestroyed() && !window.webContents.isDestroyed())window.webContents.send(IPC_CHANNELS.WINDOW_RUNTIME_STATE,state()); }
+function sendState(force = false) { pending = null; if(window && !window.isDestroyed() && !window.webContents.isDestroyed()){const value=state(),signature=JSON.stringify(value);if(!force&&signature===lastState)return;lastState=signature;window.webContents.send(IPC_CHANNELS.WINDOW_RUNTIME_STATE,value);} }
 function schedule() { if(pending === null)pending = setImmediate(sendState); }
 function stopBlocker() { if(blocker!==null){powerSaveBlocker.stop(blocker);blocker=null;} }
 function focused() { return window && window.isFocused() || mini && mini.isFocused(); }
-function clearCue() { signalled=false;clearTimeout(cueTimer);cueTimer=null; [window,mini].forEach(win=>{if(win&&!win.isDestroyed()){win.flashFrame(false);if(process.platform==='win32')win.setOverlayIcon(null,'');}}); }
+function clearCue() { if(!signalled&&cueTimer===null)return;signalled=false;clearTimeout(cueTimer);cueTimer=null; [window,mini].forEach(win=>{if(win&&!win.isDestroyed()){win.flashFrame(false);if(process.platform==='win32')win.setOverlayIcon(null,'');}}); }
 function badge() { const size=24,bitmap=Buffer.alloc(size*size*4);for(let y=0;y<size;y++)for(let x=0;x<size;x++){if(Math.hypot(x-11.5,y-11.5)>11)continue;const i=(y*size+x)*4;bitmap[i]=247;bitmap[i+1]=245;bitmap[i+2]=245;bitmap[i+3]=255;}return nativeImage.createFromBitmap(bitmap,{width:size,height:size}); }
-function taskbar() { [window,mini].forEach(win=>{if(win&&!win.isDestroyed())win.setProgressBar(prefs.taskbarProgress&&pack?(pack.ready>0?1:pack.progress):-1);}); }
+function taskbar() { const value=prefs.taskbarProgress&&pack?(pack.ready>0?1:pack.progress):-1;[window,mini].forEach(win=>{if(win&&!win.isDestroyed()&&progressValues.get(win)!==value){win.setProgressBar(value);progressValues.set(win,value);}}); }
 function restore(action) { if(!window||window.isDestroyed())return false;if(mini){const old=mini;mini=null;old.destroy();}if(window.isMinimized())window.restore();window.show();window.focus();clearCue();sendState();if(action)window.webContents.send(IPC_CHANNELS.WINDOW_COMMAND,action);return true; }
 function openMini() {
   if(!window||window.isDestroyed()||!pack||!pack.canMini)return false;
@@ -36,11 +38,11 @@ function initMiniHandlers() { ['mini:get-state','mini:restore','mini:open'].forE
 module.exports = {
   state, restore, openMini, command,
   init(win) {
-    window=win;onBattery=powerMonitor.isOnBatteryPower();initMiniHandlers();
+    window=win;lastState=null;progressValues=new WeakMap();onBattery=powerMonitor.isOnBatteryPower();initMiniHandlers();
     function battery(){onBattery=powerMonitor.isOnBatteryPower();sendState();}
     powerMonitor.on('on-battery',battery);powerMonitor.on('on-ac',battery);
     ['resize','move','show','hide','minimize','restore','enter-full-screen','leave-full-screen'].forEach(name=>win.on(name,schedule));
-    win.on('focus',clearCue);win.webContents.on('did-finish-load',sendState);
+    win.on('focus',clearCue);win.webContents.on('did-finish-load',()=>sendState(true));
     win.webContents.on('render-process-gone',stopBlocker);
     screen.on('display-metrics-changed',schedule);
     win.on('closed',()=>{powerMonitor.removeListener('on-battery',battery);powerMonitor.removeListener('on-ac',battery);screen.removeListener('display-metrics-changed',schedule);clearTimeout(cueTimer);window=null;if(mini){const old=mini;mini=null;old.destroy();}stopBlocker();if(pending!==null)clearImmediate(pending);pending=null;['mini:get-state','mini:restore','mini:open'].forEach(channel=>ipcMain.removeHandler(channel));});
@@ -50,7 +52,9 @@ module.exports = {
   preferences(value) { if(!value||typeof value.taskbarProgress!=='boolean'||typeof value.alwaysOnTop!=='boolean')return false;prefs={taskbarProgress:value.taskbarProgress,alwaysOnTop:value.alwaysOnTop};[window,mini].forEach(win=>{if(win&&!win.isDestroyed())win.setAlwaysOnTop(prefs.alwaysOnTop);});taskbar();return true; },
   pack(value) {
     if(!value||!Number.isInteger(value.ready)||value.ready<0||value.ready>100||!Number.isFinite(value.progress)||value.progress<0||value.progress>1||typeof value.packId!=='string'||value.packId.length>80||typeof value.countdown!=='string'||value.countdown.length>80||typeof value.canMini!=='boolean'||!['very-low','low','medium','high'].includes(value.quality))return false;
-    pack={ready:value.ready,progress:value.progress,packId:value.packId,countdown:value.countdown,canMini:value.canMini,quality:value.quality,reduced:!!value.reduced};taskbar();
+    if(value.graphics!=null&&(typeof value.graphics!=='object'||Array.isArray(value.graphics)||graphicsKeys.some(key=>value.graphics[key]!=null&&!tiers.includes(value.graphics[key]))))return false;
+    const graphics={};graphicsKeys.forEach(key=>{graphics[key]=value.graphics&&value.graphics[key]!=null?value.graphics[key]:value.quality;});
+    pack={ready:value.ready,progress:value.progress,packId:value.packId,countdown:value.countdown,canMini:value.canMini,quality:value.quality,reduced:!!value.reduced,graphics};taskbar();
     if(lastReady!==null&&pack.ready>lastReady&&!focused()&&!signalled){signalled=true;const win=mini||window;if(win){if(process.platform==='win32')win.setOverlayIcon(badge(),'Pack ready');win.flashFrame(true);cueTimer=setTimeout(()=>{if(!win.isDestroyed())win.flashFrame(false);},650);}}
     lastReady=pack.ready;if(pack.ready===0)clearCue();if(mini)mini.webContents.send('mini:state',pack);
     if(queued){const action=queued;queued=null;restore(action);}return true;

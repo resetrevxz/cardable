@@ -1,11 +1,18 @@
 (function (C, root) {
   'use strict';
   var bindings = new Map();
-  var battery = false, notice, noticeTimer, awake = false, studioActive = false, booted = false, nativeState = null;
+  var battery = false, notice, noticeTimer, awake = false, studioActive = false, booted = false, nativeState = null, lastPack = null;
   function nativeCall(promise) { return promise.catch(function (error) { root.console.warn('Desktop QoL unavailable:',error.message); }); }
   function toast(text,action) { if (!notice) { notice=C.packMarkup.node('aside','qol-notice glass',C.viewport.parent(root.document.body));notice.setAttribute('role','status'); } notice.replaceChildren();C.packMarkup.node('span','',notice,text);if(action){var button=C.packMarkup.node('button','quiet-button',notice,action.label);button.type='button';button.addEventListener('click',function(){Promise.resolve().then(action.run).catch(function(){toast('Could not complete that action.');});});}notice.hidden=false;root.clearTimeout(noticeTimer);noticeTimer=root.setTimeout(function(){notice.hidden=true;},action?10000:4000); }
   function batteryPolicy() { var active=battery&&C.settings.get('batterySaver')==='auto',before=C.settings.batterySaving;C.settings.setBatterySaver(active);if(active&&!before)toast('Battery saver · effects reduced temporarily'); }
-  function syncPack() { if(!C.native||!booted)return; var next=C.packs.upcoming(1)[0]; if(!next)return;nativeCall(C.native.window.setPack({packId:next.id,ready:C.state.current.packs.ready,progress:C.timers.progress(),countdown:C.timers.format(C.timers.remaining()),quality:C.settings.get('quality'),reduced:C.motion.reduced,canMini:C.opening.phase==='idle'&&!C.inventory.active&&!C.preferences.open&&!C.tutorial.active&&!studioActive&&!C.studioAlbumUI?.active&&!C.dev?.immersive&&!C.commands?.active&&!C.friendly?.active&&!C.contextMenu.open})); }
+  function syncPack() {
+    if(!C.native||!booted)return; var next=C.packs.upcoming(1)[0]; if(!next)return;
+    var value={packId:next.id,ready:C.state.current.packs.ready,progress:C.timers.progress(),countdown:C.timers.format(C.timers.remaining()),quality:C.settings.get('quality'),reduced:C.motion.reduced,canMini:C.opening.phase==='idle'&&!C.inventory.active&&!C.preferences.open&&!C.tutorial.active&&!studioActive&&!C.studioAlbumUI?.active&&!C.dev?.immersive&&!C.commands?.active&&!C.friendly?.active&&!C.contextMenu.open};
+    value.graphics={};C.settingsSchema.graphicsKeys.forEach(function(key){value.graphics[key]=C.settings.get(key);});
+    var signature=JSON.stringify(value);if(signature===lastPack)return;
+    lastPack=signature;
+    nativeCall(C.native.window.setPack(value).then(function(ok){if(!ok&&lastPack===signature)lastPack=null;},function(error){if(lastPack===signature)lastPack=null;throw error;}));
+  }
   function syncAwake() { var value=studioActive||C.opening&&C.opening.phase==='rarityIntro';value=!!value&&!root.document.hidden&&(!nativeState||nativeState.visible);if(value===awake)return;awake=value;nativeCall(C.native.window.setAwake(value)); }
   function runtime(state) { nativeState=state;battery=state.onBattery;C.events.emit('desktop:visibility',state.visible);batteryPolicy();syncAwake(); }
   function preferences() { nativeCall(C.native.window.setPreferences({taskbarProgress:C.settings.get('taskbarProgress'),alwaysOnTop:C.settings.get('alwaysOnTop')})); }

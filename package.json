@@ -1,7 +1,7 @@
 {
   "name": "cardable",
   "productName": "Cardable",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Cardable - GPU Card Collecting Game",
   "author": "Cardable Team",
   "main": "electron/main.js",
@@ -15,6 +15,8 @@
     "dist": "electron-builder --config electron-builder.config.cjs --publish never",
     "release:validate": "node tools/validate-release.cjs",
     "test:services": "node --test tests/electron-services.test.cjs",
+    "test:desktop-optimization": "node tools/check-desktop-optimization.cjs",
+    "profile:desktop": "node tools/profile-electron-graphics.cjs",
     "test": "node tools/verify-assets.cjs && npm run test:services && node tools/test-electron.cjs",
     "test:electron": "node tools/test-electron.cjs",
     "test:packaged": "node tools/test-electron.cjs --packaged",
