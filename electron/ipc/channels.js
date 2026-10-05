@@ -15,6 +15,11 @@ const IPC_CHANNELS = {
   WINDOW_CLOSE: 'window:close',
   WINDOW_TOGGLE_FULLSCREEN: 'window:toggle-fullscreen',
   WINDOW_IS_FULLSCREEN: 'window:is-fullscreen',
+  WINDOW_GET_RUNTIME_STATE: 'window:get-runtime-state',
+  WINDOW_RUNTIME_STATE: 'window:runtime-state',
+  WINDOW_SET_UI_SCALE: 'window:set-ui-scale',
+  WINDOW_SET_ASPECT_LOCK: 'window:set-aspect-lock',
+  WINDOW_COMMAND: 'window:command',
 
   // System & Diagnostics
   SYSTEM_OPEN_EXTERNAL: 'system:open-external',

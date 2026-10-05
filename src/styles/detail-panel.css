@@ -59,7 +59,7 @@
 .inventory-detail [data-copy-serial]:hover { color: var(--text); }
 .inventory-detail [data-copied="true"]::after { content: '✓ Copied'; position: absolute; right: 0; top: calc(100% + 4px); color: var(--text); background: var(--bg-elev); border: 1px solid var(--hairline); border-radius: 5px; padding: 3px 6px; font: 9px/1.4 var(--font-mono); white-space: nowrap; z-index: 2; }
 .inventory-detail .card__back-serial[data-copied="true"]::after { top: auto; bottom: calc(100% + 4px); }
-.detail-popover { position: fixed; z-index: 10; padding: var(--s-3); box-sizing: border-box; border-radius: var(--r-button); max-height: min(310px,calc(100vh - 32px)); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--hairline) transparent; }
+.detail-popover { position: fixed; z-index: 10; padding: var(--s-3); box-sizing: border-box; border-radius: var(--r-button); max-height: min(310px,calc(calc(var(--layout-height,100vh) * 1) - 32px)); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--hairline) transparent; }
 .detail-popover-close { float: right; color: var(--text-dim); font: 10px var(--font-ui); border: 0; background: transparent; padding: 4px; cursor: pointer; }
 .detail-metadata { clear: both; margin: 0; padding: 8px 0 0; list-style: none; font: 11px/1.7 var(--font-mono); color: var(--text-dim); user-select: text; }
 .detail-metadata li { padding: 5px 0; overflow-wrap: anywhere; }

@@ -3,7 +3,7 @@
   function node(tag, className, parent, text) {
     var el = root.document.createElement(tag); el.className = className;
     if (text != null) el.textContent = text;
-    if (parent) parent.appendChild(el);
+    if (parent) C.viewport.parent(parent).appendChild(el);
     return el;
   }
   function svg(className, parent, viewBox, paths) {

@@ -3,6 +3,10 @@ const { IPC_CHANNELS } = require('./channels');
 const { registerSecureHandler } = require('./security');
 
 function registerWindowHandlers() {
+  const life = require('../native/window-life');
+  registerSecureHandler(IPC_CHANNELS.WINDOW_GET_RUNTIME_STATE, () => life.state());
+  registerSecureHandler(IPC_CHANNELS.WINDOW_SET_UI_SCALE, (_event,value) => life.scale(value));
+  registerSecureHandler(IPC_CHANNELS.WINDOW_SET_ASPECT_LOCK, (_event,value) => life.aspect(value));
   function getSenderWindow(event) {
     return BrowserWindow.fromWebContents(event.sender);
   }

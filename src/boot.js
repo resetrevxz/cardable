@@ -4,6 +4,8 @@
   C.state.load();
   C.packs.init();
   C.settings.init();
+  C.viewport.init();
+  C.qol.init();
   C.contextMenu.init();
   root.document.body.style.setProperty('--page-grain-opacity', C.config.polish.grainOpacity);
   C.input.init();

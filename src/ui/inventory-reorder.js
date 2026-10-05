@@ -41,7 +41,7 @@
       }
       event.preventDefault(); d.lastX = event.clientX; d.lastY = event.clientY;
       d.finalRect={left:d.rect.left+dx,top:d.rect.top+dy,width:d.rect.width,height:d.rect.height};
-      d.clone.el.style.transform = 'translate3d(' + (d.rect.left + dx) + 'px,' + (d.rect.top + dy) + 'px,0) scale(1.02)';
+      d.clone.el.style.transform = 'translate3d(' + (C.viewport.rect(d.rect).left + dx) + 'px,' + (C.viewport.rect(d.rect).top + dy) + 'px,0) scale(1.02)';
       var nearest = options.nearest(event.clientX, event.clientY); if (nearest != null) d.to = nearest;
       place(); C.fx.wake();
     });

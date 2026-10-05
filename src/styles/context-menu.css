@@ -2,9 +2,9 @@
 .is-quiet .menu-shell #currency-counter,.is-idle .menu-shell #currency-counter { pointer-events:none; }
 .context-menu-host { position:fixed; inset:0; z-index:55; pointer-events:none; font:13px var(--font-ui); color:var(--text); }
 .context-menu-host[hidden] { display:none; }
-.context-panel { position:absolute; top:0; left:0; width:min(280px,calc(100vw - 16px)); pointer-events:auto; }
+.context-panel { position:absolute; top:0; left:0; width:min(280px,calc(calc(var(--layout-width,100vw) * 1) - 16px)); pointer-events:auto; }
 .context-panel.is-gliding { transition:transform 140ms var(--ease-out); }
-.context-menu-host .context-surface { position:relative; padding:6px; border-radius:14px; max-height:calc(100vh - 16px); max-height:calc(100dvh - 16px); overflow:auto; overscroll-behavior:contain; opacity:0; transform:scale(.96); transition:opacity 100ms var(--ease-out),transform 160ms var(--ease-out); background:rgba(22,22,25,.82); backdrop-filter:blur(28px) saturate(140%); -webkit-backdrop-filter:blur(28px) saturate(140%); scrollbar-width:thin; scrollbar-color:transparent transparent; }
+.context-menu-host .context-surface { position:relative; padding:6px; border-radius:14px; max-height:calc(calc(var(--layout-height,100vh) * 1) - 16px); max-height:calc(100dvh - 16px); overflow:auto; overscroll-behavior:contain; opacity:0; transform:scale(.96); transition:opacity 100ms var(--ease-out),transform 160ms var(--ease-out); background:rgba(22,22,25,.82); backdrop-filter:blur(28px) saturate(140%); -webkit-backdrop-filter:blur(28px) saturate(140%); scrollbar-width:thin; scrollbar-color:transparent transparent; }
 .context-surface:hover { scrollbar-color:rgba(255,255,255,.22) transparent; }
 .context-surface::-webkit-scrollbar { width:4px; }
 .context-surface::-webkit-scrollbar-thumb { background:transparent; border-radius:4px; }

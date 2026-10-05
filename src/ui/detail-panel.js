@@ -122,10 +122,10 @@
     function openPopover(source, label) {
       if (anchor === source) { dismiss(true); return null; } dismiss(false); anchor = source;
       popover = node('section', 'detail-popover glass', context.overlay); popover.setAttribute('role', 'dialog'); popover.setAttribute('aria-label', label);
-      source.setAttribute('aria-expanded', 'true'); var rect = source.getBoundingClientRect();
-      var width = Math.min(320, root.innerWidth - 32);
-      popover.style.width = width + 'px'; popover.style.left = Math.max(16, Math.min(root.innerWidth - width - 16, rect.right - width)) + 'px';
-      popover.style.top = Math.max(16, Math.min(root.innerHeight - 310, rect.bottom + 8)) + 'px';
+      source.setAttribute('aria-expanded', 'true'); var rect = C.viewport.rect(source.getBoundingClientRect());
+      var width = Math.min(320, C.viewport.width - 32);
+      popover.style.width = width + 'px'; popover.style.left = Math.max(16, Math.min(C.viewport.width - width - 16, rect.right - width)) + 'px';
+      popover.style.top = Math.max(16, Math.min(C.viewport.height - 310, rect.bottom + 8)) + 'px';
       button(popover, 'Close', function () { dismiss(true); }, 'detail-popover-close').setAttribute('aria-label', 'Close ' + label);
       return popover;
     }
@@ -196,7 +196,7 @@
     function showTooltip(event) {
       var target = event.target.closest('[data-tooltip]'); if (!target || !context.overlay.contains(target)) return;
       hideTooltip(); tooltip = node('div', 'detail-tooltip glass', context.overlay, target.dataset.tooltip); tooltip.setAttribute('role', 'tooltip');
-      var rect = target.getBoundingClientRect(); tooltip.style.left = Math.max(8, Math.min(root.innerWidth - tooltip.offsetWidth - 8, rect.left + rect.width / 2 - tooltip.offsetWidth / 2)) + 'px';
+      var rect = C.viewport.rect(target.getBoundingClientRect()); tooltip.style.left = Math.max(8, Math.min(C.viewport.width - tooltip.offsetWidth - 8, rect.left + rect.width / 2 - tooltip.offsetWidth / 2)) + 'px';
       tooltip.style.top = Math.max(8, rect.top - tooltip.offsetHeight - 8) + 'px';
     }
     context.overlay.addEventListener('pointerover', showTooltip); context.overlay.addEventListener('focusin', showTooltip);

@@ -177,7 +177,7 @@
       else if(!event.target.closest('input,select,textarea')&&['ArrowDown','ArrowUp','Home','End'].indexOf(event.key)>=0){event.preventDefault();var index=filtered.findIndex(function(e){return e.id===selected;});selectIndex(event.key==='Home'?0:event.key==='End'?filtered.length-1:Math.max(0,Math.min(filtered.length-1,index+(event.key==='ArrowDown'?1:-1))));}
       event.stopPropagation();
     });
-    C.fx.subscribe(update,'journal');root.addEventListener('resize',function(){layoutDirty=true;if(opened)C.fx.wake();});
+    C.fx.subscribe(update,'journal');C.viewport.onResize(function(){layoutDirty=true;if(opened)C.fx.wake();});
     C.events.on('journal:changed',function(){textCache.clear();if(opened){prepareCharts();rebuild(false);}});
     C.events.on('save:willReplace',function(){backToJournal=false;close(true);textCache.clear();});C.events.on('save:willReset',function(){backToJournal=false;close(true);textCache.clear();});
     C.events.on('inventory:detailContext',function(event){if(!event.active&&backToJournal){backToJournal=false;show(returningOptions);}});

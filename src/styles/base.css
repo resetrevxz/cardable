@@ -1,7 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { min-width: 320px; min-height: 100%; margin: 0; }
 body {
-  min-height: 100vh;
+  min-height: calc(var(--layout-height,100vh) * 1);
   overflow: hidden;
   background: var(--bg);
   color: var(--text);

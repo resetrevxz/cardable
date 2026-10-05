@@ -17,7 +17,7 @@
 [data-skin="rare"] .pack-gloss-sweep { position: absolute; inset: -20% -50%; pointer-events: none; background: linear-gradient(125deg,transparent 39%,#ffffff38 47%,#ffffff70 50%,#ffffff18 54%,transparent 61%); transform: translateX(var(--rare-sheen,-140%)); opacity: var(--rare-sheen-opacity,0); }
 [data-skin="rare"] .pack-body::after { opacity: calc(.5 + var(--rare-edge,.35)); }
 .opening-foil[data-skin="rare"]::after { content: ''; position: absolute; inset: 6% 2.4%; border: 1px solid #ffffff90; border-radius: 8% / 4%; pointer-events: none; }
-[data-skin="rare"] .pack-r-plus { position: absolute; top: 77%; left: 10%; border: 1px solid var(--pack-rare-fluid); border-radius: 50%; padding: 3px 4px; font: 500 clamp(5px,.65vh,10px)/1 var(--font-mono); box-shadow: 0 0 8px #7fb2ff40; }
+[data-skin="rare"] .pack-r-plus { position: absolute; top: 77%; left: 10%; border: 1px solid var(--pack-rare-fluid); border-radius: 50%; padding: 3px 4px; font: 500 clamp(5px,calc(var(--layout-height,100vh) * 0.006500000000000001),10px)/1 var(--font-mono); box-shadow: 0 0 8px #7fb2ff40; }
 [data-skin="rare"] .pack-fluid__body { background: linear-gradient(180deg,var(--pack-rare-fluid),#7fb2ff38 8%,#2f7bff65 50%,#2f7bff26); }
 [data-skin="rare"] .pack-meniscus { background: var(--pack-rare-leak); box-shadow: 0 2px 7px #7fb2ff80; }
 [data-state="waiting"] [data-skin="rare"] .pack-wrapper { opacity: .12; }
@@ -45,7 +45,7 @@
 .stock-card[data-queue-marked="true"] .stock-card__mark { opacity: 0; }
 .stock-card[data-queue-marked="true"] .stock-card__fill { background: linear-gradient(135deg,color-mix(in srgb,var(--queue-accent) 65%,white),color-mix(in srgb,var(--queue-accent) 40%,transparent)); }
 .pack-queue-beyond { position: absolute; top: 8px; white-space: nowrap; color: var(--pack-rare-fluid); font: 8px var(--font-mono); }
-.pack-intro-toast { position: fixed; z-index: var(--z-toast); left: 50%; bottom: var(--s-6); transform: translateX(-50%); max-width: calc(100vw - 64px); padding: var(--s-3) var(--s-4); border-radius: var(--r-button); color: var(--text); font: 12px/1.5 var(--font-ui); pointer-events: none; }
+.pack-intro-toast { position: fixed; z-index: var(--z-toast); left: 50%; bottom: var(--s-6); transform: translateX(-50%); max-width: calc(calc(var(--layout-width,100vw) * 1) - 64px); padding: var(--s-3) var(--s-4); border-radius: var(--r-button); color: var(--text); font: 12px/1.5 var(--font-ui); pointer-events: none; }
 .pack-intro-toast[hidden] { display: none; }
 .card-tag--pack { color: var(--pack-tag-accent,var(--text)); }
 .pack-tag-glyph { font: 500 9px/1 var(--font-mono); }

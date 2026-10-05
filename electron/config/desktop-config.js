@@ -8,8 +8,8 @@ const desktopConfig = {
   appName: 'Cardable',
   defaultWidth: 1440,
   defaultHeight: 900,
-  minWidth: 960,
-  minHeight: 640,
+  minWidth: 1100,
+  minHeight: 680,
   backgroundColor: '#08080A', // Matches --bg from tokens.css
   icons: {
     png: path.join(__dirname, '../../assets/icons/icon.png'),

@@ -57,7 +57,7 @@
     create:function(host,callbacks){
       var cfg=C.config.inventoryMotion, el=node('div','inventory-shelf',host), track=node('div','inventory-track',el), light=node('i','inventory-focus-light',el), label=node('div','inventory-group-label',el);
       el.setAttribute('role','listbox');el.setAttribute('tabindex','0');el.setAttribute('aria-label','GPU card shelf');light.style.width=cfg.indicatorWidthPx+'px';
-      var spring=C.springs.create(0,{stiffness:C.config.carousel.stiffness,damping:C.config.carousel.damping,epsilon:0.0005}), entries=[],tiles=new Map(),width=180,pitch=204,center=0,drag=null,clickUntil=0,idle=null,dirty=true,active=false,detailId=null,viewportWidth=root.innerWidth;
+      var spring=C.springs.create(0,{stiffness:C.config.carousel.stiffness,damping:C.config.carousel.damping,epsilon:0.0005}), entries=[],tiles=new Map(),width=180,pitch=204,center=0,drag=null,clickUntil=0,idle=null,dirty=true,active=false,detailId=null,viewportWidth=C.viewport.width;
       function bounds(v){return clamp(v,0,Math.max(0,entries.length-1));}
       function setTarget(v){spring.target=bounds(v);dirty=true;C.fx.wake();}
       function snap(v,velocity){spring.target=bounds(Math.round(v));if(velocity!=null)spring.velocity=clamp(velocity,-15,15);idle=null;dirty=true;C.fx.wake();}
@@ -98,7 +98,7 @@
         setActive:function(value){active=value;el.hidden=!value;tiles.forEach(function(t){if(t.view){t.view.setMode('lite');t.view.setVisible(value);}});dirty=true;},
         setModel:function(next,id){cancel();entries=next;tiles.forEach(C.inventoryTiles.destroy);tiles.clear();var i=entries.findIndex(function(e){return e.stackKey===id;});spring.reset(bounds(i<0?center:i));dirty=true;},
         refreshModel:function(next){entries=next;dirty=true;},
-        resize:function(height){cancel();viewportWidth=el.clientWidth||root.innerWidth;width=clamp((height-144-156)/1.18,80,360)*5/7;pitch=width+cfg.tileGapPx;el.style.setProperty('--inventory-tile-width',width+'px');el.style.setProperty('--inventory-tile-height',width*7/5+'px');dirty=true;},
+        resize:function(height){cancel();viewportWidth=el.clientWidth||C.viewport.width;width=clamp((height-144-156)/1.18,80,360)*5/7;pitch=width+cfg.tileGapPx;el.style.setProperty('--inventory-tile-width',width+'px');el.style.setProperty('--inventory-tile-height',width*7/5+'px');dirty=true;},
         focus:function(id,instant){var i=entries.findIndex(function(e){return e.stackKey===id;});if(i>=0){snap(i);if(instant)spring.reset(i);}},
         update:function(now,dt){if(!active)return false;if(idle!=null){idle+=dt;if(idle>=cfg.wheelSnapMs)snap(spring.target);}var old=spring.value;if(!drag){if(C.motion.reduced){spring.value+= (spring.target-spring.value)*Math.min(1,dt/70);spring.velocity=0;if(Math.abs(spring.value-spring.target)<.001)spring.reset(spring.target);}else spring.step(dt,spring.target);}spring.value=bounds(spring.value);if(dirty||old!==spring.value)paint();return !spring.settled()||idle!=null||!!drag;},
         rect:function(id){var tile=Array.from(tiles.values()).find(function(t){return t.entry.stackKey===id;});return tile?tile.card.getBoundingClientRect():null;},

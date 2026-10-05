@@ -13,6 +13,11 @@ const IPC_CHANNELS = {
   WINDOW_CLOSE: 'window:close',
   WINDOW_TOGGLE_FULLSCREEN: 'window:toggle-fullscreen',
   WINDOW_IS_FULLSCREEN: 'window:is-fullscreen',
+  WINDOW_GET_RUNTIME_STATE: 'window:get-runtime-state',
+  WINDOW_RUNTIME_STATE: 'window:runtime-state',
+  WINDOW_SET_UI_SCALE: 'window:set-ui-scale',
+  WINDOW_SET_ASPECT_LOCK: 'window:set-aspect-lock',
+  WINDOW_COMMAND: 'window:command',
   SYSTEM_OPEN_EXTERNAL: 'system:open-external',
   SYSTEM_GET_DIAGNOSTICS: 'system:get-diagnostics',
   SYSTEM_COPY_TEXT: 'system:copy-text',
@@ -35,6 +40,12 @@ const IPC_CHANNELS = {
 };
 
 // Narrow, typed, validated desktop bridge
+function subscribe(channel, callback) {
+  if (typeof callback !== 'function') return () => {};
+  const listener = (_event, value) => callback(value);
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+}
 const cardableDesktop = {
   isDesktop: true,
 
@@ -55,6 +66,11 @@ const cardableDesktop = {
   },
 
   window: {
+    getRuntimeState: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_GET_RUNTIME_STATE),
+    setUiScale: value => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_SET_UI_SCALE, value),
+    setAspectLock: value => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_SET_ASPECT_LOCK, value),
+    onRuntimeState: callback => subscribe(IPC_CHANNELS.WINDOW_RUNTIME_STATE, callback),
+    onCommand: callback => subscribe(IPC_CHANNELS.WINDOW_COMMAND, callback),
     minimize: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
     maximize: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MAXIMIZE),
     restore: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_RESTORE),

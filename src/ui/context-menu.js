@@ -89,9 +89,9 @@
   }
   function place(panel,x,y,glide) {
     var margin=8,w=panel.surface.offsetWidth,h=panel.surface.offsetHeight;
-    var flipX=x+w>root.innerWidth-margin,flipY=y+h>root.innerHeight-margin;
+    var safe=C.viewport.safe,flipX=x+w>safe.right-margin,flipY=y+h>safe.bottom-margin;
     if(flipX)x-=w;if(flipY)y-=h;
-    x=Math.max(margin,Math.min(x,root.innerWidth-w-margin));y=Math.max(margin,Math.min(y,root.innerHeight-h-margin));
+    x=Math.max(safe.left+margin,Math.min(x,safe.right-w-margin));y=Math.max(safe.top+margin,Math.min(y,safe.bottom-h-margin));
     panel.x=x;panel.y=y;panel.el.classList.toggle('is-gliding',!!glide);
     panel.el.style.transform='translate3d('+x+'px,'+y+'px,0)';panel.surface.style.transformOrigin=(flipX?'right':'left')+' '+(flipY?'bottom':'top');
   }
@@ -115,9 +115,9 @@
     p.surface.setAttribute('aria-label',row._item.label);
     var items=typeof row._item.items==='function'?row._item.items(ctx):row._item.items||[];
     render(p,items);p.el.classList.remove('is-open');
-    var r=row.getBoundingClientRect(),width=p.surface.offsetWidth;
-    var x=r.right+8;if(x+width>root.innerWidth-8)x=r.left-width-8;
-    p.x=Math.max(8,x);p.y=Math.max(8,Math.min(r.top,root.innerHeight-p.surface.offsetHeight-8));
+    var r=C.viewport.rect(row.getBoundingClientRect()),width=p.surface.offsetWidth;
+    var x=r.right+8;if(x+width>C.viewport.width-8)x=r.left-width-8;
+    p.x=Math.max(8,x);p.y=Math.max(8,Math.min(r.top,C.viewport.height-p.surface.offsetHeight-8));
     p.el.style.transform='translate3d('+p.x+'px,'+p.y+'px,0)';p.surface.style.transformOrigin=x<r.left?'right top':'left top';
     root.requestAnimationFrame(function(){if(opened&&p.el.isConnected)p.el.classList.add('is-open');});
     if(keyboard)focusPanel(p);
@@ -180,6 +180,7 @@
     return moving;
   }
   function open(x,y,target,keyboard) {
+    var point=C.viewport.local({x:x,y:y});x=point.x;y=point.y;
     if(blocked())return false;ensure();root.clearTimeout(closing);
     var wasOpen=opened;if(!wasOpen)focused=root.document.activeElement;
     opened=true;host.hidden=false;host.inert=false;note='';selected=null;trim(1);

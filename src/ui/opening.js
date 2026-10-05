@@ -289,16 +289,16 @@
   }
 
   function revealBounds() {
-    var h = Math.min(root.innerHeight * motion.heightVh / 100, root.innerHeight - motion.viewportMarginPx * 2, (root.innerWidth - motion.viewportMarginPx * 2) * 7 / 5);
+    var h = Math.min(C.viewport.height * motion.heightVh / 100, C.viewport.height - motion.viewportMarginPx * 2, (C.viewport.width - motion.viewportMarginPx * 2) * 7 / 5);
     h = Math.max(1, h); sceneHeight = h; sceneWidth = h * 5 / 7; scene.style.setProperty('--reveal-height', h + 'px'); scene.style.setProperty('--reveal-width', sceneWidth + 'px');
-    scene.style.setProperty('--reveal-center-y', Math.min(root.innerHeight / 2, root.innerHeight - h / 2 - motion.actionSpacePx) + 'px');
+    scene.style.setProperty('--reveal-center-y', Math.min(C.viewport.height / 2, C.viewport.height - h / 2 - motion.actionSpacePx) + 'px');
     scene.style.setProperty('--bloom-scale', motion.bloomScale);
     if(variantLabel&&rarity)variantLabel.style.setProperty('--tag-prop-top',((rarity.propOutset?.top||0)*h)+'px');
   }
   function revealContext(active, strength) {
     stage.style.setProperty('--reveal-vignette', active && rarity && rarity.tier >= 7 && !C.motion.reduced ? C.config.polish.vignetteOpacity * (strength == null ? 1 : strength) : 0);
     C.events.emit('reveal:context', { hideCursor: active && phase === 'flipping', gridDim: active && rarity ? rarity.reveal.gridDim * (strength == null ? 1 : strength) : 0,
-      halo: active ? { x: root.innerWidth / 2, y: root.innerHeight / 2, radius: motion.haloRadiusPx } : null });
+      halo: active ? Object.assign(C.viewport.global({x:C.viewport.width / 2,y:C.viewport.height / 2}), {radius:motion.haloRadiusPx}) : null });
   }
   function cleanReveal() {
     if(cutStrategy&&cutStrategy.clearReveal)cutStrategy.clearReveal();packEntrance=false;
@@ -426,7 +426,8 @@
     collectionSource = mount.getBoundingClientRect();
     var instance = pendingCards[pendingCards.length - 1];
     C.events.emit('inventory:handoffSource', { cardId: instance.cardId, stackKey: C.stacks.of(instance), instanceId: instance.instanceId, rect: collectionSource });
-    collectionTarget = C.packView.el.getBoundingClientRect();
+    collectionSource = C.viewport.rect(collectionSource);
+    collectionTarget = C.viewport.rect(C.packView.el.getBoundingClientRect());
     swapTarget = C.packs.upcoming(1)[0];
     swapShell = node('div', 'pack-swap-shell', stage); swapShell.setAttribute('aria-hidden', 'true');
     swapShell.dataset.state = C.state.current.packs.ready ? 'ready' : 'waiting';
@@ -758,12 +759,12 @@
       C.events.on('save:reset', reset);
       C.events.on('save:imported', function () { if (C.state.current.pendingReveal) { usePack(C.pack(C.state.current.pendingReveal.packId)); startReveal(true); } });
       C.events.on('opening:replay', function () { if (phase === 'revealed' && C.state.current.pendingReveal) { cleanReveal(); clearCut(); host.style.visibility = ''; phaseTo('cutting'); foil.style.opacity = 1; } });
-      root.addEventListener('resize', function () {
+      C.viewport.onResize( function () {
         intro.resize();
         bounds(); revealBounds();
         if (currentView) revealContext(phase !== 'rising', phase === 'preFlip' ? ease(elapsed / timings.preFlipPauseMs) : 1);
         if (phase === 'collecting') {
-          collectionSource = { left: root.innerWidth / 2 - sceneWidth / 2, top: parseFloat(scene.style.getPropertyValue('--reveal-center-y')) - sceneHeight / 2, width: sceneWidth, height: sceneHeight }; collectionTarget = C.packView.el.getBoundingClientRect();
+          collectionSource = { left: C.viewport.width / 2 - sceneWidth / 2, top: parseFloat(scene.style.getPropertyValue('--reveal-center-y')) - sceneHeight / 2, width: sceneWidth, height: sceneHeight }; collectionTarget = C.viewport.rect(C.packView.el.getBoundingClientRect());
           var corner = parseFloat(root.getComputedStyle(currentView.el).getPropertyValue('--r-card'));
           toastThumb.style.setProperty('--thumbnail-radius', corner * motion.toastThumbnailWidthPx / collectionSource.width + 'px');
           flights.forEach(function (flight) { flight.el.style.width = collectionSource.width + 'px'; flight.el.style.setProperty('--thumbnail-radius', corner + 'px'); });

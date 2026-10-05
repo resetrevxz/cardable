@@ -17,7 +17,7 @@
       if (warmed) warmed.scene.dispose();
       warmed = { serial: serial, scene: build(spec, serial) };
       // Allocate targets and compile the same passes while the opaque foil covers the viewport.
-      warmed.scene.paint(root.innerWidth, root.innerHeight, 4);
+      warmed.scene.paint(C.viewport.width, C.viewport.height, 4);
     },
     create: function () {
       var mist=null,mistKey=''; var scene = null, spec, serial = '', particles = [], sprites = Object.create(null), level = 2, time = 0;

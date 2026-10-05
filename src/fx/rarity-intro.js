@@ -58,7 +58,7 @@
     }
     function resize() {
       if (!canvas && !backdrop) return;
-      w = Math.max(1, root.innerWidth); h = Math.max(1, root.innerHeight);
+      w = Math.max(1, C.viewport.width); h = Math.max(1, C.viewport.height);
       var budget = quality() === 'high' ? cfg.maxPixels : cfg.maxPixels * .65;
       var visibleSpec = spec || backSpec;
       if (visibleSpec && visibleSpec.kind === 'refraction') budget = Math.min(budget, cfg.refractionMaxPixels);
@@ -66,7 +66,7 @@
       if (visibleSpec && (visibleSpec.kind === 'crimson' || visibleSpec.kind === 'prismatic')) budget = Math.min(budget, quality() === 'high' ? cfg.mythicalMaxPixels : cfg.mythicalMediumPixels);
       if (visibleSpec && visibleSpec.kind === 'cosmic') budget = Math.min(budget, quality() === 'high' ? cfg.exoticMaxPixels : cfg.exoticMediumPixels);
       if (visibleSpec && visibleSpec.kind === 'system') budget = Math.min(budget, quality() === 'high' ? 1500000 : 975000);
-      dpr = Math.min(cfg.maxDpr, C.settings.policy.dpr, Math.sqrt(budget / (w * h)));
+      dpr = Math.min(root.devicePixelRatio || 1, cfg.maxDpr, C.settings.policy.dpr, Math.sqrt(budget / (w * h)));
       if (visibleSpec && visibleSpec.kind === 'prismatic') dpr *= quality() === 'high' ? 1 : quality() === 'medium' ? .75 : .5;
       if (canvas) {
         var pixelWidth = Math.max(1, Math.floor(w * dpr)), pixelHeight = Math.max(1, Math.floor(h * dpr));

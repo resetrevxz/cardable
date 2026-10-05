@@ -22,7 +22,7 @@
         control.addEventListener('change', function () { binding.set(key, control.type === 'number' ? Number(control.value) : control.value); });
       } else if (type === 'select') {
         control = node('select', 'settings-select', row);
-        descriptor.choices.forEach(function (choice) { var value = typeof choice === 'object' ? choice.value : choice; var option = node('option', '', control, typeof choice === 'object' ? choice.label : title(value)); option.value = value; option.disabled = !!choice.disabled; });
+        descriptor.choices.forEach(function (choice) { var value = typeof choice === 'object' ? choice.value : choice; var option = node('option', '', control, typeof choice === 'object' ? choice.label : descriptor.format ? descriptor.format(value) : title(value)); option.value = value; option.disabled = !!choice.disabled; });
         control.addEventListener('change', function () { binding.set(key, control.value); });
       } else if (type === 'volume' || type === 'slider') {
         control = node('input', 'settings-volume', row); control.type = 'range'; control.min = descriptor.min == null ? 0 : descriptor.min; control.max = descriptor.max == null ? 100 : descriptor.max; control.step = descriptor.step || 1; control.value = current; control.disabled = disabled || type === 'volume';

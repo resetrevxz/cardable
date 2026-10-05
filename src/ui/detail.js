@@ -14,7 +14,7 @@
     var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', pathData); svg.appendChild(path); button.appendChild(svg);
   }
   function detailRect() {
-    var margin = cfg.safeMarginPx, width = root.innerWidth, height = root.innerHeight;
+    var margin = cfg.safeMarginPx, width = C.viewport.width, height = C.viewport.height;
     var outset = payload.entry.rarity.propOutset || {}, above = outset.top || 0, below = outset.bottom || 0, sides = outset.side || 0;
     var stacked = width < 900, infoWidth = 360;
     // Budget the whole composition, including the metadata column and props.
@@ -63,7 +63,7 @@
     overlay.hidden = false; overlay.inert = false; panelOpacity = 0; panel.style.opacity = 0;
     C.accessibility.trap(overlay);
     overlay.style.setProperty('--detail-dim', 0); root.document.body.style.setProperty('--detail-focus', 0);
-    mount.appendChild(visual); from = event.sourceRect; to = detailRect(); spring.reset(0); dragSpring.reset(0);
+    mount.appendChild(visual); from = C.viewport.rect(event.sourceRect); to = detailRect(); spring.reset(0); dragSpring.reset(0);
     phase = 'lifting'; shineAge = 0; fillPanel(); to = detailRect(); pose(from, C.motion.reduced ? 0 : 1);
     if (view) { view.setPresentation('full'); view.setVisible(true); view.setFace('front'); view.setMode('full'); }
     root.document.body.classList.add('inventory-detail-active'); C.events.emit('inventory:detailContext', { active: true });
@@ -115,7 +115,7 @@
     releaseDrag(null, true); if (C.inventory.toolbar) C.inventory.toolbar.close();
     var target = { cardId: payload.entry.card.id, stackKey: payload.entry.stackKey, rect: null }; C.events.emit('inventory:returnTarget', target);
     returnPanelFrom = panelOpacity; returnBackdropFrom = clamp(spring.value, 0, 1);
-    from = currentRect(); from.top += dragSpring.value; to = target.rect || payload.sourceRect;
+    from = currentRect(); from.top += dragSpring.value; to = C.viewport.rect(target.rect || payload.sourceRect);
     spring.reset(0); dragSpring.reset(0); phase = 'returning';
     if (view) { view.el.querySelectorAll('[data-copy-serial]').forEach(function (el) { el.tabIndex = -1; }); if (view.el.dataset.detailRole) view.el.setAttribute('role', view.el.dataset.detailRole); delete view.el.dataset.detailRole; view.setPresentation('art-only'); view.setMode('lite'); view.setShine(0); }
     if (swapping) { swapping.old.destroy(); swapping = null; visual.style.opacity = 1; }
@@ -204,7 +204,8 @@
       C.events.on('inventory:detailOpen', open); C.events.on('detail:requestClose', close); C.events.on('detail:reset', reset);
       C.events.on('preferences:context', function (event) { preferencesActive = event.active; if (preferencesActive) releaseDrag(null, true); });
       C.events.on('motion:changed', function () { if (phase !== 'closed') C.fx.wake(); });
-      root.addEventListener('resize', function () { if (phase === 'closed') return; from = currentRect(); if (phase === 'returning') { var target = { cardId: payload.entry.card.id, stackKey: payload.entry.stackKey }; C.events.emit('inventory:returnTarget', target); to = target.rect || payload.sourceRect; } else to = detailRect(); spring.reset(0); C.fx.wake(); });
+      var layoutSize = C.viewport.width + ':' + C.viewport.height;
+      C.viewport.onResize(function () { var size = C.viewport.width + ':' + C.viewport.height; if (size === layoutSize || phase === 'closed') { layoutSize = size; return; } layoutSize = size; from = currentRect(); if (phase === 'returning') { var target = { cardId: payload.entry.card.id, stackKey: payload.entry.stackKey }; C.events.emit('inventory:returnTarget', target); to = C.viewport.rect(target.rect || payload.sourceRect); } else to = detailRect(); spring.reset(0); C.fx.wake(); });
       C.detail.el = overlay; C.detail.mount = mount; C.detail.panel = panel; C.detail.closeButton = closeButton;
       C.fx.subscribe(update, 'detail');
     }

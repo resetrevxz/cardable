@@ -40,6 +40,8 @@ function createMainWindow() {
   });
 
   mainWindow = win;
+  require('../native/window-life').init(win);
+  win.webContents.setVisualZoomLevelLimits(1, 1);
   windowState.track(win);
 
   // If state was maximized or fullscreen, restore that state
@@ -120,6 +122,11 @@ function createMainWindow() {
 
   // Keyboard shortcut handlers
   win.webContents.on('before-input-event', (event, input) => {
+    if ((input.control || input.meta) && ['+','=','-','_','0'].includes(input.key)) {
+      event.preventDefault();
+      if(input.type === 'keyDown')win.webContents.send(require('../ipc/channels').IPC_CHANNELS.WINDOW_COMMAND, input.key === '0' ? 'scale-reset' : ['-','_'].includes(input.key) ? 'scale-down' : 'scale-up');
+      return;
+    }
     // F11 fullscreen toggle
     if (input.key === 'F11' && input.type === 'keyDown') {
       event.preventDefault();

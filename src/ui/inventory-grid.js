@@ -5,7 +5,7 @@
     var cfg=C.config.inventoryMotion,el=node('div','inventory-grid',host),canvas=node('div','inventory-grid-canvas',el),entries=[],groups=[],layout=[],tiles=new Map(),labels=new Map(),columns=1,width=180,rowHeight=280,height=400,active=false,selected=0,dirty=true,detailId=null;
     el.setAttribute('role','listbox');el.setAttribute('tabindex','0');el.setAttribute('aria-label','GPU card grid');
     function geometry(){
-      var available=(canvas.clientWidth||Math.max(1,(el.clientWidth||root.innerWidth-80)-cfg.gridGapPx*2)),gap=cfg.gridGapPx;columns=Math.max(1,Math.floor((available+gap)/(cfg.gridMinWidthPx+gap)));width=Math.min(cfg.gridMaxWidthPx,(available-gap*(columns-1))/columns);rowHeight=width*7/5*1.3+gap+72;var x=(available-(width+gap)*columns+gap)/2,y=width*7/5*.18+36,col=0,groupIndex=0;
+      var available=(canvas.clientWidth||Math.max(1,(el.clientWidth||C.viewport.width-80)-cfg.gridGapPx*2)),gap=cfg.gridGapPx;columns=Math.max(1,Math.floor((available+gap)/(cfg.gridMinWidthPx+gap)));width=Math.min(cfg.gridMaxWidthPx,(available-gap*(columns-1))/columns);rowHeight=width*7/5*1.3+gap+72;var x=(available-(width+gap)*columns+gap)/2,y=width*7/5*.18+36,col=0,groupIndex=0;
       layout=[];groups.forEach(function(group){if(col){y+=rowHeight;col=0;}if(group.label)y+=44;group.y=y-(group.label?44:0);for(var i=group.start;i<group.start+group.count;i++){layout[i]={x:x+col*(width+gap),y:y,width:width};col++;if(col===columns){col=0;y+=rowHeight;}}groupIndex++;});
       if(col)y+=rowHeight;canvas.style.height=(y+24)+'px';dirty=true;
     }

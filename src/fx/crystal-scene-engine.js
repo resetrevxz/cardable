@@ -306,7 +306,7 @@
     function paint(w,h,t){
       if(!gl||lost||disposed)return null;
       try {
-        var cfg=C.config.rarityIntro,budget=C.settings.get('cinematicQuality')==='high'?cfg.mythicalMaxPixels:cfg.mythicalMediumPixels,dpr=Math.min(cfg.maxDpr,C.settings.policy.dpr,Math.sqrt(budget/(w*h))),rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
+        var cfg=C.config.rarityIntro,budget=C.settings.get('cinematicQuality')==='high'?cfg.mythicalMaxPixels:cfg.mythicalMediumPixels,dpr=Math.min(root.devicePixelRatio||1,cfg.maxDpr,C.settings.policy.dpr,Math.sqrt(budget/(w*h))),rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
         if(dawn){var desired=[.5,.5,.75,1][level];resolution+=Math.max(-.015,Math.min(.015,desired-resolution));dpr*=resolution;rw=Math.max(1,Math.floor(w*dpr));rh=Math.max(1,Math.floor(h*dpr));}
         if(width!==rw||height!==rh){width=rw;height=rh;canvas.width=rw;canvas.height=rh;sizeTarget(scene,rw,rh);sizeTarget(reflection,Math.max(1,rw>>1),Math.max(1,rh>>1));sizeTarget(bloom,Math.max(1,rw>>1),Math.max(1,rh>>1));sizeTarget(blur,rw,Math.max(1,rh>>1));}
         if(!dawn||!sigilProgram||t<timeline.clock.start)simulateWater(t);var hero=4.35,heroX=0,angle=0,eye=[mix(2.6,1.1,smooth((t-timeline.cave.start)/caveMs)),2.6,mix(9.6,7.9,smooth((t-timeline.cave.start)/caveMs))],targetPoint=[0,2.55,-.35],impact=t>=impactStart?t-impactStart:-1,under=t>=underStart;

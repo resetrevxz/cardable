@@ -48,7 +48,7 @@
       try{result=C.picker.choose(index);}catch(_){result=null;}
       if(!result){hold=null;context.announce('Could not save your choice. The same options are still reserved.');screen.querySelector('.picker-prompt').textContent='Could not save · choose again';return;}
       choice=index;selected=index;state='chosen';age=0;release();destroyViews();
-      var rect=buttons[index].getBoundingClientRect();choiceShift=root.innerWidth/2-(rect.left+rect.width/2);
+      var rect=C.viewport.rect(buttons[index].getBoundingClientRect());choiceShift=C.viewport.width/2-(rect.left+rect.width/2);
       // Static previews during departure: only the ensuing central reveal mounts
       // a live chosen card. Option descriptors never receive gameplay serials.
       buttons.forEach(function(b,i){b.disabled=true;if(!secret(result.options[i]))preview(i,false);b.classList.toggle('is-chosen',i===index);b.classList.toggle('is-unpicked',i!==index);if(i!==index&&moving()&&C.settings.policy.particles>0)for(var n=0;n<3;n++){var particle=node('i','picker-unpick-particle',b);particle.style.setProperty('--particle-x',(n-1)*28+'px');particle.style.setProperty('--particle-turn',(n*60)+'deg');}});

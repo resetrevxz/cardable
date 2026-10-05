@@ -90,6 +90,6 @@
       get scene(){return engine;},get model(){return model;}
     };
   }
-  C.secretIntro={create:create,warmup:function(spec,seed){seed=String(seed);if(warmed&&warmed.seed===seed)return;if(warmed)warmed.engine.dispose();if(C.cutscenes.mode()==='light'||C.settings.get('cinematicQuality')==='low')return;var engine=C.cutsceneScreenEngine.create(),canvas=root.document.createElement('canvas');canvas.width=480;canvas.height=270;var q=canvas.getContext('2d');q.fillStyle='#000';q.fillRect(0,0,480,270);engine.render(canvas,root.innerWidth,root.innerHeight,0,{},C.settings.get('cinematicQuality')==='high'?3:2);warmed={seed:seed,engine:engine};}};
+  C.secretIntro={create:create,warmup:function(spec,seed){seed=String(seed);if(warmed&&warmed.seed===seed)return;if(warmed)warmed.engine.dispose();if(C.cutscenes.mode()==='light'||C.settings.get('cinematicQuality')==='low')return;var engine=C.cutsceneScreenEngine.create(),canvas=root.document.createElement('canvas');canvas.width=480;canvas.height=270;var q=canvas.getContext('2d');q.fillStyle='#000';q.fillRect(0,0,480,270);engine.render(canvas,C.viewport.width,C.viewport.height,0,{},C.settings.get('cinematicQuality')==='high'?3:2);warmed={seed:seed,engine:engine};}};
   C.cutscenes.register('secret',create);
 })(window.Cardable,window);

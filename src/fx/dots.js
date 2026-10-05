@@ -34,11 +34,13 @@
     }
   }
   function resize() {
-    width = root.innerWidth; height = root.innerHeight;
+    width = C.viewport.windowWidth; height = C.viewport.windowHeight;
     if (!C.settings.dotsPolicy().enabled) { canvas.width = canvas.height = 1; points = []; dirty = false; return; }
     pitch = C.settings.dotsPolicy().spacing;
     var dpr = Math.min(root.devicePixelRatio || 1, C.settings.policy.dpr);
-    canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+    var pixelWidth = Math.round(width * dpr), pixelHeight = Math.round(height * dpr);
+    if (canvas.width !== pixelWidth) canvas.width = pixelWidth;
+    if (canvas.height !== pixelHeight) canvas.height = pixelHeight;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cols = Math.ceil(width / pitch); rows = Math.ceil(height / pitch);
     points = Array.from({ length: cols * rows }, function (_, index) { return { x: (index % cols + 0.5) * pitch, y: (Math.floor(index / cols) + 0.5) * pitch }; });
@@ -175,7 +177,7 @@
       }
       C.settings.onChange('dots', settingsChanged); C.settings.onChange('backgroundQuality', settingsChanged); C.settings.onChange('canvasQuality', settingsChanged);
       settingsChanged();
-      root.addEventListener('resize', resize);
+      C.viewport.onResize( resize);
       C.fx.subscribe(update, 'dots');
     }
   };

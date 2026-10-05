@@ -42,7 +42,7 @@
 .royal-swap-old { z-index:20; pointer-events:none; }
 .royal-triangle-field { position:absolute; inset:0; width:100%; height:100%; z-index:30; pointer-events:none; }
 .royal-holder-stage { position:absolute; inset:0; perspective:900px; pointer-events:none; }
-.royal-holder { position:absolute; top:50%; left:50%; width:clamp(150px,20vh,220px); height:clamp(180px,24vh,264px); padding:0; border:none; border-radius:12px; background:transparent; cursor:pointer; pointer-events:auto; transform:translate(-50%,calc(-50% + var(--royal-box-y,55px))); opacity:0; transform-style:preserve-3d; color:#FFF0BD; }
+.royal-holder { position:absolute; top:50%; left:50%; width:clamp(150px,calc(var(--layout-height,100vh) * 0.2),220px); height:clamp(180px,calc(var(--layout-height,100vh) * 0.24),264px); padding:0; border:none; border-radius:12px; background:transparent; cursor:pointer; pointer-events:auto; transform:translate(-50%,calc(-50% + var(--royal-box-y,55px))); opacity:0; transform-style:preserve-3d; color:#FFF0BD; }
 .royal-holder:focus-visible { outline:1px solid white; outline-offset:14px; }
 .royal-holder:disabled { cursor:default; }.royal-holder:not(:disabled):hover .royal-box-body { box-shadow:inset 0 0 0 1px #F4DDA2,0 12px 25px #000A,0 0 18px #D9B65F25; }
 .royal-holder-box { position:absolute; inset:0; display:block; perspective:650px; transform-style:preserve-3d; }

@@ -32,7 +32,7 @@
 .inventory-popover { position: absolute; right: var(--s-5); top: 84px; width: min(360px,calc(100% - 48px)); max-height: calc(100% - 108px); z-index: 8; border-radius: 20px; background-color: rgba(20,20,24,.93); overflow: hidden; animation: inventory-control-enter var(--t-ui) var(--ease-out); }
 .inventory-popover-heading { display: flex; align-items: center; justify-content: space-between; padding: var(--s-4); border-bottom: 1px solid var(--hairline); }
 .inventory-popover-heading h3 { font: 500 14px var(--font-ui); margin: 0; }
-.inventory-popover-body { padding: var(--s-2) var(--s-4) var(--s-4); max-height: min(60vh,500px); overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.inventory-popover-body { padding: var(--s-2) var(--s-4) var(--s-4); max-height: min(calc(var(--layout-height,100vh) * 0.6),500px); overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .inventory-menu-option { display: block; width: 100%; border: 0; background: transparent; text-align: left; color: var(--text-dim); padding: 9px 8px; font: 12px/1.5 var(--font-ui); overflow-wrap: anywhere; border-radius: var(--s-2); cursor: pointer; transition: background var(--t-fast), color var(--t-fast); }
 .inventory-menu-option:hover, .inventory-menu-option.is-selected { background: var(--glass); color: var(--text); }
 .inventory-menu-caption, .inventory-filter-preview { font: 10px/1.5 var(--font-mono); color: var(--text-dim); margin: 12px 8px; }

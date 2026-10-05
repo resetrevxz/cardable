@@ -9,7 +9,7 @@
     selectedPack:null,selectedCard:null,selectedVariant:null,quantity:1,force:{tier:'',card:'',variant:'random',sticky:false},
     fpsEnabled:true,fps:0,gaps:[],burn:0,recording:null,visualRate:1,ui:{},counter:0};
   D.clone=function(v){return JSON.parse(JSON.stringify(v));};
-  D.node=function(tag,cls,parent,text){var el=root.document.createElement(tag);el.className=cls||'';if(text!==undefined)el.textContent=text;if(parent)parent.appendChild(el);return el;};
+  D.node=function(tag,cls,parent,text){var el=root.document.createElement(tag);el.className=cls||'';if(text!==undefined)el.textContent=text;if(parent)C.viewport.parent(parent).appendChild(el);return el;};
   D.safe=function(fn){return function(){try{var result=fn.apply(this,arguments);if(result&&typeof result.catch==='function')return result.catch(function(error){D.message(error.message,true);return false;});return result;}catch(error){D.message(error.message,true);return false;}};};
   D.button=function(label,parent,fn){var b=D.node('button','quiet-button',parent,label);b.type='button';b.addEventListener('click',D.safe(fn));return b;};
   D.copy=function(text){text=typeof text==='string'?text:JSON.stringify(text,null,2);if(root.navigator.clipboard&&root.isSecureContext)return root.navigator.clipboard.writeText(text).then(function(){D.message('Copied');},function(){fallback();});function fallback(){var area=D.node('textarea','',root.document.body,text);area.style.position='fixed';area.style.opacity='0';area.select();var copied=root.document.execCommand('copy');area.remove();D.message(copied?'Copied':'Copy unavailable in this browser',!copied);}fallback();};

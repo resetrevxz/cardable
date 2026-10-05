@@ -89,8 +89,9 @@
       var textRect = instruction.getBoundingClientRect(), x = halo.x, y = rect.top - cfg.instructionGapPx - textRect.height;
       if (step === 'keep') { x = rect.left + rect.width + cfg.instructionGapPx + textRect.width / 2; y = halo.y - textRect.height / 2; }
       if (step === 'timer') y = rect.top + rect.height + cfg.instructionGapPx;
-      x = Math.max(cfg.safeMarginPx + textRect.width / 2, Math.min(root.innerWidth - cfg.safeMarginPx - textRect.width / 2, x));
-      y = Math.max(cfg.safeMarginPx, Math.min(root.innerHeight - cfg.safeMarginPx - textRect.height, y));
+      var point = C.viewport.local({x:x,y:y}); x=point.x; y=point.y;
+      x = Math.max(cfg.safeMarginPx + textRect.width / 2, Math.min(C.viewport.width - cfg.safeMarginPx - textRect.width / 2, x));
+      y = Math.max(cfg.safeMarginPx, Math.min(C.viewport.height - cfg.safeMarginPx - textRect.height, y));
       instruction.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) translateX(-50%)';
     }
     var context = { gridDim: target ? cfg.gridDim : 0, halo: halo }, key = JSON.stringify(context);
@@ -167,7 +168,7 @@
       C.events.on('fx:visibility', function () { C.fx.wake(); });
       root.document.getElementById('pack-stage').addEventListener('pointerenter', function () { if (active && step === 'welcome') advance('hold'); });
       root.document.addEventListener('keydown', function (event) { if (!preferencesActive && active && event.key === 'Escape') { if (event.preventDefault) event.preventDefault(); skip(); } });
-      root.addEventListener('resize', function () { layoutDirty = true; layout(); C.fx.wake(); });
+      C.viewport.onResize( function () { layoutDirty = true; layout(); C.fx.wake(); });
       if (root.document.fonts && root.document.fonts.ready) root.document.fonts.ready.then(function () { layoutDirty = true; layout(); C.fx.wake(); });
       C.fx.subscribe(update, 'tutorial'); adopt(); reconcile();
     }

@@ -65,7 +65,7 @@ void main(){
     return {canvas:canvas,stats:stats,dispose:dispose,
       render:function(source,w,h,time,effect,level){
         if(!gl||lost||disposed||level<2)return source;
-        var budget=level===3?1500000:975000,dpr=Math.min(1.5,C.settings.policy.dpr,Math.sqrt(budget/(w*h))),rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
+        var budget=level===3?1500000:975000,dpr=Math.min(root.devicePixelRatio||1,1.5,C.settings.policy.dpr,Math.sqrt(budget/(w*h))),rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
         if(canvas.width!==rw||canvas.height!==rh){canvas.width=rw;canvas.height=rh;gpu.sizeTarget(processed,rw,rh);gpu.sizeTarget(bloom,Math.max(1,rw>>1),Math.max(1,rh>>1));gpu.sizeTarget(blur,rw,Math.max(1,rh>>1));}
         var resetFeedback=feedback[0].w!==source.width||feedback[0].h!==source.height;
         if(resetFeedback){feedback.forEach(function(t){gpu.sizeTarget(t,source.width,source.height);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);});}

@@ -90,7 +90,8 @@
       var groups = {};
       var advanced = node('details', 'settings-advanced', scroll); node('summary', '', advanced, 'Advanced graphics'); groups['Advanced graphics'] = advanced;
       ['Performance', 'Motion and effects', 'Cards', 'Controls', 'Sound', 'Data', 'About'].forEach(function (name) { var group = node('section', 'settings-group', scroll); node('h3', '', group, name); groups[name] = group; });
-      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group && key !== 'quality') controls.push(C.settingsControls.create(d, groups[d.group])); });
+      if (C.native) { groups.Desktop = node('section', 'settings-group', scroll); node('h3', '', groups.Desktop, 'Desktop'); scroll.insertBefore(groups.Desktop, groups.About); }
+      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group && groups[d.group] && key !== 'quality') controls.push(C.settingsControls.create(d, groups[d.group])); });
       C.preferences.data = C.settingsData.create(groups.Data, { close: close, announce: announce });
       var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
       if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(groups.About, { close: close, announce: announce });

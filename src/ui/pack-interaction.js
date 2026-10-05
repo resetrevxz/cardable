@@ -59,7 +59,7 @@
         if (event.key === 'Escape') clear();
         if (event.key.toLowerCase() === 'v' && !blocked) { inspecting = !inspecting; measure(); targets.lift = inspecting ? cfg.inspectLiftPx : 0; host.classList.toggle('is-inspecting', inspecting); C.fx.wake(); }
       });
-      root.addEventListener('resize', measure); root.addEventListener('blur', clear);
+      C.viewport.onResize( measure); root.addEventListener('blur', clear);
       ['opening:context', 'inventory:context', 'preferences:context'].forEach(function (name) {
         C.events.on(name, function (event) { blocks[name] = event.active; blocked = Object.keys(blocks).some(function (key) { return blocks[key]; }); if (blocked) clear(); });
       });

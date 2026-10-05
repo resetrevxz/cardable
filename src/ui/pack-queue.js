@@ -65,7 +65,7 @@
     });
     C.events.on('contextmenu:close', function() { C.fx.wake(); });
     C.events.on('save:willReplace', function() { toast.hidden = true; toastStart = null; C.menu.holdVisible('pack-intro', false); });
-    root.addEventListener('resize', function() { queue({ openedCount: currentCount, reason: 'layout' }); });
+    C.viewport.onResize( function() { queue({ openedCount: currentCount, reason: 'layout' }); });
     C.fx.subscribe(function(now, dt) {
       var reduced = C.motion.reduced || C.settings.policy.animation < 2, quiet = root.document.hidden || C.menu.afk || C.menu.idle || blocked.size;
       var active = false;

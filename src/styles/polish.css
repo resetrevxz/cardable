@@ -10,7 +10,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: var(--z-grid); p
 .preferences-entry { font-size: 10px; padding: var(--s-1) var(--s-2); white-space: nowrap; }
 .inventory-header h2 { flex: 1; }
 .preferences-overlay { position: fixed; inset: 0; z-index: var(--z-toast); display: grid; place-items: center; background: rgba(0,0,0,.6); }
-.preferences-panel { width: min(420px, calc(100vw - var(--s-6) * 2)); max-height: calc(100vh - var(--s-6) * 2); overflow-y: auto; padding: var(--s-5); border-radius: var(--r-sheet); }
+.preferences-panel { width: min(420px, calc(calc(var(--layout-width,100vw) * 1) - var(--s-6) * 2)); max-height: calc(calc(var(--layout-height,100vh) * 1) - var(--s-6) * 2); overflow-y: auto; padding: var(--s-5); border-radius: var(--r-sheet); }
 .preferences-header { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); }
 .preferences-header h2 { margin: 0; font: 600 24px/1.2 var(--font-ui); letter-spacing: -.02em; }
 .preferences-caption, .preferences-feedback { color: var(--text-dim); font: 14px/1.5 var(--font-ui); }
@@ -18,7 +18,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: var(--z-grid); p
 .preferences-setting { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); color: var(--text-dim); font: 12px/1.5 var(--font-ui); margin: var(--s-4) 0; }
 .preferences-setting select { border: 1px solid var(--hairline); border-radius: var(--r-button); padding: var(--s-2); background: var(--bg-elev); color: var(--text); cursor: pointer; }
 .preferences-feedback:empty { display: none; }
-.save-notice { position: fixed; bottom: var(--s-5); left: 50%; transform: translateX(-50%); z-index: var(--z-toast); width: min(460px,calc(100vw - var(--s-6) * 2)); padding: var(--s-4); border-radius: var(--r-button); }
+.save-notice { position: fixed; bottom: var(--s-5); left: 50%; transform: translateX(-50%); z-index: var(--z-toast); width: min(460px,calc(calc(var(--layout-width,100vw) * 1) - var(--s-6) * 2)); padding: var(--s-4); border-radius: var(--r-button); }
 .save-notice p { margin: 0 0 var(--s-3); color: var(--text-dim); font: 14px/1.5 var(--font-ui); }
 .save-notice-actions { display: flex; gap: var(--s-2); }
 .inventory-silhouette-generation { opacity: 1; }

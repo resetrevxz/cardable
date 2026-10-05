@@ -10,6 +10,7 @@
   'use strict';
 
   var desktop = root.cardableDesktop || null, initialized = false, prepareTask = null, backupTimer = null;
+  if (desktop) C.native = desktop;
 
   function primaryStorage() { return C.config.storage.key === 'cardable.save'; }
 
