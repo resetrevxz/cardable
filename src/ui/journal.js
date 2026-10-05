@@ -1,9 +1,9 @@
 (function (C, root) {
   'use strict';
   var node = C.packMarkup.node, data = C.data.journal, sheet, scroller, river, sticky, empty, search, jump, only, clearDay, status, heatmap, chart, heatHint, chartHint;
-  var opened = false, closing = false, origin, inertBefore = [], dirty = true, layoutDirty = false, filter = '', selectedDay = '', cardFilter = null;
+  var opened = false, origin, dirty = true, layoutDirty = false, filter = '', selectedDay = '', cardFilter = null;
   var rows = [], filtered = [], rendered = new Map(), textCache = new Map(), selected = null, chips = [], tiles = [], heatDays = [], heatFocus = 370, heatHover = null, growth = [], chartHover = null;
-  var intro = 0, closeAge = 0, totalHeight = 0, lastQuality = '', numbersAge = 0, rollFrom = [0,0,0,0], targets = [0,0,0,0], values = [0,0,0,0], anniversary, backToJournal = false, returningOptions = null;
+  var intro = 0, totalHeight = 0, lastQuality = '', numbersAge = 0, rollFrom = [0,0,0,0], targets = [0,0,0,0], values = [0,0,0,0], anniversary, backToJournal = false, returningOptions = null;
   function now() { return C.clock ? C.clock.now() : Date.now(); }
   function quality() { return Math.min(C.settings.policy.animation, C.settingsSchema.tiers.indexOf(C.settings.get('quality'))); }
   function motion() { return quality() >= 2 && !C.motion.reduced; }
@@ -127,20 +127,18 @@
     ctx.beginPath();growth.forEach(function(p,i){if(i){var previous=growth[i-1];ctx.bezierCurveTo((x(previous)+x(p))/2,y(previous),(x(previous)+x(p))/2,y(p),x(p),y(p));}else ctx.moveTo(x(p),y(p));});ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=1.5;ctx.stroke();
     if(chartHover!=null){var target=first+chartHover*(last-first),nearest=growth.reduce(function(a,b){return Math.abs(C.journal.date(b.day)-target)<Math.abs(C.journal.date(a.day)-target)?b:a;});ctx.beginPath();ctx.moveTo(x(nearest),0);ctx.lineTo(x(nearest),84);ctx.strokeStyle='rgba(255,255,255,.25)';ctx.stroke();ctx.beginPath();ctx.arc(x(nearest),y(nearest),3,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();chartHint.textContent=label(nearest.day)+' · '+nearest.n+' unique cards';}
   }
-  function lock() { inertBefore = ['#inventory-sheet','#menu','.settings-gear'].map(function (selector) { var el = root.document.querySelector(selector); if (!el) return null; var item={el:el,value:el.inert};el.inert=true;return item; }).filter(Boolean); }
-  function unlock() { inertBefore.forEach(function (item) { item.el.inert=item.value; }); inertBefore=[]; }
+  function updateTabs() { C.inventory.toolbar.tabs.querySelectorAll('.inventory-tab-list [role="tab"]').forEach(function(tab){tab.setAttribute('aria-selected',String(!C.inventory.page&&tab.classList.contains('is-selected')));}); }
   function show(options) {
-    options=options||{}; if (opened) return; if(C.opening.phase!=='idle'||C.preferences.open||C.tutorial.active)return;
-    C.inventory.request(true); if(!C.inventory.active)return;
+    options=options||{}; if (opened) return; if(!sheet||root.document.hidden||C.opening.phase!=='idle'||C.preferences.open||C.tutorial.active||C.detail.phase!=='closed')return;
+    C.inventory.request('full'); if(!C.inventory.open)return;
     origin=options.origin||root.document.activeElement;cardFilter=options.cardId||null;
-    opened=true;closing=false;sheet.hidden=false;sheet.inert=false;intro=0;lock();C.accessibility.trap(sheet);
+    opened=true;sheet.hidden=false;sheet.inert=false;intro=0;C.inventory.setPage('journal');updateTabs();
     sheet.dataset.quality=quality();lastQuality=String(quality());sheet.dataset.reduced=String(C.motion.reduced);
     sheet.classList.add('is-open');sheet.style.opacity=motion()?0:1;
-    root.document.body.classList.add('journal-active');C.events.emit('journal:context',{active:true});C.events.emit('menu:visibilityHold',{reason:'journal',active:true});
-    textCache.clear();prepareCharts();rebuild(false);sheet.querySelector('.journal-close').focus({preventScroll:true});beat('open');C.fx.wake();
+    C.events.emit('journal:context',{active:true});
+    textCache.clear();prepareCharts();rebuild(false);search.focus({preventScroll:true});beat('open');C.fx.wake();
   }
-  function finishClose(focus) { opened=false;closing=false;sheet.hidden=true;sheet.inert=true;clearRendered();unlock();C.accessibility.release(sheet);root.document.body.classList.remove('journal-active');C.events.emit('journal:context',{active:false});C.events.emit('menu:visibilityHold',{reason:'journal',active:false});if(focus&&origin&&origin.isConnected&&!origin.inert)origin.focus({preventScroll:true});beat('close'); }
-  function close(immediate) { if(!opened||closing)return;if(immediate||quality()<2){finishClose(!immediate);return;}closing=true;closeAge=0;sheet.inert=true;C.fx.wake(); }
+  function close(immediate) { if(!opened)return;opened=false;sheet.hidden=true;sheet.inert=true;sheet.style.transform='';clearRendered();if(C.inventory.page==='journal')C.inventory.setPage(null);updateTabs();C.events.emit('journal:context',{active:false});if(!immediate&&origin&&origin.isConnected&&!origin.inert)origin.focus({preventScroll:true});beat('close'); }
   function openCard(e) { returningOptions={origin:origin,cardId:cardFilter};backToJournal=true;close(true);C.events.emit('inventory:showCard',{cardId:e.cardId,instanceId:e.instanceId});if(C.detail.phase==='closed')backToJournal=false;beat('card',e); }
   function renderAnniversary() {
     if(!anniversary)return;anniversary.replaceChildren();var today=new Date(now()),old=C.journal.entries(C.journal.current).filter(function(e){if(e.at==null)return false;var d=new Date(e.at);return d.getFullYear()<today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate()&&(!cardFilter||e.cardId===cardFilter);});
@@ -148,7 +146,7 @@
     old.filter(function(e){return C.journal.highlight(e);}).concat(old.filter(function(e){return !C.journal.highlight(e);})).slice(0,3).forEach(function(e){var b=button(new Date(e.at).getFullYear()+' · '+C.journal.text(e),anniversary,function(){selectedDay=C.journal.day(e.at);jump.value=selectedDay;filter='';only.checked=false;search.value='';rebuild(true);beat('anniversary',e);},'journal-anniversary-entry');b.title=C.journal.text(e);});
   }
   function update(time,dt) {
-    if(!opened)return false;if(closing){closeAge+=dt;var p=Math.min(1,closeAge/180);sheet.style.opacity=1-p;if(!C.motion.reduced)sheet.style.transform='translateY('+p*8+'px)';if(p===1){sheet.style.transform='';finishClose(true);}return p<1;}
+    if(!opened)return false;
     var active=false;
     if(dirty||layoutDirty){render();dirty=layoutDirty=false;}
     if(intro<700&&quality()>=2){intro+=dt;var enter=Math.min(1,intro/250);sheet.style.opacity=enter;if(!C.motion.reduced)sheet.style.transform='translateY('+(1-enter)*8+'px)';if(quality()===3&&!C.motion.reduced)drawHeat(Math.min(1,intro/700));active=intro<700;}
@@ -156,8 +154,8 @@
     tiles.forEach(function(t){active=t.number.update(time)||active;});return active;
   }
   function init() {
-    if(sheet)return;sheet=node('section','journal-sheet glass glass--sheet',root.document.body);sheet.hidden=true;sheet.inert=true;sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');sheet.setAttribute('aria-labelledby','journal-title');
-    var header=node('header','journal-header',sheet),heading=node('div','',header);node('p','journal-kicker',heading,'The collection, remembered');var title=node('h2','',heading,'History');title.id='journal-title';status=node('span','journal-status',header);button('Close',header,function(){close();},'journal-button journal-close');
+    if(sheet||!C.inventory.content)return;sheet=node('section','journal-sheet',C.inventory.content);sheet.id='inventory-journal';sheet.hidden=true;sheet.inert=true;sheet.setAttribute('role','tabpanel');sheet.setAttribute('aria-labelledby','inventory-tab-journal');
+    var header=node('header','journal-header',sheet),heading=node('div','',header);node('p','journal-kicker',heading,'The collection, remembered');var title=node('h2','',heading,'History');title.id='journal-title';status=node('span','journal-status',header);button('Back to cards',header,function(){close();},'journal-button journal-close');
     var top=node('div','journal-top',sheet),calendar=node('div','journal-calendar',top);node('p','journal-kicker',calendar,'A year of pulls');heatmap=node('canvas','journal-heatmap',calendar);heatmap.tabIndex=0;heatmap.setAttribute('role','button');heatHint=node('p','journal-chart-hint',calendar,'Choose a day to revisit.');heatHint.setAttribute('aria-live','polite');
     var stats=node('div','journal-stats',top);['Packs opened','Unique cards','Variants found','Current streak'].forEach(function(label){var el=node('div','journal-stat',stats),host=node('div','journal-stat-number',el),number=C.numbers.create(host);number.set(0,false);node('span','journal-kicker',el,label);tiles.push({el:el,number:number,label:label});});
     var growthHost=node('div','journal-growth',top);node('p','journal-kicker',growthHost,'Collection growth');chart=node('canvas','journal-growth-chart',growthHost);chart.tabIndex=0;chart.setAttribute('aria-label','Cumulative unique cards over time. Arrow keys explore days.');chartHint=node('p','journal-chart-hint',growthHost,'Each new card leaves a mark.');chartHint.setAttribute('aria-live','polite');
@@ -172,11 +170,16 @@
     heatmap.addEventListener('keydown',function(event){var delta={ArrowLeft:-7,ArrowRight:7,ArrowUp:-1,ArrowDown:1}[event.key];if(delta){event.preventDefault();event.stopPropagation();heatFocus=Math.max(0,Math.min(370,heatFocus+delta));heatInfo(heatFocus);drawHeat(1);}else if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();dayFilter(heatDays[heatFocus]);}});
     chart.addEventListener('pointermove',function(event){var r=chart.getBoundingClientRect();chartHover=Math.max(0,Math.min(1,(event.clientX-r.left)/r.width));drawGrowth();});chart.addEventListener('pointerleave',function(){chartHover=null;drawGrowth();});chart.addEventListener('keydown',function(event){if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();event.stopPropagation();chartHover=Math.max(0,Math.min(1,(chartHover||0)+(event.key==='ArrowLeft'?-1:1)/Math.max(1,growth.length-1)));drawGrowth();}});
     sheet.addEventListener('keydown',function(event){
-      if(event.key==='Tab'){event.preventDefault();var focusable=C.accessibility.focusables(sheet),index=focusable.indexOf(root.document.activeElement),next=(index+(event.shiftKey?-1:1)+focusable.length)%focusable.length;if(focusable[next])focusable[next].focus();}
-      else if(event.key==='Escape'){event.preventDefault();close();}else if(event.key==='/'&&!event.target.closest('input')){event.preventDefault();search.focus();}
+      if(event.key==='Escape'){event.preventDefault();C.inventory.request('peek');}else if(event.key==='/'&&!event.target.closest('input')){event.preventDefault();search.focus();}
       else if(!event.target.closest('input,select,textarea')&&['ArrowDown','ArrowUp','Home','End'].indexOf(event.key)>=0){event.preventDefault();var index=filtered.findIndex(function(e){return e.id===selected;});selectIndex(event.key==='Home'?0:event.key==='End'?filtered.length-1:Math.max(0,Math.min(filtered.length-1,index+(event.key==='ArrowDown'?1:-1))));}
-      event.stopPropagation();
+      if(event.defaultPrevented)event.stopPropagation();
     });
+    root.document.addEventListener('keydown',function(event){if(opened&&(event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='f'){event.preventDefault();event.stopImmediatePropagation();search.focus();}},true);
+    C.inventory.toolbar.tabs.addEventListener('click',function(event){if(opened&&event.target.closest('.inventory-tab-list, .inventory-unowned'))close(true);},true);
+    C.events.on('inventory:pageChanged',function(event){if(event.id!=='journal'&&opened)close(true);});
+    C.events.on('inventory:context',function(event){if((!event.active||event.detent==='peek')&&opened)close(true);else if(opened){layoutDirty=true;C.fx.wake();}});
+    C.events.on('inventory:modelChanged',function(){if(opened)updateTabs();});
+    if(root.ResizeObserver)new root.ResizeObserver(function(){layoutDirty=true;if(opened)C.fx.wake();}).observe(scroller);
     C.fx.subscribe(update,'journal');C.viewport.onResize(function(){layoutDirty=true;if(opened)C.fx.wake();});
     C.events.on('journal:changed',function(){textCache.clear();if(opened){prepareCharts();rebuild(false);}});
     C.events.on('save:willReplace',function(){backToJournal=false;close(true);textCache.clear();});C.events.on('save:willReset',function(){backToJournal=false;close(true);textCache.clear();});
@@ -201,7 +204,7 @@
   }
   C.journalView={show:show,close:close,get open(){return opened;}};
   C.detailActions.register('journal',cardHistory);
-  C.inventoryTabs.register('journal',function(host){var tab=button('History',host,function(){show({origin:tab});},'inventory-menu-option');tab.setAttribute('role','tab');tab.setAttribute('aria-selected','false');C.events.on('journal:context',function(event){tab.setAttribute('aria-selected',String(event.active));});});
+  C.inventoryTabs.register('journal',function(host){var tab=button('History',host,function(){show({origin:tab});},'inventory-menu-option inventory-journal-tab');tab.id='inventory-tab-journal';tab.setAttribute('role','tab');tab.setAttribute('aria-controls','inventory-journal');tab.setAttribute('aria-selected','false');C.events.on('journal:context',function(event){tab.setAttribute('aria-selected',String(event.active));});});
   C.contextMenu.register({target:'empty',build:function(){return [{id:'journal',type:'action',label:'History',icon:'timer',run:function(){show();}}];}});
   C.events.on('journal:request',show);C.events.on('app:ready',init);
 })(window.Cardable,window);

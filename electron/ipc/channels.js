@@ -29,6 +29,8 @@ const IPC_CHANNELS = {
   SYSTEM_OPEN_EXTERNAL: 'system:open-external',
   SYSTEM_GET_DIAGNOSTICS: 'system:get-diagnostics',
   SYSTEM_COPY_TEXT: 'system:copy-text',
+  QOL_CAPTURE: 'qol:capture',
+  QOL_SHOW_CAPTURE: 'qol:show-capture',
 
   // Storage / Persistence Sync
   STORAGE_BACKUP_SAVE: 'storage:backup-save',

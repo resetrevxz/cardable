@@ -9,4 +9,5 @@
   add('batterySaver','Battery saver','Auto temporarily lowers effects one tier on battery; your saved choices stay unchanged.','auto',['off','auto'],'select');
   add('alwaysOnTop','Always on top','Keeps Cardable above other windows.',false);
   add('taskbarProgress','Taskbar progress','Shows next-pack progress and a full bar when a pack is ready.',true);
+  add('focusModeDefault','Focus mode on launch','Keep only the pack and counter visible. H brings the interface back.',false);
 })(window.Cardable);

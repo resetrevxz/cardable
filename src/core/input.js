@@ -126,6 +126,7 @@
       C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
       C.events.on('contextmenu:open', function () { cancel('context-menu'); contextActive = true; });
       C.events.on('contextmenu:close', function () { contextActive = false; });
+      C.events.on('qol:context', function (event) { if(event.active)cancel('qol-tools');contextActive=event.active; });
       root.document.addEventListener('click', function (event) {
         if (event.button !== 0 || event.target.closest && event.target.closest('[data-context-menu]')) return;
         var x = event.clientX, y = event.clientY;

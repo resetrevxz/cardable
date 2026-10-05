@@ -77,3 +77,28 @@ that all physical window/monitor combinations were rendered.
 
 Unrelated journal/achievement edits, old spec deletions and untracked incoming
 spec directories were left in place and excluded from the final QoL commit.
+
+## Milestone C continuation
+
+Player commands use a data-driven registry and the developer palette's extracted
+shared glass surface and fuzzy matcher. Keyboard shortcuts have one descriptor
+registry; existing gameplay handlers remain the owners of their contextual keys.
+Collected cards are indexed by actual owned finish stacks, with name/tier/variant
+search. Sorts reuse the inventory toolbar's existing definitions. Save tools route
+through the existing preview/confirmation UI, never straight to a save replacement.
+Global dropping accepts one bounded JSON file and leaves validation to that flow.
+Persistent H focus mode retains the pack/counter; detail's existing H History key
+keeps ownership. Optional focus-on-launch is additive in Settings.
+
+Native captures have sender-validated narrow IPC, bounded card rectangles, fixed
+Pictures/Cardable output, opaque session IDs for revealing files and clipboard
+image support. Rounded/squircle corner clipping is best-effort; tilted/complex
+card silhouettes still need human image acceptance. Capture success emits the
+existing ui:screenshot event. No capture is executed under the no-screenshots rule.
+
+The latest request explicitly includes Card History in Electron: the pre-existing
+History tab implementation and its Achievements page-coordination fix are now
+included instead of preserved out of scope. History's timeline/charts remain intact.
+
+Controller input is optional and deferred. C runtime acceptance is deferred to
+the sole permitted launch/check at the end of D. No old test suite is run.

@@ -25,6 +25,8 @@ const IPC_CHANNELS = {
   SYSTEM_OPEN_EXTERNAL: 'system:open-external',
   SYSTEM_GET_DIAGNOSTICS: 'system:get-diagnostics',
   SYSTEM_COPY_TEXT: 'system:copy-text',
+  QOL_CAPTURE: 'qol:capture',
+  QOL_SHOW_CAPTURE: 'qol:show-capture',
   STORAGE_BACKUP_SAVE: 'storage:backup-save',
   STORAGE_GET_BACKUP: 'storage:get-backup',
   STORAGE_OPEN_SAVE_DIR: 'storage:open-save-dir',
@@ -99,6 +101,13 @@ const cardableDesktop = {
       return ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_COPY_TEXT, text);
     }
   },
+
+  capture: {
+    saveWindow: () => ipcRenderer.invoke(IPC_CHANNELS.QOL_CAPTURE, { kind: 'window' }),
+    card: (rect, copy = false) => ipcRenderer.invoke(IPC_CHANNELS.QOL_CAPTURE, { kind: 'card', rect, copy: copy === true }),
+    showInFolder: id => ipcRenderer.invoke(IPC_CHANNELS.QOL_SHOW_CAPTURE, id)
+  },
+
 
   storage: {
     backupSave: (jsonString) => {

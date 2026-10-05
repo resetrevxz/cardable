@@ -156,7 +156,7 @@
     C.inventory.toolbar.tabs.querySelectorAll('.inventory-tab-list [role="tab"]').forEach(function (b) { b.setAttribute('aria-selected', String(!opened && b.classList.contains('is-selected'))); });
   }
   function openPanel(id) {
-    if (!panel || root.document.hidden || C.opening.phase !== 'idle' || C.preferences.open || C.tutorial.active || C.detail.phase !== 'closed' || C.studio?.active || C.journalView?.open) return false;
+    if (!panel || root.document.hidden || C.opening.phase !== 'idle' || C.preferences.open || C.tutorial.active || C.detail.phase !== 'closed' || C.studio?.active) return false;
     if (showing) hide();
     C.inventory.request('full'); if (!C.inventory.open) return false;
     opened = true; overlay.hidden = false; overlay.inert = false;
@@ -174,7 +174,7 @@
   function closePanel() {
     if (!opened) return;
     closeDetail(false); opened = false; overlay.hidden = true; overlay.inert = true; activeDetail = null;
-    C.inventory.setPage(null); tiles = []; updateTab();
+    if (C.inventory.page === 'achievements') C.inventory.setPage(null); tiles = []; updateTab();
     C.events.emit('achievements:context', { active:false }); C.events.emit('menu:activity');
   }
   function highlight(host, def, kicker, emptyCopy) {

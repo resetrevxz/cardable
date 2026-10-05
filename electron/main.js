@@ -15,6 +15,8 @@ const { registerStorageHandlers } = require('./ipc/storage-handlers');
 const { registerLoggingHandlers } = require('./ipc/logging-handlers');
 const { registerUpdaterHandlers } = require('./ipc/updater-handlers');
 const { registerDiscordHandlers } = require('./ipc/discord-handlers');
+const { registerCaptureHandlers } = require('./ipc/capture-handlers');
+
 
 const smokeTest = process.argv.includes('--smoke-test');
 const qaTest = process.argv.includes('--qa-test');
@@ -83,6 +85,7 @@ if (!gotTheLock) {
     registerLoggingHandlers();
     registerUpdaterHandlers();
     registerDiscordHandlers();
+    registerCaptureHandlers();
 
     // Create Main Window
     const win = createMainWindow();

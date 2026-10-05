@@ -3,7 +3,7 @@
   var bindings = new Map();
   var battery = false, notice, noticeTimer, awake = false, studioActive = false, booted = false, nativeState = null;
   function nativeCall(promise) { return promise.catch(function (error) { root.console.warn('Desktop QoL unavailable:',error.message); }); }
-  function toast(text) { if (!notice) { notice=C.packMarkup.node('aside','qol-notice glass',root.document.body);notice.setAttribute('role','status'); } notice.textContent=text;notice.hidden=false;root.clearTimeout(noticeTimer);noticeTimer=root.setTimeout(function(){notice.hidden=true;},4000); }
+  function toast(text,action) { if (!notice) { notice=C.packMarkup.node('aside','qol-notice glass',C.viewport.parent(root.document.body));notice.setAttribute('role','status'); } notice.replaceChildren();C.packMarkup.node('span','',notice,text);if(action){var button=C.packMarkup.node('button','quiet-button',notice,action.label);button.type='button';button.addEventListener('click',function(){Promise.resolve().then(action.run).catch(function(){toast('Could not complete that action.');});});}notice.hidden=false;root.clearTimeout(noticeTimer);noticeTimer=root.setTimeout(function(){notice.hidden=true;},action?10000:4000); }
   function batteryPolicy() { var active=battery&&C.settings.get('batterySaver')==='auto',before=C.settings.batterySaving;C.settings.setBatterySaver(active);if(active&&!before)toast('Battery saver · effects reduced temporarily'); }
   function syncPack() { if(!C.native||!booted)return; var next=C.packs.upcoming(1)[0]; if(!next)return;nativeCall(C.native.window.setPack({packId:next.id,ready:C.state.current.packs.ready,progress:C.timers.progress(),countdown:C.timers.format(C.timers.remaining()),quality:C.settings.get('quality'),reduced:C.motion.reduced,canMini:C.opening.phase==='idle'&&!C.inventory.active&&!C.preferences.open&&!C.tutorial.active&&!studioActive&&!C.studioAlbumUI?.active&&!C.dev?.immersive})); }
   function syncAwake() { var value=studioActive||C.opening&&C.opening.phase==='rarityIntro';value=!!value&&!root.document.hidden&&(!nativeState||nativeState.visible);if(value===awake)return;awake=value;nativeCall(C.native.window.setAwake(value)); }
@@ -12,6 +12,7 @@
   function command(action) { if(action.indexOf('scale-')===0){C.qol.adjustScale(action);return;}if(action==='inventory')C.inventory.request(true);else if(action==='settings')C.preferences.show();else if(action==='saves')nativeCall(C.native.storage.openSaveDir());else if(action==='open-pack'){root.requestAnimationFrame(function(){if(C.opening.phase==='idle'&&!root.document.hidden)C.input.chargeStart();});} }
   C.keybindings = { entries:bindings, register:function(item){if(bindings.has(item.binding))throw new Error('Duplicate keybinding: '+item.binding);bindings.set(item.binding,item);return item;} };
   C.qol = {
+    toast:toast,
     get fullscreen(){return !!nativeState&&nativeState.fullscreen;},
     // Shared with the existing developer palette; no second matcher.
     fuzzyScore:function(query,text){query=query.toLowerCase().replace(/\s/g,'');text=text.toLowerCase();if(!query)return 1;var index=-1,value=0;for(var i=0;i<query.length;i++){var next=text.indexOf(query[i],index+1);if(next<0)return 0;value+=next===index+1?5:1;index=next;}return value+100/(1+text.length);},

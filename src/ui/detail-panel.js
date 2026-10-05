@@ -100,7 +100,7 @@
     }
     var actions = item(node('div', 'detail-actions detail-action-row', host), 3), extensionHost = node('div', 'detail-extension-actions', host);
     extensionHost.hidden = true;
-    C.detailActions.render(extensionHost, { entry: entry, panel: history, preview: context.preview, historyHost: history, onHistoryOpen: function (fn) { historyOpen = fn; } });
+    C.detailActions.render(extensionHost, { entry: entry, panel: history, preview: context.preview, historyHost: history, dismiss: function(){dismiss(false);}, onHistoryOpen: function (fn) { historyOpen = fn; } });
     var inspect = extensionHost.querySelector('.studio-inspect-action');
     if (inspect) { actions.appendChild(inspect); inspect.dataset.tooltip = 'Inspect · I'; inspect.title = 'Inspect · I'; inspect.setAttribute('aria-keyshortcuts', 'I'); }
     else { inspect = button(actions, 'Inspect', null, 'studio-inspect-action'); inspect.disabled = true; inspect.title = 'Collect this card to inspect it'; }
