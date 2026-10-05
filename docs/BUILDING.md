@@ -2,6 +2,13 @@
 
 Use Node.js 24 LTS with npm. From the repository root:
 
+For completed implementation/documentation prompts use `npm run deliver:desktop`.
+It builds isolated Windows artifacts, validates them, preserves the stable preview
+origin and hands off Cardable (Latest Build) with transactional rollback and owned
+cleanup. See [DESKTOP-DELIVERY.md](DESKTOP-DELIVERY.md). It does not install or launch
+the app. The current 4.2.0 policy in [PROMPTING.md](PROMPTING.md) restricts testing;
+the historical test commands below are not authorization to run them for A–D.
+
 1. `npm ci` installs the lockfile and Electron binary.
 2. `npm run electron:dev` launches development with F12 DevTools.
 3. `npm test` runs assets, service tests and isolated Electron smoke tests.

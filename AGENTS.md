@@ -36,3 +36,10 @@ Cardable is a local, offline, single-player HTML game. Players collect GPU cards
 ## Where things go
 
 See `docs/ARCHITECTURE.md` for the file tree, registries, events, and the recipes for adding a card, rarity, pack, generation or finish.
+
+## Completed-prompt delivery
+
+- At the end of every completed change/implementation prompt, including approved documentation changes, run `npm run deliver:desktop` once and report the installer, Cardable (Latest Build) shortcut and cleanup/pending handoff. See `docs/DESKTOP-DELIVERY.md` and `docs/PROMPTING.md`.
+- Read-only questions/status requests and internal agent steps do not trigger a rebuild. Explicit user instructions to skip or narrow delivery take precedence.
+- This is a completion protocol, not an OS/chat event hook. Do not add cron, a polling service or a watcher; do not automatically install or launch the delivered app.
+- Preserve the last good delivery on failure or interruption. Do not force-close Cardable or delete old delivery to meet a budget. Do not bump the app version on every prompt; use the delivery build ID.

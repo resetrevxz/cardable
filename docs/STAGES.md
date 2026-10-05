@@ -122,3 +122,11 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 - Remove the layout feedback loop and redundant native work; preserve real resize, scaling, visibility and refill.
 - Apply independent graphics choices in Mini and verify all four presets in Electron.
 - **Accept:** desktop optimization checks, current browser graphics/inventory regressions, sequential native profiles, release/package validation and native smoke/regression checks.
+
+## Stage 17 - Desktop delivery 4.2.0 milestone A
+
+**Docs:** alpha-updates/4.2.0-cleanup/SPEC.md, DESKTOP-DELIVERY, BUILDING, PROMPTING.
+
+- Implement one-command isolated delivery, stable preview/shortcut, transactional rollback and manifest-owned cleanup.
+- A completed; B (installer), C (help) and D (documentation/archive cleanup) require separate continuation.
+- **Accept:** build/hash/config/handoff validation and one app opening; follow the current spec's restricted testing policy. Evidence: alpha-updates/4.2.0-cleanup/A-DELIVERY.md.
