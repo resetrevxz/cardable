@@ -5,7 +5,8 @@ the existing Node/Electron development dependencies are required for building;
 players only need the resulting offline installer. This command never installs,
 launches, publishes, elevates, kills Cardable or changes the game/save schema.
 Milestone B adds the one-click per-user installer and [player guide](../PLAY.md).
-Milestones C–D (helpful setup and documentation consolidation) remain pending.
+Milestone C adds bundled Settings/palette help and explicit recovery choices.
+Milestone D (documentation consolidation and final version) remains pending.
 The app remains 4.1.1 until the
 authorized 4.2.0 milestones finish; each delivery has a unique build ID.
 

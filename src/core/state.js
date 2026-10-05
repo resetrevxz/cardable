@@ -157,6 +157,11 @@
     if (root.console) root.console.info('Cardable: local storage is unavailable; changes are kept in memory for this session.');
     C.events.emit('save:unavailable');
   }
+  function preserveOriginal(store, raw) {
+    var key = C.config.storage.key + '.corrupt', suffix = 0;
+    while (store.getItem(key) && store.getItem(key) !== raw) key = C.config.storage.key + '.corrupt.' + (++suffix);
+    store.setItem(key, raw);
+  }
   C.state = {
     current: null,
     setStorageContext: function (key) {
@@ -170,6 +175,7 @@
     get persistenceAvailable() { return !cache.unavailable; },
     noticeShown: false,
     recovery: null,
+    preserveOriginal: preserveOriginal,
     fresh: freshState,
     migrate: migrate,
     validate: validate,
@@ -180,20 +186,28 @@
     },
     // Opening is irrevocable only after this single durable write succeeds.
     // Ordinary saves keep their existing session-only fallback.
-    commit: function (candidate) {
+    commit: function (candidate, options) {
+      var recovery = C.state.recovery;
+      if (C.bootFailure || recovery && recovery.pending && !(options && options.recovery)) return false;
       try {
         var store = root.localStorage;
         if (!store) return false;
+        if (recovery && recovery.pending && recovery.reason === 'storage-read') recovery.raw = store.getItem(C.config.storage.key);
+        if (recovery && recovery.pending && recovery.raw && !recovery.backedUp) {
+          preserveOriginal(store, recovery.raw); recovery.backedUp = true;
+        }
         if (C.state.beforeWrite) C.state.beforeWrite(candidate);
         var json = C.state.encode(candidate);
         store.setItem(C.config.storage.key, json);
       } catch (_) { return false; }
       cache.written(json);
       C.state.current = candidate;
+      if (recovery && recovery.pending) C.state.recovery = null;
       C.events.emit('save:written', candidate);
       return true;
     },
     save: function () {
+      if (C.bootFailure || C.state.recovery && C.state.recovery.pending) return C.state.current;
       if (!C.state.current) C.state.current = freshState();
       if (C.state.beforeWrite) C.state.beforeWrite(C.state.current);
       var json = C.state.encode(C.state.current);
@@ -209,7 +223,7 @@
       var raw = null, store = storage();
       if (store) {
         try { raw = store.getItem(C.config.storage.key); }
-        catch (_) { cache.unavailable = true; raw = cache.memory; notifyUnavailable(); }
+        catch (_) { cache.unavailable = true; raw = cache.memory; C.state.recovery = { pending: true, raw: null, reason: 'storage-read' }; notifyUnavailable(); }
       } else { cache.unavailable = true; raw = cache.memory; notifyUnavailable(); }
       if (cache.unavailable && cache.memory !== null) raw = cache.memory;
       if (!raw) C.state.current = freshState(now);
@@ -218,15 +232,17 @@
         catch (error) {
           var backedUp = false;
           if (store) {
-            try { store.setItem(C.config.storage.key + '.corrupt', raw); backedUp = true; }
+            try { preserveOriginal(store, raw); backedUp = true; }
             catch (_) { cache.unavailable = true; }
           } else cache.memory = null;
-          if (root.console) root.console.warn('Cardable: invalid save backed up and replaced.', error);
+          if (root.console) root.console.warn('Cardable: unreadable save retained; recovery choice required.', error);
           C.state.current = freshState(now);
-          C.state.recovery = { backedUp: backedUp, raw: raw };
+          C.state.recovery = { pending: true, backedUp: backedUp, raw: raw, reason: 'invalid-save' };
         }
       }
+      if (!C.state.recovery && C.config.storage.key === 'cardable.save' && C.desktop && C.desktop.startupRecovery) C.state.recovery = C.desktop.startupRecovery;
       C.state.save();
+      if (C.state.recovery && C.state.recovery.pending) C.events.emit('save:recovery');
       return C.state.current;
     },
     reset: function () {

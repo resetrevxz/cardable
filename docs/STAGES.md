@@ -139,3 +139,12 @@ Suggested model use: Sol at high reasoning for stages 2, 3, 5 and 7; Luna for st
 - Supported include for manual app closing and legacy path review; player install/backup guide.
 - A and B implemented; C (help) and D (documentation/archive cleanup) require separate continuation.
 - **Accept:** installed-builder config/template validation, final delivery and one source-app opening under the restricted policy. Installer execution remains unverified. Evidence: alpha-updates/4.2.0-cleanup/B-DELIVERY.md.
+
+## Stage 19 - Player help and recovery 4.2.0 milestone C
+
+**Docs:** alpha-updates/4.2.0-cleanup/SPEC.md, PLAY, ARCHITECTURE, PROMPTING, DESKTOP-DELIVERY.
+
+- Start playing / optional browser import; locally bundled Settings and palette help.
+- Explicit save recovery, retained originals and startup/storage guidance; browser/native boundaries.
+- A, B and C implemented; D (documentation/archive audit and final version) requires separate continuation.
+- **Accept:** one app session and the existing checkQol once (23/23), then delivery validation. Carry reduced-mode probe and native/browser/relaunch gaps forward. Evidence: alpha-updates/4.2.0-cleanup/C-DELIVERY.md.

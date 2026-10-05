@@ -47,8 +47,8 @@
       context();
       // Local backups follow load's catalog compatibility; external imports stay strict.
       var candidate = C.state.validate(clone(next), kind === 'import'), before = clone(adapter.current());
-      backup(before);
-      if (!adapter.commit(candidate)) throw new Error('Could not save the change. Your current progress is unchanged.');
+      if (!adapter.recovering || !adapter.recovering()) backup(before);
+      if (!adapter.commit(candidate, kind)) throw new Error('Could not save the change. Your current progress is unchanged.');
       undo = record === false ? null : { kind: kind, before: before, expiresAt: adapter.now() + 15000 };
       if (adapter.replaced) adapter.replaced(kind, candidate); notify(); return candidate;
     }
@@ -76,7 +76,8 @@
     };
   }
   C.saveTools = create({ current: function () { return C.state.current; }, now: function () { return Date.now(); }, storage: function () { return root.localStorage; },
-    commit: function (value) { return C.state.commit(value); }, sessionSave: function (value) { C.state.current = value; C.state.save(); },
+    recovering: function () { return !!(C.state.recovery && C.state.recovery.pending); },
+    commit: function (value, kind) { return C.state.commit(value, { recovery: ['import', 'restore', 'reset'].indexOf(kind) !== -1 }); }, sessionSave: function (value) { C.state.current = value; C.state.save(); },
     replaced: function (kind) { if (kind === 'reset') C.events.emit('save:willReset'); C.events.emit('save:willReplace'); C.events.emit('save:replaced', C.state.current); },
     replayed: function () { C.events.emit('tutorial:replay'); }, changed: function () { C.events.emit('data:changed'); } });
   C.saveTools.create = create; C.saveTools.checksum = checksum; C.saveTools.envelope = envelope; C.saveTools.parse = parse; C.saveTools.summary = summary;

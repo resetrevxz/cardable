@@ -198,12 +198,18 @@
   <script src="src/ui/journal.js"></script>
   <script src="src/ui/achievements.js"></script>
   <script src="src/ui/desktop-tools.js"></script>
+  <script src="src/data/player-help.js"></script>
   <script src="src/ui/desktop-friendly.js"></script>
   <script src="src/studio/entry.js"></script>
   <script src="src/boot.js"></script>
   <script>
     function startCardable() {
-      Promise.resolve(Cardable.desktop && Cardable.desktop.prepare ? Cardable.desktop.prepare() : false).then(function () { Cardable.boot(); });
+      Promise.resolve().then(function () { return Cardable.desktop && Cardable.desktop.prepare ? Cardable.desktop.prepare() : false; }).then(function () { Cardable.boot(); }).catch(function (error) {
+        Cardable.bootFailure = true;
+        if (Cardable.friendly) Cardable.friendly.showStartupFailure();
+        else { var message = document.createElement('p'); message.className = 'save-notice glass'; message.setAttribute('role', 'alert'); message.textContent = 'Cardable could not start. Keep your original files and saves; do not reset or delete your profile. Close this window and ask the supplier for a complete build.'; document.body.appendChild(message); }
+        console.error('Cardable startup failed:', error);
+      });
     }
     if (new URLSearchParams(location.search).get('dev') === '1') {
       var developerLoader = document.createElement('script');

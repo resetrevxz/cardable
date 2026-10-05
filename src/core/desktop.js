@@ -16,8 +16,13 @@
 
   function backupCurrent() {
     if (!desktop || !primaryStorage() || !C.state || !C.state.current) return Promise.resolve(false);
-    try { return desktop.storage.backupSave(C.state.encode(C.state.current)); }
-    catch (_) { return Promise.resolve(false); }
+    if (C.bootFailure || C.state.recovery && C.state.recovery.pending) return Promise.resolve({success:true,preserved:true});
+    try { return desktop.storage.backupSave(C.state.encode(C.state.current)).then(function(result){
+      if (!result || !result.success) { C.desktop.storageIssue = true; C.events.emit('desktop:storageError'); }
+      else if (C.desktop.storageIssue) { C.desktop.storageIssue = false; C.events.emit('desktop:storageRecovered'); }
+      return result;
+    }).catch(function(){C.desktop.storageIssue=true;C.events.emit('desktop:storageError');return false;}); }
+    catch (_) { C.desktop.storageIssue=true;C.events.emit('desktop:storageError');return Promise.resolve(false); }
   }
 
   C.desktop = {
@@ -37,14 +42,18 @@
           catch (_) { /* Preserve corrupt primary data before recovering a valid mirror. */ }
         }
         return desktop.storage.getBackup().then(function (result) {
+          if (result && result.error) { C.desktop.startupRecovery={pending:true,reason:'native-backup',raw:result.data||null,backedUp:!!result.originalPreserved}; return false; }
           if (!result || !result.exists || !result.data) return false;
-          var candidate = C.state.validate(JSON.parse(result.data), false);
-          if (existing) store.setItem(C.config.storage.key + '.corrupt', existing);
+          var candidate;
+          try { candidate = C.state.validate(JSON.parse(result.data), false); }
+          catch (_) { C.desktop.startupRecovery={pending:true,reason:'native-backup',raw:result.data,backedUp:!!result.originalPreserved}; return false; }
+          if (existing) C.state.preserveOriginal(store, existing);
           store.setItem(C.config.storage.key, JSON.stringify(candidate));
           if (root.console) root.console.info('Cardable: Restored save from desktop userData before boot.');
           return true;
         });
       }).catch(function (error) {
+        C.desktop.storageIssue = true;
         if (root.console) root.console.warn('Cardable: Desktop backup recovery was unavailable.', error);
         return false;
       }).then(function (restored) {
@@ -85,6 +94,7 @@
 
       // 3. Native close handshake: flush the primary save and wait for disk backup.
       if (desktop.lifecycle) desktop.lifecycle.onPrepareClose(function () {
+        if (C.bootFailure || C.state.recovery && C.state.recovery.pending) { desktop.lifecycle.closeReady(true); return; }
         var saved = true;
         try { if (C.state) { C.state.save(); saved = C.state.persistenceAvailable; } } catch (_) { saved = false; }
         backupCurrent().catch(function () { return false; }).then(function (result) {

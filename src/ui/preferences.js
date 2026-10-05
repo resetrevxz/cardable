@@ -43,15 +43,23 @@
   }
   function recoverNotice() {
     var recovery = C.state.recovery; if (!recovery) return;
+    if (C.preferences.notice) C.preferences.notice.remove();
     var notice = node('aside', 'save-notice glass', root.document.body); notice.setAttribute('aria-label', 'Save recovery');
-    var copy = node('p', '', notice, recovery.backedUp ? 'Your save could not be read. A backup was kept and a fresh save is ready.' : 'Your save could not be read. A fresh save is ready. Download the unreadable file to keep a copy.'); copy.setAttribute('role', 'status');
-    var actions = node('div', 'save-notice-actions', notice); button('Download backup', actions, C.saveFiles.exportBackup);
-    button('Dismiss', actions, function () { notice.remove(); C.preferences.notice = null; C.state.recovery = null; C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: false }); });
+    var copy = node('p', '', notice, 'Your save or desktop backup could not be read. Originals are kept and saving is paused. Import a known backup, restore a previous save, or explicitly choose a new collection. Studio photos stay separate.'); copy.setAttribute('role', 'alert');
+    var actions = node('div', 'save-notice-actions', notice);
+    if (recovery.raw) button('Download original', actions, C.saveFiles.exportBackup);
+    button('Import backup', actions, function () { C.desktopTools.openData('input'); });
+    if (C.saveTools.previous()) button('Restore previous save…', actions, function () { C.desktopTools.openData('restore'); });
+    button('Choose a new collection…', actions, function () { C.preferences.show(); if(C.preferences.open){var reset=C.settingsData.current.reset;reset.scrollIntoView({block:'center'});reset.focus();announce('Hold Reset save for three seconds to confirm a new collection. Originals are kept.');} });
+    button('Recovery help', actions, function () { C.friendly.showHelp('saves'); });
+    if(C.native)button('Open saves folder',actions,function(){C.desktop.openSaveDirectory().then(function(ok){if(!ok)copy.textContent='Could not open saves. Originals remain; use Recovery help or download the original.';}).catch(function(){copy.textContent='Could not open saves. Originals remain; use Recovery help.';});});
     C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: true }); C.preferences.notice = notice;
   }
   function storageNotice() {
-    if (!C.state.noticeShown || C.preferences.notice) return;
-    var notice = node('aside', 'save-notice glass', root.document.body); var copy = node('p', '', notice, 'Your browser is blocking saving. Changes last for this session only.'); copy.setAttribute('role', 'status');
+    if ((!C.state.noticeShown && !C.desktop.storageIssue) || C.preferences.notice) return;
+    var notice = node('aside', 'save-notice glass', root.document.body); var copy = node('p', '', notice, C.desktop.storageIssue ? 'Desktop backup is unavailable. Keep the original backups and export your current collection before closing. Local saving may still work.' : 'Saving is unavailable. Changes last for this session only. Export this session before closing; keep your original files.'); copy.setAttribute('role', 'status');
+    button('Export save', notice, function () { C.desktopTools.openData('exportButton'); });
+    button('Recovery help', notice, function () { C.friendly.showHelp('saves'); });
     button('Dismiss', notice, function () { notice.remove(); C.preferences.notice = null; }); C.preferences.notice = notice;
   }
   C.preferences = {
@@ -95,6 +103,8 @@
       C.preferences.data = C.settingsData.create(groups.Data, { close: close, announce: announce });
       var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
       if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(groups.About, { close: close, announce: announce });
+      button('How to play', groups.About, function () { C.friendly.showHelp(); });
+      if (C.native) button('Desktop help', groups.About, function () { C.friendly.showHelp('desktop'); });
       button('Credits and licenses', groups.About, function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
       credits = node('section', 'settings-credits glass', panel); credits.hidden = true; credits.setAttribute('role', 'dialog'); credits.setAttribute('aria-modal', 'true'); credits.setAttribute('aria-label', 'Credits and licenses');
       node('h2', '', credits, 'Credits and licenses'); node('p', '', credits, 'Inter — Rasmus Andersson. JetBrains Mono — JetBrains. Both fonts use the SIL Open Font License 1.1.');
@@ -159,7 +169,7 @@
         return moving;
       }, 'settings');
       C.preferences.el = overlay; C.preferences.panel = panel; C.preferences.gear = gear; C.preferences.feedback = feedback; C.preferences.controls = controls; C.preferences.defaults = defaults; C.preferences.undo = undoButton; C.preferences.confirmation = confirmation; C.preferences.credits = credits; C.preferences.nudge = nudge;
-      enabled(); recoverNotice(); storageNotice(); C.events.on('save:unavailable', storageNotice);
+      enabled(); recoverNotice(); storageNotice(); C.events.on('save:recovery', recoverNotice); C.events.on('save:unavailable', storageNotice); C.events.on('desktop:storageError', storageNotice);
     }
   };
 })(window.Cardable, window);

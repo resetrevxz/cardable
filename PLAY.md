@@ -69,3 +69,18 @@ not restore Studio photo blobs.
 
 Developer build commands are in [BUILDING](docs/BUILDING.md). Hosting, signing and
 release procedures are in [RELEASING](docs/RELEASING.md).
+
+## Help inside the game
+
+Open **Settings → About → How to play** or **Desktop help**. You can also find
+both in the **Ctrl/Cmd+K** command palette. Help is bundled and works offline;
+browser play shows the relevant controls and saving guidance without desktop
+folder or restart buttons. **F1** lists shortcuts.
+
+If Cardable finds an unreadable save, it keeps the original and pauses saving and
+pack opening. **Import backup** shows the normal preview/confirmation. You can
+also restore a readable previous save or explicitly confirm a new collection
+using the existing three-second Reset save hold. Download the original when
+offered; do not delete it to get past recovery. Native recovery originals are
+kept separately from rolling backups in the saves folder. Studio photos remain
+separate from every JSON recovery/export.

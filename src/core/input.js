@@ -39,7 +39,7 @@
         if (gesture && gesture.capture && gesture.capture.hasPointerCapture(gesture.id)) gesture.capture.releasePointerCapture(gesture.id);
       });
     },
-    chargeStart: function () { if (!preferencesActive && !inventoryActive && !contextActive) C.events.emit('input:chargeStart'); },
+    chargeStart: function () { if (C.bootFailure || C.state.recovery && C.state.recovery.pending) { C.qol.toast('Choose a recovery action before opening a pack. Your original save is kept.'); return; } if (!preferencesActive && !inventoryActive && !contextActive) C.events.emit('input:chargeStart'); },
     chargeEnd: function () { C.events.emit('input:chargeEnd'); },
     cutMove: function (event) { C.events.emit('input:cutMove', event); },
     keep: function () { if (!preferencesActive && !spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:keep'); },

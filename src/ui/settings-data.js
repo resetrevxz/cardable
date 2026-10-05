@@ -13,6 +13,7 @@
         finally { busy = false; refresh(); }
       }
       var exportButton = button('Export save', host, function () {
+        if (C.state.recovery && C.state.recovery.pending) { message('Recovery is pending. Download the original from the recovery notice, then import or restore before exporting a collection.'); return; }
         if (exportAge !== null) return;
         try { exportText = C.saveTools.exportText(); exportAge = 0; exportButton.disabled = true; exportButton.classList.add('is-exporting'); exportButton.textContent = 'Exporting'; C.fx.wake(); }
         catch (error) { message(error.message); }

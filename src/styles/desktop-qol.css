@@ -55,6 +55,17 @@ body.qol-shutter::after { content:''; position:fixed; inset:0; z-index:200; poin
 .qol-friendly h2 { margin:0 0 var(--s-4); font:600 24px var(--font-ui); letter-spacing:-.02em; }
 .qol-friendly :is(p,li) { font:14px/1.6 var(--font-ui); color:var(--text-dim); overflow-wrap:anywhere; }
 .qol-friendly .quiet-button { margin:var(--s-2) var(--s-2) 0 0; }
+.qol-friendly .qol-primary { background:var(--text); color:var(--bg); }
+.qol-help-header { position:sticky; top:0; background:var(--surface); padding:var(--s-3); border-radius:var(--r-button); display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--s-2); z-index:1; }
+.qol-help-header h2 { margin:0; }
+.qol-help-header .quiet-button { margin:0; }
+.qol-help-topic { border-bottom:1px solid var(--hairline); padding:var(--s-3) 0; }
+.qol-help-topic summary { cursor:pointer; color:var(--text); font:500 14px/1.6 var(--font-ui); min-height:44px; display:list-item; }
+.qol-help-topic summary:hover { color:var(--highlight); }
+.qol-help-topic summary:focus-visible { outline:1px solid var(--highlight); outline-offset:4px; border-radius:var(--r-button); }
+.save-notice { max-height:calc(var(--layout-height,100vh) * .8); overflow:auto; box-sizing:border-box; }
+.save-notice-actions { flex-wrap:wrap; }
+.save-notice .quiet-button { min-height:44px; }
 .qol-changelog h2 { margin-top:var(--s-4); font-size:18px; }
 .qol-changelog h3 { font:500 11px var(--font-mono); color:var(--text-dim); text-transform:uppercase; margin-top:var(--s-5); }
 .qol-away-countdown { font-family:var(--font-mono) !important; }

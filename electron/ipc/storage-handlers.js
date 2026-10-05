@@ -9,6 +9,16 @@ const { registerSecureHandler } = require('./security');
 function registerStorageHandlers() {
   const saveDir = path.join(app.getPath('userData'), 'saves');
   const saveFile = path.join(saveDir, desktopConfig.storage.backupFileName);
+  let recoveryOriginal = null;
+  let recoveryReadFailed = false;
+  function preserveOriginal(bytes) {
+    const recoveryDir = path.join(saveDir, 'recovery');
+    fs.mkdirSync(recoveryDir, {recursive:true});
+    const digest = require('crypto').createHash('sha256').update(bytes).digest('hex');
+    const original = path.join(recoveryDir, `original-${digest}.json`);
+    try { fs.writeFileSync(original, bytes, {flag:'wx'}); }
+    catch (error) { if (error.code !== 'EEXIST' || !fs.readFileSync(original).equals(bytes)) throw error; }
+  }
 
   if (!fs.existsSync(saveDir)) {
     try {
@@ -35,6 +45,9 @@ function registerStorageHandlers() {
       }
 
       // Write atomically via temporary file
+      if (recoveryReadFailed && fs.existsSync(saveFile)) recoveryOriginal = fs.readFileSync(saveFile);
+      if (recoveryOriginal) { preserveOriginal(recoveryOriginal); recoveryOriginal = null; }
+      recoveryReadFailed = false;
       const tempFile = saveFile + '.tmp';
       fs.writeFileSync(tempFile, saveJson, 'utf8');
       fs.renameSync(tempFile, saveFile);
@@ -63,11 +76,18 @@ function registerStorageHandlers() {
   registerSecureHandler(IPC_CHANNELS.STORAGE_GET_BACKUP, async () => {
     try {
       if (fs.existsSync(saveFile)) {
-        const content = fs.readFileSync(saveFile, 'utf8');
-        return { exists: true, data: content };
+        const bytes = fs.readFileSync(saveFile), content = bytes.toString('utf8'); recoveryReadFailed = false;
+        // Retain the bytes consulted for recovery before renderer validation or
+        // later writes can replace the mirror. Hash naming deduplicates reads;
+        // these originals are separate from the rolling backup pruning policy.
+        try {
+          recoveryOriginal = bytes; preserveOriginal(bytes); recoveryOriginal = null;
+          return { exists: true, data: content, originalPreserved: true };
+        } catch (error) { return {exists:true,data:content,originalPreserved:false,error:'Could not preserve the recovery original.'}; }
       }
       return { exists: false, data: null };
     } catch (e) {
+      recoveryReadFailed = true;
       logger.error('Failed to read save backup from userData:', e.message);
       return { exists: false, error: e.message };
     }

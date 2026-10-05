@@ -1,4 +1,4 @@
-const { BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, dialog } = require('electron');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const desktopConfig = require('../config/desktop-config');
@@ -64,9 +64,19 @@ function createMainWindow() {
   // Load the application
   const appHtml = path.join(__dirname, '../../index.html');
   const loadOptions = process.argv.includes('--smoke-dev-workspace') || process.argv.includes('--qa-dev-workspace') ? { query: { dev: '1' } } : undefined;
-  win.loadFile(appHtml, loadOptions).catch(err => {
+  win.loadFile(appHtml, loadOptions).catch(async err => {
     logger.error('Failed to load index.html:', err);
-  });
+    if(win.isDestroyed())return;
+    win.show();
+    let detail='Keep the original app files and player profile. Setup has not reset your collection. Ask the supplier for a complete build if files are missing.';
+    while(!win.isDestroyed()){
+      const choice=await dialog.showMessageBox(win,{type:'error',title:'Cardable startup recovery',message:'Cardable could not load its game files.',detail,buttons:['Close Cardable','Open saves folder','Open logs folder'],defaultId:0,cancelId:0,noLink:true});
+      if(choice.response===0){gracefulShutdown.approve(win);isQuitting=true;app.quit();break;}
+      const folder=choice.response===1?path.join(app.getPath('userData'),'saves'):path.dirname(logger.getLogPath());
+      try { const failure=await shell.openPath(folder);detail=failure?'Could not open that folder. Keep your original files and ask the supplier for help.':'The folder was opened. Keep the original files and ask the supplier for a complete build.'; }
+      catch(_){detail='Could not open that folder. Keep the original files and ask the supplier for help.';}
+    }
+  }).catch(err=>logger.error('Could not show startup recovery:',err.message));
 
   // Restrict navigation: never leave the local application
   const expectedUrl = pathToFileURL(appHtml);
