@@ -67,6 +67,7 @@ class Logger {
 
     if (!this.initialized || !this.logFile) return;
     try {
+      this.rotateIfNeeded();
       fs.appendFileSync(this.logFile, line, 'utf8');
     } catch (e) {
       console.error('Failed to write log to file:', e);
@@ -84,8 +85,7 @@ class Logger {
 
   async openLogFolder() {
     if (this.logDir && fs.existsSync(this.logDir)) {
-      await shell.openPath(this.logDir);
-      return true;
+      return !(await shell.openPath(this.logDir));
     }
     return false;
   }

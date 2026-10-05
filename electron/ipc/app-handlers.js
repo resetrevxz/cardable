@@ -33,8 +33,8 @@ function registerAppHandlers() {
     return true;
   });
 
-  registerSecureHandler(IPC_CHANNELS.APP_CLOSE_READY, (event) => {
-    return gracefulShutdown.acknowledge(event);
+  registerSecureHandler(IPC_CHANNELS.APP_CLOSE_READY, (event, success) => {
+    return gracefulShutdown.acknowledge(event, success === true);
   });
 }
 

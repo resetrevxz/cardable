@@ -1,64 +1,26 @@
-/**
- * Discord RPC Service Boundary
- *
- * NOTE: Per explicit project instructions, actual Discord Rich Presence connection
- * is DEFERRED for this release. This module provides the architectural service boundary,
- * clean type-safe interfaces, and logging so that the Discord integration can be activated
- * later without restructuring Cardable's Electron architecture.
- *
- * See docs/DISCORD_RPC.md for complete integration instructions.
- */
-
+const { app, BrowserWindow } = require('electron');
+const fs = require('fs');
+const path = require('path');
+const RPC = require('discord-rpc');
 const logger = require('../logging/logger');
-
-class DiscordRpcService {
-  constructor() {
-    this.enabled = false;
-    this.connected = false;
-    this.currentPresence = null;
-    this.clientId = null;
-  }
-
-  init(clientId = null) {
-    this.clientId = clientId;
-    logger.info('Discord RPC Service initialized (Status: DEFERRED / Boundary Ready)');
-  }
-
-  setEnabled(enabled) {
-    this.enabled = !!enabled;
-    if (!this.enabled) {
-      this.clearPresence();
-    }
-  }
-
-  setPresence(presence = {}) {
-    if (!this.enabled) return;
-    this.currentPresence = presence;
-    // Log presence update at debug level
-    logger.debug('Discord presence updated (simulated):', presence);
-  }
-
-  clearPresence() {
-    this.currentPresence = null;
-    logger.debug('Discord presence cleared');
-  }
-
-  getStatus() {
-    return {
-      available: false,
-      connected: this.connected,
-      enabled: this.enabled,
-      deferred: true,
-      currentPresence: this.currentPresence,
-      message: 'Discord Rich Presence is deferred. Architectural boundary is active.'
-    };
-  }
-
-  destroy() {
-    this.clearPresence();
-    this.connected = false;
-  }
-}
-
-const discordService = new DiscordRpcService();
-module.exports = discordService;
+const { DiscordRpcService } = require('./service');
+const { IPC_CHANNELS } = require('../ipc/channels');
+function settingsPath() { return path.join(app.getPath('userData'), 'desktop-settings.json'); }
+const service = new DiscordRpcService({
+  createClient: () => new RPC.Client({ transport: 'ipc' }), logger,
+  persist: enabled => {
+    const target = settingsPath();
+    fs.writeFileSync(target + '.tmp', JSON.stringify({ discordEnabled: enabled }), 'utf8');
+    fs.renameSync(target + '.tmp', target);
+  },
+  changed: status => BrowserWindow.getAllWindows().forEach(win => win.webContents.send(IPC_CHANNELS.DISCORD_STATUS_CHANGED, status))
+});
+const init = service.init.bind(service);
+service.init = () => {
+  const metadata = require('../../package.json').cardableDesktop || {};
+  let enabled = false;
+  try { enabled = JSON.parse(fs.readFileSync(settingsPath(), 'utf8')).discordEnabled === true; } catch (_) {}
+  init(metadata.discordApplicationId, enabled, metadata.discordImageKey);
+  logger.info(`Discord RPC: ${service.getStatus().state}`);
+};
+module.exports = service;

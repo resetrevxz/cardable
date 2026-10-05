@@ -15,7 +15,7 @@
 
   function backupCurrent() {
     if (!desktop || !primaryStorage() || !C.state || !C.state.current) return Promise.resolve(false);
-    try { return desktop.storage.backupSave(JSON.stringify(C.state.current)); }
+    try { return desktop.storage.backupSave(C.state.encode(C.state.current)); }
     catch (_) { return Promise.resolve(false); }
   }
 
@@ -76,11 +76,25 @@
 
       // 3. Native close handshake: flush the primary save and wait for disk backup.
       if (desktop.lifecycle) desktop.lifecycle.onPrepareClose(function () {
-        try { if (C.state && primaryStorage()) C.state.save(); } catch (_) {}
-        backupCurrent().catch(function () { return false; }).then(function () {
-          desktop.lifecycle.closeReady();
+        var saved = true;
+        try { if (C.state) { C.state.save(); saved = C.state.persistenceAvailable; } } catch (_) { saved = false; }
+        backupCurrent().catch(function () { return false; }).then(function (result) {
+          desktop.lifecycle.closeReady(saved && (!primaryStorage() || !!(result && result.success)));
         });
       });
+
+      // Only broad screen names cross the RPC boundary, never player/card data.
+      var contexts = { opening: false, inventory: false, detail: false, creator: false };
+      function presence() {
+        var screen = contexts.creator ? 'creator' : contexts.opening ? 'opening' : contexts.detail ? 'detail' : contexts.inventory ? 'inventory' : 'menu';
+        desktop.discord.setPresence({ screen: screen });
+      }
+      C.events.on('opening:context', function (event) { contexts.opening = !!event.active; presence(); });
+      C.events.on('inventory:context', function (event) { contexts.inventory = !!event.active; if (!event.active) contexts.detail = false; presence(); });
+      C.events.on('detail:opened', function () { contexts.detail = true; presence(); });
+      C.events.on('inventory:detailReturned', function () { contexts.detail = false; presence(); });
+      C.events.on('menu:visibilityHold', function (event) { if (event.reason === 'developer') { contexts.creator = !!event.active; presence(); } });
+      presence();
 
       // Log successful renderer boot to native log
       desktop.logs.write('INFO', 'Cardable renderer desktop bridge initialized.');
@@ -121,17 +135,19 @@
       return Promise.resolve();
     },
     installUpdate: function () {
-      if (desktop) {
-        if (C.state) C.state.save();
-        return backupCurrent().catch(function () { return false; }).then(function () { return desktop.updates.install(); });
-      }
+      // Main process requests/validates a renderer flush before it calls quitAndInstall.
+      return desktop ? desktop.updates.install() : Promise.resolve(false);
     },
+    getUpdateState: function () { return desktop ? desktop.updates.getState() : Promise.resolve({ state: 'unsupported' }); },
     onUpdateState: function (cb) {
       if (desktop) return desktop.updates.onStateChange(cb);
       return function () {};
     },
 
-    // Discord Presence (deferred boundary)
+    // Discord Presence
+    getDiscordStatus: function () { return desktop ? desktop.discord.getStatus() : Promise.resolve({ state: 'unsupported' }); },
+    setDiscordEnabled: function (enabled) { return desktop ? desktop.discord.setEnabled(enabled) : Promise.resolve(false); },
+    onDiscordStatus: function (cb) { return desktop ? desktop.discord.onStatusChange(cb) : function () {}; },
     setDiscordPresence: function (presence) {
       if (desktop) return desktop.discord.setPresence(presence);
     },

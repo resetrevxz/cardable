@@ -38,7 +38,9 @@ const IPC_CHANNELS = {
   UPDATER_GET_STATE: 'updater:get-state',
   UPDATER_STATE_CHANGED: 'updater:state-changed', // Event from main to renderer
 
-  // Discord Rich Presence (Deferred boundary)
+  // Discord Rich Presence
+  DISCORD_SET_ENABLED: 'discord:set-enabled',
+  DISCORD_STATUS_CHANGED: 'discord:status-changed',
   DISCORD_SET_PRESENCE: 'discord:set-presence',
   DISCORD_CLEAR_PRESENCE: 'discord:clear-presence',
   DISCORD_GET_STATUS: 'discord:get-status'

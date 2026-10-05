@@ -3,9 +3,11 @@ const discordService = require('../discord/rpc');
 const { registerSecureHandler } = require('./security');
 
 function registerDiscordHandlers() {
+  registerSecureHandler(IPC_CHANNELS.DISCORD_SET_ENABLED, (event, enabled) => {
+    return discordService.setEnabled(enabled);
+  });
   registerSecureHandler(IPC_CHANNELS.DISCORD_SET_PRESENCE, (event, presence) => {
-    discordService.setPresence(presence);
-    return true;
+    return discordService.setPresence(presence);
   });
 
   registerSecureHandler(IPC_CHANNELS.DISCORD_CLEAR_PRESENCE, () => {

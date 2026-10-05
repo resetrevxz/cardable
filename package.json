@@ -11,14 +11,17 @@
     "dev": "electron . --dev",
     "electron:dev": "electron . --dev",
     "start": "electron .",
-    "build": "electron-builder --dir",
-    "dist": "electron-builder",
-    "test": "node tools/verify-assets.cjs && node tools/test-electron.cjs",
+    "build": "electron-builder --config electron-builder.config.cjs --dir",
+    "dist": "electron-builder --config electron-builder.config.cjs --publish never",
+    "release:validate": "node tools/validate-release.cjs",
+    "test:services": "node --test tests/electron-services.test.cjs",
+    "test": "node tools/verify-assets.cjs && npm run test:services && node tools/test-electron.cjs",
     "test:electron": "node tools/test-electron.cjs",
     "test:packaged": "node tools/test-electron.cjs --packaged",
     "generate-icons": "node tools/generate-icons.cjs"
   },
   "dependencies": {
+    "discord-rpc": "^4.0.1",
     "electron-updater": "^6.8.9"
   },
   "devDependencies": {
@@ -65,11 +68,6 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Cardable",
       "uninstallDisplayName": "Cardable"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "Cardable",
-      "repo": "Cardable"
     }
   }
 }

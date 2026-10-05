@@ -5,6 +5,7 @@ const desktopConfig = require('./config/desktop-config');
 const { createMainWindow, getMainWindow, setQuitting } = require('./windows/main-window');
 const { updaterService } = require('./updater/auto-updater');
 const discordService = require('./discord/rpc');
+const gracefulShutdown = require('./lifecycle/graceful-shutdown');
 
 // Register IPC handlers
 const { registerAppHandlers } = require('./ipc/app-handlers');
@@ -80,7 +81,7 @@ if (!gotTheLock) {
     updaterService.init(win);
 
     // Initialize Discord RPC Service Boundary
-    discordService.init(desktopConfig.urls.discordAppId);
+    discordService.init();
 
     // Smoke Test Handler for CI and automated verification
     if (smokeTest) {
@@ -117,6 +118,7 @@ if (!gotTheLock) {
                 preferencesInteraction: false,
                 inventoryInteraction: false,
                 openingInteraction: false,
+                desktopServices: false,
                 persistedCurrency: window.Cardable && window.Cardable.state ? window.Cardable.state.current.currency : null,
                 persistedInventoryCount: window.Cardable && window.Cardable.state ? window.Cardable.state.current.inventory.length : null
               };
@@ -133,6 +135,24 @@ if (!gotTheLock) {
                   settingsButton.click();
                   await new Promise(resolve => setTimeout(resolve, 80));
                   res.preferencesInteraction = !!window.Cardable.preferences.open;
+                  const C = window.Cardable, ui = C.preferences.desktop;
+                  const diagnostics = await window.cardableDesktop.system.getDiagnostics();
+                  const rejectedUrl = await window.cardableDesktop.system.openExternal('file:///private');
+                  const rejectedSave = await window.cardableDesktop.storage.backupSave('null');
+                  const rejectedPresence = await window.cardableDesktop.discord.setPresence({ screen: 'private' });
+                  const rejectedInstall = await window.cardableDesktop.updates.install();
+                  const savedDownload = C.desktop.downloadUpdate, savedInstall = C.desktop.installUpdate;
+                  let downloads = 0, installs = 0;
+                  C.desktop.downloadUpdate = async () => { downloads++; return null; };
+                  C.desktop.installUpdate = async () => { installs++; return false; };
+                  const fixture = state => ({ state, currentVersion: '4.0.0', configured: true, isPackaged: true, updateInfo: { version: '4.0.1', releaseNotes: '<b>Notes</b>' } });
+                  ui.updateUi(fixture('update-available')); ui.action.click(); await new Promise(resolve => setTimeout(resolve, 20));
+                  ui.updateUi(Object.assign(fixture('downloading'), { downloadProgress: { percent: 50, total: 1024, transferred: 512 } }));
+                  const progressOk = ui.progress.value === 50 && !ui.progress.hidden;
+                  ui.updateUi(fixture('install-ready')); ui.action.click(); await new Promise(resolve => setTimeout(resolve, 20));
+                  C.desktop.downloadUpdate = savedDownload; C.desktop.installUpdate = savedInstall;
+                  ui.updateUi(await C.desktop.getUpdateState());
+                  res.desktopServices = !!diagnostics.electronVersion && !rejectedUrl && !rejectedSave.success && !rejectedPresence && !rejectedInstall && progressOk && downloads === 1 && installs === 1;
                   window.Cardable.preferences.close();
                 }
                 window.Cardable.inventory.request(true);
@@ -173,7 +193,7 @@ if (!gotTheLock) {
           logger.info('Smoke Test Execution Results:', testResults);
           const persistenceOk = !process.argv.includes('--smoke-verify') || testResults.persistedCurrency > 424242 && testResults.persistedInventoryCount === 1;
           const openingOk = !process.argv.includes('--smoke-game') || testResults.openingInteraction;
-          if (testResults.hasCardableDesktop && testResults.hasCardable && testResults.hasState && testResults.backupSuccess && testResults.rendererIsolated && testResults.coreUiPresent && testResults.preferencesInteraction && testResults.inventoryInteraction && persistenceOk && openingOk) {
+          if (testResults.hasCardableDesktop && testResults.hasCardable && testResults.hasState && testResults.backupSuccess && testResults.rendererIsolated && testResults.coreUiPresent && testResults.preferencesInteraction && testResults.inventoryInteraction && testResults.desktopServices && persistenceOk && openingOk) {
             logger.info('ALL SMOKE TEST CHECKS PASSED SUCCESSFULLY!');
             console.log('SMOKE_TEST_SUCCESS');
             win.close();
@@ -212,7 +232,9 @@ if (!gotTheLock) {
   });
 
   // Before quit
-  app.on('before-quit', () => {
+  app.on('before-quit', event => {
+    const win = getMainWindow();
+    if (win && !gracefulShutdown.isApproved(win)) { event.preventDefault(); win.close(); return; }
     logger.info('App preparing to quit...');
     setQuitting(true);
     discordService.destroy();

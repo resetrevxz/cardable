@@ -29,7 +29,9 @@ const IPC_CHANNELS = {
   UPDATER_STATE_CHANGED: 'updater:state-changed',
   DISCORD_SET_PRESENCE: 'discord:set-presence',
   DISCORD_CLEAR_PRESENCE: 'discord:clear-presence',
-  DISCORD_GET_STATUS: 'discord:get-status'
+  DISCORD_GET_STATUS: 'discord:get-status',
+  DISCORD_SET_ENABLED: 'discord:set-enabled',
+  DISCORD_STATUS_CHANGED: 'discord:status-changed'
 };
 
 // Narrow, typed, validated desktop bridge
@@ -49,7 +51,7 @@ const cardableDesktop = {
       ipcRenderer.on(IPC_CHANNELS.APP_PREPARE_CLOSE, subscription);
       return () => ipcRenderer.removeListener(IPC_CHANNELS.APP_PREPARE_CLOSE, subscription);
     },
-    closeReady: () => ipcRenderer.invoke(IPC_CHANNELS.APP_CLOSE_READY)
+    closeReady: (success = true) => ipcRenderer.invoke(IPC_CHANNELS.APP_CLOSE_READY, success === true)
   },
 
   window: {
@@ -108,6 +110,13 @@ const cardableDesktop = {
   },
 
   discord: {
+    setEnabled: enabled => typeof enabled === 'boolean' ? ipcRenderer.invoke(IPC_CHANNELS.DISCORD_SET_ENABLED, enabled) : Promise.resolve(false),
+    onStatusChange: callback => {
+      if (typeof callback !== 'function') return () => {};
+      const listener = (event, status) => callback(status);
+      ipcRenderer.on(IPC_CHANNELS.DISCORD_STATUS_CHANGED, listener);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.DISCORD_STATUS_CHANGED, listener);
+    },
     setPresence: (presence) => {
       if (typeof presence !== 'object' || presence === null) return Promise.resolve(false);
       return ipcRenderer.invoke(IPC_CHANNELS.DISCORD_SET_PRESENCE, presence);

@@ -93,6 +93,7 @@
       Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group && key !== 'quality') controls.push(C.settingsControls.create(d, groups[d.group])); });
       C.preferences.data = C.settingsData.create(groups.Data, { close: close, announce: announce });
       var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
+      if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(groups.About, { close: close, announce: announce });
       button('Credits and licenses', groups.About, function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
       credits = node('section', 'settings-credits glass', panel); credits.hidden = true; credits.setAttribute('role', 'dialog'); credits.setAttribute('aria-modal', 'true'); credits.setAttribute('aria-label', 'Credits and licenses');
       node('h2', '', credits, 'Credits and licenses'); node('p', '', credits, 'Inter — Rasmus Andersson. JetBrains Mono — JetBrains. Both fonts use the SIL Open Font License 1.1.');

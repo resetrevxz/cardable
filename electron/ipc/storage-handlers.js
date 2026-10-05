@@ -29,7 +29,10 @@ function registerStorageHandlers() {
 
     try {
       // Validate that it is valid JSON
-      JSON.parse(saveJson);
+      const parsed = JSON.parse(saveJson);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed) || !Array.isArray(parsed.inventory) || !Number.isInteger(parsed.schemaVersion)) {
+        return { success: false, error: 'Not a Cardable save' };
+      }
 
       // Write atomically via temporary file
       const tempFile = saveFile + '.tmp';
@@ -73,8 +76,7 @@ function registerStorageHandlers() {
   registerSecureHandler(IPC_CHANNELS.STORAGE_OPEN_SAVE_DIR, async () => {
     try {
       if (fs.existsSync(saveDir)) {
-        await shell.openPath(saveDir);
-        return true;
+        return !(await shell.openPath(saveDir));
       }
       return false;
     } catch (e) {

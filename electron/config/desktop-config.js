@@ -6,7 +6,6 @@ const desktopConfig = {
   isDev,
   appId: 'com.cardable.game',
   appName: 'Cardable',
-  version: '4.0.0',
   defaultWidth: 1440,
   defaultHeight: 900,
   minWidth: 960,
@@ -15,11 +14,6 @@ const desktopConfig = {
   icons: {
     png: path.join(__dirname, '../../assets/icons/icon.png'),
     ico: path.join(__dirname, '../../assets/icons/icon.ico')
-  },
-  urls: {
-    githubRepo: 'https://github.com/Cardable/Cardable',
-    releases: 'https://github.com/Cardable/Cardable/releases',
-    discordAppId: null // Explicitly deferred as per spec exception
   },
   storage: {
     backupFileName: 'cardable-desktop-save.json',

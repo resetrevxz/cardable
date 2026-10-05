@@ -93,3 +93,16 @@
 @keyframes settings-confirm-pulse { from { box-shadow: inset 0 0 28px var(--hairline-strong); } to { box-shadow: inset 0 0 0 transparent; } }
 .reduced-motion .settings-data-toast { transition: none; transform: translate(-50%,0); }
 .reduced-motion .is-confirmed { animation: none; }
+
+/* Desktop & Updates Styling */
+.settings-desktop-controls { margin-top: var(--s-3); display: flex; flex-direction: column; gap: var(--s-4); }
+.settings-subhead { font: 500 11px/1.4 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text-dim); margin: 0 0 var(--s-2); }
+.settings-update-box, .settings-desktop-tools { padding: var(--s-4); border-radius: var(--r-button); display: flex; flex-direction: column; gap: var(--s-3); }
+.settings-update-status { font: 12px/1.5 var(--font-ui); color: var(--text); margin: 0; }
+.settings-update-progress { appearance: none; width: 100%; height: 6px; border: 0; border-radius: var(--r-chip); overflow: hidden; margin: var(--s-2) 0; }
+.settings-update-progress::-webkit-progress-bar { background: var(--glass-strong); }
+.settings-update-progress::-webkit-progress-value { background: var(--highlight); }
+.settings-update-versions, .settings-update-bytes { margin: 0; font: 10px/1.6 var(--font-mono); color: var(--text-dim); }
+.settings-update-notes { max-height: 160px; overflow-y: auto; padding: var(--s-3); background: var(--bg-elev); border-radius: var(--r-button); font: 11px/1.6 var(--font-mono); color: var(--text-dim); white-space: pre-wrap; overflow-wrap: anywhere; }
+.settings-update-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.settings-discord-row { margin-top: var(--s-2); border-bottom: 0; }

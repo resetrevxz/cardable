@@ -1,0 +1,52 @@
+name: Windows release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  windows:
+    runs-on: windows-latest
+    env:
+      CARDABLE_RELEASE_OWNER: ${{ vars.CARDABLE_RELEASE_OWNER || github.repository_owner }}
+      CARDABLE_RELEASE_REPOSITORY: ${{ vars.CARDABLE_RELEASE_REPOSITORY || github.event.repository.name }}
+      CARDABLE_DISCORD_APPLICATION_ID: ${{ vars.CARDABLE_DISCORD_APPLICATION_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run release:validate
+      - run: npm test
+      - name: Package NSIS and updater metadata
+        run: npm run dist
+        env:
+          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+      - run: npm run test:packaged
+      - run: npm run release:validate -- --artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Cardable-Windows-${{ github.ref_name }}
+          path: |
+            dist/Cardable-Setup-*.exe
+            dist/*.blockmap
+            dist/*.yml
+          if-no-files-found: error
+      - name: Create draft release after all checks pass
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.CARDABLE_RELEASE_TOKEN || github.token }}
+        run: |
+          $releaseTarget = "$env:CARDABLE_RELEASE_OWNER/$env:CARDABLE_RELEASE_REPOSITORY"
+          $releaseVersion = (Get-Content package.json | ConvertFrom-Json).version
+          $releaseAssets = Get-ChildItem dist -File | Where-Object { $_.Name -match '^Cardable-Setup-.*\.exe$|\.blockmap$|^(latest|beta)\.yml$' } | ForEach-Object { $_.FullName }
+          $releaseArgs = @('release', 'create', $env:GITHUB_REF_NAME, '--repo', $releaseTarget, '--draft', '--title', "Cardable $releaseVersion", '--notes-file', "changelog/$releaseVersion.md")
+          if ($releaseVersion.Contains('-')) { $releaseArgs += '--prerelease' }
+          & gh @releaseArgs @releaseAssets
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
