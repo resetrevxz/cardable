@@ -42,7 +42,7 @@ The focused card alone updates its coating through the existing card FX/lamp loo
 
 ## Extension and boundaries
 
-Add new finishes through the variant registry and material lifecycle, with weights totaling 100 and a static/reduced-motion appearance. Supply a local subject mask for new image art used by Spotlight. Do not replace rarity borders/props, introduce per-card timers, network assets, new packs, market behavior, audio or rerolls. See VARIANTS-AND-TAGS-QA.md for acceptance evidence.
+Add new finishes through the variant registry and material lifecycle, with weights totaling 100 and a static/reduced-motion appearance. Supply a local subject mask for new image art used by Spotlight. Do not replace rarity borders/props, introduce per-card timers, network assets, new packs, market behavior, audio or rerolls. See [VARIANTS-AND-TAGS-QA.md](../archive/4.2.0-cleanup/docs/VARIANTS-AND-TAGS-QA.md) for acceptance evidence.
 
 ## 2.2.0 Frame skins
 

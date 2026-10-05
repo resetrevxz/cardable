@@ -2,11 +2,11 @@
 
 Source of truth for mechanics is `src/data/rarities.js`. This doc explains the visual design of each tier and how to extend the system.
 
-Owner-approved card remake pass 1: Basic through Double Super Rare express their finish on the border around full-card artwork. Basic shifts white/gray with viewing angle; Common has an orbiting white rim highlight; Uncommon shifts lime/green/dark green with movement. Rare keeps sparkles on the upper pale-blue rim. Super Rare waves occupy its upper blue rim and fade into a static dark checker. Unusual pulses white light down its purple rim. Double Super Rare drifts gold faster than blue and twinkles around its checker/gold rim. No props are added to these seven tiers. Chances and higher-tier designs are unchanged. See `CARD-REMAKE-PASS-1.md`.
+Owner-approved card remake pass 1: Basic through Double Super Rare express their finish on the border around full-card artwork. Basic shifts white/gray with viewing angle; Common has an orbiting white rim highlight; Uncommon shifts lime/green/dark green with movement. Rare keeps sparkles on the upper pale-blue rim. Super Rare waves occupy its upper blue rim and fade into a static dark checker. Unusual pulses white light down its purple rim. Double Super Rare drifts gold faster than blue and twinkles around its checker/gold rim. No props are added to these seven tiers. Chances and higher-tier designs are unchanged. See [CARD-REMAKE-PASS-1.md](../archive/4.2.0-cleanup/docs/CARD-REMAKE-PASS-1.md).
 
-The system is a template reused from another project. **Ignore** its variants system and its card names. Everything else applies.
+Permanent cosmetic variants are authorized; see VARIANTS-AND-TAGS.md. GPU names and rarity/variant definitions come from the current local registries. Earlier template wording does not override the approved game.
 
-Owner-approved card remake pass 2: Legendary through Ascendant and Secret now use the same portrait face and neutral glass specs. Their material finishes stay in the rim; attached props sit outside it. Secret's old animated lettering is removed and its original black/white sweep cadence is restricted to the two vertical sides. Limited retains the prior design. See `CARD-REMAKE-PASS-2.md`.
+Owner-approved card remake pass 2: Legendary through Ascendant and Secret now use the same portrait face and neutral glass specs. Their material finishes stay in the rim; attached props sit outside it. Secret's old animated lettering is removed and its original black/white sweep cadence is restricted to the two vertical sides. Limited retains the prior design. See [CARD-REMAKE-PASS-2.md](../archive/4.2.0-cleanup/docs/CARD-REMAKE-PASS-2.md).
 
 ## 1. Overview
 

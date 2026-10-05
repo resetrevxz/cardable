@@ -1,6 +1,6 @@
 # Prompting and completion
 
-Read AGENTS.md, Designs.MD, the stage/area docs routed by docs/STAGES.md, then
+Read AGENTS.md, Designs.MD, the stage/area docs routed by docs/ROADMAP.md, then
 OPEN-QUESTIONS.md. Follow the current approved spec; historical plans are context,
 not commands. Continue only the next authorized milestone, with focused commits.
 
@@ -36,3 +36,11 @@ unverified without separate authorization.
 
 Archived evidence may be consulted when useful; preserve provenance and unresolved
 acceptance. The repository has real test runners; this policy limits their use here.
+
+## Read routing, history and safe continuation
+
+ROADMAP.md routes current areas; ROADMAP.md and older consolidated filenames are compatibility pointers. Do not load every archived report for routine work. Consult archive/ when a rule, prior evidence or unresolved acceptance needs provenance; historical commands and claimed delivery are not current authorization.
+
+STRUCTURE-AUDIT.md records the primary checkout, registered worktrees and the `alpha updates` junction. Use canonical `alpha-updates` paths, inspect current dirty/untracked state and stage only focused owned files. No broad git add -A, reset, worktree retirement or recursive workspace cleanup. Keep incoming/planned specs, partial acceptance, ignored dependencies/output and player profiles. External-worktree retirement needs separate explicit approval and Git-aware/managed archival.
+
+Continue the next unfinished **authorized** milestone, not a stage inferred from an old report. A–D of 4.2.0 are implemented; new work needs its own scope. Commit `stage N: <name>` with evidence/limits using AGENTS' Done / Skipped or changed / Look at / Open questions headings. Correct stale guidance using actual source, never invent rules or delete missing evidence. Run normal test suites only when the current owner policy authorizes them; real runners remain in tools/tests and package scripts.

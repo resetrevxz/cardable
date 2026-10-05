@@ -1,50 +1,21 @@
 # Building Cardable
 
-Use Node.js 24 LTS with npm. From the repository root:
+Players use [PLAY.md](../PLAY.md), not these developer commands. Development uses the existing Node/npm lockfile and Electron tooling. From the actual repo root:
 
-For completed implementation/documentation prompts use `npm run deliver:desktop`.
-It builds isolated Windows artifacts, validates them, preserves the stable preview
-origin and hands off Cardable (Latest Build) with transactional rollback and owned
-cleanup. See [DESKTOP-DELIVERY.md](DESKTOP-DELIVERY.md). It does not install or launch
-the app. The current 4.2.0 policy in [PROMPTING.md](PROMPTING.md) restricts testing;
-the historical test commands below are not authorization to run them for A–D.
+1. `npm ci` installs locked dependencies and Electron.
+2. `npm run electron:dev` opens development with explicit DevTools access.
+3. `npm run deliver:desktop` builds/validates isolated Windows x64 offline NSIS and unpacked outputs, promotes the stable preview/Latest Build shortcut transactionally, and cleans only superseded manifest-owned outputs after handoff. It never installs, launches, publishes, elevates or kills Cardable. See [DESKTOP-DELIVERY](DESKTOP-DELIVERY.md).
 
-Player instructions are in [PLAY.md](../PLAY.md). Milestone B uses the existing
-offline NSIS installer with explicit one-click/per-user options, normal shortcuts,
-launch after setup, and retained player data. `tools/nsis-installer.nsh` is a small
-supported include: running apps must be closed by the player, uncertain legacy
-locations stop setup, and registered per-user custom paths remain in place.
-It is fingerprinted as a delivery input. No replacement installer or profile
-migration was added. Installer execution/upgrade acceptance remains separate.
+Current app/config/root lock version is **4.2.0**. Installer names derive from package.json (`Cardable-Setup-4.2.0.exe`); exact build paths/hashes are generated in ignored `dist/delivery/latest.json`. Approximate player size and signature status derive from the actual installer, not source counts. Retain the stable `dist/desktop-qol-4.1.0/win-unpacked` preview binding; its historical name preserves origin/storage while contents advance. Do not build directly into a running preview or create a different origin as a workaround.
 
-1. `npm ci` installs the lockfile and Electron binary.
-2. `npm run electron:dev` launches development with F12 DevTools.
-3. `npm test` runs assets, service tests and isolated Electron smoke tests.
-4. `npm run build` produces dist/win-unpacked/Cardable.exe.
-5. `npm run test:packaged` repeats the smoke tests against ASAR.
-6. `npm run dist` produces dist/Cardable-Setup-4.1.1.exe and its blockmap (version follows package.json).
+The existing offline NSIS config is one-click/per-user, preserves app data and recreates normal desktop/Start Menu shortcuts. Its supported include asks the player to close a running app and retries, while silent setup/uncertain legacy paths stop. Setup execution/upgrade is separate acceptance. JSON exports omit Studio photo blobs; download photos separately before a necessary origin transition.
 
-After packaging, run `npm run test:package` for ASAR contents, `npm run test:regression` for game/lifecycle/persistence, and `npm run test:cinematics` for five full High/Safe rare timelines. `npm run test:nsis-update` builds and installs two isolated fixture versions, performs an actual local update/reinstall and retains evidence; it does not modify an existing Cardable installation. See electron-milestone-3.md and ELECTRON-CHECKLIST.md for verified scope. QA evidence is ignored under qa-output.
+## Existing commands and current authorization
 
-Close the packaged application before rebuilding the same dist directory; Windows locks its loaded DLLs. Build first, then run packaged checks sequentially. Different isolated fixture output directories may be built independently.
+The repo has actual test/service/browser/packaged/NSIS/cinematic runners, plus assets/package/release validators. `npm test`, `test:services`, `test:packaged`, `test:regression`, `test:nsis-update`, `test:cinematics`, optimization checks and profiling commands remain in package.json/tools/tests. Historical Electron evidence is [indexed here](../archive/4.2.0-cleanup/README.md). Keeping these commands does not authorize running them under the current 4.2.0 policy: no old suites, new test files, captures/recordings or profiling. See [PROMPTING](PROMPTING.md).
 
-For the restricted 4.1.0 QoL delivery, do not run the older test commands above:
-only one isolated app session and one manual Cardable.dev.checkQol invocation are
-authorized. Packaging itself is still allowed. With the existing unpacked app
-running, build safely beside it using:
+Use `deliver:desktop:verify` to inspect current artifact/preview/link hashes, `:inspect` for exact legacy inventory and `:resume` for a pending same-source handoff after closing the app normally. Build/hash/config/source/resource validation is delivery evidence, not runtime regression. Ordinary `npm run build`/`dist` remain manual standalone packaging options; use the delivery command for completed implementation/documentation prompts.
 
-`npm run dist -- --config.directories.output=dist/desktop-qol-4.1.0`
+Source index.html still runs by double-click without a dev server or modules. Audio remains disabled. Packaging allowlists retain local src/assets/vendor/electron/index/required metadata while excluding docs/archive/tools/tests/developer evidence; dist/node_modules/QA output are ignored, not cleanup targets.
 
-This produces the updated app at dist/desktop-qol-4.1.0/win-unpacked/Cardable.exe
-and installer at dist/desktop-qol-4.1.0/Cardable-Setup-4.1.0.exe. Close the old app
-normally before launching the new one. Export a save and download Studio photos
-before changing installation directories; JSON backups do not migrate IndexedDB
-photo blobs between file origins. No installation is performed by this build.
-
-Source index.html remains runnable by double-click. There is no development server requirement. Audio remains intentionally disabled by the existing game configuration.
-
-Public distribution configuration is desktop-release.json. Set owner/repository before making an update-enabled distribution. Local builds with null values work offline and state clearly that updates are not configured. CI generates its repository configuration from public variables. Never put tokens into this file.
-
-Code signing is optional for development and strongly recommended for public Windows releases. CI can use WINDOWS_CSC_LINK and WINDOWS_CSC_KEY_PASSWORD secrets. Without a signing certificate, Windows may display an unknown-publisher/SmartScreen warning; a generated installer is not evidence of a verified publisher. Inspect the signed executable and generated app-update.yml publisherName before public acceptance: updater signature verification is conditional on that configuration. Checksums alone do not authenticate a compromised provider.
-
-Ignore dependencies, dist and build output in Git. Use npm audit to review dependencies. npm may report deprecated transitive packages; the current lockfile audit and actual build/test outcomes are recorded in the milestone report.
+Public provider identifiers live in desktop-release.json; owner/repository are null for local builds. Tokens/signing credentials never enter that file or ASAR. [RELEASING](RELEASING.md) covers owner-configured hosting/CI/signing and paired assets. A successful build/hash is not a verified publisher, actual installation or live updater result.

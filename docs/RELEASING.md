@@ -6,9 +6,9 @@ Optional public variable CARDABLE_DISCORD_APPLICATION_ID enables RPC in CI build
 
 Release procedure:
 
-1. Update package.json and src/config.js to the same MAJOR.MINOR.PATCH; run npm install --package-lock-only.
-2. Add changelog/X.Y.Z.md with player-facing notes.
-3. Run npm test, npm run dist, npm run test:packaged, npm run test:package and npm run test:regression; commit. Review full cutscenes with npm run test:cinematics when graphics change.
+1. Synchronize package.json, root/package lock metadata and src/config.js to the same MAJOR.MINOR.PATCH without altering unrelated dependency versions.
+2. Add matching player notes to bundled CHANGELOG.md and changelog/X.Y.Z.md; runtime and CI consume different files.
+3. Follow the authorized testing policy, record actual evidence/remaining gaps and commit focused files. The normal public-release gate includes tests, packaged/regression/resource checks and changed cinematic review, but the current 4.2.0 cleanup policy prohibits rerunning those suites. Its local delivery is not public release acceptance. Build local handoff with npm run deliver:desktop; separately authorize missing public-release coverage before publication.
 4. Tag `vX.Y.Z` and push the commit and tag.
 5. Actions validates, tests, builds and uploads the installer, blockmap and latest.yml (beta.yml for beta prereleases) into a draft release.
 6. Review artifacts, install the build, then publish the draft in GitHub.

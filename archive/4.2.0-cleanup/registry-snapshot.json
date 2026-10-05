@@ -1,0 +1,1263 @@
+{
+  "total": 57,
+  "initialActive": 41,
+  "afterAvailableProducerEvents": 47,
+  "dormantWithoutProducer": [
+    {
+      "id": "legendary-moment",
+      "requires": "pack:legendary"
+    },
+    {
+      "id": "slot-machine",
+      "requires": "variants:slots"
+    },
+    {
+      "id": "combo-breaker",
+      "requires": "variants:combos"
+    },
+    {
+      "id": "triple-threat",
+      "requires": "variants:multiple"
+    },
+    {
+      "id": "mythic-touch",
+      "requires": "variants:mythic"
+    },
+    {
+      "id": "time-capsule",
+      "requires": "catalog:releaseYears"
+    },
+    {
+      "id": "spender",
+      "requires": "shop"
+    },
+    {
+      "id": "saver",
+      "requires": "shop"
+    },
+    {
+      "id": "fatal-exception",
+      "requires": "cutscene:finished"
+    },
+    {
+      "id": "skipper",
+      "requires": "cutscene:skipped"
+    }
+  ],
+  "records": [
+    {
+      "id": "pack-opener",
+      "group": "packs",
+      "name": "Pack Opener",
+      "goals": [
+        1,
+        10,
+        50,
+        250,
+        1000
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "variety-pack",
+      "group": "packs",
+      "name": "Variety Pack",
+      "goals": [
+        3,
+        6,
+        10
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "rare-find",
+      "group": "packs",
+      "name": "Rare Find",
+      "goals": [
+        1,
+        5,
+        25
+      ],
+      "requires": "pack:rare",
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "legendary-moment",
+      "group": "packs",
+      "name": "Legendary Moment",
+      "goals": [
+        1,
+        3
+      ],
+      "requires": "pack:legendary",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "patient-collector",
+      "group": "packs",
+      "name": "Patient Collector",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "collector",
+      "group": "collection",
+      "name": "Collector",
+      "goals": [
+        10,
+        25,
+        50,
+        100,
+        126
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "generation-complete",
+      "group": "collection",
+      "name": "Generation Complete",
+      "goals": [
+        1,
+        2
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "full-spectrum",
+      "group": "collection",
+      "name": "Full Spectrum",
+      "goals": [
+        4,
+        8,
+        12
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "duplicates",
+      "group": "collection",
+      "name": "Duplicates",
+      "goals": [
+        3,
+        10,
+        25
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "first-variant",
+      "group": "variants",
+      "name": "First Variant",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "variant-hunter",
+      "group": "variants",
+      "name": "Variant Hunter",
+      "goals": [
+        5,
+        11
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "slot-machine",
+      "group": "variants",
+      "name": "Slot Machine",
+      "goals": [
+        5
+      ],
+      "requires": "variants:slots",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "combo-breaker",
+      "group": "variants",
+      "name": "Combo Breaker",
+      "goals": [
+        1
+      ],
+      "requires": "variants:combos",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "triple-threat",
+      "group": "variants",
+      "name": "Triple Threat",
+      "goals": [
+        1
+      ],
+      "requires": "variants:multiple",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "mythic-touch",
+      "group": "variants",
+      "name": "Mythic Touch",
+      "goals": [
+        1
+      ],
+      "requires": "variants:mythic",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "time-capsule",
+      "group": "era",
+      "name": "Time Capsule",
+      "goals": [
+        1
+      ],
+      "requires": "catalog:releaseYears",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "classic-collector",
+      "group": "era",
+      "name": "Classic Collector",
+      "goals": [
+        5,
+        14
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "newcomer",
+      "group": "era",
+      "name": "Newcomer",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "daily-ritual",
+      "group": "habits",
+      "name": "Daily Ritual",
+      "goals": [
+        3,
+        7,
+        30
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "night-owl",
+      "group": "habits",
+      "name": "Night Owl",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "welcome-back",
+      "group": "habits",
+      "name": "Welcome Back",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "streak",
+      "group": "habits",
+      "name": "Streak",
+      "goals": [
+        5
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "hot-streak",
+      "group": "luck",
+      "name": "Hot Streak",
+      "goals": [
+        3
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "cold-snap",
+      "group": "luck",
+      "name": "Cold Snap",
+      "goals": [
+        10
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "variant-run",
+      "group": "luck",
+      "name": "Variant Run",
+      "goals": [
+        2
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "spender",
+      "group": "meta",
+      "name": "Spender",
+      "goals": [
+        100,
+        1000,
+        10000
+      ],
+      "requires": "shop",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "saver",
+      "group": "meta",
+      "name": "Saver",
+      "goals": [
+        1000,
+        10000,
+        100000
+      ],
+      "requires": "shop",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "tidy",
+      "group": "meta",
+      "name": "Tidy",
+      "goals": [
+        10
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "archivist",
+      "group": "meta",
+      "name": "Archivist",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "settings-tinkerer",
+      "group": "meta",
+      "name": "Settings Tinkerer",
+      "goals": [
+        5
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "cut-above",
+      "group": "meta",
+      "name": "Cut Above",
+      "goals": [
+        1
+      ],
+      "requires": "cut:complete",
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "shutterbug",
+      "group": "studio",
+      "name": "Shutterbug",
+      "goals": [
+        1,
+        10,
+        50
+      ],
+      "requires": "studio:photo",
+      "initialActive": false,
+      "producerAvailable": true
+    },
+    {
+      "id": "director",
+      "group": "studio",
+      "name": "Director",
+      "goals": [
+        5
+      ],
+      "requires": "studio:photo",
+      "initialActive": false,
+      "producerAvailable": true
+    },
+    {
+      "id": "colorist",
+      "group": "studio",
+      "name": "Colorist",
+      "goals": [
+        3
+      ],
+      "requires": "studio:photo",
+      "initialActive": false,
+      "producerAvailable": true
+    },
+    {
+      "id": "portfolio",
+      "group": "studio",
+      "name": "Portfolio",
+      "goals": [
+        10
+      ],
+      "requires": "studio:photo",
+      "initialActive": false,
+      "producerAvailable": true
+    },
+    {
+      "id": "pickers-remorse",
+      "group": "picker",
+      "name": "Picker’s Remorse",
+      "goals": [
+        1
+      ],
+      "requires": "picker:chosen",
+      "initialActive": false,
+      "producerAvailable": true
+    },
+    {
+      "id": "good-eye",
+      "group": "picker",
+      "name": "Good Eye",
+      "goals": [
+        10
+      ],
+      "requires": "picker:chosen",
+      "initialActive": false,
+      "producerAvailable": true
+    },
+    {
+      "id": "fatal-exception",
+      "group": "rarity",
+      "name": "Fatal Exception",
+      "goals": [
+        1
+      ],
+      "requires": "cutscene:finished",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "skipper",
+      "group": "rarity",
+      "name": "Skipper",
+      "goals": [
+        1
+      ],
+      "requires": "cutscene:skipped",
+      "initialActive": false,
+      "producerAvailable": false
+    },
+    {
+      "id": "brand-loyalty-amd",
+      "group": "collection",
+      "name": "Brand Loyalty · AMD",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "brand-loyalty-nvidia",
+      "group": "collection",
+      "name": "Brand Loyalty · NVIDIA",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "brand-loyalty-intel",
+      "group": "collection",
+      "name": "Brand Loyalty · Intel",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "brand-loyalty-apple",
+      "group": "collection",
+      "name": "Brand Loyalty · Apple",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "brand-loyalty-qualcomm",
+      "group": "collection",
+      "name": "Brand Loyalty · Qualcomm",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "first-rare",
+      "group": "rarity",
+      "name": "First Rare",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "first-super-rare",
+      "group": "rarity",
+      "name": "First Super Rare",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "first-legendary",
+      "group": "rarity",
+      "name": "First Legendary",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "first-mythical",
+      "group": "rarity",
+      "name": "First Mythical",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "first-exotic",
+      "group": "rarity",
+      "name": "First Exotic",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "first-ascendant",
+      "group": "rarity",
+      "name": "First Ascendant",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "secret-occurred",
+      "group": "rarity",
+      "name": "A Secret Has Occurred",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "first-serial",
+      "group": "serials",
+      "name": "First Serial",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "low-serial",
+      "group": "serials",
+      "name": "Low Serial",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "round-number",
+      "group": "serials",
+      "name": "Round Number",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "palindrome",
+      "group": "serials",
+      "name": "Palindrome",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "lucky-seven",
+      "group": "serials",
+      "name": "Lucky Seven",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    },
+    {
+      "id": "triplets",
+      "group": "serials",
+      "name": "Triplets",
+      "goals": [
+        1
+      ],
+      "requires": null,
+      "initialActive": true,
+      "producerAvailable": true
+    }
+  ],
+  "cinematics": [
+    {
+      "id": "basic",
+      "sections": [
+        {
+          "id": "corners",
+          "ms": 240
+        },
+        {
+          "id": "spread",
+          "ms": 540
+        },
+        {
+          "id": "peak",
+          "ms": 100
+        },
+        {
+          "id": "retreat",
+          "ms": 320
+        }
+      ],
+      "duration": 1200,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "common",
+      "sections": [
+        {
+          "id": "corners",
+          "ms": 260
+        },
+        {
+          "id": "spread",
+          "ms": 600
+        },
+        {
+          "id": "peak",
+          "ms": 120
+        },
+        {
+          "id": "retreat",
+          "ms": 370
+        }
+      ],
+      "duration": 1350,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "uncommon",
+      "sections": [
+        {
+          "id": "corners",
+          "ms": 300
+        },
+        {
+          "id": "spread",
+          "ms": 650
+        },
+        {
+          "id": "orbit",
+          "ms": 400
+        },
+        {
+          "id": "retreat",
+          "ms": 450
+        }
+      ],
+      "duration": 1800,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "rare",
+      "sections": [
+        {
+          "id": "corners",
+          "ms": 350
+        },
+        {
+          "id": "spread",
+          "ms": 500
+        },
+        {
+          "id": "approach",
+          "ms": 1550
+        },
+        {
+          "id": "snap",
+          "ms": 180
+        },
+        {
+          "id": "fracture",
+          "ms": 820
+        },
+        {
+          "id": "release",
+          "ms": 400
+        }
+      ],
+      "duration": 3800,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "super-rare",
+      "sections": [
+        {
+          "id": "sparks",
+          "ms": 600
+        },
+        {
+          "id": "orbit",
+          "ms": 900
+        },
+        {
+          "id": "gather",
+          "ms": 1000
+        },
+        {
+          "id": "burst",
+          "ms": 180
+        },
+        {
+          "id": "portal",
+          "ms": 2000
+        },
+        {
+          "id": "dive",
+          "ms": 1050
+        },
+        {
+          "id": "wash",
+          "ms": 550
+        },
+        {
+          "id": "release",
+          "ms": 320
+        }
+      ],
+      "duration": 6600,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "unusual",
+      "sections": [
+        {
+          "id": "material",
+          "ms": 1500
+        },
+        {
+          "id": "ignition",
+          "ms": 1100
+        },
+        {
+          "id": "accelerate",
+          "ms": 2200
+        },
+        {
+          "id": "saturate",
+          "ms": 1660
+        },
+        {
+          "id": "lock",
+          "ms": 140
+        },
+        {
+          "id": "release",
+          "ms": 200
+        }
+      ],
+      "duration": 6800,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "double-super-rare",
+      "sections": [
+        {
+          "id": "material",
+          "ms": 1600
+        },
+        {
+          "id": "ignition",
+          "ms": 1200
+        },
+        {
+          "id": "accelerate",
+          "ms": 2400
+        },
+        {
+          "id": "saturate",
+          "ms": 1860
+        },
+        {
+          "id": "lock",
+          "ms": 140
+        },
+        {
+          "id": "release",
+          "ms": 200
+        }
+      ],
+      "duration": 7400,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "legendary",
+      "sections": [
+        {
+          "id": "embers",
+          "ms": 650
+        },
+        {
+          "id": "flames",
+          "ms": 1850
+        },
+        {
+          "id": "aura",
+          "ms": 1700
+        },
+        {
+          "id": "sweeps",
+          "ms": 3000
+        },
+        {
+          "id": "seal",
+          "ms": 900
+        },
+        {
+          "id": "resolve",
+          "ms": 500
+        }
+      ],
+      "duration": 8600,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "mythical",
+      "sections": [
+        {
+          "id": "cave",
+          "ms": 5000
+        },
+        {
+          "id": "tip",
+          "ms": 1800
+        },
+        {
+          "id": "fall",
+          "ms": 1200
+        },
+        {
+          "id": "impact",
+          "ms": 1000
+        },
+        {
+          "id": "underwater",
+          "ms": 4500
+        },
+        {
+          "id": "ascend",
+          "ms": 2200
+        },
+        {
+          "id": "omen",
+          "ms": 3000
+        },
+        {
+          "id": "clock",
+          "ms": 4600
+        },
+        {
+          "id": "rupture",
+          "ms": 3300
+        },
+        {
+          "id": "explosion",
+          "ms": 500
+        },
+        {
+          "id": "release",
+          "ms": 500
+        }
+      ],
+      "duration": 27600,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "exotic",
+      "sections": [
+        {
+          "id": "prelude",
+          "ms": 880
+        },
+        {
+          "id": "blackout",
+          "ms": 520
+        },
+        {
+          "id": "starlight",
+          "ms": 1400
+        },
+        {
+          "id": "acceleration",
+          "ms": 10000
+        },
+        {
+          "id": "brake",
+          "ms": 420
+        },
+        {
+          "id": "ignition",
+          "ms": 1000
+        },
+        {
+          "id": "galaxy",
+          "ms": 3600
+        },
+        {
+          "id": "dissolve",
+          "ms": 1200
+        },
+        {
+          "id": "release",
+          "ms": 280
+        }
+      ],
+      "duration": 19300,
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "ascendant",
+      "sections": [
+        {
+          "id": "prelude",
+          "ms": 1000
+        },
+        {
+          "id": "spark",
+          "ms": 3000
+        },
+        {
+          "id": "cave",
+          "ms": 4000
+        },
+        {
+          "id": "tip",
+          "ms": 1200
+        },
+        {
+          "id": "fall",
+          "ms": 800
+        },
+        {
+          "id": "impact",
+          "ms": 600
+        },
+        {
+          "id": "underwater",
+          "ms": 1900
+        },
+        {
+          "id": "tendrils",
+          "ms": 2500
+        },
+        {
+          "id": "ascend",
+          "ms": 800
+        },
+        {
+          "id": "topPulse",
+          "ms": 2200
+        },
+        {
+          "id": "morph",
+          "ms": 2000
+        },
+        {
+          "id": "clock",
+          "ms": 4000
+        },
+        {
+          "id": "title",
+          "ms": 3000
+        },
+        {
+          "id": "shatter",
+          "ms": 1000
+        },
+        {
+          "id": "aurora",
+          "ms": 2600
+        },
+        {
+          "id": "explosion",
+          "ms": 400
+        },
+        {
+          "id": "card",
+          "ms": 1500
+        }
+      ],
+      "duration": 32500,
+      "shortRoute": [
+        {
+          "from": 1000,
+          "to": 4000,
+          "ms": 1500
+        },
+        {
+          "from": 4000,
+          "to": 10000,
+          "ms": 3000
+        },
+        {
+          "from": 10000,
+          "to": 15000,
+          "ms": 3000
+        },
+        {
+          "from": 15000,
+          "to": 20000,
+          "ms": 3000
+        },
+        {
+          "from": 20000,
+          "to": 28000,
+          "ms": 2500
+        },
+        {
+          "from": 28000,
+          "to": 31000,
+          "ms": 2000
+        },
+        {
+          "from": 31000,
+          "to": 32500,
+          "ms": 1500
+        }
+      ],
+      "light": {
+        "ms": 3000,
+        "handoffMs": 2600
+      },
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    },
+    {
+      "id": "secret",
+      "sections": [
+        {
+          "id": "fakeout",
+          "ms": 2400
+        },
+        {
+          "id": "black",
+          "ms": 1600
+        },
+        {
+          "id": "boot",
+          "ms": 6000
+        },
+        {
+          "id": "desktop",
+          "ms": 9000
+        },
+        {
+          "id": "breakdown",
+          "ms": 8000
+        },
+        {
+          "id": "stop",
+          "ms": 5000
+        },
+        {
+          "id": "collapse",
+          "ms": 4000
+        },
+        {
+          "id": "resurrection",
+          "ms": 4000
+        }
+      ],
+      "duration": 40000,
+      "shortRoute": [
+        {
+          "ms": 3000,
+          "from": 0,
+          "to": 4000
+        },
+        {
+          "ms": 3000,
+          "from": 4000,
+          "to": 10000
+        },
+        {
+          "ms": 4000,
+          "from": 10000,
+          "to": 19000
+        },
+        {
+          "ms": 3000,
+          "from": 19000,
+          "to": 32000
+        },
+        {
+          "ms": 1500,
+          "from": 32000,
+          "to": 36000
+        },
+        {
+          "ms": 4000,
+          "from": 36000,
+          "to": 40000
+        }
+      ],
+      "light": {
+        "ms": 4000,
+        "handoffMs": 4000
+      },
+      "handoff": {
+        "flipMs": 400,
+        "fadeMs": 160
+      }
+    }
+  ],
+  "schema": {
+    "key": "cardable.save",
+    "schemaVersion": 5
+  }
+}

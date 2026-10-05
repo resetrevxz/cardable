@@ -1,0 +1,3 @@
+# Archive originals retain captured bytes, line endings and historical spacing.
+# Their recorded SHA-256 is checked instead of rewriting whitespace as new source.
+archive/4.2.0-cleanup/** -text -whitespace

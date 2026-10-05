@@ -1,18 +1,6 @@
 # Designs.MD — Cardable design system
 
-## 2.5.0 Titan vault
-
-Titan is an original brand-neutral titanium vault, with no company logos: brushed #8E9399 metal, carbon insets, heavy bevels/rivets, ice-white reactor, engraved Cardable header and TITAN PACK / HALO SERIES with a LIMITED RUN plate. Its core breathes at 0.25 Hz, its rim passes quietly and faint seam steam stays bounded. Waiting is an outline/progress ring; charge lights 24 ring segments; armor separates during dissolution.
-
-The owner-approved monolith arrival drops and settles the wrapper over 1.2 seconds, with restrained dust/shockwave and a High-only two-pixel dip. The three-tick clockwise vault dial has a faint arc arrow, static progress lights and Enter fallback. Bolts retract and the door unseals with local steam/light before the existing rarity cinematic. Lower graphics and reduced motion retain intentional fades/static alternatives. UI/card frames, fonts and audio remain unchanged.
-
-## Owner-approved 2.1.0 brand wrapper exception
-
-NVIDIA green/graphite/chrome, AMD red/dark metal, Snapdragon gold/red/black and Apple silver are authorized on sealed wrappers, opening materials, queue markers and actual-instance provenance tags. Each keeps the shared silhouette and seals, a Cardable header, a local company logo and brand-only caption. The generated NVIDIA concept in `assets/packs/nvidia-concept-v1.png` guides the coded chamfers and inlays. UI chrome stays neutral; card mono mode governs cards and rarity cinematics. Brand tint clears before rarity reveal.
-
-Type changes turn through a quiet foil back. After durable Keep, the earned card turns through its engraved back, swaps at the hidden edge, and returns as the next wrapper. The shared effects clock owns both turns; reduced motion and Low/Very Low animation settings crossfade. High uses pointer gloss and six-second sheen; Medium gets one sweep per appearance; lower presets retain static identity.
-
-Single source of truth for look and feel. These rules apply to every screen. Screen-specific behavior lives in `docs/`.
+Single source of truth for look and feel. Numbered principles and tokens apply everywhere. Screen contracts live in docs/.
 
 ## 1. Principles
 
@@ -94,9 +82,7 @@ Big type is quiet: large size, light contrast steps, lots of empty space around 
 - **The exceptions are rarity finishes and variant coatings on card faces.** Each rarity defines its own colors and animation in `docs/02-RARITIES.md`. Those colors appear only on: the card face and its frame/props, the small tier badge on that card, and the soft light bloom behind a card during its reveal. Nothing else in the UI ever takes a rarity color.
 - Iridescence on the metallic foil is a silver-white shimmer with only faint cool and warm tints in the highlights. Normal foil never adds saturated color by itself. Owner-approved Rainbow Holo and Aurora coatings may use their specified colors on the card face; Card Tags remain neutral. Matte removes front reflections while retaining the rarity frame and props.
 - `config.rarityColorMode` = `"color"` (default) or `"mono"`. In `"mono"` every finish renders using only white/gray/black variations of its motion and pattern. Build finishes so both modes work.
-- Owner-approved rarity opening intros may use full-screen rarity colors while the card remains hidden: Basic white, Common gray, Uncommon lime/green, Rare blue with a sky-blue cloudy crystal star, Super Rare a navy/blue celestial star and ornamental rings, Unusual purple/white refractive gel glass, and Double Super Rare blue glass on the left and gold on the right. These seven intros flow into a brief 400 ms card flip, with no separate rise or pre-flip pause. Unusual and Double Super Rare use long warped seams, irregular facets, separate moving highlights and accelerating side-to-side beams, followed by one tinted-white peak and a short frozen impact. Chrome remains monochrome. Mono mode makes these intros grayscale; reduced motion replaces travel, bursts and flashes with a brief restrained fade. See `docs/RARITY-INTROS.md`.
-- Legendary extends that approved opening palette with molten gold side flames, a faceted central prism and three seconds of mirrored crystal illumination. The final crystal field becomes a static gold background behind the card through metadata, variants and Keep/Delete, with a quiet darker center for readability. It fades as the card leaves and clears before another reveal or the menu. The gun reference informs the golden outline and facets; the composition contains no weapon. Mono and reduced motion retain intentional static alternatives. Legendary uses the same brief flip and overlapping release.
-- Mythical's owner-approved Crimson Clock cinematic uses a spatial ruby/black cave, reflected black water, submerged crystal tendrils and a corrupted mechanical ritual. Its original vector gothic MYTHICAL wordmark is cinematic artwork, not a third UI font. A single white explosion flash resolves into the same 400 ms flip with a 160 ms overlapping release. A dark red-black field remains behind the card with slow edge smoke and sparse embers (at most 10 Hz on the shared scheduler); it freezes when unfocused, activity-hidden or under static graphics/motion policies. The field fades on Keep/Delete and clears before another reveal. Mono converts both renderers to grayscale; Low, Very Low and reduced motion use restrained static alternatives. No audio, runtime network dependency or change to pulls accompanies this effect.
+- Approved pack/cinematic/Classic/Picker exceptions are consolidated in Appendix A. They do not authorize color on ordinary UI chrome.
 
 ## 5. Glass recipe
 
@@ -116,10 +102,6 @@ Every glass surface uses this one recipe (toast, inventory sheet, buttons, toolt
 The inventory sheet additionally has a soft shadow above it and lets the dot grid show faintly through.
 
 ## 6. Motion
-
-Exotic's owner-approved cinematic extends the rarity palette exception: a familiar white Basic pulse cuts to intentional black, then blue/violet/pink stars accelerate for ten Normal-speed seconds into a twisting tunnel. The stop leaves a brief shutter smear before a tilted luminous galaxy forms. Its layered purple gas, dark dust lanes, dense rotating stellar arms, compact pale/gold core and shooting stars remain distinct. The galaxy fades completely before the card flip; the same dots persist as a dark, quietly drifting wallpaper. UI chrome and metadata remain monochrome. Fast scales the full presentation to 70%; reduced motion and Low/Very Low omit the tunnel, roll, shimmer and impact, retaining static stars. No audio.
-
-Exotic's retained field has a subdued center for the card and edge-weighted light. It runs at no more than 10 updates per second on the shared scheduler, sleeps on blur/hidden/activity sleep/static policies, and fades over 450 ms on either decision. Recovery reconstructs its seeded quiet field immediately without replaying the reveal. The galaxy's live renderer has no private timer or animation loop.
 
 | Use | Duration | Curve |
 |---|---|---|
@@ -146,7 +128,7 @@ One lamp, top-left. Everything obeys it:
 - Centered composition with generous empty space. Safe margin 32 px.
 - Main menu corners: wordmark top-left (small), currency top-right, inventory arrow bottom-center, pack in the center. Nothing else.
 - **Idle fade:** after 15 s without activity, secondary controls fade out (600 ms). Keep the pack, countdown, card/pack counts, stock/refill visualizer and wordmark; the wordmark shrinks to 65%. Activity restores the controls. Open inventory, tutorial, opening and toast contexts keep their own presentation.
-- **AFK:** after 10 minutes without activity, hide the card/pack scene and panels, and suspend decorative rendering. Keep a small wordmark and timestamp-driven countdown/counts/refill visualizer. Activity restores the same state, including any reserved reveal. See `docs/IDLE-ACTIVITY.md`.
+- **AFK:** after 10 minutes without activity, hide the card/pack scene and panels, and suspend decorative rendering. Keep a small wordmark and timestamp-driven countdown/counts/refill visualizer. Activity restores the same state, including any reserved reveal. See `docs/05-MAIN-MENU.md`.
 
 ## 9. Component states
 
@@ -204,9 +186,35 @@ Add a hover response to almost everything interactive. Hover states must never s
 - Card foil technique: https://poke-holo.simey.me/ (study the light behavior; write original code, do not copy it, and render in the palette of this project).
 - Put image references in `references/` (see `references/README.md`).
 
+## Appendix A — Approved materials, palette and specialized presentation
+
+The following owner approvals remain authoritative. Historical milestone wording records incremental implementation; use docs/CINEMATICS.md and docs/ROADMAP.md for current endpoints and acceptance.
+
+## 2.5.0 Titan vault
+
+Titan is an original brand-neutral titanium vault, with no company logos: brushed #8E9399 metal, carbon insets, heavy bevels/rivets, ice-white reactor, engraved Cardable header and TITAN PACK / HALO SERIES with a LIMITED RUN plate. Its core breathes at 0.25 Hz, its rim passes quietly and faint seam steam stays bounded. Waiting is an outline/progress ring; charge lights 24 ring segments; armor separates during dissolution.
+
+The owner-approved monolith arrival drops and settles the wrapper over 1.2 seconds, with restrained dust/shockwave and a High-only two-pixel dip. The three-tick clockwise vault dial has a faint arc arrow, static progress lights and Enter fallback. Bolts retract and the door unseals with local steam/light before the existing rarity cinematic. Lower graphics and reduced motion retain intentional fades/static alternatives. UI/card frames, fonts and audio remain unchanged.
+
+## Owner-approved 2.1.0 brand wrapper exception
+
+NVIDIA green/graphite/chrome, AMD red/dark metal, Snapdragon gold/red/black and Apple silver are authorized on sealed wrappers, opening materials, queue markers and actual-instance provenance tags. Each keeps the shared silhouette and seals, a Cardable header, a local company logo and brand-only caption. The generated NVIDIA concept in `assets/packs/nvidia-concept-v1.png` guides the coded chamfers and inlays. UI chrome stays neutral; card mono mode governs cards and rarity cinematics. Brand tint clears before rarity reveal.
+
+Type changes turn through a quiet foil back. After durable Keep, the earned card turns through its engraved back, swaps at the hidden edge, and returns as the next wrapper. The shared effects clock owns both turns; reduced motion and Low/Very Low animation settings crossfade. High uses pointer gloss and six-second sheen; Medium gets one sweep per appearance; lower presets retain static identity.
+
+- Owner-approved rarity opening intros may use full-screen rarity colors while the card remains hidden: Basic white, Common gray, Uncommon lime/green, Rare blue with a sky-blue cloudy crystal star, Super Rare a navy/blue celestial star and ornamental rings, Unusual purple/white refractive gel glass, and Double Super Rare blue glass on the left and gold on the right. These seven intros flow into a brief 400 ms card flip, with no separate rise or pre-flip pause. Unusual and Double Super Rare use long warped seams, irregular facets, separate moving highlights and accelerating side-to-side beams, followed by one tinted-white peak and a short frozen impact. Chrome remains monochrome. Mono mode makes these intros grayscale; reduced motion replaces travel, bursts and flashes with a brief restrained fade. See `docs/CINEMATICS.md`.
+- Legendary extends that approved opening palette with molten gold side flames, a faceted central prism and three seconds of mirrored crystal illumination. The final crystal field becomes a static gold background behind the card through metadata, variants and Keep/Delete, with a quiet darker center for readability. It fades as the card leaves and clears before another reveal or the menu. The gun reference informs the golden outline and facets; the composition contains no weapon. Mono and reduced motion retain intentional static alternatives. Legendary uses the same brief flip and overlapping release.
+- Mythical's owner-approved Crimson Clock cinematic uses a spatial ruby/black cave, reflected black water, submerged crystal tendrils and a corrupted mechanical ritual. Its original vector gothic MYTHICAL wordmark is cinematic artwork, not a third UI font. A single white explosion flash resolves into the same 400 ms flip with a 160 ms overlapping release. A dark red-black field remains behind the card with slow edge smoke and sparse embers (at most 10 Hz on the shared scheduler); it freezes when unfocused, activity-hidden or under static graphics/motion policies. The field fades on Keep/Delete and clears before another reveal. Mono converts both renderers to grayscale; Low, Very Low and reduced motion use restrained static alternatives. No audio, runtime network dependency or change to pulls accompanies this effect.
+
+Exotic's owner-approved cinematic extends the rarity palette exception: a familiar white Basic pulse cuts to intentional black, then blue/violet/pink stars accelerate for ten Normal-speed seconds into a twisting tunnel. The stop leaves a brief shutter smear before a tilted luminous galaxy forms. Its layered purple gas, dark dust lanes, dense rotating stellar arms, compact pale/gold core and shooting stars remain distinct. The galaxy fades completely before the card flip; the same dots persist as a dark, quietly drifting wallpaper. UI chrome and metadata remain monochrome. Fast scales the full presentation to 70%; reduced motion and Low/Very Low omit the tunnel, roll, shimmer and impact, retaining static stars. No audio.
+
+Exotic's retained field has a subdued center for the card and edge-weighted light. It runs at no more than 10 updates per second on the shared scheduler, sleeps on blur/hidden/activity sleep/static policies, and fades over 450 ms on either decision. Recovery reconstructs its seeded quiet field immediately without replaying the reveal. The galaxy's live renderer has no private timer or animation loop.
+
+### Graphics, developer scope and component contracts
+
 ## Stage 13 graphics and accessibility update
 
-Four independent graphics tiers: Very Low, Low, Medium (fresh-save default), High. Presets set the nine graphics controls together; FPS and accessibility stay independent. High retains the full silver/card material language with refined glare and edge light. Very Low uses static finishes, no cosmetic particles, no backdrop blur or dots, and flat grounding. Low retains attractive static materials with interaction-only motion. Inventory thumbnails are front-only and static, with one full card mounted on entering detail. Coarse-pointer play uses visible 44px touch targets, a hold action, Tear and Flip buttons, and Keep/Delete. The shared loop supports display refresh plus explicit FPS caps; hidden visuals sleep and refill reconciles from timestamps. See docs/GRAPHICS-UPDATE.md.
+Four independent graphics tiers: Very Low, Low, Medium (fresh-save default), High. Presets set the ten graphics controls together; FPS and accessibility stay independent. High retains the full silver/card material language with refined glare and edge light. Very Low uses static finishes, no cosmetic particles, no backdrop blur or dots, and flat grounding. Low retains attractive static materials with interaction-only motion. Inventory thumbnails are front-only and static, with one full card mounted on entering detail. Coarse-pointer play uses visible 44px touch targets, a hold action, Tear and Flip buttons, and Keep/Delete. The shared loop supports display refresh plus explicit FPS caps; hidden visuals sleep and refill reconciles from timestamps. See docs/GRAPHICS-UPDATE.md.
 
 ## 1.3.0 developer workspace
 
@@ -216,18 +224,11 @@ The normal one-full-card rule remains the gameplay policy. The developer compari
 
 ## Stage 14 inventory optimization
 
-Inventory browsing uses a shaded prepainted panel instead of full-sheet backdrop filtering, flat front-only thumbnail layers, a single shelf pan and native grid scroll. Viewport-based virtualization bounds the compositor layers; metadata updates only when content changes. Very Low retains the active cut blade while removing the empty cursor blend surface. See docs/INVENTORY-PERFORMANCE.md for measured moving-scene results and limitations.
-
-## Stage 14 inventory optimization
-
-Inventory browsing uses a shaded prepainted panel instead of full-sheet backdrop filtering, flat front-only thumbnail layers, a single shelf pan and native grid scroll. Viewport-based virtualization bounds the compositor layers; metadata updates only when content changes. Very Low retains the active cut blade while removing the empty cursor blend surface. See docs/INVENTORY-PERFORMANCE.md for measured moving-scene results and limitations.
-
+Inventory browsing uses a shaded prepainted panel instead of full-sheet backdrop filtering, flat front-only thumbnail layers, a single shelf pan and native grid scroll. Viewport-based virtualization bounds the compositor layers; metadata updates only when content changes. Very Low retains the active cut blade while removing the empty cursor blend surface. See docs/06-INVENTORY.md for measured moving-scene results and limitations.
 
 Ascendant Prismatic Dawn is delivered incrementally under `alpha-updates/1.13.0-ascendant-cutscene/SPEC.md`. Milestone A contains only S0–S3: a near-black/pastel spark, procedural spatial glass cave, tipping keystone, liquid-light impact and submerged rooted filaments. Its new light is local and restrained; no explosion flash exists until milestone C. It uses Mythical's extracted WebGL engine and post-processing, the extracted clock component, the shared reveal scheduler and a shared skip timeline. Presentation randomness is seeded from the reserved serial. The Ascendant white/pastel edge field is now a shared procedural finish renderer; its complete S7/S8 continuity and border choreography remain milestone C. A local serif title font is permitted exclusively for the later Ascendant cinematic title, per the owner-supplied spec; UI typography remains unchanged.
 
-
 Ascendant milestone B extends Prismatic Dawn through S4-S6. The top-down hexagon scales locally at 1.2-2.4 Hz with only 2.5% local light modulation, then becomes the 12-point/ring/chevron sigil in one SDF shader. Pastel history streaks and three rising FBM mist strata precede a thin glass clock; the clock rests at 12 from 23.2 to 23.5 seconds. The locally bundled OFL Bodoni Moda font is restricted to ASCENDANT's cinematic title; Inter and JetBrains Mono remain the UI fonts. The title sharpens from blur and separated pastel edges, a three-second spatial inversion mask sweeps the composition, and facet shards converge inward. Side readout updates are capped at 2 Hz. No explosion or extra flash exists in B; C owns that one climax and the full final border choreography.
-
 
 Ascendant milestone C completes S7/S8: three to five pleated pastel light curtains rise into white, with inward wind, sparks, blurred clock hands and a pullback/push-in. Its only global flash is a single 110 ms rise / 590 ms decay envelope at 30.6 s; seeking backwards cannot replay it. The title's final inversion dissolves gradually into the curtains. Normal and compressed playback cap local pulse rates at 2.4 Hz and star rotation at two revolutions per second. The shockwave resolves into the exact shared white/pastel finish field, using the reserved serial and continuous presentation age. The 400 ms direct flip runs within the 1.5-second materialization and squircle border draw; metadata follows. Full/Short/Off appear in Cards settings. Very Low, reduced motion and Off use a three-second Canvas-only, no-flash/no-shake sequence. The dev-only luminance-change graph is an inspection aid, not a safety certification. All geometry/materials remain procedural, classic-script and offline; no audio is added.
 
@@ -236,7 +237,6 @@ Ascendant milestone C completes S7/S8: three to five pleated pastel light curtai
 The owner-authorized Classic pack is an original aged-plastic case inspired by the supplied retro tower photo: warm beige bezel, molded seams, screws, drive bay, physical buttons, restrained LEDs, vent grooves and an original Cardable pixel badge. Colored hardware details stay inside the pack and its provenance/queue markers. Waiting keeps a dim case outline and segmented progress; charge updates the red display and grille, with amber wrapper light. Classic arrivals use ordered-dither pixels and a shrinking vortex, followed by a slow case fade. Lower quality, reduced motion, hidden/AFK and independent material/reflection/animation controls restrict decoration.
 
 Every card born from this pack permanently uses a beige monitor bezel and amber terminal panel. Rarity stays in its background finish, front LED strip, code and tags; the common engraved back does not expose tier during the initial flip. Four screws, chamfered corners, grain and a small CLASSIC sticker define the frame. Locally bundled OFL VT323 is permitted only on this terminal plate; other UI keeps existing fonts. Catalog-era CLASSIC tags are neutral and independent of pack provenance. The original description is used because `references/classic-border.png` is absent.
-
 
 ### Secret milestone A: Fatal Exception
 
@@ -251,7 +251,6 @@ Milestone A has a temporary 600 ms release into that shared field and the normal
 The owner-authorized Royal wrapper follows the supplied gold facet reference: varied triangular metal faces, a quiet shaded center, a detailed original gold crown and tiny gem/glint highlights. A red woven damask band beneath the Cardable header uses thin gold thread and bead borders inspired by the supplied carpet photo. Waiting remains an outlined gold wrapper with pale-gold refill; charge lights its facets upward; dissolution floats bounded gold triangles. Crown queue markers use the shared restrained pulse.
 
 One local diagonal gold sweep reveals the next wrapper. After the shared upper cut, an original red lacquer holder rises with gold trim, crown and a local ring. Its Click hint follows two seconds later; click/Enter opens the lid with one box-only white shine and interior light. The reserved tier's cinematic then runs. A missing cinematic gets a three-second card rise with crown/glint and gold shine, grayscale in card mono mode. Gold/red wrapper and holder surfaces are authorized exceptions; other chrome stays neutral. High carries moving gloss/glint/dust, Medium one appearance sweep, lower tiers static identity, and reduced motion fades. No additional flash, audio or font is introduced.
-
 
 ### Secret milestone B: the failing desktop
 
@@ -277,7 +276,6 @@ Runtime acceptance remains outstanding: C's sole allowed browser launch stopped 
 
 Settings dims and gently scales the underlying game without applying a whole-scene blur. Its glass panel and focused preview retain their chosen quality. Independent cinematic detail follows the four presets by default; reduced motion and safety controls remain authoritative. No game rules, audio or network dependencies change.
 
-
 ## 2.7.0 — Quiet detail panel
 
 Card detail gives the card its own dark field: the underlying inventory sheet is hidden, and a 360 px information panel is centered beside it. Below 900 px the panel stacks under the card. The panel has a generation/rarity overline and name, at most three provenance chips including a keyboard-accessible +N popover, and shared sliding Overview/History segments. Chip priority is variant, pack, freshness; overflow includes Normal, exact timestamp and serial. Rare Pack keeps the approved sapphire provenance exception; all other panel chrome is monochrome.
@@ -285,7 +283,6 @@ Card detail gives the card its own dark field: the underlying inventory sheet is
 Do not add separate tier badges/meters, serial strips, rarity rows or primary card-plate specs to the panel. Overview lists actual additional catalog specs, an All specs disclosure, one ownership line and an optional copy selector/lore line. Inspect is the single primary action; Flip, Favorite and More use shared icon controls with shortcut tooltips. Previous/next flank the card, and the R hint sits outside its frame. Serial copying stays attached to the card or tucked into More/metadata/copy selection.
 
 Panel items enter with a 40 ms stagger, an 8 px rise and High-only unblur, with chips last. Medium omits item blur; Low/Very Low and reduced motion use opacity only. Tab content crossfades with a 12 px rise when motion permits; the existing segmented spring moves the highlight. No independent animation loop or additional card effects are introduced.
-
 
 ## 2.8.0 Picker wrapper exception
 

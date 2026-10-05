@@ -1,6 +1,6 @@
 # 11 — Stage 11: settings
 
-Stage 13 graphics and performance controls supersede the three-preset graphics section below. See [GRAPHICS-UPDATE.md](GRAPHICS-UPDATE.md) for the current matrix and behavior.
+Current four-tier graphics and performance controls supersede the historical three-preset graphics section below. The ten independent advanced graphics controls are authorized. See [GRAPHICS-UPDATE.md](GRAPHICS-UPDATE.md) for the current matrix and behavior.
 
 A quiet glass panel with a small set of useful settings, safe data tools, and a few well-made interaction details. Quality over quantity: no theme colors, no per-effect sliders, no market, no language picker.
 

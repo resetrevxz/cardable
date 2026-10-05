@@ -1,11 +1,11 @@
 # Play Cardable on Windows
 
-Cardable **4.1.1** supports **Windows x64**. The current locally built offline
+Cardable **4.2.0** supports **Windows x64**. The current locally built offline
 installer is approximately **324 MB** (about **309 MiB**); size varies by build.
 The supplied local build is **unsigned**, with no verified publisher. A public
 download site and live updates are not configured yet.
 
-1. Get **Cardable-Setup-4.1.1.exe** from the person who supplied Cardable. There is
+1. Get **Cardable-Setup-4.2.0.exe** from the person who supplied Cardable. There is
    no official public download URL to use yet. Check that the file came from your
    expected supplier before opening it.
 2. Run the installer. It installs for your Windows user, creates **Cardable**

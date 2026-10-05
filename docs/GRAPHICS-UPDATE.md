@@ -1,4 +1,4 @@
-# Graphics update — v1.2.0
+# Graphics tiers and performance contracts
 
 Four presets apply instantly: **Very Low, Low, Medium, High**. Medium is the new-player default. Existing saved High/Medium/Low settings migrate to the same tier. No inventory, pack timing, pull probabilities, serials or immutable variants change.
 
@@ -14,6 +14,7 @@ Four presets apply instantly: **Very Low, Low, Medium, High**. Medium is the new
 | Trails / ripple limit | Off / 0 | Off / 1 | On / 2 | On / 3 |
 | Ambient animation | Static | Interaction only | Focused ambient | Focused ambient |
 | Canvas pixel ratio ceiling | 1 | 1.25 | 1.5 | 2 |
+| Cinematic detail (current refresh) | Calm Canvas | Simplified | Balanced | Full focused geometry/post |
 
 These are independent advanced settings, not sliders tied implicitly to the preset. Changing an effect displays **Customized**. Selecting any preset resets only these ten graphics controls. FPS, reduced motion, key mappings, color mode and other preferences are preserved. Text remains at native CSS resolution. Low and Very Low keep collectible identity, rarity ornaments and readable metadata.
 
@@ -27,8 +28,16 @@ Inventory Shelf/Grid uses bounded front-only static thumbnail DOM, local lower-r
 
 Touch play has a visible hold-to-open action, native top-strip cutting, a Tear fallback, Flip, Keep/Delete, inventory and settings. Coarse-pointer targets are at least 44px; essential controls survive idle fade. Keyboard controls and the fixed three-second hold remain supported. Reduced motion remains separate from graphics quality and continues to use static/fade equivalents.
 
-High improves core glare and edge illumination while retaining focused rarity and coating effects. Its performance depends on display, browser and device. See [GRAPHICS-QA.md](GRAPHICS-QA.md) for measured evidence and its limits.
+High improves core glare and edge illumination while retaining focused rarity and coating effects. Its performance depends on display, browser and device. See [GRAPHICS-UPDATE.md](GRAPHICS-UPDATE.md) for measured evidence and its limits.
 
-Stage 14 further optimizes inventory browsing: its sheet now uses shaded surfaces instead of full backdrop blur at every preset. Static card materials, bounded compositor layers, viewport-aware mount budgets and responsive grid layout keep moving inventory inexpensive. Other panels retain their independent glass controls. See [INVENTORY-PERFORMANCE.md](INVENTORY-PERFORMANCE.md).
+Stage 14 further optimizes inventory browsing: its sheet now uses shaded surfaces instead of full backdrop blur at every preset. Static card materials, bounded compositor layers, viewport-aware mount budgets and responsive grid layout keep moving inventory inexpensive. Other panels retain their independent glass controls. See [06-INVENTORY.md](06-INVENTORY.md).
 
 The current refresh adds independent cinematic detail and removes full-game blur behind Settings. See [GRAPHICS-REFRESH.md](GRAPHICS-REFRESH.md) for current-checkout measurements and acceptance.
+
+## Historical graphics evidence and current limits
+
+The original behavior, touch and frame measurements are retained in [the archived graphics QA](../archive/4.2.0-cleanup/docs/GRAPHICS-QA.md). They describe that source checkpoint, software rendering and roughly 60 Hz browser cadence. Synthetic 120/240 Hz tests establish scheduler logic, not device speed. High heavy-scene task cost did not improve universally. No physical phone, weak laptop, thermal/battery or 240 Hz GPU certification follows from those observations.
+
+Current inventory mount budgets and shaded surfaces are in [06-INVENTORY.md](06-INVENTORY.md). Later independent cinematic detail and desktop resize/IPC fixes are described in [GRAPHICS-REFRESH.md](GRAPHICS-REFRESH.md) and [OPTIMIZATION-4.1.1.md](OPTIMIZATION-4.1.1.md). Older graphics/inventory/activity expectations sometimes conflict with later source; their failures remain in archived evidence. The 4.2.0 cleanup did not rerun those suites or profiles.
+
+The current restricted testing policy is [PROMPTING.md](PROMPTING.md). Broad coverage, physical input/zoom/OS motion, paint/GPU cost and high-refresh acceptance remain separate work.

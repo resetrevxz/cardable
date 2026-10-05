@@ -1,13 +1,13 @@
 # Updates
 
-## 4.1.0 manual updates policy
+## Current manual updates policy (4.2.0)
 
 About uses desktop-release.json → updates.mode: link opens the configured GitHub
 Releases page, or github-public manually checks its public latest-release API.
 Owner/repository intentionally remain unset for the planned later GitHub update.
 No token, scheduled request, automatic download or installation is involved.
 The older installer service below is retained; its scheduled checks run only in
-explicit update fixtures, not normal 4.1.0 builds.
+explicit update fixtures, not normal builds.
 
 ## Retained installer-updater infrastructure
 

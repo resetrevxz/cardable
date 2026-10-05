@@ -1,5 +1,15 @@
 # Cardable changelog
 
+## 4.2.0 — Desktop delivery, help and recovery
+
+- Welcome offers Start playing and optional confirmed browser-save import.
+- Bundled Settings/palette help explains gameplay, shortcuts, four graphics tiers, saving, separate Studio-photo downloads and desktop recovery.
+- Unreadable saves retain their originals and pause writes/pack opening until an explicit recovery choice; startup/storage failures get plain guidance.
+- The Windows x64 installer uses one-click per-user setup, normal shortcuts, manual app-close guidance and retained player data.
+- Local delivery validates installer/preview/shortcut hashes and promotes transactionally before pruning exact owned superseded artifacts.
+- Current docs are consolidated; historical evidence is archived with provenance and unresolved acceptance stays visible.
+- Existing rendering optimizations, game rules, save schema and storage identity are preserved. Public hosting/live updates/signing remain unconfigured; local build validation is not broad runtime or hardware certification.
+
 ## 4.1.1 — Graphics and desktop performance
 
 - Stop the layout resize feedback loop that repeated geometry, canvas and inventory work every display frame.

@@ -6,7 +6,7 @@ Cardable is a local, offline, single-player HTML game. Players collect GPU cards
 
 1. This file.
 2. `Designs.MD` — always, before touching any UI.
-3. The docs listed for your stage in `docs/STAGES.md`. Do not load every doc every time.
+3. The docs listed for your stage in `docs/ROADMAP.md`. Do not load every doc every time.
 4. `docs/OPEN-QUESTIONS.md` — the defaults to follow for anything undecided.
 
 ## Hard rules
@@ -36,6 +36,12 @@ Cardable is a local, offline, single-player HTML game. Players collect GPU cards
 ## Where things go
 
 See `docs/ARCHITECTURE.md` for the file tree, registries, events, and the recipes for adding a card, rarity, pack, generation or finish.
+
+## Current continuation and archive policy
+
+- Route work through `docs/ROADMAP.md` and `docs/PROMPTING.md`; archived originals may be consulted for provenance and unresolved acceptance, not loaded by default.
+- Preserve the dirty shared checkout, incoming specs and registered feature worktrees. Use canonical `alpha-updates` paths; `alpha updates` is a compatibility junction. Retirement requires separate explicit approval and Git-aware archival.
+- The current 4.2.0 owner policy prohibits old suites, new test files, screenshots, recordings and profiling. Follow its named-check/one-app-session limits; keeping test runners does not authorize running them.
 
 ## Completed-prompt delivery
 

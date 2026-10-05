@@ -1,0 +1,800 @@
+{
+  "auditDate": "2026-10-06",
+  "baselineRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+  "primaryCheckout": "D:\\CardableV2\\cardable-spec\\cardable",
+  "initialDirty": [
+    " D \"alpha updates/4.0.0-electron/SPEC.md\"",
+    " D alpha-updates/4.0.0-electron/SPEC.md",
+    "?? \"alpha updates/4.1.0-desktop-qol/\"",
+    "?? \"alpha updates/4.2.0-cleanup/\"",
+    "?? \"alpha updates/github-setup/\"",
+    "?? alpha-updates/github-setup/"
+  ],
+  "worktrees": [
+    {
+      "path": "D:\\CardableV2\\achievements-ab",
+      "head": "82271abc5f2b3b934ce966e7e01536effe2bacd2",
+      "branch": "update/achievements-ab",
+      "dirty": [],
+      "mainVsBranch": "21\t5",
+      "headIsAncestorOfMain": false,
+      "action": "Keep; retirement needs separate explicit approval and Git-aware archival."
+    },
+    {
+      "path": "D:\\CardableV2\\card-history-work",
+      "head": "12cd96b518e6b3f4cf29818f5f7d4e9a231ec31f",
+      "branch": "update/card-history",
+      "dirty": [
+        " M AGENTS.md"
+      ],
+      "mainVsBranch": "21\t5",
+      "headIsAncestorOfMain": false,
+      "action": "Keep; retirement needs separate explicit approval and Git-aware archival."
+    },
+    {
+      "path": "D:\\CardableV2\\inspect-director-work",
+      "head": "f43ced5b38fc84aef1fb9b5c199fc8bd99871235",
+      "branch": "update/inspect-director",
+      "dirty": [],
+      "mainVsBranch": "19\t8",
+      "headIsAncestorOfMain": false,
+      "action": "Keep; retirement needs separate explicit approval and Git-aware archival."
+    },
+    {
+      "path": "D:\\CardableV2\\picker-pack-work",
+      "head": "6ee8770e44df87361c82c369b6d2add951f3e8d5",
+      "branch": "update/picker-pack",
+      "dirty": [],
+      "mainVsBranch": "18\t5",
+      "headIsAncestorOfMain": false,
+      "action": "Keep; retirement needs separate explicit approval and Git-aware archival."
+    }
+  ],
+  "spaceNamedAlias": {
+    "path": "D:\\CardableV2\\cardable-spec\\cardable\\alpha updates",
+    "isJunction": true,
+    "resolvedTarget": "D:\\CardableV2\\cardable-spec\\cardable\\alpha-updates",
+    "action": "Retain compatibility junction; do not traverse for cleanup or stage its alias."
+  },
+  "specInventory": [
+    {
+      "path": "alpha-updates/1.13.0-ascendant-cutscene/SPEC.md",
+      "bytes": 18815,
+      "sha256": "ea20f2a66ef14d2d8bd537d1e42668272cff4869c0fa97f48c0f07683e9085ef",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/2.3.0-secret-cutscene/SPEC.md",
+      "bytes": 20110,
+      "sha256": "a6370dde711e960d7c6dbf4b2c6760d7e622d063870668d0faef56da5711039d",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/2.5.0-card-history/SPEC.md",
+      "bytes": 7286,
+      "sha256": "5f0f30d5419055436a8a2b16ffbf55fc320adfbe556e301a60a727497a6a333d",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/2.6.0-inspect-director/SPEC.md",
+      "bytes": 13188,
+      "sha256": "bb4ec7825b2b3e5e3d947ea65c1d1ae6a1e7d9679e7e613c554ededceaef10d9",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/2.7.0-achievements/SPEC.md",
+      "bytes": 9311,
+      "sha256": "15313558eebd4577b1b3d210aa7c301aa6eedebefd438e62ad3723e9be6e3b77",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/2.8.0-picker-pack/SPEC.md",
+      "bytes": 7286,
+      "sha256": "8e201ff0667da4bda33d7b1e6cb7f4951a9cd7e9127c3fce04f99aeb01835250",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/3.0.0-electron/SPEC.md",
+      "bytes": 20822,
+      "sha256": "6d61cab595e66f28f37dd9c5c7f8b61bb239c6ba90b271423d03049e614f9f50",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/4.1.0-desktop-qol/SPEC.md",
+      "bytes": 10421,
+      "sha256": "8afe3bf1f4486696c91cfe64a76465432f8eab1c56dc4c16b1889e0d4ef363e2",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/4.2.0-cleanup/ORIGINAL-PLAN-v2.md",
+      "bytes": 434,
+      "sha256": "16d598c56fdd8e6b8f21f7bf6c5cdab892988d55147ed0f20c05f56b268a3a77",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/4.2.0-cleanup/SPEC.md",
+      "bytes": 22326,
+      "sha256": "207fa2bb65867b20df63e27e28d88f0b59d7d9da032ef73b5fb961e00dd1e6e5",
+      "tracked": true,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    },
+    {
+      "path": "alpha-updates/github-setup/SPEC.md",
+      "bytes": 10287,
+      "sha256": "d6c6d6539ad4e1d9a76ee59bf142cf23acb99bb14cb507be28662f2e04d15943",
+      "tracked": false,
+      "aliasSameBytes": true,
+      "decision": "Keep current/incoming contract or historical compatibility route; no completed acceptance inferred."
+    }
+  ],
+  "archives": [
+    {
+      "original": "docs/BUG-PASS-9C-EVIDENCE.json",
+      "archive": "archive/4.2.0-cleanup/docs/BUG-PASS-9C-EVIDENCE.json",
+      "bytes": 3344,
+      "sha256": "a251ca7a1880305c52420492db0cb1b92f8444d0b4285b05109045be6d34a0f2",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/BUG-PASS-9C-PROFILE.json",
+      "archive": "archive/4.2.0-cleanup/docs/BUG-PASS-9C-PROFILE.json",
+      "bytes": 2251,
+      "sha256": "07fc63f21b86802693f2ea7e2344e926c5920872315518ce1dc768c7faa59310",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/BUG-PASS-9C-REGRESSIONS.json",
+      "archive": "archive/4.2.0-cleanup/docs/BUG-PASS-9C-REGRESSIONS.json",
+      "bytes": 2435,
+      "sha256": "68d15e73b8abd39554062a38925ad9a3fa58586be3cb80480c1eff05712f0974",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/BUG-PASS-9C-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/BUG-PASS-9C-REPORT.md",
+      "bytes": 4010,
+      "sha256": "2a75e15efa05102a409174f9141f2ad9c3b00d2ba25cb8bc71eee541bbbb51aa",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/CARD-REMAKE-PASS-1-EVIDENCE.json",
+      "archive": "archive/4.2.0-cleanup/docs/CARD-REMAKE-PASS-1-EVIDENCE.json",
+      "bytes": 9519,
+      "sha256": "617cb43f56cda11f5a1edb154acb3a5112a43fcdd160ee908505d1a8ff2cdebb",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/CARD-REMAKE-PASS-1.md",
+      "archive": "archive/4.2.0-cleanup/docs/CARD-REMAKE-PASS-1.md",
+      "bytes": 5586,
+      "sha256": "dcef739d9c660da6763621abd3828df057dbd95060314750c0531dcb3e2fac95",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/CARD-REMAKE-PASS-2-EVIDENCE.json",
+      "archive": "archive/4.2.0-cleanup/docs/CARD-REMAKE-PASS-2-EVIDENCE.json",
+      "bytes": 8017,
+      "sha256": "52b1db51a77b061c9f3e2df98c598a7617c5a17c47b774499a709044650fba76",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/CARD-REMAKE-PASS-2.md",
+      "archive": "archive/4.2.0-cleanup/docs/CARD-REMAKE-PASS-2.md",
+      "bytes": 5725,
+      "sha256": "1a3769eeeee1271b252f4d813ffe550386b48afe3007b4719afdf26998af71c6",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/ELECTRON-CHECKLIST.md",
+      "archive": "archive/4.2.0-cleanup/docs/ELECTRON-CHECKLIST.md",
+      "bytes": 6006,
+      "sha256": "ae77207a80321a7de0b32da9245fea08726f796c7d3f241ea7369b2a689c5901",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/electron-milestone-1.md",
+      "archive": "archive/4.2.0-cleanup/docs/electron-milestone-1.md",
+      "bytes": 7034,
+      "sha256": "8486b54ac9b2e1eb92050d68dbcd68d8b8e31c2af78bfb7941405bcdbb070919",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/electron-milestone-2.md",
+      "archive": "archive/4.2.0-cleanup/docs/electron-milestone-2.md",
+      "bytes": 3348,
+      "sha256": "042277ce01b1fd921b8d3f010f98c4a304bebdefec15cede708d0406f6e59203",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/electron-milestone-3.md",
+      "archive": "archive/4.2.0-cleanup/docs/electron-milestone-3.md",
+      "bytes": 11413,
+      "sha256": "938c6884914960a5f125d3a8c5f943df320c0f042a26b92695173777c3a5b30c",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/FIXES-F1-F6-PROFILE.json",
+      "archive": "archive/4.2.0-cleanup/docs/FIXES-F1-F6-PROFILE.json",
+      "bytes": 2003,
+      "sha256": "8b64e96feec2c057de49d52aa418e05ac9d01fb0f74d4857e858dbac0c49b636",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/FIXES-F1-F6-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/FIXES-F1-F6-REPORT.md",
+      "bytes": 8266,
+      "sha256": "77ffc418ccef1e9d08da6d0b55ae8025e1759f16a7d14bc742d94e43a2eb1618",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/GRAPHICS-BROWSER.json",
+      "archive": "archive/4.2.0-cleanup/docs/GRAPHICS-BROWSER.json",
+      "bytes": 14032,
+      "sha256": "b5e6d3ac088a257708d399d8da3a8f0e28850c81bcb1d22cb60b9ed950148666",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/GRAPHICS-COMPARISON.json",
+      "archive": "archive/4.2.0-cleanup/docs/GRAPHICS-COMPARISON.json",
+      "bytes": 8407,
+      "sha256": "9a7366781fbbdee7ba9d78bfbe63ddcaa1067b6e17d24b7016143f60eef0f811",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/GRAPHICS-REGRESSIONS.json",
+      "archive": "archive/4.2.0-cleanup/docs/GRAPHICS-REGRESSIONS.json",
+      "bytes": 1433,
+      "sha256": "9baaeb7b755369f41470c80ad6d5ba03da83fa75d11fdf644243e959fd6601d7",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/IDLE-PACK-STAGED-BROWSER-EVIDENCE.json",
+      "archive": "archive/4.2.0-cleanup/docs/IDLE-PACK-STAGED-BROWSER-EVIDENCE.json",
+      "bytes": 3921,
+      "sha256": "a2465c5901108d9df46d5a93d875c4988d548edce7dba3eadd95fadaf1c250b1",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/IDLE-PACK-WORKING-BROWSER-EVIDENCE.json",
+      "archive": "archive/4.2.0-cleanup/docs/IDLE-PACK-WORKING-BROWSER-EVIDENCE.json",
+      "bytes": 4041,
+      "sha256": "376134350ebb643dc1961687f9df8ab05e3f57e7383c0fb58ab659e90573936f",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/INVENTORY-REFRESH-PROFILE.json",
+      "archive": "archive/4.2.0-cleanup/docs/INVENTORY-REFRESH-PROFILE.json",
+      "bytes": 3364,
+      "sha256": "65d77cc680703e266deaccea855dd4a1505456ce277a069a89703cba46663e16",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/INVENTORY-REFRESH-REGRESSIONS.json",
+      "archive": "archive/4.2.0-cleanup/docs/INVENTORY-REFRESH-REGRESSIONS.json",
+      "bytes": 18185,
+      "sha256": "280bebc9117db1cbfe5f95c9902a8292b4447ba1aaf943e9d45c1f83439cc0df",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/INVENTORY-REFRESH.md",
+      "archive": "archive/4.2.0-cleanup/docs/INVENTORY-REFRESH.md",
+      "bytes": 11041,
+      "sha256": "b569be2cac27e5f8ec2f701edc0fa2adc229d73a2544bdfc3b98e50d558ef58c",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/NEW-FEATURES-N1-N6-PROFILE.json",
+      "archive": "archive/4.2.0-cleanup/docs/NEW-FEATURES-N1-N6-PROFILE.json",
+      "bytes": 2334,
+      "sha256": "8e2595deee07cfaccdddd5a2363b687a4eb0d24b13447cbdab7ea24e375e5951",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/NEW-FEATURES-N1-N6-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/NEW-FEATURES-N1-N6-REPORT.md",
+      "bytes": 7416,
+      "sha256": "e34c55afd32f79f109793955faeecf3aec84b8b8e71a0443c98c4637fc2e2a57",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/ogprompt.txt",
+      "archive": "archive/4.2.0-cleanup/docs/ogprompt.txt",
+      "bytes": 8329,
+      "sha256": "01b743297bd342b43f98aafef106bcd9d272e7c8515247aaa4008f152c438b13",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/SETTINGS-11A-PROFILE.json",
+      "archive": "archive/4.2.0-cleanup/docs/SETTINGS-11A-PROFILE.json",
+      "bytes": 1504,
+      "sha256": "d337113b761a7aa1f7ee16890bd2f006f78ff2339f8f21d5fcb0044fe79159ca",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/SETTINGS-11A-REGRESSIONS.json",
+      "archive": "archive/4.2.0-cleanup/docs/SETTINGS-11A-REGRESSIONS.json",
+      "bytes": 36644,
+      "sha256": "d238bec235bba8230e6293185d0cec133d2c0f9cae1a26f5355750d48599067b",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/SETTINGS-11A.md",
+      "archive": "archive/4.2.0-cleanup/docs/SETTINGS-11A.md",
+      "bytes": 4765,
+      "sha256": "b7260d424d185a904388fa20d945b4f367c8afcb43e6b03d507f252c00dc8193",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/SETTINGS-11B.md",
+      "archive": "archive/4.2.0-cleanup/docs/SETTINGS-11B.md",
+      "bytes": 5016,
+      "sha256": "6b53983e71357068d9076dddc08cc9916d47c6c50fd84cd4a032ccf1d47f5000",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-1-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-1-REPORT.md",
+      "bytes": 3309,
+      "sha256": "2fe15e027d403725316e2d6f7f876787c7fa83ac837f087b8343ce5393755451",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-2-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-2-REPORT.md",
+      "bytes": 6784,
+      "sha256": "f4c969f57a18ac97007f9890ab3f7ef01d2e2679be8bad1ef94e0af2c559b6b6",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-3-TIERS-10-12-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-3-TIERS-10-12-REPORT.md",
+      "bytes": 7419,
+      "sha256": "209b512238ebacbd041f2044597464c90d4b8d3d9f294895e65f44fb42c3626f",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-3-TIERS-4-6-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-3-TIERS-4-6-REPORT.md",
+      "bytes": 5706,
+      "sha256": "fbb9485a0cf4f0d5b99e72e9eb0f5c85c6a85f786c009772ea48acab25765a61",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-3-TIERS-7-9-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-3-TIERS-7-9-REPORT.md",
+      "bytes": 6383,
+      "sha256": "47300eede34102e1e44769a64b2d446c83faf682592e99410e48fd251a7fba08",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-4-IDLE-PACK-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-4-IDLE-PACK-REPORT.md",
+      "bytes": 4327,
+      "sha256": "f5b236b8bd52e5b2ef8b92d52622658f24246341b8b0c073f907a8158a75bd0c",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-4-PACK-CADENCE.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-4-PACK-CADENCE.md",
+      "bytes": 1314,
+      "sha256": "10b58ca5fa37404d746bf61af55340ee9f5747975a1ea2783aa62669e13abdaa",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-4-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-4-REPORT.md",
+      "bytes": 9241,
+      "sha256": "ea416a1502a8085e8245645854c834f1243a46c29305735c09cdd400338bc6cd",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-5-REVEAL-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-5-REVEAL-REPORT.md",
+      "bytes": 6576,
+      "sha256": "00f6028cb61203528f65534d7ce3a6390658d0242e52bb109247e94245c75234",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-5-THROUGH-TEAR-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-5-THROUGH-TEAR-REPORT.md",
+      "bytes": 8316,
+      "sha256": "c49134e6d2afbf316e3c6ea258e5653b8e5d2543c93acf4709b4016204f3bce3",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-6-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-6-REPORT.md",
+      "bytes": 6837,
+      "sha256": "1aee9f34f9b37483c9b7c926941ee42b8c6ffdf4e55cd6c4304dafcdb1848940",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-7-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-7-REPORT.md",
+      "bytes": 8464,
+      "sha256": "78514c097f586ba6f949e78f8dbc87c7a602dbc0d8d699c66824160806cd397c",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-8-DESIGN-REVIEW.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-8-DESIGN-REVIEW.md",
+      "bytes": 6080,
+      "sha256": "4943584bf23040727c1778d3d68de44ccb5d25c76ccdd43a1d2723a66ed8804f",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-8-PROFILE.json",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-8-PROFILE.json",
+      "bytes": 2001,
+      "sha256": "45dbc35636da5e24e15dccf4b01f58295104e9929995f4613292cf5226b59874",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGE-8-REPORT.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGE-8-REPORT.md",
+      "bytes": 9923,
+      "sha256": "084335b3047377d966fe2af58ffc54dd89eda7c23c2dbb5d3892b3e31b7ab71e",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/VARIANTS-AND-TAGS-EVIDENCE.json",
+      "archive": "archive/4.2.0-cleanup/docs/VARIANTS-AND-TAGS-EVIDENCE.json",
+      "bytes": 23540,
+      "sha256": "5986ab557638c9ff6df9a4024339e69361a046090910e552960921247467069b",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Raw QA record",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/VARIANTS-AND-TAGS-QA.md",
+      "archive": "archive/4.2.0-cleanup/docs/VARIANTS-AND-TAGS-QA.md",
+      "bytes": 5831,
+      "sha256": "ad013003ae9f1929557a4178aedd0a8003273f82c897fa2d5435f7b1d50a4e7a",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/VISUAL-PASS-PROGRESS.md",
+      "archive": "archive/4.2.0-cleanup/docs/VISUAL-PASS-PROGRESS.md",
+      "bytes": 6154,
+      "sha256": "004e058a8cbe2e6c15a39a4436468195b889a306206f7e970bfe0fcf383f47c7",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "move",
+      "purpose": "Historical report or original prompt",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/CUT-SWIPE.md",
+      "archive": "archive/4.2.0-cleanup/docs/CUT-SWIPE.md",
+      "bytes": 2661,
+      "sha256": "cd31e003acd071fea43b71847e9c236852a1f53e5dcf522805cc8f746303cfbf",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/OPENING-QOL.md",
+      "archive": "archive/4.2.0-cleanup/docs/OPENING-QOL.md",
+      "bytes": 2863,
+      "sha256": "e6b6240b0daf65ff046c90fe7a7e45829fc5ee587ab7b16c5620d280508c27b0",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/IDLE-ACTIVITY.md",
+      "archive": "archive/4.2.0-cleanup/docs/IDLE-ACTIVITY.md",
+      "bytes": 2647,
+      "sha256": "a482cf09d32e4c86a28696ddccc3e9cc5a6e5ab15c498888162e414c20ebf631",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/INVENTORY-PERFORMANCE.md",
+      "archive": "archive/4.2.0-cleanup/docs/INVENTORY-PERFORMANCE.md",
+      "bytes": 6304,
+      "sha256": "9267e4c3f8f0a780a0ae500cb365d4fb42896ca92e23b5dce9f0aee84bddbddb",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/GRAPHICS-QA.md",
+      "archive": "archive/4.2.0-cleanup/docs/GRAPHICS-QA.md",
+      "bytes": 4995,
+      "sha256": "424b598ea4cf3823cd3f6cbe01e081297fd68581b7859654459dc069b0a32bd7",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/RARITY-INTROS.md",
+      "archive": "archive/4.2.0-cleanup/docs/RARITY-INTROS.md",
+      "bytes": 33201,
+      "sha256": "362436c40b170cef59e9472cda3a2d465676d9b5a06e28073aaf7e9da1994532",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/STAGES.md",
+      "archive": "archive/4.2.0-cleanup/docs/STAGES.md",
+      "bytes": 10748,
+      "sha256": "529251e3855a49a10bb8e099bf0cfb6d40847f1d9350c47db07ea9e7e34e2ca8",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/BUGS.md",
+      "archive": "archive/4.2.0-cleanup/docs/BUGS.md",
+      "bytes": 16752,
+      "sha256": "deb690c232f702de94caf9366c688938deb49810a1f023c412b3ded765ace585",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/POLISH-BACKLOG.md",
+      "archive": "archive/4.2.0-cleanup/docs/POLISH-BACKLOG.md",
+      "bytes": 10576,
+      "sha256": "c189955f5e6de0d7b398ab496dd0928f3f3977ee519ba68f7b001a845b3cdbaf",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "Designs.MD",
+      "archive": "archive/4.2.0-cleanup/Designs.MD",
+      "bytes": 32641,
+      "sha256": "3dfb72d982f68e015308c35ad8ab6bd943d2df3cce8aaef6102a22d524c5cc47",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "docs/ARCHITECTURE.md",
+      "archive": "archive/4.2.0-cleanup/docs/ARCHITECTURE.md",
+      "bytes": 23323,
+      "sha256": "81a5b403b4106dfd716605596ce9f7ebea22eef2ec08e55ee29aa9263379ec7b",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    },
+    {
+      "original": "alpha-updates/4.2.0-cleanup/ORIGINAL-PLAN-v2.md",
+      "archive": "archive/4.2.0-cleanup/alpha-updates/4.2.0-cleanup/ORIGINAL-PLAN-v2.md",
+      "bytes": 23516,
+      "sha256": "8322dfb25ca7c829c5148b4f6c3c075e759a94bad30418ac650ac99fa577c97b",
+      "tracked": true,
+      "sourceRevision": "8620e6ae904882ad974eb761057b04e48e4f4d39",
+      "action": "snapshot",
+      "purpose": "Original before canonical consolidation; retains unique contracts and acceptance limits",
+      "limits": "Historical evidence only; no acceptance is inferred for later source changes. Resolve original relative paths against original directory."
+    }
+  ]
+}

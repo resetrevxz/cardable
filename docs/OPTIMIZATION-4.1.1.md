@@ -30,7 +30,7 @@ The logger fixture now models stdout/stderr and verifies that a closed launcher 
 
 ## Integrated rendering evidence
 
-The earlier inventory work reduced moving High Shelf/Grid median gaps from about 67/83 ms to 16.7 ms in scoped headless samples. Shaded Settings improved the High Mythical preview sample from about 22 to 49 FPS. Complete matrices and limits are in INVENTORY-PERFORMANCE.md and GRAPHICS-REFRESH.md.
+The earlier inventory work reduced moving High Shelf/Grid median gaps from about 67/83 ms to 16.7 ms in scoped headless samples. Shaded Settings improved the High Mythical preview sample from about 22 to 49 FPS. Complete matrices and limits are in 06-INVENTORY.md and GRAPHICS-REFRESH.md.
 
 Controlled before/after/after/before software-renderer cinematic samples averaged 13.24 to 18.65 FPS for Secret (41% higher) and 0.92 to 4.22 FPS for Ascendant (4.6 times). Mythical varied, so no substantial gain is claimed. These are software Chromium stress results, not desktop FPS. Integrated changes reuse texture storage, use separable bloom, respect the existing pixel ceiling, cache authored Ascendant fog and skip invisible shader work.
 

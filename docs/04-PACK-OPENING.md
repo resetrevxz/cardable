@@ -64,9 +64,9 @@ Rules: only one pack can be in the sequence at a time; ignore input that is inva
 - The cap peels aside with a stronger 7-degree turn while the main wrapper separates gently, then both fall and fade into the rarity intro when configured, followed by the existing card reveal.
 - Cut effects remain neutral silver/white. Reserved-card, reward, Keep/Delete and reload semantics are unchanged.
 
-### rarityIntro (Basic through Exotic)
-- After the wrapper falls away, read the rarity of the reserved instance. Keep the card unmounted while the full-screen light/star sequence runs, then enter `rising`.
-- Each rarity owns its sections and durations in `openingIntro` in `src/data/rarities.js`. Mono, quality and reduced-motion treatments share the same reservation; see `RARITY-INTROS.md`.
+### rarityIntro (registered rarity descriptors)
+- After the wrapper falls away, read the rarity of the reserved instance. Keep the actual card unmounted during the registered sequence, then enter its direct flip/handoff; descriptor-free rarities retain the rise path.
+- Each rarity owns its sections and durations in `openingIntro` in `src/data/rarities.js`. Mono, quality and reduced-motion treatments share the same reservation; see `CINEMATICS.md`.
 - Reload recovery skips this phase and immediately exposes the saved card with Keep/Delete, preserving exact-once rewards and decisions.
 
 ### rising (`reveal.riseMs`)
@@ -93,9 +93,9 @@ Rules: only one pack can be in the sequence at a time; ignore input that is inva
 
 ## 4. Rarity scaling
 
-Use `reveal` values from `docs/02-RARITIES.md`. Commons are quick; higher tiers get longer rise, a pause before the flip, a slower flip, more bloom and a deeper grid dim. Secret and Ascendant may add one extra flourish each (Secret: the scrambling logo appears on the card back for 400 ms before the flip).
+Use `reveal` values from `docs/02-RARITIES.md` only for the descriptor-free reveal path. Current registered cinematics supersede the historical rise/preFlip/flourish sequence; see `CINEMATICS.md` for Ascendant/Secret and earlier descriptor handoffs.
 
-Owner-approved `openingIntro` descriptors now override that entrance for Basic through Exotic. After the foil tear, the reserved card stays unmounted while its rarity sequence runs. The effect then hands directly into a 400 ms back-to-front flip, overlapping its first 160 ms; the old rise/pre-flip pause is bypassed. Metadata and variant readiness still gate Keep/Delete. Legendary's 8600 ms ceremony uses molten side flames, a gold prism and three seconds of mirrored crystal sweeps. Its final crystal field remains static behind the card. Mythical's 27,600 ms Crimson Clock film uses a spatial cave/fall, underwater crystal tendrils, an overhead red omen and corrupted clock ritual, then one white explosion flash. Its red-black field remains with quiet edge smoke/embers. Exotic's 19,300 ms intro interrupts Basic's white peak with black, establishes a colored starfield, accelerates for ten seconds, brakes into a tilted rotating galaxy, then fades the galaxy while keeping those stars behind the card. These backgrounds fade over 450 ms during collection/discard. Reload restores the appropriate seed-derived field and the same front card without replay or another reward. See `RARITY-INTROS.md` for section timings, Fast/Mono/static alternatives and renderer contracts.
+Owner-approved `openingIntro` descriptors now override that entrance for Basic through Exotic. After the foil tear, the reserved card stays unmounted while its rarity sequence runs. The effect then hands directly into a 400 ms back-to-front flip, overlapping its first 160 ms; the old rise/pre-flip pause is bypassed. Metadata and variant readiness still gate Keep/Delete. Legendary's 8600 ms ceremony uses molten side flames, a gold prism and three seconds of mirrored crystal sweeps. Its final crystal field remains static behind the card. Mythical's 27,600 ms Crimson Clock film uses a spatial cave/fall, underwater crystal tendrils, an overhead red omen and corrupted clock ritual, then one white explosion flash. Its red-black field remains with quiet edge smoke/embers. Exotic's 19,300 ms intro interrupts Basic's white peak with black, establishes a colored starfield, accelerates for ten seconds, brakes into a tilted rotating galaxy, then fades the galaxy while keeping those stars behind the card. These backgrounds fade over 450 ms during collection/discard. Reload restores the appropriate seed-derived field and the same front card without replay or another reward. See `CINEMATICS.md` for section timings, Fast/Mono/static alternatives and renderer contracts.
 
 ## 5. Edge cases
 
@@ -112,11 +112,9 @@ See `docs/07-DOT-GRID-CURSOR.md`. Summary: hold ripples while charging, normal n
 
 Roll one cosmetic finish after GPU selection, with an independent 10% gate. Persist `variantId` with the reserved serial in the original opening commit. Existing committed reveals migrate to Normal. After the ordinary front reveal settles, a variant enters `variantReveal` for 1200 ms (840 ms with Fast reveal, 180 ms with reduced motion): normal hold, accelerating coating alignment snaps, final lock and settle. Keep/Delete remain gated until the final tag appears. A reload recovers the final saved finish immediately without another roll, reward or animation. See `VARIANTS-AND-TAGS.md` and its QA report.
 
-
 ## 2.0.0 Scheduled pack commits
 
 Resolve the pack from the candidate save at commit time, increment openedCount with the existing statistics/reward/stock transaction, and store packId on the pending reveal and each instance. Canceled holds and failed writes preserve the queue; recovery never re-resolves or recounts the committed pack. The charge shell previews the upcoming skin. Registered fluid/leak/cut tint values apply only to wrapper phases; post-tear rarity and card reveal behavior stays unchanged.
-
 
 ## Ascendant cinematic handoff (milestone C)
 
@@ -130,10 +128,9 @@ Classic shares the existing three-second hold and atomic opening commit. Its wra
 
 `swapIn:'tornadoPixel'` routes preview replacements and post-Keep arrivals through the shared transition registry. At normal quality the earned card first turns to its engraved back, then the outgoing pack fragments and the incoming case appears. Medium shortens the vortex; Low uses a pixel fade; Very Low/reduced motion use fades. Ready and regenerating arrivals land on the same upcoming skin.
 
+### Secret checkpoint A (historical intermediate contract)
 
-### Secret checkpoint A
-
-Secret enters `rarityIntro` through the same reveal hook. Serial-seeded presentation and warm-up are shared with Ascendant. A Full pre-roll pauses the cinematic clock before any story advancement; either profile has the same Acts A–C duration. The temporary release mounts the actual card only at the existing direct flip, preserving metadata, variants, Keep/Delete and pending-reveal recovery. The quiet shared Secret field remains until the normal decision fade. A adds no reservation, reward, stock or serial mutation. Desktop and final resurrection choreography remain B/C.
+Secret enters `rarityIntro` through the same reveal hook. Serial-seeded presentation and warm-up are shared with Ascendant. A Full pre-roll pauses the cinematic clock before any story advancement. The A checkpoint's temporary release preserved direct flip, metadata, variants, Keep/Delete and pending recovery; current C below and `CINEMATICS.md` supersede that endpoint. The final implementation adds no reservation, reward, stock or serial mutation.
 
 ## 2.4.0 Royal cut and holder
 
@@ -154,3 +151,22 @@ C runtime acceptance is still pending: the only permitted launch reached the gam
 Picker consumes shared stock/count/reward in the same charge-completion transaction but reserves three distinct unminted options, with at least one Rare or better. Drag either wing outward or press Enter; the cards flip one by one without a tier cinematic. Choose using 1/2/3, arrows/Enter or pointer. A quick second click/Enter (within 1.6 seconds) or 600 ms press confirms; failed storage leaves the original options and serial counter unchanged. Only the confirmed option mints the next serial. Its existing cinematic/reveal/variant/Keep sequence follows. Secret options are ??? with no disclosed name/tier/art until selected.
 
 Reload before choice resumes the same pick screen directly; reload after choice exposes the exact chosen card at Keep. Recovery never re-draws, consumes stock or rewards again. Reduced motion uses fades and omits travel/particles. See alpha-updates/2.8.0-picker-pack/SPEC.md and IMPLEMENTATION.md.
+
+## Aligned swipe and opening quality of life (current)
+
+The cutting gesture has a larger invisible hit area, automatic top-seal alignment and generous drift tolerance during pointer capture. Either direction works. The persistent seam represents horizontal coverage, so vertical movement and repeated back-and-forth motion over the same area do not manufacture progress. Resume anywhere within the completed range or 72px from its ends.
+
+The aligned tip follows over 38ms. Moving builds a brighter speed-sensitive silver glint and a bounded 24-segment trail; releasing lets the heat cool over 260ms. Small foil recoil adds resistance without moving the input geometry. At 72% width (60% Easy), a 130ms sweep extends to the edges before the cap peels away. The shorter tear/split/fall phases total 840ms. Reduced motion replaces motion with static aligned feedback/crossfades and removes particles.
+
+Tuning lives in `config.cut` and `config.openingMotion`. `opening.js` owns input, seam/feedback and the existing state machine; `cursor.js` accepts the aligned blade target. The classic offline script layout and shared FX scheduler remain intact.
+
+Standard Pack sets `design.showGenerationPool = false`, which removes the print from all shared wrapper layers: front, rear, transmitted print, opening foil and split pieces. Other pack designs can explicitly retain that print.
+
+Credits use `is-quiet` for inactivity independently of modal/keyboard visibility holds. This fixes the case where a focused control keeps the rest of the UI visible. The fade follows the configured idle delay and resets on activity; the existing ten-minute AFK view still hides it.
+
+- A fresh Space press accepts a revealed card once the Keep action is available. The original held charge key and repeated key events are guarded. The shortcut remains available when the opening key preference changes, and focused buttons keep their corresponding actions.
+- The owner-approved swipe remake supersedes the old 8–22% pointer restriction: a larger upper-pack hit area and captured-drag tolerance feed an automatically aligned top seam. Normal coverage is 72% (Easy 60%), with a 130ms finishing sweep. Partial cuts resume broadly. See `04-PACK-OPENING.md`. Keyboard tearing also removes a top cap.
+- A silver draw-on guide sits just below the top seal, with its label above the wrapper. A partial cut replaces it with the persistent seam. Reduced motion displays a static guide.
+- Four miniature card backs show stored packs, the next slot's continuous refill, and empty future slots. New arrivals lift subtly and catch a silver sweep. Reduced motion uses a shine without movement.
+- The existing four-pack maximum and two-hour refill cadence remain authoritative. At capacity the timer pauses without banking time.
+- The browser title shows the timestamp-derived countdown and remaining percentage while refilling, including when some packs are already stored. A refill arrival switches it to `pack ready`; opening a pack or returning to the tab resumes the next countdown. A full bank stays ready.

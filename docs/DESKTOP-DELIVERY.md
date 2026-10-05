@@ -1,4 +1,4 @@
-# Local desktop delivery — milestone A
+# Local desktop delivery
 
 From the actual repository root, run `npm run deliver:desktop`. Windows x64 and
 the existing Node/Electron development dependencies are required for building;
@@ -6,9 +6,7 @@ players only need the resulting offline installer. This command never installs,
 launches, publishes, elevates, kills Cardable or changes the game/save schema.
 Milestone B adds the one-click per-user installer and [player guide](../PLAY.md).
 Milestone C adds bundled Settings/palette help and explicit recovery choices.
-Milestone D (documentation consolidation and final version) remains pending.
-The app remains 4.1.1 until the
-authorized 4.2.0 milestones finish; each delivery has a unique build ID.
+Milestone D consolidates documentation and evidence, audits retained worktrees, and synchronizes the final app version to 4.2.0. Each later delivery has a unique build ID; versions do not advance per prompt.
 
 ## What the command does
 
@@ -42,7 +40,7 @@ NSIS now recreates it on reinstall; Start Menu shortcuts and launch after setup
 are enabled. The supported include never kills Cardable: interactive setup asks
 the player to close it and retry, while silent setup stops. Existing all-users or
 ambiguous locations stop for manual review, not a new origin/profile. See PLAY.md.
-Using the installer upgrades the stable app identity; A does not execute it or
+Using the installer is configured to upgrade the stable app identity; delivery does not execute it or
 claim that an installation/upgrade has been accepted. No private absolute paths
 enter packaged build metadata: only build ID, revision and source fingerprint.
 
@@ -96,7 +94,7 @@ paired local artifacts live together inside the manifest-owned build directory.
 
 ## Evidence and limits
 
-Milestone evidence is recorded in alpha-updates/4.2.0-cleanup/A-DELIVERY.md and the
+Milestone evidence is recorded in alpha-updates/4.2.0-cleanup/A-DELIVERY.md through D-DELIVERY.md and the
 local manifests. Hash/config/handoff validation does not prove gameplay, installer
 execution, signing, update/relaunch, hardware or browser regression. Follow the
 restricted testing policy in the current spec and PROMPTING.md.
