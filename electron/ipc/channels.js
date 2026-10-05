@@ -20,6 +20,10 @@ const IPC_CHANNELS = {
   WINDOW_SET_UI_SCALE: 'window:set-ui-scale',
   WINDOW_SET_ASPECT_LOCK: 'window:set-aspect-lock',
   WINDOW_COMMAND: 'window:command',
+  WINDOW_SET_PREFERENCES: 'window:set-preferences',
+  WINDOW_SET_PACK: 'window:set-pack',
+  WINDOW_SET_AWAKE: 'window:set-awake',
+  WINDOW_TOGGLE_MINI: 'window:toggle-mini',
 
   // System & Diagnostics
   SYSTEM_OPEN_EXTERNAL: 'system:open-external',

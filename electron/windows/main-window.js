@@ -122,6 +122,9 @@ function createMainWindow() {
 
   // Keyboard shortcut handlers
   win.webContents.on('before-input-event', (event, input) => {
+    if ((input.control || input.meta) && input.key.toLowerCase() === 'm' && input.type === 'keyDown') {
+      event.preventDefault(); if (!input.isAutoRepeat) require('../native/window-life').openMini(); return;
+    }
     if ((input.control || input.meta) && ['+','=','-','_','0'].includes(input.key)) {
       event.preventDefault();
       if(input.type === 'keyDown')win.webContents.send(require('../ipc/channels').IPC_CHANNELS.WINDOW_COMMAND, input.key === '0' ? 'scale-reset' : ['-','_'].includes(input.key) ? 'scale-down' : 'scale-up');

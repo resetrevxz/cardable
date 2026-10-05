@@ -36,7 +36,9 @@ class WindowStateKeeper {
           x: Number.isFinite(parsed.x) ? parsed.x : undefined,
           y: Number.isFinite(parsed.y) ? parsed.y : undefined,
           isMaximized: parsed.isMaximized === true,
-          isFullScreen: parsed.isFullScreen === true
+          isFullScreen: parsed.isFullScreen === true,
+          miniX: Number.isFinite(parsed.miniX) ? parsed.miniX : undefined,
+          miniY: Number.isFinite(parsed.miniY) ? parsed.miniY : undefined
         };
         this.validateStateAgainstDisplays();
         return;

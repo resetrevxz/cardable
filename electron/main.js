@@ -43,6 +43,8 @@ if (!gotTheLock) {
     logger.info('Second instance launched, restoring and focusing existing window');
     const win = getMainWindow();
     if (win) {
+      const life = require('./native/window-life');
+      if (!life.command(commandLine)) life.restore();
       if (win.isMinimized()) win.restore();
       if (!win.isVisible()) win.show();
       win.focus();

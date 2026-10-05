@@ -23,8 +23,8 @@
     if(C.config.flags.audio)items.push(toggle('muted','Mute','volume'));return items;
   }
   function view() { return [action('hide-interface','Hide interface','hide',function(){C.menu.hideInterface();}),
-    {id:'fullscreen',type:'toggle',label:'Fullscreen',icon:'fullscreen',checked:!!root.document.fullscreenElement,
-      disabled:!root.document.fullscreenEnabled,hint:'Unavailable in this window',run:function(){return root.document.fullscreenElement?root.document.exitFullscreen():root.document.documentElement.requestFullscreen();}}]; }
+    {id:'fullscreen',type:'toggle',label:'Fullscreen',icon:'fullscreen',checked:C.native?C.qol.fullscreen:!!root.document.fullscreenElement,
+      disabled:!C.native&&!root.document.fullscreenEnabled,hint:'Unavailable in this window',run:function(){return C.native?C.native.window.toggleFullscreen():root.document.fullscreenElement?root.document.exitFullscreen():root.document.documentElement.requestFullscreen();}}]; }
   function data() { return [action('export-save','Export save','export',function(){C.saveFiles.download(C.saveTools.exportText(),'cardable-save.json');}),action('replay-tutorial','Replay tutorial','replay',function(){C.saveTools.replay();})]; }
   function collection() { var model=C.collection.project(C.data.cards,C.state.current.inventory,'rarity');return action('collection','Cards '+model.owned+' / '+model.total+' - Variants '+model.variantCopies,'inventory',inventory); }
   C.contextMenu.register({target:'empty',build:function(){return [openPack(),action('inventory','Inventory','inventory',inventory,{shortcut:'I'}),action('settings','Settings','settings',settings,{shortcut:'S'}),separator(),

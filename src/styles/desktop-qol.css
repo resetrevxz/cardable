@@ -7,7 +7,7 @@
 .inventory-affordance { bottom:calc(var(--s-6) + var(--safe-bottom)); }
 .inventory-sheet { bottom:var(--safe-bottom); left:calc(var(--s-6) + var(--safe-left)); right:calc(var(--s-6) + var(--safe-right)); }
 .settings-overlay { padding:calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
-.journal-sheet { top:calc(var(--s-5) + var(--safe-top)); right:calc(var(--s-5) + var(--safe-right)); bottom:calc(var(--s-5) + var(--safe-bottom)); left:calc(var(--s-5) + var(--safe-left)); }
+body > .journal-sheet, .qol-root > .journal-sheet { top:calc(var(--s-5) + var(--safe-top)); right:calc(var(--s-5) + var(--safe-right)); bottom:calc(var(--s-5) + var(--safe-bottom)); left:calc(var(--s-5) + var(--safe-left)); }
 .studio-shell, .studio-album { padding-top:calc(var(--s-5) + var(--safe-top)); padding-right:calc(var(--s-5) + var(--safe-right)); padding-bottom:calc(var(--s-5) + var(--safe-bottom)); padding-left:calc(var(--s-5) + var(--safe-left)); }
 .achievement-toast { top:calc(var(--s-6) + var(--safe-top)); }
 .save-notice, .settings-nudge, .settings-data-toast { bottom:calc(var(--s-5) + var(--safe-bottom)); }
@@ -20,3 +20,6 @@
 .inventory-detail .inventory-popover { top:calc(80px + var(--safe-top)); right:calc(32px + var(--safe-right)); }
 .qol-root .dev-workspace { top:var(--safe-top); right:var(--safe-right); height:var(--available-height); }
 .qol-root .dev-status { right:calc(var(--s-4) + var(--safe-right)); bottom:calc(var(--s-4) + var(--safe-bottom)); }
+.qol-notice { position:fixed; left:50%; bottom:calc(var(--s-6) + var(--safe-bottom)); transform:translateX(-50%); z-index:var(--z-toast); padding:var(--s-3) var(--s-4); border-radius:var(--r-button); font:12px var(--font-ui); color:var(--text-dim); animation:qol-fade var(--t-ui) var(--ease-out); }
+@keyframes qol-fade { from { opacity:0; } to { opacity:1; } }
+[data-quality="very-low"] .qol-notice { animation:none; }

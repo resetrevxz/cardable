@@ -1,16 +1,17 @@
 (function (C, root) {
   'use strict';
   var updates = [], raf = null, inFrame = false, requested = false, last = null, nextDue = null, rawLast = null, focused = true, paused = false;
-  var refreshHz = 60, bestGap = Infinity, failures = new WeakSet();
+  var refreshHz = 60, bestGap = Infinity, failures = new WeakSet(), nativeHidden = false;
   var scopes = [];
   var stats = { running: false, frameCount: 0, lastFrameMs: 0, jsMs: 0, skipped: 0,
     get subscribers() { return updates.length; }, get refreshHz() { return refreshHz; },
     get paused() { return paused; }, get targetFps() { return Math.min(refreshHz, cap()); } };
   function cap() {
     var value = C.settings.get('fpsLimit'), fps = value === 'display' ? Infinity : Number(value);
+    if (C.settings.batterySaving) fps = Math.min(fps,30);
     return !focused && C.settings.get('unfocusedMode') === '30' ? Math.min(fps, 30) : fps;
   }
-  function blocked() { return root.document.hidden || !focused && C.settings.get('unfocusedMode') === 'pause'; }
+  function blocked() { return nativeHidden || root.document.hidden || !focused && C.settings.get('unfocusedMode') === 'pause'; }
   function sleep() {
     if (raf !== null) root.cancelAnimationFrame(raf);
     raf = null; last = nextDue = rawLast = null;
@@ -90,6 +91,7 @@
   root.addEventListener('blur', function () { focused = false; visibility(); });
   root.addEventListener('focus', function () { focused = true; visibility(); });
   C.settings.onChange('unfocusedMode', visibility);
+  C.events.on('desktop:visibility', function (visible) { nativeHidden = !visible; visibility(); });
   C.settings.onChange('fpsLimit', function () { last = nextDue = rawLast = null; C.fx.wake(); });
   root.document.documentElement.classList.toggle('is-hidden', root.document.hidden);
 

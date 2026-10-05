@@ -1,8 +1,8 @@
 (function (C, root) {
   'use strict';
   var schema = C.settingsSchema, values = schema.normalize(), applying = false, initialized = false;
-  var overrides = Object.create(null);
-  function effective(key) { return Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : values[key]; }
+  var overrides = Object.create(null), batterySaving = false;
+  function effective(key) { var value = Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : values[key]; return batterySaving && (key === 'quality' || schema.graphicsKeys.includes(key)) ? schema.tiers[Math.max(0,schema.tiers.indexOf(value)-1)] : value; }
   var media = root.matchMedia('(prefers-reduced-motion: reduce)');
   function rank(key) { return schema.tiers.indexOf(effective(key)); }
   function resolvePolicy() {
@@ -13,7 +13,7 @@
       rippleLimit: [0, 1, 2, 3][background], particles: [0, 0.15, 0.5, 1][rank('particleQuality')],
       blur: [0, 0, 0.6, 1][rank('glassQuality')], layers: reflection < 2 ? 7 : 10,
       shadows: [0, 1, 2, 3][rank('shadowQuality')], trail: background >= 2,
-      dpr: [1, 1.25, 1.5, 2][rank('canvasQuality')] };
+      dpr: Math.min(batterySaving ? 1 : 2, [1, 1.25, 1.5, 2][rank('canvasQuality')]) };
   }
   var policy = resolvePolicy();
   function attribute(key, value) { root.document.documentElement.setAttribute('data-' + key.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); }), String(value)); }
@@ -49,6 +49,8 @@
     return C.state.persistenceAvailable;
   }
   C.settings = {
+    get batterySaving() { return batterySaving; },
+    setBatterySaver: function (active) { active = !!active; if (active === batterySaving) return; batterySaving = active; policy = resolvePolicy(); ['quality'].concat(schema.graphicsKeys).forEach(function(key){apply(key,effective(key));}); },
     get: function (key) { return effective(key); },
     get snapshot() { return Object.assign({}, values); },
     get saved() { return C.state.persistenceAvailable; },

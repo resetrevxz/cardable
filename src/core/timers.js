@@ -5,7 +5,7 @@
   var started = false;
   function schedule() {
     if (interval !== null) root.clearInterval(interval); interval = null;
-    if (started && (!root.document.hidden || C.settings.get('backgroundMode') === 'timer')) interval = root.setInterval(function () { C.timers.tick(); }, 1000);
+    if (started && (C.native || !root.document.hidden || C.settings.get('backgroundMode') === 'timer')) interval = root.setInterval(function () { C.timers.tick(); }, 1000);
   }
   function onVisibility() { schedule(); if (!root.document.hidden) C.timers.tick(); }
   function state() { if (!C.state.current) C.state.load(); return C.state.current; }

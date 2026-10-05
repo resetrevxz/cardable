@@ -4,7 +4,7 @@
   function scale(width, height, userScale) { return Math.max(.62, Math.min(1.6, Math.min(width / 1920, height / 1080) * (userScale || 1))); }
   function update() {
     frame = null;
-    var enabled = !!C.native && !(desktopSize && desktopSize.mini);
+    var enabled = !!C.native;
     if (enabled && desktopSize) {
       var value = C.settings.get('interfaceSize'), next = scale(desktopSize.width, desktopSize.height, value === 'auto' ? 1 : Number(value) / 100);
       if (Math.abs(next - zoom) > .0001) { zoom = next; C.native.window.setUiScale(next).catch(function () {}); }
@@ -32,7 +32,7 @@
   function schedule() { if (frame === null) frame = root.requestAnimationFrame(update); }
   C.viewport = {
     scale: scale,
-    get root() { return container; }, get composed() { return !!C.native && !(desktopSize && desktopSize.mini); },
+    get root() { return container; }, get composed() { return !!C.native; },
     get windowWidth() { return root.document.documentElement.clientWidth; }, get windowHeight() { return root.document.documentElement.clientHeight; },
     get width() { return this.composed ? 1920 : this.windowWidth; }, get height() { return this.composed ? 1080 : this.windowHeight; },
     parent: function (parent) { return parent === root.document.body && container ? container : parent; },
