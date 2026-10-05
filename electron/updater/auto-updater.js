@@ -44,7 +44,7 @@ class CardableAutoUpdater {
 
     // Do not automatically download updates until user or background policy consents
     autoUpdater.autoDownload = false;
-    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.autoInstallOnAppQuit = false;
 
     this.setupListeners();
     logger.info(`AutoUpdater initialized (Current Version: ${this.currentVersion}, isPackaged: ${app.isPackaged})`);
@@ -166,8 +166,17 @@ class CardableAutoUpdater {
   }
 
   quitAndInstall() {
+    if (this.state !== UPDATER_STATES.UPDATE_DOWNLOADED && this.state !== UPDATER_STATES.INSTALL_READY) {
+      logger.warn('Ignored install request without a downloaded update');
+      return false;
+    }
     logger.info('Quitting and installing update...');
     autoUpdater.quitAndInstall(false, true);
+    return true;
+  }
+
+  destroy() {
+    this.mainWindow = null;
   }
 
   // Support local mock testing for complete state machine verification

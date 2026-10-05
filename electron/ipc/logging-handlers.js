@@ -1,10 +1,12 @@
-const { ipcMain } = require('electron');
 const { IPC_CHANNELS } = require('./channels');
 const logger = require('../logging/logger');
+const { registerSecureHandler } = require('./security');
 
 function registerLoggingHandlers() {
-  ipcMain.handle(IPC_CHANNELS.LOG_WRITE, (event, { level, message, meta }) => {
-    if (typeof message !== 'string') return false;
+  registerSecureHandler(IPC_CHANNELS.LOG_WRITE, (event, payload) => {
+    if (!payload || typeof payload !== 'object') return false;
+    const { level, message, meta } = payload;
+    if (typeof message !== 'string' || message.length > 8192) return false;
     const safeLevel = ['INFO', 'WARN', 'ERROR', 'DEBUG'].includes(String(level).toUpperCase())
       ? String(level).toUpperCase()
       : 'INFO';
@@ -12,11 +14,11 @@ function registerLoggingHandlers() {
     return true;
   });
 
-  ipcMain.handle(IPC_CHANNELS.LOG_GET_PATH, () => {
+  registerSecureHandler(IPC_CHANNELS.LOG_GET_PATH, () => {
     return logger.getLogPath();
   });
 
-  ipcMain.handle(IPC_CHANNELS.LOG_OPEN_DIR, async () => {
+  registerSecureHandler(IPC_CHANNELS.LOG_OPEN_DIR, async () => {
     return await logger.openLogFolder();
   });
 }

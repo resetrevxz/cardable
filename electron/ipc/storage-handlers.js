@@ -1,9 +1,10 @@
-const { ipcMain, app, shell } = require('electron');
+const { app, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { IPC_CHANNELS } = require('./channels');
 const desktopConfig = require('../config/desktop-config');
 const logger = require('../logging/logger');
+const { registerSecureHandler } = require('./security');
 
 function registerStorageHandlers() {
   const saveDir = path.join(app.getPath('userData'), 'saves');
@@ -17,7 +18,7 @@ function registerStorageHandlers() {
     }
   }
 
-  ipcMain.handle(IPC_CHANNELS.STORAGE_BACKUP_SAVE, async (event, saveJson) => {
+  registerSecureHandler(IPC_CHANNELS.STORAGE_BACKUP_SAVE, async (event, saveJson) => {
     if (typeof saveJson !== 'string' || saveJson.length === 0) {
       return { success: false, error: 'Invalid save payload' };
     }
@@ -56,7 +57,7 @@ function registerStorageHandlers() {
     }
   });
 
-  ipcMain.handle(IPC_CHANNELS.STORAGE_GET_BACKUP, async (event) => {
+  registerSecureHandler(IPC_CHANNELS.STORAGE_GET_BACKUP, async () => {
     try {
       if (fs.existsSync(saveFile)) {
         const content = fs.readFileSync(saveFile, 'utf8');
@@ -69,7 +70,7 @@ function registerStorageHandlers() {
     }
   });
 
-  ipcMain.handle(IPC_CHANNELS.STORAGE_OPEN_SAVE_DIR, async (event) => {
+  registerSecureHandler(IPC_CHANNELS.STORAGE_OPEN_SAVE_DIR, async () => {
     try {
       if (fs.existsSync(saveDir)) {
         await shell.openPath(saveDir);

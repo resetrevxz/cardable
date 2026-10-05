@@ -1,19 +1,19 @@
-const { ipcMain, BrowserWindow } = require('electron');
+const { BrowserWindow } = require('electron');
 const { IPC_CHANNELS } = require('./channels');
-const logger = require('../logging/logger');
+const { registerSecureHandler } = require('./security');
 
 function registerWindowHandlers() {
   function getSenderWindow(event) {
     return BrowserWindow.fromWebContents(event.sender);
   }
 
-  ipcMain.handle(IPC_CHANNELS.WINDOW_MINIMIZE, (event) => {
+  registerSecureHandler(IPC_CHANNELS.WINDOW_MINIMIZE, (event) => {
     const win = getSenderWindow(event);
     if (win) win.minimize();
     return true;
   });
 
-  ipcMain.handle(IPC_CHANNELS.WINDOW_MAXIMIZE, (event) => {
+  registerSecureHandler(IPC_CHANNELS.WINDOW_MAXIMIZE, (event) => {
     const win = getSenderWindow(event);
     if (win) {
       if (win.isMaximized()) {
@@ -25,24 +25,24 @@ function registerWindowHandlers() {
     return win ? win.isMaximized() : false;
   });
 
-  ipcMain.handle(IPC_CHANNELS.WINDOW_RESTORE, (event) => {
+  registerSecureHandler(IPC_CHANNELS.WINDOW_RESTORE, (event) => {
     const win = getSenderWindow(event);
     if (win && win.isMaximized()) win.unmaximize();
     return true;
   });
 
-  ipcMain.handle(IPC_CHANNELS.WINDOW_IS_MAXIMIZED, (event) => {
+  registerSecureHandler(IPC_CHANNELS.WINDOW_IS_MAXIMIZED, (event) => {
     const win = getSenderWindow(event);
     return win ? win.isMaximized() : false;
   });
 
-  ipcMain.handle(IPC_CHANNELS.WINDOW_CLOSE, (event) => {
+  registerSecureHandler(IPC_CHANNELS.WINDOW_CLOSE, (event) => {
     const win = getSenderWindow(event);
     if (win) win.close();
     return true;
   });
 
-  ipcMain.handle(IPC_CHANNELS.WINDOW_TOGGLE_FULLSCREEN, (event) => {
+  registerSecureHandler(IPC_CHANNELS.WINDOW_TOGGLE_FULLSCREEN, (event) => {
     const win = getSenderWindow(event);
     if (win) {
       const next = !win.isFullScreen();
@@ -52,7 +52,7 @@ function registerWindowHandlers() {
     return false;
   });
 
-  ipcMain.handle(IPC_CHANNELS.WINDOW_IS_FULLSCREEN, (event) => {
+  registerSecureHandler(IPC_CHANNELS.WINDOW_IS_FULLSCREEN, (event) => {
     const win = getSenderWindow(event);
     return win ? win.isFullScreen() : false;
   });

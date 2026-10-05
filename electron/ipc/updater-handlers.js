@@ -1,22 +1,21 @@
-const { ipcMain } = require('electron');
 const { IPC_CHANNELS } = require('./channels');
 const { updaterService } = require('../updater/auto-updater');
+const { registerSecureHandler } = require('./security');
 
 function registerUpdaterHandlers() {
-  ipcMain.handle(IPC_CHANNELS.UPDATER_CHECK, async (event, isManual) => {
+  registerSecureHandler(IPC_CHANNELS.UPDATER_CHECK, async (event, isManual) => {
     return await updaterService.checkForUpdates(isManual);
   });
 
-  ipcMain.handle(IPC_CHANNELS.UPDATER_DOWNLOAD, async () => {
+  registerSecureHandler(IPC_CHANNELS.UPDATER_DOWNLOAD, async () => {
     return await updaterService.downloadUpdate();
   });
 
-  ipcMain.handle(IPC_CHANNELS.UPDATER_INSTALL, () => {
-    updaterService.quitAndInstall();
-    return true;
+  registerSecureHandler(IPC_CHANNELS.UPDATER_INSTALL, () => {
+    return updaterService.quitAndInstall();
   });
 
-  ipcMain.handle(IPC_CHANNELS.UPDATER_GET_STATE, () => {
+  registerSecureHandler(IPC_CHANNELS.UPDATER_GET_STATE, () => {
     return updaterService.getStatePayload();
   });
 }

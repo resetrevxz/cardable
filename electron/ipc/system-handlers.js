@@ -1,17 +1,18 @@
-const { ipcMain, shell, clipboard, app } = require('electron');
+const { shell, clipboard, app } = require('electron');
 const os = require('os');
 const { IPC_CHANNELS } = require('./channels');
 const logger = require('../logging/logger');
+const { registerSecureHandler } = require('./security');
 
 function registerSystemHandlers() {
-  ipcMain.handle(IPC_CHANNELS.SYSTEM_OPEN_EXTERNAL, async (event, url) => {
+  registerSecureHandler(IPC_CHANNELS.SYSTEM_OPEN_EXTERNAL, async (event, url) => {
     if (typeof url !== 'string') {
       logger.warn('Rejected non-string URL in open-external');
       return false;
     }
     try {
       const parsed = new URL(url);
-      if (!['http:', 'https:', 'mailto:'].includes(parsed.protocol)) {
+      if (!['http:', 'https:', 'mailto:'].includes(parsed.protocol) || parsed.username || parsed.password || url.length > 2048) {
         logger.warn('Rejected untrusted protocol in open-external:', parsed.protocol);
         return false;
       }
@@ -24,8 +25,8 @@ function registerSystemHandlers() {
     }
   });
 
-  ipcMain.handle(IPC_CHANNELS.SYSTEM_COPY_TEXT, (event, text) => {
-    if (typeof text !== 'string') return false;
+  registerSecureHandler(IPC_CHANNELS.SYSTEM_COPY_TEXT, (event, text) => {
+    if (typeof text !== 'string' || text.length > 2 * 1024 * 1024) return false;
     try {
       clipboard.writeText(text);
       return true;
@@ -35,7 +36,7 @@ function registerSystemHandlers() {
     }
   });
 
-  ipcMain.handle(IPC_CHANNELS.SYSTEM_GET_DIAGNOSTICS, async (event) => {
+  registerSecureHandler(IPC_CHANNELS.SYSTEM_GET_DIAGNOSTICS, async () => {
     try {
       let gpuFeatureStatus = {};
       let gpuInfo = {};

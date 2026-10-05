@@ -4,6 +4,8 @@ const IPC_CHANNELS = {
   APP_GET_INFO: 'app:get-info',
   APP_GET_PATHS: 'app:get-paths',
   APP_QUIT: 'app:quit',
+  APP_PREPARE_CLOSE: 'app:prepare-close',
+  APP_CLOSE_READY: 'app:close-ready',
   WINDOW_MINIMIZE: 'window:minimize',
   WINDOW_MAXIMIZE: 'window:maximize',
   WINDOW_RESTORE: 'window:restore',
@@ -38,6 +40,16 @@ const cardableDesktop = {
     getInfo: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_INFO),
     getPaths: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_PATHS),
     quit: () => ipcRenderer.invoke(IPC_CHANNELS.APP_QUIT)
+  },
+
+  lifecycle: {
+    onPrepareClose: (callback) => {
+      if (typeof callback !== 'function') return () => {};
+      const subscription = () => callback();
+      ipcRenderer.on(IPC_CHANNELS.APP_PREPARE_CLOSE, subscription);
+      return () => ipcRenderer.removeListener(IPC_CHANNELS.APP_PREPARE_CLOSE, subscription);
+    },
+    closeReady: () => ipcRenderer.invoke(IPC_CHANNELS.APP_CLOSE_READY)
   },
 
   window: {

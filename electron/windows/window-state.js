@@ -30,7 +30,14 @@ class WindowStateKeeper {
       if (fs.existsSync(this.statePath)) {
         const raw = fs.readFileSync(this.statePath, 'utf8');
         const parsed = JSON.parse(raw);
-        this.state = Object.assign(defaults, parsed);
+        this.state = {
+          width: Number.isFinite(parsed.width) ? parsed.width : defaults.width,
+          height: Number.isFinite(parsed.height) ? parsed.height : defaults.height,
+          x: Number.isFinite(parsed.x) ? parsed.x : undefined,
+          y: Number.isFinite(parsed.y) ? parsed.y : undefined,
+          isMaximized: parsed.isMaximized === true,
+          isFullScreen: parsed.isFullScreen === true
+        };
         this.validateStateAgainstDisplays();
         return;
       }
@@ -41,11 +48,12 @@ class WindowStateKeeper {
   }
 
   validateStateAgainstDisplays() {
-    if (!this.state || this.state.x === undefined || this.state.y === undefined) return;
+    if (!this.state) return;
 
     // Check if the saved position intersects with any active display
     const displays = screen.getAllDisplays();
-    const isVisible = displays.some(display => {
+    const hasPosition = this.state.x !== undefined && this.state.y !== undefined;
+    const isVisible = hasPosition && displays.some(display => {
       const area = display.workArea;
       // Allow bounds if at least some reasonable part of the window is visible
       return (
@@ -56,15 +64,22 @@ class WindowStateKeeper {
       );
     });
 
-    if (!isVisible) {
+    if (hasPosition && !isVisible) {
       logger.info('Saved window position was offscreen or on a disconnected display, resetting to center.');
       this.state.x = undefined;
       this.state.y = undefined;
     }
 
-    // Ensure dimensions meet minimum requirements
-    this.state.width = Math.max(desktopConfig.minWidth, this.state.width || desktopConfig.defaultWidth);
-    this.state.height = Math.max(desktopConfig.minHeight, this.state.height || desktopConfig.defaultHeight);
+    // Keep the restored window usable after DPI or monitor-layout changes.
+    const target = this.state.x === undefined
+      ? screen.getPrimaryDisplay()
+      : displays.find(display => {
+        const area = display.workArea;
+        return this.state.x >= area.x && this.state.x < area.x + area.width && this.state.y >= area.y && this.state.y < area.y + area.height;
+      }) || screen.getPrimaryDisplay();
+    const area = target.workArea;
+    this.state.width = Math.min(area.width, Math.max(desktopConfig.minWidth, this.state.width || desktopConfig.defaultWidth));
+    this.state.height = Math.min(area.height, Math.max(desktopConfig.minHeight, this.state.height || desktopConfig.defaultHeight));
   }
 
   track(window) {

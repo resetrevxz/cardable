@@ -1,8 +1,10 @@
-const { BrowserWindow, shell, app } = require('electron');
+const { BrowserWindow, shell } = require('electron');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const desktopConfig = require('../config/desktop-config');
 const windowState = require('./window-state');
 const logger = require('../logging/logger');
+const gracefulShutdown = require('../lifecycle/graceful-shutdown');
 
 let mainWindow = null;
 let isQuitting = false;
@@ -32,7 +34,8 @@ function createMainWindow() {
       webSecurity: true,
       allowRunningInsecureContent: false,
       spellcheck: false,
-      devTools: desktopConfig.isDev
+      devTools: desktopConfig.isDev,
+      webviewTag: false
     }
   });
 
@@ -58,27 +61,47 @@ function createMainWindow() {
 
   // Load the application
   const appHtml = path.join(__dirname, '../../index.html');
-  win.loadFile(appHtml).catch(err => {
+  const loadOptions = process.argv.includes('--smoke-dev-workspace') ? { query: { dev: '1' } } : undefined;
+  win.loadFile(appHtml, loadOptions).catch(err => {
     logger.error('Failed to load index.html:', err);
   });
 
   // Restrict navigation: never leave the local application
-  win.webContents.on('will-navigate', (event, navigationUrl) => {
-    const parsedUrl = new URL(navigationUrl);
-    if (parsedUrl.protocol !== 'file:') {
+  const expectedUrl = pathToFileURL(appHtml);
+  function handleNavigation(event, navigationUrl) {
+    try {
+      const parsedUrl = new URL(navigationUrl);
+      const sameDocument = parsedUrl.protocol === 'file:' && decodeURIComponent(parsedUrl.pathname).toLowerCase() === decodeURIComponent(expectedUrl.pathname).toLowerCase();
+      if (sameDocument) return;
       event.preventDefault();
       logger.warn('Prevented unexpected navigation to:', navigationUrl);
-      if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+      if (['http:', 'https:', 'mailto:'].includes(parsedUrl.protocol) && !parsedUrl.username && !parsedUrl.password) {
         shell.openExternal(navigationUrl).catch(e => logger.error('Failed to open external url:', e));
       }
+    } catch (_) {
+      event.preventDefault();
+      logger.warn('Prevented invalid navigation URL');
     }
+  }
+  win.webContents.on('will-navigate', handleNavigation);
+  win.webContents.on('will-redirect', handleNavigation);
+
+  win.webContents.on('will-attach-webview', (event) => {
+    event.preventDefault();
+    logger.warn('Blocked unexpected webview attachment');
+  });
+
+  win.webContents.session.setPermissionCheckHandler(() => false);
+  win.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+    logger.warn(`Denied renderer permission request: ${permission}`);
+    callback(false);
   });
 
   // Restrict new windows: deny child windows, open external links in default browser
   win.webContents.setWindowOpenHandler(({ url }) => {
     try {
       const parsedUrl = new URL(url);
-      if (['http:', 'https:', 'mailto:'].includes(parsedUrl.protocol)) {
+      if (['http:', 'https:', 'mailto:'].includes(parsedUrl.protocol) && !parsedUrl.username && !parsedUrl.password && url.length <= 2048) {
         shell.openExternal(url).catch(e => logger.error('Failed to open external link:', e));
       } else {
         logger.warn('Blocked disallowed window open protocol:', parsedUrl.protocol);
@@ -88,6 +111,12 @@ function createMainWindow() {
     }
     return { action: 'deny' };
   });
+
+  win.webContents.on('render-process-gone', (event, details) => {
+    logger.error('Renderer process exited unexpectedly:', details);
+  });
+  win.on('unresponsive', () => logger.warn('Main window became unresponsive'));
+  win.on('responsive', () => logger.info('Main window recovered responsiveness'));
 
   // Keyboard shortcut handlers
   win.webContents.on('before-input-event', (event, input) => {
@@ -109,9 +138,10 @@ function createMainWindow() {
 
   // Clean close handling
   win.on('close', (event) => {
-    if (!isQuitting) {
-      logger.info('Main window closing, flushing state...');
-      // Allow window to close normally
+    if (!isQuitting && !gracefulShutdown.isApproved(win)) {
+      event.preventDefault();
+      logger.info('Main window closing, requesting renderer state flush...');
+      gracefulShutdown.request(win);
     }
   });
 

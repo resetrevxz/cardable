@@ -9,13 +9,45 @@
 (function (C, root) {
   'use strict';
 
-  var desktop = root.cardableDesktop || null;
+  var desktop = root.cardableDesktop || null, initialized = false, prepareTask = null, backupTimer = null;
+
+  function primaryStorage() { return C.config.storage.key === 'cardable.save'; }
+
+  function backupCurrent() {
+    if (!desktop || !primaryStorage() || !C.state || !C.state.current) return Promise.resolve(false);
+    try { return desktop.storage.backupSave(JSON.stringify(C.state.current)); }
+    catch (_) { return Promise.resolve(false); }
+  }
 
   C.desktop = {
     isAvailable: !!desktop,
 
+    prepare: function () {
+      if (prepareTask) return prepareTask;
+      if (!desktop) return Promise.resolve(false);
+      prepareTask = Promise.resolve().then(function () {
+        var store = root.localStorage;
+        if (!store || store.getItem(C.config.storage.key)) return false;
+        return desktop.storage.getBackup().then(function (result) {
+          if (!result || !result.exists || !result.data) return false;
+          var candidate = C.state.validate(JSON.parse(result.data), false);
+          store.setItem(C.config.storage.key, JSON.stringify(candidate));
+          if (root.console) root.console.info('Cardable: Restored save from desktop userData before boot.');
+          return true;
+        });
+      }).catch(function (error) {
+        if (root.console) root.console.warn('Cardable: Desktop backup recovery was unavailable.', error);
+        return false;
+      }).then(function (restored) {
+        C.desktop.init();
+        return restored;
+      });
+      return prepareTask;
+    },
+
     init: function () {
-      if (!desktop) return;
+      if (!desktop || initialized) return;
+      initialized = true;
 
       // 1. Hook unhandled renderer errors to desktop logger
       root.addEventListener('error', function (event) {
@@ -34,34 +66,21 @@
       });
 
       // 2. Double-persistence: Backup every save write to userData
-      C.events.on('save:written', function (saveData) {
+      C.events.on('save:written', function () {
+        if (!primaryStorage()) return;
         try {
-          var json = typeof saveData === 'string' ? saveData : JSON.stringify(saveData);
-          desktop.storage.backupSave(json);
+          root.clearTimeout(backupTimer);
+          backupTimer = root.setTimeout(function () { backupCurrent(); }, 120);
         } catch (_) {}
       });
 
-      // 3. Fallback recovery: If localStorage has no save, check userData backup
-      try {
-        var store = root.localStorage;
-        var existing = store ? store.getItem(C.config.storage.key) : null;
-        if (!existing && desktop.storage) {
-          desktop.storage.getBackup().then(function (result) {
-            if (result && result.exists && result.data) {
-              try {
-                // Validate and adopt the backup
-                var candidate = C.state.validate(JSON.parse(result.data), false);
-                if (store) store.setItem(C.config.storage.key, JSON.stringify(candidate));
-                C.state.current = candidate;
-                if (root.console) root.console.info('Cardable: Restored save from desktop userData backup.');
-                C.events.emit('save:written', candidate);
-              } catch (e) {
-                if (root.console) root.console.warn('Cardable: Failed to restore backup from desktop:', e);
-              }
-            }
-          });
-        }
-      } catch (_) {}
+      // 3. Native close handshake: flush the primary save and wait for disk backup.
+      if (desktop.lifecycle) desktop.lifecycle.onPrepareClose(function () {
+        try { if (C.state && primaryStorage()) C.state.save(); } catch (_) {}
+        backupCurrent().catch(function () { return false; }).then(function () {
+          desktop.lifecycle.closeReady();
+        });
+      });
 
       // Log successful renderer boot to native log
       desktop.logs.write('INFO', 'Cardable renderer desktop bridge initialized.');
@@ -103,9 +122,8 @@
     },
     installUpdate: function () {
       if (desktop) {
-        // Ensure saves are flushed before installing
         if (C.state) C.state.save();
-        return desktop.updates.install();
+        return backupCurrent().catch(function () { return false; }).then(function () { return desktop.updates.install(); });
       }
     },
     onUpdateState: function (cb) {
@@ -121,12 +139,5 @@
       if (desktop) return desktop.discord.clearPresence();
     }
   };
-
-  // Initialize immediately if DOM is ready, or on DOMContentLoaded
-  if (root.document.readyState === 'loading') {
-    root.document.addEventListener('DOMContentLoaded', function () { C.desktop.init(); });
-  } else {
-    C.desktop.init();
-  }
 
 })(window.Cardable, window);

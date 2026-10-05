@@ -4,6 +4,8 @@ const IPC_CHANNELS = {
   APP_GET_INFO: 'app:get-info',
   APP_GET_PATHS: 'app:get-paths',
   APP_QUIT: 'app:quit',
+  APP_PREPARE_CLOSE: 'app:prepare-close',
+  APP_CLOSE_READY: 'app:close-ready',
 
   // Window controls
   WINDOW_MINIMIZE: 'window:minimize',

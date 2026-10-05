@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#08080A">
   <title>Cardable</title>
@@ -193,12 +194,15 @@
   <script src="src/studio/entry.js"></script>
   <script src="src/boot.js"></script>
   <script>
+    function startCardable() {
+      Promise.resolve(Cardable.desktop && Cardable.desktop.prepare ? Cardable.desktop.prepare() : false).then(function () { Cardable.boot(); });
+    }
     if (new URLSearchParams(location.search).get('dev') === '1') {
       var developerLoader = document.createElement('script');
       developerLoader.src = 'src/dev/loader.js'; developerLoader.async = false;
-      developerLoader.onerror = function () { console.error('Developer tools could not load.'); Cardable.boot(); };
+      developerLoader.onerror = function () { console.error('Developer tools could not load.'); startCardable(); };
       document.body.appendChild(developerLoader);
-    } else Cardable.boot();
+    } else startCardable();
   </script>
 </body>
 </html>

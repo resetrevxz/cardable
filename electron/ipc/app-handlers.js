@@ -1,9 +1,11 @@
-const { ipcMain, app } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const { IPC_CHANNELS } = require('./channels');
+const { registerSecureHandler } = require('./security');
+const gracefulShutdown = require('../lifecycle/graceful-shutdown');
 const logger = require('../logging/logger');
 
 function registerAppHandlers() {
-  ipcMain.handle(IPC_CHANNELS.APP_GET_INFO, (event) => {
+  registerSecureHandler(IPC_CHANNELS.APP_GET_INFO, () => {
     return {
       name: app.getName(),
       version: app.getVersion(),
@@ -16,7 +18,7 @@ function registerAppHandlers() {
     };
   });
 
-  ipcMain.handle(IPC_CHANNELS.APP_GET_PATHS, (event) => {
+  registerSecureHandler(IPC_CHANNELS.APP_GET_PATHS, () => {
     return {
       userData: app.getPath('userData'),
       logs: logger.getLogPath(),
@@ -24,10 +26,15 @@ function registerAppHandlers() {
     };
   });
 
-  ipcMain.handle(IPC_CHANNELS.APP_QUIT, (event) => {
+  registerSecureHandler(IPC_CHANNELS.APP_QUIT, (event) => {
     logger.info('App quit requested from renderer');
-    app.quit();
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.close(); else app.quit();
     return true;
+  });
+
+  registerSecureHandler(IPC_CHANNELS.APP_CLOSE_READY, (event) => {
+    return gracefulShutdown.acknowledge(event);
   });
 }
 
