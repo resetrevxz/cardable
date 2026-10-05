@@ -52,6 +52,36 @@ function rpcFixture(options = {}) {
   return { service, clients, persisted };
 }
 const tick = () => new Promise(resolve => setImmediate(resolve));
+test('desktop presence: Studio/Director and developer contexts are private and independently restored', () => {
+  const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
+  const listeners = {}, sent = [];
+  const window = { Cardable: { events: { on: (name, handler) => { listeners[name] = handler; } } },
+    cardableDesktop: { discord: { setPresence: presence => sent.push(presence) }, logs: { write() {} } }, addEventListener() {} };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../src/core/desktop.js'), 'utf8'), { window });
+  window.Cardable.desktop.init();
+  listeners['inventory:context']({ active: true }); listeners['detail:opened']();
+  listeners['studio:enter']({ card: 'private', currency: 42 });
+  assert.equal(sent.at(-1).screen, 'creator');
+  listeners['menu:visibilityHold']({ reason: 'developer', active: true });
+  listeners['studio:exit'](); assert.equal(sent.at(-1).screen, 'creator');
+  listeners['menu:visibilityHold']({ reason: 'developer', active: false });
+  assert.equal(sent.at(-1).screen, 'detail');
+  assert(sent.every(presence => Object.keys(presence).join(',') === 'screen'));
+});
+test('IPC: accepts only the app document main frame, rejects remote/child/other files', async () => {
+  const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm'), { pathToFileURL } = require('node:url');
+  const handlers = {}, root = path.resolve(__dirname, '..'), module = { exports: {} };
+  const electron = { app: { getAppPath: () => root }, ipcMain: { handle: (name, handler) => { handlers[name] = handler; } } };
+  vm.runInNewContext('(function(require,module){' + fs.readFileSync(path.join(root,'electron/ipc/security.js'),'utf8') + '\n})', { URL, process })((name) => name === 'electron' ? electron : name === '../logging/logger' ? logger : require(name), module);
+  const api=module.exports, frame={url:pathToFileURL(path.join(root,'index.html')).href+'?dev=1'}, event={senderFrame:frame,sender:{mainFrame:frame}};
+  assert.equal(api.isTrustedSender(event),true);
+  assert.equal(api.isTrustedSender({...event,senderFrame:{...frame}}),false);
+  for(const url of ['https://example.com','data:text/html,anything',pathToFileURL(path.join(root,'package.json')).href]) {
+    frame.url=url; assert.equal(api.isTrustedSender(event),false);
+  }
+  api.registerSecureHandler('test',()=>42); await assert.rejects(handlers.test(event),/Untrusted/);
+  frame.url=pathToFileURL(path.join(root,'index.html')).href; assert.equal(await handlers.test(event),42);
+});
 test('Discord: no ID, absence and invalid screen data do not block the game', async () => {
   const { service, clients } = rpcFixture(); service.init(null, true);
   assert.equal(clients.length, 0); assert.equal(service.getStatus().state, 'unconfigured');

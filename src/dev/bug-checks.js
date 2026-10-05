@@ -30,7 +30,7 @@
   C.dev.registerCheck('local reload repairs a serial counter behind owned cards', function () {
     var candidate = C.state.fresh(); candidate.serialCounter = 0;
     candidate.inventory = [{ instanceId: 'counter-check', cardId: C.data.cards[0].id,
-      serial: C.serial.format(candidate.playerCode, 99), pulledAt: 0, seen: false }];
+      serial: C.serial.format(candidate.playerCode, 99), pulledAt: 0, seen: false, variantId: null, cardSkinId: null, packId: 'standard' }];
     return C.state.validate(candidate, false).serialCounter === 99;
   });
   C.dev.registerCheck('timer start/stop removes its visibility callback', function () {

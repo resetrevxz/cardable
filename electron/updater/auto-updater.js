@@ -4,7 +4,7 @@ const { IPC_CHANNELS } = require('../ipc/channels');
 const logger = require('../logging/logger');
 const { CardableAutoUpdater, UPDATER_STATES } = require('./service');
 const metadata = require('../../package.json').cardableDesktop || {};
-let mainWindow;
+let mainWindow, initialized = false;
 const updaterService = new CardableAutoUpdater({
   engine: autoUpdater, currentVersion: app.getVersion(), isPackaged: app.isPackaged,
   configured: metadata.releaseConfigured === true, logger,
@@ -13,5 +13,5 @@ const updaterService = new CardableAutoUpdater({
   }
 });
 const init = updaterService.init.bind(updaterService);
-updaterService.init = win => { mainWindow = win; init(); };
+updaterService.init = win => { mainWindow = win; if (!initialized) { initialized = true; init(); } };
 module.exports = { updaterService, UPDATER_STATES };

@@ -18,6 +18,10 @@
     "test": "node tools/verify-assets.cjs && npm run test:services && node tools/test-electron.cjs",
     "test:electron": "node tools/test-electron.cjs",
     "test:packaged": "node tools/test-electron.cjs --packaged",
+    "test:regression": "node tools/test-electron-regression.cjs",
+    "test:nsis-update": "node tools/test-nsis-update.cjs",
+    "test:cinematics": "node tools/test-electron-cinematics.cjs",
+    "test:package": "node tools/verify-package.cjs",
     "generate-icons": "node tools/generate-icons.cjs"
   },
   "dependencies": {
@@ -26,7 +30,8 @@
   },
   "devDependencies": {
     "electron": "^44.5.1",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "playwright": "1.63.0"
   },
   "build": {
     "appId": "com.cardable.game",

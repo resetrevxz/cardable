@@ -29,6 +29,8 @@ jobs:
           CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
       - run: npm run test:packaged
+      - run: npm run test:package
+      - run: npm run test:regression
       - run: npm run release:validate -- --artifacts
       - uses: actions/upload-artifact@v4
         with:
@@ -36,7 +38,8 @@ jobs:
           path: |
             dist/Cardable-Setup-*.exe
             dist/*.blockmap
-            dist/*.yml
+            dist/latest.yml
+            dist/beta.yml
           if-no-files-found: error
       - name: Create draft release after all checks pass
         shell: pwsh

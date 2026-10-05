@@ -25,12 +25,19 @@
     prepare: function () {
       if (prepareTask) return prepareTask;
       if (!desktop) return Promise.resolve(false);
-      prepareTask = Promise.resolve().then(function () {
+      prepareTask = desktop.app.getInfo().then(function (info) {
+        if (info && typeof info.version === 'string') C.config.version = info.version;
         var store = root.localStorage;
-        if (!store || store.getItem(C.config.storage.key)) return false;
+        if (!store || !primaryStorage()) return false;
+        var existing = store.getItem(C.config.storage.key);
+        if (existing) {
+          try { C.state.validate(JSON.parse(existing), false); return false; }
+          catch (_) { /* Preserve corrupt primary data before recovering a valid mirror. */ }
+        }
         return desktop.storage.getBackup().then(function (result) {
           if (!result || !result.exists || !result.data) return false;
           var candidate = C.state.validate(JSON.parse(result.data), false);
+          if (existing) store.setItem(C.config.storage.key + '.corrupt', existing);
           store.setItem(C.config.storage.key, JSON.stringify(candidate));
           if (root.console) root.console.info('Cardable: Restored save from desktop userData before boot.');
           return true;
@@ -84,15 +91,17 @@
       });
 
       // Only broad screen names cross the RPC boundary, never player/card data.
-      var contexts = { opening: false, inventory: false, detail: false, creator: false };
+      var contexts = { opening: false, inventory: false, detail: false, creator: false, studio: false };
       function presence() {
-        var screen = contexts.creator ? 'creator' : contexts.opening ? 'opening' : contexts.detail ? 'detail' : contexts.inventory ? 'inventory' : 'menu';
+        var screen = contexts.creator || contexts.studio ? 'creator' : contexts.opening ? 'opening' : contexts.detail ? 'detail' : contexts.inventory ? 'inventory' : 'menu';
         desktop.discord.setPresence({ screen: screen });
       }
       C.events.on('opening:context', function (event) { contexts.opening = !!event.active; presence(); });
       C.events.on('inventory:context', function (event) { contexts.inventory = !!event.active; if (!event.active) contexts.detail = false; presence(); });
       C.events.on('detail:opened', function () { contexts.detail = true; presence(); });
       C.events.on('inventory:detailReturned', function () { contexts.detail = false; presence(); });
+      C.events.on('studio:enter', function () { contexts.studio = true; presence(); });
+      C.events.on('studio:exit', function () { contexts.studio = false; presence(); });
       C.events.on('menu:visibilityHold', function (event) { if (event.reason === 'developer') { contexts.creator = !!event.active; presence(); } });
       presence();
 

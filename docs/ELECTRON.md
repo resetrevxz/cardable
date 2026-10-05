@@ -8,4 +8,6 @@ The game save stays in localStorage, schema 5. A native primary-save mirror is k
 
 Default Windows paths are `%APPDATA%/Cardable`, its saves folder and logs/cardable.log. Mutable data never lives in ASAR or the installation directory. NSIS retains userData during upgrade/uninstall. The installer identity must remain com.cardable.game and productName Cardable across releases.
 
-See [BUILDING.md](BUILDING.md), [RELEASING.md](RELEASING.md), [UPDATES.md](UPDATES.md), [DISCORD_RPC.md](DISCORD_RPC.md) and the milestone reports for tested scope and remaining acceptance.
+Studio photos use Chromium IndexedDB cardable-studio/photos, not JSON/the native mirror. Download photos before changing installation directories, since file-origin storage can change. Developer mode does not imply a sandbox: ?dev=1 uses the real save unless sandbox=1 is selected explicitly.
+
+See [BUILDING.md](BUILDING.md), [RELEASING.md](RELEASING.md), [UPDATES.md](UPDATES.md), [DISCORD_RPC.md](DISCORD_RPC.md), [ELECTRON-CHECKLIST.md](ELECTRON-CHECKLIST.md) and the milestone reports for tested scope and remaining acceptance.

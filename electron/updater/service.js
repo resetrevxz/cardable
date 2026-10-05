@@ -18,6 +18,7 @@ class CardableAutoUpdater {
     e.logger = this.logger;
     e.autoDownload = false;
     e.autoInstallOnAppQuit = false;
+    e.disableWebInstaller = true;
     e.allowPrerelease = this.currentVersion.includes('-');
     const on = (name, fn) => { e.on(name, fn); this.listeners.push([name, fn]); };
     on('checking-for-update', () => this.setState(UPDATER_STATES.CHECKING));
@@ -82,7 +83,9 @@ class CardableAutoUpdater {
   }
   quitAndInstall() {
     if (this.state !== UPDATER_STATES.INSTALL_READY) return false;
-    try { this.engine.quitAndInstall(false, true); return true; }
+    // The user already confirmed Install/restart. Do not show the setup wizard
+    // again during an in-place update; first installs remain assisted NSIS.
+    try { this.engine.quitAndInstall(true, true); return true; }
     catch (e) { this.fail(e); return false; }
   }
   destroy() {

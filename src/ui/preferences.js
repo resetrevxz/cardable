@@ -107,8 +107,16 @@
       undoButton = button('Undo', footer, function () { if (!undo) return; var previous = undo; undo = null; undoButton.hidden = true; C.settings.restore(previous); announce('Settings restored to your previous choices.'); }); undoButton.hidden = true;
       C.preferences.status = node('span', 'visually-hidden', panel); C.preferences.status.setAttribute('aria-live', 'polite');
       nudge = node('aside', 'settings-nudge glass', root.document.body); nudge.hidden = true;
-      var nudgeCopy = node('p', '', nudge), suggested = null;
-      button('Apply', nudge, function () { if (suggested) C.settings.applyPreset(suggested); nudge.hidden = true; }); button('Dismiss', nudge, function () { C.settings.set('nudgeDismissed', true); nudge.hidden = true; });
+      var nudgeCopy = node('p', '', nudge), suggested = null, nudgeActive = false;
+      function syncNudge() {
+        // A performance suggestion must not cover Keep/Delete or tool controls.
+        var clearMenu = canOpen() && !opened && !(C.inventory && C.inventory.active) &&
+          !(C.tutorial && C.tutorial.active) && !(C.studio && (C.studio.active || C.studio.pending)) &&
+          !(C.studioAlbumUI && C.studioAlbumUI.active);
+        nudge.hidden = !nudgeActive || !clearMenu;
+      }
+      button('Apply', nudge, function () { if (suggested) C.settings.applyPreset(suggested); nudgeActive = false; syncNudge(); }); button('Dismiss', nudge, function () { C.settings.set('nudgeDismissed', true); nudgeActive = false; syncNudge(); });
+      ['opening:context', 'inventory:context', 'preferences:context', 'tutorial:context', 'studio:enter', 'studio:exit', 'studio:albumContext', 'fx:visibility'].forEach(function (name) { C.events.on(name, syncNudge); });
       spring = C.springs.create(0, { stiffness: 220, damping: 26 });
       overlay.addEventListener('click', function (event) { if (event.target === overlay) close(); });
       gear.addEventListener('keydown', function (event) { if (event.key === ' ') event.preventDefault(); });
@@ -131,7 +139,7 @@
         if (slowMs >= 8000 && root.performance.now() > 2000) {
           var tiers = C.settingsSchema.tiers, index = tiers.indexOf(C.settings.get('quality')); suggested = tiers[Math.max(0, index - 1)];
           nudgeCopy.textContent = 'Low animation FPS. Try ' + (suggested === 'very-low' ? 'Very Low' : suggested.charAt(0).toUpperCase() + suggested.slice(1)) + ' graphics for smoother play?';
-          nudgeShown = true; nudge.hidden = false;
+          nudgeShown = true; nudgeActive = true; syncNudge();
         }
       });
       C.events.on('fx:sleep', function () { slowMs = slowFrames = 0; }); C.events.on('fx:visibility', function () { slowMs = slowFrames = 0; });

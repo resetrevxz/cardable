@@ -106,3 +106,7 @@
 .settings-update-notes { max-height: 160px; overflow-y: auto; padding: var(--s-3); background: var(--bg-elev); border-radius: var(--r-button); font: 11px/1.6 var(--font-mono); color: var(--text-dim); white-space: pre-wrap; overflow-wrap: anywhere; }
 .settings-update-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .settings-discord-row { margin-top: var(--s-2); border-bottom: 0; }
+.settings-scroll, .settings-update-notes { scrollbar-width: thin; scrollbar-color: var(--hairline-strong) transparent; }
+.settings-scroll::-webkit-scrollbar, .settings-update-notes::-webkit-scrollbar { width: var(--s-2); }
+.settings-scroll::-webkit-scrollbar-track, .settings-update-notes::-webkit-scrollbar-track { background: transparent; }
+.settings-scroll::-webkit-scrollbar-thumb, .settings-update-notes::-webkit-scrollbar-thumb { background: var(--hairline-strong); border-radius: var(--r-chip); }

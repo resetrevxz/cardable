@@ -40,4 +40,6 @@ From this directory: `npm ci`, `npm run electron:dev`, `npm test`, `npm run buil
 
 ## Deferred continuation
 
+Historical handoff below: the preserved component/services were completed in Milestone 2. Both legacy browser harnesses noted above were repaired and successfully rerun in Milestone 3. See those reports for current status.
+
 The earlier agent left uncommitted `src/ui/settings-desktop.js` and edits to `src/ui/preferences.js` and `src/styles/settings.css`. They are preserved. The desktop settings script is not loaded by `index.html`, so this incomplete Milestone 2 surface is inactive. The updater service and Discord boundary also remain present, but this document does not claim a working public update or Discord connection.

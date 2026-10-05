@@ -61,7 +61,7 @@ function createMainWindow() {
 
   // Load the application
   const appHtml = path.join(__dirname, '../../index.html');
-  const loadOptions = process.argv.includes('--smoke-dev-workspace') ? { query: { dev: '1' } } : undefined;
+  const loadOptions = process.argv.includes('--smoke-dev-workspace') || process.argv.includes('--qa-dev-workspace') ? { query: { dev: '1' } } : undefined;
   win.loadFile(appHtml, loadOptions).catch(err => {
     logger.error('Failed to load index.html:', err);
   });
@@ -71,11 +71,11 @@ function createMainWindow() {
   function handleNavigation(event, navigationUrl) {
     try {
       const parsedUrl = new URL(navigationUrl);
-      const sameDocument = parsedUrl.protocol === 'file:' && decodeURIComponent(parsedUrl.pathname).toLowerCase() === decodeURIComponent(expectedUrl.pathname).toLowerCase();
+      const sameDocument = parsedUrl.protocol === 'file:' && parsedUrl.hostname === expectedUrl.hostname && decodeURIComponent(parsedUrl.pathname).toLowerCase() === decodeURIComponent(expectedUrl.pathname).toLowerCase();
       if (sameDocument) return;
       event.preventDefault();
-      logger.warn('Prevented unexpected navigation to:', navigationUrl);
-      if (['http:', 'https:', 'mailto:'].includes(parsedUrl.protocol) && !parsedUrl.username && !parsedUrl.password) {
+      logger.warn('Prevented unexpected navigation protocol:', parsedUrl.protocol);
+      if (['http:', 'https:', 'mailto:'].includes(parsedUrl.protocol) && !parsedUrl.username && !parsedUrl.password && navigationUrl.length <= 2048) {
         shell.openExternal(navigationUrl).catch(e => logger.error('Failed to open external url:', e));
       }
     } catch (_) {
@@ -107,7 +107,7 @@ function createMainWindow() {
         logger.warn('Blocked disallowed window open protocol:', parsedUrl.protocol);
       }
     } catch (e) {
-      logger.warn('Invalid URL in window open handler:', url);
+      logger.warn('Invalid URL in window open handler');
     }
     return { action: 'deny' };
   });

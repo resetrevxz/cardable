@@ -3,7 +3,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const source = require('../package.json');
-if (!/^\d+\.\d+\.\d+(?:-[a-z0-9.-]+)?$/.test(source.version)) throw new Error('Use a semantic version');
+if (!/^\d+\.\d+\.\d+(?:-beta\.\d+)?$/.test(source.version)) throw new Error('Use MAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH-beta.N');
 const tag = process.env.GITHUB_REF_TYPE === 'tag' ? process.env.GITHUB_REF_NAME : null;
 if (tag && tag !== `v${source.version}`) throw new Error('Tag does not match package version');
 const gameConfig = fs.readFileSync(path.join(root, 'src/config.js'), 'utf8');

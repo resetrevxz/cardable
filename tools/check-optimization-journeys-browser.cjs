@@ -21,7 +21,7 @@ const tiers=['very-low','low','medium','high'];
       const opened=await page.evaluate(test=>{
         const C=Cardable;C.tutorial.skipButton.click();C.settings.applyPreset(test.tier);C.settings.set('idleFade','never');C.settings.set('cutscenes',test.cutscenes);C.settings.set('strobing',test.profile||'safe');
         C.state.current.packs.ready=C.config.packs.maxStored;C.state.save();
-        if(test.rarity){const roll=C.pull.roll;C.pull.roll=function(pack,random,options){return roll(pack,random,Object.assign({},options,{forcedTier:test.rarity}));};}
+        if(test.rarity)C.events.on('opening:resolve',request=>{request.options={forcedTier:test.rarity,forcedVariant:null};});
         window.journey={sections:[],beats:[],phases:[],maxSafety:0};
         C.events.on('opening:introSection',e=>journey.sections.push(e.id));C.events.on('cutscene:beat',e=>journey.beats.push(e.id));C.events.on('opening:context',e=>journey.phases.push(e.phase));
         return C.opening.openNow(test.pack);
@@ -42,6 +42,7 @@ const tiers=['very-low','low','medium','high'];
       while(true){
         await page.waitForFunction(()=>Cardable.opening.phase==='revealed'&&!Cardable.opening.keepButton.hidden,{},{timeout:100000});
         const reservation=await page.evaluate(()=>({pending:Cardable.state.current.pendingReveal.cards.map(c=>c.instanceId),current:Cardable.opening.view.instance.instanceId}));
+        if(test.rarity)assert.equal(await page.evaluate(()=>Cardable.opening.view.card.rarity),test.rarity);
         reservation.pending.forEach(id=>{if(!pendingIds.includes(id))pendingIds.push(id);});
         await page.locator(test.discard?'.opening-delete':'.opening-keep').click();decisions++;
         await page.waitForFunction(()=>Cardable.opening.phase==='idle'||Cardable.opening.phase==='revealed'||Cardable.opening.phase==='rarityIntro',{},{timeout:15000});

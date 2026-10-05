@@ -20,7 +20,7 @@ async function main() {
     await page.evaluate(() => {
       const C = Cardable; C.tutorial.skipButton.click();
       const card = C.data.cards.find(c => !c.retired && c.active !== false);
-      C.state.current.inventory.push({ instanceId: 'activity-owned', cardId: card.id, serial: C.serial.format(C.state.current.playerCode, 1), pulledAt: Date.now(), seen: true, variantId: null });
+      C.state.current.inventory.push({ instanceId: 'activity-owned', cardId: card.id, serial: C.serial.format(C.state.current.playerCode, 1), pulledAt: Date.now(), seen: true, variantId: null, cardSkinId: null, packId: 'standard' });
       C.state.current.serialCounter = 1;
       C.state.current.packs.ready = 2; C.state.current.packs.timerStartedAt = Date.now();
       C.state.save();
@@ -29,7 +29,8 @@ async function main() {
     await page.mouse.move(600, 300);
     await page.clock.runFor(700);
     const opacity = async selector => { await page.waitForTimeout(700); return page.locator(selector).evaluate(el => Number(getComputedStyle(el).opacity)); };
-    assert.equal(await opacity('.settings-corner'), 0);
+    // Current resting-menu design keeps the gear visible away from the corner.
+    assert.equal(await opacity('.settings-corner'), 1);
     assert((await opacity('.inventory-sheet')) < .4);
     await page.mouse.move(1310, 65); await page.clock.runFor(700);
     assert.equal(await opacity('.settings-corner'), 1);
@@ -100,7 +101,8 @@ async function main() {
     await page.evaluate(() => {
       const C = Cardable, s = C.state.current, card = C.data.cards.find(c => !c.retired && c.active !== false);
       s.serialCounter += 1;
-      s.pendingReveal = { packId: C.data.packs.find(p => p.enabled).id, committedAt: Date.now(), keptCount: 0, cards: [{ instanceId: 'activity-pending', cardId: card.id, serial: C.serial.format(s.playerCode, s.serialCounter), pulledAt: Date.now(), seen: false, variantId: null }] };
+      const packId = C.data.packs.find(p => p.enabled).id;
+      s.pendingReveal = { packId, committedAt: Date.now(), keptCount: 0, cards: [{ instanceId: 'activity-pending', cardId: card.id, serial: C.serial.format(s.playerCode, s.serialCounter), pulledAt: Date.now(), seen: false, variantId: null, cardSkinId: null, packId }] };
       C.state.save();
     });
     await page.reload(); await page.clock.runFor(1000);

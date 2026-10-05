@@ -7,6 +7,7 @@ function registerLoggingHandlers() {
     if (!payload || typeof payload !== 'object') return false;
     const { level, message, meta } = payload;
     if (typeof message !== 'string' || message.length > 8192) return false;
+    try { if (meta !== undefined && JSON.stringify(meta).length > 8192) return false; } catch (_) { return false; }
     const safeLevel = ['INFO', 'WARN', 'ERROR', 'DEBUG'].includes(String(level).toUpperCase())
       ? String(level).toUpperCase()
       : 'INFO';

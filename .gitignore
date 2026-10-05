@@ -5,6 +5,7 @@ assets/cards-source/
 node_modules/
 dist/
 build/
+qa-output/
 
 # Logs
 *.log

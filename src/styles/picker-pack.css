@@ -46,6 +46,7 @@
 .picker-options { display:flex; justify-content:center; align-items:flex-start; gap:clamp(8px,2vw,24px); width:min(92vw,810px); }
 .picker-option { position:relative; width:calc((100% - 48px)/3); max-width:228px; padding:0; border:0; background:none; color:var(--text); cursor:pointer; border-radius:var(--r-card); touch-action:none; }
 .picker-option:disabled { cursor:default; }
+.picker-option { pointer-events:auto; }
 .picker-card-turn { position:relative; width:100%; aspect-ratio:180/266; transform-style:preserve-3d; transform:rotateY(calc((1 - var(--picker-flip,0)) * 180deg)); border-radius:var(--r-card); box-shadow:var(--shadow-2),0 0 25px rgba(255,255,255,var(--picker-option-glow,0)); }
 .picker-option-front, .picker-option-back { position:absolute; inset:0; backface-visibility:hidden; border-radius:inherit; }
 .picker-option-back { transform:rotateY(180deg); border:1px solid #ADBEB6; background:repeating-linear-gradient(55deg,#13211F 0 7px,#263631 8px 9px); color:#DBE4DF; display:grid; place-items:center; font:600 clamp(20px,5vw,45px) var(--font-ui); }

@@ -8,7 +8,7 @@ Release procedure:
 
 1. Update package.json and src/config.js to the same MAJOR.MINOR.PATCH; run npm install --package-lock-only.
 2. Add changelog/X.Y.Z.md with player-facing notes.
-3. Run npm test, npm run dist and npm run test:packaged; commit.
+3. Run npm test, npm run dist, npm run test:packaged, npm run test:package and npm run test:regression; commit. Review full cutscenes with npm run test:cinematics when graphics change.
 4. Tag `vX.Y.Z` and push the commit and tag.
 5. Actions validates, tests, builds and uploads the installer, blockmap and latest.yml (beta.yml for beta prereleases) into a draft release.
 6. Review artifacts, install the build, then publish the draft in GitHub.

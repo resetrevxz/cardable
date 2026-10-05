@@ -17,8 +17,16 @@ const { registerUpdaterHandlers } = require('./ipc/updater-handlers');
 const { registerDiscordHandlers } = require('./ipc/discord-handlers');
 
 const smokeTest = process.argv.includes('--smoke-test');
+const qaTest = process.argv.includes('--qa-test');
+const buildMetadata = require('../package.json').cardableDesktop || {};
+// Explorer-mediated NSIS relaunch does not inherit the test runner environment.
+// A fixture-only profile identifier keeps that relaunch isolated as well.
+const fixtureProfile = buildMetadata.updateFixture && (buildMetadata.fixtureProfile || process.env.CARDABLE_FIXTURE_PROFILE);
+if (buildMetadata.updateFixture && fixtureProfile && path.resolve(fixtureProfile).startsWith(path.join(require('os').tmpdir(), 'cardable-update-'))) {
+  app.setPath('userData', path.resolve(fixtureProfile));
+}
 const testUserDataArg = process.argv.find(arg => arg.startsWith('--test-user-data='));
-if (smokeTest && testUserDataArg) {
+if ((smokeTest || qaTest) && testUserDataArg) {
   app.setPath('userData', path.resolve(testUserDataArg.slice('--test-user-data='.length)));
 }
 
@@ -83,6 +91,30 @@ if (!gotTheLock) {
     // Initialize Discord RPC Service Boundary
     discordService.init();
 
+    // Only the separate NSIS update fixture includes this metadata. Distribution
+    // builds cannot activate this path, even if these environment variables exist.
+    if (buildMetadata.updateFixture === 'B' && fixtureProfile) {
+      win.webContents.once('did-finish-load', async () => {
+        try {
+          const report = await win.webContents.executeJavaScript(`(async () => {
+            const until = performance.now() + 15000;
+            while (!(window.Cardable && Cardable.state && Cardable.state.current && Cardable.preferences.initialized)) {
+              if (performance.now() > until) throw new Error('Updated fixture failed to boot');
+              await new Promise(resolve => setTimeout(resolve, 25));
+            }
+            await Cardable.studio.openAlbum();
+            Cardable.studioAlbumUI.close();
+            const photo = await Cardable.studioAlbum.get('update-survivor-photo');
+            return { info: await cardableDesktop.app.getInfo(), rendererVersion: Cardable.config.version,
+              save: Cardable.state.current, photo: photo ? { name: photo.name,
+                bytes: Array.from(new Uint8Array(await photo.blob.arrayBuffer())) } : null };
+          })()`);
+          require('fs').writeFileSync(path.join(app.getPath('userData'), 'update-test-result.json'), JSON.stringify(report));
+          win.close();
+        } catch (error) { logger.error('Update fixture verification failed:', error.message); app.exit(1); }
+      });
+    }
+
     // Smoke Test Handler for CI and automated verification
     if (smokeTest) {
       logger.info('Running smoke test verification...');
@@ -106,6 +138,12 @@ if (!gotTheLock) {
           }
           const testResults = await win.webContents.executeJavaScript(`
             (async () => {
+              // did-finish-load precedes asynchronous desktop recovery/boot.
+              const bootDeadline = performance.now() + 15000;
+              while (!(window.Cardable && Cardable.state && Cardable.state.current && Cardable.preferences.initialized)) {
+                if (performance.now() > bootDeadline) throw new Error('Cardable did not finish booting');
+                await new Promise(resolve => setTimeout(resolve, 25));
+              }
               const res = {
                 hasCardableDesktop: typeof window.cardableDesktop === 'object',
                 hasCardable: typeof window.Cardable === 'object',
@@ -218,7 +256,7 @@ if (!gotTheLock) {
     // Handle macOS activate
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
-        createMainWindow();
+        updaterService.init(createMainWindow());
       }
     });
   });

@@ -15,7 +15,7 @@
   C.dev.registerCheck('settings legacy migration preserves progress', function () {
     var state = C.state.fresh(100); state.settings = { reducedMotion: true, rarityColorMode: 'mono' }; state.currency = 42;
     var result = C.state.migrate(state);
-    require(result.schemaVersion === 3 && result.currency === 42 && result.settings.motion === 'on' && result.settings.rarityColor === 'mono', 'migration');
+    require(result.schemaVersion === C.config.storage.schemaVersion && result.currency === 42 && result.settings.motion === 'on' && result.settings.rarityColor === 'mono', 'migration');
     return true;
   });
   C.dev.registerCheck('settings subscription cleanup', function () {

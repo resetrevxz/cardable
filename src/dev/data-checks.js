@@ -6,8 +6,8 @@
     var save = C.state.fresh(100), card = C.data.cards.find(function (c) { return !c.retired && c.active !== false; });
     save.playerCode = '7K3F'; save.serialCounter = 1; save.currency = 456; save.stats.packsOpened = 1;
     save.packs = { ready: 1, timerStartedAt: 100 }; save.tutorial = { step: 'timer', done: false }; save.settings.quality = 'medium';
-    save.inventory = [{ instanceId: 'isolated-data-check', cardId: card.id, serial: C.serial.format(save.playerCode, 1), pulledAt: 100, seen: false, variantId: null }];
-    return save;
+    save.inventory = [{ instanceId: 'isolated-data-check', cardId: card.id, serial: C.serial.format(save.playerCode, 1), pulledAt: 100, seen: false, variantId: null, cardSkinId: null, packId: 'standard' }];
+    return C.state.validate(save, false);
   }
   function isolated() {
     var current = fixture(), writes = [], store = new Map(), now = 1000, blocked = false;

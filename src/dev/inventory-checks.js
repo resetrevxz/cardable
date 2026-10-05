@@ -1,6 +1,6 @@
 (function(C){
   'use strict';
-  C.dev.registerCheck('inventory preferences migrate without losing owned instances',function(){var old=C.state.fresh();old.schemaVersion=1;delete old.inventoryUi;var next=C.state.migrate(old);return next.schemaVersion===3&&next.inventory.length===old.inventory.length&&next.inventoryUi.viewMode==='shelf';});
+  C.dev.registerCheck('inventory preferences migrate without losing owned instances',function(){var old=C.state.fresh();old.schemaVersion=1;delete old.inventoryUi;var next=C.state.migrate(old);return next.schemaVersion===C.config.storage.schemaVersion&&next.inventory.length===old.inventory.length&&next.inventoryUi.viewMode==='shelf';});
   C.dev.registerCheck('invalid inventory tags are reported',function(){return C.inventoryQuery.parse('vram:nope owned:maybe unknown:yes').errors.length===3;});
   C.dev.registerCheck('VRAM normalization preserves shared memory',function(){return C.inventoryQuery.memory({vram:{amount:1024,unit:'MB'}})===1&&C.inventoryQuery.memory({vram:{amount:null,shared:true}})===null;});
   C.dev.registerCheck('inventory preferences deduplicate collection references',function(){var ui=C.inventoryModel.normalize({favorites:['a','a'],collections:[{id:'test',name:'Test',stackKeys:['a','a']},{id:'test'}]});return ui.favorites.length===1&&ui.collections.length===1&&ui.collections[0].stackKeys.length===1;});

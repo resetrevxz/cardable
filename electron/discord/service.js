@@ -51,7 +51,8 @@ class DiscordRpcService {
     if (!this.enabled || !this.connected || !this.client) return;
     const activity = { details: SCREENS[this.screen], startTimestamp: this.startedAt, instance: false };
     if (this.imageKey) Object.assign(activity, { largeImageKey: this.imageKey, largeImageText: 'Cardable' });
-    Promise.resolve(this.client.setActivity(activity)).catch(() => {
+    const client = this.client;
+    Promise.resolve().then(() => { if (this.enabled && this.client === client) return client.setActivity(activity); }).catch(() => {
       this.logger.warn('Discord activity failed; waiting for reconnect');
       this.disconnect(false);
       if (this.enabled && !this.retry) { this.retry = setTimeout(() => { this.retry = null; this.connect(); }, this.retryMs); this.retry.unref(); }
@@ -60,7 +61,8 @@ class DiscordRpcService {
   }
   clearPresence() {
     if (!this.connected || !this.client) return Promise.resolve(true);
-    return Promise.resolve(this.client.clearActivity()).then(() => true, () => false);
+    const client = this.client;
+    return Promise.resolve().then(() => client.clearActivity()).then(() => true, () => false);
   }
   disconnect(clear) {
     clearTimeout(this.retry); clearTimeout(this.throttle); clearTimeout(this.timeout);

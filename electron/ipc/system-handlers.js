@@ -16,7 +16,7 @@ function registerSystemHandlers() {
         logger.warn('Rejected untrusted protocol in open-external:', parsed.protocol);
         return false;
       }
-      logger.info('Opening validated external URL:', url);
+      logger.info('Opening validated external URL protocol:', parsed.protocol);
       await shell.openExternal(url);
       return true;
     } catch (e) {

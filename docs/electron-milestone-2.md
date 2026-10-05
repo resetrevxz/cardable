@@ -16,7 +16,7 @@ The first agent supplied an updater service boundary and an inactive Settings co
 
 ## Tested
 
-Five injected service tests cover updater progress/install guards, offline retry, concurrent operations, unconfigured behavior, Discord absence, connection/reconnection, activity privacy and disabling. The real Electron smoke test exercises the settings UI's progress and action routing, diagnostics, invalid URL/save/RPC rejection, install-before-download rejection, core game interaction and repeated save recovery. These tests do not substitute for a real remote update or a live Discord session.
+Seven service tests now cover updater progress/install guards, offline retry, concurrent operations, unconfigured behavior, exact trusted IPC origin, Discord absence, connection/reconnection, activity privacy, Studio/developer context overlap and disabling. The real Electron smoke test exercises the settings UI's progress and action routing, diagnostics, invalid URL/save/RPC rejection, install-before-download rejection, core game interaction and repeated save recovery. These tests do not substitute for a real remote update or a live Discord session.
 
 NSIS and blockmap generation succeeded locally. Installed/uninstall and local two-version update tests are tracked in the Milestone 3 report.
 
