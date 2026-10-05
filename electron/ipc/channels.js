@@ -31,6 +31,11 @@ const IPC_CHANNELS = {
   SYSTEM_COPY_TEXT: 'system:copy-text',
   QOL_CAPTURE: 'qol:capture',
   QOL_SHOW_CAPTURE: 'qol:show-capture',
+  QOL_SUPPORT_INFO: 'qol:support-info',
+  QOL_SUPPORT_DIAGNOSTICS: 'qol:support-diagnostics',
+  QOL_SUPPORT_UPDATES: 'qol:support-updates',
+  QOL_SUPPORT_BUG: 'qol:support-bug',
+  QOL_SAFE_MODE: 'qol:safe-mode',
 
   // Storage / Persistence Sync
   STORAGE_BACKUP_SAVE: 'storage:backup-save',

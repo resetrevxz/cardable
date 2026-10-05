@@ -14,7 +14,8 @@ function registerAppHandlers() {
       nodeVersion: process.versions.node,
       isPackaged: app.isPackaged,
       platform: process.platform,
-      arch: process.arch
+      arch: process.arch,
+      safeMode: process.argv.includes('--safe-mode')
     };
   });
 

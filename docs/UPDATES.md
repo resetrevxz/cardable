@@ -1,5 +1,16 @@
 # Updates
 
+## 4.1.0 manual updates policy
+
+About uses desktop-release.json → updates.mode: link opens the configured GitHub
+Releases page, or github-public manually checks its public latest-release API.
+Owner/repository intentionally remain unset for the planned later GitHub update.
+No token, scheduled request, automatic download or installation is involved.
+The older installer service below is retained; its scheduled checks run only in
+explicit update fixtures, not normal 4.1.0 builds.
+
+## Retained installer-updater infrastructure
+
 electron-builder generates app-update.yml from the public GitHub provider. electron-updater reads that configuration; runtime code never overrides it with setFeedURL. Packaged configured builds check after 30 seconds and every six hours; Settings allows manual checks. No runtime update traffic occurs in browser or development mode or builds without provider metadata.
 
 The main-process service emits idle, checking, update-available, downloading/progress, update-downloaded, install-ready, no-update, error and unconfigured states. Operations are serialized. Error permits a fresh check and download retry. Updates never download or install automatically; closing the app does not auto-install. Later retains the download for an explicit later restart.

@@ -10,11 +10,13 @@ if ((owner || repository) && (!/^[A-Za-z0-9-]+$/.test(owner || '') || !/^[A-Za-z
 if (discordApplicationId && !/^\d{17,20}$/.test(discordApplicationId)) throw new Error('Invalid public Discord Application ID');
 module.exports = {
   ...source.build,
+  files: [...source.build.files, 'desktop-release.json', 'CHANGELOG.md'],
   publish: owner && repository ? { provider: 'github', owner, repo: repository, releaseType: 'draft' } : null,
   extraMetadata: {
     cardableDesktop: {
       releaseConfigured: !!(owner && repository),
       releaseRepository: owner && repository ? `${owner}/${repository}` : null,
+      updatesMode: publicConfig.updates && publicConfig.updates.mode === 'github-public' ? 'github-public' : 'link',
       discordApplicationId: discordApplicationId || null,
       discordImageKey: publicConfig.discordImageKey || null
     }

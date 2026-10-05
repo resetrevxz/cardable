@@ -52,6 +52,15 @@
     }
     C.desktop.onUpdateState(render); C.desktop.getUpdateState().then(render).catch(failed);
     C.events.on('settings:open', function () { postponed = false; if (current) render(current); });
+    // Preserve the existing installer updater service, but use the explicit,
+    // manual QoL link/public-release flow in this update (no background network).
+    updateBox.hidden = true;
+    var manualBox=node('section','settings-update-box glass',container);
+    node('h4','settings-subhead',manualBox,'Software updates');
+    var manualStatus=node('p','settings-update-status',manualBox,'GitHub Releases are not configured yet.');manualStatus.setAttribute('role','status');
+    var manualCheck=button('Check for updates',manualBox,function(){manualCheck.disabled=true;C.friendly.checkUpdates().then(function(result){manualStatus.textContent=result.state==='unconfigured'?'GitHub Releases will be configured in a later update.':result.state==='opened'?'Opened Releases in your browser.':result.state==='update-available'?'Version '+result.version+' is available.':result.state==='no-update'?'Cardable is up to date.':result.state==='no-public-release'?'No public release is available.':'Could not check releases.';}).catch(function(){manualStatus.textContent='Could not check releases.';}).finally(function(){manualCheck.disabled=false;});});
+    C.native.support.getInfo().then(function(info){manualStatus.textContent=info.configured?(info.mode==='link'?'Opens GitHub Releases; no automatic downloads.':'Manually checks public GitHub Releases; no automatic downloads.'):'GitHub Releases will be configured in a later update.';manualCheck.disabled=!info.configured;}).catch(function(){manualCheck.disabled=true;});
+    button('Open full changelog',manualBox,function(){C.preferences.close();C.friendly.showChangelog();});
     var tools = node('section', 'settings-desktop-tools', container); node('h4', 'settings-subhead', tools, 'Diagnostics');
     button('Open saves folder', tools, function () { run(function () { return C.desktop.openSaveDirectory(); }); });
     button('Open logs folder', tools, function () { run(function () { return C.desktop.openLogDirectory(); }); });
@@ -59,6 +68,9 @@
       diagnostics.disabled = true;
       C.desktop.copyDiagnostics().then(function (ok) { if (options.announce) options.announce(ok ? 'Diagnostics copied.' : 'Diagnostics could not be copied.'); }, failed).then(function () { diagnostics.disabled = false; });
     });
+    button('Report a bug',tools,function(){run(function(){return C.friendly.reportBug();});});
+    var safe=button('Relaunch in Safe mode',tools,function(){safe.disabled=true;C.friendly.safeMode().then(function(ok){if(!ok)safe.disabled=false;}).catch(function(){safe.disabled=false;if(options.announce)options.announce('Safe-mode restart could not complete.');});});
+    node('p','settings-helper',tools,'Safe mode disables hardware acceleration and uses Low effects for one session. Your saved graphics choices stay unchanged.');
     var row = node('div', 'settings-row settings-discord-row', container), copy = node('div', 'settings-copy', row);
     node('span', 'settings-label', copy, 'Discord Rich Presence');
     var helper = node('span', 'settings-helper', copy), rpcStatus = { enabled: false };

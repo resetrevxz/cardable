@@ -8,6 +8,12 @@ class Logger {
     this.logFile = null;
     this.maxBytes = 5 * 1024 * 1024; // 5 MB
     this.initialized = false;
+    this.consoleAvailable = true;
+    // A detached launcher can close its pipes while the desktop keeps running.
+    // Never send that stream error into uncaughtException -> logger recursion.
+    [process.stdout, process.stderr].forEach(stream => {
+      stream.on('error', () => { this.consoleAvailable = false; });
+    });
   }
 
   init() {
@@ -61,13 +67,13 @@ class Logger {
     }
     line += '\n';
 
-    // Output to console in development
-    if (level === 'ERROR') {
-      console.error(line.trim());
-    } else if (level === 'WARN') {
-      console.warn(line.trim());
-    } else {
-      console.log(line.trim());
+    // Console transport is optional; disk logging and shutdown must survive it.
+    if (this.consoleAvailable) {
+      try {
+        if (level === 'ERROR') console.error(line.trim());
+        else if (level === 'WARN') console.warn(line.trim());
+        else console.log(line.trim());
+      } catch (_) { this.consoleAvailable = false; }
     }
 
     if (!this.initialized || !this.logFile) return;
@@ -75,7 +81,10 @@ class Logger {
       this.rotateIfNeeded();
       fs.appendFileSync(this.logFile, line, 'utf8');
     } catch (e) {
-      console.error('Failed to write log to file:', e);
+      if (this.consoleAvailable) {
+        try { console.error('Failed to write log to file:', e); }
+        catch (_) { this.consoleAvailable = false; }
+      }
     }
   }
 

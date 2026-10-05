@@ -1,6 +1,7 @@
 {
   "owner": null,
   "repository": null,
+  "updates": { "mode": "link" },
   "discordApplicationId": null,
   "discordImageKey": null
 }

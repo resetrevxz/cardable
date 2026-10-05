@@ -51,9 +51,9 @@ this requirement remains incomplete there. Adding a native occlusion monitor
 would require a separate platform implementation, not a guessed Electron event.
 No new native library, process polling or approximation was added.
 
-## Remaining scope and acceptance
+## A/B checkpoint scope and acceptance
 
-C/D are intentionally not included: player command palette, shortcuts sheet,
+C/D were not included at the A/B checkpoint: player command palette, shortcuts sheet,
 captures, global save drop, persistent focus mode, away/what's-new panels, updates
 link mode, bug report, safe mode, first-run welcome and optional controller input.
 Only the four named pure-logic concerns are checked by `Cardable.dev.checkQol()`.
@@ -75,8 +75,9 @@ used or changed. No packaged build or browser-only launch was performed under
 the current testing policy. Formula samples are pure-logic checks, not evidence
 that all physical window/monitor combinations were rendered.
 
-Unrelated journal/achievement edits, old spec deletions and untracked incoming
-spec directories were left in place and excluded from the final QoL commit.
+At the A/B checkpoint, journal/achievement edits, old spec deletions and untracked
+incoming specs were excluded. The latest explicit request brings the existing
+Journal tab and its Achievements coordination changes into the C/D continuation.
 
 ## Milestone C continuation
 
@@ -102,3 +103,76 @@ included instead of preserved out of scope. History's timeline/charts remain int
 
 Controller input is optional and deferred. C runtime acceptance is deferred to
 the sole permitted launch/check at the end of D. No old test suite is run.
+
+## Milestone D continuation
+
+Native welcome explains local save paths and automatic backup behavior in three
+lines, followed by browser-export import guidance using the original preview and
+confirmation flow. A profile-local version marker shows bundled CHANGELOG.md
+headings/bullets once; the full changelog remains accessible from About. Existing
+profiles get an away summary on subsequent launches and after a 30-minute return;
+timestamp reconciliation remains the timer's job, never a second reward writer.
+Modal ownership is additive, preserves prior inert state, blocks accidental
+charging and queues panels around active opening/collection/Studio views.
+
+desktop-release.json remains the sole public configuration source: owner and
+repository are deliberately null at the owner's request. updates.mode defaults
+to link; github-public performs a manual, timeout/size-bounded stable-release API
+check without credentials, automatic downloads or renderer network access.
+The installer updater's service/handlers are retained; scheduled checks are
+disabled outside its existing explicit update fixtures. About uses the QoL flow.
+Bug reports derive the issue URL from the same repository configuration. Copies
+and reports contain only version/platform/GPU features/quality plus a bounded
+allowlist of structural lifecycle logs, excluding saves, IDs and local paths.
+
+Safe-mode relaunch uses the existing renderer/disk flush handshake and cancels
+if it fails. Hardware acceleration is disabled before Chromium starts; Low is a
+session-only override of graphics controls, not a persisted preset change.
+No new dependency, color or save/settings schema version was introduced.
+
+### Intentionally unfinished / manual acceptance
+
+- GitHub Releases, real public API behavior and issue submission remain deferred
+  until the owner supplies owner/repository in a later update. Nothing was published.
+- Optional controller support is not implemented and has no misleading toggle.
+- F2/Copy/Save image output and corner accuracy were not executed (screenshots
+  are forbidden). Safe-mode relaunch was not executed (one app launch only).
+- Actual exported-file dropping, owned-card navigation and a real 30-minute
+  absence remain manual acceptance; the timestamp helper is covered only by
+  the single named logic check, not a long-running/profiling harness.
+- A/B's physical DPI/battery/taskbar/monitor checks and Windows/Linux full
+  occlusion limitation remain as documented above. Browser-only launch and
+  packaged runtime regression are not claimed under this restricted policy.
+- Existing old-spec deletions and unrelated incoming spec folders stay untouched
+  and excluded from commits. They are not a clean-tree promise.
+
+### C/D acceptance and Electron distribution
+
+Runtime acceptance and distribution results are recorded at completion below.
+The updated unpacked app/installer include the existing Card History engine,
+its inventory tab, Achievements switch fix, all 4.1.0 scripts and bundled changelog.
+Packaging is a build operation, not an old test-suite run; no installer is run
+and no existing player installation/save is overwritten.
+
+Testing: one isolated Electron app session (same window refreshed for final
+wiring) confirmed welcome/import guidance, version/full-changelog and away-panel
+rendering, palette→History, History↔Achievements switching, shortcuts, H focus,
+palette filters, native About and trimmed diagnostics; checkQol ran once and
+passed all 18 assertions with zero observed renderer console errors; no old
+suites, test files, screenshots, recordings or profiling were used.
+
+The automation connection timed out once and was reattached to the same app,
+not relaunched. Its disconnected stdout/stderr exposed an existing main logger
+EPIPE recursion during shutdown. The isolated process was stopped and a console
+transport guard added; that guard was not rerun under the one-session/one-check
+policy. No real player process or save was stopped/changed.
+
+The default build encountered Windows EBUSY on dist/win-unpacked, which is used
+by an already-running Cardable process. Delivery therefore uses the separate
+dist/desktop-qol-4.1.0 output directory; the old process is not force-closed.
+Close it normally before starting the updated executable. Retain a JSON export
+and download Studio photos before switching file-origin directories.
+
+The separate Windows x64 build completed successfully: unpacked Cardable.exe,
+Cardable-Setup-4.1.0.exe and its blockmap are present. Nothing was published or
+installed; packaged execution and publisher/signature acceptance were not run.

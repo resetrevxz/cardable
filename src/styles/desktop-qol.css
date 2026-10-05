@@ -44,8 +44,19 @@ body.qol-focus:not(.settings-open):not(.inventory-depth-active):not(.is-opening)
 .dev-palette, .qol-shortcuts, .qol-friendly { animation:qol-panel-in var(--t-ui) var(--ease-out); }
 @keyframes qol-panel-in { from { opacity:0; translate:0 12px; } to { opacity:1; translate:0 0; } }
 [data-quality="medium"] :is(.dev-palette,.qol-shortcuts,.qol-friendly) { animation-duration:var(--t-fast); }
+@keyframes qol-panel-light { from { opacity:0; translate:0 6px; } to { opacity:1; translate:0 0; } }
+[data-quality="medium"] :is(.dev-palette,.qol-shortcuts,.qol-friendly) { animation-name:qol-panel-light; }
 [data-quality="low"] :is(.dev-palette,.qol-shortcuts,.qol-friendly), .reduced-motion :is(.dev-palette,.qol-shortcuts,.qol-friendly) { animation-name:qol-fade; }
 [data-quality="very-low"] :is(.dev-palette,.qol-shortcuts,.qol-friendly) { animation:none; }
 body.qol-shutter::after { content:''; position:fixed; inset:0; z-index:200; pointer-events:none; box-shadow:inset 0 0 48px var(--keyline); animation:qol-dip 300ms var(--ease-out); }
 @keyframes qol-dip { from { opacity:.5; } to { opacity:0; } }
 [data-quality="very-low"] body.qol-shutter::after { display:none; }
+.qol-friendly { position:fixed; z-index:195; top:50%; left:50%; transform:translate(-50%,-50%); width:520px; max-width:calc(100% - 64px); max-height:75%; overflow:auto; padding:var(--s-5); box-sizing:border-box; border-radius:var(--r-sheet); color:var(--text); }
+.qol-friendly h2 { margin:0 0 var(--s-4); font:600 24px var(--font-ui); letter-spacing:-.02em; }
+.qol-friendly :is(p,li) { font:14px/1.6 var(--font-ui); color:var(--text-dim); overflow-wrap:anywhere; }
+.qol-friendly .quiet-button { margin:var(--s-2) var(--s-2) 0 0; }
+.qol-changelog h2 { margin-top:var(--s-4); font-size:18px; }
+.qol-changelog h3 { font:500 11px var(--font-mono); color:var(--text-dim); text-transform:uppercase; margin-top:var(--s-5); }
+.qol-away-countdown { font-family:var(--font-mono) !important; }
+.qol-closing, .dev-palette-backdrop.qol-closing .dev-palette { animation:qol-fade-out var(--t-fast) var(--ease-out) forwards; pointer-events:none; }
+@keyframes qol-fade-out { from { opacity:1; } to { opacity:0; } }

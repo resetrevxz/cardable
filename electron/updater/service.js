@@ -38,7 +38,7 @@ class CardableAutoUpdater {
       this.setState(UPDATER_STATES.INSTALL_READY);
     });
     on('error', error => this.fail(error));
-    if (this.configured && this.isPackaged) {
+    if (this.configured && this.isPackaged && this.automaticChecks !== false) {
       const first = setTimeout(() => this.checkForUpdates(false), 30000);
       const interval = setInterval(() => this.checkForUpdates(false), 6 * 60 * 60 * 1000);
       first.unref(); interval.unref(); this.timers.push(first, interval);

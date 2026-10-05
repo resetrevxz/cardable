@@ -13,5 +13,6 @@ const updaterService = new CardableAutoUpdater({
   }
 });
 const init = updaterService.init.bind(updaterService);
+updaterService.automaticChecks = !!metadata.updateFixture;
 updaterService.init = win => { mainWindow = win; if (!initialized) { initialized = true; init(); } };
 module.exports = { updaterService, UPDATER_STATES };

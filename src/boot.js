@@ -4,6 +4,9 @@
   C.state.load();
   C.packs.init();
   C.settings.init();
+  if(C.desktop.info && C.desktop.info.safeMode) {
+    ['quality'].concat(C.settingsSchema.graphicsKeys).forEach(function(key){C.settings.override(key,'low');});
+  }
   C.viewport.init();
   C.qol.init();
   C.contextMenu.init();

@@ -27,6 +27,7 @@
       if (prepareTask) return prepareTask;
       if (!desktop) return Promise.resolve(false);
       prepareTask = desktop.app.getInfo().then(function (info) {
+        C.desktop.info = info;
         if (info && typeof info.version === 'string') C.config.version = info.version;
         var store = root.localStorage;
         if (!store || !primaryStorage()) return false;
@@ -126,6 +127,7 @@
       return Promise.resolve({ isDesktop: false, userAgent: root.navigator.userAgent });
     },
     copyDiagnostics: function () {
+      if (desktop && desktop.support) return desktop.support.diagnostics(C.settings.get('quality')).then(function(text){return desktop.system.copyText(text);});
       var self = this;
       return self.getDiagnostics().then(function (diag) {
         var text = JSON.stringify(diag, null, 2);

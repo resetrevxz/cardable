@@ -27,6 +27,11 @@ const IPC_CHANNELS = {
   SYSTEM_COPY_TEXT: 'system:copy-text',
   QOL_CAPTURE: 'qol:capture',
   QOL_SHOW_CAPTURE: 'qol:show-capture',
+  QOL_SUPPORT_INFO: 'qol:support-info',
+  QOL_SUPPORT_DIAGNOSTICS: 'qol:support-diagnostics',
+  QOL_SUPPORT_UPDATES: 'qol:support-updates',
+  QOL_SUPPORT_BUG: 'qol:support-bug',
+  QOL_SAFE_MODE: 'qol:safe-mode',
   STORAGE_BACKUP_SAVE: 'storage:backup-save',
   STORAGE_GET_BACKUP: 'storage:get-backup',
   STORAGE_OPEN_SAVE_DIR: 'storage:open-save-dir',
@@ -108,6 +113,13 @@ const cardableDesktop = {
     showInFolder: id => ipcRenderer.invoke(IPC_CHANNELS.QOL_SHOW_CAPTURE, id)
   },
 
+  support: {
+    getInfo: () => ipcRenderer.invoke(IPC_CHANNELS.QOL_SUPPORT_INFO),
+    diagnostics: quality => ipcRenderer.invoke(IPC_CHANNELS.QOL_SUPPORT_DIAGNOSTICS, quality),
+    checkUpdates: () => ipcRenderer.invoke(IPC_CHANNELS.QOL_SUPPORT_UPDATES),
+    reportBug: quality => ipcRenderer.invoke(IPC_CHANNELS.QOL_SUPPORT_BUG, quality),
+    safeMode: () => ipcRenderer.invoke(IPC_CHANNELS.QOL_SAFE_MODE)
+  },
 
   storage: {
     backupSave: (jsonString) => {
