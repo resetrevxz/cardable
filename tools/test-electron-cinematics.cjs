@@ -16,6 +16,7 @@ let application;
     await page.waitForFunction(()=>window.Cardable && Cardable.state.current && Cardable.preferences.initialized);
     await page.evaluate(()=>{const C=Cardable;C.tutorial.skipButton.click();C.settings.applyPreset('high');C.settings.set('motion','off');C.settings.set('cutscenes','full');C.settings.set('strobing','safe');C.settings.set('fpsLimit','60');C.settings.set('idleFade','never');});
     for (const id of ['legendary','mythical','exotic','ascendant','secret']) {
+      await page.mouse.move(32,32);
       const before = await page.evaluate(id=>{
         const C=Cardable;C.state.current.packs.ready=4;C.state.current.packs.introSeen.standard=true;C.state.save();
         const off=C.events.on('opening:resolve',request=>{request.options={forcedTier:id,forcedVariant:null};});
@@ -32,9 +33,19 @@ let application;
       });
       assert.equal(middle.mode,'full');assert(middle.range>10,'Cinematic canvas has no visible content: '+id);
       await page.screenshot({path:path.join(output,id+'-middle.png')});
-      await page.waitForFunction(()=>Cardable.opening.phase==='revealed'&&!Cardable.opening.keepButton.hidden,{},{timeout:70000});
+      await page.waitForFunction(()=>Cardable.opening.phase==='revealed'&&!Cardable.opening.keepButton.hidden&&!Cardable.opening.keepButton.disabled,{},{timeout:70000});
       assert(await page.evaluate(id=>Cardable.opening.view.card.rarity===id && Cardable.opening.view.side==='front',id));
+      const decisionSurface = await page.evaluate(()=>{
+        const C=Cardable,stage=C.opening.keepButton.closest('.opening-stage');
+        if(!stage.classList.contains('has-rarity-backdrop'))return null;
+        return ['.opening-keep','.opening-delete'].map(selector=>getComputedStyle(stage.querySelector(selector)).backgroundColor);
+      });
+      if(decisionSurface)assert.deepEqual(decisionSurface,['rgb(17, 17, 20)','rgb(17, 17, 20)'],'Retained field decision controls need opaque neutral contrast');
       await page.screenshot({path:path.join(output,id+'-card.png')});
+      if(decisionSurface){
+        await page.locator('.opening-keep').hover();
+        await page.waitForFunction(()=>getComputedStyle(Cardable.opening.keepButton).backgroundColor==='rgb(23, 23, 27)');
+      }
       await page.locator('.opening-keep').click();await page.waitForFunction(()=>Cardable.opening.phase==='idle');
       assert.equal(await page.evaluate(()=>Cardable.state.current.inventory.length),before+1);
       evidence.cases.push({id,...middle,passed:true});console.log('Full High / Safe cinematic, handoff and Keep passed: '+id);
