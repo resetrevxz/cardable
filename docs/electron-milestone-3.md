@@ -15,6 +15,7 @@ The first agent already supplied main/preload, lifecycle/window/bounds, named IP
 - Installed app metadata synchronizes renderer version before boot; corrupt primary text is preserved before mirror recovery. Existing schema 5/encode/atomic save conventions retained.
 - Idempotent updater window rebinding, disabled web installers, explicitly confirmed silent in-place NSIS upgrade (initial install remains assisted). No automatic download/install/restart.
 - Bounded log metadata and protocol-only external URL logging, consistent navigation restrictions; no security relaxation.
+- Native Error objects previously serialized to `{}` (including an observed smoke failure). The existing logger now retains bounded name/message, excluding arbitrary Error properties; an explicit service test covers this diagnostic fix.
 - RPC synchronous-exception/late-client guards; existing Studio/Director enter/exit maps to private creator presence, independent of overlapping developer context.
 - Existing tests repaired for current schema/provenance, retained Settings corner and renamed Flip control. Existing developer Checks wrapper correctly isolates dev clocks/save fixtures; tests not deleted.
 - Smoke test now waits for asynchronous game boot/recovery instead of reading null state at did-finish-load. This was harness timing, not replacement boot logic.
@@ -23,7 +24,7 @@ The first agent already supplied main/preload, lifecycle/window/bounds, named IP
 
 | Check | Evidence |
 | --- | --- |
-| Development/assets/services | npm test: 136 scripts + 35 styles, seven service/origin/private-presence tests, three isolated Electron launches, Standard opening/Keep, Settings/Inventory, native mirror recovery/developer workspace. |
+| Development/assets/services | npm test: 136 scripts + 35 styles, eight service/origin/private-presence/diagnostic tests, three isolated Electron launches, Standard opening/Keep, Settings/Inventory, native mirror recovery/developer workspace. |
 | ASAR smoke | Same repeated launch/recovery, malformed/offscreen window state, isolation, diagnostics and invalid URL/save/RPC/install tests against the packaged executable. |
 | ASAR interaction | 600 durable instances; pointer shelf drag, bounded shelf/grid, sort/filter/search, mouse/keyboard card flip; Studio load/save/exit and Director orbit/play/pause/scrub; all ten packs with exact +1 Keep; window sizes 960×640 through 3840×2160, ultrawide/F11. |
 | Existing logic | Existing bug/settings/data/inventory checks, pack schedule, Picker, Journal, Achievements and Studio photo/IndexedDB checks retained and run using the developer tool wrapper. |
@@ -43,7 +44,7 @@ After npm ci and npm run dist, run npm test, test:packaged, test:package, test:r
 
 qa-output contains ignored JSON/screenshots. Tests use isolated temporary profiles; the update fixture retains installers/logs/profile and prints its exact path, then uninstalls its temporary application. Its separate package identity also isolates its LOCALAPPDATA updater cache. No existing player profile/installation was used.
 
-Security scan 525e3aed-7baa-4138-afc7-d569c8d8b8de is sealed in local Codex security state. Its snapshot predates later test/docs edits; subsequent native changes only extend fixture verification and wait for smoke boot. Normal native security boundaries are unchanged. Daybreak access was not granted; protected external visibility was not assumed. No findings is not a guarantee of absolute security.
+Security scan 525e3aed-7baa-4138-afc7-d569c8d8b8de is sealed in local Codex security state. Its snapshot predates later test/docs edits; subsequent native changes extend fixture verification, wait for smoke boot and serialize bounded Error name/message in the existing logger. Those later changes are not represented as part of the sealed snapshot audit. Normal native security boundaries are unchanged. Daybreak access was not granted; protected external visibility was not assumed. No findings is not a guarantee of absolute security.
 
 ## Final acceptance evidence
 
@@ -52,6 +53,7 @@ Security scan 525e3aed-7baa-4138-afc7-d569c8d8b8de is sealed in local Codex secu
 - Source file:// opening torture test passed 48 journeys. Secret's final-output inspection meter reported PASS, max 2 flashes/second, no red flag or warnings in the tested Safe and Full runs; this is not a medical safety certification.
 - The isolated real local NSIS 4.0.0→4.0.1 run passed detection/download/progress/postpone/explicit install/restart, exact player state and byte-identical photo persistence, then uninstall/reinstall preservation. The local server's lack of byte ranges caused the expected full-download fallback; successful differential download is not claimed.
 - Final pale-field contrast follow-up passed a new NSIS build, development/service tests, ASAR checks and all five actual full packaged timelines. Enabled Keep/Delete backgrounds and hover contrast are asserted; actual pointer Keep still commits exactly once. Secret's white-field screenshot was reviewed again after the fix. Earlier screenshots exposed the existing issue instead of treating a nonblank canvas as sufficient visual proof.
+- One concurrent two-window packaged smoke run timed out while the game was idle; the isolated sequential rerun passed all three launches and the full packaged regression. UI acceptance suites should run sequentially so another test window cannot steal foreground focus and suspend shared-clock animations. This observation is retained rather than counting the failed attempt as a pass.
 
 ## Remaining/manual acceptance
 

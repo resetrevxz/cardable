@@ -51,7 +51,12 @@ class Logger {
     let line = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
     if (meta !== undefined) {
       try {
-        line += ' ' + (typeof meta === 'object' ? JSON.stringify(meta) : String(meta));
+        // Error fields are non-enumerable: JSON.stringify(error) otherwise loses the cause.
+        const detail = meta instanceof Error ? {
+          name: String(meta.name).slice(0, 120),
+          message: String(meta.message).slice(0, 2048)
+        } : meta;
+        line += ' ' + (typeof detail === 'object' ? JSON.stringify(detail) : String(detail));
       } catch (_) {}
     }
     line += '\n';
