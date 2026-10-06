@@ -299,3 +299,14 @@ body.studio-album-active > :not(.studio-album),body.studio-album-active > :not(.
 .reduced-motion .studio-button:hover:not(:disabled),.reduced-motion .studio-button:active:not(:disabled) { transform:none; }
 
 @media(max-width:780px) { .studio-topbar-actions .studio-top-compact { font-size:0; width:32px; min-width:32px; padding:7px; gap:0; } }
+
+/* Foundation controls share the existing studio chrome. */
+.studio-history-list{list-style:none;margin:18px 0;padding:0;display:grid;gap:5px}
+.studio-history-list .studio-button{width:100%;justify-content:space-between;text-align:left;gap:12px}
+.studio-history-list .studio-button[aria-current=step]{background:var(--studio-raised,#202026);border-color:#71717a}
+.studio-history-list .studio-button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.studio-history-time{font:10px "JetBrains Mono",monospace;color:#a1a1aa;white-space:nowrap}
+.studio-refine{position:absolute;z-index:4;right:18px;bottom:18px}
+.studio-topbar-actions{flex-wrap:wrap}.studio-panel-title{overflow-wrap:anywhere}
+@media(max-width:720px){.studio-topbar{flex-wrap:wrap;gap:8px}.studio-topbar-actions{gap:4px}.studio-quality{font-size:10px;padding:8px}.studio-refine{right:10px;bottom:10px}}
+@media(pointer:coarse){.studio-button,.studio-select{min-height:44px}}

@@ -54,6 +54,27 @@
   root.document.addEventListener('keydown', function (event) { if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || String(event.key).toLowerCase() !== 'e' || C.studio.active || busy || C.detail.phase !== 'detail' || !C.detail.view || !C.detail.view.instance.serial || event.target.closest && event.target.closest('input,select,textarea,[contenteditable],[data-tool-surface]')) return; event.preventDefault(); C.studio.enter(); });
   C.events.on('app:ready', function () {
     if (!C.dev) return;
+    C.dev.checkStudio2=async function(){
+      await load();var at=root.performance.now(),passed=[];
+      function require(ok,name){if(!ok)throw new Error('Studio 2: '+name);passed.push(name);}
+      var old=C.studioScenes.defaults();old.version=1;delete old.groups;delete old.animation;old.props=[C.studioScenes.prop({id:'key',type:'fan'})];
+      var migrated=C.studioScenes.parse(old),json=C.studioScenes.serialize(migrated);
+      require(migrated.version===2&&C.studioScenes.serialize(C.studioScenes.parse(json))===json,'v1 migration and canonical v2 serialization');
+      require(new Set(C.studioScenes.objects(migrated).map(function(o){return o.id;})).size===C.studioScenes.objects(migrated).length,'stable unique object IDs');
+      var scene=C.studioScenes.parse(old),history=C.studioScenes.history(scene),states=[C.studioScenes.serialize(scene)];
+      history.begin(scene,'Grouped camera drag');for(var i=0;i<12;i++)scene.camera.distance=2+i*.025;history.commit(scene);states.push(C.studioScenes.serialize(scene));
+      history.begin(scene,'Grouped light scrub');for(i=0;i<10;i++)scene.lights[0].intensity=.7+i*.1;history.commit(scene);states.push(C.studioScenes.serialize(scene));
+      history.execute(scene,'Add prop',function(s){s.props.push(C.studioScenes.prop({id:'check-prop',type:'plinth-square'}));});states.push(C.studioScenes.serialize(scene));
+      require(history.steps===3&&states.slice(0,-1).reverse().every(function(s){return C.studioScenes.serialize(history.undo())===s;})&&states.slice(1).every(function(s){return C.studioScenes.serialize(history.redo())===s;}),'exact undo/redo with grouped gestures');
+      require(C.studioScenes.serialize(history.jump(1))===states[1]&&C.studioScenes.serialize(history.jump(3))===states[3],'history jump restores exact state');
+      for(i=0;i<105;i++){scene.camera.distance=3+i*.01;history.commit(scene,'Bound check');}require(history.entries.length===101&&history.steps===100,'100 command bound');
+      ['linear','ease-in','ease-out','ease-in-out'].forEach(function(easing){['camera','light'].forEach(function(kind){var a=kind==='camera'?{distance:2}:{intensity:1},b=kind==='camera'?{distance:5}:{intensity:4},field=kind==='camera'?'distance':'intensity',frames=[{time:0,easing:easing},{time:1,easing:easing}];frames[0][kind]=a;frames[1][kind]=b;
+        var values=Array.from({length:33},function(_,n){return C.studioDirector.pose(frames,n/32,kind,a)[field];});require(values[0]===a[field]&&values[32]===b[field]&&values.every(function(v,n){return n===0||v>=values[n-1];}),kind+' interpolation: '+easing);});});
+      require([[.35,.1,.4],[-1.26,.1,-1.3],[22,15,15],[0,.1,0]].every(function(v){return C.studioScenes.snap(v[0],v[1])===v[2];}),'snapping round and negative values');
+      var preset={id:'check',kind:'scene',name:'Foundation',version:1,scene:migrated},saved=C.studioPresets.serialize(preset);require(C.studioPresets.serialize(C.studioPresets.parse(saved))===saved,'preset serialization round-trip');
+      var elapsedMs=Math.round(root.performance.now()-at);require(elapsedMs<2000,'under two seconds');var result={milestone:'A',passed:passed,elapsedMs:elapsedMs};root.console.info('checkStudio2',result);return result;
+    };
+    C.dev.register({id:'studio.check2',group:'Studio',label:'Check Studio 2',type:'button',helper:'Manual foundation check: migration, history, current easing, snapping and preset data.',run:function(){return C.dev.checkStudio2();}});
     C.dev.checkStudio = async function () {
       var at = root.performance.now(), cases = [], pending = [];
       function require(ok, label) { if (!ok) throw new Error('Studio: ' + label); cases.push(label); }

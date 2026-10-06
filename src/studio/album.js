@@ -19,7 +19,7 @@
       try{run(store,function(value){result=value;},function(reason){error=reason;tx.abort();});}catch(reason){error=reason;tx.abort();}
     });}finally{users--;if(!users&&db){db.close();db=null;}}
   }
-  function metadata(photo){var out={};Object.keys(photo).forEach(function(key){if(key!=='blob')out[key]=photo[key];});out.bytes=photo.blob.size+(photo.thumb?photo.thumb.size:0);return out;}
+  function metadata(photo){var out={};Object.keys(photo).forEach(function(key){if(key!=='blob')out[key]=photo[key];});out.bytes=(photo.blob instanceof root.Blob?photo.blob.size:0)+(photo.thumb instanceof root.Blob?photo.thumb.size:0);out.thumb=photo.thumb instanceof root.Blob?photo.thumb:photo.blob instanceof root.Blob?photo.blob:null;return out;}
   C.studioAlbum={
     limit:100,
     list:function(){return operation('photos','readonly',function(store,set){var result=[],req=store.index('createdAt').openCursor(null,'prev');req.onsuccess=function(){var cursor=req.result;if(cursor){result.push(metadata(cursor.value));cursor.continue();}else set(result);};});},

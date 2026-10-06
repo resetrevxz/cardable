@@ -76,7 +76,7 @@
       if (!alive()) return null;
       var image = await C.art.loadData(card), embedded = !!image; if (!alive()) return null;
       if (!image) image = await proceduralImage(card, origin); if (!alive()) return null;
-      var width = C.studioScenes.limits(tier).texture, height = Math.round(width * 7 / 5), front = canvas(width, height), rear = canvas(width, height);
+      var width = Math.floor(C.studioScenes.limits(tier).texture * 5 / 7), height = Math.round(width * 7 / 5), front = canvas(width, height), rear = canvas(width, height);
       var styles = root.getComputedStyle(origin || root.document.documentElement), rarity = C.rarity(card.rarity), generation = C.data.generations.find(function (g) { return g.id === card.generation; });
       var context = { card: card, instance: instance, scene: scene, origin: origin, side: 'front' };
       [front, rear].forEach(function (face, index) { var g = face.getContext('2d'); g.scale(width / 400, height / 560); round(g, 0, 0, 400, 560, 18); g.clip(); context.side = index ? 'back' : 'front';
