@@ -52,4 +52,4 @@ Continue only an unfinished authorized milestone. A–D of 4.2.0 and the automat
 The current request supersedes private-only/draft-only GitHub plans. After a completed
 update, perform the local handoff and the AGENTS release workflow. Public numbering
 starts at v1.0.0; preserve the legacy 4.x records, app identity and save schema.
-No additional browser suites or capture/profile runs are authorized by publication.
+No additional game/browser suites or game capture/profile runs are authorized by publication. Stage 24 has an explicit owner-approved website-only screenshot exception for product poster generation and three visual review passes; use the procedure in AGENTS and WEBSITE-REVIEW.

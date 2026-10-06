@@ -4,6 +4,7 @@ on:
     tags: ['v*']
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -74,4 +75,11 @@ jobs:
           gh release view $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -eq 0) { Write-Output 'Release already exists; preserving its assets.'; exit 0 }
           gh release create $env:GITHUB_REF_NAME @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title "Cardable v$version" --notes-file "changelog/$version.md" --latest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Deploy the website for the published release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run pages.yml --repo $env:GITHUB_REPOSITORY --ref main
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

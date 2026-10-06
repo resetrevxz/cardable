@@ -1,9 +1,9 @@
-<p align="center"><img src="site/hero.svg" alt="Cardable — Collect the hardware. Keep the moment." width="1000"></p>
+<p align="center"><img src="site/previews/world-exotic.jpg" alt="Cardable Exotic galaxy, rendered by the actual game presentation" width="1000"></p>
 
 <h1 align="center">Cardable</h1>
 <p align="center">A quiet little obsession. An offline GPU-card collection that's yours.</p>
-<p align="center"><strong>v1.0.0 · Windows x64 · Free · Offline play</strong></p>
-<p align="center"><a href="https://resetrevxz.github.io/cardable/">Visit the website</a> · <a href="https://github.com/resetrevxz/cardable/releases/latest/download/Cardable-Setup-1.0.0.exe"><strong>Download Windows installer</strong></a> · <a href="https://github.com/resetrevxz/cardable/releases">All downloads</a></p>
+<p align="center"><strong>v1.0.1 · Windows x64 · Free · Offline play</strong></p>
+<p align="center"><a href="https://resetrevxz.github.io/cardable/">Visit the website</a> · <a href="https://github.com/resetrevxz/cardable/releases/download/v1.0.1/Cardable-Setup-1.0.1.exe"><strong>Download Windows installer</strong></a> · <a href="https://github.com/resetrevxz/cardable/releases">All downloads</a></p>
 
 ## Your next collection
 
@@ -20,13 +20,13 @@ Cardable turns GPU hardware into collectible cards. Charge a pack, tear its seal
 
 ## Install on Windows
 
-1. Download [Cardable-Setup-1.0.0.exe](https://github.com/resetrevxz/cardable/releases/latest/download/Cardable-Setup-1.0.0.exe).
+1. Download [Cardable-Setup-1.0.1.exe](https://github.com/resetrevxz/cardable/releases/latest/download/Cardable-Setup-1.0.1.exe).
 2. Run setup. It installs for your Windows user and adds desktop/Start Menu shortcuts.
 3. Open Cardable and start collecting. No Node.js, npm, terminal, account or Discord setup is required.
 
 This first community release is **unsigned**. Windows may show an unknown publisher or SmartScreen warning. Verify that the file came from this repository before continuing; don't disable your security software. SHA256SUMS.txt is included in each release.
 
-Prefer a folder download? Get [Cardable-1.0.0-Windows-x64.zip](https://github.com/resetrevxz/cardable/releases/latest/download/Cardable-1.0.0-Windows-x64.zip), extract **the entire folder**, then run **Cardable.exe**. Its DLLs, `resources/`, `locales/` and other Electron files must stay together. Folder builds use manual downloads for updates.
+Prefer a folder download? Get [Cardable-1.0.1-Windows-x64.zip](https://github.com/resetrevxz/cardable/releases/latest/download/Cardable-1.0.1-Windows-x64.zip), extract **the entire folder**, then run **Cardable.exe**. Its DLLs, `resources/`, `locales/` and other Electron files must stay together. Folder builds use manual downloads for updates.
 
 The complete source is available with **Code → Download ZIP** or a Git clone. Source play opens `index.html` directly; it is a separate option from the ready-to-play Windows folder download. See [PLAY](PLAY.md) for backups, importing browser saves and recovery.
 
@@ -57,7 +57,7 @@ Progress stays on your computer. Use **Settings → Data → Export save** for a
 
 Installed builds check for newer published releases when online, download in the background and install after a successful save when you quit normally. The game itself works offline. Keep the same Windows user and installation location. Saves and photo storage are configured to survive ordinary upgrades and uninstall.
 
-Public numbering starts again at **v1.0.0**. Earlier 4.x installations need the new installer once; the updater won't automatically downgrade. The game/save identity is preserved. See [PLAY](PLAY.md).
+Public numbering starts again at **v1.0.1**. Earlier 4.x installations need the new installer once; the updater won't automatically downgrade. The game/save identity is preserved. See [PLAY](PLAY.md).
 
 ## Help and feedback
 

@@ -1,0 +1,13 @@
+# Website product poster provenance
+
+These 34 JPEGs are rendered product previews generated from the isolated **website presentation**, not gameplay screenshots or invented artwork. Sources: src/data/cards.js and rarities.js, the real art/masks selected by site/manifest.cjs, and the actual card, pack, material and world implementations. All serials/history are demo records. No saves, pulls, rewards or real ownership are created.
+
+24 fronts use C.cardView.create with real catalog data, standard skin, Normal finish, owned presentation, controlledReveal, quality High, disabled autoStamp and settled information at infoMs 4000. Serial format: CBL-WEB2 plus the curated six-digit counter. Card-back uses the engraved back at 180 degrees. Four RTX 4090 posters use the registered Matte, Rainbow Holo, Galaxy Holo and Aurora material bindings. Rare-pack uses C.packMarkup.unit with the Rare definition and real foil laminate. Cards: 500 × 700; pack: 500 × 740.
+
+Four worlds use the actual Legendary gilded, Mythical Crimson Clock, Exotic galaxy and Ascendant Prismatic Dawn renderers/descriptors, deterministic seed CBL-WEB2-world-<rarity>, Safe profile. The initial Mythical poster used presentation factor 0.35; current full films use the normal authored rate of 1. World posters retain 16:10 framing (1440 × 900; the refreshed Legendary capture is 1520 × 950) with a primary pixel budget near 1.1 million. Samples: Legendary aura 0.77; Mythical clock 0.36; Exotic galaxy 0.38; Ascendant cave 0.40. No Secret or flashing climax sections.
+
+Generated 2026-10-06: build/serve dist/site; use the website-only preview query (preview=card with id/finish, preview=back, preview=pack, or preview=world with id). Wait for fonts, decoded images and data-preview-ready, then capture the observed preview rectangle with the approved browser screenshot tool. Preview styles suppress animation and page chrome. World preview origin is (0,0); other product previews use their observed rectangle at (40,40). The build requires all 34 JPEGs.
+
+Existing source art provenance and rights remain in [NOTICE](../../NOTICE.md). The website never quotes prices or invented rarity odds.
+
+The public worlds now also play their complete descriptor timelines on explicit request. Selected dependencies include cutscene-text for broken title fragments, the original final-output Safe limiter (its developer meter remains disabled), and the locally bundled Ascendant Bodoni font. Exotic’s 880 ms Basic prelude reuses the pure fronts/glow recipe from rarity-intro.js in the website adapter; the gameplay controller and Secret scene are excluded. Poster samples remain calm excerpts.

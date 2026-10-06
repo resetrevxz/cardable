@@ -19,7 +19,9 @@ const dirty = run('git', ['diff', '--name-only', 'HEAD']).split('\n').filter(Boo
 const allowedLegacy = new Set(['alpha updates/4.0.0-electron/SPEC.md', 'alpha-updates/4.0.0-electron/SPEC.md']);
 if (dirty.some(file => !allowedLegacy.has(file))) throw new Error('Commit the intended update first; this command never stages or commits dirty files.');
 const untracked = run('git', ['ls-files', '--others', '--exclude-standard']);
-if (untracked) throw new Error('Review untracked files before releasing; this command never adopts them.');
+const incoming = new Set(['SPEC.md','AI-GUARDRAILS.md','DESIGN-LANGUAGE.md','MOTION-MAP.md','SHOT-LIST.md','REVIEW-CHECKLIST.md'].map(file=>'alpha-updates/website-rework/'+file));
+// Known owner-supplied briefs stay untracked; release never stages or adopts them.
+if (untracked.split('\n').filter(Boolean).some(file=>!incoming.has(file))) throw new Error('Review untracked files before releasing; this command never adopts them.');
 run('gh', ['auth', 'status']);
 const head = run('git', ['rev-parse', 'HEAD']);
 const existing = spawnSync('git', ['rev-parse', '--verify', `${tag}^{commit}`], { cwd: root, encoding: 'utf8', windowsHide: true });

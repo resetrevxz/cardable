@@ -1,27 +1,23 @@
-# Cardable's public page
+# Cardable's public cinematic gallery
 
-The public source/download repository is **resetrevxz/cardable**. The landing page is **https://resetrevxz.github.io/cardable/**. The owner authorized a public repository, starting public versions at **v1.0.0**, and publication after every completed update. This supersedes the former private-only GitHub plan.
+Repository: **resetrevxz/cardable**. Site: **https://resetrevxz.github.io/cardable/**. Current version: **v1.0.1**. The owner authorizes publication after completed updates. The root index.html remains the offline game.
 
-## Website
+## Static architecture
 
-`site/` contains the landing-page HTML, CSS, JavaScript and original README hero illustration. `npm run site:build` writes `dist/site` with selected local GPU art, fonts/licenses and generated versioned release links. No renderer API, network fetch, external CDN or game module is needed by the website. It uses responsive layouts, keyboard buttons, native FAQ details, reduced motion and a non-JavaScript download fallback.
+site/ uses HTML, CSS and classic scripts. npm run site:build generates dist/site. site/manifest.cjs selects 24 catalog cards, renderer modules and style dependencies. The builder copies their actual art/subject masks, Rare pack laminate, variant textures, local fonts/licenses, GSAP **3.15.0**/ScrollTrigger and 34 mandatory renderer-generated JPEGs. URLs remain relative to the Pages project root. No game bootstrap, saves, pulls, rewards, gameplay input or Electron bridge is loaded.
 
-`.github/workflows/pages.yml` deploys that generated folder with GitHub's Pages artifact workflow. Repository **Settings → Pages → Source** must be **GitHub Actions**, not the game's root or internal docs folder. The workflow needs `pages: write`, `id-token: write` and the `github-pages` environment. The repository root `index.html` remains the actual offline game and is not replaced by the website.
+site/adapter.js supplies fixed ephemeral presentation settings. site/site.js owns demonstration instances, filters/selection, absolute reversible progress and disposal. Sample CBL-WEB2-000001 serials follow the game format; history is explicitly demo. No real ownership, market value or randomized reward is implied. One nearest visible full card is mounted; all other collection cards are static. At most one cinematic world is active; primary canvas resolution is bounded and renderer resources are released on exit. GSAP's shared ticker updates the focused material and the single visible world at a bounded 30 Hz. Ambient movement has a pause control. Full films use the actual descriptor durations, Safe profile and the game's final-output limiter, with play/continue/restart and real demonstration-card handoff; scrolling away pauses and disposes them. Finish/card/filter/layout/motion choices are shareable in the URL and restore through browser history. Hidden pages release decorative resources.
 
-See [GitHub's custom Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages). A failed earlier Pages attempt is not evidence of this new deployment; verify Actions and the final live URL.
+## Story and fallbacks
 
-## Downloads
+Nine scenes: arrival, Rare pack ritual, reveal, five actual finishes, collection, serial archive, four complete Safe rarity films, installation and finale. Desktop uses spacious pins. Mobile shortens opening and stacks the gallery; finishes have buttons, selection brings detail into view. Native scrolling remains intact. OS reduced motion removes extended pinning/tilt/travel and uses calm poses/posters. Without JavaScript the static narrative, finish posters, 24 catalog previews and downloads remain. Rendering failures leave posters underneath.
 
-The recommended **Cardable-Setup-X.Y.Z.exe** contains the complete Electron app. The alternative **Cardable-X.Y.Z-Windows-x64.zip** contains the entire unpacked app, including resources, DLLs and locales. Extract all files and run Cardable.exe. The source-code ZIP provided by GitHub is a different download for source/browser play.
+[Poster provenance](../site/previews/README.md) identifies modules and safe windows. [WEBSITE-REVIEW](WEBSITE-REVIEW.md) records the three passes and limits. Figma is a composition aid; website rendering is authoritative.
 
-Releases also attach the installer blockmap, matching latest.yml and SHA256SUMS.txt. The static website links to those release assets; large binaries are not tracked in Git or uploaded as Pages content. Installer/ZIP publication must finish before calling their links usable. Folder builds use manual updates; installed builds use the configured save-gated native updater.
+## Publication and downloads
 
-## Repository and GitHub Desktop
+Pages uses GitHub Actions, never the game/internal docs directory. Its workflow requires the package version's published, nonempty installer and complete-folder ZIP before building/deploying. An absent release keeps the last good website. Successful Windows release publication explicitly dispatches pages.yml on main.
 
-The existing local Git history is preserved and pushed through `origin`, with no force-push or reset. GitHub Desktop can add the local game repository and use Fetch/Push origin normally. Tag/release creation uses `npm run release:github` and GitHub CLI; GitHub Desktop does not itself build or create Releases.
+Cardable-Setup-X.Y.Z.exe contains the complete offline Windows x64 app. Cardable-X.Y.Z-Windows-x64.zip contains the entire Electron folder, including resources, DLLs and locales; extract all and run Cardable.exe. GitHub's source ZIP is a separate artifact. The site uses immutable version-specific URLs; binaries never enter Git or Pages. Installed builds use the native save-gated updater; folder/preview builds use manual updates. Releases also carry blockmap, latest.yml and SHA256SUMS.txt.
 
-The private package wrapper in the outer workspace forwards development/release commands to the actual game. Archives and test runners remain source history, while node_modules, output, intermediate art and secrets remain ignored. Only the generated game allowlist ships in the installer.
-
-## Evidence limits
-
-Source/data/resource validation, a successful Windows build, ZIP entry/hash validation, Pages interaction checks and live asset responses are distinct evidence. No game/browser suite, screenshot, clean-profile installer execution, signed-updater upgrade, device/GPU or photosensitivity certification is inferred. Follow [RELEASING](RELEASING.md), [PROMPTING](PROMPTING.md), [BUGS](BUGS.md) and [CINEMATICS](CINEMATICS.md).
+After release, inspect Actions, the live nine-scene site, relative assets and both final HTTP responses. Packaging/ZIP hashes are separate from installation or upgrading. Builds are unsigned; real updater, physical-device and photosensitivity acceptance remains separate. See RELEASING.md and PLAY.md.

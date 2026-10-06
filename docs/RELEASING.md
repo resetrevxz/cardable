@@ -8,7 +8,7 @@ Public versions start at **v1.0.0** after the 4.x development series. The owner 
 2. Synchronize package.json, root/package metadata in package-lock.json, src/config.js, current README/PLAY references, bundled CHANGELOG.md and changelog/X.Y.Z.md. Preserve old notes and record actual evidence/gaps.
 3. Validate the focused patch under the current owner policy, commit only owned files on main, and run **npm run deliver:desktop** once. Do not install/launch automatically.
 4. Run **npm run release:github**. It verifies data/version/notes, requires a committed main update, pushes main and an immutable **vX.Y.Z** tag, and starts Windows Actions. It never stages files, retags older commits or force-pushes. GitHub Desktop can do ordinary commit/Push origin; CLI handles the release tag.
-5. Inspect Actions until source, Pages and Windows workflows complete. Report failures; a pushed tag is not a completed release.
+5. Inspect Actions until source, Windows and the release-dispatched Pages workflows complete. A main push keeps the last good website until its matching versioned installer and ZIP are published. Report failures; a pushed tag is not a completed release.
 6. Verify published installer, full-folder ZIP, matching blockmap/latest.yml and SHA256SUMS.txt. Open the live website and verify download links. Report public URLs and local Latest Build shortcut.
 
 CI builds locked Windows x64 packages, validates data/version/updater metadata, hashes every ZIP entry against the complete Electron folder, generates checksums and publishes. Existing releases/assets are preserved. User instructions to skip publication or stop at a draft take precedence.
@@ -36,6 +36,6 @@ Installed 1.x builds use the public release provider and successful-save/normal-
 
 ## Acceptance
 
-Current policy permits the small data validator and source/resource/build/ZIP/Pages checks, with no old suites, new test files, screenshots, recordings or profiling. Clean-profile installer execution, real previous-version updater upgrades, hardware performance and the full cinematic/accessibility matrix remain unverified. Keep BUGS, ROADMAP and CINEMATICS gaps visible. Public source does not grant third-party artwork licenses; see NOTICE.md.
+Current policy permits the small data validator and source/resource/build/ZIP/Pages checks, with no old suites, new test files, game screenshots, recordings or profiling. The approved stage-24 website screenshot exception covers product posters and website visual review only. Clean-profile installer execution, real previous-version updater upgrades, hardware performance and the full cinematic/accessibility matrix remain unverified. Keep BUGS, ROADMAP and CINEMATICS gaps visible. Public source does not grant third-party artwork licenses; see NOTICE.md.
 
 Pages configuration is in [GITHUB-PAGES](GITHUB-PAGES.md). Check live outcome rather than merely giving publication instructions.

@@ -1,6 +1,6 @@
 # Designs.MD — Cardable's current design system
 
-This guide describes the current game, publicly numbered **1.0.0** after the 4.2.0 development series, including four graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
+This guide describes the current game, publicly numbered **1.0.1** after the 4.2.0 development series, including four graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
 
 ## Direction and visual hierarchy
 
@@ -104,7 +104,7 @@ Welcome/Help should get a player to opening and recovery without a terminal. Upd
 
 ## Acceptance and future changes
 
-The public download page in `site/` uses the same monochrome typography and restraint, with a card-art hero, clear installer CTA, complete-folder alternative, quality preview and concise backup/update help. It is a separate static website; build it with `site:build`. Illustrations must be identified honestly, download links must derive from release versions, and essential content must work without animation or JavaScript. Keep development commands out of the player installation flow.
+The public download page in `site/` uses the same monochrome typography and restraint, as nine authored scenes: arrival, pack ritual, reveal, real finishes, interactive demo collection, serial archive, four complete Safe rarity cutscenes with play/pause/restart, installation and finale. Actual game renderers and generated product posters carry the story; graphics tiers are a short installation disclosure. It is a separate static website; build it with `site:build`. Illustrations must be identified honestly, download links must derive from release versions, and essential content must work without animation or JavaScript. Keep development commands out of the player installation flow.
 
 Source integration, a built installer and a successful app session are different evidence. [BUGS](docs/BUGS.md) and [ROADMAP](docs/ROADMAP.md) retain runtime, device, motion, cinematic, photo and installer gaps. Historical observations are archived with their original scopes; they do not certify the present game. Follow [PROMPTING](docs/PROMPTING.md) for the owner's restricted verification policy.
 

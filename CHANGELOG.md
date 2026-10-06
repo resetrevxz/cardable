@@ -1,3 +1,10 @@
+# Cardable 1.0.1 — Cinematic public website
+
+- Rebuild the download page as nine authored scenes using actual card, pack, finish and cinematic renderers.
+- Add an interactive 24-card demo collection, sample provenance, mobile framing and static/calm fallbacks.
+- Gate Pages on published matching installer/whole-folder assets and dispatch it after release.
+- Preserve game behavior, app identity and saves. Builds remain unsigned; installation/updater acceptance is pending.
+
 # Cardable 1.0.0
 
 - Start the public version series at v1.0.0 while preserving the existing game, app identity and save schema.

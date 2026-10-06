@@ -1,23 +1,32 @@
 'use strict';
-const fs = require('node:fs'), path = require('node:path');
-const root = path.resolve(__dirname, '..'), pkg = require('../package.json'), release = require('../desktop-release.json');
-if (!release.owner || !release.repository) throw new Error('Configure the public release repository first.');
-const repo = `${release.owner}/${release.repository}`, output = path.join(root, 'dist', 'site');
-fs.mkdirSync(path.join(output, 'assets'), { recursive: true });
-for (const name of ['index.html', 'style.css', 'site.js']) fs.copyFileSync(path.join(root, 'site', name), path.join(output, name));
-const resources = [['assets/icons/icon.svg', 'icon.svg'], ['assets/fonts/inter-variable.woff2', 'inter-variable.woff2'], ['assets/fonts/jetbrains-mono-variable.woff2', 'jetbrains-mono-variable.woff2'], ['assets/fonts/Inter-OFL.txt', 'Inter-OFL.txt'], ['assets/fonts/JetBrainsMono-OFL.txt', 'JetBrainsMono-OFL.txt'], ...['geforce-rtx-4090', 'geforce-rtx-3090', 'radeon-rx-7900-xtx'].map(id => [`assets/cards/${id}.webp`, `${id}.webp`])];
-for (const [from, to] of resources) fs.copyFileSync(path.join(root, from), path.join(output, 'assets', to));
-fs.writeFileSync(path.join(output, '.nojekyll'), '');
-const base = `https://github.com/${repo}/releases/latest/download/`;
-const info = { version: pkg.version, installer: base + `Cardable-Setup-${pkg.version}.exe`, folder: base + `Cardable-${pkg.version}-Windows-x64.zip` };
-const pointer = path.join(root, 'dist', 'delivery', 'latest.json');
-if (fs.existsSync(pointer)) {
-  const delivery = JSON.parse(fs.readFileSync(pointer));
-  const installer = path.resolve(root, 'dist', 'delivery', delivery.installer);
-  if (delivery.version === pkg.version && delivery.status === 'ready' && fs.existsSync(installer)) info.installerBytes = fs.statSync(installer).size;
-}
-fs.writeFileSync(path.join(output, 'release.js'), 'window.CARDABLE_RELEASE = ' + JSON.stringify(info) + ';\n');
-let html = fs.readFileSync(path.join(output, 'index.html'), 'utf8').replace(/https:\/\/github\.com\/resetrevxz\/cardable/g, `https://github.com/${repo}`);
-html = html.replace(/Cardable-Setup-\d+\.\d+\.\d+\.exe/g, `Cardable-Setup-${pkg.version}.exe`).replace(/Cardable-\d+\.\d+\.\d+-Windows-x64\.zip/g, `Cardable-${pkg.version}-Windows-x64.zip`).replace(/(<span data-version>)V1\.0\.0/g, '$1V' + pkg.version).replace(/(Windows installer · )v1\.0\.0/g, '$1v' + pkg.version);
-fs.writeFileSync(path.join(output, 'index.html'), html);
-console.log(`Cardable ${pkg.version} site built at dist/site; complete-folder and installer links configured.`);
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),crypto=require('node:crypto');
+const root=path.resolve(__dirname,'..'),pkg=require('../package.json'),release=require('../desktop-release.json'),manifest=require('../site/manifest.cjs');
+if(!release.owner||!release.repository)throw Error('Configure release repository first.');
+const repo=release.owner+'/'+release.repository,out=path.join(root,'dist/site');
+function copy(source,target=source){const dest=path.join(out,target);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(root,source),dest);}
+const context={window:{Cardable:{data:{}}}};
+for(const name of ['rarities','cards'])vm.runInNewContext(fs.readFileSync(path.join(root,'src/data/'+name+'.js'),'utf8'),context);
+const C=context.window.Cardable;
+const cards=manifest.cards.map(id=>{const card=C.data.cards.find(c=>c.id===id);if(!card||card.retired||['secret','limited'].includes(card.rarity)||!fs.existsSync(path.join(root,card.art.src)))throw Error('Invalid public card '+id);return card;});
+for(const file of ['style.css','site.js','adapter.js','vendor/gsap.min.js','vendor/ScrollTrigger.min.js','vendor/GSAP-LICENSE.txt','vendor/GSAP-LICENSE.html'])copy('site/'+file,file);
+for(const css of manifest.styles)copy('src/styles/'+css+'.css');
+for(const js of manifest.scripts.filter(s=>s!=='@adapter'))copy('src/'+js+'.js');
+for(const file of ['assets/icons/icon.svg','assets/fonts/inter-variable.woff2','assets/fonts/jetbrains-mono-variable.woff2','assets/fonts/bodoni-moda-variable.ttf','assets/fonts/bodoni-moda-OFL.txt','assets/fonts/bodoni-moda-SOURCE.md','assets/fonts/Inter-OFL.txt','assets/fonts/JetBrainsMono-OFL.txt','assets/packs/foil-laminate.png','assets/materials/matte-grain.svg','assets/materials/starlight.svg','assets/materials/galaxy-stars.svg'])copy(file);
+for(const card of cards)for(const asset of [card.art.src,card.art.thumb,card.art.thumbnail,card.art.subjectMask].filter(Boolean))if(fs.existsSync(path.join(root,asset)))copy(asset);
+const previews=[...manifest.cards.map(id=>id+'.jpg'),'card-back.jpg','rare-pack.jpg','finish-matte.jpg','finish-rainbow-holo.jpg','finish-galaxy-holo.jpg','finish-aurora.jpg',...['legendary','mythical','exotic','ascendant'].map(id=>'world-'+id+'.jpg')];
+for(const file of previews)copy('site/previews/'+file,'previews/'+file);
+const base='https://github.com/'+repo+'/releases/download/v'+pkg.version+'/';
+const info={version:pkg.version,installer:base+'Cardable-Setup-'+pkg.version+'.exe',folder:base+'Cardable-'+pkg.version+'-Windows-x64.zip'};
+fs.writeFileSync(path.join(out,'release.js'),'window.CARDABLE_RELEASE = '+JSON.stringify(info)+';\n');
+fs.writeFileSync(path.join(out,'catalog.js'),'window.CARDABLE_CATALOG = '+JSON.stringify(cards.map(c=>({id:c.id})))+';\n');
+let html=fs.readFileSync(path.join(root,'site/index.html'),'utf8');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+html=html.replace('<!-- RENDERER_STYLES -->',manifest.styles.map(s=>'<link rel="stylesheet" href="src/styles/'+s+'.css">').join('\n'));
+html=html.replace('<!-- RENDERER_SCRIPTS -->',manifest.scripts.map(s=>'<script defer src="'+(s==='@adapter'?'adapter.js':'src/'+s+'.js')+'"></script>').join('\n'));
+function preview(c,extra=''){return '<img src="previews/'+c.id+'.jpg" width="500" height="700" alt="'+esc(c.name)+', '+esc(C.data.rarities.find(r=>r.id===c.rarity).name)+' Cardable card" '+extra+'>';}
+html=html.replace('<!-- COLLECTION -->',cards.map((c,i)=>'<li data-rarity="'+c.rarity+'"><button class="collection-card" disabled data-card="'+c.id+'" aria-pressed="'+(i===0)+'" aria-label="Select '+esc(c.name)+'"><span class="thumb">'+preview(c,'loading="lazy"')+'</span><span class="card-caption">'+esc(c.name)+'<small>'+esc(C.data.rarities.find(r=>r.id===c.rarity).name)+'</small></span></button></li>').join('\n'));
+html=html.replace('<!-- FINALE_CARDS -->',cards.slice(0,18).map((c,i)=>'<div class="final-card" style="--i:'+i+'">'+preview(c,'loading="lazy"')+'</div>').join('\n'));
+html=html.replaceAll('{{VERSION}}',pkg.version).replaceAll('{{INSTALLER}}',info.installer).replaceAll('{{FOLDER}}',info.folder);
+html=html.replace(/(src|href)="([^"?#]+\.(?:js|css))"/g,(match,attr,file)=>{const content=fs.readFileSync(path.join(out,file));return attr+'="'+file+'?v='+crypto.createHash('sha256').update(content).digest('hex').slice(0,12)+'"';});
+fs.writeFileSync(path.join(out,'index.html'),html);fs.writeFileSync(path.join(out,'.nojekyll'),'');
+console.log('Cardable '+pkg.version+': nine scenes, '+cards.length+' curated cards → dist/site');
