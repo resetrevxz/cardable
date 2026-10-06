@@ -28,9 +28,17 @@ $zip = [IO.Compression.ZipFile]::OpenRead($releaseZip)
 try {
   $sourceFiles = @(Get-ChildItem -LiteralPath $releaseFolder -File -Recurse -Force)
   if ($sourceFiles.Count -ne @($zip.Entries | Where-Object { $_.Name }).Count) { throw 'ZIP is missing files.' }
+  # .NET Framework writes backslashes; modern .NET writes forward slashes.
+  $zipFiles = @{}
+  foreach ($zipEntry in $zip.Entries) {
+    if (!$zipEntry.Name) { continue }
+    $entryPath = $zipEntry.FullName.Replace('\','/')
+    if ($zipFiles.ContainsKey($entryPath)) { throw "Duplicate ZIP entry: $entryPath" }
+    $zipFiles[$entryPath] = $zipEntry
+  }
   foreach ($sourceFile in $sourceFiles) {
     $relative = $sourceFile.FullName.Substring($releaseFolder.Length + 1).Replace('\','/')
-    $entry = $zip.GetEntry($relative)
+    $entry = $zipFiles[$relative]
     if (!$entry -or $entry.Length -ne $sourceFile.Length) { throw "Incomplete ZIP entry: $relative" }
     $stream = $entry.Open(); $sha = [Security.Cryptography.SHA256]::Create()
     try { $entryHash = ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-','') } finally { $stream.Dispose(); $sha.Dispose() }
