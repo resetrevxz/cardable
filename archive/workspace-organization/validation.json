@@ -1,0 +1,8 @@
+{
+  "archivedFilesChecked": 5916,
+  "archivedJunctionsChecked": 8,
+  "activeLocalReferencesChecked": 123,
+  "worktreesChecked": 4,
+  "result": "passed",
+  "scope": "Documentation/filesystem integrity; no app/installer/game tests."
+}

@@ -1,6 +1,6 @@
 # Achievements — current contracts
 
-The engine, metric projection and catalog are `src/core/achievements.js`, `src/core/achievement-metrics.js` and `src/data/achievements.js`; the view is `src/ui/achievements.js`. This promotes actual implementation contracts from the retained [original spec](../alpha-updates/2.7.0-achievements/SPEC.md), without assuming its old active totals. [registry-snapshot.json](../archive/4.2.0-cleanup/registry-snapshot.json) is a data-only source inspection dated 2026-10-06, not a game test.
+The engine, metric projection and catalog are `src/core/achievements.js`, `src/core/achievement-metrics.js` and `src/data/achievements.js`; the view is `src/ui/achievements.js`. This promotes actual implementation contracts from the retained [original spec](../archive/update-history/2.7.0-achievements/SPEC.md), without assuming its old active totals. [registry-snapshot.json](../archive/4.2.0-cleanup/registry-snapshot.json) is a data-only source inspection dated 2026-10-06, not a game test.
 
 ## Catalog and availability
 

@@ -1,0 +1,18 @@
+{
+  "name": "cardable-workspace",
+  "version": "4.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix cardable-spec/cardable run dev",
+    "electron:dev": "npm --prefix cardable-spec/cardable run electron:dev",
+    "start": "npm --prefix cardable-spec/cardable start",
+    "build": "npm --prefix cardable-spec/cardable run build",
+    "dist": "npm --prefix cardable-spec/cardable run dist",
+    "test": "npm --prefix cardable-spec/cardable test",
+    "test:electron": "npm --prefix cardable-spec/cardable run test:electron",
+    "deliver:desktop": "npm --prefix cardable-spec/cardable run deliver:desktop",
+    "deliver:desktop:inspect": "npm --prefix cardable-spec/cardable run deliver:desktop:inspect",
+    "deliver:desktop:verify": "npm --prefix cardable-spec/cardable run deliver:desktop:verify",
+    "deliver:desktop:resume": "npm --prefix cardable-spec/cardable run deliver:desktop:resume"
+  }
+}

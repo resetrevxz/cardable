@@ -38,7 +38,7 @@ Card History's existing optional save state and engine ship unchanged in Electro
 its inventory tab and Achievements switch-coordination fix are included. There
 is no schema bump. Welcome/version/recent-command markers are separate local UI
 preferences; commands never bypass Data preview/confirmation for save replacement.
-See [4.1.0 delivery](../alpha-updates/4.1.0-desktop-qol/DELIVERY.md) for exact scope.
+See [4.1.0 delivery](../archive/update-history/4.1.0-desktop-qol/DELIVERY.md) for exact scope.
 
 ## 4.2.0 help, recovery and delivery
 

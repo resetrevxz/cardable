@@ -32,12 +32,12 @@ High improves core glare and edge illumination while retaining focused rarity an
 
 Stage 14 further optimizes inventory browsing: its sheet now uses shaded surfaces instead of full backdrop blur at every preset. Static card materials, bounded compositor layers, viewport-aware mount budgets and responsive grid layout keep moving inventory inexpensive. Other panels retain their independent glass controls. See [06-INVENTORY.md](06-INVENTORY.md).
 
-The current refresh adds independent cinematic detail and removes full-game blur behind Settings. See [GRAPHICS-REFRESH.md](GRAPHICS-REFRESH.md) for current-checkout measurements and acceptance.
+The integrated refresh adds independent cinematic detail and removes full-game blur behind Settings. Its checkpoint measurements and acceptance limits are preserved in [the archived refresh report](../archive/workspace-organization/docs/GRAPHICS-REFRESH.md).
 
 ## Historical graphics evidence and current limits
 
 The original behavior, touch and frame measurements are retained in [the archived graphics QA](../archive/4.2.0-cleanup/docs/GRAPHICS-QA.md). They describe that source checkpoint, software rendering and roughly 60 Hz browser cadence. Synthetic 120/240 Hz tests establish scheduler logic, not device speed. High heavy-scene task cost did not improve universally. No physical phone, weak laptop, thermal/battery or 240 Hz GPU certification follows from those observations.
 
-Current inventory mount budgets and shaded surfaces are in [06-INVENTORY.md](06-INVENTORY.md). Later independent cinematic detail and desktop resize/IPC fixes are described in [GRAPHICS-REFRESH.md](GRAPHICS-REFRESH.md) and [OPTIMIZATION-4.1.1.md](OPTIMIZATION-4.1.1.md). Older graphics/inventory/activity expectations sometimes conflict with later source; their failures remain in archived evidence. The 4.2.0 cleanup did not rerun those suites or profiles.
+Current inventory mount budgets and shaded surfaces are in [06-INVENTORY.md](06-INVENTORY.md). Later independent cinematic detail and desktop resize/IPC fixes are described in [GRAPHICS-REFRESH.md](../archive/workspace-organization/docs/GRAPHICS-REFRESH.md) and [OPTIMIZATION-4.1.1.md](../archive/workspace-organization/docs/OPTIMIZATION-4.1.1.md). Older graphics/inventory/activity expectations sometimes conflict with later source; their failures remain in archived evidence. The 4.2.0 cleanup did not rerun those suites or profiles.
 
 The current restricted testing policy is [PROMPTING.md](PROMPTING.md). Broad coverage, physical input/zoom/OS motion, paint/GPU cost and high-refresh acceptance remain separate work.

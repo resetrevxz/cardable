@@ -1,0 +1,38 @@
+{
+  "milestone": "C",
+  "base": "Live milestone B workspace including concurrent unrelated revisions, with only C edits removed",
+  "applied": true,
+  "normalization": "CRLF -> LF, all other bytes preserved",
+  "files": [
+    {
+      "path": "index.html",
+      "beforeSha256": "85be589180059a7a32c491980a3034274c0ff689f31c0157d59ff8d6542c23e5",
+      "afterSha256": "98b620fe2ed40e8d71e3ee4e4f5a6d0d38474fe912f8918d8df080f8efda5a0c"
+    },
+    {
+      "path": "src/fx/rarity-intro.js",
+      "beforeSha256": "648c26b4dadad93231a9634b9f215e3c2875aa8dd9e938615477028791c5009c",
+      "afterSha256": "2277df15ee75a1d75a93319dc878ba112ca3a732657a447ab39b4ae77db68c93"
+    },
+    {
+      "path": "src/ui/opening.js",
+      "beforeSha256": "5856185ad51a35c02b9de6fb74ca3c52753dfcbc30efb54aded5d6c2569c23cb",
+      "afterSha256": "77ddef5829a7cdd5e7e767bc97fe9cd7d508db96e34586c6b8adba807197e93b"
+    },
+    {
+      "path": "Designs.MD",
+      "beforeSha256": "e38a52be20ae63910acda5fe2c916deb872d23074b840b7c633a07a0613ca617",
+      "afterSha256": "db0323c9a2f4f6c95cb45b8d433ba71c48618f1d51bf7828d1315e0d6b0921c6"
+    },
+    {
+      "path": "docs/RARITY-INTROS.md",
+      "beforeSha256": "d446c833899919d18a5f4188c2542925a389988af76e981e5c67583a6b2f991b",
+      "afterSha256": "1dc7e9a3d8e152c8f2c6c43437c787f37ffd4fd406f9b9e0095456e28f86d6ae"
+    },
+    {
+      "path": "docs/04-PACK-OPENING.md",
+      "beforeSha256": "134e6acbcffe657a5d3002dcb71305e0392b0e62573941016aedcb69279af990",
+      "afterSha256": "e60ff988aec8d204eaf6cff9b9628d596cffbef08212786c5f59ca8edc2ade96"
+    }
+  ]
+}
