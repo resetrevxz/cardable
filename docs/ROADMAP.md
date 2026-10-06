@@ -42,4 +42,10 @@ The primary main is the active checkout. Four feature worktrees remain registere
 
 ## Planned and deferred
 
+The owner subsequently authorized automatic installed-app updates and signing
+integration in 4.2.0. See [UPDATES](UPDATES.md), [RELEASING](RELEASING.md) and
+[the follow-up report](UPDATER-SIGNING-4.2.0.md). Source/configuration, packaged
+delivery and live signed A→B acceptance remain separate. Public repository and
+signing identity/credentials still require owner setup.
+
 No timeline is inferred. [POLISH-BACKLOG](POLISH-BACKLOG.md) retains ranked ideas and manual evidence gates. Multi-select/bulk inventory, saved filters, extra variant slots/combos, absent release-year metadata and additional platforms need their own approved specs. The market and audio remain off. Public GitHub hosting/signing/CI, live updater acceptance and optional Discord credentials are owner follow-ups under the retained github-setup plan. No account, cloud save or online gameplay is introduced.

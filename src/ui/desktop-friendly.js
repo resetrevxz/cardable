@@ -36,7 +36,10 @@
       if(C.native){recoveryAction('Open saves folder',function(){return C.native.storage.openSaveDir();});recoveryAction('Open logs folder',function(){return C.desktop.openLogDirectory();});node('p','',host,'Restart in Safe mode turns off hardware acceleration for one session and keeps your saved graphics choices.');recoveryAction('Restart in Safe mode',function(){return C.friendly.safeMode();});}else node('p','',host,'Reopen the same index.html location after checking that all supplied files are present. Keep Studio photos and the original browser profile.');
       Array.from(root.document.body.children).filter(function(el){return el!==host&&el.tagName!=='SCRIPT';}).forEach(function(el){el.inert=true;});C.accessibility.trap(host);host.focus();},
     showChangelog:function(){if(panel)close();queue.unshift({type:'changelog'});pump();},
-    checkUpdates:function(){return C.native?C.native.support.checkUpdates().then(outcome):Promise.resolve(outcome({state:'unconfigured'}));},
+    checkUpdates:function(){return C.native?C.native.support.getInfo().then(function(value){
+      if(value.mode==='automatic'){C.preferences.show();return C.desktop.checkUpdates(true).then(function(result){if(result.state==='error')C.qol.toast('Could not check updates. Details and retry are in Settings.');return result;});}
+      return C.native.support.checkUpdates().then(outcome);
+    }):Promise.resolve(outcome({state:'unconfigured'}));},
     reportBug:function(){return C.native.support.reportBug(C.settings.get('quality')).then(function(result){if(result.state==='unconfigured')outcome(result);return result;});},
     copyDiagnostics:function(){return C.desktop.copyDiagnostics().then(function(ok){C.qol.toast(ok?'Diagnostics copied.':'Could not copy diagnostics.');return ok;});},
     safeMode:function(){return C.native.support.safeMode().then(function(ok){if(!ok)C.qol.toast('Could not save safely; restart was cancelled.');return ok;});}

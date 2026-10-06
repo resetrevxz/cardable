@@ -15,6 +15,7 @@ function registerSupportHandlers() {
     try {
       if(!win || !await shutdown.flush(win))return false;
       const args=process.argv.slice(1).filter(arg=>arg!=='--safe-mode');args.push('--safe-mode');
+      require('../updater/auto-updater').updaterService.suspendInstallation('Safe mode restart');
       app.relaunch({args});shutdown.approve(win);app.quit();return true;
     } finally {restarting=false;}
   });

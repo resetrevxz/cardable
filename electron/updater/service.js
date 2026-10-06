@@ -5,18 +5,24 @@ const UPDATER_STATES = Object.freeze({
 });
 
 class CardableAutoUpdater {
-  constructor({ engine, currentVersion, isPackaged, configured, logger, broadcast = () => {} }) {
-    Object.assign(this, { engine, currentVersion, isPackaged, configured, logger, broadcast });
+  constructor({ engine, currentVersion, isPackaged, isInstalled = isPackaged, configured, logger,
+    automaticChecks = false, automaticDownload = false, installOnQuit = false, mode = 'manual', broadcast = () => {} }) {
+    Object.assign(this, { engine, currentVersion, isPackaged, isInstalled, configured, logger,
+      automaticChecks, automaticDownload, installOnQuit, mode, broadcast });
     this.state = configured ? UPDATER_STATES.IDLE : UPDATER_STATES.UNCONFIGURED;
     this.updateInfo = this.downloadProgress = this.errorMessage = null;
     this.operation = null;
     this.listeners = [];
     this.timers = [];
+    this.installing = false;
+    this.installPostponed = false;
+    this.sessionEnding = false;
   }
   init() {
     const e = this.engine;
     e.logger = this.logger;
     e.autoDownload = false;
+    // Cardable owns installation so the library cannot bypass the save handshake.
     e.autoInstallOnAppQuit = false;
     e.disableWebInstaller = true;
     e.allowPrerelease = this.currentVersion.includes('-');
@@ -38,7 +44,7 @@ class CardableAutoUpdater {
       this.setState(UPDATER_STATES.INSTALL_READY);
     });
     on('error', error => this.fail(error));
-    if (this.configured && this.isPackaged && this.automaticChecks !== false) {
+    if (this.configured && this.isPackaged && this.isInstalled && this.automaticChecks) {
       const first = setTimeout(() => this.checkForUpdates(false), 30000);
       const interval = setInterval(() => this.checkForUpdates(false), 6 * 60 * 60 * 1000);
       first.unref(); interval.unref(); this.timers.push(first, interval);
@@ -54,6 +60,7 @@ class CardableAutoUpdater {
     this.broadcast(this.getStatePayload());
   }
   fail(error) {
+    this.installing = false;
     this.errorMessage = String(error && error.message || error || 'Unknown update error').slice(0, 1000);
     this.setState(UPDATER_STATES.ERROR);
     this.logger.warn(`Updater: ${this.errorMessage}`);
@@ -61,31 +68,55 @@ class CardableAutoUpdater {
   getStatePayload() {
     return { state: this.state, currentVersion: this.currentVersion, updateInfo: this.updateInfo,
       downloadProgress: this.downloadProgress, errorMessage: this.errorMessage,
-      isPackaged: this.isPackaged, configured: this.configured };
+      isPackaged: this.isPackaged, isInstalled: this.isInstalled, configured: this.configured,
+      mode: this.mode, automaticChecks: this.automaticChecks, automaticDownload: this.automaticDownload,
+      installOnQuit: this.installOnQuit && !this.installPostponed && !this.sessionEnding };
   }
   async checkForUpdates() {
     if (this.operation || ['install-ready', 'update-downloaded', 'downloading'].includes(this.state)) return this.getStatePayload();
-    if (!this.isPackaged || !this.configured) return this.getStatePayload();
+    if (!this.isPackaged || !this.isInstalled || !this.configured) return this.getStatePayload();
     this.errorMessage = null; this.downloadProgress = null;
     this.setState(UPDATER_STATES.CHECKING);
     this.operation = 'check';
     try { await this.engine.checkForUpdates(); } catch (e) { this.fail(e); }
     finally { this.operation = null; }
+    // Keep check/download serialized, including when Settings checks manually.
+    if (this.automaticDownload && this.state === UPDATER_STATES.UPDATE_AVAILABLE) await this.downloadUpdate();
     return this.getStatePayload();
   }
   async downloadUpdate() {
-    if (this.operation || this.state !== UPDATER_STATES.UPDATE_AVAILABLE) return this.getStatePayload();
+    if (!this.configured || !this.isPackaged || !this.isInstalled || this.operation || this.state !== UPDATER_STATES.UPDATE_AVAILABLE) return this.getStatePayload();
     this.errorMessage = null;
     this.operation = 'download'; this.setState(UPDATER_STATES.DOWNLOADING);
     try { await this.engine.downloadUpdate(); } catch (e) { this.fail(e); }
     finally { this.operation = null; }
     return this.getStatePayload();
   }
-  quitAndInstall() {
-    if (this.state !== UPDATER_STATES.INSTALL_READY) return false;
-    // The user already confirmed Install/restart. Do not show the setup wizard
-    // again during an in-place update; first installs remain assisted NSIS.
-    try { this.engine.quitAndInstall(true, true); return true; }
+  postponeInstall() {
+    if (this.state !== UPDATER_STATES.INSTALL_READY) return this.getStatePayload();
+    this.installPostponed = true;
+    this.broadcast(this.getStatePayload());
+    return this.getStatePayload();
+  }
+  suspendInstallation(reason) {
+    this.sessionEnding = true;
+    this.logger.info(`Update installation postponed: ${reason}`);
+  }
+  shouldInstallOnQuit() {
+    return this.configured && this.isPackaged && this.isInstalled && this.installOnQuit &&
+      !this.installPostponed && !this.sessionEnding && !this.installing && this.state === UPDATER_STATES.INSTALL_READY;
+  }
+  quitAndInstall(restart = true) {
+    if (!this.configured || !this.isPackaged || !this.isInstalled || this.sessionEnding || this.installing || this.state !== UPDATER_STATES.INSTALL_READY) return false;
+    // Callers must first acknowledge the renderer save and native disk mirror.
+    // Normal quit stays quit; only Restart and update now relaunches the app.
+    this.installing = true;
+    try {
+      this.engine.quitAndInstall(true, restart);
+      // electron-updater returns void; its flag records a rejected install.
+      if (this.engine.quitAndInstallCalled === false || this.state === UPDATER_STATES.ERROR) { this.installing = false; return false; }
+      return true;
+    }
     catch (e) { this.fail(e); return false; }
   }
   destroy() {

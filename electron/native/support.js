@@ -6,7 +6,8 @@ const source = require('../../desktop-release.json');
 const metadata = require('../../package.json').cardableDesktop || {};
 const candidate = metadata.releaseRepository || (source.owner && source.repository ? `${source.owner}/${source.repository}` : '');
 const repository = /^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(candidate) ? candidate : '';
-const mode = (metadata.updatesMode || source.updates?.mode) === 'github-public' ? 'github-public' : 'link';
+const requestedMode = metadata.updatesMode || source.updates?.mode;
+const mode = ['automatic','github-public'].includes(requestedMode) ? requestedMode : 'link';
 const repoUrl = repository ? `https://github.com/${repository}` : null;
 let checking = null, lastCheck = 0, latest = null;
 function info() {
@@ -36,6 +37,7 @@ async function reportBug(quality) {
   await shell.openExternal(repoUrl + '/issues/new?' + query); return { state: 'opened' };
 }
 function checkUpdates() {
+  if (mode === 'automatic') return require('../updater/auto-updater').updaterService.checkForUpdates();
   if (!repoUrl) return Promise.resolve({ state: 'unconfigured', mode });
   if (mode === 'link') return shell.openExternal(repoUrl + '/releases').then(() => ({ state: 'opened', mode }));
   if(checking)return checking;

@@ -1,26 +1,42 @@
 # Updates
 
-## Current manual updates policy (4.2.0)
+## Automatic installed-app updates (4.2.0 follow-up)
 
-About uses desktop-release.json → updates.mode: link opens the configured GitHub
-Releases page, or github-public manually checks its public latest-release API.
-Owner/repository intentionally remain unset for the planned later GitHub update.
-No token, scheduled request, automatic download or installation is involved.
-The older installer service below is retained; its scheduled checks run only in
-explicit update fixtures, not normal builds.
+The owner authorized automatic updates after cleanup. desktop-release.json →
+updates.mode is now automatic. Once a real public owner/repository is supplied,
+the installed Windows app checks after 30 seconds and every six hours, downloads
+available updates in the background, and installs a ready update on normal quit.
+Gameplay remains offline; release traffic stays in the native process. Browser,
+development, unpacked preview and unconfigured builds make no scheduled requests.
+Owner/repository are still unset; this checkout cannot receive live updates yet.
+
+Settings → About displays progress, retained error details/retry, release notes,
+Restart and update now, and Skip update on this quit. Skip leaves the cached
+download and postpones automatic installation for the current app session;
+reopening Settings offers explicit restart. A subsequent launch checks and can
+reuse the cached download. Normal quit does not reopen the game after updating.
+Windows session ending and Safe-mode relaunch postpone installation.
+
+Legacy link mode opens the configured GitHub Releases page; github-public manually
+checks the public latest-release API. Both retain manual behavior. Public GitHub
+releases require no player token. The renderer has no general-purpose network API.
 
 ## Retained installer-updater infrastructure
 
-electron-builder generates app-update.yml from the public GitHub provider. electron-updater reads that configuration; runtime code never overrides it with setFeedURL. Packaged configured builds check after 30 seconds and every six hours; Settings allows manual checks. No runtime update traffic occurs in browser or development mode or builds without provider metadata.
+electron-builder generates app-update.yml from the public GitHub provider. electron-updater reads that configuration; runtime code never overrides it with setFeedURL. Runtime capability requires a packaged Windows app with its adjacent stock NSIS uninstaller. Delivery metadata is shared by the installer and preview and does not establish installation; a normal unpacked preview has no installed uninstaller. Explicit loopback update fixtures retain their separate behavior; ordinary builds cannot opt into fixture profiles through environment variables.
 
-The main-process service emits idle, checking, update-available, downloading/progress, update-downloaded, install-ready, no-update, error and unconfigured states. Operations are serialized. Error permits a fresh check and download retry. Updates never download or install automatically; closing the app does not auto-install. Later retains the download for an explicit later restart.
+The main-process service emits idle, checking, update-available, downloading/progress, update-downloaded, install-ready, no-update, error and unconfigured states. Check and download operations are serialized; an automatic download starts only after checking finishes. Error permits a fresh check and download retry. The library's autoDownload and autoInstallOnAppQuit flags stay false: Cardable owns orchestration and the save gate, preventing library listeners from bypassing them.
 
-Install requires explicit Settings action, renderer durable local save/settings flush and successful native mirror acknowledgment. A timeout/failure postpones installation. pendingReveal and Studio data use the unchanged save pipeline. NSIS preserves the stable userData identity. Reinstalling into a different directory can change file-origin storage; the native primary mirror recovers missing state. Export browser saves through Data and import them into the desktop app when moving from a browser.
+Both explicit restart and automatic normal-quit installation require a successful renderer save/settings flush and native mirror acknowledgment. A timeout/failure postpones installation even though ordinary closing may proceed. The main process records flush success separately from permission to close. pendingReveal and Studio data use the unchanged save pipeline. NSIS preserves stable userData and the existing installation directory. Export browser saves through Data and import them into the desktop app when moving from a browser.
 
-Required public acceptance test: install version A, keep cards/change settings/create a Studio scene, publish B with matching installer/latest.yml/blockmap, launch A, check, download, inspect progress, postpone, then explicitly install. Confirm B's app version and the exact original cards/serials/settings/scene after restart. Also test offline failure/retry and uninstall/reinstall. Do not describe mock/injected state tests as a GitHub version-to-version update.
+The custom NSIS process check allows an updater-launched silent installer up to
+ten seconds for Cardable to exit naturally. It then stops if any Cardable process
+remains, including a local preview. It never calls the stock force-kill path.
+
+Required public acceptance: install version A, keep cards/change settings/create a Studio scene/photo, publish signed B with matching installer/latest.yml/blockmap, launch A and observe background check/download. Verify Skip postpones this quit, explicit restart preserves exact cards/serials/settings/scenes/photo bytes, and a separate normal quit installs without relaunch. Exercise offline/retry, failed flush, Windows shutdown, Safe mode and unpacked preview exclusion. A real public A→B installation remains unverified; injected UI states are not end-to-end update evidence. Current testing restrictions still apply until the owner authorizes broader acceptance.
 
 Unsigned development builds can test local functionality but cannot certify code-signing/publisher behavior. Private release repositories must not require player credentials; use a dedicated public distribution repository instead.
 
-`npm run test:nsis-update` performs a real 4.0.0→4.0.1 NSIS update using a loopback feed and separately branded temporary installation/profile/cache. It checks exact cards/settings/Studio scene and IndexedDB photo bytes, plus uninstall/reinstall. This does not replace the required GitHub test. First install remains assisted; an explicitly confirmed in-place update runs silently and restarts. Nothing auto-installs on ordinary quit.
+`npm run test:nsis-update` is the retained historical 4.0.0→4.0.1 loopback fixture, with separate branding/profile/cache. Its explicit manual restart flow does not certify the new automatic policy or a public GitHub update. Do not run it under the current restricted testing policy. First installation still starts when the user runs setup; in-place updates use silent NSIS after the app's successful save gate.
 
 Studio photos live in Chromium IndexedDB, not in JSON save exports or the native mirror. In-place update/reinstall at the same directory preserves the tested origin. Moving installation directories can change file-origin photo storage; download/retain photos first. The JSON mirror restores cards/settings/scenes but does not migrate photo blobs from another file origin automatically.

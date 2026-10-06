@@ -2,6 +2,10 @@
 
 ## 4.2.0 — Desktop delivery, help and recovery
 
+- Prepare automatic installed-app update checks, background downloads and save-gated installation on normal quit once a public release source is configured.
+- Add Restart and update now, Skip update on this quit, persistent update errors/retry and preview/shutdown exclusions.
+- Require trusted timestamped Windows signatures for public CI releases; support certificate/store, Azure and provider-specific signing hooks without bundling credentials.
+
 - Welcome offers Start playing and optional confirmed browser-save import.
 - Bundled Settings/palette help explains gameplay, shortcuts, four graphics tiers, saving, separate Studio-photo downloads and desktop recovery.
 - Unreadable saves retain their originals and pause writes/pack opening until an explicit recovery choice; startup/storage failures get plain guidance.

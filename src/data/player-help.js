@@ -24,6 +24,7 @@
     {id:'desktop',title:'Install, update and recover',desktop:true,lines:[
       'Run the supplied Cardable-Setup installer for Windows x64. It is configured for per-user setup, normal desktop/Start Menu shortcuts and launch after setup. Players need no Node.js, terminal or account.',
       'Export a save and download Studio photos before upgrading. Close Cardable normally, including any tray or Latest Build preview, then run setup. Retry after closing it; Cancel keeps the current app. Older all-users or uncertain paths stop for review.',
+      'When a public release source is configured, the installed app checks for updates and downloads them in the background. A ready update installs after saving when you normally quit. Settings → About offers Restart and update now or Skip update on this quit. Preview builds never replace the installed app.',
       'Normal uninstall keeps player data and is separate from Reset save. A local unsigned build may show an unknown-publisher warning. Verify its supplier; do not disable security software.',
       'Use Open logs folder and Copy diagnostics for troubleshooting. Diagnostics omit save contents. Share them yourself with the supplier; help does not submit anything automatically.'
     ]}

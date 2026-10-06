@@ -13,6 +13,7 @@ function registerUpdaterHandlers() {
   registerSecureHandler(IPC_CHANNELS.UPDATER_DOWNLOAD, async () => {
     return await updaterService.downloadUpdate();
   });
+  registerSecureHandler(IPC_CHANNELS.UPDATER_POSTPONE, () => updaterService.postponeInstall());
 
   registerSecureHandler(IPC_CHANNELS.UPDATER_INSTALL, async event => {
     if (updaterService.state !== 'install-ready') return false;

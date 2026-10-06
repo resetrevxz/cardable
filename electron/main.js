@@ -93,6 +93,9 @@ if (!gotTheLock) {
 
     // Create Main Window
     const win = createMainWindow();
+    // Never start NSIS while Windows is logging off, restarting or shutting down.
+    win.on('query-session-end', () => updaterService.suspendInstallation('Windows session ending'));
+    win.on('session-end', () => updaterService.suspendInstallation('Windows session ended'));
 
     // Initialize Auto-Updater
     updaterService.init(win);
@@ -282,6 +285,10 @@ if (!gotTheLock) {
   app.on('before-quit', event => {
     const win = getMainWindow();
     if (win && !gracefulShutdown.isApproved(win)) { event.preventDefault(); win.close(); return; }
+    if (updaterService.shouldInstallOnQuit()) {
+      if (gracefulShutdown.mayInstallUpdate()) updaterService.quitAndInstall(false);
+      else logger.warn('Update installation postponed: save flush did not succeed');
+    }
     logger.info('App preparing to quit...');
     setQuitting(true);
     discordService.destroy();

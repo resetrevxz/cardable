@@ -41,6 +41,7 @@ const IPC_CHANNELS = {
   UPDATER_CHECK: 'updater:check',
   UPDATER_DOWNLOAD: 'updater:download',
   UPDATER_INSTALL: 'updater:install',
+  UPDATER_POSTPONE: 'updater:postpone',
   UPDATER_GET_STATE: 'updater:get-state',
   UPDATER_STATE_CHANGED: 'updater:state-changed',
   DISCORD_SET_PRESENCE: 'discord:set-presence',
@@ -143,6 +144,7 @@ const cardableDesktop = {
     check: (isManual = true) => ipcRenderer.invoke(IPC_CHANNELS.UPDATER_CHECK, !!isManual),
     download: () => ipcRenderer.invoke(IPC_CHANNELS.UPDATER_DOWNLOAD),
     install: () => ipcRenderer.invoke(IPC_CHANNELS.UPDATER_INSTALL),
+    postpone: () => ipcRenderer.invoke(IPC_CHANNELS.UPDATER_POSTPONE),
     getState: () => ipcRenderer.invoke(IPC_CHANNELS.UPDATER_GET_STATE),
     onStateChange: (callback) => {
       if (typeof callback !== 'function') return () => {};

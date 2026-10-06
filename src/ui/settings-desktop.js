@@ -24,36 +24,40 @@
         }); });
       } else run(function () { return C.desktop.downloadUpdate().then(render); });
     }); action.hidden = true;
-    var later = button('Later', actions, function () { postponed = true; render(current); }); later.hidden = true;
+    var later = button('Skip update on this quit', actions, function () {
+      later.disabled = true;
+      run(function () { return C.desktop.postponeUpdate().then(function (state) { postponed = true; render(state); }); }).finally(function () { later.disabled = false; });
+    }); later.hidden = true;
     function mb(value) { return (Math.max(0, value || 0) / (1024 * 1024)).toFixed(1) + ' MB'; }
     function render(state) {
       if (!state) return; current = state;
       var info = state.updateInfo || {}, busy = state.state === 'checking' || state.state === 'downloading';
       versions.textContent = 'Current v' + state.currentVersion + (info.version ? ' · Latest v' + info.version : '');
-      check.disabled = busy || !state.configured || !state.isPackaged;
+      check.disabled = busy || !state.configured || !state.isPackaged || state.isInstalled === false;
       check.textContent = state.state === 'error' ? 'Retry update check' : 'Check for updates';
       action.hidden = !(state.state === 'update-available' || state.state === 'install-ready' && !postponed);
-      action.disabled = busy; action.textContent = state.state === 'install-ready' ? 'Install and restart' : 'Download update';
-      later.hidden = state.state !== 'install-ready' || postponed;
+      action.disabled = busy || !state.configured || !state.isPackaged || state.isInstalled === false; action.textContent = state.state === 'install-ready' ? 'Restart and update now' : 'Download update';
+      later.hidden = state.state !== 'install-ready' || postponed || !state.installOnQuit;
       progress.hidden = state.state !== 'downloading'; bytes.hidden = progress.hidden;
       if (!progress.hidden) {
         var data = state.downloadProgress || {}; progress.value = data.percent || 0;
         bytes.textContent = progress.value + '% · ' + mb(data.transferred) + (data.total ? ' / ' + mb(data.total) : '');
       }
-      var descriptions = { idle: 'Updates are checked quietly in the background.', checking: 'Checking for updates…',
+      var descriptions = { idle: state.automaticChecks ? 'Updates are checked and downloaded quietly in the background.' : 'Use Check for updates when you are ready.', checking: 'Checking for updates…',
         'update-available': 'A newer version is available.', downloading: 'Downloading update…',
-        'update-downloaded': 'Download complete.', 'install-ready': postponed ? 'Update ready. Reopen Settings when you want to restart.' : 'Update ready. Your progress will be saved before restarting.',
+        'update-downloaded': 'Download complete.', 'install-ready': state.installOnQuit ? 'Update ready. It will install after saving when you quit Cardable, or you can restart now.' : 'Update ready. Automatic installation is postponed; reopen Settings to restart when you are ready.',
         'no-update': 'Cardable is up to date.', unconfigured: 'Updates are not configured for this build.' };
-      status.textContent = state.state === 'error' ? 'Update failed. ' + (state.errorMessage || 'Please try again.') : !state.isPackaged ? 'Update checks are available in installed builds.' : descriptions[state.state] || 'Update status unavailable.';
+      status.textContent = state.state === 'error' ? 'Update failed. ' + (state.errorMessage || 'Please try again.') : !state.configured ? descriptions.unconfigured : !state.isPackaged || state.isInstalled === false ? 'Automatic updates are available in the installed app. This preview keeps its own files.' : descriptions[state.state] || 'Update status unavailable.';
       var releaseNotes = info.releaseNotes;
       if (Array.isArray(releaseNotes)) releaseNotes = releaseNotes.map(function (entry) { return entry.note || ''; }).join('\n');
       notes.textContent = typeof releaseNotes === 'string' ? releaseNotes.replace(/<[^>]*>/g, '').slice(0, 16000) : '';
       notes.hidden = !notes.textContent;
+      updateBox.hidden = state.mode !== 'automatic';
+      manualBox.hidden = state.mode === 'automatic';
     }
     C.desktop.onUpdateState(render); C.desktop.getUpdateState().then(render).catch(failed);
     C.events.on('settings:open', function () { postponed = false; if (current) render(current); });
-    // Preserve the existing installer updater service, but use the explicit,
-    // manual QoL link/public-release flow in this update (no background network).
+    // Retain legacy manual-release modes alongside the installed updater.
     updateBox.hidden = true;
     var manualBox=node('section','settings-update-box glass',container);
     node('h4','settings-subhead',manualBox,'Software updates');
@@ -61,6 +65,7 @@
     var manualCheck=button('Check for updates',manualBox,function(){manualCheck.disabled=true;C.friendly.checkUpdates().then(function(result){manualStatus.textContent=result.state==='unconfigured'?'GitHub Releases will be configured in a later update.':result.state==='opened'?'Opened Releases in your browser.':result.state==='update-available'?'Version '+result.version+' is available.':result.state==='no-update'?'Cardable is up to date.':result.state==='no-public-release'?'No public release is available.':'Could not check releases.';}).catch(function(){manualStatus.textContent='Could not check releases.';}).finally(function(){manualCheck.disabled=false;});});
     C.native.support.getInfo().then(function(info){manualStatus.textContent=info.configured?(info.mode==='link'?'Opens GitHub Releases; no automatic downloads.':'Manually checks public GitHub Releases; no automatic downloads.'):'Public downloads, live updates and bug reporting are not configured. Ask your supplier for the local installer.';manualCheck.disabled=!info.configured;bug.disabled=!info.configured;}).catch(function(){manualCheck.disabled=true;bug.disabled=true;});
     button('Open full changelog',manualBox,function(){C.preferences.close();C.friendly.showChangelog();});
+    button('Open full changelog',updateBox,function(){C.preferences.close();C.friendly.showChangelog();});
     var tools = node('section', 'settings-desktop-tools', container); node('h4', 'settings-subhead', tools, 'Diagnostics');
     button('Open saves folder', tools, function () { run(function () { return C.desktop.openSaveDirectory(); }); });
     button('Open logs folder', tools, function () { run(function () { return C.desktop.openLogDirectory(); }); });

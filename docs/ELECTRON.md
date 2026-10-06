@@ -21,11 +21,12 @@ renderer-supplied paths. Card rectangles are checked against the native content
 bounds and zoom. No capture runs automatically.
 
 Support configuration stays in desktop-release.json (`owner`, `repository`,
-`updates.mode`). Link is the default; github-public is a manual, bounded public
-release check with no tokens. Both remain unconfigured until the planned later
-GitHub update. Renderer CSP/network isolation is unchanged. The old installer
-updater infrastructure is retained, with scheduled checks disabled for normal
-4.1.0 builds. Reports/copies exclude save contents and paths, using only structural
+`updates.mode`). The approved 4.2.0 follow-up defaults to automatic installed-app
+checks/downloads and save-gated installation on normal quit. Legacy link and
+github-public modes retain manual behavior. All remain unconfigured until public
+GitHub identifiers are supplied. Browser/development/unpacked previews perform
+no scheduled checks. Renderer CSP/network isolation is unchanged. Reports/copies
+exclude save contents and paths, using only structural
 lifecycle log lines. The changelog is bundled into ASAR at build time.
 
 Safe mode relaunches only after the existing save/disk handshake succeeds. The

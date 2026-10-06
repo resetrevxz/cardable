@@ -64,6 +64,7 @@
 !macro customCheckAppRunning
   ; Use the builder's already bundled process plugin, with no close/kill calls.
   ; Name-based detection intentionally also defers for an open local preview.
+  StrCpy $R1 0
   ${Do}
     nsProcess::_FindProcess "${APP_EXECUTABLE_FILENAME}"
     Pop $R0
@@ -75,6 +76,14 @@
     ${EndIf}
     DetailPrint "Close Cardable normally before continuing setup."
     ${If} ${Silent}
+      ; electron-updater starts NSIS just before the saved app quits. Wait only
+      ; for that natural exit; never fall through to the stock kill-process path.
+      ${If} ${isUpdated}
+      ${AndIf} $R1 < 40
+        Sleep 250
+        IntOp $R1 $R1 + 1
+        ${Continue}
+      ${EndIf}
       SetErrorLevel 2
       Quit
     ${EndIf}

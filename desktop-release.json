@@ -1,7 +1,7 @@
 {
   "owner": null,
   "repository": null,
-  "updates": { "mode": "link" },
+  "updates": { "mode": "automatic" },
   "discordApplicationId": null,
   "discordImageKey": null
 }

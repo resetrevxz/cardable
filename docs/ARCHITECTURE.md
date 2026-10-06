@@ -14,7 +14,7 @@ The game remains an offline classic-script renderer under `window.Cardable`. Bro
 | `src/studio/` | Inspect camera/renderer/materials, scenes/props/lights/Director, photo capture and IndexedDB Album. JSON saves do not include photo blobs. |
 | `electron/main.js`, `windows/`, `native/` | App lifecycle, persisted native window, Mini/taskbar/tray, narrow support/capture services and graceful close. |
 | `electron/preload.js`, `ipc/` | Named secure native bridge, channel registry, exact main-document sender checks and bounded arguments. |
-| `electron/logging/`, `updater/`, `discord/` | Rotating local logs, retained explicit-update infrastructure and optional local Discord IPC; configuration is external. |
+| `electron/logging/`, `updater/`, `discord/` | Rotating local logs, installed-app automatic updates with a save gate, retained manual modes and optional local Discord IPC; configuration is external. |
 | package/lock/builder, `.github/`, `tools/` | Locked development dependencies, offline Windows x64 NSIS/dir packaging, paired release assets and transactional local delivery. |
 
 Namespace/config and presentation/gameplay data precede state. Variants/stack helpers and settings schema precede save normalization; state/settings precede effects/input/UI. Collection precedes query; inventory icons/shelf/grid/toolbar/reorder/transition precede controller/detail. Save files/tools precede Data UI/preferences. Card/pack markup and accessibility precede dependent UI. Cutscene factories/descriptors load before reveal dispatch. `boot.js` defines boot last; the inline gate chooses ordinary or developer startup. Consult HTML order rather than introducing module imports.
@@ -34,6 +34,14 @@ Mutable saves/settings/logs live under native userData/Chromium storage, never i
 ## Native bridge and browser fallback
 
 Preload exposes narrow `app`, `window`, `system`, `capture`, `support`, `storage`, `logs`, `updates` and `discord` groups as the existing desktop bridge; renderer integration aliases it to `C.native`. It exposes no generic IPC, arbitrary filesystem operation, process or require. Main windows keep sandbox/context isolation on and Node off, local CSP, blocked child windows/permissions/webviews and restricted navigation. `ipc/security.js` trusts only the exact top-level local index document, and each registrar validates its arguments.
+
+The owner-approved automatic update mode permits native release traffic only in
+configured installed Windows builds. Check/download are serialized; a ready update
+installs on normal quit only after the renderer save/native disk acknowledgment.
+Skip postpones this session; explicit Restart and update now uses the same gate.
+Windows session ending and Safe-mode relaunch defer installation. Local preview,
+browser and development runs cannot update the separate installed app. The narrow
+updates.postpone IPC returns bounded updater state, never paths or a feed override.
 
 Window APIs control scale/aspect/preferences, pack/taskbar status, awake/visibility and Mini through existing services. Storage can get/backup/open the fixed save folder; logs only accept bounded structural messages/open their fixed folder. Capture IDs reveal only service-created files. Support provides configured-source info, diagnostics/manual links, reports and explicit Safe Mode. Safe Mode disables acceleration before readiness and temporarily overrides effective graphics to Low; it never rewrites the saved preset. Normal browser play has no native bridge: save JSON, locally bundled help and Settings still work, and native-only actions are hidden or give a meaningful unavailable message.
 

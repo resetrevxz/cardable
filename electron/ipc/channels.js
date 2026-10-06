@@ -51,6 +51,7 @@ const IPC_CHANNELS = {
   UPDATER_CHECK: 'updater:check',
   UPDATER_DOWNLOAD: 'updater:download',
   UPDATER_INSTALL: 'updater:install',
+  UPDATER_POSTPONE: 'updater:postpone',
   UPDATER_GET_STATE: 'updater:get-state',
   UPDATER_STATE_CHANGED: 'updater:state-changed', // Event from main to renderer
 

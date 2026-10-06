@@ -34,6 +34,14 @@ changing Windows users. Keep using the same shortcut and location when upgrading
 
 ## Updating or uninstalling
 
+When a public release source is configured, the installed app checks for updates
+after startup and downloads them in the background. A ready update installs after
+saving when you normally quit; Cardable stays closed. Settings → About offers
+**Restart and update now** or **Skip update on this quit**. A failed save flush,
+Windows shutdown or Safe-mode restart postpones installation. Latest Build preview
+does not replace the installed app. This local build still has no configured
+public provider, so get newer installers from your supplier.
+
 Close Cardable normally before running a newer supplied installer. If it is in
 the tray, choose **Quit** from the tray menu; close any **Latest Build** preview
 too. If setup asks you to close Cardable, do so, then choose **Retry**. **Cancel**

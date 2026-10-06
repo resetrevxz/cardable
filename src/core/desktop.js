@@ -160,6 +160,9 @@
       // Main process requests/validates a renderer flush before it calls quitAndInstall.
       return desktop ? desktop.updates.install() : Promise.resolve(false);
     },
+    postponeUpdate: function () {
+      return desktop ? desktop.updates.postpone() : Promise.resolve(null);
+    },
     getUpdateState: function () { return desktop ? desktop.updates.getState() : Promise.resolve({ state: 'unsupported' }); },
     onUpdateState: function (cb) {
       if (desktop) return desktop.updates.onStateChange(cb);
