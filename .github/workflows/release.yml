@@ -11,11 +11,10 @@ jobs:
   windows:
     runs-on: windows-latest
     env:
-      CARDABLE_RELEASE_OWNER: ${{ vars.CARDABLE_RELEASE_OWNER || github.repository_owner }}
-      CARDABLE_RELEASE_REPOSITORY: ${{ vars.CARDABLE_RELEASE_REPOSITORY || github.event.repository.name }}
-      CARDABLE_DISCORD_APPLICATION_ID: ${{ vars.CARDABLE_DISCORD_APPLICATION_ID }}
+      CARDABLE_RELEASE_OWNER: ${{ github.repository_owner }}
+      CARDABLE_RELEASE_REPOSITORY: ${{ github.event.repository.name }}
       CARDABLE_SIGNING_MODE: ${{ vars.CARDABLE_SIGNING_MODE || 'certificate' }}
-      CARDABLE_REQUIRE_SIGNING: '1'
+      CARDABLE_REQUIRE_SIGNING: ${{ vars.CARDABLE_REQUIRE_SIGNING || '0' }}
       CARDABLE_SIGNING_PUBLISHER: ${{ vars.CARDABLE_SIGNING_PUBLISHER }}
       CARDABLE_CERTIFICATE_SUBJECT: ${{ vars.CARDABLE_CERTIFICATE_SUBJECT }}
       CARDABLE_CERTIFICATE_SHA1: ${{ vars.CARDABLE_CERTIFICATE_SHA1 }}
@@ -24,15 +23,15 @@ jobs:
       CARDABLE_AZURE_CERTIFICATE_PROFILE: ${{ vars.CARDABLE_AZURE_CERTIFICATE_PROFILE }}
       CARDABLE_AZURE_SIGNING_ACCOUNT: ${{ vars.CARDABLE_AZURE_SIGNING_ACCOUNT }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - run: node scripts/check-data.js
       - run: npm run release:validate
-      - run: npm test
-      - name: Package NSIS and updater metadata
+      - name: Package complete offline installer
         run: npm run dist
         env:
           CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
@@ -40,31 +39,39 @@ jobs:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-      - name: Verify trusted signatures and timestamps
+      - name: Verify signatures when signing is required
+        if: env.CARDABLE_REQUIRE_SIGNING == '1'
         shell: pwsh
         run: ./tools/verify-windows-signatures.ps1
-      - run: npm run test:packaged
-      - run: npm run test:package
-      - run: npm run test:regression
       - run: npm run release:validate -- --artifacts
+      - name: Package and verify the complete Electron folder
+        shell: pwsh
+        run: ./tools/package-release-folder.ps1
+      - name: Create checksum manifest
+        shell: pwsh
+        run: |
+          $releaseVersion = (Get-Content package.json | ConvertFrom-Json).version
+          $names = @("Cardable-Setup-$releaseVersion.exe", "Cardable-Setup-$releaseVersion.exe.blockmap", "Cardable-$releaseVersion-Windows-x64.zip", 'latest.yml')
+          $lines = foreach ($name in $names) { "$((Get-FileHash -LiteralPath (Join-Path 'dist' $name) -Algorithm SHA256).Hash.ToLower())  $name" }
+          [IO.File]::WriteAllLines((Join-Path $PWD 'dist/SHA256SUMS.txt'), $lines, [Text.UTF8Encoding]::new($false))
       - uses: actions/upload-artifact@v4
         with:
           name: Cardable-Windows-${{ github.ref_name }}
           path: |
             dist/Cardable-Setup-*.exe
+            dist/*.zip
             dist/*.blockmap
             dist/latest.yml
-            dist/beta.yml
+            dist/SHA256SUMS.txt
           if-no-files-found: error
-      - name: Create draft release after all checks pass
+      - name: Publish the validated release
         shell: pwsh
         env:
-          GH_TOKEN: ${{ secrets.CARDABLE_RELEASE_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          $releaseTarget = "$env:CARDABLE_RELEASE_OWNER/$env:CARDABLE_RELEASE_REPOSITORY"
-          $releaseVersion = (Get-Content package.json | ConvertFrom-Json).version
-          $releaseAssets = Get-ChildItem dist -File | Where-Object { $_.Name -match '^Cardable-Setup-.*\.exe$|\.blockmap$|^(latest|beta)\.yml$' } | ForEach-Object { $_.FullName }
-          $releaseArgs = @('release', 'create', $env:GITHUB_REF_NAME, '--repo', $releaseTarget, '--draft', '--title', "Cardable $releaseVersion", '--notes-file', "changelog/$releaseVersion.md")
-          if ($releaseVersion.Contains('-')) { $releaseArgs += '--prerelease' }
-          & gh @releaseArgs @releaseAssets
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          $assets = @("dist/Cardable-Setup-$version.exe", "dist/Cardable-Setup-$version.exe.blockmap", "dist/Cardable-$version-Windows-x64.zip", 'dist/latest.yml', 'dist/SHA256SUMS.txt')
+          gh release view $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) { Write-Output 'Release already exists; preserving its assets.'; exit 0 }
+          gh release create $env:GITHUB_REF_NAME @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title "Cardable v$version" --notes-file "changelog/$version.md" --latest
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

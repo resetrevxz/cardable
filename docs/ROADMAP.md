@@ -47,7 +47,14 @@ The primary main is the active checkout. Four feature worktrees remain registere
 The owner subsequently authorized automatic installed-app updates and signing
 integration in 4.2.0. See [UPDATES](UPDATES.md), [RELEASING](RELEASING.md) and
 [the follow-up report](../archive/workspace-organization/docs/UPDATER-SIGNING-4.2.0.md). Source/configuration, packaged
-delivery and live signed A→B acceptance remain separate. Public repository and
-signing identity/credentials still require owner setup.
+delivery and live signed A→B acceptance remain separate. The owner now authorizes resetrevxz/cardable and the public 1.0.0 series.
+Signing identity/credentials and live signed-upgrade acceptance remain external setup.
 
-No timeline is inferred. [POLISH-BACKLOG](POLISH-BACKLOG.md) retains ranked ideas and manual evidence gates. Multi-select/bulk inventory, saved filters, extra variant slots/combos, absent release-year metadata and additional platforms need their own approved specs. The market and audio remain off. Public GitHub hosting/signing/CI, live updater acceptance and optional Discord credentials are owner follow-ups under the retained github-setup plan. No account, cloud save or online gameplay is introduced.
+No timeline is inferred. [POLISH-BACKLOG](POLISH-BACKLOG.md) retains ranked ideas and manual evidence gates. Multi-select/bulk inventory, saved filters, extra variant slots/combos, absent release-year metadata and additional platforms need their own approved specs. The market and audio remain off. GitHub hosting/CI/public 1.0.0 delivery are the current authorized follow-up. Signing, live updater acceptance and optional Discord credentials remain external/manual gates. No account, cloud save or online gameplay is introduced.
+
+## Public 1.0.0 / stage 23
+
+The owner resets public app numbering to 1.0.0 and authorizes a public repository,
+installer/full-folder Releases and a download website. Read GITHUB-PAGES and
+RELEASING for this route. No save reset, new game rule or hardware certification
+follows from the version reset. AGENTS releases each completed update.

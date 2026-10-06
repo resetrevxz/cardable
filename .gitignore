@@ -1,5 +1,12 @@
 # Intermediate generation sources; shipped card artwork is versioned.
 assets/cards-source/
+assets/audio-src/
+dist-electron/
+.env
+.env.*
+*.pfx
+*.p12
+*.key
 
 # Dependencies and build outputs
 node_modules/

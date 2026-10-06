@@ -1,24 +1,18 @@
 # Play Cardable on Windows
 
-Cardable **4.2.0** supports **Windows x64**. The current locally built offline
-installer is approximately **324 MB** (about **309 MiB**); size varies by build.
-The supplied local build is **unsigned**, with no verified publisher. A public
-download site and live updates are not configured yet.
+Cardable **1.0.0** supports **Windows 10/11 x64**. The installer includes the complete game and Electron runtime. This community release is **unsigned**; Windows may show an unknown publisher. Verify that you downloaded it from the repository below before opening it.
 
-1. Get **Cardable-Setup-4.2.0.exe** from the person who supplied Cardable. There is
-   no official public download URL to use yet. Check that the file came from your
-   expected supplier before opening it.
-2. Run the installer. It installs for your Windows user, creates **Cardable**
-   desktop and Start Menu shortcuts, and is configured to open Cardable when
-   setup finishes. No unzip, terminal, Node.js, npm, account or Discord setup is
-   needed. Ordinary fresh per-user setup does not request administrator rights.
-3. Play offline. Progress saves locally on this computer. Use the **Cardable**
-   shortcut to return to your collection.
+1. Open [the Cardable download page](https://resetrevxz.github.io/cardable/) and select **Download for Windows**, or use [GitHub Releases](https://github.com/resetrevxz/cardable/releases/latest).
+2. Run **Cardable-Setup-1.0.0.exe**. It installs for your Windows user and creates desktop/Start Menu shortcuts. Players need no terminal, Node.js, npm, account or Discord configuration.
+3. Open **Cardable** and play offline. Your collection saves locally on this computer.
 
-Windows may show an unknown-publisher or SmartScreen warning for this unsigned
-build. Cancel if you cannot verify its source; ask the supplier to confirm the
-file. Do not disable security software to install it. Actual installation and
-upgrade execution have not been verified for this delivery.
+For the alternative full-folder download, get **Cardable-1.0.0-Windows-x64.zip** from that release, extract **all** of it, and run **Cardable.exe**. Keep its resources, DLLs and locales together. These folder builds use manual updates and can have a separate storage origin from installed/browser builds.
+
+The full source is also available through the repository's **Code → Download ZIP**. That source folder is separate from the ready-to-run Electron ZIP; source browser play uses index.html directly.
+
+Public numbering resets from the earlier 4.x series to **v1.0.0**. An old installation needs the new installer once because normal update checks do not downgrade. App identity and save schema remain unchanged. Close Cardable normally first, export important progress and download Studio photos separately. Actual setup/upgrade execution and live updater acceptance remain unverified in this pass.
+
+Native saves/backups live under **%APPDATA%/Cardable/saves**; use **Settings → Open saves folder** rather than moving these files. The Chromium profile also holds local renderer/IndexedDB data. Do not delete AppData or change Windows users to troubleshoot a missing collection.
 
 ## Keep a backup
 
@@ -39,10 +33,9 @@ after startup and downloads them in the background. A ready update installs afte
 saving when you normally quit; Cardable stays closed. Settings → About offers
 **Restart and update now** or **Skip update on this quit**. A failed save flush,
 Windows shutdown or Safe-mode restart postpones installation. Latest Build preview
-does not replace the installed app. This local build still has no configured
-public provider, so get newer installers from your supplier.
+does not replace the installed app. Published installed builds use the public resetrevxz/cardable release provider.
 
-Close Cardable normally before running a newer supplied installer. If it is in
+Close Cardable normally before running a newer release installer. If it is in
 the tray, choose **Quit** from the tray menu; close any **Latest Build** preview
 too. If setup asks you to close Cardable, do so, then choose **Retry**. **Cancel**
 leaves the current app in place. Setup does not force-close Cardable; a silent

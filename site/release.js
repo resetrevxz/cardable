@@ -1,0 +1,1 @@
+window.CARDABLE_RELEASE = {version:'1.0.0',installer:'https://github.com/resetrevxz/cardable/releases/latest/download/Cardable-Setup-1.0.0.exe',folder:'https://github.com/resetrevxz/cardable/releases/latest/download/Cardable-1.0.0-Windows-x64.zip'};

@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a reproducible problem in Cardable.
+labels: ['type: bug']
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version and download
+      description: App version, installer/folder/browser, Windows version.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What happened?
+      description: Steps, expected behavior, actual behavior, relevant pack/card and graphics preset.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Reviewed diagnostics
+      description: Optional. Remove personal paths, tokens and private saves before sharing.

@@ -1,14 +1,14 @@
 # Updates
 
-## Automatic installed-app updates (4.2.0 follow-up)
+## Automatic installed-app updates (public 1.x)
 
 The owner authorized automatic updates after cleanup. desktop-release.json →
-updates.mode is now automatic. Once a real public owner/repository is supplied,
+updates.mode is automatic, with the public resetrevxz/cardable provider configured.
 the installed Windows app checks after 30 seconds and every six hours, downloads
 available updates in the background, and installs a ready update on normal quit.
 Gameplay remains offline; release traffic stays in the native process. Browser,
 development, unpacked preview and unconfigured builds make no scheduled requests.
-Owner/repository are still unset; this checkout cannot receive live updates yet.
+Public numbering starts at v1.0.0. Earlier 4.x installations need the new installer once; normal update checks do not downgrade. A live installed 1.x upgrade remains separate acceptance.
 
 Settings → About displays progress, retained error details/retry, release notes,
 Restart and update now, and Skip update on this quit. Skip leaves the cached

@@ -18,9 +18,11 @@ Read-only questions/status requests and internal agent steps do not rebuild.
 Explicit instructions to skip/narrow delivery take precedence.
 
 This is a completion protocol plus a command, not a chat/OS event hook. Never add
-cron, watchers or a polling service. Do not automatically install, launch, elevate,
-publish or force-close an app. Retain last-good delivery on failure/interruption.
-Do not bump versions per prompt: manifests distinguish builds using source identity.
+cron, watchers or a polling service. Do not automatically install, launch, elevate or force-close an app.
+The owner now authorizes public GitHub publication after completed updates; follow
+AGENTS and RELEASING for versioning, scoped commits and immutable release tags. Retain last-good delivery on failure/interruption.
+Advance the public version for each completed update; internal/read-only steps do
+not bump it. Local delivery manifests still distinguish builds using source identity.
 
 ## Current 4.2.0 testing policy
 
@@ -43,4 +45,11 @@ ROADMAP routes current work; STRUCTURE-AUDIT maps the current workspace. Old upd
 
 The owner explicitly authorized the wider organization follow-up: outer artifacts are archived, registered feature worktrees are moved with Git into D:/CardableV2/archive/worktrees, and duplicate space-spelled alpha junctions are removed. The primary checkout, file origin, player data and incoming github-setup spec remain. Preserve unrelated dirty changes and use focused staging. Divergent branch history and Card History's local AGENTS edit remain intact; relocation is not retirement.
 
-Continue only an unfinished authorized milestone. A–D of 4.2.0 and the automatic-update/signing source follow-up are implemented; live signed update acceptance still requires external setup. The current organization is stage 22. Finish with AGENTS' Done / Skipped or changed / Look at / Open questions headings. Correct stale guidance from actual source, retain unresolved acceptance, and follow the current owner testing policy above.
+Continue only an unfinished authorized milestone. A–D of 4.2.0 and the automatic-update/signing source follow-up are implemented; live signed update acceptance still requires external setup. The current organization/public delivery is stage 23. Finish with AGENTS' Done / Skipped or changed / Look at / Open questions headings. Correct stale guidance from actual source, retain unresolved acceptance, and follow the current owner testing policy above.
+
+## Public 1.0.0 continuation
+
+The current request supersedes private-only/draft-only GitHub plans. After a completed
+update, perform the local handoff and the AGENTS release workflow. Public numbering
+starts at v1.0.0; preserve the legacy 4.x records, app identity and save schema.
+No additional browser suites or capture/profile runs are authorized by publication.

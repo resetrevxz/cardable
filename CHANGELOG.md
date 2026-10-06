@@ -1,3 +1,11 @@
+# Cardable 1.0.0
+
+- Start the public version series at v1.0.0 while preserving the existing game, app identity and save schema.
+- Add the public Cardable download site, Windows installer and complete Electron folder ZIP.
+- Configure GitHub Releases and installed-app update hosting; publish a versioned release after each completed update.
+- Add repository guidance, issue/PR templates, source integrity checks and Pages/release workflows.
+- The first public build is unsigned; existing 4.x installations require the new installer once. See changelog/1.0.0.md for install and acceptance limits.
+
 # Cardable changelog
 
 ## 4.2.0 — Desktop delivery, help and recovery

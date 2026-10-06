@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Installation and backup guide
+    url: https://github.com/resetrevxz/cardable/blob/main/PLAY.md
+    about: Installer, full-folder download, browser saves, photos and recovery.

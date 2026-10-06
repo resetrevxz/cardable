@@ -1,7 +1,9 @@
 {
-  "owner": null,
-  "repository": null,
-  "updates": { "mode": "automatic" },
+  "owner": "resetrevxz",
+  "repository": "cardable",
+  "updates": {
+    "mode": "automatic"
+  },
   "discordApplicationId": null,
   "discordImageKey": null
 }

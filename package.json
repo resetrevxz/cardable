@@ -1,7 +1,7 @@
 {
   "name": "cardable",
   "productName": "Cardable",
-  "version": "4.2.0",
+  "version": "1.0.0",
   "description": "Cardable - GPU Card Collecting Game",
   "author": "Cardable Team",
   "main": "electron/main.js",
@@ -28,7 +28,10 @@
     "test:nsis-update": "node tools/test-nsis-update.cjs",
     "test:cinematics": "node tools/test-electron-cinematics.cjs",
     "test:package": "node tools/verify-package.cjs",
-    "generate-icons": "node tools/generate-icons.cjs"
+    "generate-icons": "node tools/generate-icons.cjs",
+    "site:build": "node tools/build-site.cjs",
+    "check:data": "node scripts/check-data.js",
+    "release:github": "node tools/release-github.cjs"
   },
   "dependencies": {
     "discord-rpc": "^4.0.1",

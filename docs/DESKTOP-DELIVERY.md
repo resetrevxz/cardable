@@ -6,7 +6,7 @@ players only need the resulting offline installer. This command never installs,
 launches, publishes, elevates, kills Cardable or changes the game/save schema.
 Milestone B adds the one-click per-user installer and [player guide](../PLAY.md).
 Milestone C adds bundled Settings/palette help and explicit recovery choices.
-Milestone D consolidates documentation and evidence, audits retained worktrees, and synchronizes the final app version to 4.2.0. Each later delivery has a unique build ID; versions do not advance per prompt.
+Milestone D consolidated documentation and evidence at 4.2.0. Public numbering now starts at 1.0.0. Each local delivery has a unique build ID; each completed public update also advances the release version under [RELEASING](RELEASING.md). Read-only questions and internal steps do not rebuild or release.
 
 ## What the command does
 

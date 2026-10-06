@@ -1,6 +1,6 @@
 # AGENTS.md — current Cardable working guide
 
-Cardable 4.2.0 is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. Collecting, opening and recovery share the same renderer and save contracts. The card is the showstopper; the surrounding UI stays quiet.
+Cardable's public version series starts at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
 
 ## Read only what the task needs
 
@@ -44,10 +44,22 @@ The primary checkout stays at `D:/CardableV2/cardable-spec/cardable`. The outer 
 
 The current owner policy forbids old suites, new test files, screenshots, recordings and profiling. Do not run package test scripts or archived harnesses without a new authorization changing that policy. When relevant game logic changes, use the existing `Cardable.dev.checkQol()` manually once at the end of the last authorized milestone; otherwise one app session/feature and console check is permitted. For documentation/organization changes, use reference, hash, Git-state and build validation. Report the actual evidence and its limits.
 
-Implement the authorized scope; put unrelated ideas in [POLISH-BACKLOG](docs/POLISH-BACKLOG.md). Review the focused diff, validate it, and commit owned files as `stage N: <name>` (stage 22 is the workspace organization follow-up). Never stage someone else's pending deletion or incoming spec.
+Implement the authorized scope; put unrelated ideas in [POLISH-BACKLOG](docs/POLISH-BACKLOG.md). Review the focused diff, validate it, and commit owned files as `stage N: <name>` (stage 23 starts the public 1.0.0 series). Never stage someone else's pending deletion or incoming spec.
 
 At the end of every completed implementation or approved documentation prompt, run `npm run deliver:desktop` once from the repository (or the outer forwarding command). Report the installer, stable **Cardable (Latest Build)** shortcut, cleanup and any pending handoff. See [DESKTOP-DELIVERY](docs/DESKTOP-DELIVERY.md). Read-only questions/internal steps do not rebuild; explicit user instructions to skip/narrow delivery take precedence.
 
-Delivery does not authorize installing, launching, publishing, elevating or force-closing Cardable. Preserve the last good delivery if replacement fails or is locked. Do not add watchers/cron or bump the app version per prompt; delivery build IDs identify revisions.
+Local delivery does not install, launch, elevate or force-close Cardable. Preserve the last good delivery if replacement fails or is locked. Do not add watchers/cron. The owner separately authorized public GitHub publication and a release after every completed update, as described below.
+
+## Release every completed update
+
+- This is a completion workflow, not a scheduled automation. After each completed code/content/design/documentation update, release it to the existing public repository unless the user explicitly says to skip publishing, keep it local, or stop at a draft. Read-only questions and internal steps do not release.
+- Start with **v1.0.0** for this reset. For later completed updates, advance PATCH for fixes/polish/docs, MINOR for features, and MAJOR only for an explicitly approved breaking release. Synchronize package.json, both package-lock metadata versions, src/config.js, current README/PLAY version references and both changelog consumers. Never bump the save schema merely to match the app version. Historical release notes remain historical.
+- Commit only the reviewed update on main. GitHub Desktop can manage this same checkout and its `origin`; CLI is permitted for the tag/release step. Never force-push, amend a published release, overwrite a release asset or include unrelated dirty files.
+- Run the mandatory local desktop delivery once, then `npm run release:github`. That command validates data/version/notes, pushes main and an immutable `vX.Y.Z` tag, and starts the Windows release workflow. Inspect Actions until it finishes; report failures rather than claiming a release from a pushed tag alone.
+- CI builds the offline Windows installer, a ZIP of the **entire Electron app folder**, the matching `.blockmap`/`latest.yml` pair and SHA256SUMS.txt. It publishes the validated release automatically. A configured signing requirement fails closed; until credentials exist, releases are explicitly unsigned. Never bypass the updater's signature checks or bundle secrets.
+- Pages deploys only generated `dist/site` from `site/` and selected local assets. It does not serve the game/internal docs directory. Download URLs derive from the current package version; verify the live website and both asset links after release.
+- Record the published tag, Actions outcome, installer/folder URLs, local Latest Build shortcut and actual verification limits. Installer execution, a live updater upgrade and hardware/cinematic acceptance are separate work. Moving from the old 4.x app numbers to 1.0.0 requires a one-time manual installer; preserve appId/user-data/save identity.
+
+See [RELEASING](docs/RELEASING.md) and the adapted [GitHub setup spec](alpha-updates/github-setup/SPEC.md). The owner's current public-repo/release request supersedes that spec's old private-only, draft-only and Pages-out-of-scope rules.
 
 Finish with exactly these headings: **Done**, **Skipped or changed**, **Look at**, **Open questions**. State what changed, the checks actually performed, remaining acceptance and any assumptions. Be honest about source, packaging and runtime evidence being separate.

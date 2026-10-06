@@ -3,3 +3,13 @@
 archive/4.2.0-cleanup/** -text -whitespace
 archive/workspace-organization/** -text -whitespace
 archive/update-history/** -text -whitespace
+*.webp binary
+*.png binary
+*.ico binary
+*.woff2 binary
+*.ttf binary
+site/*.js text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+# Keep upstream license texts byte-for-byte, including their original spacing.
+assets/fonts/*-OFL.txt -text -whitespace
