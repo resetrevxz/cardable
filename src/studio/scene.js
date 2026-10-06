@@ -27,10 +27,10 @@
   }
   function defaults(instance, pose) {
     pose = pose || {};
-    return { version: 2, groups: [], animation: animation({},8), card: { id:'card', parentId:null, side: pose.side === 'back' ? 'back' : 'front', tilt: [pose.x || 0, pose.y || 0], plate: true, visible: true, locked: false,
+    return { version: 2, groups: [], animation: animation({},8), card: { id:'card', parentId:null, side: pose.side === 'back' ? 'back' : 'front', tilt: [pose.x || 0, pose.y || 0], position:[0,0,0], scale:[1,1,1], rotationZ:0, plate: true, visible: true, locked: false,
       source: instance ? { cardId: instance.cardId, instanceId: instance.instanceId, serial: instance.serial, variantId: instance.variantId || null, cardSkinId: instance.cardSkinId || null, packId: instance.packId || 'standard', pulledAt: instance.pulledAt } : null },
       lights: [Object.assign(light({ id: 'key', position: [-2.2, 3.2, 4], intensity: 1.4 }),{parentId:null})], props: [],
-      camera: { id:'camera',parentId:null,visible:true,locked:false,yaw: 0, pitch: 0, distance: 3, fov: 35, target: [0, 0, 0], roll: 0, focus: [0, 0, 0], aperture: 0, aspect: 'free', autoFrame: false, lockToCard: false }, backdrop: { id:'backdrop',parentId:null,visible:true,locked:false,color: [0.035, 0.035, 0.045] }, keyframes: [], director: { duration: 8, repeat: 'once', title: false, playhead: 0, preview: true }, post: { id:'look',parentId:null,visible:true,locked:false,exposure: 0, bloom: .12, vignette: .18, grain: 0, aberration: 0, flare: 0, tiltShift: 0 } };
+      camera: { id:'camera',parentId:null,visible:true,locked:false,yaw: 0, pitch: 0, distance: 3, fov: 35, target: [0, 0, 0], roll: 0, focus: [0, 0, 0], aperture: 0, aspect: 'free', projection:'perspective', orthoScale:2.2, autoFrame: false, lockToCard: false }, backdrop: { id:'backdrop',parentId:null,visible:true,locked:false,color: [0.035, 0.035, 0.045] }, keyframes: [], director: { duration: 8, repeat: 'once', title: false, playhead: 0, preview: true }, post: { id:'look',parentId:null,visible:true,locked:false,exposure: 0, bloom: .12, vignette: .18, grain: 0, aberration: 0, flare: 0, tiltShift: 0 } };
   }
   function choice(value, choices, fallback) { return choices.indexOf(value) >= 0 ? value : fallback; }
   function light(value, index) {
@@ -41,12 +41,12 @@
       size: number(value.size, .4, .02, 4), falloff: number(value.falloff, 2, 0, 4), angle: number(value.angle, 45, 5, 120), softness: number(value.softness, .5, 0, 1), shadows: value.shadows !== false, shadowSoftness: number(value.shadowSoftness, .4, 0, 1),
       gobo: choice(value.gobo, ['none', 'blinds', 'grid', 'leaves', 'stars'], 'none'), animation: choice(value.animation, ['none', 'pulse', 'flicker', 'sweep', 'orbit'], 'none'), speed: number(value.speed, .5, .1, 5), visible: value.visible !== false, locked: value.locked === true };
   }
-  function cameraPose(camera) { camera = camera || {}; return { yaw: yaw(number(camera.yaw, 0, -Math.PI * 20, Math.PI * 20)), pitch: number(camera.pitch, 0, -1.35, 1.35), distance: number(camera.distance, 3, 1.3, 9), fov: number(camera.fov, 35, 15, 90), target: vector(camera.target, [0, 0, 0], -10, 10), roll: number(camera.roll, 0, -Math.PI, Math.PI), focus: vector(camera.focus, [0, 0, 0], -20, 20), aperture: number(camera.aperture, 0, 0, 10), aspect: choice(camera.aspect, ['free', '1:1', '4:5', '16:9', '9:16', 'card'], 'free'), autoFrame: camera.autoFrame === true, lockToCard: camera.lockToCard === true }; }
+  function cameraPose(camera) { camera = camera || {}; return { yaw: yaw(number(camera.yaw, 0, -Math.PI * 20, Math.PI * 20)), pitch: number(camera.pitch, 0, -Math.PI/2, Math.PI/2), distance: number(camera.distance, 3, 1.3, 9), fov: number(camera.fov, 35, 15, 90), target: vector(camera.target, [0, 0, 0], -10, 10), roll: number(camera.roll, 0, -Math.PI, Math.PI), focus: vector(camera.focus, [0, 0, 0], -20, 20), aperture: number(camera.aperture, 0, 0, 10), aspect: choice(camera.aspect, ['free', '1:1', '4:5', '16:9', '9:16', '2.39:1', 'card'], 'free'), projection:choice(camera.projection,['perspective','ortho'],'perspective'),orthoScale:number(camera.orthoScale,2.2,.2,20),autoFrame: camera.autoFrame === true, lockToCard: camera.lockToCard === true }; }
   function parse(value) {
     if (typeof value === 'string') value = JSON.parse(value);
     if (!value || (value.version !== 1 && value.version !== 2)) throw new Error('Unsupported studio scene version.');
     var scene = defaults(value.card && value.card.source), card = value.card || {}, camera = value.camera || {};
-    scene.card.side = card.side === 'back' ? 'back' : 'front'; scene.card.tilt = vector(card.tilt, [0, 0], -180, 180); scene.card.plate = card.plate !== false; scene.card.visible = card.visible !== false; scene.card.locked = card.locked === true;
+    scene.card.position=vector(card.position,[0,0,0],-20,20);scene.card.scale=vector(card.scale,[1,1,1],.05,6);scene.card.rotationZ=number(card.rotationZ,0,-180,180);scene.card.side = card.side === 'back' ? 'back' : 'front'; scene.card.tilt = vector(card.tilt, [0, 0], -180, 180); scene.card.plate = card.plate !== false; scene.card.visible = card.visible !== false; scene.card.locked = card.locked === true;
     if (card.source) { var source = card.source; scene.card.source = { cardId: String(source.cardId || '').slice(0, 120), instanceId: String(source.instanceId || '').slice(0, 120), serial: String(source.serial || '').slice(0, 120), variantId: typeof source.variantId === 'string' ? source.variantId.slice(0, 80) : null, cardSkinId: typeof source.cardSkinId === 'string' ? source.cardSkinId.slice(0, 80) : null, packId: String(source.packId || 'standard').slice(0, 80), pulledAt: number(source.pulledAt, 0, 0, 8640000000000000) }; }
     scene.camera = cameraPose(camera);
     scene.backdrop.color = vector(value.backdrop && value.backdrop.color, scene.backdrop.color, 0, 1);
@@ -65,14 +65,15 @@
     hierarchy(scene,value,ids);scene.animation=animation(value.animation,scene.director.duration);return scene;
   }
   function store(value) {
-    var result = { slots: [], last: {}, quality:'global' };
+    var result = { slots: [], last: {}, quality:'global',workspace:workspace({}) };
     if (!value || typeof value !== 'object') return result;
-    result.quality=choice(value.quality,['global','very-high','high','medium','low','very-low'],'global');
+    result.workspace=workspace(value.workspace);result.quality=choice(value.quality,['global','very-high','high','medium','low','very-low'],'global');
     result.slots = Array.from({length:10},function (_,i) { var slot = Array.isArray(value.slots) && value.slots[i]; if (!slot) return null; try { return { name: String(slot.name || 'Scene '+(i+1)).slice(0,60), thumbnail: typeof slot.thumbnail === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(slot.thumbnail) && slot.thumbnail.length <= 80000 ? slot.thumbnail : '', scene: parse(slot.scene) }; } catch (_) { return null; } });
     Object.keys(value.last || {}).forEach(function (id) { if (id === '__proto__' || id === 'constructor' || id === 'prototype') return; try { result.last[id] = parse(value.last[id]); } catch (_) { /* An invalid scene never invalidates gameplay progress. */ } });
     return result;
   }
 
+  function workspace(v){v=v||{};return {mode:choice(v.mode,['simple','pro'],'simple'),page:choice(v.page,['Set','Light','Camera','Animate','Look','Deliver'],'Set'),leftWidth:number(v.leftWidth,250,200,360),rightWidth:number(v.rightWidth,292,240,380),leftClosed:v.leftClosed===true,rightClosed:v.rightClosed===true,tourDone:v.tourDone===true,favorites:(Array.isArray(v.favorites)?v.favorites:[]).filter(function(x){return typeof x==='string';}).slice(0,128)};}
   function yaw(v){return ((v+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;}
   function safeId(value,fallback){return String(value||fallback).replace(/[^a-zA-Z0-9_.:-]/g,'_').slice(0,80)||fallback;}
   function ordered(value){if(Array.isArray(value))return value.map(ordered);if(value&&typeof value==='object'){var out={};Object.keys(value).sort().forEach(function(k){out[k]=ordered(value[k]);});return out;}return value;}
@@ -110,7 +111,7 @@
         var command={name:title||nameEdit(prior,after),at:Date.now(),do:function(){return after;},undo:function(){return prior;}};
         entries.splice(cursor);entries.push(command);cursor++;if(entries.length>100){var dropped=entries.shift();base=dropped.do();baseAt=dropped.at;trimmed=true;cursor--;}current=command.do();revision++;return true;},
       execute:function(s,name,run){this.commit(s);this.begin(s,name);try{run(s);this.commit(s);return parse(current);}catch(e){before=label=null;Object.keys(s).forEach(function(k){delete s[k];});Object.assign(s,parse(current));throw e;}},
-      undo:function(){return cursor?jump(cursor-1):null;},redo:function(){return cursor<entries.length?jump(cursor+1):null;},jump:jump,
+      cancel:function(){before=label=null;return parse(current);},undo:function(){return cursor?jump(cursor-1):null;},redo:function(){return cursor<entries.length?jump(cursor+1):null;},jump:jump,
       get entries(){return [{index:0,name:trimmed?'Earlier edits':'Session start',at:baseAt,active:cursor===0}].concat(entries.map(function(e,i){return {index:i+1,name:e.name,at:e.at,active:cursor===i+1};}));},
       get canUndo(){return cursor>0;},get canRedo(){return cursor<entries.length;},get steps(){return cursor;},get revision(){return revision;},get cursor(){return cursor;}};
   }

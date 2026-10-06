@@ -37,7 +37,7 @@
       var surface=canvas(1,1);job.renderer=tier==='very-low'?C.studioRenderer.simple(surface,job.faces):C.studioRenderer.create(surface,job.faces,tier);
       if(job.renderer.kind==='Simple'&&tier!=='very-low')throw new Error('High-quality capture is unavailable. Use the Simple preview.');
       var effective=C.studioScenes.effective(C.studioDirector.sample(scene,scene.director.playhead,0,scene.director.preview),tier);effective.materialTime=scene.presentationTime;
-      var cropHeight=Math.min(viewport.height,viewport.width/(a.w/a.h))*.9;effective.camera.fov=2*Math.atan(Math.tan(effective.camera.fov*Math.PI/360)*cropHeight/viewport.height)*180/Math.PI;
+      var cropHeight=Math.min(viewport.height,viewport.width/(a.w/a.h))*.9;if(effective.camera.projection==='ortho')effective.camera.orthoScale*=cropHeight/viewport.height;effective.camera.fov=2*Math.atan(Math.tan(effective.camera.fov*Math.PI/360)*cropHeight/viewport.height)*180/Math.PI;
       // Capture the exact sampled instant rather than advancing between tiles.
       effective.lights=C.studioLights.sample(effective.lights,scene.presentationTime,tier);effective.props=C.studioProps.sample(effective.props,scene.presentationTime,tier);
       job.assets=C.studioProps.assets(s,function(){});job.assets.sync(tier==='very-low'?[]:effective.props);await job.assets.ready();requireAlive(job,s);

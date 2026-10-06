@@ -1,4 +1,4 @@
-# Studio audit — Director 2 milestone A
+# Studio audit — Director 2 milestones A and B
 
 Read the current AGENTS/Designs, complete Director 2 brief, archived original Inspect brief and all 22 files under src/studio. This is an expansion of that implementation. Findings below originate from source review; the final single runtime session and logic check are recorded separately. Version 1.0.0 is retained; publication is held at the owner's request.
 
@@ -33,3 +33,39 @@ Source review is not a measured GPU leak/profile or a visual fidelity guarantee.
 Testing: one studio session exercised grouped scrubs, Undo/History jump, playback through resize, High refinement and exit with no console errors; checkStudio2 ran once and passed 16 assertions in 8 ms; no old tests, test files, screenshots, recordings or profiling.
 
 Local desktop delivery was attempted once from the isolated 1.0.0 worktree and stopped before building because its @electron/asar dependency is absent. No installer, shortcut or old build was replaced; cleanup and desktop handoff remain pending. Main-game source is integrated, while the separate main checkout's pre-existing staged 1.0.1 release edits remain untouched.
+
+## Milestone B audit (before implementation)
+
+| ID | Finding / reproduction | Location | Severity | Resolution |
+|---|---|---|---|---|
+| B01 | Scrub a camera key, then edit: the sampled camera loses reserved id, hierarchy and locks. | director.js | High | Preserve authored metadata while sampling numeric camera pose. |
+| B02 | Throw inside an edit, then edit again: rollback leaves an open history transaction. | studio.js, scene.js | High | Explicit transaction cancellation and exact pre-edit rollback. |
+| B03 | Right-click in the studio: the global capture listener consumes the event before the stage can open a menu. | ui/context-menu.js | Medium | Add a small scoped surface delegate; studio owns its menu and lifecycle. |
+| B04 | Old navigation maps left-drag to orbit and right-drag to pan, blocking marquee/multi-selection and Blender-style navigation. | studio.js, ui/gizmos.js | Medium | Scoped workspace interaction, multi-selection, transform handles and shared-clock view transitions. |
+| B05 | Selecting another object tears down the timeline and its focus, even on Animate. | ui/panels.js | Medium | Preserve the Animate dock independently of the inspector and reuse its existing transport/editor. |
+| B06 | Simple controls, working-scene autosave, linked numeric axes, searchable library and scoped command palette are absent. | studio UI | Missing basic | Add B workspace and owned debounce autosave; retain the existing renderer and photo pipeline. |
+
+## Milestone B final review
+
+| ID | Finding / reproduction | Location | Severity | Resolution |
+|---|---|---|---|---|
+| B07 | A new orthographic/top view makes the old background ray, DOF depth reconstruction and polar camera basis unsuitable; nonuniform subject scales need a normal correction. | camera.js, renderer.js, photo.js | High | True orthographic projection with stable top-view basis, near/far rays, linear ortho depth and inverse-transpose normals; exports preserve the projection. |
+| B08 | Filmstrip controls hidden only with CSS remain in the custom focus list; inactive transform handles can retain tabindex. | ui/workspace.js | Medium | Explicit filmstrip hidden state and inactive-handle aria-hidden/tabindex, including inspector changes. Final focus fix was source-reviewed after the single session opened. |
+| B09 | Dropping a library item creates separate Add and Place commands, so Undo leaves a newly added item behind. | studio.js, ui/workspace.js | Medium | Pass the optional position to the existing additive Add operation: creation and placement share one command. Final fix was source-reviewed after the session opened. |
+| B10 | Mood multiplies lens values beyond canonical limits; normalizing a save can subtly change the look. | ui/workspace.js | Medium | Clamp each lens value to its existing scene limits while keeping an immutable mood baseline. Final clamp was source-reviewed after the session opened. |
+| B11 | An all-disconnected thumbnail queue can retain a temporary GL renderer; a first-edit autosave timer is not a true debounce. | ui/workspace.js | Medium | Release the empty queue's renderer and restart the single owned four-second timeout on commits. Exit cancels it. |
+| B12 | Shortcut help initially contained clickable informational entries with no action. | ui/workspace.js | Medium | Give shuttle, work-area, marker and order commands the same scoped actions as their keyboard shortcuts. |
+
+## Milestone B evidence and boundary
+
+Testing: one main-game file:// studio session exercised Simple style/Mood/angle/Spin, Pro pages, group/multi-selection and snapped movement with Undo/Redo, command search, library search, top/ortho view, bounds/guides/crop, linked scale fields, context actions, resize, playback and exit with no console errors; checkStudio2 ran exactly once and passed 20 assertions in 9 ms; no old tests, new test files, screenshots, recordings or profiling.
+
+On exit the studio DOM and all session command registrations were gone. Source owns only the shared studio subscriber, bounded thumbnail work and a cancellable autosave timeout. This is lifecycle evidence, not a measured performance or physical-device certification. Final small focus/drop/clamp/thumbnail/help fixes were source-reviewed; the running session was not reloaded or reopened. Photo/clip recording, native dialogs, repeated sessions, exhaustive variants and physical DPI remain outside this run's acceptance.
+
+B provides workspace shells for all six Pro pages; Look and Deliver reuse their current controls. The seven existing styles and four basic shot buttons are a bridge to C's authored catalog. C still owns the 24 styles, card-aware adaptation, new looks/rigs/moves/prop/animation sets, user presets and gallery. Full typed tracks, graph editing, shots/transitions and titles remain D; new Look rendering, Very High and upgraded exports remain E; final accessibility/polish remains F.
+
+Selection convention: Shift-left drag in Select is additive selection/marquee; Shift-right/middle drag or Shift-drag in Camera/transform mode pans. Tab switches workspace from stage focus; normal controls keep native Tab navigation. Collection duplicates reference owned instances and do not mint inventory cards. Workspace preferences are optional; scene v2 and the global save schema are unchanged.
+
+The spec remains in alpha-updates/1.0.0-director-mode-2 from A; B continues that folder without changing an update number. Main source integration uses the existing index.html entry and lazy classic-script list. Protected pack/cutscene files were not edited. The separate main checkout's pre-existing 1.0.1 release work was preserved; this isolated feature is committed under 1.0.0 and no publication/tag/version advancement was performed.
+
+Local desktop delivery was attempted once for B from the isolated 1.0.0 worktree. It stopped immediately because @electron/asar is absent, before replacing an installer, shortcut or old build. Desktop packaging/cleanup/handoff remain pending; the previous Cardable (Latest Build) delivery is preserved.

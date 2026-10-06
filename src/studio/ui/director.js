@@ -2,7 +2,7 @@
   'use strict';
   function clock(t){return ('0'+Math.floor(t)).slice(-2)+':'+('0'+Math.floor((t%1)*100)).slice(-2);}
   C.studioDirectorPanel=function(s){
-    var ui=C.studioUI,d=s.scene.director,r=s.director,focused=root.document.activeElement;
+    s.keepTimeline=false;var ui=C.studioUI,d=s.scene.director,r=s.director,focused=root.document.activeElement;
     var focusKey=(s.panel.contains(focused)||s.directorDock&&s.directorDock.contains(focused))?focused.dataset.directorFocus:null;
     ui.closeDirector(s);s.root.classList.add('is-director');s.panel.replaceChildren();
     function mark(el,key){el.dataset.directorFocus=key;return el;}
@@ -22,7 +22,7 @@
     var time=ui.node('output','director-timecode',playback);time.setAttribute('aria-label','Current time and shot duration');
     var options=ui.node('div','director-play-options',transport),repeat=ui.node('div','director-repeat',options);repeat.setAttribute('role','group');repeat.setAttribute('aria-label','Playback repeat');
     [['once','Once'],['loop','Loop'],['ping-pong','Ping-pong']].forEach(function(pair){var b=action(pair[1],repeat,function(){s.api.mutate(function(){d.repeat=pair[0];});r.sync();},null,'repeat-'+pair[0]);b.dataset.repeat=pair[0];});
-    var turn=action('Turntable',options,function(){r.toggleTurntable();},'rotate','turntable');ui.node('kbd','',turn,'Space');
+    var turn=action('Turntable',options,function(){r.toggleTurntable();},'rotate','turntable');ui.node('kbd','',play,'Space');
     var ruler=ui.node('div','director-ruler',dock);ui.node('span','director-ruler-label',ruler,'SECONDS');var scale=ui.node('div','director-scale',ruler),ticks=ui.node('div','director-ticks',scale);
     for(var i=0;i<=4;i++){var tick=ui.node('span','',ticks,Number((d.duration*i/4).toFixed(2))+'s');tick.style.left=i*25+'%';}
     var scrub=mark(ui.node('input','director-scrub',scale),'scrub');scrub.type='range';scrub.min=0;scrub.max=d.duration;scrub.step=.01;scrub.value=r.time;scrub.setAttribute('aria-label','Timeline playhead');scrub.addEventListener('input',function(){r.seek(Number(scrub.value));r.sync();});
@@ -34,6 +34,7 @@
       frames.forEach(function(f){var b=action('',rail,function(){choose(f);},null,'key-'+f.id);b.className='director-key';b.style.left=f.time/d.duration*100+'%';b.title=track.name+' · '+f.time.toFixed(2)+' seconds';b.setAttribute('aria-label',track.name+' keyframe at '+f.time.toFixed(2)+' seconds');b.setAttribute('aria-pressed',String(selected&&selected.id===f.id||false));ui.node('span','director-diamond',b);});
       heads.push(ui.node('div','director-playhead',rail));
     });
+    s.scene.animation.tracks.filter(function(t){return t.target==='card'&&t.property==='tilt';}).forEach(function(track){var row=ui.node('div','director-track',lanes),label=ui.node('div','director-track-label',row);ui.icon(label,'rotate');ui.node('span','',label,'Card tilt');var rail=ui.node('div','director-track-rail',row);track.keys.forEach(function(key){var b=action('',rail,function(){s.directorTyped={track:track.id,key:key.id};r.seek(key.time);C.studioDirectorPanel(s);});b.className='director-key';b.style.left=key.time/d.duration*100+'%';b.setAttribute('aria-label','Card tilt keyframe at '+key.time.toFixed(2)+' seconds');ui.node('span','director-diamond',b);});heads.push(ui.node('div','director-playhead',rail));});
     ui.node('p','studio-kicker',s.panel,'DIRECTOR / SHOT 01');ui.node('h2','studio-panel-title',s.panel,'Direct the shot.');
     ui.node('p','director-intro',s.panel,s.scene.keyframes.length?'Select a key on the timeline to refine its timing.':'Start with a camera move. Build an orbit, then make it yours.');
     var auto=ui.node('div','director-auto',s.panel);
@@ -59,10 +60,11 @@
       });
       action('Delete keyframe',editor,function(){s.api.mutate(function(){s.scene.keyframes=s.scene.keyframes.filter(function(f){return f.id!==selected.id;});});s.directorKeyId=null;C.studioDirectorPanel(s);},'trash','delete');
     }
+    if(s.directorTyped){var typedTrack=s.scene.animation.tracks.find(function(t){return t.id===s.directorTyped.track;}),typedKey=typedTrack&&typedTrack.keys.find(function(k){return k.id===s.directorTyped.key;});if(typedKey){var typed=details('Card tilt key',true);inPanel(typed,function(){ui.field(s,'Card key time','number',typedKey.time,0,d.duration,.01,function(v){typedKey.time=v;});['X','Y'].forEach(function(axis,i){ui.field(s,'Key tilt '+axis,'number',typedKey.value[i],-10000,10000,1,function(v){typedKey.value[i]=v;});});ui.select(s,'Card key easing',typedKey.easing,['linear','ease-in','ease-out','ease-in-out'],function(v){typedKey.easing=v;});});action('Delete card key',typed,function(){s.api.mutate(function(){typedTrack.keys=typedTrack.keys.filter(function(k){return k!==typedKey;});},'Delete card tilt key');s.directorTyped=null;C.studioDirectorPanel(s);});}}
     action('Load pose for editing',capture,function(){r.editPose();},'sliders','pose');
     ui.node('p','director-help',capture,'Load this moment, edit Camera or Lights, then return here to capture it.');
     if(C.studioRecording.supported()){var exportPanel=details('Export a clip',!!s.recordJob||!!s.clip);inPanel(exportPanel,function(){C.studioRecording.controls(s);});}
-    ui.node('p','director-help',s.panel,C.motion.reduced?'Reduced motion is on. Scrub to choose still frames.':'Space turns the card. Preview plays the authored shot.');
+    ui.node('p','director-help',s.panel,C.motion.reduced?'Reduced motion is on. Scrub to choose still frames.':'Space plays or pauses the authored shot. Turntable is a separate preview tool.');
     var lastClock='',lastPlay=null,lastTurn=null,lastRepeat=null,lastDisabled=null;
     s.timelineUI={update:function(state){
       var value=clock(state.time)+' / '+clock(d.duration),p=state.time/d.duration*100;
@@ -73,10 +75,10 @@
       if(state.turntable!==lastTurn){turn.setAttribute('aria-pressed',String(state.turntable));lastTurn=state.turntable;}
       if(d.repeat!==lastRepeat){repeat.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.repeat===d.repeat));});lastRepeat=d.repeat;}
       var disabled=C.motion.reduced||!s.renderer||s.renderer.kind==='Simple';
-      if(disabled!==lastDisabled){play.disabled=disabled||!s.scene.keyframes.length;turn.disabled=disabled;lastDisabled=disabled;}
+      if(disabled!==lastDisabled){play.disabled=disabled||!(s.scene.keyframes.length||s.scene.animation.tracks.some(function(t){return t.enabled&&t.keys.length;}));turn.disabled=disabled;lastDisabled=disabled;}
       previous.disabled=!s.scene.keyframes.some(function(f){return f.time<state.time-.005;});next.disabled=!s.scene.keyframes.some(function(f){return f.time>state.time+.005;});
     }};
-    r.sync();
+    r.sync();if(s.workspace&&!s.inspecting&&!s.workspaceBuildingTimeline)s.workspace.inspected('director');
     if(focusKey){var replacement=Array.from(s.root.querySelectorAll('[data-director-focus]')).find(function(el){return el.dataset.directorFocus===focusKey;});if(replacement&&!replacement.disabled)replacement.focus({preventScroll:true});else s.viewport.focus({preventScroll:true});}
   };
 })(window.Cardable,window);
