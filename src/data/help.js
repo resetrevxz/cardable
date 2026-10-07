@@ -1,0 +1,19 @@
+(function(C){'use strict';C.data.help={
+  menu:{title:'Your next pack',body:'Hold the opening key to charge the pack, then tear its top. Packs refill by elapsed time; changing the interface never changes your pulls.'},
+  inventory:{title:'Your collection',body:'Search, filter and sort your collected cards. Select a card for its details; closing details returns to the same browsing position.'},
+  detail:{title:'Card details',body:'Inspect this exact collected copy, flip it or use More for replay and deletion. Protected and high-tier cards retain their confirmation safeguards.'},
+  settings:{title:'Settings',body:'Choose a group or search for an option. Changed options have a reset button; Advanced shows additional rows without changing your saved choices.',shortcuts:['Ctrl+,','S']},
+  achievements:{title:'Achievements',body:'Browse weekly, recurring and permanent goals. Claim completed weekly rewards; recurring rewards are automatic. Pins keep a goal within reach.'},
+  notes:{title:'Patch notes',body:'Select a version, search its changes or copy them as Markdown. Try it opens the corresponding feature.'},
+  studio:{title:'Inspect and Director',body:'Edit the selected card in a separate scene. Simple keeps the essential tools close; Pro exposes the full workspace. Saved photos stay separate from JSON saves.'},
+  timeline:{title:'Director timeline',body:'Select a shot or keyframe to refine its timing. Play and pause review the saved scene; they never alter card ownership.'},
+  library:{title:'Scene library',body:'Add a light or procedural prop to your scene. Quality limits keep the workspace bounded.'},
+  tutorial:{title:'Opening guide',body:'Follow the highlighted control. The guided opening uses a Standard Pack; you can dismiss the guide with Escape.'},
+  data:{title:'Save and recovery',body:'Export before replacing progress. Import and restore retain their confirmation steps. Studio photos require their own Album exports.'},
+  mini:{title:'Mini mode',body:'Watch your next pack in a lightweight window. Open pack expands the full game; double-click the background to return.'},
+  performance:{title:'Performance display',body:'Simple shows a quiet frame counter; Advanced adds observed details. Idle and paused states are labelled; these numbers do not certify hardware performance.'},
+  developer:{title:'Developer tools',body:'These opt-in tools are for local editing and inspection. Preview controls must not grant rewards to real progress.'},
+  commands:{title:'Command palette',body:'Search for an action, use the arrow keys to select it and press Enter to run. Escape returns to the previous screen.'},
+  opening:{title:'Card reveal',body:'This pack has already been reserved. Skip changes presentation only; keep or delete the resulting card once it is ready.'},
+  welcome:{title:'Cardable',body:'Progress stays on this computer. Help and Data tools provide the paths for saving, recovery and moving your collection.'}
+};})(window.Cardable);

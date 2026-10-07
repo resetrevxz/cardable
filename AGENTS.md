@@ -67,3 +67,16 @@ Local delivery does not install, launch, elevate or force-close Cardable. Preser
 See [RELEASING](docs/RELEASING.md) and the adapted [GitHub setup spec](alpha-updates/github-setup/SPEC.md). The owner's current public-repo/release request supersedes that spec's old private-only, draft-only and Pages-out-of-scope rules.
 
 Finish with exactly these headings: **Done**, **Skipped or changed**, **Look at**, **Open questions**. State what changed, the checks actually performed, remaining acceptance and any assumptions. Be honest about source, packaging and runtime evidence being separate.
+
+## One Cardable UI checklist
+
+- [ ] The card retains visual priority.
+- [ ] Chrome uses kit components and shared tokens.
+- [ ] New patterns appear in Designs and the gallery.
+- [ ] Normal color and saved monochrome both convey the same states.
+- [ ] Type, spacing, concentric radii and layers are consistent.
+- [ ] Idle, hover, pressed, focus, disabled, loading, empty and error states are designed.
+- [ ] Keyboard, accessible names and focus restoration work.
+- [ ] Quality, independent effects and reduced motion are respected.
+- [ ] Hidden work stops; no component adds an idle clock.
+- [ ] Source, runtime, lint progress and delivery evidence are reported separately.

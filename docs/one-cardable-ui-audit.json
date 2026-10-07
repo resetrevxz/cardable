@@ -1,0 +1,1572 @@
+[
+  {
+    "file": "src/ui/accessibility.js",
+    "lines": 24,
+    "bytes": 1612,
+    "events": [],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/achievements.js",
+    "lines": 267,
+    "bytes": 28469,
+    "events": [
+      "achievement:backfilled",
+      "achievement:changed",
+      "achievement:clock",
+      "achievement:resetting",
+      "achievement:unlocked",
+      "achievements:context",
+      "achievements:open",
+      "app:ready",
+      "detail:requestClose",
+      "inventory:context",
+      "inventory:detailContext",
+      "inventory:modelChanged",
+      "inventory:pageChanged",
+      "inventory:showCard",
+      "menu:activity",
+      "menu:visibilityHold",
+      "ui:achievement"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": [
+      "achievement-toast",
+      "achievements-header",
+      "achievements-panel",
+      "tabpanel"
+    ]
+  },
+  {
+    "file": "src/ui/brand-pack-skins.js",
+    "lines": 47,
+    "bytes": 2353,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/card-art.js",
+    "lines": 89,
+    "bytes": 5669,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/card-deletion.js",
+    "lines": 44,
+    "bytes": 5937,
+    "events": [
+      "save:willReplace"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": [
+      "cb-delete-overlay"
+    ]
+  },
+  {
+    "file": "src/ui/card-skins.js",
+    "lines": 27,
+    "bytes": 2385,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/card-specs.js",
+    "lines": 29,
+    "bytes": 1875,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/card-tags.js",
+    "lines": 61,
+    "bytes": 5840,
+    "events": [],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/card-thumbnail.js",
+    "lines": 44,
+    "bytes": 4030,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/card.js",
+    "lines": 496,
+    "bytes": 39756,
+    "events": [
+      "card:face",
+      "card:focused",
+      "detail:opened",
+      "fx:visibility",
+      "motion:changed",
+      "opening:context",
+      "pointer:move",
+      "settings:rarityColorMode"
+    ],
+    "keyboardHandlers": 2,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/classic-pack-skin.js",
+    "lines": 50,
+    "bytes": 6724,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": [
+      "classic-header"
+    ]
+  },
+  {
+    "file": "src/ui/command-palette.js",
+    "lines": 17,
+    "bytes": 1689,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/context-menu-items.js",
+    "lines": 44,
+    "bytes": 6550,
+    "events": [
+      "logo:wave"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/context-menu.js",
+    "lines": 243,
+    "bytes": 21883,
+    "events": [
+      "contextmenu:close",
+      "contextmenu:open",
+      "contextmenu:select",
+      "data:changed",
+      "dots:pulse",
+      "menu:activity",
+      "menu:visibilityHold",
+      "packs:queueChanged"
+    ],
+    "keyboardHandlers": 3,
+    "cssClasses": [
+      "context-panel"
+    ]
+  },
+  {
+    "file": "src/ui/currency.js",
+    "lines": 42,
+    "bytes": 5893,
+    "events": [
+      "currency:changed",
+      "menu:idle",
+      "menu:visibilityHold",
+      "save:willReplace",
+      "save:written"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/cutscene-profile-controls.js",
+    "lines": 17,
+    "bytes": 1117,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/cutscene-replay.js",
+    "lines": 43,
+    "bytes": 4843,
+    "events": [
+      "cutscene:replayContext",
+      "save:willReplace"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": [
+      "cb-replay-overlay"
+    ]
+  },
+  {
+    "file": "src/ui/desktop-friendly.js",
+    "lines": 55,
+    "bytes": 15278,
+    "events": [
+      "app:ready",
+      "desktop:visibility",
+      "menu:visibilityHold",
+      "qol:context",
+      "save:willReplace",
+      "timer:tick"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": [
+      "alertdialog",
+      "qol-help-header"
+    ]
+  },
+  {
+    "file": "src/ui/desktop-tools.js",
+    "lines": 51,
+    "bytes": 17090,
+    "events": [
+      "app:ready",
+      "inventory:showCard",
+      "menu:visibilityHold",
+      "qol:context",
+      "save:willReplace",
+      "ui:screenshot"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/detail-panel.js",
+    "lines": 206,
+    "bytes": 17794,
+    "events": [
+      "app:ready",
+      "inventory:detailMembership"
+    ],
+    "keyboardHandlers": 2,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/detail.js",
+    "lines": 214,
+    "bytes": 18114,
+    "events": [
+      "card:face",
+      "detail:opened",
+      "detail:requestClose",
+      "detail:reset",
+      "fx:visibility",
+      "inventory:detailContext",
+      "inventory:detailNavigate",
+      "inventory:detailOpen",
+      "inventory:detailReturned",
+      "inventory:returnTarget",
+      "motion:changed",
+      "preferences:context"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/inventory-extensions.js",
+    "lines": 11,
+    "bytes": 511,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/inventory-grid.js",
+    "lines": 38,
+    "bytes": 7313,
+    "events": [],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/inventory-hint.js",
+    "lines": 48,
+    "bytes": 3576,
+    "events": [
+      "inventory:collectPulse",
+      "inventory:context",
+      "menu:idle",
+      "opening:context",
+      "save:reset",
+      "save:written"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/inventory-icons.js",
+    "lines": 8,
+    "bytes": 1634,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/inventory-reorder.js",
+    "lines": 61,
+    "bytes": 4528,
+    "events": [
+      "inventory:dragContext"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/inventory-shelf.js",
+    "lines": 112,
+    "bytes": 16424,
+    "events": [],
+    "keyboardHandlers": 2,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/inventory-toolbar.js",
+    "lines": 68,
+    "bytes": 18068,
+    "events": [],
+    "keyboardHandlers": 2,
+    "cssClasses": [
+      "inventory-header"
+    ]
+  },
+  {
+    "file": "src/ui/inventory-transition.js",
+    "lines": 15,
+    "bytes": 3467,
+    "events": [
+      "inventory:handoffComplete",
+      "inventory:handoffSource",
+      "inventory:handoffTarget"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/inventory.js",
+    "lines": 116,
+    "bytes": 24115,
+    "events": [
+      "detail:requestClose",
+      "detail:reset",
+      "fx:visibility",
+      "inventory:close",
+      "inventory:context",
+      "inventory:detailMembership",
+      "inventory:detailNavigate",
+      "inventory:detailOpen",
+      "inventory:detailReturned",
+      "inventory:fixture",
+      "inventory:handoffComplete",
+      "inventory:modelChanged",
+      "inventory:open",
+      "inventory:pageChanged",
+      "inventory:preferencesChanged",
+      "inventory:request",
+      "inventory:returnTarget",
+      "inventory:selection",
+      "inventory:showCard",
+      "inventory:viewChanged",
+      "menu:activity",
+      "menu:afk",
+      "menu:idle",
+      "menu:visibilityHold",
+      "motion:changed",
+      "opening:context",
+      "pointer:leave",
+      "pointer:move",
+      "preferences:context",
+      "save:reset",
+      "save:willReset",
+      "save:written",
+      "settings:rarityColorMode"
+    ],
+    "keyboardHandlers": 2,
+    "cssClasses": [
+      "inventory-sheet"
+    ]
+  },
+  {
+    "file": "src/ui/logo.js",
+    "lines": 147,
+    "bytes": 10845,
+    "events": [
+      "fx:visibility",
+      "input:modality",
+      "logo:wave",
+      "menu:idle",
+      "motion:changed",
+      "opening:context",
+      "pointer:leave"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/menu.js",
+    "lines": 119,
+    "bytes": 6985,
+    "events": [
+      "input:modality",
+      "logo:wave",
+      "menu:activity",
+      "menu:afk",
+      "menu:idle",
+      "menu:visibilityHold",
+      "pack:opened",
+      "pack:ready",
+      "packs:queueChanged",
+      "pointer:activity",
+      "save:imported",
+      "save:reset",
+      "save:written",
+      "timer:tick"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/numbers.js",
+    "lines": 49,
+    "bytes": 3182,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/opening.js",
+    "lines": 789,
+    "bytes": 65050,
+    "events": [
+      "card:revealed",
+      "card:variantRevealed",
+      "charge:complete",
+      "charge:end",
+      "charge:progress",
+      "charge:start",
+      "cursor:blade",
+      "cursor:cutTarget",
+      "cut:complete",
+      "cut:progress",
+      "cut:started",
+      "dots:pulse",
+      "fx:visibility",
+      "input:cancel",
+      "input:chargeEnd",
+      "input:chargeStart",
+      "input:cutEnd",
+      "input:cutMove",
+      "input:cutStart",
+      "input:discard",
+      "input:keep",
+      "input:packActivate",
+      "input:tear",
+      "inventory:collectPulse",
+      "inventory:context",
+      "inventory:handoffSource",
+      "menu:activity",
+      "menu:visibilityHold",
+      "motion:changed",
+      "opening:committed",
+      "opening:context",
+      "opening:keepReady",
+      "opening:prepareCommit",
+      "opening:prepareKeep",
+      "opening:replay",
+      "opening:resolve",
+      "pack:handoff",
+      "pack:opened",
+      "pack:reward",
+      "pointer:leave",
+      "preferences:context",
+      "reveal:context",
+      "reveal:phase",
+      "save:imported",
+      "save:reset",
+      "save:written",
+      "settings:rarityColorMode"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": [
+      "collection-toast"
+    ]
+  },
+  {
+    "file": "src/ui/pack-fluid.js",
+    "lines": 31,
+    "bytes": 1837,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/pack-interaction.js",
+    "lines": 87,
+    "bytes": 5852,
+    "events": [
+      "fx:visibility",
+      "motion:changed",
+      "pointer:move",
+      "save:reset"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/pack-markup.js",
+    "lines": 105,
+    "bytes": 6582,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/pack-material.js",
+    "lines": 50,
+    "bytes": 3402,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/pack-openings.js",
+    "lines": 31,
+    "bytes": 3843,
+    "events": [
+      "cut:progress",
+      "cut:started"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/pack-queue.js",
+    "lines": 103,
+    "bytes": 6408,
+    "events": [
+      "app:ready",
+      "contextmenu:close",
+      "packs:queueChanged",
+      "save:willReplace",
+      "save:written"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/pack-skins.js",
+    "lines": 67,
+    "bytes": 3608,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/pack-transitions.js",
+    "lines": 72,
+    "bytes": 7339,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/pack.js",
+    "lines": 215,
+    "bytes": 16960,
+    "events": [
+      "fx:visibility",
+      "input:cancel",
+      "inventory:context",
+      "menu:afk",
+      "menu:idle",
+      "motion:changed",
+      "opening:context",
+      "pack:handoff",
+      "pack:opened",
+      "pack:ready",
+      "packs:queueChanged",
+      "pointer:leave",
+      "pointer:move",
+      "save:reset",
+      "save:written",
+      "timer:tick"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/performance.js",
+    "lines": 69,
+    "bytes": 12944,
+    "events": [
+      "app:ready",
+      "cutscene:quality",
+      "desktop:visibility",
+      "fx:frame",
+      "fx:visibility"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": [
+      "cb-performance-header"
+    ]
+  },
+  {
+    "file": "src/ui/picker-pack-opening.js",
+    "lines": 133,
+    "bytes": 13368,
+    "events": [
+      "fx:visibility",
+      "menu:afk",
+      "preferences:context"
+    ],
+    "keyboardHandlers": 2,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/picker-pack-skin.js",
+    "lines": 46,
+    "bytes": 3543,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": [
+      "picker-header"
+    ]
+  },
+  {
+    "file": "src/ui/picker-pack-swap.js",
+    "lines": 19,
+    "bytes": 1443,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/preferences.js",
+    "lines": 176,
+    "bytes": 20533,
+    "events": [
+      "desktop:storageError",
+      "fx:frame",
+      "fx:sleep",
+      "fx:visibility",
+      "menu:activity",
+      "menu:visibilityHold",
+      "opening:context",
+      "pointer:leave",
+      "pointer:move",
+      "preferences:context",
+      "preferences:open",
+      "save:imported",
+      "save:recovery",
+      "save:reset",
+      "save:unavailable",
+      "save:willReplace",
+      "save:willReset",
+      "settings:close",
+      "settings:open",
+      "settings:persisted"
+    ],
+    "keyboardHandlers": 2,
+    "cssClasses": [
+      "settings-header"
+    ]
+  },
+  {
+    "file": "src/ui/royal-pack-effects.js",
+    "lines": 97,
+    "bytes": 8167,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/royal-pack-skin.js",
+    "lines": 74,
+    "bytes": 7143,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": [
+      "royal-header"
+    ]
+  },
+  {
+    "file": "src/ui/settings-controls.js",
+    "lines": 111,
+    "bytes": 10482,
+    "events": [],
+    "keyboardHandlers": 5,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/settings-data.js",
+    "lines": 92,
+    "bytes": 9967,
+    "events": [
+      "data:changed",
+      "menu:visibilityHold",
+      "save:replaced",
+      "settings:close",
+      "settings:open"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/settings-desktop.js",
+    "lines": 95,
+    "bytes": 10130,
+    "events": [
+      "settings:open"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": [
+      "downloading"
+    ]
+  },
+  {
+    "file": "src/ui/titan-pack-effects.js",
+    "lines": 68,
+    "bytes": 7199,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/ui/titan-pack-skin.js",
+    "lines": 40,
+    "bytes": 4078,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": [
+      "titan-header"
+    ]
+  },
+  {
+    "file": "src/ui/tutorial.js",
+    "lines": 176,
+    "bytes": 13080,
+    "events": [
+      "charge:start",
+      "cut:started",
+      "fx:visibility",
+      "inventory:context",
+      "inventory:open",
+      "menu:activity",
+      "menu:visibilityHold",
+      "motion:changed",
+      "opening:context",
+      "opening:keepReady",
+      "opening:prepareCommit",
+      "opening:prepareKeep",
+      "preferences:context",
+      "reveal:phase",
+      "save:imported",
+      "save:reset",
+      "save:written",
+      "tutorial:context",
+      "tutorial:replay"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/achievements.css",
+    "lines": 255,
+    "bytes": 27044,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/activity.css",
+    "lines": 40,
+    "bytes": 2736,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/base.css",
+    "lines": 14,
+    "bytes": 586,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/brand-packs.css",
+    "lines": 76,
+    "bytes": 10190,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/card-remake-high.css",
+    "lines": 45,
+    "bytes": 6022,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/card-remake.css",
+    "lines": 74,
+    "bytes": 9255,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/card-tags.css",
+    "lines": 57,
+    "bytes": 5145,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/card.css",
+    "lines": 150,
+    "bytes": 13999,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/classic-pack.css",
+    "lines": 76,
+    "bytes": 15548,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/context-menu.css",
+    "lines": 59,
+    "bytes": 7172,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/cut-swipe.css",
+    "lines": 16,
+    "bytes": 1682,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/cutscenes.css",
+    "lines": 15,
+    "bytes": 1785,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/desktop-qol.css",
+    "lines": 72,
+    "bytes": 8645,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/detail-panel.css",
+    "lines": 71,
+    "bytes": 8733,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/finishes.css",
+    "lines": 108,
+    "bytes": 12004,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/glass.css",
+    "lines": 12,
+    "bytes": 399,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/graphics.css",
+    "lines": 90,
+    "bytes": 8696,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/inventory-controls.css",
+    "lines": 64,
+    "bytes": 8857,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/inventory-views.css",
+    "lines": 92,
+    "bytes": 10250,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/inventory.css",
+    "lines": 95,
+    "bytes": 10939,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/menu.css",
+    "lines": 35,
+    "bytes": 2305,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/opening.css",
+    "lines": 87,
+    "bytes": 9862,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/pack-variants.css",
+    "lines": 53,
+    "bytes": 7217,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/pack.css",
+    "lines": 116,
+    "bytes": 19297,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/picker-pack.css",
+    "lines": 76,
+    "bytes": 11569,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/polish.css",
+    "lines": 51,
+    "bytes": 6742,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/rarity-intro.css",
+    "lines": 12,
+    "bytes": 916,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/royal-pack.css",
+    "lines": 62,
+    "bytes": 9466,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/secret-cutscene.css",
+    "lines": 12,
+    "bytes": 1552,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/settings.css",
+    "lines": 112,
+    "bytes": 14040,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/stability.css",
+    "lines": 75,
+    "bytes": 8502,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/titan-pack.css",
+    "lines": 41,
+    "bytes": 9337,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/tokens.css",
+    "lines": 81,
+    "bytes": 2902,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/tutorial.css",
+    "lines": 40,
+    "bytes": 3041,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/styles/variants.css",
+    "lines": 46,
+    "bytes": 6727,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/album.js",
+    "lines": 34,
+    "bytes": 4982,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/animation.js",
+    "lines": 35,
+    "bytes": 16094,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/art-data.js",
+    "lines": 26,
+    "bytes": 2157,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/camera.js",
+    "lines": 26,
+    "bytes": 6397,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/card-face.js",
+    "lines": 99,
+    "bytes": 16327,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/director.js",
+    "lines": 39,
+    "bytes": 11451,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/editing.js",
+    "lines": 28,
+    "bytes": 10789,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/entry.js",
+    "lines": 126,
+    "bytes": 23766,
+    "events": [
+      "app:ready",
+      "detail:opened",
+      "detail:requestClose",
+      "detail:reset",
+      "inventory:detailContext",
+      "inventory:detailReturned",
+      "inventory:showCard",
+      "save:willReplace",
+      "studio:exit"
+    ],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/files.js",
+    "lines": 12,
+    "bytes": 2327,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/lights.js",
+    "lines": 24,
+    "bytes": 3271,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/materials.js",
+    "lines": 43,
+    "bytes": 5731,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/photo.js",
+    "lines": 87,
+    "bytes": 12778,
+    "events": [
+      "studio:photo",
+      "studio:render"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/preset-catalog.js",
+    "lines": 81,
+    "bytes": 15160,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/presets.js",
+    "lines": 97,
+    "bytes": 22778,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/props.js",
+    "lines": 85,
+    "bytes": 17204,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/recording.js",
+    "lines": 21,
+    "bytes": 5607,
+    "events": [
+      "studio:clip"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/renderer.js",
+    "lines": 148,
+    "bytes": 45465,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/scene.js",
+    "lines": 136,
+    "bytes": 27718,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/studio.css",
+    "lines": 455,
+    "bytes": 62173,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/studio.js",
+    "lines": 89,
+    "bytes": 33933,
+    "events": [
+      "detail:reset",
+      "fx:visibility",
+      "motion:changed",
+      "save:willReplace",
+      "settings:changed",
+      "studio:albumContext",
+      "studio:enter",
+      "studio:exit"
+    ],
+    "keyboardHandlers": 2,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/webm.js",
+    "lines": 15,
+    "bytes": 2079,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/album.js",
+    "lines": 58,
+    "bytes": 11934,
+    "events": [
+      "detail:reset",
+      "save:willReplace",
+      "studio:albumChanged",
+      "studio:albumContext"
+    ],
+    "keyboardHandlers": 2,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/deliver.js",
+    "lines": 36,
+    "bytes": 8604,
+    "events": [
+      "studio:clip",
+      "studio:render"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/director.js",
+    "lines": 61,
+    "bytes": 21747,
+    "events": [],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/gizmos.js",
+    "lines": 41,
+    "bytes": 12612,
+    "events": [],
+    "keyboardHandlers": 1,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/look.js",
+    "lines": 31,
+    "bytes": 8172,
+    "events": [],
+    "keyboardHandlers": 1,
+    "cssClasses": [
+      "studio-look-overlay"
+    ]
+  },
+  {
+    "file": "src/studio/ui/panels.js",
+    "lines": 85,
+    "bytes": 33227,
+    "events": [],
+    "keyboardHandlers": 3,
+    "cssClasses": [
+      "studio-loading",
+      "studio-title-overlay"
+    ]
+  },
+  {
+    "file": "src/studio/ui/photo.js",
+    "lines": 55,
+    "bytes": 8411,
+    "events": [
+      "studio:albumChanged"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/presets.js",
+    "lines": 30,
+    "bytes": 15457,
+    "events": [
+      "studio:preset"
+    ],
+    "keyboardHandlers": 3,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/scenes.js",
+    "lines": 48,
+    "bytes": 7734,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/timeline-curves.js",
+    "lines": 12,
+    "bytes": 8314,
+    "events": [],
+    "keyboardHandlers": 3,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/timeline-tools.js",
+    "lines": 17,
+    "bytes": 9852,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/studio/ui/workspace.js",
+    "lines": 134,
+    "bytes": 64033,
+    "events": [],
+    "keyboardHandlers": 3,
+    "cssClasses": [
+      "studio-viewport-toolbar",
+      "studio-workspace-overlay"
+    ]
+  },
+  {
+    "file": "src/dev/achievements.js",
+    "lines": 69,
+    "bytes": 8224,
+    "events": [
+      "achievement:changed",
+      "achievement:unlocked",
+      "currency:changed"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/bug-checks.js",
+    "lines": 69,
+    "bytes": 4708,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/checks.js",
+    "lines": 140,
+    "bytes": 9537,
+    "events": [
+      "save:written"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/cutscenes.js",
+    "lines": 29,
+    "bytes": 4324,
+    "events": [
+      "reveal:phase"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/data-checks.js",
+    "lines": 49,
+    "bytes": 4735,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/fun.js",
+    "lines": 41,
+    "bytes": 10284,
+    "events": [
+      "menu:visibilityHold",
+      "opening:committed",
+      "preferences:context"
+    ],
+    "keyboardHandlers": 3,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/inventory-checks.js",
+    "lines": 13,
+    "bytes": 3074,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/loader.js",
+    "lines": 17,
+    "bytes": 1041,
+    "events": [
+      "app:ready"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": [
+      "stylesheet"
+    ]
+  },
+  {
+    "file": "src/dev/pack-checks.js",
+    "lines": 30,
+    "bytes": 1996,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/picker-check.js",
+    "lines": 21,
+    "bytes": 2452,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/picker-tools.js",
+    "lines": 11,
+    "bytes": 1751,
+    "events": [
+      "opening:committed",
+      "opening:resolve",
+      "save:imported"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/previews.js",
+    "lines": 64,
+    "bytes": 20120,
+    "events": [
+      "dev:changed",
+      "dev:playbackPhase",
+      "preferences:context"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/qol-check.js",
+    "lines": 36,
+    "bytes": 6220,
+    "events": [
+      "save:written"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/runtime.js",
+    "lines": 89,
+    "bytes": 18489,
+    "events": [
+      "dev:changed",
+      "opening:committed",
+      "opening:prepareCommit",
+      "opening:resolve",
+      "pack:ready",
+      "save:replaced",
+      "timer:tick"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/saves.js",
+    "lines": 34,
+    "bytes": 7641,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/settings-checks.js",
+    "lines": 32,
+    "bytes": 2155,
+    "events": [
+      "settings:changed"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/shell.js",
+    "lines": 77,
+    "bytes": 16919,
+    "events": [
+      "dev:changed",
+      "fx:frame",
+      "fx:sleep",
+      "inventory:context",
+      "menu:visibilityHold",
+      "preferences:context",
+      "settings:changed"
+    ],
+    "keyboardHandlers": 2,
+    "cssClasses": [
+      "dev-header",
+      "dev-toolbar"
+    ]
+  },
+  {
+    "file": "src/dev/simulations.js",
+    "lines": 32,
+    "bytes": 10527,
+    "events": [
+      "dev:changed"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/stability-check.js",
+    "lines": 41,
+    "bytes": 3763,
+    "events": [],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  },
+  {
+    "file": "src/dev/tools.js",
+    "lines": 104,
+    "bytes": 26531,
+    "events": [
+      "currency:changed",
+      "fx:frame",
+      "save:written"
+    ],
+    "keyboardHandlers": 0,
+    "cssClasses": []
+  }
+]

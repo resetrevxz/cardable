@@ -1,3 +1,103 @@
+# The Cardable design rules
+
+Current public app: **1.1.0**. This is the unreleased One Cardable foundation for 1.2.0. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+
+## 1. Principles
+
+1. The card is the hero. Chrome recedes; artwork keeps its identity.
+2. One surface language: near-black ink and local frosted glass. Browsing and Settings stay readable on solid ink.
+3. Restraint: fewer elements, more space, one primary action per decision.
+4. Physical light: a top-left lamp, a top hairline and a pointer-following edge where quality permits.
+5. Motion explains change. Ordinary feedback takes 150–240 ms; cinematic pacing remains separately authored.
+6. Precision: a 4 px grid, concentric radii, optical alignment and tabular numbers.
+7. Quiet color: periwinkle selection, mint success, warm progress/rewards and rose destructive/error accents. Meaning always has a label or shape. Mono replaces semantic accents with neutral values.
+8. Consistency over novelty: reuse the kit; add a pattern to its API, gallery and rules before using it.
+9. Design idle, hover, pressed, focus, disabled, loading, empty and error states.
+10. Accessible by default: visible focus, meaningful labels, predictable keyboard navigation and reduced motion.
+
+## 2. Foundations
+
+The source of truth is `src/ui/kit/tokens.css`, with compatibility aliases for existing card, pack and layout contracts in `src/styles/tokens.css`.
+
+| Foundation | Rule |
+|---|---|
+| Ink | 0 #08080A; 1 #0E0E11; 2 #141418; 3 #1B1B20 |
+| Glass | White 4/6/9%; blur 12/24/40 px, saturation 140%; solid fallback at Very Low/Low |
+| Stroke | White 10/16/22%; top highlight 18%; focus 2 px white 70% with 4 px white 15% outer ring |
+| Text | Primary #F5F5F7, secondary #A1A1A6, tertiary #94949B (raised from the brief's faint value for readable small text); disabled opacity 40% |
+| Type | Local Inter and JetBrains Mono; weights 400/500/600. Display 48/52/-0.04em/600; title 28/32/-0.03em/600; heading 20/24/-0.02em/600; body 14/20/400; strong body 500; small 12/16/400; mono label 11/14/+0.08em/500 |
+| Space | 4, 8, 12, 16, 24, 32, 48, 72 px; inner padding 16/24; related gaps 8, group gaps 24 |
+| Radius | Tiny 6, control 10, panel 14, card/sheet 20, large sheet 28, chip 999; inner radius = outer minus padding |
+| Elevation | Four layered shadows (sm/md/lg/xl); page scrim 40% ink |
+| Layers | Content 0, sticky 10, panels 20, sheets 30, overlays 40, toasts 50, tooltips 60, cursor 70 |
+| Layout | Existing 1920×1080 scale; max sheet 1200, Settings 880, dialog 480, popover 320; safe-area insets; comfortable 40 px rows, compact 32 px |
+
+Use variables for color, timing, easing, radii, layers and shadows. Never convert collected art, pack identities or authored films into arbitrary generic component colors. Minimum contrast targets are 4.5:1 for body text and 3:1 for large text/icons; a token is not itself an accessibility certification.
+
+## 3. Motion
+
+Instant 80, fast 150, base 240, slow 400, sheet 500, cinematic 800+ ms. Entrances/hover use `cubic-bezier(0.22,1,0.36,1)`; movement uses `cubic-bezier(0.65,0,0.35,1)`; progress uses linear. Springs: soft 140/16, snappy 220/26, sheet 200/28. Enter with an 8 px rise, up to 4 px unblur and opacity; 40 ms stagger capped at eight items. Exit fades with a 4 px sink over 120 ms.
+
+Animate transform, opacity, filter or clip-path, never layout or `transition: all`. Numbers use the existing rolling digits. No UI flash; slow pulses at most 0.5 Hz. High uses full detail, Medium reduced blur/motion, Low solid surfaces and fades, Very Low static states. The independent glass/animation/shadow controls take precedence over preset defaults. Reduced motion uses opacity/static poses without pointer parallax or cosmetic loops. No component owns an idle RAF; enhancement runs on interactions and mount changes, and progress uses the existing scheduler.
+
+## 4. Interaction states
+
+Hover raises a control 1 px or an interactive card 4 px and strengthens its edge. The six behaviors are `lift`, `glow-edge`, `reveal`, `magnet` (max 4 px), `tilt` (cards only), `press`. Press is scale .98 over 80 ms. Focus-visible is never removed or clipped. Disabled controls explain why when unclear. Loading uses a silhouette/fluid fill, dark skeleton or grouped ring; progress labels describe real loaded/total work, never invented percentages. Empty states offer one explanation and a useful next action. Errors stay next to the failing input or appear as persistent dismissible toasts.
+
+Desktop targets are at least 32 px high; essential coarse-pointer targets are at least 44 px. Gesture actions have keyboard/button alternatives. Destructive confirmation remains hold/click-again/typed according to actual risk, with undo wherever possible. Save/reset/recovery and tier-based deletion safeguards are unchanged.
+
+## 5. Components and API
+
+Classic scripts expose `Cardable.ui.create(type, props)` and `Cardable.ui.mount(root)`; `cb-` classes and data attributes own styling. Mount upgrades existing semantic controls without replacing their state, handlers or save contracts. `Cardable.ui.progress` exposes accurate progress updates; `Cardable.ui.loader` is bounded and never blocks input. Components are demonstrated at `?dev=1&gallery=ui`.
+
+| Family | Anatomy / keyboard / states |
+|---|---|
+| Button, icon button | Label or accessible name, one SVG icon, primary/secondary/ghost/danger/hold/click-again; Enter/Space; full standard states |
+| Switch, checkbox, radio | Named control plus selected state; native checkbox/radio semantics or role=switch; Space toggles |
+| Segmented control, tabs | Named group, selected item, roving Tab position; arrows/Home/End select; sliding existing indicators share tokens |
+| Slider, number/text/search field, select | Named input with helper/error/reset; native keyboard; Alt-drag scrubs kit number fields within bounds; no blocked paste |
+| Keycap, chip, badge, Tag | Mono label and geometry; Tag compact/semi/open with hover/focus preview and click pin; no hue-only meaning |
+| Tooltip, popover, help | 400 ms initial tooltip; help title/body/shortcuts; Escape dismisses; help uses a readable solid surface |
+| Sheet, drawer, dialog | Named surface and close action; app owners trap/restore focus through the existing accessibility API; Escape closes the top layer |
+| Toast | Bottom center, up to three, four seconds; achievement, undo/action and persistent dismissible error variants; polite live status |
+| Fluid/ring progress, loader, skeleton | Accurate loaded/total or progressbar semantics; calm reduced-motion/static states; no spinner |
+| Empty, panel/card, row/list/tree, stat, section, divider, scroll | Shared ink/glass, type and radii; tree/outliner owners preserve selection keyboard; thin contained scroll; no hidden actions |
+| Context menu, command palette | Existing action registries and navigation, migrated surfaces and controls; arrows/Enter/Escape; close restores focus |
+
+Every family has a purpose, anatomy, variants, states, keyboard/accessible naming, quality policy and a gallery example. Screen-specific layout remains in kit component styles. Existing `settingsControls` remains an adapter for schema rows and confirmed Data actions.
+
+## 6. Patterns
+
+Settings is a two-pane, schema-driven group rail and content area. Rows have label, one-line helper, control, changed dot and reset; search matches label/helper/key/aliases with highlights; section restore preserves unrelated choices. Advanced reveals flagged rows and never changes saved values. Preview is pinned beside active content. Deep links use `openSettings(settingId)`.
+
+Lists use 40/32 px rows, a glass hover and selected left accent bar. Sheets rise, drawers enter from the right, and both shade underlying content. Toasts stack bottom-center above inventory. Tooltips include current shortcut labels when available. Every screen/panel provides Help; F1 or ? toggles Help mode. First-use hints remain dismissible. Navigation uses segmented tabs, Escape and chevrons, never breadcrumbs.
+
+## 7. Voice and copy
+
+Sentence case, calm specific language, verbs on buttons, no emoji/exclamation marks/player-facing implementation jargon. Use pack, card, variant and capitalized rarity names consistently. Format tabular numbers, thousands and dates coherently; errors explain what happened and what to do. Long names truncate with a complete tooltip; accessible names remain complete.
+
+## 8. Iconography
+
+One inline SVG sprite in `src/ui/kit/icons.js`, 1.5 px strokes with round caps/joins, 16/20/24 px grids and named icons. Pack/card/variant/tier concepts have glyphs. An icon always has a visible label or accessible name/tooltip. Seeded achievement emblems are collectible sigils, not a second control-icon family.
+
+## 9. Sound hooks
+
+No audio. Components emit `ui:hover`, `ui:press`, `ui:toggle`, `ui:open`, `ui:close`, `ui:confirm`, `ui:error`, `ui:success`, `ui:scroll-tick` for a future system. Hooks never grant gameplay rewards.
+
+## 10. Accessibility
+
+Focus order follows reading order. Native semantic controls come before custom ARIA. Every control has a name, selected and disabled states are explicit, focus returns after closing a layer, and decorative SVG is hidden. Color is redundant with text/borders. Respect reduced motion, user scale and coarse-pointer targets. Imported photos and JSON saves keep their separate recovery contracts.
+
+## 11. Governance and exceptions
+
+New chrome uses the kit and shared tokens; new patterns appear here and in the gallery first. `scripts/lint-ui.js` counts drift by file (a progress counter, not pass/fail). The ten-item checklist lives in AGENTS and the PR template.
+
+Exceptions: authored card/variant/pack/cinematic materials retain their recipes and timings; Studio viewport/gizmos retain scene colors and axis tints; Classic VT323, Ascendant Bodoni and Mythical vector title remain artwork-only; developer tools allow denser layouts. Layout compatibility selectors carry existing geometry into the kit without changing game actions. Archived histories are evidence, not new scope.
+
+Design references: [Vercel interface guidelines](https://vercel.com/design/guidelines), [Apple color](https://developer.apple.com/design/human-interface-guidelines/color), [Apple motion](https://developer.apple.com/design/human-interface-guidelines/motion), [Apple accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility). Cardable adopts their focus, semantic controls, redundant color, restraint and meaningful-motion guidance within its offline runtime and restricted verification policy.
+
+## Appendix: retained gameplay, artwork and delivery contracts
+
 # Designs.MD — Cardable's current design system
 
 This guide describes the current game, publicly numbered **1.1.0** after the 4.2.0 development series, including four graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
