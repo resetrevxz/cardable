@@ -6,7 +6,7 @@
     s.root.classList.add('studio-2');s.root.dataset.mode=prefs.mode;s.root.style.setProperty('--studio-left',prefs.leftWidth+'px');s.root.style.setProperty('--studio-right',prefs.rightWidth+'px');
     var top=s.root.querySelector('.studio-topbar'),actions=s.root.querySelector('.studio-topbar-actions'),switcher=s.root.querySelector('.studio-mode-switch'),layout=s.root.querySelector('.studio-layout'),left=s.objects.parentElement,right=s.panel.parentElement;
     switcher.replaceChildren();var simpleButton=U.button('Simple',switcher,function(){mode('simple');}),proButton=U.button('Pro',switcher,function(){mode('pro');});simpleButton.dataset.workspace='simple';proButton.dataset.workspace='pro';
-    Array.from(actions.children).forEach(function(el){if(el!==s.exit)el.classList.add('studio-pro-only');});s.exit.setAttribute('aria-label','Exit studio');
+    Array.from(actions.children).forEach(function(el){if(el!==s.exit&&!el.classList.contains('cb-replay-action'))el.classList.add('studio-pro-only');});s.exit.setAttribute('aria-label','Exit studio');
     var presetsButton=U.button('Presets',actions,function(){presetUI.open('scene');});presetsButton.classList.add('studio-pro-only');actions.insertBefore(presetsButton,s.exit);
     var commandButton=U.button('Commands',actions,function(){commands();},'Commands · Ctrl/Cmd+K');commandButton.classList.add('studio-pro-only');actions.insertBefore(commandButton,s.exit);
     left.querySelector('.studio-kicker').textContent='LAYERS';var layersActions=U.node('div','studio-layer-tools',left);left.insertBefore(layersActions,s.objects);U.button('All',layersActions,function(){selectAll();});U.button('Invert',layersActions,function(){invert();});U.button('Arrange',layersActions,function(){arrangePanel();});

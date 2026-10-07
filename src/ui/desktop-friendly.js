@@ -1,6 +1,7 @@
 (function (C, root) {
   'use strict';
-  var node=C.packMarkup.node, info=null, panel=null, kind=null, queue=[], blocked=[], origin=null, hiddenAt=0, wasVisible=true, countdown=null, helpReturn=false, helpFocus=null;
+  var bundledNotes=(C.data.patchNotes||[]).map(function(n){return '## '+n.version+'\n'+n.entries.map(function(e){return '- '+e;}).join('\n');}).join('\n\n');
+  var node=C.packMarkup.node, info=C.native?null:{changelog:bundledNotes}, panel=null, kind=null, queue=[], blocked=[], origin=null, hiddenAt=0, wasVisible=true, countdown=null, helpReturn=false, helpFocus=null;
   function read(key){try{return root.localStorage.getItem('cardable.qol.'+key);}catch(_){return null;}}
   function write(key,value){try{root.localStorage.setItem('cardable.qol.'+key,String(value));}catch(_){}}
   function free(){return !C.commands.active&&!C.preferences.open&&!C.inventory.active&&C.detail.phase==='closed'&&C.opening.phase==='idle'&&!C.studio?.active&&!C.studio?.pending&&!C.studioAlbumUI?.active&&!C.dev?.immersive&&!root.document.hidden;}

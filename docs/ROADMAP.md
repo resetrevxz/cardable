@@ -12,7 +12,7 @@ Give one authorized milestone per prompt. Read AGENTS.md, Designs.MD, the releva
 | Ascendant A/B/C | Current 32.5 s endpoint and settings/renderer contracts integrated | Recorded single Full/Medium/Normal C playthrough | Short/Fast/calm/mono/skip/reload/resize/context loss and wider quality matrix remain unaccepted |
 | Secret A/B/C | Current 40 s endpoint, safety limiter, collapse/resurrection and retained field integrated | C launch reached startup, then setup obstruction prevented film playback | C Safe/Full completion and handoff acceptance remain outstanding |
 | Pack families / Picker | Brand, Classic, Royal, Titan and durable three-offer Picker source integrated | Their per-update implementation/validation records retained in archive/update-history | Picker rendered choice/reload acceptance remains limited; do not infer complete delivery from branch ancestry |
-| Achievements / Journal / Inspect-Studio / detail | Main includes engine/catalog/UI, optional state and Studio/photo routes | Per-update records describe narrower checkpoints; C exercised help and recovery, not every feature | Event capabilities, photos, retained worktree changes and manual UI/hardware gates remain explicit |
+| Achievements / Inspect-Studio / detail | Main includes engine/catalog/UI, optional state and Studio/photo routes | Per-update records describe narrower checkpoints; C exercised help and recovery, not every feature | Event capabilities, photos, retained worktree changes and manual UI/hardware gates remain explicit |
 | Electron 4.0.0 | Secure bridge, lifecycle, persistence, updater/RPC and release infrastructure integrated | [Archived Electron milestone reports](../archive/4.2.0-cleanup/README.md) record their original test scopes | Public CI/provider, trusted signing and live Discord remain external |
 | Desktop 4.1.0 | Mini, taskbar, palette, welcome, captures, help/support scaffolding and History integration committed | [4.1.0 delivery](../archive/update-history/4.1.0-desktop-qol/DELIVERY.md) records one session/checkQol and build limits | Relaunch/files/packaged/signing/device paths remain scoped, not inferred |
 | Optimization 4.1.1 / stage 16 | `f914947`: resize feedback, native/mini redundant work and graphics application | [OPTIMIZATION-4.1.1](../archive/workspace-organization/docs/OPTIMIZATION-4.1.1.md) records its actual regression and measurements | No blanket speed or bug-free guarantee |
@@ -32,7 +32,7 @@ The primary main is the active checkout. Four feature worktrees remain registere
 | Rules, card/catalog, rarity | ARCHITECTURE, 01-GAME-RULES, 02-RARITIES, 03-CARD; VARIANTS-AND-TAGS for coatings/stack identity |
 | Packs/opening | 01-GAME-RULES, 04-PACK-OPENING, CINEMATICS; relevant active pack spec |
 | Menu/activity | 05-MAIN-MENU, 07-DOT-GRID-CURSOR, GRAPHICS-UPDATE |
-| Inventory/detail/History | 06-INVENTORY, 03-CARD, VARIANTS-AND-TAGS; archive/update-history/2.5.0-card-history and 2.7.0-card-detail |
+| Inventory/detail | 06-INVENTORY, 03-CARD, VARIANTS-AND-TAGS; archive/card-history/spec (retired) and archive/update-history/2.7.0-card-detail |
 | Tutorial/settings/Data | 08-TUTORIAL, 11-SETTINGS, 01-GAME-RULES, ARCHITECTURE |
 | Achievements | ACHIEVEMENTS, ARCHITECTURE; archive/update-history/2.7.0-achievements for original intent |
 | Cinematics/materials | CINEMATICS, 02-RARITIES, GRAPHICS-UPDATE; archived Ascendant/Secret specs and their unresolved delivery reports |

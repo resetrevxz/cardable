@@ -1,88 +1,42 @@
-(function (C, root) {
+(function(C,root){
   'use strict';
-  var coinSvg = '<svg class="currency-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle class="currency-mark__edge" cx="16" cy="16" r="14.4"/><circle class="currency-mark__face" cx="16" cy="16" r="11.6"/><circle class="currency-mark__ring" cx="16" cy="16" r="8.6"/><path class="currency-mark__glyph" d="M20 11.1c-1-1.2-2.2-1.9-4-1.9-3.1 0-5.2 2.8-5.2 6.8s2.1 6.8 5.2 6.8c1.8 0 3-.7 4-1.9"/></svg>';
-  function grouped(amount) { return Number(amount).toLocaleString(); }
-
-  C.currencyView = {
-    initialized: false,
-    init: function () {
-      if (C.currencyView.initialized) return;
-      C.currencyView.initialized = true;
-      var host = root.document.getElementById('currency-counter');
-      var mark = root.document.createElement('span'), balance = root.document.createElement('span');
-      var label = root.document.createElement('span'), number = root.document.createElement('span');
-      var shimmer = root.document.createElement('span'), feed = root.document.createElement('span');
-      mark.className = 'currency-mark-wrap'; mark.innerHTML = coinSvg;
-      balance.className = 'currency-balance';
-      label.className = 'currency-label'; label.textContent = C.config.currency.name;
-      number.className = 'currency-value';
-      shimmer.className = 'currency-shimmer'; shimmer.setAttribute('aria-hidden', 'true');
-      feed.className = 'currency-feed'; feed.setAttribute('aria-live', 'polite'); feed.setAttribute('aria-atomic', 'false');
-      balance.appendChild(label); balance.appendChild(number);
-      host.appendChild(mark); host.appendChild(balance); host.appendChild(shimmer); host.appendChild(feed);
-
-      var digits = C.numbers.create(number), value = C.state.current.currency, from = value, target = value, start = null, shimmerStart = null;
-      digits.set(C.config.currency.symbol + grouped(value), false);
-      host.setAttribute('role', 'group'); host.setAttribute('aria-label', C.config.currency.name + ': ' + value);
-
-      function refresh() {
-        var next = C.state.current.currency;
-        if (next === target) return;
-        from = value; target = next; start = root.performance.now(); shimmerStart = C.settings.policy.glareHz > 0 ? start : null;
-        host.setAttribute('aria-label', C.config.currency.name + ': ' + grouped(target)); C.fx.wake();
-      }
-      function feedback(change) {
-        if (!change || !change.amount) return;
-        var gain = change.direction > 0;
-        var receipt = root.document.createElement('span');
-        receipt.className = 'currency-receipt ' + (gain ? 'is-gain' : 'is-loss');
-        receipt.textContent = (gain ? '+' : '−') + grouped(change.amount) + ' ' + C.config.currency.name.toUpperCase();
-        feed.appendChild(receipt);
-        root.setTimeout(function () { if (receipt.parentNode) receipt.parentNode.removeChild(receipt); }, 1350);
-        if (gain && !C.motion.reduced && C.settings.policy.animation > 0 && C.settings.policy.particles > 0) {
-          var rect = host.getBoundingClientRect();
-          for (var i = 0; i < Math.ceil(8 * C.settings.policy.particles); i++) {
-            var coin = root.document.createElement('span');
-            coin.className = 'currency-flight'; coin.innerHTML = coinSvg;
-            var flightX = ((i % 4) - 1.5) * (12 + (i % 3) * 6);
-            coin.style.setProperty('--flight-x', flightX + 'px');
-            coin.style.setProperty('--flight-x-reverse', -flightX + 'px');
-            coin.style.setProperty('--flight-y', (48 + (i % 3) * 15) + 'px');
-            coin.style.setProperty('--flight-delay', (i * 34) + 'ms');
-            coin.style.left = (rect.width * (0.52 + ((i % 4) - 1.5) * 0.09)) + 'px';
-            coin.style.top = (rect.height * 0.85 + (i % 2) * 9) + 'px';
-            host.appendChild(coin);
-            (function (particle) { root.setTimeout(function () { if (particle.parentNode) particle.parentNode.removeChild(particle); }, 1300); })(coin);
-          }
-        }
-      }
-      function insufficient(result) {
-        var receipt = root.document.createElement('span');
-        receipt.className = 'currency-receipt is-loss';
-        receipt.textContent = 'NEED ' + grouped(result.requested - result.available) + ' MORE';
-        feed.appendChild(receipt);
-        root.setTimeout(function () { if (receipt.parentNode) receipt.parentNode.removeChild(receipt); }, 1350);
-      }
-
-      C.events.on('save:written', refresh); C.events.on('currency:changed', function (change) { refresh(); feedback(change); });
-      C.events.on('currency:insufficient', insufficient);
-      C.currencyView.el = host; C.currencyView.digits = digits;
-      C.fx.subscribe(function (now) {
-        var cfg = C.config.menuMotion;
-        if (start !== null) {
-          var p = C.motion.reduced || !C.settings.policy.animation ? 1 : Math.min(1, (now - start) / cfg.currencyMs);
-          value = p === 1 ? target : Math.round(from + (target - from) * (1 - Math.pow(1 - p, 3)));
-          digits.set(C.config.currency.symbol + grouped(value), !C.motion.reduced);
-          if (p === 1) start = null;
-        }
-        if (shimmerStart !== null) {
-          var shineP = Math.min(1, (now - shimmerStart) / cfg.shimmerMs);
-          shimmer.style.transform = 'translateX(' + (C.motion.reduced ? 0 : -cfg.sweepTravelPercent + (1 - Math.pow(1 - shineP, 3)) * cfg.sweepTravelPercent * 2) + '%)';
-          shimmer.style.opacity = Math.sin(shineP * Math.PI) * cfg.shimmerOpacity;
-          if (shineP === 1) shimmerStart = null;
-        }
-        return digits.update(now) || start !== null || shimmerStart !== null;
-      }, 'currency');
+  var coin='<svg class="currency-mark" viewBox="0 0 32 32" aria-hidden="true"><circle class="currency-mark__edge" cx="16" cy="16" r="14.4"/><circle class="currency-mark__face" cx="16" cy="16" r="11.6"/><circle class="currency-mark__ring" cx="16" cy="16" r="8.6"/><path class="currency-mark__glyph" d="M20 11c-1-1.2-2.2-1.9-4-1.9-3.1 0-5.2 2.8-5.2 6.8s2.1 6.8 5.2 6.8c1.8 0 3-.7 4-1.9"/></svg>';
+  function compact(n){return n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':n>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,'')+'K':String(n);}
+  C.currencyView={initialized:false,init:function(){
+    if(this.initialized)return;this.initialized=true;
+    var node=C.packMarkup.node,host=root.document.getElementById('currency-counter');host.replaceChildren();host.classList.add('cb-wallet-chip');
+    var trigger=node('button','cb-wallet-trigger',host);trigger.type='button';trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-expanded','false');
+    node('span','currency-mark-wrap',trigger).innerHTML=coin;
+    var balance=node('span','currency-balance',trigger);node('span','currency-label',balance,'Credits');var number=node('span','currency-value',balance),digits=C.numbers.create(number),feed=node('span','cb-wallet-delta',host),popover=node('section','cb-wallet-popover glass',host);
+    popover.hidden=true;popover.setAttribute('role','dialog');popover.setAttribute('aria-label','Wallet');popover.id='cb-wallet';trigger.setAttribute('aria-controls',popover.id);feed.setAttribute('role','status');feed.setAttribute('aria-live','polite');
+    host.dataset.walletState='loading';number.textContent='…';trigger.disabled=true;
+    var pinned=false,queue=[],effect=null,closeTimer=null;
+    function render(){
+      if(host.dataset.walletState==='loading')number.replaceChildren();host.dataset.walletState='ready';trigger.disabled=false;var save=C.state.current,total=C.currency.today(save);digits.set(compact(save.currency),['medium','high'].includes(C.settings.get('quality'))&&!C.motion.reduced);
+      trigger.title=save.currency.toLocaleString()+' credits';trigger.setAttribute('aria-label','Wallet: '+save.currency.toLocaleString()+' credits');host.classList.toggle('cb-wallet-zero',save.currency===0);
+      if(popover.hidden)return;popover.replaceChildren();node('h2','',popover,'Wallet');node('strong','cb-wallet-total',popover,save.currency.toLocaleString()+' credits');
+      var summary=node('div','cb-wallet-today',popover);node('span','',summary,'Today earned +'+total.earned.toLocaleString());node('span','',summary,'Spent −'+total.spent.toLocaleString());
+      var log=C.currency.normalize(save.wallet).log;
+      if(!save.currency)node('p','cb-wallet-helper',popover,'Open a pack to earn credits.');
+      if(!log.length)node('p','cb-wallet-helper',popover,'Your next credit change will appear here.');
+      var list=node('ol','cb-wallet-log',popover);log.slice(0,10).forEach(function(e){var row=node('li','',list);node('span','',row,e.reason);node('b',e.delta>0?'cb-wallet-gain':'',row,(e.delta>0?'+':'−')+Math.abs(e.delta).toLocaleString());var time=node('time','',row,new Date(e.at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));time.dateTime=new Date(e.at).toISOString();});
+      var close=node('button','cb-wallet-close',popover,'Close wallet');close.type='button';close.addEventListener('click',hide);
     }
-  };
-})(window.Cardable, window);
+    function show(){root.clearTimeout(closeTimer);popover.hidden=false;trigger.setAttribute('aria-expanded','true');render();}
+    function hide(){pinned=false;popover.hidden=true;trigger.setAttribute('aria-expanded','false');root.clearTimeout(closeTimer);C.events.emit('menu:visibilityHold',{reason:'wallet',active:false});}
+    trigger.addEventListener('click',function(){if(pinned){hide();return;}pinned=true;show();C.events.emit('menu:visibilityHold',{reason:'wallet',active:true});popover.querySelector('button').focus();});
+    host.addEventListener('pointerenter',function(e){if(e.pointerType==='mouse')show();});host.addEventListener('pointerleave',function(){if(!pinned)closeTimer=root.setTimeout(hide,180);});
+    root.document.addEventListener('pointerdown',function(e){if(!host.contains(e.target))hide();});
+    host.addEventListener('keydown',function(e){if(e.key==='Escape'&&!popover.hidden){e.preventDefault();e.stopPropagation();hide();trigger.focus();}});
+    host.addEventListener('focusout',function(){root.queueMicrotask(function(){if(!host.contains(root.document.activeElement)&&!host.matches(':hover'))hide();});});
+    function changed(e){render();var delta=e.delta==null?(e.direction||1)*e.amount:e.delta;if(!delta)return;var now=root.performance.now(),last=queue[queue.length-1];if(last&&now-last.at<=400){last.delta+=delta;last.at=now;}else queue.push({at:now,delta:delta});if(queue.length>30){queue[queue.length-2].delta+=queue.pop().delta;}C.fx.wake();}
+    C.events.on('currency:changed',changed);C.events.on('save:written',render);C.events.on('save:willReplace',function(){queue=[];effect=null;hide();});C.events.on('menu:idle',function(idle){if(idle)hide();});
+    C.fx.subscribe(function(now){
+      var moving=digits.update(now);
+      if(!effect&&queue.length&&now-queue[0].at>=400){effect=queue.shift();effect.born=now;feed.textContent=(effect.delta>=0?'+':'−')+Math.abs(effect.delta).toLocaleString();host.classList.add('cb-wallet-feedback');}
+      if(effect){var p=Math.min(1,(now-effect.born)/1100),animate=['medium','high'].includes(C.settings.get('quality'))&&!C.motion.reduced;feed.style.opacity=String(Math.min(1,p*8,(1-p)*5));feed.style.transform='translateY('+(animate?-p*24:0)+'px)';if(p>=1){effect=null;feed.textContent='';host.classList.remove('cb-wallet-feedback');}else moving=true;}
+      return moving||queue.length>0;
+    },'currency');
+    C.currencyView.el=host;C.currencyView.digits=digits;render();
+  }};
+})(window.Cardable,window);

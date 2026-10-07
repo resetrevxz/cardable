@@ -101,7 +101,7 @@ function validated(folder,identity) {
   if(pkg.version!==identity.version||pkg.name!=='cardable'||pkg.main!=='electron/main.js'||pkg.productName!=='Cardable'||JSON.stringify(pkg.cardableDelivery)!==JSON.stringify({buildId:identity.buildId,sourceRevision:identity.sourceRevision,sourceFingerprint:identity.sourceFingerprint}))throw new Error('Packaged source identity mismatch');
   if(pkg.cardableDesktop?.updateFixture||pkg.scripts||pkg.devDependencies)throw new Error('Development metadata leaked into package');
   const entries=new Set(asar.listPackage(archive).map(name=>name.replace(/^[/\\]/,'').replaceAll('\\','/')));
-  for(const name of ['electron/preload.js','electron/native/mini.html','src/core/journal.js','src/ui/journal.js','src/data/journal.js','CHANGELOG.md','assets/icons/icon.ico'])if(!entries.has(name))throw new Error('Missing bundled file: '+name);
+  for(const name of ['electron/preload.js','electron/native/mini.html','src/core/card-deletion.js','src/ui/cutscene-replay.js','src/ui/performance.js','CHANGELOG.md','assets/icons/icon.ico'])if(!entries.has(name))throw new Error('Missing bundled file: '+name);
   for(const file of identity.files)if(!entries.has(file.path)||sha(asar.extractFile(archive,path.normalize(file.path)))!==file.sha256)throw new Error('Bundled source mismatch: '+file.path);
   const html=asar.extractFile(archive,'index.html').toString();
   if(!html.includes('Content-Security-Policy')||/<script[^>]+type="module"/.test(html))throw new Error('Offline/CSP contract changed');

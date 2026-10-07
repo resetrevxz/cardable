@@ -103,7 +103,7 @@
       C.events.on('inventory:detailMembership',function(event){toolbar.membership(event.entry,event.anchor);});
       C.events.on('inventory:showCard',function(event){
         if(detailId)return;var instance=C.state.current.inventory.find(function(i){return i.instanceId===event.instanceId&&i.cardId===event.cardId;})||C.state.current.inventory.find(function(i){return i.cardId===event.cardId;});
-        if(!instance)return;query='';validQuery='';filters={};toolbar.clearSearch();C.inventoryModel.update({activeCollectionId:'all'});refresh(false);request('expanded');detailById(C.stacks.of(instance));
+        if(!instance)return;var key=C.stacks.of(instance);if(!model.entries.some(function(e){return e.stackKey===key;})){query='';validQuery='';filters={};toolbar.clearSearch();C.inventoryModel.update({activeCollectionId:'all'});refresh(false);}if(!session)request('normal');detailById(key);
       });
       C.events.on('inventory:fixture',function(value){if(detailId)return;fixture=value || null;selected=null;refresh(true);});
       C.events.on('opening:context',function(event){openingPhase=event.phase;if(event.active)prepare(false);if(event.active&&session&&!event.replay)reset();sheet.hidden=event.active;});C.events.on('preferences:context',function(event){preferences=event.active;if(preferences)prepare(false);sheet.inert=preferences;if(preferences){releaseDrag(null,true);shelf.cancel();reorder.cancel();}else resizeViews();});C.events.on('fx:visibility',function(visible){if(!visible){releaseDrag(null,true);shelf.cancel();reorder.cancel();}});C.events.on('motion:changed',function(){dirty=true;refresh(true);});C.events.on('settings:rarityColorMode',function(){refresh(true);});C.viewport.onResize(resize);

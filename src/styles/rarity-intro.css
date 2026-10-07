@@ -9,5 +9,4 @@
 .opening-stage.has-rarity-backdrop .opening-keep:hover,
 .opening-stage.has-rarity-backdrop .opening-delete:hover { background:var(--surface-2); }
 [data-phase="rarityIntro"] .opening-pack,[data-phase="rarityIntro"] .opening-reveal { visibility:hidden; pointer-events:none; }
-.is-rarity-cinematic .pack-reward,
 .is-rarity-cinematic .collection-toast { visibility:hidden !important; }

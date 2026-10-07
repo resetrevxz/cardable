@@ -1,6 +1,6 @@
 # 06 — Inventory
 
-The approved major inventory refresh supersedes the original shelf-only brief. The inventory is a mounted glass sheet with Shelf and Grid views, discovery tools and saved collection preferences. Chrome remains monochrome. Ownership is still `save.inventory`; collections reference current finish/skin stack keys and never copy instances.
+The approved major inventory refresh supersedes the original shelf-only brief. The inventory is a mounted glass sheet with Shelf and Grid views, discovery tools and saved collection preferences. Chrome uses quiet neutral surfaces with purposeful color; Settings mono mode removes accents. Ownership is still `save.inventory`; collections reference current finish/skin stack keys and never copy instances.
 
 **Current presentation:** Stage 12 finish-stack identities and Stage 14 rendering rules supersede the historical card-ID and centered-full-card descriptions below. Shelf and Grid both use front-only static thumbnails; detail owns the full card. The sheet uses shaded prepainted surfaces without full-sheet backdrop filtering, and viewport-based mount budgets replace fixed overscan. See `VARIANTS-AND-TAGS.md` and `06-INVENTORY.md`. Historical validation figures in the refresh report do not establish results for later edits.
 
@@ -70,15 +70,15 @@ Instances from Classic Pack carry `cardSkinId:'classic'`. Full reveal/detail car
 
 `era:classic` filters the explicit pre-2007 catalog IDs, across all packs and both inventory views. `era:modern` is also recognized; other era values report an inline error. A neutral CLASSIC glyph identifies this hardware independently of the selected instance's pack provenance.
 
-## 2.7.0 detail panel (current)
+## Current detail panel (Unreleased 1.2.0)
 
-This replaces the historical detail information layout described above. Overview/History tabs reuse the settings segmented-control spring and the registered per-card journal renderer. The default panel contains only additional specs beyond the visible card plate, optional real lore, an ownership line and a collapsed selector for individual copies in the finish stack. Existing full journal access and studio inspection remain available.
+This replaces the historical detail information layout described above. A single overview shows the actual owned instance. The default panel contains only additional specs beyond the visible card plate, optional real lore, an ownership line and a collapsed selector for individual copies in the finish stack. Studio inspection remains available.
 
-At most three provenance chips include the +N control. Variant/pack/freshness take priority; additional freshness, Normal, serial, rarity, exact unpack time and other tags live in a glass popover. All specs expands additional specs without repeating the plate. The registered Inspect action remains primary; Flip/Favorite/More are icon controls. More retains collection membership and adds selected-card JSON export, serial copying and selected-copy deletion through the shared three-second hold confirmation. Removal requires a successful durable write and never adjusts rewards, pulls, serial counters or pack consumption.
+At most three provenance chips include the +N control. Variant/pack/freshness take priority; additional freshness, Normal, serial, rarity, exact unpack time and other tags live in a glass popover. All specs expands additional specs without repeating the plate. The registered Inspect action remains primary; Flip/Favorite/More are icon controls. More retains collection membership and adds selected-card JSON export, serial copying and selected-copy deletion through the shared confirmation component: 1.5 seconds for tiers 0–6; 2.5 seconds plus a typed, trimmed, case-insensitive exact card name for tiers 7+. Favorites and locked instances are blocked, with explicit unprotect actions. Inventory context menus and focused tiles (Delete) use the same copy picker. Refund remains zero. A ten-second session-only Undo restores the exact instance. Removal requires a successful durable write and never adjusts rewards, pulls, serial counters or pack consumption.
 
-Navigation arrows move outside the information panel. Left/Right navigates result cards; I opens Inspect, H selects History, F toggles Favorite, R uses the existing card flip handler, and Escape dismisses a detail/collection popover before closing. Serial copying on either face uses Clipboard API with a textarea fallback. Inactive panes are inert and cannot contribute overflow. Tabs expose tablist/tab/tabpanel semantics.
+Navigation arrows move outside the information panel. Left/Right navigates result cards; I opens Inspect, F toggles Favorite, R uses the existing card flip handler, and Escape dismisses a detail/collection popover before closing. Serial copying on either face uses Clipboard API with a textarea fallback. Popover focus restores to its trigger.
 
-The inventory sheet is hidden while detail owns its visual, preserving layout for its return. The panel is 360 px and vertically centered; below 900 px it stacks under the card with whole-view scrolling. Default 720p desktop content has no panel scroll, horizontal overflow or clipped actions. Expanded content/history use thin custom scrollbars. Card-plate specs, tier badge/meter and internal R hint are not repeated in the panel.
+The inventory sheet is hidden while detail owns its visual, preserving layout for its return. The panel is 360 px and vertically centered; below 900 px it stacks under the card with whole-view scrolling. Default 720p desktop content has no panel scroll, horizontal overflow or clipped actions. Expanded content uses thin custom scrollbars. Card-plate specs, tier badge/meter and internal R hint are not repeated in the panel.
 
 ## Current rendering and mount budgets
 
@@ -92,3 +92,9 @@ The inventory sheet is hidden while detail owns its visual, preserving layout fo
 - Spotlight cannot load external local image masks through file:// CSS masking in Chromium. Offline image cards keep their optical glint without that mask; procedural silhouettes retain their inline SVG mask. No network workaround is introduced.
 
 The complete original moving-scene matrix and fixture/measurement limits are retained in [archived INVENTORY-PERFORMANCE](../archive/4.2.0-cleanup/docs/INVENTORY-PERFORMANCE.md). Its scoped headless improvements do not certify physical devices, 240 Hz, later code or a stale activity-suite expectation. These measurements were not rerun for 4.2.0.
+
+## Wallet, replay and overlay contracts
+
+Replay is a tier unlock from detail or Studio. `src/data/economy.js` defines prices: Mythical 150, Ascendant 400, Secret 1000; other existing cinematic tiers have explicit small defaults. Two clicks within three seconds pay once. Failed persistence or insufficient credits change neither money nor unlock state. The reusable cinematic host has no pack, inventory, reward or serial calls and restores layer visibility, inert state, focus and Studio scope on return.
+
+The inventory remains mounted beneath detail/Studio. Grid resizing preserves scroll. Returning uses the saved grid position, selected stack, query, facets, collection, sort and sheet detent. A card-link route keeps the current result when the target is present; otherwise it switches to All to reach it.

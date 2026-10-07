@@ -86,6 +86,7 @@
     return {
       rebuild: rebuild,
       handle: function (name, payload, save, now) {
+        if (name === 'card:deleted' || name === 'card:restored') return rebuild(save);
         if (name === 'card:kept') { add(payload); return projection(); }
         if (name === 'opening:committed' || name === 'pack:opened') return pack(payload, save, now);
         if (name === 'inventory:preferencesChanged') { result.favorites = save.inventoryUi?.favorites?.length || 0; return { favorites: result.favorites }; }

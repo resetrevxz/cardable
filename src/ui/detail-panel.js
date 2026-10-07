@@ -55,7 +55,7 @@
   }
   function build(host, context) {
     if (active) active.destroy(); host.replaceChildren();
-    var entry = context.entry, instance = context.instance, currentTab = 'overview', tabNotify, popover = null, anchor = null, confirm = null, historyOpen = null;
+    var entry = context.entry, instance = context.instance,  popover = null, anchor = null, confirm = null;
     var id = 'detail-info-' + (++uid), animations = [], destroyed = false, tooltip = null;
     host.classList.add('detail-info--clean');
     function item(el, index) { el.classList.add('detail-enter'); el.style.setProperty('--detail-order', index); return el; }
@@ -63,19 +63,7 @@
     node('p', 'detail-kicker', header, (entry.generation ? entry.generation.name : entry.card.generation) + ' · ' + entry.rarity.name);
     node('h1', 'detail-name', header, entry.owned ? entry.card.name : '???');
     var chips = item(node('div', 'detail-chip-row', host), 4); chips.setAttribute('aria-label', 'Card provenance');
-    var tabsHost = item(node('div', 'detail-tabs', host), 1);
-    var tabControl = C.uiKit.create({ key: id, prefix: id, control: 'segment', label: 'Card information', helper: '', choices: ['overview', 'history'] }, tabsHost, {
-      get: function () { return currentTab; }, set: function (_, value) { selectTab(value); }, subscribe: function (_, fn) { tabNotify = fn; return function () { tabNotify = null; }; }
-    });
-    tabControl.el.setAttribute('role', 'tablist'); tabControl.el.setAttribute('aria-label', 'Card information');
-    var panes = item(node('div', 'detail-tab-content', host), 2);
-    var overview = node('section', 'detail-tab-pane', panes), history = node('section', 'detail-tab-pane', panes);
-    [overview, history].forEach(function (pane, i) {
-      pane.id = id + '-pane-' + i; pane.setAttribute('role', 'tabpanel'); pane.setAttribute('aria-labelledby', id + '-tab-' + i);
-      var tab = tabControl.buttons[i]; tab.id = id + '-tab-' + i; tab.setAttribute('role', 'tab'); tab.setAttribute('aria-controls', pane.id); tab.removeAttribute('aria-checked');
-      // The shared segmented control owns its spring; the adapter adds tab semantics.
-      tab.addEventListener('keydown', function (event) { if (/^Arrow/.test(event.key)) event.stopPropagation(); });
-    });
+    var overview=item(node('section','detail-tab-pane is-active',host),2);
     var rows = entry.owned ? extraSpecs(entry) : [];
     function specs(list, rows) { rows.forEach(function (row) { var pair = node('div', '', list); node('dt', '', pair, row.label); node('dd', '', pair, row.value); }); }
     if (rows.length) specs(node('dl', 'detail-extra-specs', overview), rows.slice(0, 4));
@@ -100,7 +88,7 @@
     }
     var actions = item(node('div', 'detail-actions detail-action-row', host), 3), extensionHost = node('div', 'detail-extension-actions', host);
     extensionHost.hidden = true;
-    C.detailActions.render(extensionHost, { entry: entry, panel: history, preview: context.preview, historyHost: history, dismiss: function(){dismiss(false);}, onHistoryOpen: function (fn) { historyOpen = fn; } });
+    C.detailActions.render(extensionHost, { entry: entry, panel: overview, preview: context.preview, dismiss: function(){dismiss(false);} });
     var inspect = extensionHost.querySelector('.studio-inspect-action');
     if (inspect) { actions.appendChild(inspect); inspect.dataset.tooltip = 'Inspect · I'; inspect.title = 'Inspect · I'; inspect.setAttribute('aria-keyshortcuts', 'I'); }
     else { inspect = button(actions, 'Inspect', null, 'studio-inspect-action'); inspect.disabled = true; inspect.title = 'Collect this card to inspect it'; }
@@ -110,6 +98,7 @@
       C.inventoryModel.favorite(entry.stackKey); refresh(instance);
     }, actions); favorite.setAttribute('aria-keyshortcuts', 'F'); favorite.disabled = !entry.owned || context.preview;
     var more = C.inventoryIcons.button('more', 'More actions', function () { openMore(); }, actions); more.setAttribute('aria-haspopup', 'dialog'); more.setAttribute('aria-expanded', 'false');
+    var replay=extensionHost.querySelector('.cb-replay-action');if(replay){host.appendChild(replay);}
     var extensionActions = Array.from(extensionHost.children);
     var status = node('p', 'detail-live', host); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
     function announce(text) { status.textContent = text; }
@@ -141,7 +130,9 @@
       var priorities = [], tags = C.cardTags.derive(entry, instance, 'detail'), extra = metadata();
       ['variant', 'pack'].forEach(function (kind) {
         var tag = tags.find(function (t) { return t.kind === kind; }); if (!tag || kind === 'variant' && !entry.variantId) return;
-        var el = rendered.querySelector('.card-tag--' + kind).cloneNode(true); el.removeAttribute('tabindex');
+        var el = rendered.querySelector('.card-tag--' + kind).cloneNode(true);
+        el.addEventListener('keydown', function (e) { if(e.key==='Escape'&&el.classList.contains('cb-tag-pinned')){e.preventDefault();e.stopPropagation();el.classList.remove('cb-tag-pinned');el.setAttribute('aria-expanded','false');} });
+        el.addEventListener('click', function () { var expanded = el.getAttribute('aria-expanded') !== 'true'; el.setAttribute('aria-expanded', String(expanded)); el.classList.toggle('cb-tag-pinned', expanded); });
         if (kind === 'pack') { var pack = C.pack(instance.packId); el.lastChild.textContent = pack.name; el.dataset.rare = String(pack.skin === 'rare'); }
         priorities.push({ el: el, text: tag.kind === 'pack' ? C.pack(instance.packId).name : tag.text });
       });
@@ -170,25 +161,9 @@
       if (entry.owned && !context.preview) button(pop, 'Add to collection', function () { var source = more; dismiss(false); C.events.emit('inventory:detailMembership', { entry: entry, anchor: source }); });
       extensionActions.forEach(function (action) { pop.appendChild(action); });
       if (entry.owned && !context.preview) {
-        var remove = button(pop, 'Delete this copy', null); node('p', 'detail-dim detail-delete-note', pop, 'Hold for 3 seconds. This removes only the selected copy.');
-        confirm = C.uiKit.confirmation(remove, function () {
-          var selected = instance.instanceId, candidate = JSON.parse(C.state.encode(C.state.current));
-          if (!candidate.inventory.some(function (i) { return i.instanceId === selected; })) { announce('This copy is no longer owned.'); return; }
-          candidate.inventory = candidate.inventory.filter(function (i) { return i.instanceId !== selected; });
-          if (!C.state.commit(candidate)) { announce('Could not save. Your card is still owned.'); confirm.cancel(); return; }
-          dismiss(false); context.close();
-        }, { mode: 'hold', holdLabel: 'Hold to delete copy', announce: announce });
+        button(pop, 'Delete this copy…', function(){var chosen=instance;dismiss(false);C.cardDeletionView.show(entry,chosen,context.close);});
       }
       copyButton.focus({ preventScroll: true });
-    }
-    function selectTab(value) {
-      currentTab = value; if (tabNotify) tabNotify(value);
-      tabControl.buttons.forEach(function (tab, i) { var selected = value === (i ? 'history' : 'overview'); tab.setAttribute('aria-selected', String(selected)); tab.removeAttribute('aria-checked'); });
-      overview.classList.toggle('is-active', value === 'overview'); history.classList.toggle('is-active', value === 'history');
-      overview.inert = value !== 'overview'; history.inert = value !== 'history'; overview.setAttribute('aria-hidden', String(overview.inert)); history.setAttribute('aria-hidden', String(history.inert));
-      if (value === 'history' && historyOpen) historyOpen();
-      if (value === 'history' && !history.children.length) node('p', 'detail-dim', history, entry.owned ? 'No recorded history yet.' : 'Collect this card to start its history.');
-      C.fx.wake();
     }
     function outside(event) { if (popover && !popover.contains(event.target) && !anchor.contains(event.target)) dismiss(false); }
     root.document.addEventListener('pointerdown', outside);
@@ -208,15 +183,15 @@
       if (popover) return false;
       switch (event.key.toLowerCase()) {
         case 'i': if (!inspect.disabled) inspect.click(); return true;
-        case 'h': selectTab('history'); tabControl.buttons[1].focus({ preventScroll: true }); return true;
+
         case 'f': if (!favorite.disabled) favorite.click(); return true;
         // R belongs to the existing card-view handler; do not flip it twice.
       }
       return false;
     }
-    function destroy() { if (destroyed) return; destroyed = true; dismiss(false); hideTooltip(); tabControl.destroy(); root.document.removeEventListener('pointerdown', outside); context.overlay.removeEventListener('pointerover', showTooltip); context.overlay.removeEventListener('focusin', showTooltip); context.overlay.removeEventListener('pointerout', hideTooltip); context.overlay.removeEventListener('focusout', hideTooltip); animations.forEach(function (a) { a.cancel(); }); if (active === api) active = null; }
-    var api = { refresh: refresh, flipButton: flip, announce: announce, key: key, destroy: destroy, update: function (now, dt) { var moving = tabControl.update(now, dt); if (confirm) moving = confirm.update(now, dt) || moving; return moving; } };
-    active = api; selectTab('overview'); refresh(instance);
+    function destroy() { if (destroyed) return; destroyed = true; dismiss(false); hideTooltip(); root.document.removeEventListener('pointerdown', outside); context.overlay.removeEventListener('pointerover', showTooltip); context.overlay.removeEventListener('focusin', showTooltip); context.overlay.removeEventListener('pointerout', hideTooltip); context.overlay.removeEventListener('focusout', hideTooltip); animations.forEach(function (a) { a.cancel(); }); if (active === api) active = null; }
+    var api = { refresh: refresh, flipButton: flip, announce: announce, key: key, destroy: destroy, update: function (now, dt) { var moving = false; if (confirm) moving = confirm.update(now, dt) || moving; return moving; } };
+    active = api; refresh(instance);
     var lift = !C.motion.reduced && C.settings.policy.animation >= 2, blur = lift && C.settings.get('quality') === 'high' && C.settings.policy.blur === 1;
     host.querySelectorAll('.detail-enter').forEach(function (el) {
       animations.push(el.animate([{ opacity: 0, transform: lift ? 'translateY(8px)' : 'none', filter: blur ? 'blur(4px)' : 'none' }, { opacity: 1, transform: 'none', filter: 'none' }], { duration: 250, delay: Number(el.style.getPropertyValue('--detail-order')) * 40, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }));

@@ -7,8 +7,8 @@ The game remains an offline classic-script renderer under `window.Cardable`. Bro
 | Route | Owner / responsibility |
 |---|---|
 | `index.html`, `src/boot.js` | Executable classic-script order; ordinary boot follows `C.desktop.prepare()` and handles startup failure. `?dev=1` conditionally loads the local workspace before boot; never ordinary dev UI. |
-| `src/data/` | Cards/generations/rarities/variants, packs and cutscene descriptors, validated settings, achievements, Journal and bundled player help. Registry helpers resolve IDs. |
-| `src/core/` | Event bus, serial/pull/schedule, state/save tools, settings, input, inventory model/query, Journal/achievement projection and desktop/QoL integration. |
+| `src/data/` | Cards/generations/rarities/variants, packs and cutscene descriptors, validated settings, achievements, economy, patch notes and bundled player help. Registry helpers resolve IDs. |
+| `src/core/` | Event bus, serial/pull/schedule, state/save tools, settings, input, inventory model/query, wallet/deletion/unlock services and achievement projection and desktop/QoL integration. |
 | `src/fx/`, `src/finishes/` | Shared effects scheduler, springs, bounded material painters, registered cutscene runtime/safety and rarity finishes; no private frame loop. |
 | `src/ui/`, `src/styles/` | Pack/opening/menu, front thumbnails, sole full detail/preview, inventory panels, settings/Data/help/palette and neutral token-based UI. |
 | `src/studio/` | Inspect camera/renderer/materials, scenes/props/lights/Director, photo capture and IndexedDB Album. JSON saves do not include photo blobs. |
@@ -21,7 +21,7 @@ Namespace/config and presentation/gameplay data precede state. Variants/stack he
 
 ## State, persistence and recovery
 
-Current game save schema is **5**, settingsVersion is **2**, primary key is **cardable.save**. Older schema numbers in the extension history below describe evolution, not permission to bump/reset the current schema. Inventory/preferences use GPU/finish/optional skin stack keys; ownership remains immutable instances. Journal, achievements, desktop preferences and additive optional fields survive loader normalization, checksum imports, backups, Restore and Undo. Never mint unchosen Picker offers or assume `pendingReveal.cards[0]` exists.
+Current game save schema is **5**, settingsVersion is **2**, primary key is **cardable.save**. Older schema numbers in the extension history below describe evolution, not permission to bump/reset the current schema. Inventory/preferences use GPU/finish/optional skin stack keys; ownership remains immutable instances. Achievements, wallet, unlocks, desktop preferences and additive optional fields survive loader normalization; archived `save.journal` bytes pass through unchanged and unused, checksum imports, backups, Restore and Undo. Never mint unchosen Picker offers or assume `pendingReveal.cards[0]` exists.
 
 Opening clones a candidate, reconciles timestamps and durably commits stock, exact pulls/serials, reward and `pendingReveal` before adoption. Keep/Delete and Picker decisions remain strict; a failed write cannot consume, reroll or duplicate a reward. Presentation and event-bus consumers do not own a second save. `C.settings.get/set/onChange/resetToDefaults`, `applyPreset`, `override/clearOverrides` and scoped `policyFor/withPolicy` own saved/effective policy; overrides/battery/safe-mode are temporary. `onChange` returns cleanup. `settings:changed`, `settings:persisted {saved}`, settings open/close and `save:replaced` synchronize views.
 
@@ -67,7 +67,7 @@ Inventory also emits `inventory:selection {cardId}`, `inventory:modelChanged {sh
 
 Schema 2 stores `inventoryUi` preferences separately from owned instances: view/sort/group, Show Unowned, active collection, last/pending card focus, favorite IDs, named collections of card IDs, and per-collection customOrders. Schema 1 migration preserves ownership and pending reveals. Query/session state and presentation rectangles are never saved. New catalog entries append in projection; saved order arrays are not rewritten just for catalog growth. Card records explicitly provide `brand` and `type: 'gpu'` for generated facets.
 
-`C.events.declare/supports` describe available publishers; emitting also declares a name and notifies `events:available`. Listening alone does not activate a capability. Achievements and Journal subscribe independently; producers never call their APIs directly. `achievement:unlocked {id,tier,at,retro}`, backfilled/changed/resetting and `picker:chosen` retain their payloads/receipts. Current studio photo events activate their capability. `opening:introEnd` and `cutscene:beat` do not stand in for absent cutscene completion/skip publishers. See ACHIEVEMENTS and CINEMATICS for exact contracts.
+`C.events.declare/supports` describe available publishers; emitting also declares a name and notifies `events:available`. Listening alone does not activate a capability. Achievements subscribe independently; producers never call their APIs directly. `achievement:unlocked {id,tier,at,retro}`, backfilled/changed/resetting and `picker:chosen` retain their payloads/receipts. Current studio photo events activate their capability. `opening:introEnd` and `cutscene:beat` do not stand in for absent cutscene completion/skip publishers. See ACHIEVEMENTS and CINEMATICS for exact contracts.
 
 ## Conditional developer workspace
 
@@ -94,7 +94,7 @@ The catalog currently supports one `variantId` per instance, finish-stack favori
 **Add the market later:** register a screen, flip `config.flags.market`, and use the empty `#market-slot`. No core file needs to change; inventory instances already carry unique serials.
 **Add sound later:** add `src/core/audio.js` behind `config.flags.audio` and subscribe to the events in section 4.
 
-**Add an achievement or Journal producer:** extend the data/compact metric projection, publish its stable event/receipt and preserve optional state. Read ACHIEVEMENTS and the active Journal spec; do not mutate another consumer directly.
+**Add an achievement producer:** extend the data/compact metric projection, publish its stable event/receipt and preserve optional state. Read ACHIEVEMENTS; do not mutate another consumer directly.
 **Add a cutscene:** register the existing runtime factory and descriptor, with shared clock/disposal, seed, calm/mono/quality, handoff, retained-field/recovery and safety contracts in CINEMATICS. No private timer or new acquisition path.
 **Add native functionality:** use a named narrow preload method, channel, secure registrar and argument validation; retain browser behavior. Never expose delivery/build/shortcut/filesystem management to the renderer.
 
@@ -150,7 +150,7 @@ The Royal skin registers original crown, faceted mesh and woven-band renderers. 
 
 Data lives in data/picker-pack.js; slotRules.regularChance is exposed to the existing scheduler, preserving cadence and previous ordinary intervals. core/picker.js draws distinct IDs through the production probability table and per-option variant sampler, then applies the data guarantee. pendingReveal.options stores unminted results; choice is null until the durable decision creates one serial/instance in pendingReveal.cards. Optional guarantees and pickerChoice fields retain offer policy and provenance without a schema bump. state validation handles both unresolved and chosen shapes. Checksum imports/backups/Restore/Undo use the existing whole-save pipeline.
 
-The shared opening adds a generic buildPending request hook and unresolved-offer resume hook. picker-pack-skin, picker-pack-swap and picker-pack-opening register through the existing APIs; registry implementations and cinematic/finish files remain untouched. The central scheduler supplies wrapper/gesture/pick time. picker:chosen emits only after durable choice, carrying options, chosenIndex, chosenTier, lowestTierChosen and bestTierChosen. Existing Journal/Achievement consumers may subscribe without producer calls.
+The shared opening adds a generic buildPending request hook and unresolved-offer resume hook. picker-pack-skin, picker-pack-swap and picker-pack-opening register through the existing APIs; registry implementations and cinematic/finish files remain untouched. The central scheduler supplies wrapper/gesture/pick time. picker:chosen emits only after durable choice, carrying options, chosenIndex, chosenTier, lowestTierChosen and bestTierChosen. Existing achievement consumers may subscribe without producer calls.
 
 ## Packaging, delivery and acceptance
 
@@ -159,3 +159,13 @@ The shared opening adds a generic buildPending request hook and unresolved-offer
 `tools/deliver-desktop.cjs` owns isolated staging, source/artifact hashes, lock, manifests, atomic latest/last-good, stable preview/Latest Build link, rollback and exact owned cleanup. `dist/` is generated/ignored, not source or player data. Here `dist/desktop-qol-4.1.0/win-unpacked` deliberately keeps its original folder/file-origin while contents advance. Do not rename it for version cosmetics. A locked preview is pending handoff; never force-close it or switch origins. See DESKTOP-DELIVERY, BUILDING and RELEASING.
 
 Runtime reads CHANGELOG.md; CI validates matching `changelog/X.Y.Z.md`, app/config/lock version and tag. Preserve installer/blockmap/latest.yml pairs; local delivery never publishes or installs. Consult ROADMAP, STRUCTURE-AUDIT and archive index for separate implementation/ancestry/packaging/runtime evidence. Current restricted testing and continuation are in PROMPTING.
+
+## Unreleased 1.2.0 services
+
+`C.currency.applyInto(candidate, delta, reason)` is the single wallet writer. Production opening, picker refund, achievements, developer edits and replay unlock use it inside their existing persisted transaction. `wallet.log` stores newest-first `{at,delta,reason}` capped at 200; bounded optional `wallet.daily` totals preserve today when the log rolls over. Credit reasons are fixed; `pack opening` and `achievement reward` cover existing award sources in addition to the specified future-facing reasons. Direct add/spend and cutscene unlock use strict candidate commits before notifications. No new refund is introduced.
+
+`C.cardDeletion` applies tier/typed/protection/hold guards, strict exact-instance deletion and an in-memory ten-second Undo receipt. `card:deleted` / `card:restored` refresh live ownership projections without paying again or erasing earned receipts. `C.cutsceneUnlocks` atomically combines the wallet debit and optional `unlocks.cutscenes[tier]`. `cutscene:unlocked` publishes after persistence.
+
+Journal source, CSS, dev check and original spec live under `archive/card-history/`; no active module loads them. Studio editing history and achievement receipts remain active. The old reward flight is archived and replaced by the wallet feedback queue.
+
+The performance display uses the shared `fx:frame` event even inside a Studio/replay scope. Text sampling is 2 Hz; the five-second graph draws at most 30 Hz. Off/hidden/paused modes remove sampling and instrumentation. Advanced wrappers observe new timers, pending RAF callbacks and WebGL contexts from enable time; they cannot reconstruct previously created handles. Long-task observer, weak GL references and wrappers are released on disable. Reports carry that limitation, with the last thirty seconds of rendered-frame samples; sleeping time has no manufactured FPS. Hardware and the 0.3 ms target remain unmeasured under the owner no-profiling policy.

@@ -240,7 +240,7 @@
       if (reward.credits) {
         if (!integer(reward.credits) || !integer(save.currency + reward.credits)) throw new Error('Invalid achievement reward');
         if (rewardBefore === null) rewardBefore = save.currency;
-        save.currency += reward.credits;
+        C.currency.applyInto(save,reward.credits,'achievement reward');
       }
       // This catalog uses credits; a typed pack-grant API is not available in the baseline.
     },
@@ -253,7 +253,7 @@
   C.data.achievements.forEach(C.achievements.register);
   // The existing opening publisher always provides this geometry event.
   C.events.declare('cut:complete');
-  ['opening:committed', 'pack:opened', 'card:kept', 'save:exported', 'settings:persisted', 'pack:ready', 'inventory:preferencesChanged', 'studio:photo', 'achievement:visit'].forEach(subscribe);
+  ['opening:committed', 'pack:opened', 'card:kept', 'save:exported', 'settings:persisted', 'pack:ready', 'inventory:preferencesChanged', 'studio:photo', 'achievement:visit', 'card:deleted', 'card:restored'].forEach(subscribe);
   C.events.on('events:available', function (p) {
     if (initialized && C.data.achievements.some(function (def) { return def.requires === p.name; })) { C.achievements.init(); C.events.emit('achievement:changed'); }
   });

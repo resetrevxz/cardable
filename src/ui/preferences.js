@@ -103,6 +103,7 @@
       C.preferences.data = C.settingsData.create(groups.Data, { close: close, announce: announce });
       var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
       if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(groups.About, { close: close, announce: announce });
+      button('Unreleased 1.2.0 notes', groups.About, function () { close(); C.friendly.showChangelog(); });
       button('How to play', groups.About, function () { C.friendly.showHelp(); });
       if (C.native) button('Desktop help', groups.About, function () { C.friendly.showHelp('desktop'); });
       button('Credits and licenses', groups.About, function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });

@@ -20,7 +20,7 @@
     tool('counter', 'Counter', 'input', { get: function () { return counter; }, set: function (v) { counter = v; }, choices: function () { return Array.from(new Set(C.data.achievements.map(function (d) { return d.track.counter; }).filter(Boolean))).sort(); } });
     tool('amount', 'Counter value', 'input', { inputType: 'number', min: 0, get: function () { return amount; }, set: function (v) { if (!Number.isSafeInteger(Number(v)) || Number(v) < 0) throw new Error('Use a non-negative integer'); amount = Number(v); } });
     tool('set', 'Set counter', 'button', { run: function () { change('Achievement counter changed', function (engine) { engine.setCounter(counter, amount); }); } });
-    tool('toast', 'Replay unlock toast', 'button', { helper: 'Presentation only; no reward or Journal unlock event.', run: function () { C.achievementView.replayToast(selected); } });
+    tool('toast', 'Replay unlock toast', 'button', { helper: 'Presentation only; no reward or unlock event.', run: function () { C.achievementView.replayToast(selected); } });
     tool('check', 'Check achievements', 'button', { helper: 'One isolated, sub-second logic check. Never runs automatically.', run: function () { D.message(D.checkAchievements().message); } });
   });
   D.checkAchievements = function () {

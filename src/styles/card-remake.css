@@ -72,7 +72,3 @@
 .opening-delete:focus-visible { outline: 1px solid var(--highlight); outline-offset: var(--s-1); }
 .opening-delete:disabled, .opening-keep:disabled { opacity: .4; pointer-events: none; }
 [data-phase="discarding"] .opening-card-note { opacity: 0 !important; }
-.menu-shell #currency-counter.has-pack-reward { opacity: 1; }
-.pack-reward { position: fixed; inset: 0; z-index: var(--z-toast); pointer-events: none; }
-.pack-reward__receipt { position: absolute; padding: 9px 14px; color: var(--text); border: 1px solid var(--hairline-strong); border-radius: var(--r-chip); background: rgba(20,20,23,.92); font: 500 15px/1 var(--font-mono); box-shadow: var(--shadow-1); }
-.pack-reward__coin { position: absolute; width: 22px; height: 22px; display: grid; place-items: center; border: 1px solid #EEE; border-radius: 50%; background: linear-gradient(135deg,#FFF,#BFC0C5 52%,#65686E); box-shadow: inset 0 0 0 2px #8E9096,0 3px 9px rgba(0,0,0,.5); color: #292A2E; font: 600 12px var(--font-mono); }

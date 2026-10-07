@@ -65,7 +65,10 @@
     base.settings = C.settingsSchema.normalize(base.settings);
     base.stats = Object.assign({ packsOpened: 0 }, base.stats || {});
     base.inventoryUi = C.inventoryModel.normalize(base.inventoryUi);
-    if (value.journal !== undefined && C.journal) base.journal = C.journal.normalize(value.journal, base);
+    // Preserve inactive historical player data without mounting its consumers.
+    if (value.journal !== undefined) base.journal = value.journal;
+    base.wallet = C.currency.normalize(value.wallet);
+    base.unlocks = C.cutsceneUnlocks.normalize(value.unlocks);
     if (value.studio !== undefined && C.studioScenes) base.studio = C.studioScenes.normalize(value.studio);
     if (value.achievements !== undefined) base.achievements = C.achievements ? C.achievements.normalize(value.achievements) : value.achievements;
     return base;
@@ -98,7 +101,7 @@
     var candidate = migrate(value);
     require(typeof candidate.playerCode === 'string' && candidate.playerCode.length === C.config.serial.playerCodeLength &&
       Array.from(candidate.playerCode).every(function (c) { return C.serial.alphabet.indexOf(c) !== -1; }), 'Invalid player code');
-    require(number(candidate.createdAt) && integer(candidate.serialCounter) && number(candidate.currency), 'Invalid save counters');
+    require(number(candidate.createdAt) && integer(candidate.serialCounter) && integer(candidate.currency), 'Invalid save counters');
     require(candidate.stats && integer(candidate.stats.packsOpened), 'Invalid opening statistics');
     require(integer(candidate.packs.openedCount), 'Invalid pack opening count');
     require(candidate.packs.introSeen && typeof candidate.packs.introSeen === 'object' && !Array.isArray(candidate.packs.introSeen) &&

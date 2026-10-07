@@ -43,8 +43,7 @@
   }
   function skip() { if (active) advance('done'); }
   function reconcile() {
-    // Restore an unfinished cut lesson using the existing committed-wrapper replay.
-    // Presentation resets, while the exact pull, serials and stock stay reserved.
+    // Reload exposes the durable reserved card; presentation never reserves again.
     if (!active) return;
     if (C.state.current.pendingReveal && step === 'cut') {
       if (phase === 'revealed') advance('keep');

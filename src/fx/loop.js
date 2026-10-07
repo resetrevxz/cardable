@@ -51,7 +51,7 @@
         }
       });
       stats.frameCount += 1; stats.lastFrameMs = realDt; stats.jsMs = root.performance.now() - frameBegin;
-      if (!scopes.length) C.events.emit('fx:frame', { now: now, dt: dt, realDt: realDt, frameCount: stats.frameCount, targetFps: stats.targetFps, jsMs: stats.jsMs });
+      C.events.emit('fx:frame', { now: now, dt: dt, realDt: realDt, frameCount: stats.frameCount, targetFps: stats.targetFps, jsMs: stats.jsMs });
     } finally {
       // Even a failed telemetry callback must release the scheduler's frame lock.
       inFrame = false;

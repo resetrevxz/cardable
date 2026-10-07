@@ -206,3 +206,9 @@ Accent/theme colors, language, per-effect tuning, account or cloud sync, market 
 - Open key set to Enter works for the whole opening and Keep still works by click; setting it back works.
 - The panel is fully keyboard-operable, focus is trapped and restored, and there are no console errors.
 - All new regression checks print PASS in the dev console (defaults/validation, import checksum rejection, backup before reset, settings survive a reset).
+
+## Unreleased 1.2.0 Performance and wallet
+
+Performance > Performance overlay remembers Off/Simple/Advanced and the selected corner. F3 cycles the same setting; Very Low uses Simple only while preserving the saved Advanced choice for later quality. The former `showFps` preference migrates to Simple. Advanced sections collapse, the header drags, corner selection pins, and Copy report uses Clipboard API with the existing local fallback. Counts observed only since Advanced enable are labelled honestly.
+
+The wallet uses the fixed ledger reasons and capped optional state documented in ARCHITECTURE. Normal UI has restrained credit/action/gain colors; Cards > Color theme > monochrome also neutralizes the new components. Settings > About exposes the bundled Unreleased notes while version remains 1.1.0.

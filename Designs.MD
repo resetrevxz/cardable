@@ -58,7 +58,7 @@ Card face/back anatomy, rarity props, specs and permanent variants are governed 
 
 Shelf/Grid browsing uses static front-only thumbnails and local small art. Selecting promotes one full card; closing restores a fresh thumbnail and releases full bindings. Detail hides/dims the browsing scene instead of leaving many active materials behind it. A roughly 360 px information panel stacks on narrow layouts below 900 px. Content order emphasizes the collectible and meaningful provenance rather than repeating tier/serial/spec labels everywhere.
 
-Overview/History are quiet segments. Inspect is the primary detail action; Favorite, Flip and More remain compact but accessible. Metadata tags are neutral except approved pack identity, with the useful variant/pack/fresh tags before overflow. History describes actual events and never invents lost provenance. Multi-select or bulk actions require their own scope.
+The detail overview is a quiet single pane. Inspect is the primary detail action; Favorite, Flip and More remain compact but accessible. Metadata tags are neutral except approved pack identity, with the useful variant/pack/fresh tags before overflow. Multi-select or bulk actions require their own scope.
 
 Detail content uses the existing 40 ms stagger, 8 px rise and 250 ms settle when motion/animation quality allows. High alone adds the local 4 px blur when its glass policy allows; Medium keeps the rise without blur, and lower tiers favor opacity or static presentation. Segment/detail changes keep short readable transitions and respect reduced motion. [06-INVENTORY](docs/06-INVENTORY.md) owns layout, grouping, mount budgets and filters.
 

@@ -11,7 +11,9 @@
     fpsLimit: entry('FPS limit', 'Lower caps save power. Display refresh follows your screen.', 'Performance', 'display', ['display', '20', '30', '45', '60', '90', '120', '144', '165', '240'], 'select'),
     backgroundMode: entry('Hidden tab', 'Packs refill by real time in either mode.', 'Performance', 'sleep', ['sleep', 'timer'], 'select'),
     unfocusedMode: entry('Unfocused window', 'For a visible window while using another app.', 'Performance', 'normal', ['normal', '30', 'pause'], 'select'),
-    showFps: entry('Performance display', 'Animation FPS and frame time; sleeps with the game.', 'Performance', false),
+    performanceMode: entry('Performance overlay', 'F3 cycles Off, Simple and Advanced. Very Low uses Simple.', 'Performance', 'off', ['off','simple','advanced']),
+    performanceCorner: entry('Performance corner', 'Pin the Advanced panel; dragging stays local to this session.', 'Performance', 'bottom-left', ['bottom-left','bottom-right','top-left','top-right'], 'select'),
+    showFps: entry('', '', null, false),
     dots: entry('Dot grid', 'A quiet response to the pointer.', 'Motion and effects', 'on', ['on', 'subtle', 'off']),
     cursorGlow: entry('Cursor glow', 'The native cursor stays visible.', 'Motion and effects', true),
     idleFade: entry('Idle fade', 'Keep the small logo and pack metrics while idle.', 'Motion and effects', '15', ['2.5', '5', '15', '30', 'never']),
@@ -52,6 +54,7 @@
   C.settingsSchema = {
     entries: schema, graphicsKeys: Object.keys(graphics), tiers: tiers, version: 2, validate: valid,
     normalize: function (input) {
+      if (input && input.performanceMode === undefined && input.showFps) input = Object.assign({}, input, {performanceMode:'simple',showFps:false});
       input = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
       var source = Object.assign({}, input), result = { settingsVersion: 2 };
       if (source.motion === undefined) source.motion = source.reducedMotion === true ? 'on' : source.reducedMotion === false ? 'off' : 'auto';

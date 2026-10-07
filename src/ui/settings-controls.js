@@ -95,7 +95,7 @@
         destroy: function () { cancel(); bindings.forEach(function (stop) { stop(); }); bindings = []; },
         update: function (now, dt) {
           if (hold) {
-            fill = Math.max(0, Math.min(1, held ? (now - heldAt) / 3000 : fill - dt / 700)); button.style.setProperty('--confirm-progress', fill);
+            fill = Math.max(0, Math.min(1, held ? (now - heldAt) / (options.holdMs || 3000) : fill - dt / 700)); button.style.setProperty('--confirm-progress', fill);
             button.style.setProperty('--confirm-wave', C.motion.reduced ? '0px' : Math.sin(now / 140) * fill + 'px');
             if (held && Math.floor(fill * 4) > milestone) { milestone = Math.floor(fill * 4); if (milestone < 4) announce(milestone * 25 + ' percent.'); }
             if (fill >= 1 - 1e-9 && !fired && held) { fired = true; held = false; button.classList.add('is-confirmed'); action(); announce('Confirmed.'); }

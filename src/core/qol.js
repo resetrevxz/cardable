@@ -17,7 +17,7 @@
   function runtime(state) { nativeState=state;battery=state.onBattery;C.events.emit('desktop:visibility',state.visible);batteryPolicy();syncAwake(); }
   function preferences() { nativeCall(C.native.window.setPreferences({taskbarProgress:C.settings.get('taskbarProgress'),alwaysOnTop:C.settings.get('alwaysOnTop')})); }
   function command(action) { if(action.indexOf('scale-')===0){C.qol.adjustScale(action);return;}if(action==='inventory')C.inventory.request(true);else if(action==='settings')C.preferences.show();else if(action==='saves')nativeCall(C.native.storage.openSaveDir());else if(action==='open-pack'){root.requestAnimationFrame(function(){if(C.opening.phase==='idle'&&!root.document.hidden)C.input.chargeStart();});} }
-  C.keybindings = { entries:bindings, tooltip:function(key,label){var item=bindings.get(key);return label+(item?' · '+item.binding.replace('Mod',root.navigator.platform.indexOf('Mac')>=0?'Cmd':'Ctrl'):'');}, register:function(item){if(bindings.has(item.binding))throw new Error('Duplicate keybinding: '+item.binding);bindings.set(item.binding,item);return item;} };
+  C.keybindings = { entries:bindings, label:function(key){var item=bindings.get(key);return item?item.binding.replace('Mod',root.navigator.platform.indexOf('Mac')>=0?'Cmd':'Ctrl'):key;}, tooltip:function(key,label){var item=bindings.get(key);return label+(item?' · '+item.binding.replace('Mod',root.navigator.platform.indexOf('Mac')>=0?'Cmd':'Ctrl'):'');}, register:function(item){if(bindings.has(item.binding))throw new Error('Duplicate keybinding: '+item.binding);bindings.set(item.binding,item);return item;} };
   C.qol = {
     toast:toast,
     get fullscreen(){return !!nativeState&&nativeState.fullscreen;},

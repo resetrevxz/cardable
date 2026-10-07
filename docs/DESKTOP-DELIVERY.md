@@ -19,7 +19,7 @@ Milestone D consolidated documentation and evidence at 4.2.0. Public numbering n
    publishing disabled. Every build has a fresh owned staging directory. Previous
    unpacked binaries may remain open; their directory is never used for building.
 3. Validate version, source revision/fingerprint, required files (desktop bridge,
-   Mini, Card History, changelog/icons), every shipped source/asset hash and local
+   Mini, deletion/replay/performance, changelog/icons), every shipped source/asset hash and local
    HTML resources. Record installer/executable/ASAR size and SHA-256, all artifact
    hashes, Git dirty fingerprint, ownership, shortcut and pending cleanup.
 4. Promote only complete validated artifacts to `dist/delivery/builds/<buildId>`.

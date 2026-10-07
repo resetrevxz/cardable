@@ -28,7 +28,7 @@
   }
   function safeMenu() {
     return !root.document.hidden && C.opening.phase === 'idle' && !C.state.current.pendingReveal && !C.inventory.active && !C.preferences.open &&
-      !C.menu.afk && !C.tutorial.active && !C.contextMenu.open && !C.studio?.active && !C.journalView?.open && !(C.dev && (C.dev.immersive || C.dev.paletteOpen)) && !(C.achievementView && C.achievementView.open);
+      !C.menu.afk && !C.tutorial.active && !C.contextMenu.open && !C.studio?.active && !(C.dev && (C.dev.immersive || C.dev.paletteOpen)) && !(C.achievementView && C.achievementView.open);
   }
   function hide() {
     toast.classList.remove('is-visible'); dismissedAt = root.performance.now();
@@ -124,7 +124,7 @@
     C.events.on('inventory:context',function(p){if(!p.active&&opened)closePanel();});
     C.events.on('inventory:modelChanged',function(){if(opened)updateTab();});
     ['achievement:resetting','save:willReplace','save:willReset'].forEach(function(e){C.events.on(e,function(){returnFromCard=null;selected=null;closePanel();updateTab();});});
-    ['opening:context','preferences:context','journal:context','studio:context'].forEach(function(e){C.events.on(e,function(p){if(p.active)closePanel();});});
+    ['opening:context','preferences:context','studio:context'].forEach(function(e){C.events.on(e,function(p){if(p.active)closePanel();});});
     C.events.on('inventory:detailContext',function(p){if(!p.active&&returnFromCard){var id=returnFromCard;returnFromCard=null;openPanel(id);}});
     C.contextMenu.register({target:'empty',build:function(){return [{id:'achievements',type:'action',label:'Achievements',icon:'check',run:function(){openPanel();}}];}});
     C.achievementView.el=panel;updateTab();

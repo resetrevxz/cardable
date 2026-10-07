@@ -1,3 +1,12 @@
+## Unreleased (1.2.0)
+
+- Inventory stays mounted while inspecting; closing restores browsing state.
+- Tags expand on hover or focus and pin on click. Tutorial openings always use Standard Pack.
+- Wallet now shows credit changes, daily totals and a persistent ledger.
+- Delete a chosen copy with a tier-based hold, protection checks and a ten-second undo.
+- Unlock cutscene replay once per rarity tier with credits; later replays are free.
+- F3 cycles Simple and Advanced performance overlays; Settings remembers your choice.
+
 # Cardable 1.1.0 — Director Rework & Achievements
 
 - Add colored Achievements accents, tinted illustrations, difficulty borders and warm rewards, with a neutral fallback through the existing Color theme setting.

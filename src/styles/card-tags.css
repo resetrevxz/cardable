@@ -48,3 +48,10 @@
 .card-tags[data-tag-state] .card-tag { flex:0 1 auto; }
 .detail-chip-row .card-tags .cb-tag-text, .detail-chip-row > .card-tag .cb-tag-text { display:inline; }
 @media(pointer:coarse) { .cb-tag-toggle { min-height:44px; min-width:44px; } }
+
+.detail-chip-row > .card-tag .cb-tag-text { max-width:100px; }
+.detail-chip-row > .card-tag:hover .cb-tag-text,.detail-chip-row > .card-tag:focus .cb-tag-text { max-width:140px; }
+.detail-chip-row > .card-tag.cb-tag-pinned .cb-tag-text { max-width:180px; }
+
+.detail-chip-row > .cb-tag-toggle .cb-tag-text { display:none; }
+.detail-chip-row > .cb-tag-toggle:is(:hover,:focus-visible,.cb-tag-pinned) .cb-tag-text { display:inline; }

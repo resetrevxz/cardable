@@ -72,11 +72,11 @@
       serial:C.serial.format(candidate.playerCode,candidate.serialCounter),pulledAt:p.committedAt,seen:false,pickerChoice:{index:index,count:p.options.length}};
     p.choice=index;p.cards=[instance];
     var refund=p.options.reduce(function(n,r,i){return n+(i===index?0:Math.round(Math.max(0,pack.unpickedRefund||0)*(tier(r)+1)));},0);
-    candidate.currency+=refund;if(!Number.isSafeInteger(candidate.currency))throw new Error('Invalid refund balance');
+    C.currency.applyInto(candidate,refund,'reveal duplicate');if(!Number.isSafeInteger(candidate.currency))throw new Error('Invalid refund balance');
     return {instance:instance,refund:refund,options:p.options.map(function(r){return Object.assign({},r);}),chosenIndex:index,chosenTier:tier(option),
       lowestTierChosen:tier(option)===Math.min.apply(null,p.options.map(tier)),bestTierChosen:tier(option)===Math.max.apply(null,p.options.map(tier))};
   }
   C.picker={isChoicePack:isChoicePack,draw:draw,reserve:reserve,chooseInto:chooseInto,validatePending:validatePending,
-    choose:function(index){var candidate=JSON.parse(JSON.stringify(C.state.current)),event=chooseInto(candidate,index);C.state.validate(candidate,true);if(!C.state.commit(candidate))return null;C.events.emit('picker:chosen',event);if(event.refund)C.events.emit('currency:changed',{value:candidate.currency,amount:event.refund});return event;}};
+    choose:function(index){var candidate=JSON.parse(JSON.stringify(C.state.current)),event=chooseInto(candidate,index);C.state.validate(candidate,true);if(!C.state.commit(candidate))return null;C.events.emit('picker:chosen',event);if(event.refund)C.currency.notify(candidate.currency-event.refund,'reveal duplicate');return event;}};
   C.events.on('opening:resolve',function(request){if(isChoicePack(request.pack))request.buildPending=function(candidate,now){return reserve(request.pack,request.options,now);};});
 })(window.Cardable);

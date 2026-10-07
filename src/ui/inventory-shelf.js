@@ -29,10 +29,10 @@
       tile.newDot=node('span','inventory-new-dot',pose,'NEW'); tile.newDot.hidden=!entry.isNew;
       if (entry.instances.length>1) el.classList.add('has-stack');
       el.setAttribute('aria-label',this.label(entry));
-      el.addEventListener('click',function(event){ callbacks.activate(tile,event); });
+      el.addEventListener('click',function(event){if(!event.target.closest('.card-tag'))callbacks.activate(tile,event);});
       el.addEventListener('contextmenu',function(event){ event.preventDefault(); callbacks.context(tile,event); });
       el.addEventListener('pointerenter',function(){el.classList.add('is-hovered');}); el.addEventListener('pointerleave',function(){el.classList.remove('is-hovered');});
-      el.addEventListener('keydown',function(event){ if(event.key==='Enter' && !event.repeat){event.preventDefault();callbacks.activate(tile,event);} if(event.key==='ContextMenu'||event.key==='F10'&&event.shiftKey){event.preventDefault();callbacks.context(tile,event);} });
+      el.addEventListener('keydown',function(event){ if(event.target.closest('.card-tag'))return;if(event.key==='Delete'&&!event.repeat&&tile.entry.owned){event.preventDefault();event.stopPropagation();C.cardDeletionView.show(tile.entry);return;}if(event.key==='Enter' && !event.repeat){event.preventDefault();callbacks.activate(tile,event);} if(event.key==='ContextMenu'||event.key==='F10'&&event.shiftKey){event.preventDefault();callbacks.context(tile,event);} });
       return tile;
     },
     decorate:function(tile,entry){

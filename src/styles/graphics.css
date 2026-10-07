@@ -44,7 +44,7 @@
 [data-finish-quality="very-low"] :is(.card__finish,.card__prop,.card__variant) .card__material--lite { opacity: 1 !important; }
 :is([data-prop-quality="very-low"],[data-prop-quality="low"]) :is(.finish-prop,.finish-prop *,.card__back-mark,.card__back-mark *) { filter: none !important; }
 [data-prop-quality="very-low"] :is(.finish-tip-spark,.finish-exotic-shape,.finish-ascendant-splash,.crown-red-glow) { display: none; }
-[data-particle-quality="very-low"] :is(.finish-sparkle,.finish-tip-spark,.opening-particle,.pack-speck,.currency-flight,.pack-reward__coin,.finish-ascendant-splash) { display: none; }
+[data-particle-quality="very-low"] :is(.finish-sparkle,.finish-tip-spark,.opening-particle,.pack-speck,.finish-ascendant-splash) { display: none; }
 [data-animation-quality="very-low"] :is(.currency-receipt,.card-tag,.inventory-tile.is-acquired .inventory-tile-card,.card__serial-char,.card__meter-tick) { animation: none !important; }
 [data-animation-quality="very-low"] :is(.card__serial-char,.card__meter-tick[data-filled="true"]) { opacity: 1 !important; }
 [data-animation-quality="very-low"] .card__tilter { transform: none; }

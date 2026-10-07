@@ -41,6 +41,7 @@
         button('View card',function(){close();actions.detail(card.stackKey);},body);
         if(card.owned){button(ui.favorites.indexOf(card.stackKey)>=0?'Unfavorite':'Favorite',function(){C.inventoryModel.favorite(card.stackKey);close();},body);button('Add to collection…',function(){popover('membership',anchor,card);},body);
           if(ui.collections.some(function(c){return c.id===ui.activeCollectionId;}))button('Remove from this collection',function(){C.inventoryModel.membership(ui.activeCollectionId,card.stackKey,false);close();},body);
+          button('Delete a copy…',function(){close();C.cardDeletionView.show(card);},body);
           if(card.isNew)button('Mark as viewed',function(){C.collection.markSeen(card.stackKey,C.state.current.inventory);C.state.save();close();},body);
         }
         if(ui.sortMode==='custom'){button('Move earlier',function(){actions.move(card.stackKey,-1);close();},body);button('Move later',function(){actions.move(card.stackKey,1);close();},body);}else node('p','inventory-menu-caption',body,'Choose Custom sort to rearrange cards.');

@@ -12,7 +12,7 @@ Cardable turns GPU hardware into collectible cards. Charge a pack, tear its seal
 - Physical-feeling pack openings and rarity-specific cinematics.
 - Permanent cosmetic variants, sculpted frames and metallic card materials.
 - Standard, Rare, brand, Classic, Royal, Titan and three-offer Picker packs.
-- Shelf/Grid collection browsing, detailed History, achievements, Inspect and the expanded Director workspace.
+- Shelf/Grid collection browsing, card details, achievements, Inspect and the expanded Director workspace.
 - Four graphics tiers, independent FPS caps and quiet background behavior.
 
 <table><tr><td align="center"><img src="assets/cards/radeon-rx-7900-xtx.webp" width="230" alt="Radeon RX 7900 XTX artwork"><br><sub>Radeon RX 7900 XTX</sub></td><td align="center"><img src="assets/cards/geforce-rtx-4090.webp" width="230" alt="GeForce RTX 4090 artwork"><br><sub>GeForce RTX 4090</sub></td><td align="center"><img src="assets/cards/geforce-rtx-3090.webp" width="230" alt="GeForce RTX 3090 artwork"><br><sub>GeForce RTX 3090</sub></td></tr></table>
@@ -35,7 +35,7 @@ The complete source is available with **Code → Download ZIP** or a Git clone. 
 1. Packs refill over time, up to four stored packs.
 2. Hold the opening key for three seconds, then cut or tear the wrapper.
 3. Reveal the card and choose Keep or Delete after its presentation is ready.
-4. Browse your collection, inspect its details and follow its history.
+4. Browse your collection, inspect its details and collectible finishes.
 
 | Control | Action |
 |---|---|

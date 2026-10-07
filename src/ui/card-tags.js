@@ -46,7 +46,7 @@
       host.addEventListener('click',function(e){if(!e.target.closest('.cb-tag-toggle'))return;e.stopPropagation();host.dataset.tagPinned=host.dataset.tagPinned==='true'?'false':'true';state();host.querySelectorAll('.cb-tag-toggle').forEach(function(b){b.setAttribute('aria-expanded',host.dataset.tagPinned==='true');});});
       host.addEventListener('keydown',function(e){if(e.key==='Escape'&&host.dataset.tagPinned==='true'){e.preventDefault();e.stopPropagation();host.dataset.tagPinned='false';state();host.querySelectorAll('.cb-tag-toggle').forEach(function(b){b.setAttribute('aria-expanded','false');});}});
     }
-    if(host.dataset.tagSignature===signature)return;host.dataset.tagSignature=signature;host.classList.add('card-tags');host.setAttribute('role','list');host.setAttribute('aria-label','Card Tags');
+    if(host.dataset.tagSignature===signature)return;host.dataset.tagSignature=signature;host.classList.add('card-tags');host.setAttribute('role','group');host.setAttribute('aria-label','Card Tags');
     while(host.children.length)host.children[0].remove();
     tags.forEach(function(tag){var el=root.document.createElement('button');el.type='button';el.className='cb-tag-toggle card-tag card-tag--'+tag.kind;el.setAttribute('aria-expanded',host.dataset.tagPinned==='true');el.dataset.tagKind=tag.kind;el.setAttribute('aria-label',tag.label);el.title=tag.label;
       if(tag.kind==='pack') {

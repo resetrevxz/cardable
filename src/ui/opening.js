@@ -168,7 +168,7 @@
       candidate.packs.openedCount += 1;
       if (!Number.isSafeInteger(candidate.packs.openedCount)) throw new Error('Pack count exceeds its safe range');
       var before = candidate.currency;
-      candidate.currency += C.config.currency.packOpenReward;
+      C.currency.applyInto(candidate,C.config.currency.packOpenReward,'pack opening',now);
       if (!Number.isSafeInteger(candidate.currency)) throw new Error('Currency exceeds its safe range');
       candidate.pendingReveal = request.buildPending ? request.buildPending(candidate, now) : { packId: pack.id, cards: cards, committedAt: now, keptCount: 0 };
       C.events.emit('opening:prepareCommit', candidate);
@@ -178,7 +178,7 @@
       cancel('save-failed'); announce(error.textContent); return;
     }
     C.events.emit('opening:committed', { cards: candidate.pendingReveal.cards, options: request.options, pack: pack });
-    stats.commits += 1; fill = 1;
+    stats.commits += 1; fill = 1; C.currency.notify(before,'pack opening');
     C.events.emit('pack:reward', { before: before, value: candidate.currency, amount: C.config.currency.packOpenReward, source: host.getBoundingClientRect() });
     C.events.emit('pack:opened', { ready: candidate.packs.ready }); C.events.emit('charge:complete', candidate.pendingReveal);
     phaseTo('dissolving'); particles.emit('dissolve', null, width, height);
