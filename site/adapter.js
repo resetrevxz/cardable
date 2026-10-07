@@ -6,7 +6,7 @@
   var full=Object.freeze({finishHz:60,glareHz:30,reflection:3,prop:3,animation:3,ambient:false,animationHz:60,dotsHz:0,background:0,rippleLimit:0,particles:.5,blur:1,layers:10,shadows:3,trail:false,dpr:1.5});
   var low=Object.freeze(Object.assign({},full,{finishHz:0,prop:1,particles:0})),current=full;
   C.settings={get:function(key){return key==='rarityColor'?'color':key==='serialOnFront'?true:key==='cinematicQuality'?'medium':'high';},
-    get policy(){return current;},tiltPolicy:{cap:4,stiffness:1},onChange:function(){return function(){};},
+    get policy(){return current;},cutPolicy:{smoothing:1,tolerance:1,span:.72},tiltPolicy:{cap:4,stiffness:1},onChange:function(){return function(){};},
     withPolicy:function(tier,fn){var before=current;current=tier==='low'||tier==='very-low'?low:full;try{return fn();}finally{current=before;}},policyFor:function(){return full;}};
   C.viewport={parent:function(el){return el;}};C.presentation.gallery=true;
   C.cutscenes={debug:{profile:'safe',meter:false},register:function(){},profile:function(){return 'safe';},mode:function(){return 'full';},timeline:function(spec){var at=0,sections={};spec.sections.forEach(function(s){sections[s.id]={start:at,ms:s.ms};at+=s.ms;});return {sections:sections,total:at};}};

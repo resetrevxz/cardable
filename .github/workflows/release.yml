@@ -74,7 +74,9 @@ jobs:
           $assets = @("dist/Cardable-Setup-$version.exe", "dist/Cardable-Setup-$version.exe.blockmap", "dist/Cardable-$version-Windows-x64.zip", 'dist/latest.yml', 'dist/SHA256SUMS.txt')
           gh release view $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -eq 0) { Write-Output 'Release already exists; preserving its assets.'; exit 0 }
-          gh release create $env:GITHUB_REF_NAME @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title "Cardable v$version" --notes-file "changelog/$version.md" --latest
+          $releaseTitle = (Get-Content "changelog/$version.md" -TotalCount 1).TrimStart([char[]]'# ')
+          if (-not $releaseTitle.StartsWith("Cardable v$version")) { throw 'Release note heading must match the package version.' }
+          gh release create $env:GITHUB_REF_NAME @assets --repo $env:GITHUB_REPOSITORY --verify-tag --title $releaseTitle --notes-file "changelog/$version.md" --latest
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Deploy the website for the published release
         shell: pwsh

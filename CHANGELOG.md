@@ -1,3 +1,10 @@
+# Cardable 1.1.0 — Director Rework
+
+- Publish the Director A–E features already integrated on main: scene authoring, preset libraries, editable animation, camera paths, grading/refinement and expanded Deliver/Album tools. Final F/export/accessibility acceptance remains pending.
+- Turn the public gallery into a continuous reversible scroll journey with actual pack/card/material/rarity presentation and working catalog/Record controls.
+- Add dedicated Download, Collection, Worlds and Game pages, honest installation/update/backup guidance, keyboard access and calm/static fallbacks.
+- Preserve root and legacy website index.html, game/test sources, app identity and saves. Exclude the incomplete 1.0.3 branch. Current builds remain unsigned.
+
 # Cardable 1.0.1 — Cinematic public website
 
 - Rebuild the download page as nine authored scenes using actual card, pack, finish and cinematic renderers.

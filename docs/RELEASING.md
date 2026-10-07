@@ -11,6 +11,8 @@ Public versions start at **v1.0.0** after the 4.x development series. The owner 
 5. Inspect Actions until source, Windows and the release-dispatched Pages workflows complete. A main push keeps the last good website until its matching versioned installer and ZIP are published. Report failures; a pushed tag is not a completed release.
 6. Verify published installer, full-folder ZIP, matching blockmap/latest.yml and SHA256SUMS.txt. Open the live website and verify download links. Report public URLs and local Latest Build shortcut.
 
+The release title comes from the matching changelog/X.Y.Z.md heading, beginning with Cardable vX.Y.Z; v1.1.0 is Director Rework.
+
 CI builds locked Windows x64 packages, validates data/version/updater metadata, hashes every ZIP entry against the complete Electron folder, generates checksums and publishes. Existing releases/assets are preserved. User instructions to skip publication or stop at a draft take precedence.
 
 ## Assets

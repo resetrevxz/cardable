@@ -1,6 +1,6 @@
 # AGENTS.md — current Cardable working guide
 
-Cardable's current public version is **1.0.1**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
+Cardable's current public version is **1.1.0**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
 
 ## Read only what the task needs
 
@@ -42,7 +42,9 @@ The primary checkout stays at `D:/CardableV2/cardable-spec/cardable`. The outer 
 
 ## Verification and completion
 
-The current owner policy forbids old suites, new test files, game screenshots, recordings and profiling. The owner explicitly approved a narrow **website screenshot exception** for the stage-24 public website: rendered website product previews and website review screenshots only. This does not authorize game captures or profiling. Do not run package test scripts or archived harnesses without a new authorization changing that policy. When relevant game logic changes, use the existing `Cardable.dev.checkQol()` manually once at the end of the last authorized milestone; otherwise one app session/feature and console check is permitted. For documentation/organization changes, use reference, hash, Git-state and build validation. Report the actual evidence and its limits.
+The current owner policy forbids old suites, new test files, game screenshots, recordings and profiling. The owner explicitly approved a narrow **website screenshot exception** for public website implementation and review (originally stage 24): rendered website product previews and website review screenshots only. This does not authorize game captures or profiling. Do not run package test scripts or archived harnesses without a new authorization changing that policy. When relevant game logic changes, use the existing `Cardable.dev.checkQol()` manually once at the end of the last authorized milestone; otherwise one app session/feature and console check is permitted. For documentation/organization changes, use reference, hash, Git-state and build validation. Report the actual evidence and its limits.
+
+The current website template is site/home.html; tools/build-site.cjs writes the public index.html and four route entries into dist/site. Preserve the original root game index.html and legacy site/index.html when integrating this website work. Never copy game or test changes from the website worktree.
 
 For website work, read the complete authorized brief, inspect real assets, run `npm run site:build`, and review composition, forward/reverse motion and controls, then mobile/tablet and fallback rendering. Use website screenshots only; record the ten design scores and actual evidence in [WEBSITE-REVIEW](docs/WEBSITE-REVIEW.md). A generated script-free document and generated adapter overrides may inspect fallback presentation without creating test files or changing browser preferences; describe that method honestly. Verify the live page, installer/ZIP responses and Actions after release.
 
