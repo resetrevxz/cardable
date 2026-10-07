@@ -21,3 +21,13 @@ Implementation: D:/CardableV2/fixes-and-visuals, update/fixes-and-visuals, based
 ## Desktop and publication
 
 The first desktop command stopped during source preflight because a clean worktree has no optional root vendor directory (the website vendors are tracked under site/vendor). Source enumeration now tolerates that absent optional directory; mandatory source/resource verification stays intact. No build or promotion occurred in that failed preflight. Desktop delivery and release results follow after the completed build.
+
+
+### Completed local build
+
+- Ready build: 2026-10-07T12-30-11.333Z-2724f279fb60, source revision d5fa5c8 (documentation receipts follow; packaged source is unchanged).
+- Installer: D:/CardableV2/cardable-spec/cardable/dist/delivery/builds/2026-10-07T12-30-11.333Z-2724f279fb60/Cardable-Setup-1.2.0.exe
+- Installer SHA256: ca4c4aa4c5e2a06f508702f2368f58f215fd553bc3f436c04bfb552b740eb26a
+- Stable shortcut: C:/Users/reset/OneDrive/Desktop/Cardable (Latest Build).lnk. The existing executable/app.asar entry location remains D:/CardableV2/cardable-spec/cardable/dist/desktop-qol-4.1.0/win-unpacked.
+- Owned superseded build and rollback preview were removed after successful promotion. Pre-manifest legacy outputs/links remain deferred for review; no broad cleanup, automatic installation or launch occurred.
+- Clean public release checkout: D:/CardableV2/archive/releases/fixes-and-visuals-1.2.0. Release target: https://github.com/resetrevxz/cardable/releases/tag/v1.2.0. Publication and Pages outcome are confirmed separately in the final completion report after Actions finishes.
