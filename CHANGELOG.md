@@ -1,3 +1,12 @@
+# Cardable 1.0.3 — Sovereign Silicon & The Patch Notes Remake
+
+- Rebuild the Patch Notes system into a modern Apple- and Vercel-inspired inventory-style interface with rich media, card showcases, and real-time hover/click inspection.
+- Add an interactive balance tuning engine featuring expandable fluid accordions, color-coded stat diffs, and relative comparison meters.
+- Mount a dedicated Patch Notes button directly adjacent to the Credits counter on the top-right HUD and beside Credits in Settings.
+- Add an Interactive Mode playground allowing real-time 3D card tilt, specular lighting reaction, and balance simulation.
+- Introduce search across all release logs and card specs, sorting filters, view more toggles, and offline-safe markdown sharing.
+- Formalize patch notes authoring standards in AGENTS.md for all future releases.
+
 # Cardable 1.0.1 — Cinematic public website
 
 - Rebuild the download page as nine authored scenes using actual card, pack, finish and cinematic renderers.

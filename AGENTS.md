@@ -52,6 +52,23 @@ At the end of every completed implementation or approved documentation prompt, r
 
 Local delivery does not install, launch, elevate or force-close Cardable. Preserve the last good delivery if replacement fails or is locked. Do not add watchers/cron. The owner separately authorized public GitHub publication and a release after every completed update, as described below.
 
+## Patch notes after every update
+
+Every completed release, feature, balance, or content update must author structured patch notes using Cardable's interactive Patch Notes format. Do not rely on plain unformatted markdown or skip patch notes generation.
+
+1. **Registry synchronization**: Add a new release entry to `src/data/patch-notes.js` at the top of `C.data.patchNotes`. Every entry must contain:
+   - `version`: The exact semver version string matching `package.json` (e.g. `'1.0.3'`).
+   - `codename`: Release codename (e.g. `'Sovereign Silicon & Vanguard'`).
+   - `date`: Release date (e.g. `'October 7, 2026'`).
+   - `tag`: `'Major'`, `'Feature'`, or `'Patch'`.
+   - `tagline`: Concise summary of what changed.
+   - `hero`: Title, subtitle, badge, and media banner descriptor (`silicon-circuit`, `website-preview`, etc.).
+   - `showcase`: Array of featured inventory-like cards/crates (item ID, name, subtitle, rarity, variantId, badge, icon, specs object with VRAM, clock, TDP, bus, cores, and description) for new cards, variants, or featured mechanics.
+   - `balanceChanges`: Array of categorized balance groups with category title, subtitle, icon, and stat diff rows (`stat`, `entity`, `from`, `to`, `diff`, `percent`, `type`: `'buff'` | `'nerf'` | `'rework'`, `note`).
+   - `sections`: Categorized bulleted lists for `features`, `systems`, `visuals`, `qol`, and `fixes`.
+2. **Dual changelog maintenance**: In lockstep with `src/data/patch-notes.js`, update `CHANGELOG.md` with the authored release notes and create `changelog/<version>.md` (required by `tools/validate-release.cjs`).
+3. **Showcase and interactive rules**: Preserve the inventory card presentation with true rarity halos, hover inspection, click inspection, and interactive mode support. If a change includes long lists of cards or balance tiers, provide 'View More' thresholds so scannability is maintained.
+
 ## Release every completed update
 
 - This is a completion workflow, not a scheduled automation. After each completed code/content/design/documentation update, release it to the existing public repository unless the user explicitly says to skip publishing, keep it local, or stop at a draft. Read-only questions and internal steps do not release.

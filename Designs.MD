@@ -102,6 +102,8 @@ Settings dims/shades the scene and uses a focused preview governed by the select
 
 Welcome/Help should get a player to opening and recovery without a terminal. Updater status is quiet and specific; display actionable errors and keep saves safe on quit. Development UI is opt-in through the existing development route and stays absent from normal play. Preview/replay tools must not mint real rewards.
 
+Patch notes adopt an Apple- and Vercel-inspired glassmorphism presentation: near-black frosted surfaces, inventory-style showcase cards with rarity halos and hover/click inspect, fluid accordion balance changes with stat comparison meters, real-time search/sorting, and an optional interactive 3D playground mode. Quick access lives beside Credits on the main HUD and in Settings → About.
+
 ## Acceptance and future changes
 
 The public download page in `site/` uses the same monochrome typography and restraint, as nine authored scenes: arrival, pack ritual, reveal, real finishes, interactive demo collection, serial archive, four complete Safe rarity cutscenes with play/pause/restart, installation and finale. Actual game renderers and generated product posters carry the story; graphics tiers are a short installation disclosure. It is a separate static website; build it with `site:build`. Illustrations must be identified honestly, download links must derive from release versions, and essential content must work without animation or JavaScript. Keep development commands out of the player installation flow.

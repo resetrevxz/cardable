@@ -106,6 +106,7 @@
       button('How to play', groups.About, function () { C.friendly.showHelp(); });
       if (C.native) button('Desktop help', groups.About, function () { C.friendly.showHelp('desktop'); });
       button('Credits and licenses', groups.About, function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
+      button('Patch notes', groups.About, function () { close(); if (C.patchNotes) C.patchNotes.open(); });
       credits = node('section', 'settings-credits glass', panel); credits.hidden = true; credits.setAttribute('role', 'dialog'); credits.setAttribute('aria-modal', 'true'); credits.setAttribute('aria-label', 'Credits and licenses');
       node('h2', '', credits, 'Credits and licenses'); node('p', '', credits, 'Inter — Rasmus Andersson. JetBrains Mono — JetBrains. Both fonts use the SIL Open Font License 1.1.');
       node('p', '', credits, 'Local font files are optional. System UI and monospace fallbacks keep the game readable.');

@@ -18,6 +18,7 @@
   C.menu.init();
   C.packView.init();
   C.currencyView.init();
+  if (C.patchNotes) C.patchNotes.init();
   C.inventoryHint.init();
   C.opening.init();
   C.inventory.init();
