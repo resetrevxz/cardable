@@ -9,7 +9,7 @@ B: completed the Simple/Pro workspace expansion on the existing renderer. Simple
 C: completed the authored six-kind catalog (24 styles / 12 rigs / 13 moves / 10 looks / 8 prop sets / 9 animations), per-preset card-aware rules and raw-art brightness adaptation, visible real-renderer thumbnails, searchable/tagged/favorite/recent/similar browser with seeded Surprise/Remix, canonical user preset library and import/export/native text-copy, and the 168-cell dev reference gallery. Simple stays a compact style carousel with four shot buttons; Pro exposes editable preset channels. All applications use one undoable kind-aware path with Replace/Add and lock/owned-instance guards.
 
 Remaining milestones:
-- D: complete typed channel playback/editor, tracks, keyframes, easing/graph editor, motion paths, shot management/transitions and titles. C adds the bounded channels required for its presets and three-shot Beauty Pass metadata; full D tooling remains unfinished.
+- D: implementation complete in this run; grouped property timeline, key/selection/timing tools, easing/Bezier graph, editable world/screen paths, multiple cameras/shots/transitions, focus/handheld/dolly helpers, and eight timed title presets. Runtime acceptance remains bounded by the camera-walkthrough timeout recorded below.
 - E: advanced grading/Look controls, hardware-gated Very High renderer, larger progressive render stills, native image/file/folder bridge, clips/image sequences and album upgrades. Look/Deliver pages currently reuse existing controls; Very High remains reserved and dimmed with A's future-global hook.
 - F: final polish/accessibility and complete bug pass. The same manually invoked checkStudio2 is extended in B; do not add another check file or function.
 
@@ -27,3 +27,11 @@ Testing: one file:// studio session passed with no console errors; checkStudio2 
 The one required local desktop delivery attempt stopped before building because @electron/asar is absent in the isolated worktree; the previous installer and Cardable (Latest Build) shortcut remain intact. Desktop packaging, cleanup and handoff remain pending.
 
 Gallery: open main index.html with ?dev=1&gallery=presets, then Inspect an owned card. The legacy developer gallery no longer disables inventory/detail for this studio route. First-entry automatic activation is source-reviewed; manual gallery entry was exercised in the single session.
+
+D (2026-10-07): implemented the animation expansion on update/director-mode-2-d and integrated owned sources through the main index.html lazy entry. Continue the existing 1.0.0 hold; do not renumber the folder or release/tag this update. Old scene/photo parsing and the save schema remain compatible. E and F remain unfinished.
+
+Testing D: one file:// studio entry confirmed keys, graph handles, editable paths and custom titles with no console errors before a browser-control timeout; checkStudio2 ran exactly once, 37 assertions passed in 19 ms; no old suites, test files, screenshots, recordings or profiling. No second studio entry or check rerun followed the final source-review corrections. Shot compositor pixels, playback, exit cleanup, native clipboard and output files remain runtime-unverified.
+
+D assumptions: world-space group deltas; normalized screen-space title paths; nine-waypoint conversion retains conflicting camera channels disabled; overshooting easing styles retain their authored character while light playback obeys the profile/speed guards. Scalar camera focus distance supplements the existing focus point. Six existing variant ports remain unchanged. See docs/studio-audit.md for D01-D10, implementation details and precise acceptance limits.
+
+D desktop delivery was attempted once and stopped before building because @electron/asar is absent. No previous installer/shortcut was replaced; desktop packaging/cleanup/handoff remains pending.

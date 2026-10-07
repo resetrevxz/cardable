@@ -399,3 +399,35 @@ body.studio-album-active > :not(.studio-album),body.studio-album-active > :not(.
 .studio-preset-form{flex-shrink:0;order:2}.studio-preset-form label{display:flex;align-items:center;gap:12px;flex:1;min-width:200px}.studio-preset-confirm{order:3;flex-shrink:0}.studio-preset-gallery>.studio-copy{margin:0}.studio-preset-gallery-grid{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:8px;overflow:auto;min-height:0;align-content:start;padding:3px}.studio-gallery-style{grid-column:1/-1;margin:18px 0 0;font-size:11px}.studio-preset-gallery-grid .studio-preset-tile{padding:6px;display:grid;gap:6px}.studio-preset-gallery-grid .studio-preset-tile strong{font-size:10px;line-height:1.5}.studio-style-browse{flex:none;font-size:10px;min-height:36px;padding:8px 10px}
 @media(max-width:780px){.studio-preset-browser{inset:60px 8px 8px;padding:14px;gap:12px}.studio-preset-heading h2{font-size:21px}.studio-preset-browser-tools{max-height:40%;overflow:auto;flex-shrink:0}.studio-preset-browser-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}.studio-preset-kinds .studio-button{font-size:10px;padding:8px}.studio-preset-filters .studio-select{flex:1;min-width:120px}.studio-preset-gallery-grid{grid-template-columns:repeat(7,140px)}.studio-preset-form label{flex-wrap:wrap;gap:6px}.studio-style-browse{font-size:9px;padding:8px}}
 @media(pointer:coarse){.studio-preset-browser .studio-button,.studio-preset-browser .studio-select{min-height:44px}}
+.studio-title-canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:2}
+.studio-2 .director2-dock{overflow:hidden;max-height:310px;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:7px;padding:10px 14px}
+.director2-tools{display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid var(--hairline);padding-top:7px}
+.director2-tools .studio-button{min-height:30px;padding:5px 9px;font-size:10px}
+.director2-tools [aria-pressed=true]{background:#ffffff18;border-color:#ffffff3b;color:var(--text)}
+.director2-dock .director-play-options .studio-field{display:flex;align-items:center;gap:5px;margin:0;font-size:9px}
+.director2-dock .director-play-options select{width:auto;min-height:30px;padding:4px 6px;font-size:10px}
+.director2-scroll{overflow:auto;min-height:70px;max-height:180px;scrollbar-width:thin;overscroll-behavior:contain}
+.director2-content{position:relative;min-width:600px;padding-right:12px}
+.director2-dock .director-track{min-height:30px;grid-template-columns:170px minmax(0,1fr);gap:10px;padding-right:12px}
+.director2-dock .director-track-label{position:sticky;left:0;z-index:3;background:var(--surface);font:10px var(--font-mono);text-overflow:ellipsis;white-space:nowrap}
+.director2-dock .director-track-label .studio-button{margin-left:auto;min-height:24px;padding:2px 4px;border:0;background:none}
+.director2-dock .director-track-rail{min-height:30px;touch-action:none}
+.director2-dock .director-key{top:50%;height:24px;width:24px;min-height:24px;padding:0;transform:translate(-50%,-50%);touch-action:none}
+.director2-dock .director-key[aria-pressed=true] .director-diamond{background:var(--text);border-color:var(--text);box-shadow:0 0 8px #ffffff40}
+.director2-playhead{position:absolute;top:0;bottom:0;width:1px;background:#f0f0f4;pointer-events:none;z-index:4}
+.director2-ruler{height:36px}.director2-tick{position:absolute;top:2px;font:9px var(--font-mono);color:var(--text-dim);pointer-events:none;transform:translateX(-50%)}
+.director2-dock .director-scrub{position:absolute;inset:0;width:100%;opacity:.1;margin:0;z-index:5}
+.director2-workarea{position:absolute;inset-block:0;background:#ffffff0b;border-inline:1px solid #ffffff30;pointer-events:none}
+.director2-marker,.director2-shot{position:absolute;top:3px;min-height:24px;height:24px;border:1px solid #ffffff28;border-radius:4px;background:var(--surface-elevated,var(--surface));color:var(--text-dim);padding:3px 6px;font:9px var(--font-mono);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:160px}
+.director2-marker{border-left:3px solid var(--marker-color);max-width:110px}.director2-shot{max-width:none}.director2-shot[aria-pressed=true]{background:#ffffff18;color:var(--text)}
+.director2-group{display:flex;align-items:center;gap:12px;min-height:28px;background:#ffffff04;border-top:1px solid #ffffff0a}
+.director2-group>.studio-button{min-height:28px;min-width:170px;text-align:left;border:0;background:none;padding:4px 8px;font-size:10px;font-weight:600}
+.director2-group-empty{font-size:9px;color:var(--text-dim)}.director2-legacy{display:flex;gap:12px;align-items:center;font-size:10px;padding:6px}
+.director2-selection{position:absolute;z-index:6;background:#ffffff15;border:1px solid #ffffff70;pointer-events:none}
+.director2-graph{min-height:150px;padding:8px 16px 8px 180px;background:#ffffff03}.director2-graph svg{width:100%;height:150px;overflow:visible;touch-action:none}
+.director2-curve{fill:none;stroke:var(--text);stroke-width:1.5}.director2-graph-key{fill:var(--text);cursor:pointer}.director2-curve-handle{fill:var(--surface);stroke:var(--text);stroke-width:1.5;cursor:grab;pointer-events:all;touch-action:none}.director2-handle-line{stroke:#ffffff55;stroke-dasharray:3 3}
+.studio-motion-path{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:hidden}.studio-motion-path-line{fill:none;stroke:#ffffff85;stroke-width:1.5;stroke-dasharray:5 4}.studio-path-waypoint{fill:var(--surface);stroke:var(--text);stroke-width:1.5;pointer-events:all;cursor:move;touch-action:none}
+.studio-path-waypoint:focus-visible,.director2-curve-handle:focus-visible,.director2-graph-key:focus-visible{stroke-width:3;outline:none}
+.director-section textarea{resize:vertical;min-height:60px;width:100%;font:11px var(--font-ui);color:var(--text);background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:8px}
+@media(max-width:780px){.studio-2 .director2-dock{max-height:230px;padding:8px}.director2-dock .director-transport{gap:6px;flex-wrap:wrap}.director2-dock .director-timeline-identity{display:none}.director2-dock .director-play-options{margin:0}.director2-scroll{max-height:100px}.director2-tools .studio-button{min-height:32px;padding:4px 7px}.director2-tools{gap:3px}}
+@media(max-height:680px){.studio-2 .director2-dock{max-height:205px}.director2-scroll{max-height:90px}}
