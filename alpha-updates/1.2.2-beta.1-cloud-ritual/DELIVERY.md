@@ -21,3 +21,12 @@ This does not certify aesthetic quality from screenshots, photosensitivity, phys
 Owned worktree: D:/CardableV2/crystal-scenes-polish on update/crystal-scenes-polish, based on published 1.2.1 commit 7a67ee9. Primary achievements commit, unrelated deletions and incoming specs remain excluded. This pass is expressly unpublished: no push, tag, release helper, Pages build/deploy or modification to published 1.2.1. Public README/PLAY download links remain on released 1.2.1; local package/renderer/lock metadata and both changelog consumers identify 1.2.2-beta.1.
 
 The required desktop delivery uses the primary’s verified Latest Build preview binding and preserves its storage origin. Installer/shortcut/build identity and cleanup outcome will be appended after the one mandatory delivery. The command does not install, launch, kill or publish the game.
+
+## Completed local handoff
+
+- Status: ready; build ID 2026-10-07T18-18-48.390Z-c8205ebe644e; packaged source revision 5f086c6.
+- Installer: D:/CardableV2/cardable-spec/cardable/dist/delivery/builds/2026-10-07T18-18-48.390Z-c8205ebe644e/Cardable-Setup-1.2.2-beta.1.exe
+- Installer SHA256: d4d068245e3c972224a29ee8d7676fe44070f8c4b2f97a8edb9151ac668ca7ff
+- Stable shortcut: C:/Users/reset/OneDrive/Desktop/Cardable (Latest Build).lnk, retaining the same verified dist/desktop-qol-4.1.0/win-unpacked preview and ASAR entry origin.
+- The superseded manifest-owned build (2026-10-07T18-16-52.962Z-f10ed5c1412f) and transaction rollback preview were removed after successful replacement. Legacy pre-manifest outputs/links remain retained for review. No broad cleanup, installation, launch or force termination.
+- No push, tag, GitHub release, Pages publication or release-link modification performed. This branch/local preview remains unpublished.
