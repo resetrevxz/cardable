@@ -1,5 +1,6 @@
-# Cardable 1.1.0 — Director Rework
+# Cardable 1.1.0 — Director Rework & Achievements
 
+- Local Achievements rework: three deterministic weekly goals with manual credit claims, twenty recurring goals with evolving borders, preserved single-objective one-time awards, pinning and a new illustrated inventory workspace. Version held at 1.1.0; this follow-up is not published to GitHub.
 - Publish the Director A–E features already integrated on main: scene authoring, preset libraries, editable animation, camera paths, grading/refinement and expanded Deliver/Album tools. Final F/export/accessibility acceptance remains pending.
 - Turn the public gallery into a continuous reversible scroll journey with actual pack/card/material/rarity presentation and working catalog/Record controls.
 - Add dedicated Download, Collection, Worlds and Game pages, honest installation/update/backup guidance, keyboard access and calm/static fallbacks.

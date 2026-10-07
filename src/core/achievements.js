@@ -27,6 +27,7 @@
     });
     if (value.seeded !== undefined) require(Array.isArray(value.seeded) && value.seeded.every(function (id) { return typeof id === 'string'; }));
     if (value.catalogRevision !== undefined) require(integer(value.catalogRevision));
+    C.achievementBoard.validate(value.board);
     if (value.history !== undefined) {
       var h = value.history; require(h && typeof h === 'object' && !Array.isArray(h));
       ['packTypes', 'studioProps', 'studioCards', 'lightColors'].forEach(function (key) { if (h[key] !== undefined) require(Array.isArray(h[key]) && h[key].every(function (v) { return typeof v === 'string'; })); });
@@ -40,6 +41,7 @@
     var definitions = new Map(), counterIndex = new Map(), eventIndex = new Map(), derivedIndex = new Map();
     var queue = [], draining = false, instances = new Set(), designs = new Set(), eventInstances = new Map();
     var firstDates = {}, savedSettings = {}, projection = adapter.projection;
+    var board = adapter.board ? C.achievementBoard.create(adapter) : null, secondsSinceSave = 0;
     function save() { return adapter.current(); }
     function data() { return save().achievements; }
     function active(def) { return !def.requires || !!(adapter.available && adapter.available(def.requires)); }
@@ -51,14 +53,16 @@
       return Math.max(0, Number(def.track.derive(save())) || 0);
     }
     function progress(id) {
+      var scheduled = board && board.progress(id); if (scheduled) return scheduled;
       var def = definitions.get(id); if (!def || !active(def)) return null;
-      var tier = data().unlocked[id]?.tier || 0;
+      var tier = Math.min(data().unlocked[id]?.tier || 0, def.tiers.length);
       return { value: value(def), goal: def.tiers[Math.min(tier, def.tiers.length - 1)].goal, tier: tier, maxTier: def.tiers.length };
     }
     function drain() {
       if (draining) return; draining = true;
       try { while (queue.length) adapter.emit('achievement:unlocked', queue.shift()); }
       finally { draining = false; }
+      if (board) board.drain();
     }
     function unlock(def, tier, retro, at, trigger) {
       var entry = data().unlocked[def.id] || { tier: 0, at: {}, retro: !!retro };
@@ -127,6 +131,7 @@
       });
       data().seeded = Array.from(seeded);
       if (adapter.catalogRevision !== undefined) data().catalogRevision = adapter.catalogRevision;
+      if (board) board.init();
       if (added.length || missing) {
         total = evaluate(added, true);
         var summaryCount = new Set(queue.map(function (p) { return p.id; })).size;
@@ -134,16 +139,22 @@
         adapter.persist(); drain();
         if (total) adapter.emit('achievement:backfilled', { count: summaryCount });
       }
+      if (board) { adapter.persist(); drain(); }
       return total;
     }
     function handle(name, payload) {
       if (!data()) init();
       var affected = [], changed = false;
+      if (board) changed = board.refresh();
       function set(key, next) { if (!integer(next)) return; if (count(key) !== next) { data().counters[key] = next; affected = affected.concat(counterIndex.get(key) || []); changed = true; } }
       // Only the compact projections touched by this event are updated; inventory is scanned at load only.
       if (projection) { var values = projection.handle(name, payload, save(), adapter.now()); Object.keys(values).forEach(function (key) { set(key, values[key]); }); }
       if (name === 'pack:opened' || name === 'opening:committed') set('packsOpened', Math.max(count('packsOpened'), save().stats?.packsOpened || 0, save().packs?.openedCount || 0));
-      if (name === 'card:kept' && payload && !instances.has(payload.instanceId)) {
+      var keptReceipts = eventInstances.get('recurring-kept') || new Set();
+      if (name === 'card:kept' && payload?.instanceId && !instances.has(payload.instanceId) && !keptReceipts.has(payload.instanceId)) {
+        keptReceipts.add(payload.instanceId);eventInstances.set('recurring-kept',keptReceipts);
+        data().trackedEvents = data().trackedEvents || {};data().trackedEvents['recurring-kept'] = Array.from(keptReceipts);
+        set('cardsKept', count('cardsKept') + 1);
         instances.add(payload.instanceId);
         if (!projection) {
           if (!designs.has(payload.cardId)) { designs.add(payload.cardId); set('uniqueCards', designs.size); }
@@ -173,6 +184,7 @@
       });
       affected = affected.concat(derivedIndex.get(name) || []);
       var unlocked = evaluate(affected, false, payload);
+      if (board) changed = board.refresh() || changed;
       if (changed || unlocked || name === 'achievement:visit') { adapter.persist(); drain(); adapter.emit('achievement:changed'); }
     }
     var api = {
@@ -193,10 +205,24 @@
       },
       progress: progress, available: function (name) { return !!(adapter.available && adapter.available(name)); },
       isUnlocked: function (id) { return !!progress(id)?.tier; },
-      list: function () { return Array.from(definitions.values()).filter(active); },
+      list: function () { return Array.from(definitions.values()).filter(active).concat(board ? board.list() : []); },
       totals: function () { return api.list().reduce(function (out, def) { var p = progress(def.id); out.unlocked += p.tier; out.total += p.maxTier; out.achievements += p.tier ? 1 : 0; return out; }, { unlocked: 0, total: 0, achievements: 0 }); },
       markSeen: function (id) { if (!data().seen.includes(id)) { data().seen.push(id); adapter.persist(); } },
-      setCounter: function (key, amount) { if (!integer(amount)) throw new Error('Use a non-negative safe integer'); data().counters[key] = amount; evaluate(counterIndex.get(key) || [], false); adapter.persist(); drain(); adapter.emit('achievement:changed'); },
+      claim: function (id) { return board ? board.claim(id) : false; },
+      isPinned: function (id) { return board ? board.isPinned(id) : false; },
+      togglePin: function (id) { return board && board.togglePin(id); },
+      get weekEndsAt() { return board && board.weekEndsAt; },
+      get earnedCredits() { return board ? board.earned : 0; },
+      tickOpen: function (seconds, force) {
+        if (!board || !data() || !integer(seconds)) return;
+        var changed = board.refresh();
+        if (!integer(count('openSeconds') + seconds)) throw new Error('Achievement time exceeds its safe range');
+        data().counters.openSeconds = count('openSeconds') + seconds;
+        secondsSinceSave += seconds; changed = board.refresh() || changed;
+        if (changed || force || secondsSinceSave >= 30) { secondsSinceSave = 0; adapter.persist(); drain(); }
+        adapter.emit(changed ? 'achievement:changed' : 'achievement:clock');
+      },
+      setCounter: function (key, amount) { if (!integer(amount)) throw new Error('Use a non-negative safe integer'); data().counters[key] = amount; evaluate(counterIndex.get(key) || [], false); if (board) board.refresh(); adapter.persist(); drain(); adapter.emit('achievement:changed'); },
       unlock: function (id) { var def = definitions.get(id); if (!def || !active(def)) return; for (var tier = (data().unlocked[id]?.tier || 0) + 1; tier <= def.tiers.length; tier++) unlock(def, tier, false, adapter.now()); adapter.persist(); drain(); adapter.emit('achievement:changed'); },
       lock: function (id) { delete data().unlocked[id]; data().seen = data().seen.filter(function (item) { return item !== id; }); adapter.persist(); adapter.emit('achievement:changed'); }
     };
@@ -208,7 +234,7 @@
   C.achievements = create({
     current: function () { return C.state.current; }, now: function () { return Date.now(); },
     available: function (name) { return !!C.config.flags[name] || !!C.data.achievementCapabilities?.[name]?.() || C.events.supports(name); }, listen: subscribe,
-    projection: C.achievementMetrics.create(), catalogRevision: C.data.achievementCatalogRevision,
+    projection: C.achievementMetrics.create(), catalogRevision: C.data.achievementCatalogRevision, board: true,
     emit: function (name, value) { C.events.emit(name, value); },
     reward: function (reward, save) {
       if (reward.credits) {
@@ -236,10 +262,22 @@
     // Recover the narrow gap between a durable pack reservation and its event receipt.
     if (C.state.current.pendingReveal) C.achievements.handle('opening:committed', { cards: C.state.current.pendingReveal.cards });
   }
-  C.events.on('app:ready', function () { initialized = true; initialize(); C.achievements.handle('achievement:visit'); });
+  C.events.on('app:ready', function () { initialized = true; initialize(); timeSample = document.hidden ? null : performance.now(); C.achievements.handle('achievement:visit'); });
   function visit() { if (initialized) C.achievements.handle('achievement:visit'); }
-  function leave() { if (initialized) { C.state.current.achievements.history.lastVisit = Date.now(); C.state.save(); } }
-  document.addEventListener('visibilitychange', function () { if (document.hidden) leave(); else visit(); });
+  var timeSample = null, remainder = 0, nativeVisible = true;
+  function sampleTime(force) {
+    if (!initialized) return;
+    var now = performance.now(), elapsed = timeSample === null ? 0 : now - timeSample;
+    timeSample = document.hidden || !nativeVisible ? null : now;
+    // Use the shared one-second timer. No offline catch-up or render-loop keepalive.
+    if (timeSample !== null && elapsed >= 0 && elapsed <= 5000) remainder += elapsed;
+    var seconds = Math.floor(remainder / 1000); remainder %= 1000;
+    C.achievements.tickOpen(seconds, !!force);
+  }
+  function leave() { if (initialized) { C.achievements.tickOpen(0,true); timeSample = null; C.state.current.achievements.history.lastVisit = Date.now(); C.state.save(); } }
+  C.events.on('timer:tick', function () { if (!document.hidden && nativeVisible) sampleTime(false); });
+  C.events.on('desktop:visibility', function (visible) { if (!visible) sampleTime(true); nativeVisible = !!visible; timeSample = visible && !document.hidden ? performance.now() : null; });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) leave(); else { timeSample = performance.now(); visit(); } });
   window.addEventListener('pagehide', leave);
-  C.events.on('save:replaced', function () { if (initialized) { C.events.emit('achievement:resetting'); initialize(); C.events.emit('achievement:changed'); } });
+  C.events.on('save:replaced', function () { if (initialized) { remainder = 0; timeSample = document.hidden ? null : performance.now(); C.events.emit('achievement:resetting'); initialize(); C.events.emit('achievement:changed'); } });
 })(window.Cardable);
