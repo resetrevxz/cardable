@@ -121,7 +121,7 @@
       propSpec: 'White to red flames outside the card having a burning flame animation from the bottom only',
       finish: 'mythical', frontDesign: 'full-art', propOutset: { top: 0, bottom: 0.11, side: 0.06 },
       openingIntro: { kind: 'crimson', color: [236, 16, 40], orbitColor: [100, 3, 20], starColor: [255, 209, 204], background: [7, 0, 3],
-        caveArt: { clusters: 12, highClusters: 18, sway: .012, tipAngle: .29, pauseAt: .72,
+        caveArt: { clusters: 18, highClusters: 30, sway: .012, tipAngle: .29, pauseAt: .72,
           rockRelief: .68, wetness: .58, heroLight: 1.15 },
         handoff: { flipMs: 400, fadeMs: 160 }, backdrop: { enabled: true, animated: true, exitMs: 450 }, sections: [
           { id: 'cave', ms: 5000 }, { id: 'tip', ms: 1800 }, { id: 'fall', ms: 1200 },
@@ -158,11 +158,9 @@
       finish: 'ascendant', frontDesign: 'full-art', propOutset: { top: 0.045, bottom: 0.045, side: 0.045 },
       openingIntro: { kind: 'prismatic', cutscene: 'ascendant', milestone: 'A', color: [213, 229, 255], background: [5, 6, 10],
         handoff: { flipMs: 400, fadeMs: 160 }, backdrop: { enabled: true, animated: true, exitMs: 450 },
-        sections: [{ id: 'prelude', ms: 1000 }, { id: 'spark', ms: 3000 }, { id: 'cave', ms: 4000 },
-          { id: 'tip', ms: 1200 }, { id: 'fall', ms: 800 }, { id: 'impact', ms: 600 },
-          { id: 'underwater', ms: 1900 }, { id: 'tendrils', ms: 2500 }],
-        beats: [{ id: 'spark1', ms: 1600 }, { id: 'spark2', ms: 2400 }, { id: 'spark3', ms: 3000 },
-          { id: 'creak', ms: 8000 }, { id: 'break', ms: 9200 }, { id: 'impact', ms: 10000 }, { id: 'tendrils', ms: 12500 }] },
+        sections: [{ id: 'prelude', ms: 1000 }, { id: 'spark', ms: 3000 }, { id: 'clouds', ms: 5000 },
+          { id: 'veil', ms: 1600 }],
+        beats: [{ id: 'spark1', ms: 1600 }, { id: 'spark2', ms: 2400 }, { id: 'spark3', ms: 3000 }] },
       reveal: { cutscene: 'ascendant', riseMs: 1700, preFlipPauseMs: 500, flipMs: 1800, bloom: 0.9, gridDim: 0.95, shiftPx: 1 },
       marketValueUsd: 1192.4
     },

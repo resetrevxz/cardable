@@ -1,0 +1,9 @@
+# Clouds and crimson cave — 1.2.2-beta.1
+
+- Replace Ascendant’s repeated cave/crystal/water story with nine seconds of accelerating spatial cloud flight and a continuous 1,600 ms white-cloud dissolve into the prismatic sigil.
+- Keep the clock, title, aurora, one authored finale flash, direct flip and shared pastel card field. Normal is now 28.1 seconds including the card scene; Short remains 16.5 seconds.
+- Correct the cloud render-target binding so every frame displays the current flight rather than a stale offscreen image.
+- Enrich Mythical’s red-black cave with rounded fractured stone masses, denser relief, 18/30 rooted crystal groups, extra ruby offshoots, triplanar mineral/normal material and ceiling drips. Preserve its 28-second story and living card backdrop.
+- Reuse the shared native engine, post stack, scheduler, safety and skip. Ascendant no longer allocates cave meshes, crystal materials, water reflection, surface simulation or tendril buffers.
+
+Local preview only, unpublished by owner request. Procedural assets, offline classic scripts, bounded quality presets and original gameplay/save identity remain. No new audio, network dependency or flash.

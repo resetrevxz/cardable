@@ -85,3 +85,5 @@ using the existing three-second Reset save hold. Download the original when
 offered; do not delete it to get past recovery. Native recovery originals are
 kept separately from rolling backups in the saves folder. Studio photos remain
 separate from every JSON recovery/export.
+
+Local development preview: **1.2.2-beta.1 — Clouds and crimson cave**, unpublished at the owner’s request. Package/renderer metadata identifies this local preview; public download links continue to refer to released 1.2.1. See [preview delivery](alpha-updates/1.2.2-beta.1-cloud-ritual/DELIVERY.md).

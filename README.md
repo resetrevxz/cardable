@@ -76,3 +76,5 @@ GitHub Desktop can open this repository and push ordinary commits. Each complete
 ---
 
 Cardable is an independent fan project. Hardware names, logos and photographs belong to their respective owners. No hardware vendor sponsors or endorses this project. Public source availability does not grant a license to third-party artwork. See [NOTICE](NOTICE.md).
+
+Local development preview: **1.2.2-beta.1 — Clouds and crimson cave**, unpublished at the owner’s request. Package/renderer metadata identifies this local preview; public download links continue to refer to released 1.2.1. See [preview delivery](alpha-updates/1.2.2-beta.1-cloud-ritual/DELIVERY.md).
