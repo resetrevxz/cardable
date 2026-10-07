@@ -39,5 +39,5 @@
     float innerMask(vec2 uv){vec2 edge=min(uv,1.-uv);return step(uClassic==1?.066:.032,edge.x)*step(uClassic==1?.047:.023,edge.y);}
     vec3 studioSurface(vec3 base,vec2 uv,vec3 n,vec3 view,vec3 diffuse,vec3 specular){float interior=innerMask(uv),mask=interior;if(uv.y>.82)mask*=.13;if(uPlate==1&&uv.y<.36)mask*=.14;vec3 c=coating(uv,view,n,clamp(dot(specular,vec3(.333))+.12*dot(diffuse,vec3(.333)),0.,2.));if(uMono==1)c=vec3(dot(c,vec3(.213,.715,.072)));vec3 rim=finishColor(base,vec2(uv.x,1.-uv.y));if(uMono==1)rim=vec3(dot(rim,vec3(.213,.715,.072)));return mix(base,rim,(1.-interior)*(uClassic==1?0.:1.))+c*mask;}
   `;}
-  C.studioMaterials={info:info,shader:shader,active:function(faces,tier){return !!(faces&&faces.material&&faces.material.animated&&(tier==='high'||tier==='medium')&&!C.motion.reduced);}};
+  C.studioMaterials={info:info,shader:shader,active:function(faces,tier){return !!(faces&&faces.material&&faces.material.animated&&(tier==='high'||tier==='very-high'||tier==='medium')&&!C.motion.reduced);}};
 })(window.Cardable);

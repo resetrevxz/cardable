@@ -21,7 +21,7 @@
     function bar(a,b,r,f) { var u=C.studioCamera.unit(b.map(function(v,i){return v-a[i];})),v=C.studioCamera.unit(Math.abs(u[1])>.9?[1,0,0]:[-u[2],0,u[0]]),w=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
       for(var i=0;i<8;i++){function p(o,t){return o.map(function(n,j){return n+r*(v[j]*Math.cos(t)+w[j]*Math.sin(t));});}quad(p(a,i*Math.PI/4),p(a,(i+1)*Math.PI/4),p(b,(i+1)*Math.PI/4),p(b,i*Math.PI/4),f);} }
     if (effects.indexOf(type)>=0) {
-      var count=tier==='high'?128:tier==='medium'?64:32; if(type==='lens-flare')count=5; if(type==='haze'||type==='smoke')count=tier==='low'?8:16;
+      var count=tier==='very-high'?192:tier==='high'?128:tier==='medium'?64:32; if(type==='lens-flare')count=5; if(type==='haze'||type==='smoke')count=tier==='low'?8:16;
       for(var i=0;i<count;i++){var seed=[((i*73+17)%127)/127,((i*53+29)%131)/131,((i*31+7)%137)/137]; [[-1,-1],[1,-1],[1,1],[-1,-1],[1,1],[-1,1]].forEach(function(p){vertex([p[0],p[1],0],seed,[i/count,seed[2]],0);});}
     } else if(type==='floor'||type==='grid-floor') box(0,0,0,7,.025,6);
     else if(type==='backdrop') {quad([-3,-.5,0],[3,-.5,0],[3,3,0],[-3,3,0]);lathe(0,-.5,0,[[.1,0],[.1,.01]]); }

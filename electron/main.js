@@ -16,6 +16,7 @@ const { registerLoggingHandlers } = require('./ipc/logging-handlers');
 const { registerUpdaterHandlers } = require('./ipc/updater-handlers');
 const { registerDiscordHandlers } = require('./ipc/discord-handlers');
 const { registerCaptureHandlers } = require('./ipc/capture-handlers');
+const { registerStudioHandlers } = require('./ipc/studio-handlers');
 const { registerSupportHandlers } = require('./ipc/support-handlers');
 
 // Must run before Chromium initializes; the renderer quality override is session-only.
@@ -89,6 +90,7 @@ if (!gotTheLock) {
     registerUpdaterHandlers();
     registerDiscordHandlers();
     registerCaptureHandlers();
+    registerStudioHandlers();
     registerSupportHandlers();
 
     // Create Main Window

@@ -1,4 +1,4 @@
-# Director mode 2 — milestones A, B and C
+# Director mode 2 — milestones A–E
 
 Application version remains 1.0.0. Publication and version advancement are held at the owner's request. B continues the feature folder created in A; the spec is not moved or renumbered again.
 
@@ -35,3 +35,12 @@ Testing D: one file:// studio entry confirmed keys, graph handles, editable path
 D assumptions: world-space group deltas; normalized screen-space title paths; nine-waypoint conversion retains conflicting camera channels disabled; overshooting easing styles retain their authored character while light playback obeys the profile/speed guards. Scalar camera focus distance supplements the existing focus point. Six existing variant ports remain unchanged. See docs/studio-audit.md for D01-D10, implementation details and precise acceptance limits.
 
 D desktop delivery was attempted once and stopped before building because @electron/asar is absent. No previous installer/shortcut was replaced; desktop packaging/cleanup/handoff remains pending.
+
+
+E: implemented Look grades/wheels/curve/lens controls, cheap luminance scopes and session split; hardware-gated Very High with sixteen lights, 4096 card textures, 2048 shadows, SSAO/SSR/shaped DOF, preview/rest scaling and half-float accumulation. Deliver extends Photo with supported 8K/Poster, cancellable tier-bounded progressive stills, 60 fps/portrait/square/loop real-time presets, original frame-stepped WebCodecs/WebM output, numbered PNG sequences, optional Very High motion blur, and native file/folder/PNG clipboard fallbacks. Album adds optional tags/search/filmstrip/compare/selection/sequential saves/storage meter/folder export, keeping existing IndexedDB and scenes. The shared scheduler owns all render progress; no studio clock continues after exit.
+
+E audit: E01–E11 and precise source/runtime boundaries are in docs/studio-audit.md. Existing six variant ports remain unchanged. Worktree/branch: director-mode-2-work / update/director-mode-2-e; stage 28 remains 1.0.0, with no release/tag or update renumbering. Main integration uses its existing index.html studio entry.
+
+Testing E: one main-index file:// session covered Look/scopes/split, refinement, Very High, Deliver/album controls and cleanup without console/WebGL errors; checkStudio2 ran exactly once (43 assertions, 18 ms); no old suites, test files, screenshots, photos/recordings or profiling. Final capability/frame/exit/Simple/preset/clipboard corrections are source-reviewed; exports, native actions and populated-album acceptance remain unverified.
+
+Desktop delivery E: attempted once, blocked before packaging by missing @electron/asar. Previous delivery remains intact; packaging/cleanup/handoff pending. F remains unfinished: final polish, accessibility and final bug/acceptance pass.

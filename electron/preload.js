@@ -108,6 +108,14 @@ const cardableDesktop = {
     }
   },
 
+  studio: {
+    saveFile: payload => ipcRenderer.invoke('studio:save-file', payload),
+    chooseFolder: () => ipcRenderer.invoke('studio:choose-folder'),
+    writeFile: payload => ipcRenderer.invoke('studio:write-file', payload),
+    releaseFolder: id => ipcRenderer.invoke('studio:release-folder', id),
+    copyImage: payload => ipcRenderer.invoke('studio:copy-image', payload)
+  },
+
   capture: {
     saveWindow: () => ipcRenderer.invoke(IPC_CHANNELS.QOL_CAPTURE, { kind: 'window' }),
     card: (rect, copy = false) => ipcRenderer.invoke(IPC_CHANNELS.QOL_CAPTURE, { kind: 'card', rect, copy: copy === true }),

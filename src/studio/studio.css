@@ -431,3 +431,25 @@ body.studio-album-active > :not(.studio-album),body.studio-album-active > :not(.
 .director-section textarea{resize:vertical;min-height:60px;width:100%;font:11px var(--font-ui);color:var(--text);background:var(--surface);border:1px solid var(--hairline);border-radius:6px;padding:8px}
 @media(max-width:780px){.studio-2 .director2-dock{max-height:230px;padding:8px}.director2-dock .director-transport{gap:6px;flex-wrap:wrap}.director2-dock .director-timeline-identity{display:none}.director2-dock .director-play-options{margin:0}.director2-scroll{max-height:100px}.director2-tools .studio-button{min-height:32px;padding:4px 7px}.director2-tools{gap:3px}}
 @media(max-height:680px){.studio-2 .director2-dock{max-height:205px}.director2-scroll{max-height:90px}}
+.studio-look-overlay{position:absolute;inset:0;pointer-events:none;z-index:8}
+.studio-look-split{position:absolute;top:0;bottom:0;left:50%;width:1px;background:#ffffffa6;box-shadow:0 0 0 1px #0006}
+.studio-look-label{position:absolute;top:76px;left:12px;width:116px;color:#d8d8e0;font:9px/1.5 var(--font-mono);letter-spacing:.1em}
+.studio-look-scope{position:absolute;bottom:16px;left:16px;width:min(256px,45%);height:auto;border:1px solid #ffffff24;border-radius:8px;box-shadow:0 8px 30px #0005}
+.studio-grade-wheel{display:grid;grid-template-columns:92px 1fr;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #ffffff0d}
+.studio-grade-wheel strong{font:500 12px var(--font-ui);color:#d2d2dc}
+.studio-grade-wheel .studio-button{font-size:10px}
+.studio-color-wheel{position:relative;width:84px;height:84px;border-radius:50%;border:1px solid #ffffff30;touch-action:none;background:radial-gradient(circle,#b6b6c0 0%,#686875 50%,#26262e 72%);cursor:crosshair}
+.studio-color-wheel:before,.studio-color-wheel:after{content:"";position:absolute;background:#ffffff24;pointer-events:none}
+.studio-color-wheel:before{width:1px;top:10px;bottom:10px;left:50%}.studio-color-wheel:after{height:1px;left:10px;right:10px;top:50%}
+.studio-wheel-pin{position:absolute;width:8px;height:8px;border:1px solid #fff;border-radius:50%;background:#16161b;transform:translate(-50%,-50%);box-shadow:0 1px 5px #0009}
+.studio-tone-curve{display:block;width:100%;height:auto;border:1px solid #ffffff1a;border-radius:8px;margin-bottom:12px}
+.studio-render-progress{position:absolute;z-index:100;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100% - 32px));padding:28px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;border:1px solid #ffffff30;border-radius:20px;background:#141418f5;box-shadow:0 24px 100px #000b}
+.studio-render-progress p{margin:0}.studio-render-ring{--progress:0%;position:relative;display:grid;place-items:center;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle,#141418 61%,transparent 63%),conic-gradient(#e4e4ee var(--progress),#35353f 0);font:500 15px var(--font-mono)}
+.studio-record-stop{position:absolute;z-index:100;bottom:100px;left:50%;transform:translateX(-50%);border-color:#ffffff70;background:#1b1b22}
+.studio-album-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.studio-album-search{min-width:160px;flex:1;padding:10px 12px;color:#eeeef5;border:1px solid #ffffff24;border-radius:8px;background:#17171c;font:12px var(--font-ui)}
+.studio-storage-meter{width:100%;height:6px;accent-color:#c5c5d2;border:0}.studio-album-selectable{position:relative;padding:0;border:1px solid #ffffff16;border-radius:12px;background:#141418}
+.studio-album-selectable>button{display:flex;flex-direction:column;gap:8px;padding:14px;text-align:left;width:100%;height:100%;border:0;background:transparent}.studio-album-checkbox{position:absolute;top:8px;right:8px;accent-color:#c5c5d2;width:16px;height:16px}
+.studio-album-filmstrip{display:flex;gap:8px;overflow-x:auto;min-height:66px;flex-shrink:0;padding:6px 2px}.studio-album-filmstrip button{min-width:72px;padding:3px}.studio-album-filmstrip img{display:block;width:72px;height:48px;object-fit:contain}
+.studio-album-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}.studio-album-compare figure{margin:0;min-width:0}.studio-album-compare img{width:100%;height:280px;object-fit:contain}.studio-album-compare figcaption{overflow-wrap:anywhere}
+.studio-color-wheel:focus-visible{outline:2px solid #e4e4ee;outline-offset:4px}
+@media(max-width:780px){.studio-look-scope{bottom:60px}.studio-look-label{top:100px}.studio-album-compare img{height:200px}}
