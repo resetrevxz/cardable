@@ -15,7 +15,7 @@
     dots: entry('Dot grid', 'A quiet response to the pointer.', 'Motion and effects', 'on', ['on', 'subtle', 'off']),
     cursorGlow: entry('Cursor glow', 'The native cursor stays visible.', 'Motion and effects', true),
     idleFade: entry('Idle fade', 'Keep the small logo and pack metrics while idle.', 'Motion and effects', '15', ['2.5', '5', '15', '30', 'never']),
-    rarityColor: entry('Rarity color', 'Existing card colors on or off.', 'Cards', 'color', ['color', 'mono'], 'switch'),
+    rarityColor: entry('Color theme', 'Color for cards, cinematics and achievement accents. Switch off for monochrome.', 'Cards', 'color', ['color', 'mono'], 'switch'),
     tilt: entry('Card tilt', 'Changes weight and maximum angle.', 'Cards', 'normal', ['low', 'normal', 'high']),
     revealSpeed: entry('Reveal speed', 'Hold and cut keep their timing.', 'Cards', 'normal', ['normal', 'fast']),
     serialOnFront: entry('Front serial', 'The back always shows its serial.', 'Cards', true),

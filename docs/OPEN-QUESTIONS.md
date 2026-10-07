@@ -10,7 +10,7 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 |---|---|---|---|
 | 1 | Pack regeneration cadence. | Owner changed it to 2 hours per pack; up to 12 per day while below the stock cap | `config.packs.regenMs` |
 | 2 | The tier chances add up to **100.5 %**, and the printed running totals imply Legendary is **0.5 %**, not 1 %. | Chances kept as written and normalized by their sum; dev-mode warning | `chance` of `legendary` in `rarities.js` |
-| 3 | The palette rule says black/white/gray only, but the rarity designs specify colors. | UI chrome is monochrome; rarity colors appear only on card faces and their direct accents. A mono mode exists. | `config.rarityColorMode` |
+| 3 | Default color versus monochrome presentation. | Owner now permits purposeful default UI accents; the existing Color theme setting selects color or monochrome for cards, cinematics and Achievements. | `settings.rarityColor` / Designs.MD |
 | 4 | How many cards does one pack give? Some text says "the card", other text says "cards". | 1 card per pack; the sequence supports more | `cardsPerPack` in `packs.js` |
 | 5 | Rarity should slow the charge, but the charge is a fixed 3 s hold. | Hold is always 3 s. Rarity scales rise, pre-flip pause, flip, bloom and grid dim. | `reveal` in `rarities.js` |
 | 6 | 12 tiers do not fit the earlier "1-5 pips" idea. | Small mono tier badge (`SR`) plus a 12-segment tier meter | `docs/02-RARITIES.md` section 5 |

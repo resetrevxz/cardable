@@ -34,6 +34,16 @@
   --text-faint: #48484A;
   --highlight: #FFFFFF;
 
+  /* Achievement accents share the existing saved color/mono preference. */
+  --achievement-common-rgb: 139, 216, 202;
+  --achievement-uncommon-rgb: 152, 219, 169;
+  --achievement-rare-rgb: 163, 183, 255;
+  --achievement-legendary-rgb: 255, 205, 133;
+  --achievement-weekly-rgb: 199, 169, 255;
+  --achievement-recurring-rgb: 125, 220, 224;
+  --achievement-pinned-rgb: 239, 168, 198;
+  --achievement-reward-rgb: 255, 211, 145;
+
   /* type */
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -58,4 +68,14 @@
 
   /* z layers */
   --z-grid: 0; --z-menu: 10; --z-sheet: 30; --z-stage: 40; --z-toast: 50; --z-cursor: 60;
+}
+:root[data-rarity-color="mono"] {
+  --achievement-common-rgb: 190, 190, 190;
+  --achievement-uncommon-rgb: 190, 190, 190;
+  --achievement-rare-rgb: 190, 190, 190;
+  --achievement-legendary-rgb: 210, 210, 210;
+  --achievement-weekly-rgb: 190, 190, 190;
+  --achievement-recurring-rgb: 190, 190, 190;
+  --achievement-pinned-rgb: 210, 210, 210;
+  --achievement-reward-rgb: 210, 210, 210;
 }

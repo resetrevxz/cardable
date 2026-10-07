@@ -4,7 +4,7 @@ This guide describes the current game, publicly numbered **1.1.0** after the 4.2
 
 ## Direction and visual hierarchy
 
-The card is the showstopper. Use a near-black field, precise typography, restrained depth and ample space. Chrome, controls, menus, metadata and neutral tags use black, white and gray. Let the focused card and an approved pack/cinematic carry color. Avoid decorative dashboard clutter or effects competing with readable names/specs.
+The card is the showstopper. Use a near-black field, precise typography, restrained depth and ample space. The owner permits purposeful color accents in the default theme: use color for identity, selection, difficulty, progress and rewards while keeping shaded surfaces and readable text. Black, white and gray are the optional monochrome theme, not a blanket restriction on default chrome. Avoid decorative dashboard clutter or effects competing with readable names/specs.
 
 The main screen centers the active pack, Cardable wordmark, stock/refill metrics and Credits. Inventory, settings and useful desktop controls remain discoverable. A focused detail/reveal gets visual priority; inactive scenes stop doing decorative work. Lighting comes from the upper left. Materials feel grounded and deliberate, never like an arbitrary glowing rectangle.
 
@@ -46,7 +46,9 @@ Use the shared scheduler. Full card effects belong to the focused card; browsing
 
 Interaction feedback is usually 150–250 ms; sheets use the shared longer settle. Transform and opacity carry motion. Avoid layout animation and per-item recurring clocks. Hover, pointer tilt and decorative breathing obey quality, focus and activity policies.
 
-Reduced motion is independent of quality. Use static poses and brief fades instead of camera travel, shaking, continuous rotation or moving wallpaper. Keep actions and collectible identity equally clear. Mono mode converts card/cinematic material accents as well as backgrounds.
+Reduced motion is independent of quality. Use static poses and brief fades instead of camera travel, shaking, continuous rotation or moving wallpaper. Keep actions and collectible identity equally clear. The existing Color theme setting (`rarityColor`, color/mono) governs card/cinematic material accents and achievement chrome/artwork. Mono converts these accents and backgrounds to neutral values; new colored UI must provide the same neutral fallback without hiding status or actions.
+
+Achievements uses lavender weekly headers, teal recurring headers, rose pinned headers and warm credit rewards. Difficulty accents progress from mint Common to green Uncommon, periwinkle Rare and amber Legendary. Text labels and milestone border patterns carry the same meaning in both themes. Default achievement illustrations use a static tint; monochrome displays their original neutral art. Keep these accents in shared tokens, with no new animated wallpaper or renderer.
 
 Controls need visible focus, real keyboard actions, understandable disabled/selected states, modal focus trapping and focus restoration. Essential coarse-pointer actions have at least 44 px targets. Touch has hold-to-open, cutting/Tear fallback, Flip and Keep/Delete. Hints may quiet down; essential controls remain usable. Never rely on hue, hover or a tiny icon alone.
 
@@ -68,9 +70,9 @@ The stock counter, refill timer and Credits are quiet, legible metrics. The pack
 
 Idle fade defaults to 15 seconds, retaining the small wordmark and useful metrics. The later AFK view uses a minimal timestamp/metrics presentation and suspends decorative scene work. Pointer proximity wakes appropriate controls without churning the whole scene. Waking must preserve an in-progress reveal. Timing choices and the ten-minute AFK behavior are in [05-MAIN-MENU](docs/05-MAIN-MENU.md).
 
-## Approved color and artwork exceptions
+## Authored color and artwork identities
 
-These are existing authored exceptions. Their palettes do not spread into ordinary settings/navigation chrome.
+These authored surfaces retain their own palettes. Default chrome may use the purposeful accents described above; do not borrow an unrelated pack's branding for a control. Monochrome remains a saved theme choice.
 
 | Surface | Approved identity |
 |---|---|

@@ -180,7 +180,7 @@
     if(focusKey)panel.querySelector('[data-focus="'+focusKey+'"]')?.focus({preventScroll:true});
   }
   function renderRow(def,parent) {
-    var p=C.achievements.progress(def.id),row=node('div','achievement-row',parent);row.dataset.rank=String(p.rank||0);row.classList.toggle('is-selected',selected===def.id);row.classList.toggle('is-ready',!!p.ready&&!p.claimed);row.classList.toggle('is-complete',complete(def,p));
+    var p=C.achievements.progress(def.id),row=node('div','achievement-row',parent);row.dataset.rank=String(p.rank||0);row.dataset.difficulty=def.difficulty;row.classList.toggle('is-selected',selected===def.id);row.classList.toggle('is-ready',!!p.ready&&!p.claimed);row.classList.toggle('is-complete',complete(def,p));
     var select=button('',row,function(){selected=def.id;mobileDetail=true;panel.classList.add('is-detail');C.achievements.markSeen(def.id);render();inspector.scrollTop=0;if(root.matchMedia('(max-width: 760px)').matches)inspector.querySelector('h3').focus();},'achievement-row-select');select.dataset.achievement=def.id;select.dataset.focus='row-'+def.id;select.setAttribute('aria-pressed',String(selected===def.id));select.setAttribute('aria-controls','achievement-inspector');
     glyph(hidden(def,p)?'secret':def.glyph,node('span','achievement-row-emblem',select));
     var copy=node('span','achievement-row-copy',select);node('strong','',copy,title(def,p));

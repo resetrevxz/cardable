@@ -24,7 +24,7 @@ The latest direct user instruction controls scope. Historical plans, patches, de
 
 ## Visual and performance rules
 
-- Follow Designs and the actual CSS tokens. UI chrome is monochrome; approved rarity, pack and artwork exceptions are listed there. Inter and JetBrains Mono are the UI fonts; VT323 and Bodoni Moda have narrowly scoped artwork exceptions.
+- Follow Designs and the actual CSS tokens. The owner now permits purposeful color accents in the default theme; monochrome is the optional saved theme, not a blanket chrome restriction. Keep readable shaded surfaces and obey the existing color/mono setting. Rarity, pack and artwork recipes remain listed in Designs. Inter and JetBrains Mono are the UI fonts; VT323 and Bodoni Moda have narrowly scoped artwork exceptions.
 - Keep Very Low, Low, Medium and High, with Medium as the new-player default. The ten graphics controls are independent. Presets preserve FPS, reduced motion and other preferences.
 - Use shared scheduling, focused full-card effects, bounded static inventory thumbnails and quality-aware canvas/resource budgets. Release hidden/offscreen work and temporary GL/material resources. Do not create a clock per card or an always-running idle loop.
 - Respect reduced motion, keyboard access, focus restoration, touch controls and the existing Safe/Full cinematic gates. Saved preferences must not be changed by temporary battery/Safe Mode/adaptive overrides.
