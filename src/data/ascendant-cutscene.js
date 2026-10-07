@@ -4,6 +4,10 @@
   var rarity=C.data.rarities.find(function(r){return r.id==='ascendant';});
   var intro=rarity.openingIntro;
   intro.milestone='C';
+  // S0/S1 now travel through the sky; their original local spark beats guide the flight.
+  // A sustained cloud veil is a transition, not another flash/reversal.
+  intro.skyFlight={endMs:4000,veilOutMs:1100,travel:27,shakePx:1.8,
+    highSteps:40,mediumSteps:28,lowSteps:16,noiseSize:64};
   intro.sections=intro.sections.concat([
     {id:'ascend',ms:800},{id:'topPulse',ms:2200},{id:'morph',ms:2000},
     {id:'clock',ms:4000},{id:'title',ms:3000},{id:'shatter',ms:1000},

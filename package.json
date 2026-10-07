@@ -1,7 +1,7 @@
 {
   "name": "cardable",
   "productName": "Cardable",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Cardable - GPU Card Collecting Game",
   "author": "Cardable Team",
   "main": "electron/main.js",

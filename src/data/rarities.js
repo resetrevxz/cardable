@@ -121,6 +121,8 @@
       propSpec: 'White to red flames outside the card having a burning flame animation from the bottom only',
       finish: 'mythical', frontDesign: 'full-art', propOutset: { top: 0, bottom: 0.11, side: 0.06 },
       openingIntro: { kind: 'crimson', color: [236, 16, 40], orbitColor: [100, 3, 20], starColor: [255, 209, 204], background: [7, 0, 3],
+        caveArt: { clusters: 12, highClusters: 18, sway: .012, tipAngle: .29, pauseAt: .72,
+          rockRelief: .68, wetness: .58, heroLight: 1.15 },
         handoff: { flipMs: 400, fadeMs: 160 }, backdrop: { enabled: true, animated: true, exitMs: 450 }, sections: [
           { id: 'cave', ms: 5000 }, { id: 'tip', ms: 1800 }, { id: 'fall', ms: 1200 },
           { id: 'impact', ms: 1000 }, { id: 'underwater', ms: 4500 }, { id: 'ascend', ms: 2200 },

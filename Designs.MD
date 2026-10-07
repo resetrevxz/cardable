@@ -1,6 +1,6 @@
 # Designs.MD — Cardable's current design system
 
-This guide describes the current game, publicly numbered **1.2.0** after the 4.2.0 development series, including four graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
+This guide describes the current game, publicly numbered **1.2.1** after the 4.2.0 development series, including four graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
 
 ## Direction and visual hierarchy
 
@@ -87,6 +87,8 @@ Pack contracts and art recipes are in [04-PACK-OPENING](docs/04-PACK-OPENING.md)
 ## Cinematic presentation
 
 Scenes read an already reserved instance. Conceal its face until the real handoff; a fake-out may never expose the reserved Secret front. The actual card back mounts at the authored handoff, flips through the shared controller and keeps the ordinary readiness/Keep/Delete gates. Skip, reload and quality changes do not reroll or pay again.
+
+Mythical’s cave uses rooted ruby clusters, wet irregular rock and a held ceiling fracture before its fall. Ascendant opens with accelerating procedural cloud travel and a sustained white veil into its original prismatic scenes. The arrival is a slow transition; the authored climax remains its sole flash.
 
 The current stories include sapphire star/cloud, refractive gel, gilded prism, Mythical Crimson Clock, Exotic galaxy, Ascendant Prismatic Dawn and Secret Fatal Exception. Their current complete descriptors supersede early A/B design fragments. Full/Short/Off is independent of cinematic quality; Very Low/reduced motion/Off retain understandable calm routes. [CINEMATICS](docs/CINEMATICS.md) is authoritative for durations, handoff, resources and unresolved acceptance.
 
