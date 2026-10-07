@@ -21,3 +21,13 @@ This is runtime/structural evidence, not screenshot-based artistic certification
 Worktree: D:/CardableV2/crystal-scenes-polish, update/crystal-scenes-polish, based on public main b8d1775. Primary main's local achievements commit and incoming website/other changes are preserved and excluded. Public integration uses a clean checkout; primary will need a later normal merge with public main.
 
 Local desktop build and published 1.2.1 outcome follow after source validation. Keep the primary's existing Latest Build storage origin. Publication/Pages and download-link evidence will be recorded in the final completion report after Actions finishes.
+
+## Completed local handoff
+
+- Build ID: 2026-10-07T17-39-43.433Z-8db25ed52107; source revision 64172f3.
+- Installer: D:/CardableV2/cardable-spec/cardable/dist/delivery/builds/2026-10-07T17-39-43.433Z-8db25ed52107/Cardable-Setup-1.2.1.exe
+- SHA256: c959344e5f0b667819e65664e76e21a24c40f24a56aef07bc706e4c5bce5e4cd
+- Stable shortcut: C:/Users/reset/OneDrive/Desktop/Cardable (Latest Build).lnk; same verified preview at dist/desktop-qol-4.1.0/win-unpacked.
+- Replaced owned 1.2.0 build and rollback preview removed. Legacy pre-manifest outputs/links retained for review. No installation, automatic launch or new storage origin.
+- Final review corrected two small Mythical camera/crystal pose discontinuities. These received source syntax/diff checks after the permitted session, without another launch.
+- Clean public checkout: D:/CardableV2/archive/releases/crystal-worlds-1.2.1. Target release: https://github.com/resetrevxz/cardable/releases/tag/v1.2.1.
