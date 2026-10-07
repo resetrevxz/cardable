@@ -41,7 +41,7 @@
     function scenesRefresh(){ui.inspect(s,'scenes');}
     ui.section(s,'Copyable scene JSON');var text=ui.node('textarea','studio-json',s.panel);text.rows=8;text.spellcheck=false;text.setAttribute('aria-label','Scene JSON');text.value=s.jsonDraft||C.studioScenes.serialize(s.scene);text.addEventListener('input',function(){s.jsonDraft=text.value;});var actions=ui.node('div','studio-presets-row',s.panel);
     button('Export JSON',actions,function(){text.value=JSON.stringify(C.studioScenes.parse(s.scene),null,2);s.jsonDraft=text.value;text.focus();text.select();s.api.status('Scene JSON selected. Copy with Ctrl/Cmd+C.');});
-    button('Copy JSON',actions,async function(){text.focus();text.select();try{await root.navigator.clipboard.writeText(text.value);s.api.status('Scene JSON copied.');}catch(_){s.api.status('JSON selected. Use Ctrl/Cmd+C to copy.');}});
+    button('Copy JSON',actions,async function(){text.focus();text.select();try{if(C.native&&C.native.system&&C.native.system.copyText)await C.native.system.copyText(text.value);else await root.navigator.clipboard.writeText(text.value);s.api.status('Scene JSON copied.');}catch(_){s.api.status('JSON selected. Use Ctrl/Cmd+C to copy.');}});
     button('Import JSON',actions,function(){try{if(text.value.length>262144)throw Error('Scene JSON is too large.');s.api.loadScene(C.studioScenes.parse(text.value));s.api.status('Scene imported. Undo restores the previous composition.');ui.inspect(s,'scenes');}catch(error){s.api.status(error.message);}});
   }
   C.studioPropPanel=props;C.studioScenePanel=scenes;

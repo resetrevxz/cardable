@@ -19,13 +19,14 @@
       try{run(store,function(value){result=value;},function(reason){error=reason;tx.abort();});}catch(reason){error=reason;tx.abort();}
     });}finally{users--;if(!users&&db){db.close();db=null;}}
   }
-  function metadata(photo){var out={};Object.keys(photo).forEach(function(key){if(key!=='blob')out[key]=photo[key];});out.bytes=photo.blob.size+(photo.thumb?photo.thumb.size:0);return out;}
+  function metadata(photo){var out={};Object.keys(photo).forEach(function(key){if(key!=='blob')out[key]=photo[key];});out.bytes=(photo.blob instanceof root.Blob?photo.blob.size:0)+(photo.thumb instanceof root.Blob?photo.thumb.size:0);out.thumb=photo.thumb instanceof root.Blob?photo.thumb:photo.blob instanceof root.Blob?photo.blob:null;return out;}
   C.studioAlbum={
     limit:100,
     list:function(){return operation('photos','readonly',function(store,set){var result=[],req=store.index('createdAt').openCursor(null,'prev');req.onsuccess=function(){var cursor=req.result;if(cursor){result.push(metadata(cursor.value));cursor.continue();}else set(result);};});},
     get:function(id){return operation('photos','readonly',function(store,set){var req=store.get(id);req.onsuccess=function(){set(req.result||null);};});},
     save:function(photo,alive,signal){return operation('photos','readwrite',function(store,set,fail){var count=store.count();count.onsuccess=function(){if(alive&&!alive())return fail(new Error('Capture cancelled.'));if(count.result>=100)return fail(new Error('Album full: 100 photos. Download this photo or delete one to make room.'));store.add(photo);set(photo.id);};},signal);},
     rename:function(id,name){return operation('photos','readwrite',function(store,set){var req=store.get(id);req.onsuccess=function(){var photo=req.result;if(photo){photo.name=String(name||'Untitled photo').trim().slice(0,60);store.put(photo);}set(!!photo);};});},
+    tags:function(id,tags){return operation('photos','readwrite',function(store,set){var req=store.get(id);req.onsuccess=function(){var photo=req.result;if(photo){photo.tags=Array.from(new Set((Array.isArray(tags)?tags:[]).map(function(t){return String(t).trim().slice(0,24);}).filter(Boolean))).slice(0,8);store.put(photo);}set(!!photo);};});},
     remove:function(id){return operation('photos','readwrite',function(store,set){store.delete(id);set(true);});},
     usage:async function(list){list=list||await this.list();var total=list.reduce(function(n,p){return n+p.bytes;},0),estimate=null;try{if(root.navigator.storage&&root.navigator.storage.estimate)estimate=await root.navigator.storage.estimate();}catch(_){}return {count:list.length,bytes:total,estimate:estimate};},
     probe:async function(blob){var id='logic-check';try{await operation('checks','readwrite',function(store){store.put({id:id,blob:blob});});var result=await operation('checks','readonly',function(store,set){var req=store.get(id);req.onsuccess=function(){set(req.result&&req.result.blob);};});return result;}finally{await operation('checks','readwrite',function(store){store.delete(id);});}}
