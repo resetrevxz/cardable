@@ -20,4 +20,4 @@ Implementation: D:/CardableV2/fixes-and-visuals, update/fixes-and-visuals, based
 
 ## Desktop and publication
 
-Local desktop delivery and release results will be recorded after the required commands complete.
+The first desktop command stopped during source preflight because a clean worktree has no optional root vendor directory (the website vendors are tracked under site/vendor). Source enumeration now tolerates that absent optional directory; mandatory source/resource verification stays intact. No build or promotion occurred in that failed preflight. Desktop delivery and release results follow after the completed build.

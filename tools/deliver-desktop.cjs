@@ -65,7 +65,10 @@ function removeTree(folder,expected) {
 function move(from,to){lexical(from);lexical(to);ps('Guard',{paths:[from,to]});fs.mkdirSync(path.dirname(to),{recursive:true});fs.renameSync(from,to);}
 function source() {
   const shipped=['index.html','desktop-release.json','CHANGELOG.md'];
-  for(const name of ['src','assets','electron','vendor']) shipped.push(...files(path.join(sourceRoot,name)).map(file=>path.relative(sourceRoot,file).replaceAll('\\','/')));
+  for(const name of ['src','assets','electron','vendor']) {
+    if(name==='vendor'&&!fs.existsSync(path.join(sourceRoot,name)))continue;
+    shipped.push(...files(path.join(sourceRoot,name)).map(file=>path.relative(sourceRoot,file).replaceAll('\\','/')));
+  }
   shipped.sort();
   const entries=shipped.map(name=>({path:name,size:fs.statSync(path.join(sourceRoot,name)).size,sha256:hash(path.join(sourceRoot,name))}));
   const pkg=JSON.parse(fs.readFileSync(path.join(sourceRoot,'package.json')));
