@@ -1,16 +1,18 @@
 # Play Cardable on Windows
 
-Cardable **1.0.3** supports **Windows 10/11 x64**. The installer includes the complete game and Electron runtime. This community release is **unsigned**; Windows may show an unknown publisher. Verify that you downloaded it from the repository below before opening it.
+Cardable **1.2.1** is a local candidate for **Windows 10/11 x64**, not a published release. Open this worktree's `index.html` for offline browser play. A locally built installer includes the complete game and Electron runtime and is **unsigned**.
 
-1. Open [the Cardable download page](https://resetrevxz.github.io/cardable/) and select **Download for Windows**, or use [GitHub Releases](https://github.com/resetrevxz/cardable/releases/latest).
-2. Run **Cardable-Setup-1.0.3.exe**. It installs for your Windows user and creates desktop/Start Menu shortcuts. Players need no terminal, Node.js, npm, account or Discord configuration.
+For this review, use **index.html**. Further packaging, installation, and desktop handoff are deferred.
+
+1. Use this worktree's locally built installer for 1.2.1. Previously published versions remain available through [GitHub Releases](https://github.com/resetrevxz/cardable/releases).
+2. Run **Cardable-Setup-1.2.1.exe**. It installs for your Windows user and creates desktop/Start Menu shortcuts. Players need no terminal, Node.js, npm, account or Discord configuration.
 3. Open **Cardable** and play offline. Your collection saves locally on this computer.
 
-For the alternative full-folder download, get **Cardable-1.0.3-Windows-x64.zip** from that release, extract **all** of it, and run **Cardable.exe**. Keep its resources, DLLs and locales together. These folder builds use manual updates and can have a separate storage origin from installed/browser builds.
+For the local full-folder build, run **Cardable.exe** inside **dist/win-unpacked**. Keep its resources, DLLs and locales together. Previously published complete-folder ZIPs must be extracted in full. Folder builds use manual updates and can have a separate storage origin from installed/browser builds.
 
 The full source is also available through the repository's **Code → Download ZIP**. That source folder is separate from the ready-to-run Electron ZIP; source browser play uses index.html directly.
 
-Public numbering resets from the earlier 4.x series to **v1.0.3**. An old installation needs the new installer once because normal update checks do not downgrade. App identity and save schema remain unchanged. Close Cardable normally first, export important progress and download Studio photos separately. Actual setup/upgrade execution and live updater acceptance remain unverified in this pass.
+Public numbering began at **v1.0.0** after the earlier 4.x series; **1.2.1** is this branch's local candidate. An old 4.x installation needs a new-series installer once because normal update checks do not downgrade. App identity and save schema remain unchanged. Close Cardable normally first, export important progress and download Studio photos separately. Actual setup/upgrade execution and live updater acceptance remain unverified in this pass.
 
 Native saves/backups live under **%APPDATA%/Cardable/saves**; use **Settings → Open saves folder** rather than moving these files. The Chromium profile also holds local renderer/IndexedDB data. Do not delete AppData or change Windows users to troubleshoot a missing collection.
 

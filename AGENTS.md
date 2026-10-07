@@ -4,6 +4,8 @@ Cardable's current public version is **1.0.1**; the series started at **1.0.0**,
 
 ## Read only what the task needs
 
+This worktree is the **local 1.2.1 Patch Notes candidate** on `update/patch-notes-2`. The owner explicitly requested no publishing, no merge until instructed, and deferred further installer builds. These direct instructions override the automatic delivery/release workflow below for this branch. Keep work inside `D:/CardableV2/patch-notes-2-work` and preserve other checkouts.
+
 1. Read this file and inspect Git status in `D:/CardableV2/cardable-spec/cardable`, the actual repository.
 2. Read [Designs.MD](Designs.MD) before any visual or interaction change.
 3. Use [ROADMAP](docs/ROADMAP.md) to select the relevant current area docs and the user's authorized spec.
@@ -63,11 +65,13 @@ Every completed release, feature, balance, or content update must author structu
    - `tag`: `'Major'`, `'Feature'`, or `'Patch'`.
    - `tagline`: Concise summary of what changed.
    - `hero`: Title, subtitle, badge, and media banner descriptor (`silicon-circuit`, `website-preview`, etc.).
-   - `showcase`: Array of featured inventory-like cards/crates (item ID, name, subtitle, rarity, variantId, badge, icon, specs object with VRAM, clock, TDP, bus, cores, and description) for new cards, variants, or featured mechanics.
+   - `showcase`: Array of preview records with a real catalog `id`, registered `variantId` or null, `badge`, and `description`. Resolve names, rarity, art, and specifications through the existing registries. Never duplicate or invent hardware specs. Label existing specimens as previews rather than new additions.
    - `balanceChanges`: Array of categorized balance groups with category title, subtitle, icon, and stat diff rows (`stat`, `entity`, `from`, `to`, `diff`, `percent`, `type`: `'buff'` | `'nerf'` | `'rework'`, `note`).
    - `sections`: Categorized bulleted lists for `features`, `systems`, `visuals`, `qol`, and `fixes`.
 2. **Dual changelog maintenance**: In lockstep with `src/data/patch-notes.js`, update `CHANGELOG.md` with the authored release notes and create `changelog/<version>.md` (required by `tools/validate-release.cjs`).
 3. **Showcase and interactive rules**: Preserve the inventory card presentation with true rarity halos, hover inspection, click inspection, and interactive mode support. If a change includes long lists of cards or balance tiers, provide 'View More' thresholds so scannability is maintained.
+4. **Truthful content and media**: Include only shipped changes, with exact update numbers and codenames. `hero.media` may contain local image or video descriptors (`kind`, `src`, `alt`, `caption`, optional `poster`). Videos require manual controls and a still alternative. Optional `previews` provide feature demonstrations. Cite actual before/after behavior in comparison groups; numeric meters require real `fromValue` and `toValue`, never arbitrary percentages. A UI-only update may compare interface behavior and explicitly state that gameplay balance is unchanged.
+5. **Journal acceptance**: Preserve cross-release search, semantic version sorting, section filters, empty-state recovery, View more for all long sections, reading positions, markdown copy, and keyboard focus restoration. Static previews must release their views/listeners on close; full inspection owns at most one live specimen. Do not mint rewards or write inventory from patch notes.
 
 ## Release every completed update
 

@@ -1,813 +1,395 @@
-/* Cardable — Patch Notes UI Controller
- * Features: Inventory showcase cards, interactive balance accordions,
- * 3D hover/click inspection, search/sort filters, and interactive playground mode.
- */
+/* Cardable release journal. Reuses static inventory cards and one focused view. */
 (function (C, root) {
   'use strict';
-  var node = C.packMarkup.node;
-  var currentVersion = '1.0.3';
-  var storageKey = 'cardable.patchNotesSeen';
-
-  var overlay = null;
-  var modal = null;
-  var scrollEl = null;
-  var progressBar = null;
-  var searchInput = null;
-  var sortSelect = null;
-  var interactiveToggle = null;
-  var hoverInspectEl = null;
-  var inspectModalEl = null;
-  var hudBtn = null;
-  var hudUnread = null;
-
-  var activeVersion = '1.0.3';
-  var searchQuery = '';
-  var sortOrder = 'newest';
-  var isInteractiveMode = false;
-  var openState = false;
-  var expandedShowcase = false;
-  var expandedBalance = false;
-  var previousActiveElement = null;
-
-  function isSeen() {
-    try {
-      return root.localStorage.getItem(storageKey) === currentVersion;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function markSeen() {
-    try {
-      root.localStorage.setItem(storageKey, currentVersion);
-    } catch (_) {}
-    if (hudUnread && hudUnread.parentNode) {
-      hudUnread.remove();
-      hudUnread = null;
-    }
-  }
-
-  function getNotesList() {
-    var list = (C.data && C.data.patchNotes) ? C.data.patchNotes.slice() : [];
-    if (sortOrder === 'oldest') {
-      list.reverse();
-    } else if (sortOrder === 'major') {
-      list = list.filter(function (n) { return n.tag === 'Major'; });
-    }
-    return list;
-  }
-
-  function getActiveNote() {
-    var list = getNotesList();
-    var match = list.find(function (n) { return n.version === activeVersion; });
-    return match || list[0] || null;
-  }
-
-  /* ==========================================================================
-     HUD Button Mounting (Adjacent to Credits)
-     ========================================================================== */
-  function mountHudButton() {
-    var host = root.document.body;
-    if (root.document.getElementById('patch-notes-hud-btn')) return;
-
-    hudBtn = node('button', 'patch-notes-hud-btn idle-chrome entrance', host);
-    hudBtn.id = 'patch-notes-hud-btn';
-    hudBtn.type = 'button';
-    hudBtn.setAttribute('aria-label', 'Patch notes v' + currentVersion);
-    hudBtn.style.setProperty('--entry', 2);
-
-    // Scroll / Sparkle icon
-    var svg = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 24 24');
-    svg.setAttribute('class', 'patch-notes-hud-btn__icon');
-    svg.setAttribute('aria-hidden', 'true');
-    var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm0-4H7V7h10v2zM7 15h7v2H7v-2z');
-    svg.appendChild(path);
-    hudBtn.appendChild(svg);
-
-    var label = node('span', 'patch-notes-hud-btn__label', hudBtn, 'Updates');
-    var pill = node('span', 'patch-notes-hud-btn__pill', hudBtn, 'v' + currentVersion);
-
-    if (!isSeen()) {
-      hudUnread = node('span', 'patch-notes-hud-btn__unread', hudBtn);
-    }
-
-    hudBtn.addEventListener('click', function () {
-      open();
-    });
-  }
-
-  /* ==========================================================================
-     Hover Inspect Engine (Feature 7)
-     ========================================================================== */
-  function initHoverInspect() {
-    if (hoverInspectEl) return;
-    hoverInspectEl = node('div', 'patch-hover-inspect', root.document.body);
-    hoverInspectEl.setAttribute('aria-hidden', 'true');
-  }
-
-  function showHoverInspect(item, event) {
-    if (!hoverInspectEl || !item) return;
-    while (hoverInspectEl.children.length) hoverInspectEl.children[0].remove();
-
-    node('h4', 'patch-hover-inspect__title', hoverInspectEl, item.name);
-    node('div', 'patch-hover-inspect__rarity', hoverInspectEl, (item.rarity || 'standard') + (item.variantId ? ' · ' + item.variantId : ''));
-    node('p', 'patch-hover-inspect__desc', hoverInspectEl, item.description || item.subtitle || '');
-
-    if (item.specs) {
-      var grid = node('div', 'patch-hover-inspect__specs', hoverInspectEl);
-      Object.keys(item.specs).forEach(function (key) {
-        var box = node('div', 'patch-hover-inspect__spec-item', grid);
-        node('span', 'patch-hover-inspect__spec-label', box, key);
-        node('span', 'patch-hover-inspect__spec-val', box, String(item.specs[key]));
-      });
-    }
-
-    hoverInspectEl.classList.add('is-active');
-    updateHoverInspectPos(event);
-  }
-
-  function updateHoverInspectPos(event) {
-    if (!hoverInspectEl || !event) return;
-    var x = event.clientX + 18;
-    var y = event.clientY + 18;
-    var rect = hoverInspectEl.getBoundingClientRect();
-    if (x + rect.width > root.innerWidth - 12) x = root.innerWidth - rect.width - 12;
-    if (y + rect.height > root.innerHeight - 12) y = root.innerHeight - rect.height - 12;
-    hoverInspectEl.style.left = x + 'px';
-    hoverInspectEl.style.top = y + 'px';
-  }
-
-  function hideHoverInspect() {
-    if (!hoverInspectEl) return;
-    hoverInspectEl.classList.remove('is-active');
-  }
-
-  /* ==========================================================================
-     Full 3D Inspect Modal (Click to Inspect)
-     ========================================================================== */
-  function initInspectModal() {
-    if (inspectModalEl) return;
-    inspectModalEl = node('div', 'patch-inspect-modal', root.document.body);
-    inspectModalEl.setAttribute('role', 'dialog');
-    inspectModalEl.setAttribute('aria-modal', 'true');
-    inspectModalEl.setAttribute('aria-label', 'Card Inspection');
-
-    inspectModalEl.addEventListener('click', function (e) {
-      if (e.target === inspectModalEl) closeInspectModal();
-    });
-  }
-
-  function openInspectModal(item) {
-    initInspectModal();
-    while (inspectModalEl.children.length) inspectModalEl.children[0].remove();
-
-    var box = node('div', 'patch-inspect-box', inspectModalEl);
-    var stage = node('div', 'patch-inspect-card-stage', box);
-    var info = node('div', 'patch-inspect-info', box);
-
-    // Render interactive showcase specimen
-    var cardWrapper = node('div', 'patch-card-tile', stage);
-    cardWrapper.dataset.rarity = item.rarity || 'basic';
-    cardWrapper.style.width = '240px';
-    cardWrapper.style.transform = 'rotateY(0deg) rotateX(0deg)';
-    cardWrapper.style.transition = 'transform 0.1s ease-out';
-
-    var artStage = node('div', 'patch-card-preview-stage', cardWrapper);
-    artStage.style.height = '240px';
-    var svg = createCardSvgArt(item);
-    artStage.appendChild(svg);
-
-    // Mouse tilt inside stage
-    stage.addEventListener('mousemove', function (e) {
-      var r = stage.getBoundingClientRect();
-      var dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
-      var dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
-      cardWrapper.style.transform = 'rotateY(' + (dx * 18) + 'deg) rotateX(' + (-dy * 18) + 'deg) scale(1.04)';
-    });
-    stage.addEventListener('mouseleave', function () {
-      cardWrapper.style.transform = 'rotateY(0deg) rotateX(0deg) scale(1)';
-    });
-
-    // Info Column
-    var top = node('div', '', info);
-    node('span', 'patch-version-pill', top, (item.rarity || 'standard').toUpperCase());
-    node('h2', 'patch-hero__title', top, item.name);
-    node('p', 'patch-hero__subtitle', top, item.description || item.subtitle || '');
-
-    if (item.specs) {
-      var dl = node('div', 'patch-hover-inspect__specs', top);
-      dl.style.marginTop = '16px';
-      Object.keys(item.specs).forEach(function (key) {
-        var itemEl = node('div', 'patch-hover-inspect__spec-item', dl);
-        node('span', 'patch-hover-inspect__spec-label', itemEl, key);
-        node('span', 'patch-hover-inspect__spec-val', itemEl, String(item.specs[key]));
-      });
-    }
-
-    var actions = node('div', '', info);
-    actions.style.display = 'flex';
-    actions.style.gap = '10px';
-    actions.style.marginTop = '24px';
-
-    var closeBtn = node('button', 'patch-header-btn', actions, 'Close Inspection');
-    closeBtn.type = 'button';
-    closeBtn.addEventListener('click', closeInspectModal);
-
-    inspectModalEl.classList.add('is-open');
-    closeBtn.focus();
-  }
-
-  function closeInspectModal() {
-    if (!inspectModalEl) return;
-    inspectModalEl.classList.remove('is-open');
-  }
-
-  /* ==========================================================================
-     Card SVG Art Generator for Showcases
-     ========================================================================== */
-  function createCardSvgArt(item) {
-    var svg = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 160 160');
-    svg.setAttribute('class', 'patch-card-preview-art');
-
-    var colorMap = {
-      mythical: '#FF3B30',
-      secret: '#9E6BFF',
-      legendary: '#F5A623',
-      exotic: '#2DE2B8',
-      rare: '#2987FA',
-      uncommon: '#B6FF3C',
-      common: '#8E8E93',
-      basic: '#F5F5F7'
-    };
-    var accent = colorMap[item.rarity] || '#2DE2B8';
-
-    // Stylized GPU die or crate visual
-    var defs = root.document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    var grad = root.document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    grad.id = 'grad-' + item.id;
-    grad.setAttribute('x1', '0%'); grad.setAttribute('y1', '0%');
-    grad.setAttribute('x2', '100%'); grad.setAttribute('y2', '100%');
-
-    var s1 = root.document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', accent); s1.setAttribute('stop-opacity', '0.85');
-    var s2 = root.document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', '#121217');
-    grad.appendChild(s1); grad.appendChild(s2);
-    defs.appendChild(grad);
-    svg.appendChild(defs);
-
-    if (item.icon === 'pack') {
-      // Crate / Box Art
-      var box = root.document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      box.setAttribute('x', '30'); box.setAttribute('y', '30');
-      box.setAttribute('width', '100'); box.setAttribute('height', '100');
-      box.setAttribute('rx', '16'); box.setAttribute('fill', 'url(#grad-' + item.id + ')');
-      box.setAttribute('stroke', accent); box.setAttribute('stroke-width', '2');
-      svg.appendChild(box);
-
-      var strap = root.document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      strap.setAttribute('x1', '80'); strap.setAttribute('y1', '30');
-      strap.setAttribute('x2', '80'); strap.setAttribute('y2', '130');
-      strap.setAttribute('stroke', '#FFFFFF'); strap.setAttribute('stroke-width', '3');
-      strap.setAttribute('stroke-opacity', '0.5');
-      svg.appendChild(strap);
-    } else {
-      // Silicon Die & Heatsink Art
-      var pcb = root.document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      pcb.setAttribute('x', '24'); pcb.setAttribute('y', '24');
-      pcb.setAttribute('width', '112'); pcb.setAttribute('height', '112');
-      pcb.setAttribute('rx', '14'); pcb.setAttribute('fill', '#17171C');
-      pcb.setAttribute('stroke', accent); pcb.setAttribute('stroke-width', '2');
-      svg.appendChild(pcb);
-
-      var die = root.document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      die.setAttribute('x', '48'); die.setAttribute('y', '48');
-      die.setAttribute('width', '64'); die.setAttribute('height', '64');
-      die.setAttribute('rx', '8'); die.setAttribute('fill', 'url(#grad-' + item.id + ')');
-      svg.appendChild(die);
-
-      var traces = root.document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      traces.setAttribute('d', 'M32 48h16M32 64h16M32 80h16M32 96h16 M112 48h16M112 64h16M112 80h16M112 96h16 M48 32v16M64 32v16M80 32v16M96 32v16');
-      traces.setAttribute('stroke', accent); traces.setAttribute('stroke-width', '1.5');
-      traces.setAttribute('stroke-opacity', '0.6');
-      svg.appendChild(traces);
-    }
-
+  var node = C.packMarkup.node, doc = root.document;
+  var version = C.config.version, seenKey = 'cardable.patchNotesSeen';
+  var overlay, modal, archive, content, scroll, search, sort, filters, status, progress, modeButton, hud, hover;
+  var opened = false, interactive = false, activeVersion = version, query = '', order = 'newest', filter = 'overview';
+  var savedFocus, inspectFocus, inspectLayer, inspectView, inspector;
+  var views = [], inertRecords = [], positions = {}, expansions = {}, observer, visibleViews = new Map();
+  var categories = { features: 'Features', systems: 'Systems', visuals: 'Visuals', qol: 'Quality of life', fixes: 'Fixes' };
+  var paths = {
+    journal: 'M5 3h14v18H5zM8 7h8M8 11h8M8 15h5',
+    cards: 'M7 3h13v17H7zM4 7H2v14h13', search: 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14m5 12 6 6',
+    arrow: 'M5 12h14m-5-5 5 5-5 5', close: 'm6 6 12 12M6 18 18 6',
+    motion: 'M3 8h11M3 12h7M3 16h11m2-12 5 8-5 8', chevron: 'm8 10 4 4 4-4', copy: 'M8 8h12v13H8zM16 8V3H3v13h5',
+    check: 'm5 12 4 4L19 6', expand: 'M4 9V4h5m6 0h5v5M4 15v5h5m6 0h5v-5'
+  };
+  function icon(name, host) {
+    var svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.classList.add('patch-icon');
+    var path = doc.createElementNS(svg.namespaceURI, 'path'); path.setAttribute('d', paths[name] || paths.journal); svg.appendChild(path); host.appendChild(svg);
     return svg;
   }
-
-  /* ==========================================================================
-     Silicon Circuit Canvas Hero Animation
-     ========================================================================== */
-  function renderHeroCanvas(canvas) {
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    var w = canvas.width = canvas.offsetWidth;
-    var h = canvas.height = canvas.offsetHeight;
-
-    var particles = [];
-    for (var i = 0; i < 40; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        size: Math.random() * 2 + 1,
-        alpha: Math.random() * 0.5 + 0.2
-      });
-    }
-
-    function frame() {
-      if (!canvas.isConnected) return;
-      ctx.clearRect(0, 0, w, h);
-
-      // Grid background
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-      ctx.lineWidth = 1;
-      for (var x = 0; x < w; x += 32) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-      }
-      for (var y = 0; y < h; y += 32) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-      }
-
-      // Animated nodes
-      for (var j = 0; j < particles.length; j++) {
-        var p = particles[j];
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
-        if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
-
-        ctx.fillStyle = 'rgba(45, 226, 184, ' + p.alpha + ')';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      root.requestAnimationFrame(frame);
-    }
-    frame();
+  function button(host, label, className, action, glyph) {
+    var el = node('button', className || 'patch-button', host); el.type = 'button';
+    if (glyph) icon(glyph, el); node('span', '', el, label); if (action) el.addEventListener('click', action); return el;
   }
-
-  /* ==========================================================================
-     Main Modal Creation & Render Pipeline
-     ========================================================================== */
-  function buildModal() {
+  function calm() { return !!(C.motion.reduced || C.settings.policy.animation < 2 || root.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  function applyPolicy() {
+    if (!modal) return;
+    modal.classList.toggle('patch-calm', calm());
+    modal.classList.toggle('patch-mono', C.settings.get('rarityColor') === 'mono');
+    modal.classList.toggle('patch-low', C.settings.policy.shadows < 2);
+  }
+  function matches(text) { return !query || String(text).toLowerCase().indexOf(query) !== -1; }
+  function cardFor(item) { return C.card(item.id); }
+  function variantName(id) { var v = C.variant(id); return v ? v.name : 'Normal'; }
+  function itemText(item) { var card = cardFor(item); return [card && card.name, card && card.rarity, item.description, item.badge, variantName(item.variantId)].join(' '); }
+  function releaseMatches(note) { return matches(JSON.stringify(note) + ' ' + (note.showcase || []).map(itemText).join(' ')); }
+  function releases() {
+    return C.data.patchNotes.filter(function (note) { return (order !== 'major' || note.tag === 'Major') && releaseMatches(note); }).sort(function (a, b) {
+      var aa = a.version.split('.').map(Number), bb = b.version.split('.').map(Number), diff = 0;
+      for (var i = 0; i < 3 && !diff; i++) diff = (bb[i] || 0) - (aa[i] || 0);
+      return order === 'oldest' ? -diff : diff;
+    });
+  }
+  function activeNote() { return C.data.patchNotes.find(function (n) { return n.version === activeVersion; }); }
+  function stateKey(key) { return activeVersion + '/' + key; }
+  function destroyViews() {
+    if (observer) observer.disconnect(); visibleViews.clear();
+    views.forEach(function (view) { view.destroy(); }); views = [];
+    scroll.querySelectorAll('video').forEach(function (video) { video.pause(); });
+    hideHover();
+  }
+  function watch(view) {
+    views.push(view); visibleViews.set(view.el, view);
+    view.setVisible(false);
+    if (observer) observer.observe(view.el); else view.setVisible(true);
+  }
+  function specimen(item) { return { cardId: item.id, serial: 'PREVIEW', variantId: item.variantId || null, cardSkinId: null }; }
+  function mountCard(item, host) {
+    var card = cardFor(item); if (!card) return null;
+    var view = C.cardView.create(card, specimen(item), { thumbnail: true, owned: false, presentation: 'art-only' });
+    host.appendChild(view.el); watch(view); return view;
+  }
+  function markSeen() {
+    try { root.localStorage.setItem(seenKey, version); } catch (_) {}
+    hud.classList.remove('has-unread'); hud.setAttribute('aria-label', 'Patch notes v' + version);
+  }
+  function build() {
     if (overlay) return;
-
-    overlay = node('div', 'patch-overlay', root.document.body);
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Patch Notes');
-
-    modal = node('div', 'patch-modal', overlay);
-    progressBar = node('div', 'patch-progress-bar', modal);
-
-    // Sticky Header
-    var header = node('header', 'patch-header', modal);
-    var titleGroup = node('div', 'patch-title-group', header);
-    node('h2', 'patch-header-title', titleGroup, 'Patch Notes');
-    node('span', 'patch-version-pill', titleGroup, 'v' + currentVersion);
-
-    var headerActions = node('div', 'patch-header-actions', header);
-
-    // Interactive Mode Button
-    interactiveToggle = node('button', 'patch-interactive-toggle', headerActions);
-    interactiveToggle.type = 'button';
-    node('span', 'patch-interactive-toggle__dot', interactiveToggle);
-    var toggleLabel = node('span', '', interactiveToggle, 'Interactive Mode');
-    interactiveToggle.addEventListener('click', function () {
-      isInteractiveMode = !isInteractiveMode;
-      interactiveToggle.classList.toggle('is-active', isInteractiveMode);
-      modal.classList.toggle('is-interactive-mode', isInteractiveMode);
-      renderContent();
+    overlay = node('div', 'patch-overlay', doc.body); overlay.hidden = true;
+    modal = node('section', 'patch-modal', overlay); modal.tabIndex = -1;
+    modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'patch-title');
+    var header = node('header', 'patch-header', modal), brand = node('div', 'patch-brand', header);
+    icon('journal', brand); node('span', 'patch-wordmark', brand, 'cardable'); node('span', 'patch-header-divider', brand, '/');
+    var title = node('h2', '', brand, 'Patch notes'); title.id = 'patch-title';
+    var actions = node('div', 'patch-header-actions', header);
+    modeButton = button(actions, 'Interactive', 'patch-button patch-mode', function () {
+      interactive = !interactive; modeButton.setAttribute('aria-pressed', String(interactive));
+      modal.classList.toggle('is-interactive', interactive); render(); announce(interactive ? 'Interactive previews enabled.' : 'Reading mode enabled.');
+    }, 'motion'); modeButton.setAttribute('aria-pressed', 'false');
+    button(actions, 'Copy notes', 'patch-button patch-copy', copyNotes, 'copy');
+    var closeBtn = button(actions, '', 'patch-button patch-close', close, 'close'); closeBtn.setAttribute('aria-label', 'Close patch notes');
+    progress = node('div', 'patch-progress', modal); progress.setAttribute('aria-hidden', 'true');
+    var layout = node('div', 'patch-layout', modal), sidebar = node('aside', 'patch-sidebar', layout);
+    var searchBox = node('div', 'patch-search', sidebar); icon('search', searchBox);
+    search = node('input', '', searchBox); search.type = 'search'; search.placeholder = 'Find an update…'; search.setAttribute('aria-label', 'Search updates and changes'); search.autocomplete = 'off';
+    node('kbd', '', searchBox, '/');
+    search.addEventListener('input', function () { remember(); query = search.value.trim().toLowerCase(); render(true); });
+    var sortLabel = node('label', 'patch-sort-label', sidebar, 'Release archive');
+    sort = node('select', 'patch-sort', sidebar); sort.id = 'patch-sort'; sortLabel.htmlFor = sort.id;
+    [['newest', 'Newest first'], ['oldest', 'Oldest first'], ['major', 'Major releases']].forEach(function (pair) { var opt = node('option', '', sort, pair[1]); opt.value = pair[0]; });
+    sort.addEventListener('change', function () { remember(); order = sort.value; render(true); });
+    archive = node('nav', 'patch-archive', sidebar); archive.setAttribute('aria-label', 'Release archive');
+    var note = node('div', 'patch-sidebar-note', sidebar); icon('cards', note); node('p', '', note, 'Your collection.\nA little more considered.');
+    node('span', 'patch-micro', note, 'THE CARDABLE JOURNAL');
+    var main = node('div', 'patch-main', layout);
+    filters = node('nav', 'patch-filters', main); filters.setAttribute('aria-label', 'Patch note sections');
+    [['overview', 'Overview'], ['cards', 'Cards & finishes'], ['changes', 'Changes'], ['details', 'Details']].forEach(function (pair) {
+      var b = button(filters, pair[1], 'patch-filter', function () { remember(); filter = pair[0]; render(true); }); b.dataset.filter = pair[0];
     });
-
-    // Copy Notes Button
-    var copyBtn = node('button', 'patch-header-btn', headerActions, 'Copy Notes');
-    copyBtn.type = 'button';
-    copyBtn.addEventListener('click', function () {
-      copyNotes();
-    });
-
-    // Close Button
-    var closeBtn = node('button', 'patch-header-btn patch-close-btn', headerActions, '✕');
-    closeBtn.type = 'button';
-    closeBtn.setAttribute('aria-label', 'Close patch notes');
-    closeBtn.addEventListener('click', close);
-
-    // Navigation & Filter Strip
-    var navBar = node('div', 'patch-nav-bar', modal);
-    var versionTabs = node('div', 'patch-version-tabs', navBar);
-
-    var filterControls = node('div', 'patch-filter-controls', navBar);
-
-    var searchBox = node('div', 'patch-search-box', filterControls);
-    searchInput = node('input', 'patch-search-input', searchBox);
-    searchInput.type = 'search';
-    searchInput.placeholder = 'Search changes…';
-    node('span', 'patch-search-hint', searchBox, '/');
-
-    searchInput.addEventListener('input', function (e) {
-      searchQuery = e.target.value.toLowerCase().trim();
-      renderContent();
-    });
-
-    sortSelect = node('select', 'patch-sort-select', filterControls);
-    var opt1 = node('option', '', sortSelect, 'Newest First'); opt1.value = 'newest';
-    var opt2 = node('option', '', sortSelect, 'Oldest First'); opt2.value = 'oldest';
-    var opt3 = node('option', '', sortSelect, 'Major Only'); opt3.value = 'major';
-
-    sortSelect.addEventListener('change', function (e) {
-      sortOrder = e.target.value;
-      renderContent();
-    });
-
-    // Scrollable Content Shell
-    scrollEl = node('div', 'patch-scroll', modal);
-
-    scrollEl.addEventListener('scroll', function () {
-      var max = scrollEl.scrollHeight - scrollEl.clientHeight;
-      var p = max > 0 ? (scrollEl.scrollTop / max) * 100 : 0;
-      progressBar.style.width = p + '%';
-    });
-
-    // Backdrop click to close
-    overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) close();
-    });
-
-    initHoverInspect();
+    scroll = node('div', 'patch-scroll', main); scroll.tabIndex = 0; scroll.setAttribute('aria-label', 'Selected release notes');
+    content = node('div', 'patch-content', scroll);
+    scroll.addEventListener('scroll', function () {
+      var max = scroll.scrollHeight - scroll.clientHeight; progress.style.transform = 'scaleX(' + (max > 0 ? scroll.scrollTop / max : 0) + ')';
+    }, { passive: true });
+    var footer = node('footer', 'patch-footer', main); status = node('span', '', footer); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
+    button(footer, 'Back to top', 'patch-text-button', function () { scroll.scrollTo({ top: 0, behavior: calm() ? 'auto' : 'smooth' }); }, 'arrow');
+    overlay.addEventListener('click', function (event) { if (event.target === overlay && !inspectLayer) close(); });
+    hover = node('div', 'patch-hover-inspect', overlay); hover.hidden = true; hover.setAttribute('aria-hidden', 'true');
+    if (root.IntersectionObserver) observer = new root.IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) { var view = visibleViews.get(entry.target); if (view) view.setVisible(entry.isIntersecting); });
+    }, { root: scroll, rootMargin: '100px' });
   }
-
-  /* ==========================================================================
-     Content Renderer (Hero, Showcase, Balance, Sections)
-     ========================================================================== */
-  function renderContent() {
-    if (!scrollEl) return;
-    while (scrollEl.children.length) scrollEl.children[0].remove();
-
-    // Render Version Tabs
-    var tabStrip = modal.querySelector('.patch-version-tabs');
-    if (tabStrip) {
-      while (tabStrip.children.length) tabStrip.children[0].remove();
-      getNotesList().forEach(function (note) {
-        var tab = node('button', 'patch-version-tab' + (note.version === activeVersion ? ' is-active' : ''), tabStrip, 'v' + note.version + ' ' + note.codename.split(' ')[0]);
-        tab.type = 'button';
-        tab.addEventListener('click', function () {
-          activeVersion = note.version;
-          expandedShowcase = false;
-          expandedBalance = false;
-          renderContent();
-        });
+  function announce(text) { if (status) status.textContent = text; }
+  function remember() { if (scroll) positions[activeVersion] = scroll.scrollTop; }
+  function selectRelease(v) { remember(); activeVersion = v; render(true); }
+  function render(reset) {
+    if (!opened) return;
+    if (!reset) remember();
+    destroyViews(); content.replaceChildren(); archive.replaceChildren(); applyPolicy();
+    var list = releases();
+    if (!list.some(function (n) { return n.version === activeVersion; })) { activeVersion = list.length ? list[0].version : null; }
+    list.forEach(function (note, index) {
+      var b = button(archive, '', 'patch-release' + (note.version === activeVersion ? ' is-selected' : ''), function () { selectRelease(note.version); });
+      b.querySelector('span').remove();
+      var meta = node('span', 'patch-release-meta', b); node('span', '', meta, 'v' + note.version); node('span', 'patch-release-tag', meta, note.version === version ? 'LATEST' : note.tag.toUpperCase());
+      node('strong', '', b, note.codename); node('span', 'patch-release-date', b, note.date);
+      if (note.version === activeVersion) b.setAttribute('aria-current', 'true');
+      b.addEventListener('keydown', function (event) {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); var buttons = archive.querySelectorAll('button'); buttons[(index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length].focus(); }
       });
+    });
+    Array.from(filters.children).forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.filter === filter)); });
+    var note = activeNote();
+    if (!note) { empty('No updates found.', 'Try a card name, release number, or a shorter search.'); announce('No matching updates.'); return; }
+    var releaseHeading = node('div', 'patch-release-heading', content);
+    node('span', 'patch-micro', releaseHeading, 'UPDATE ' + note.version + ' / ' + note.codename.toUpperCase());
+    node('span', 'patch-date', releaseHeading, note.date);
+    var count = 0;
+    if (filter === 'overview' && !query) { renderHero(note); renderPreviews(note); }
+    if (filter === 'overview' || filter === 'cards') count += renderShowcase(note);
+    if (filter === 'overview' || filter === 'changes') count += renderChanges(note);
+    if (filter === 'overview' || filter === 'details') count += renderDetails(note);
+    if (!count && (query || filter !== 'overview')) empty('Nothing in this section.', 'Choose another section or clear your search to see the full update.');
+    announce(list.length + ' update' + (list.length === 1 ? '' : 's') + (query ? ' found · ' + count + ' matching entries' : ' · ' + (interactive ? 'Interactive previews' : 'Reading mode')));
+    scroll.scrollTop = reset ? positions[activeVersion] || 0 : positions[activeVersion] || 0;
+    progress.style.transform = 'scaleX(' + (scroll.scrollHeight > scroll.clientHeight ? scroll.scrollTop / (scroll.scrollHeight - scroll.clientHeight) : 0) + ')';
+  }
+  function empty(title, text) {
+    var box = node('div', 'patch-empty', content); icon('search', box); node('h3', '', box, title); node('p', '', box, text);
+    button(box, 'Reset filters', 'patch-button', function () { query = ''; search.value = ''; filter = 'overview'; order = 'newest'; sort.value = order; activeVersion = version; render(true); });
+  }
+  function heading(host, number, title, subtitle) {
+    var head = node('div', 'patch-section-heading', host); node('span', 'patch-section-number', head, number);
+    var text = node('div', '', head); node('h3', '', text, title); if (subtitle) node('p', '', text, subtitle); return head;
+  }
+  function renderHero(note) {
+    var hero = node('section', 'patch-hero', content), copy = node('div', 'patch-hero-copy', hero);
+    node('span', 'patch-micro', copy, note.hero.badge); node('h1', '', copy, note.hero.title); node('p', '', copy, note.hero.subtitle || note.tagline);
+    button(copy, 'Explore the update', 'patch-button patch-primary', function () { var el = content.querySelector('.patch-showcase-section, .patch-detail-section'); if (el) el.scrollIntoView({ behavior: calm() ? 'auto' : 'smooth', block: 'start' }); }, 'arrow');
+    var media = (note.hero.media || [])[0];
+    if (media) {
+      var figure = node('figure', 'patch-hero-media', hero);
+      if (media.kind === 'video') {
+        var video = node('video', '', figure); video.src = media.src; video.poster = media.poster || ''; video.controls = true; video.muted = true; video.playsInline = true; video.preload = 'none'; video.setAttribute('aria-label', media.alt || 'Update preview');
+      } else {
+        var img = node('img', '', figure); img.src = media.src; img.alt = media.alt; img.width = 600; img.height = 800; img.decoding = 'async';
+      }
+      node('span', 'patch-media-index', figure, '01 / IN FOCUS'); node('figcaption', '', figure, media.caption || 'Update preview');
     }
-
-    var note = getActiveNote();
-    if (!note) {
-      node('p', 'patch-hero__subtitle', scrollEl, 'No patch notes found matching your filter.');
-      return;
-    }
-
-    // 1. Interactive Mode Notice Bar (if enabled)
-    if (isInteractiveMode) {
-      var modeBar = node('div', 'patch-interactive-mode-bar', scrollEl);
-      node('span', 'patch-interactive-mode-text', modeBar, '✨ Interactive Playground Mode Active: Mouse hover tilts cards in 3D. Click any card to inspect.');
-      var simBtn = node('button', 'patch-header-btn', modeBar, 'Test Balance Specs');
-      simBtn.type = 'button';
-      simBtn.addEventListener('click', function () {
-        if (C.qol && C.qol.toast) C.qol.toast('Simulated balance clocks loaded into runtime preview.');
-      });
-    }
-
-    // 2. Hero Preview Banner
-    var hero = node('section', 'patch-hero', scrollEl);
-    var canvas = node('canvas', 'patch-hero__canvas', hero);
-    renderHeroCanvas(canvas);
-
-    var heroContent = node('div', 'patch-hero__content', hero);
-    if (note.hero && note.hero.badge) node('span', 'patch-hero__badge', heroContent, note.hero.badge);
-    node('h1', 'patch-hero__title', heroContent, (note.hero && note.hero.title) || note.codename);
-    node('p', 'patch-hero__subtitle', heroContent, (note.hero && note.hero.subtitle) || note.tagline);
-
-    // 3. Inventory Showcase Section (Reference Image 1)
-    if (note.showcase && note.showcase.length) {
-      var showcaseSection = node('section', '', scrollEl);
-      var scHeader = node('div', 'patch-section-header', showcaseSection);
-      node('h3', 'patch-section-title', scHeader, 'Featured Additions & Variants');
-      node('span', 'patch-section-meta', scHeader, note.showcase.length + ' Showcase Items');
-
-      var grid = node('div', 'patch-showcase-grid', showcaseSection);
-      var filteredShowcase = note.showcase.filter(function (item) {
-        if (!searchQuery) return true;
-        return (item.name + ' ' + (item.subtitle || '') + ' ' + (item.description || '')).toLowerCase().includes(searchQuery);
-      });
-
-      var visibleCards = expandedShowcase ? filteredShowcase : filteredShowcase.slice(0, 3);
-
-      visibleCards.forEach(function (item) {
-        var card = node('div', 'patch-card-tile', grid);
-        card.dataset.rarity = item.rarity || 'basic';
-        card.setAttribute('tabindex', '0');
-        card.setAttribute('role', 'button');
-        card.setAttribute('aria-label', item.name + ' - Click to inspect');
-
-        var artStage = node('div', 'patch-card-preview-stage', card);
-        artStage.appendChild(createCardSvgArt(item));
-
-        var head = node('div', 'patch-card-header', card);
-        node('h4', 'patch-card-name', head, item.name);
-        node('span', 'patch-card-tag', head, item.rarity || 'standard');
-
-        node('p', 'patch-card-subtitle', card, item.subtitle || '');
-
-        if (item.specs) {
-          var specsRow = node('div', 'patch-card-specs-row', card);
-          if (item.specs.vram) node('span', 'patch-card-spec-chip', specsRow, item.specs.vram);
-          if (item.specs.boostMhz) node('span', 'patch-card-spec-chip', specsRow, item.specs.boostMhz + ' MHz');
-          if (item.specs.tdpW) node('span', 'patch-card-spec-chip', specsRow, item.specs.tdpW + 'W TDP');
+  }
+  function renderPreviews(note) {
+    if (!note.previews) return;
+    var grid = node('div', 'patch-feature-previews', content);
+    note.previews.forEach(function (preview) {
+      var card = node('section', 'patch-feature-preview', grid); node('span', 'patch-micro', card, preview.label);
+      var visual = node('div', 'patch-preview-visual', card);
+      if (preview.kind === 'gallery') {
+        (note.showcase || []).slice(0, 3).forEach(function (item) { var host = node('div', 'patch-mini-specimen', visual); mountCard(item, host); });
+        node('span', 'patch-preview-caption', visual, 'Actual inventory materials');
+      } else {
+        var sample = note.balanceChanges[0].changes[0];
+        var before = node('div', 'patch-compare-sample', visual); node('span', 'patch-micro', before, 'BEFORE'); node('strong', '', before, sample.from);
+        icon('arrow', visual);
+        var after = node('div', 'patch-compare-sample', visual); node('span', 'patch-micro', after, 'AFTER'); node('strong', '', after, sample.to);
+        if (interactive) {
+          var label = node('label', 'patch-preview-slider', card, 'Compare the change');
+          var range = node('input', '', label); range.type = 'range'; range.min = 0; range.max = 100; range.value = 50; range.setAttribute('aria-label', 'Before and after emphasis');
+          function emphasize() { before.style.opacity = String(1 - Number(range.value) / 100 * .75); after.style.opacity = String(.25 + Number(range.value) / 100 * .75); }
+          range.addEventListener('input', emphasize); emphasize();
         }
-
-        var inspectHint = node('div', 'patch-card-inspect-hint', card);
-        inspectHint.textContent = 'Hover · Click to Inspect';
-
-        // Hover Inspect listeners
-        card.addEventListener('mouseenter', function (e) {
-          showHoverInspect(item, e);
-        });
-        card.addEventListener('mousemove', function (e) {
-          updateHoverInspectPos(e);
-          if (isInteractiveMode) {
-            var r = card.getBoundingClientRect();
-            var dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
-            var dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
-            card.style.transform = 'translateY(-6px) rotateY(' + (dx * 12) + 'deg) rotateX(' + (-dy * 12) + 'deg)';
-          }
-        });
-        card.addEventListener('mouseleave', function () {
-          hideHoverInspect();
-          if (isInteractiveMode) card.style.transform = '';
-        });
-
-        // Click to Inspect
-        card.addEventListener('click', function () {
-          hideHoverInspect();
-          openInspectModal(item);
-        });
-        card.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            hideHoverInspect();
-            openInspectModal(item);
-          }
-        });
-      });
-
-      // View More Button for Showcase (Feature 6)
-      if (filteredShowcase.length > 3) {
-        var viewMoreCards = node('button', 'patch-view-more-btn', showcaseSection);
-        viewMoreCards.type = 'button';
-        viewMoreCards.textContent = expandedShowcase ? '▲ Collapse Showcase' : '▼ View More Showcase Cards (+' + (filteredShowcase.length - 3) + ' more)';
-        viewMoreCards.addEventListener('click', function () {
-          expandedShowcase = !expandedShowcase;
-          renderContent();
-        });
       }
-    }
-
-    // 4. Balance & Tuning Section (Reference Image 2)
-    if (note.balanceChanges && note.balanceChanges.length) {
-      var balanceSec = node('section', 'patch-balance-section', scrollEl);
-      var balHeader = node('div', 'patch-section-header', balanceSec);
-      node('h3', 'patch-section-title', balHeader, 'Balance Changes & Tuning');
-      node('span', 'patch-section-meta', balHeader, 'Interactive Diffs');
-
-      var visibleGroups = expandedBalance ? note.balanceChanges : note.balanceChanges.slice(0, 2);
-
-      visibleGroups.forEach(function (group, idx) {
-        var groupEl = node('div', 'patch-balance-group is-open', balanceSec);
-
-        var headerBtn = node('button', 'patch-balance-header', groupEl);
-        headerBtn.type = 'button';
-
-        var left = node('div', 'patch-balance-header-left', headerBtn);
-        var iconWrap = node('div', 'patch-balance-icon-wrap', left);
-        iconWrap.textContent = group.icon === 'chip' ? '⚡' : group.icon === 'pack' ? '📦' : '✨';
-
-        var titles = node('div', '', left);
-        node('h4', 'patch-balance-group-title', titles, group.category);
-        if (group.subtitle) node('p', 'patch-balance-group-sub', titles, group.subtitle);
-
-        // Chevron
-        var chev = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        chev.setAttribute('viewBox', '0 0 24 24');
-        chev.setAttribute('class', 'patch-balance-chevron');
-        var cPath = root.document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        cPath.setAttribute('d', 'M7 10l5 5 5-5z');
-        chev.appendChild(cPath);
-        headerBtn.appendChild(chev);
-
-        // Accordion Drawer
-        var drawer = node('div', 'patch-balance-drawer', groupEl);
-        var inner = node('div', 'patch-balance-drawer-inner', drawer);
-        var table = node('div', 'patch-balance-table', inner);
-
-        group.changes.forEach(function (change) {
-          var row = node('div', 'patch-balance-row', table);
-
-          var rowTop = node('div', 'patch-balance-row-top', row);
-          var nameWrap = node('div', '', rowTop);
-          node('span', 'patch-balance-stat-name', nameWrap, change.stat);
-          if (change.entity) node('span', 'patch-balance-entity-chip', nameWrap, '· ' + change.entity);
-
-          var diffVals = node('div', 'patch-balance-diff-values', rowTop);
-          node('span', 'patch-balance-val-from', diffVals, change.from);
-          node('span', 'patch-balance-arrow', diffVals, '→');
-          node('span', 'patch-balance-val-to', diffVals, change.to);
-
-          var badge = node('span', 'patch-diff-badge ' + (change.type === 'buff' ? 'is-buff' : 'is-nerf'), diffVals, change.diff + ' (' + change.percent + ')');
-
-          if (change.note) {
-            node('p', 'patch-balance-note', row, change.note);
-          }
-
-          // Visual Relative Comparison Bar
-          var barWrap = node('div', 'patch-balance-bar-wrap', row);
-          var barFill = node('div', 'patch-balance-bar-fill' + (change.type === 'nerf' ? ' is-nerf' : ''), barWrap);
-          barFill.style.width = change.type === 'buff' ? '82%' : '45%';
-        });
-
-        headerBtn.addEventListener('click', function () {
-          groupEl.classList.toggle('is-open');
-        });
-      });
-
-      // View More Button for Balance (Feature 6)
-      if (note.balanceChanges.length > 2) {
-        var viewMoreBal = node('button', 'patch-view-more-btn', balanceSec);
-        viewMoreBal.type = 'button';
-        viewMoreBal.textContent = expandedBalance ? '▲ Collapse Balance Groups' : '▼ View More Balance Groups (+' + (note.balanceChanges.length - 2) + ' more)';
-        viewMoreBal.addEventListener('click', function () {
-          expandedBalance = !expandedBalance;
-          renderContent();
-        });
-      }
-    }
-
-    // 5. Categorized Detailed Sections
-    if (note.sections) {
-      var secContainer = node('section', 'patch-sections-container', scrollEl);
-
-      var categories = [
-        { key: 'features', label: '🌟 Features & Architecture', list: note.sections.features },
-        { key: 'systems', label: '⚙️ Systems & Pipelines', list: note.sections.systems },
-        { key: 'visuals', label: '🎨 Visuals & Finishes', list: note.sections.visuals },
-        { key: 'qol', label: '💎 Quality of Life', list: note.sections.qol },
-        { key: 'fixes', label: '🛡 Fixes & Stability', list: note.sections.fixes }
-      ];
-
-      categories.forEach(function (cat) {
-        if (!cat.list || !cat.list.length) return;
-        var card = node('div', 'patch-section-card', secContainer);
-        node('h4', 'patch-section-card-title', card, cat.label);
-
-        var ul = node('ul', 'patch-change-list', card);
-        cat.list.forEach(function (text) {
-          node('li', 'patch-change-item', ul, text);
-        });
-      });
-    }
+      node('h3', '', card, preview.title); node('p', '', card, preview.description);
+    });
   }
-
-  /* ==========================================================================
-     Copy Release Notes (Clipboard QoL)
-     ========================================================================== */
-  function copyNotes() {
-    var note = getActiveNote();
-    if (!note) return;
-
-    var md = '# Cardable ' + note.version + ' — ' + note.codename + '\n\n';
-    md += '*' + note.date + ' · ' + note.tag + ' Release*\n\n';
-    md += note.tagline + '\n\n';
-
-    if (note.balanceChanges) {
-      md += '## Balance & Tuning\n';
-      note.balanceChanges.forEach(function (grp) {
-        md += '### ' + grp.category + '\n';
-        grp.changes.forEach(function (ch) {
-          md += '- **' + ch.stat + '** (' + ch.entity + '): `' + ch.from + '` → `' + ch.to + '` (' + ch.diff + ', ' + ch.percent + ')\n';
-        });
+  function renderShowcase(note) {
+    var items = (note.showcase || []).filter(function (item) { return cardFor(item) && (!query || matches(itemText(item)) || matches(note.version + ' ' + note.codename)); });
+    if (!items.length) return 0;
+    var section = node('section', 'patch-showcase-section', content);
+    heading(section, '01', note.showcaseTitle || 'Cards & finishes', note.showcaseSubtitle);
+    var grid = node('div', 'patch-showcase-grid', section), expanded = !!expansions[stateKey('cards')];
+    (expanded || query ? items : items.slice(0, 3)).forEach(function (item) {
+      var card = cardFor(item), tile = button(grid, '', 'patch-card-tile', function () { openInspect(item, tile); }); tile.querySelector('span').remove();
+      tile.setAttribute('aria-label', 'Inspect ' + card.name + ', ' + variantName(item.variantId) + ' preview');
+      node('span', 'patch-card-badge', tile, item.badge || 'Preview');
+      var stage = node('div', 'patch-card-stage', tile); mountCard(item, stage);
+      var labels = node('div', 'patch-card-labels', tile); node('span', 'patch-micro', labels, C.rarity(card.rarity).name + ' / ' + variantName(item.variantId));
+      node('h4', '', labels, card.name); node('span', 'patch-card-memory', labels, C.cardSpecs.vram(card) + ' ' + C.cardSpecs.memoryType(card));
+      var hint = node('span', 'patch-card-inspect-hint', tile, 'Inspect specimen'); icon('expand', hint);
+      tile.addEventListener('pointerenter', function (event) { if (event.pointerType === 'mouse') showHover(item, event); });
+      tile.addEventListener('pointermove', function (event) {
+        if (event.pointerType !== 'mouse') return;
+        moveHover(event);
+        if (interactive && !calm()) { var r = tile.getBoundingClientRect(); stage.style.transform = 'rotateY(' + ((event.clientX - r.left) / r.width - .5) * 16 + 'deg) rotateX(' + -((event.clientY - r.top) / r.height - .5) * 12 + 'deg)'; }
       });
-      md += '\n';
-    }
-
-    if (note.sections) {
-      Object.keys(note.sections).forEach(function (key) {
-        var items = note.sections[key];
-        if (items && items.length) {
-          md += '## ' + key.toUpperCase() + '\n';
-          items.forEach(function (it) { md += '- ' + it + '\n'; });
-          md += '\n';
+      tile.addEventListener('pointerleave', function () { hideHover(); stage.style.transform = ''; }); tile.addEventListener('blur', hideHover);
+    });
+    if (items.length > 3 && !query) expander(section, 'cards', expanded ? 'Show fewer specimens' : 'View all ' + items.length + ' specimens');
+    return items.length;
+  }
+  function expander(host, key, label) {
+    var b = button(host, label, 'patch-view-more', function () {
+      expansions[stateKey(key)] = !expansions[stateKey(key)]; var top = scroll.scrollTop; render(); scroll.scrollTop = top;
+      var replacement = content.querySelector('[data-expander="' + key + '"]'); if (replacement) replacement.focus({ preventScroll: true });
+    }, 'chevron'); b.dataset.expander = key; b.setAttribute('aria-expanded', String(!!expansions[stateKey(key)]));
+  }
+  function renderChanges(note) {
+    var total = 0, groups = (note.balanceChanges || []).map(function (group) {
+      var changes = group.changes.filter(function (ch) { return !query || matches(JSON.stringify(ch) + ' ' + group.category + ' ' + note.version + ' ' + note.codename); });
+      return { group: group, changes: changes };
+    }).filter(function (entry) { return entry.changes.length; });
+    if (!groups.length) return 0;
+    var section = node('section', 'patch-changes-section', content), head = heading(section, '02', note.balanceTitle || 'Balance & changes', note.balanceSubtitle);
+    var tools = node('div', 'patch-change-tools', head);
+    function expandAll(value) { section.querySelectorAll('details').forEach(function (d) { d.open = value; }); }
+    button(tools, 'Expand all', 'patch-text-button', function () { expandAll(true); }); button(tools, 'Collapse all', 'patch-text-button', function () { expandAll(false); });
+    groups.forEach(function (entry, i) {
+      var group = entry.group, key = 'group-' + (group.id || i), details = node('details', 'patch-change-group', section);
+      details.open = query ? true : expansions[stateKey(key)] !== false;
+      details.addEventListener('toggle', function () { expansions[stateKey(key)] = details.open; });
+      var summary = node('summary', '', details); icon(group.icon, summary);
+      var titles = node('span', 'patch-change-titles', summary); node('strong', '', titles, group.category); node('span', '', titles, group.subtitle);
+      node('span', 'patch-count', summary, String(entry.changes.length).padStart(2, '0')); icon('chevron', summary);
+      var body = node('div', 'patch-change-body', details), more = expansions[stateKey(key + '-more')];
+      (more || query ? entry.changes : entry.changes.slice(0, 3)).forEach(function (change) {
+        var row = node('div', 'patch-change-row', body), title = node('div', 'patch-change-row-title', row);
+        node('strong', '', title, change.stat); node('span', 'patch-micro', title, change.entity || '');
+        var diff = node('div', 'patch-diff', row), before = node('div', '', diff); node('span', 'patch-micro', before, 'BEFORE'); node('span', 'patch-diff-from', before, change.from);
+        icon('arrow', diff); var after = node('div', '', diff); node('span', 'patch-micro', after, 'AFTER'); node('strong', '', after, change.to);
+        if (change.diff || change.percent) node('span', 'patch-diff-tag', row, [change.type, change.diff, change.percent].filter(Boolean).join(' · '));
+        if (change.note) node('p', 'patch-change-note', row, change.note);
+        // Numerical meters are meaningful only when the author supplies actual values.
+        if (Number.isFinite(change.fromValue) && Number.isFinite(change.toValue) && change.fromValue >= 0 && change.toValue >= 0) {
+          var scale = Math.max(change.fromValue, change.toValue, 1), chart = node('div', 'patch-meters', row);
+          [change.fromValue, change.toValue].forEach(function (v, j) { var meter = node('meter', '', chart); meter.min = 0; meter.max = scale; meter.value = v; meter.setAttribute('aria-label', (j ? 'After: ' : 'Before: ') + v); });
         }
       });
-    }
-
-    if (root.navigator && root.navigator.clipboard) {
-      root.navigator.clipboard.writeText(md).then(function () {
-        if (C.qol && C.qol.toast) C.qol.toast('Patch notes markdown copied to clipboard.');
-      }).catch(function () {
-        fallbackCopy(md);
-      });
-    } else {
-      fallbackCopy(md);
-    }
+      if (entry.changes.length > 3 && !query) expander(body, key + '-more', more ? 'Show fewer changes' : 'View ' + (entry.changes.length - 3) + ' more change' + (entry.changes.length === 4 ? '' : 's'));
+      total += entry.changes.length;
+    });
+    return total;
   }
-
+  function renderDetails(note) {
+    var section, total = 0;
+    Object.keys(categories).forEach(function (key) {
+      var items = ((note.sections || {})[key] || []).filter(function (text) { return !query || matches(text + ' ' + categories[key] + ' ' + note.version + ' ' + note.codename); });
+      if (!items.length) return;
+      if (!section) { section = node('section', 'patch-detail-section', content); heading(section, '03', 'The finer details', 'Everything else, neatly in its place.'); }
+      var box = node('article', 'patch-detail-card', section); node('h4', '', box, categories[key]); node('span', 'patch-count', box, String(items.length).padStart(2, '0'));
+      var ul = node('ul', 'patch-detail-list', box), expanded = expansions[stateKey('details-' + key)];
+      (expanded || query ? items : items.slice(0, 3)).forEach(function (text) { node('li', '', ul, text); });
+      if (items.length > 3 && !query) expander(box, 'details-' + key, expanded ? 'Show less' : 'View ' + (items.length - 3) + ' more'); total += items.length;
+    });
+    return total;
+  }
+  function showHover(item, event) {
+    var card = cardFor(item); hover.replaceChildren(); node('span', 'patch-micro', hover, 'PREVIEW / ' + variantName(item.variantId));
+    node('strong', '', hover, card.name); node('p', '', hover, item.description); node('span', 'patch-micro', hover, 'CLICK TO INSPECT'); hover.hidden = false; moveHover(event);
+  }
+  function moveHover(event) {
+    if (hover.hidden) return; var rect = hover.getBoundingClientRect();
+    hover.style.left = Math.max(8, Math.min(event.clientX + 18, root.innerWidth - rect.width - 8)) + 'px';
+    hover.style.top = Math.max(8, Math.min(event.clientY + 18, root.innerHeight - rect.height - 8)) + 'px';
+  }
+  function hideHover() { if (hover) hover.hidden = true; }
+  function openInspect(item, trigger) {
+    hideHover(); inspectFocus = trigger; modal.inert = true;
+    inspectLayer = node('div', 'patch-inspect-modal', overlay);
+    inspector = node('section', 'patch-inspect-box', inspectLayer); inspector.setAttribute('role', 'dialog'); inspector.setAttribute('aria-modal', 'true'); inspector.setAttribute('aria-labelledby', 'patch-inspect-title'); inspector.tabIndex = -1;
+    var stage = node('div', 'patch-inspect-stage', inspector), info = node('div', 'patch-inspect-info', inspector), card = cardFor(item);
+    node('span', 'patch-micro', info, 'COLLECTION SPECIMEN / ' + C.rarity(card.rarity).name.toUpperCase()); var h = node('h2', '', info, card.name); h.id = 'patch-inspect-title';
+    node('p', '', info, item.description); node('p', 'patch-preview-disclosure', info, 'Preview only · This card is not added to your collection.');
+    var instance = specimen(item);
+    function repaint() {
+      if (inspectView) inspectView.destroy();
+      inspectView = C.cardView.create(card, instance, { owned: false, autoFocus: false, keyboardFlip: false, presentation: 'full' });
+      inspectView.el.tabIndex = -1; inspectView.el.setAttribute('role', 'img'); inspectView.el.setAttribute('aria-label', card.name + ' preview specimen'); stage.appendChild(inspectView.el);
+      if (interactive) inspectView.setMode('full');
+    }
+    repaint();
+    var dl = node('dl', 'patch-inspect-specs', info), rows = [{ label: 'Memory', value: C.cardSpecs.vram(card) + ' ' + C.cardSpecs.memoryType(card) }].concat(C.cardSpecs.rows(card));
+    rows.forEach(function (row) { var box = node('div', '', dl); node('dt', '', box, row.label); node('dd', '', box, row.value); });
+    if (card.specsNote) node('p', 'patch-spec-note', info, card.specsNote);
+    if (interactive) {
+      var label = node('label', 'patch-finish-label', info, 'Preview finish'), select = node('select', 'patch-sort', info); select.id = 'patch-preview-finish'; label.htmlFor = select.id;
+      [{ id: '', name: 'Normal' }].concat(C.data.variants.filter(function (v) { return v.kind !== 'frame'; })).forEach(function (v) { var opt = node('option', '', select, v.name); opt.value = v.id; }); select.value = instance.variantId || '';
+      select.addEventListener('change', function () { instance.variantId = select.value || null; repaint(); });
+    }
+    var actions = node('div', 'patch-inspect-actions', info);
+    button(actions, 'Flip preview', 'patch-button', function () { inspectView.setFace(inspectView.side === 'front' ? 'back' : 'front'); }, 'cards');
+    button(actions, 'Reset view', 'patch-button', function () { instance.variantId = item.variantId || null; var s = inspector.querySelector('select'); if (s) s.value = instance.variantId || ''; repaint(); });
+    var closeBtn = button(info, 'Return to patch notes', 'patch-button patch-primary', closeInspect, 'arrow');
+    inspectLayer.addEventListener('click', function (e) { if (e.target === inspectLayer) closeInspect(); });
+    C.accessibility.trap(inspector); closeBtn.focus();
+  }
+  function closeInspect() {
+    if (!inspectLayer) return;
+    if (inspectView) inspectView.destroy(); inspectView = null;
+    C.accessibility.release(inspector); inspectLayer.remove(); inspectLayer = null; inspector = null; modal.inert = false;
+    if (opened && inspectFocus && inspectFocus.isConnected) inspectFocus.focus({ preventScroll: true });
+  }
+  function markdown(note) {
+    var text = '# Cardable ' + note.version + ' — ' + note.codename + '\n\n' + note.date + ' · ' + note.tag + '\n\n' + note.tagline + '\n\n';
+    if ((note.showcase || []).length) { text += '## Collection previews\n'; note.showcase.forEach(function (item) { var c = cardFor(item); text += '- ' + (c ? c.name : item.id) + ' · ' + variantName(item.variantId) + ' (preview): ' + item.description + '\n'; }); }
+    (note.balanceChanges || []).forEach(function (group) { text += '\n## ' + group.category + '\n'; group.changes.forEach(function (ch) { text += '- ' + ch.stat + ' (' + ch.entity + '): ' + ch.from + ' → ' + ch.to + (ch.diff ? ' · ' + ch.diff : '') + (ch.percent ? ' · ' + ch.percent : '') + '. ' + (ch.note || '') + '\n'; }); });
+    Object.keys(note.sections || {}).forEach(function (key) { text += '\n## ' + (categories[key] || key) + '\n'; note.sections[key].forEach(function (t) { text += '- ' + t + '\n'; }); });
+    return text;
+  }
   function fallbackCopy(text) {
-    var ta = root.document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    root.document.body.appendChild(ta);
-    ta.select();
+    if (!opened) return;
+    var box = modal.querySelector('.patch-copy-fallback'); if (box) box.remove();
+    box = node('div', 'patch-copy-fallback', modal); node('p', '', box, 'Copy these notes with Ctrl+C.');
+    var ta = node('textarea', '', box); ta.value = text; ta.readOnly = true; ta.setAttribute('aria-label', 'Release notes to copy');
+    var focus = doc.activeElement;
+    button(box, 'Done', 'patch-button', function () { box.remove(); if (focus && focus.isConnected) focus.focus(); }); ta.focus(); ta.select();
+    try { if (doc.execCommand('copy')) { box.remove(); if (focus && focus.isConnected) focus.focus(); announce('Release notes copied.'); } } catch (_) {}
+  }
+  function copyNotes() {
+    var note = activeNote(); if (!note) { announce('Select an update to copy.'); return; }
+    var text = markdown(note);
+    // Some file:// Chromium contexts leave a clipboard permission request pending.
+    // Offer selectable notes promptly instead of waiting indefinitely for that request.
+    if (!root.navigator.clipboard) { fallbackCopy(text); return; }
+    announce('Copying release notes…');
+    var finished = false, timeout = root.setTimeout(function () {
+      if (!finished) { finished = true; announce('Select the notes to copy.'); fallbackCopy(text); }
+    }, 1200);
     try {
-      root.document.execCommand('copy');
-      if (C.qol && C.qol.toast) C.qol.toast('Patch notes copied to clipboard.');
-    } catch (_) {}
-    ta.remove();
+      root.navigator.clipboard.writeText(text).then(function () {
+        if (finished) return; finished = true; root.clearTimeout(timeout); if (opened) announce('Release notes copied.');
+      }, function () {
+        if (finished) return; finished = true; root.clearTimeout(timeout); fallbackCopy(text);
+      });
+    } catch (_) { finished = true; root.clearTimeout(timeout); fallbackCopy(text); }
   }
-
-  /* ==========================================================================
-     Public Controller API
-     ========================================================================== */
   function open() {
-    buildModal();
-    if (openState) return;
-    openState = true;
-    previousActiveElement = root.document.activeElement;
-
-    markSeen();
-    renderContent();
-
-    overlay.classList.add('is-open');
-    if (C.accessibility && C.accessibility.trap) {
-      C.accessibility.trap(modal);
-    }
-    modal.focus();
-    C.events.emit('menu:visibilityHold', { reason: 'patch-notes', active: true });
+    build(); if (opened) return; opened = true; savedFocus = doc.activeElement; overlay.hidden = false;
+    // Restore exact prior inert values, including a Settings dialog beneath this journal.
+    inertRecords = Array.from(doc.body.children).filter(function (el) { return el !== overlay && el.tagName !== 'SCRIPT' && el.tagName !== 'LINK'; }).map(function (el) { var record = [el, el.inert]; el.inert = true; return record; });
+    doc.body.classList.add('patch-notes-open'); modal.classList.toggle('is-interactive', interactive);
+    markSeen(); render(); C.accessibility.trap(modal); modal.focus(); C.events.emit('menu:visibilityHold', { reason: 'patch-notes', active: true });
   }
-
   function close() {
-    if (!openState) return;
-    openState = false;
-    hideHoverInspect();
-    closeInspectModal();
-
-    if (overlay) overlay.classList.remove('is-open');
-    if (C.accessibility && C.accessibility.release) {
-      C.accessibility.release(modal);
-    }
-
+    if (!opened) return; remember(); closeInspect(); opened = false; destroyViews(); content.replaceChildren();
+    overlay.hidden = true; doc.body.classList.remove('patch-notes-open'); C.accessibility.release(modal);
+    inertRecords.forEach(function (record) { record[0].inert = record[1]; }); inertRecords = [];
     C.events.emit('menu:visibilityHold', { reason: 'patch-notes', active: false });
-    if (previousActiveElement && previousActiveElement.focus) {
-      previousActiveElement.focus();
-    }
+    if (savedFocus && savedFocus.isConnected) savedFocus.focus({ preventScroll: true });
   }
-
   C.patchNotes = {
-    initialized: false,
-    version: currentVersion,
-    get isOpen() { return openState; },
-    open: open,
-    close: close,
+    initialized: false, version: version, get isOpen() { return opened; }, open: open, close: close,
     init: function () {
       if (C.patchNotes.initialized) return;
-      mountHudButton();
-
-      root.document.addEventListener('keydown', function (e) {
-        if (e.target && (e.target.isContentEditable || e.target.closest('input,select,textarea,[contenteditable]'))) return;
-        if (!openState) {
-          if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat) {
-            e.preventDefault();
-            open();
-          }
-          return;
-        }
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          if (inspectModalEl && inspectModalEl.classList.contains('is-open')) {
-            closeInspectModal();
-          } else {
-            close();
-          }
-        } else if (e.key === '/' && searchInput && root.document.activeElement !== searchInput) {
-          e.preventDefault();
-          searchInput.focus();
-        }
+      hud = button(doc.body, 'Patch notes', 'patch-notes-hud-btn idle-chrome entrance', open, 'journal'); hud.id = 'patch-notes-hud-btn';
+      node('span', 'patch-hud-version', hud, version);
+      try { hud.classList.toggle('has-unread', root.localStorage.getItem(seenKey) !== version); } catch (_) { hud.classList.add('has-unread'); }
+      hud.setAttribute('aria-label', 'Patch notes v' + version + (hud.classList.contains('has-unread') ? ', unread update' : ''));
+      C.settings.onChange('*', function () { if (opened) applyPolicy(); });
+      doc.addEventListener('visibilitychange', function () {
+        if (doc.hidden && scroll) scroll.querySelectorAll('video').forEach(function (video) { video.pause(); });
       });
+      doc.addEventListener('keydown', function (event) {
+        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+        if (opened && event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); if (inspectLayer) closeInspect(); else close(); return; }
+        var editing = event.target && (event.target.isContentEditable || event.target.closest('input,select,textarea'));
+        if (opened && !inspectLayer && event.key === '/' && !editing) { event.preventDefault(); event.stopImmediatePropagation(); search.focus(); }
+        var visibleDialog = Array.from(doc.querySelectorAll('[aria-modal="true"]')).some(function (el) { return !el.hidden && el.getClientRects().length && root.getComputedStyle(el).visibility !== 'hidden'; });
+        if (!opened && !editing && event.key.toLowerCase() === 'n' && !visibleDialog && !(C.opening && C.opening.busy)) { event.preventDefault(); open(); }
+      }, true);
+      C.patchNotes.initialized = true;
     }
   };
 })(window.Cardable, window);

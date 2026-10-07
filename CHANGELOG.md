@@ -1,3 +1,20 @@
+# Cardable 1.2.1 — A closer look
+
+October 7, 2026 · Local feature update
+
+Remade Patch Notes as an inventory-style release journal: a searchable archive, local artwork, feature demonstrations, real card specimens, and separate expandable change groups.
+
+- Added versions/codenames/dates, semantic version sorting, section filters, release-wide search, result counts, and recoverable empty states.
+- Used existing static inventory card materials and catalog specifications for preview specimens. Full inspection supports flip/reset and optional finish selection.
+- Added interactive pointer tilt and a before/after slider. Previews never grant cards, mint serials, reserve offers, or alter gameplay.
+- Added View more for galleries, long comparison groups, and detailed lists; expand/collapse all, reading progress, per-release positions, back-to-top, and full-release markdown copy.
+- Kept navigation monochrome and shaded, with responsive archive layouts, keyboard focus trapping/restoration, and quality/reduced-motion behavior.
+- Removed unsupported sample hardware tuning and gameplay balance claims from the earlier journal draft. Odds, rewards, refill cadence, hardware specs, and save schema are unchanged.
+- Updated AGENTS.md to require truthful structured notes, local captioned media, real catalog references, and matching markdown changelogs after every update.
+
+This worktree is a local 1.2.1 candidate. It has not been merged, pushed, tagged, or published.
+
+
 # Cardable 1.0.3 — Sovereign Silicon & The Patch Notes Remake
 
 - Rebuild the Patch Notes system into a modern Apple- and Vercel-inspired inventory-style interface with rich media, card showcases, and real-time hover/click inspection.

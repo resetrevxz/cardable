@@ -102,7 +102,11 @@ Settings dims/shades the scene and uses a focused preview governed by the select
 
 Welcome/Help should get a player to opening and recovery without a terminal. Updater status is quiet and specific; display actionable errors and keep saves safe on quit. Development UI is opt-in through the existing development route and stays absent from normal play. Preview/replay tools must not mint real rewards.
 
-Patch notes adopt an Apple- and Vercel-inspired glassmorphism presentation: near-black frosted surfaces, inventory-style showcase cards with rarity halos and hover/click inspect, fluid accordion balance changes with stat comparison meters, real-time search/sorting, and an optional interactive 3D playground mode. Quick access lives beside Credits on the main HUD and in Settings → About.
+Patch notes use the inventory's shaded surfaces, near-black chrome, subtle edge lighting, bundled Inter/JetBrains Mono, and ample spacing. A searchable release archive sits beside the reading area; mobile stacks it into a compact horizontal archive. Local media, feature previews, static inventory specimens, expandable comparisons, and categorized details give each update a clear hierarchy. Quick access lives beside Credits on the main HUD and in Settings → About.
+
+Color belongs to actual collectible rarity/finish materials. Showcase IDs resolve through the catalog and variant registries; never invent hardware specifications, new cards, or balance changes to fill a layout. Full inspection mounts one temporary specimen, labels it Preview, supports flip/reset and optional finish selection, and releases resources on close. Browsing remains static and bounded. Interactive mode enables pointer-led tilt and before/after controls without changing inventory, odds, reservations, or saved settings.
+
+Search covers versions, codenames, specimens, comparisons, and detailed sections. Semantic version sorting, section filters, result counts, empty-state recovery, View more, expand/collapse all, reading positions, markdown copy, and nested keyboard focus are part of the journal contract. Media must be local and captioned; video uses manual controls and a still poster. Motion obeys quality and reduced-motion preferences, with compositor transitions and native scrolling; never add a decorative recurring clock.
 
 ## Acceptance and future changes
 

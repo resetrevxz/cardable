@@ -2,7 +2,7 @@
   'use strict';
   var toolBlocked=[];var node=C.packMarkup.node, commands=new Map(), recent=[], palette, sheet, matches=[], selected=0, origin=null, focusMode=false, busy=false;
   function editable(target){return target&&target.closest&&target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"])');}
-  function idle(){return C.opening.phase==='idle'&&!C.tutorial.active&&!C.studio?.active&&!C.studio?.pending&&!C.studioAlbumUI?.active&&!C.dev?.immersive&&!root.document.hidden&&!C.friendly?.modal;}
+  function idle(){return !C.patchNotes?.isOpen&&C.opening.phase==='idle'&&!C.tutorial.active&&!C.studio?.active&&!C.studio?.pending&&!C.studioAlbumUI?.active&&!C.dev?.immersive&&!root.document.hidden&&!C.friendly?.modal;}
   function allowed(item){return !item.when||item.when();}
   function context(active){if(active&&!toolBlocked.length){C.viewport.layers().filter(function(el){return el!==palette.backdrop&&el!==sheet&&el.tagName!=='SCRIPT'&&el.tagName!=='CANVAS';}).forEach(function(el){toolBlocked.push({el:el,before:el.inert});el.inert=true;});}else if(!active){toolBlocked.forEach(function(r){if(r.el.isConnected)r.el.inert=r.before;});toolBlocked=[];}C.events.emit('qol:context',{active:active});C.events.emit('menu:visibilityHold',{reason:'qol-tools',active:active});}
   function hide(){if(palette&&!palette.backdrop.hidden)C.paletteUI.hide(palette.backdrop);if(sheet){if(!sheet.hidden)C.paletteUI.hide(sheet);C.accessibility.release(sheet);}context(false);if(origin&&origin.isConnected)origin.focus({preventScroll:true});}
