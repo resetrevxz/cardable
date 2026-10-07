@@ -10,7 +10,7 @@
     fixtures: [['softbox','Softbox'],['ring-light','Ring light'],['neon-tube','Neon tube'],['spotlight-can','Spotlight can'],['led-strip','LED strip']],
     effects: [['haze','Haze / volumetric fog'],['dust','Dust motes'],['sparks','Sparks'],['confetti','Confetti'],['snow','Snow'],['rain','Rain'],['fireflies','Fireflies'],['smoke','Smoke'],['lens-flare','Lens flare']],
     hardware: [['fan','Fan'],['heatsink','Heatsink block'],['cables','Cable bundle'],['pcie-bracket','PCIe bracket'],['rgb-strip','RGB strip'],['screw','Screw'],['standoff','Standoff']],
-    decor: [['crown','Crown'],['trophy','Trophy cup'],['laurel','Laurel ribbon'],['plant','Plant'],['pack','Cardable pack'],['collection','Collection cards']]
+    decor: [['crown','Crown'],['trophy','Trophy cup'],['laurel','Laurel ribbon'],['plant','Plant'],['pack','Cardable pack'],['collection','Collection cards'],['shard','Glass shard']]
   }, propTypes = [].concat.apply([], Object.keys(catalog).map(function (k) { return catalog[k].map(function (v) { return v[0]; }); }));
   function prop(value, index) {
     value = value || {}; var type = choice(value.type, propTypes, 'plinth-square');
@@ -30,7 +30,7 @@
     return { version: 2, groups: [], animation: animation({},8), card: { id:'card', parentId:null, side: pose.side === 'back' ? 'back' : 'front', tilt: [pose.x || 0, pose.y || 0], position:[0,0,0], scale:[1,1,1], rotationZ:0, plate: true, visible: true, locked: false,
       source: instance ? { cardId: instance.cardId, instanceId: instance.instanceId, serial: instance.serial, variantId: instance.variantId || null, cardSkinId: instance.cardSkinId || null, packId: instance.packId || 'standard', pulledAt: instance.pulledAt } : null },
       lights: [Object.assign(light({ id: 'key', position: [-2.2, 3.2, 4], intensity: 1.4 }),{parentId:null})], props: [],
-      camera: { id:'camera',parentId:null,visible:true,locked:false,yaw: 0, pitch: 0, distance: 3, fov: 35, target: [0, 0, 0], roll: 0, focus: [0, 0, 0], aperture: 0, aspect: 'free', projection:'perspective', orthoScale:2.2, autoFrame: false, lockToCard: false }, backdrop: { id:'backdrop',parentId:null,visible:true,locked:false,color: [0.035, 0.035, 0.045] }, keyframes: [], director: { duration: 8, repeat: 'once', title: false, playhead: 0, preview: true }, post: { id:'look',parentId:null,visible:true,locked:false,exposure: 0, bloom: .12, vignette: .18, grain: 0, aberration: 0, flare: 0, tiltShift: 0 } };
+      camera: { id:'camera',parentId:null,visible:true,locked:false,yaw: 0, pitch: 0, distance: 3, fov: 35, target: [0, 0, 0], roll: 0, focus: [0, 0, 0], aperture: 0, aspect: 'free', projection:'perspective', orthoScale:2.2, autoFrame: false, lockToCard: false }, backdrop: { id:'backdrop',parentId:null,visible:true,locked:false,color: [0.035, 0.035, 0.045] }, keyframes: [], director: { duration: 8, repeat: 'once', title: false, playhead: 0, preview: true }, post: { id:'look',parentId:null,visible:true,locked:false,exposure: 0, bloom: .12, vignette: .18, grain: 0, aberration: 0, flare: 0, tiltShift: 0, contrast:1, saturation:1, temperature:0, tint:0, lift:[0,0,0], gamma:[1,1,1], gain:[1,1,1], halation:0 } };
   }
   function choice(value, choices, fallback) { return choices.indexOf(value) >= 0 ? value : fallback; }
   function light(value, index) {
@@ -53,6 +53,7 @@
     scene.lights = (Array.isArray(value.lights) ? value.lights : scene.lights).slice(0, 16).map(light);
     var ids = new Set(['card','camera','backdrop','look']); scene.lights.forEach(function (l, i) { var base = safeId(l.id,'light-'+i), suffix = i;l.id=base;while (ids.has(l.id)) l.id = base.slice(0,65) + '-' + suffix++; ids.add(l.id); });
     var post = value.post || {}; scene.post = { exposure: number(post.exposure, 0, -2, 2), bloom: number(post.bloom, .12, 0, 1), vignette: number(post.vignette, .18, 0, 1), grain: number(post.grain, 0, 0, .3), aberration: number(post.aberration, 0, 0, 1), flare: number(post.flare, 0, 0, 1), tiltShift: number(post.tiltShift, 0, 0, 1) };
+    Object.assign(scene.post,{contrast:number(post.contrast,1,.25,2),saturation:number(post.saturation,1,0,2),temperature:number(post.temperature,0,-1,1),tint:number(post.tint,0,-1,1),lift:vector(post.lift,[0,0,0],-.2,.2),gamma:vector(post.gamma,[1,1,1],.5,2),gain:vector(post.gain,[1,1,1],.5,2),halation:number(post.halation,0,0,1)});
     scene.props = (Array.isArray(value.props) ? value.props : []).slice(0,60).map(prop);
     var cardsLeft = 10; scene.props.forEach(function (p) { if (p.type === 'collection') { p.instances = p.instances.slice(0,cardsLeft); cardsLeft -= p.instances.length; } });
     scene.props.forEach(function (p,i) { var base=safeId(p.id,'prop-'+i), suffix=i;p.id=base;while(ids.has(p.id)) p.id=base.slice(0,65)+'-'+suffix++; ids.add(p.id); });
@@ -65,14 +66,16 @@
     hierarchy(scene,value,ids);scene.animation=animation(value.animation,scene.director.duration);return scene;
   }
   function store(value) {
-    var result = { slots: [], last: {}, quality:'global',workspace:workspace({}) };
+    var result = { slots: [], last: {}, quality:'global',workspace:workspace({}),presets:[],presetRecents:[],presetSeed:'cardable',presetFavorites:[] };
     if (!value || typeof value !== 'object') return result;
+    result.presets=(Array.isArray(value.presets)?value.presets:[]).slice(0,32).map(function(p){try{return preset(p);}catch(_){return null;}}).filter(Boolean);result.presetRecents=(Array.isArray(value.presetRecents)?value.presetRecents:[]).filter(function(x){return typeof x==='string';}).slice(0,24);result.presetFavorites=(Array.isArray(value.presetFavorites)?value.presetFavorites:[]).filter(function(x){return typeof x==='string';}).slice(0,128);result.presetSeed=String(value.presetSeed||'cardable').slice(0,80);
     result.workspace=workspace(value.workspace);result.quality=choice(value.quality,['global','very-high','high','medium','low','very-low'],'global');
     result.slots = Array.from({length:10},function (_,i) { var slot = Array.isArray(value.slots) && value.slots[i]; if (!slot) return null; try { return { name: String(slot.name || 'Scene '+(i+1)).slice(0,60), thumbnail: typeof slot.thumbnail === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(slot.thumbnail) && slot.thumbnail.length <= 80000 ? slot.thumbnail : '', scene: parse(slot.scene) }; } catch (_) { return null; } });
     Object.keys(value.last || {}).forEach(function (id) { if (id === '__proto__' || id === 'constructor' || id === 'prototype') return; try { result.last[id] = parse(value.last[id]); } catch (_) { /* An invalid scene never invalidates gameplay progress. */ } });
     return result;
   }
 
+  function preset(value){if(typeof value==='string'){if(value.length>262144)throw Error('Preset file is too large.');value=JSON.parse(value);}if(!value||(value.version!==1&&value.version!==2)||['scene','rig','look','move','props','animation'].indexOf(value.kind)<0)throw Error('Unsupported studio preset.');return {version:2,id:safeId(value.id,'user-scene'),kind:value.kind,name:String(value.name||'Untitled preset').slice(0,60),tags:(Array.isArray(value.tags)?value.tags:[]).slice(0,8).map(function(t){return String(t).slice(0,40);}),scene:parse(value.scene)};}
   function workspace(v){v=v||{};return {mode:choice(v.mode,['simple','pro'],'simple'),page:choice(v.page,['Set','Light','Camera','Animate','Look','Deliver'],'Set'),leftWidth:number(v.leftWidth,250,200,360),rightWidth:number(v.rightWidth,292,240,380),leftClosed:v.leftClosed===true,rightClosed:v.rightClosed===true,tourDone:v.tourDone===true,favorites:(Array.isArray(v.favorites)?v.favorites:[]).filter(function(x){return typeof x==='string';}).slice(0,128)};}
   function yaw(v){return ((v+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;}
   function safeId(value,fallback){return String(value||fallback).replace(/[^a-zA-Z0-9_.:-]/g,'_').slice(0,80)||fallback;}
@@ -116,11 +119,11 @@
       get canUndo(){return cursor>0;},get canRedo(){return cursor<entries.length;},get steps(){return cursor;},get revision(){return revision;},get cursor(){return cursor;}};
   }
   C.studioQuality={choices:['very-low','low','medium','high','very-high'],resolve:function(override,global){var requested=override&&override!=='global'?override:global;return tiers[requested]?requested:'medium';},renderTier:function(tier){return tier==='very-high'?'high':tier;},availability:function(tier){return tier==='very-high'?{available:false,reason:'Very High render features arrive in milestone E.'}:{available:!!tiers[tier],reason:''};}};
-  C.studioScenes = { tiers: tiers, clone: clone, defaults: defaults, light: light, prop: prop, catalog: catalog, camera: cameraPose, parse: parse, serialize: function (scene) { return JSON.stringify(ordered(parse(scene))); }, normalize: store, objects:objects, syncGroups:function(scene){var all=objects(scene);(scene.groups||[]).forEach(function(g){g.children=all.filter(function(o){return o.parentId===g.id;}).map(function(o){return o.id;}).sort();});},
+  C.studioScenes = { tiers: tiers, clone: clone, defaults: defaults, light: light, prop: prop, catalog: catalog, camera: cameraPose, parse: parse, serialize: function (scene) { return JSON.stringify(ordered(parse(scene))); }, normalize: store, preset:preset, ordered:ordered, objects:objects, syncGroups:function(scene){var all=objects(scene);(scene.groups||[]).forEach(function(g){g.children=all.filter(function(o){return o.parentId===g.id;}).map(function(o){return o.id;}).sort();});},
     limits: function (tier) { return tiers[tier] || tiers.medium; },
     effective: function (scene, tier) {var limit=this.limits(tier),result={card:clone(scene.card),camera:clone(scene.camera),backdrop:clone(scene.backdrop),post:clone(scene.post),lights:[],props:[],keyframes:[],director:scene.director,materialTime:scene.materialTime||0},byId=new Map((scene.groups||[]).map(function(g){return [g.id,g];}));
       function usable(o){var p=o.parentId,seen=new Set();while(p&&!seen.has(p)){seen.add(p);var group=byId.get(p);if(!group)break;if(!group.visible)return false;p=group.parentId;}return o.visible!==false;}
-      result.card.visible=usable(scene.card);if(!usable(scene.backdrop))result.backdrop.color=[.035,.035,.045];if(!usable(scene.post))['exposure','bloom','vignette','grain','aberration','flare','tiltShift'].forEach(function(k){result.post[k]=0;});result.lights=scene.lights.filter(usable).slice(0,limit.lights).map(clone);result.props=scene.props.filter(usable).slice(0,limit.props).map(clone);return result;},
+      result.card.visible=usable(scene.card);if(!usable(scene.backdrop))result.backdrop.color=[.035,.035,.045];if(!usable(scene.post))Object.assign(result.post,defaults().post);if(!usable(scene.post))['exposure','bloom','vignette','grain','aberration','flare','tiltShift'].forEach(function(k){result.post[k]=0;});result.lights=scene.lights.filter(usable).slice(0,limit.lights).map(clone);result.props=scene.props.filter(usable).slice(0,limit.props).map(clone);return result;},
     history:history,
     locked:function(scene,o){var groups=new Map((scene.groups||[]).map(function(g){return [g.id,g];})),seen=new Set();while(o&&!seen.has(o.id)){if(o.locked)return true;seen.add(o.id);o=groups.get(o.parentId);}return false;},
     snap:function(value,step){if(!Number.isFinite(value)||!Number.isFinite(step)||step<=0)return value;return Number((Math.round((value/step)+1e-9)*step).toFixed(8));},

@@ -1,4 +1,4 @@
-# Studio audit — Director 2 milestones A and B
+# Studio audit — Director 2 milestones A, B and C
 
 Read the current AGENTS/Designs, complete Director 2 brief, archived original Inspect brief and all 22 files under src/studio. This is an expansion of that implementation. Findings below originate from source review; the final single runtime session and logic check are recorded separately. Version 1.0.0 is retained; publication is held at the owner's request.
 
@@ -69,3 +69,46 @@ Selection convention: Shift-left drag in Select is additive selection/marquee; S
 The spec remains in alpha-updates/1.0.0-director-mode-2 from A; B continues that folder without changing an update number. Main source integration uses the existing index.html entry and lazy classic-script list. Protected pack/cutscene files were not edited. The separate main checkout's pre-existing 1.0.1 release work was preserved; this isolated feature is committed under 1.0.0 and no publication/tag/version advancement was performed.
 
 Local desktop delivery was attempted once for B from the isolated 1.0.0 worktree. It stopped immediately because @electron/asar is absent, before replacing an installer, shortcut or old build. Desktop packaging/cleanup/handoff remain pending; the previous Cardable (Latest Build) delivery is preserved.
+
+## Milestone C audit (before implementation)
+
+| ID | Finding | Resolution |
+|---|---|---|
+| C01 | Surprise uses unseeded Math.random; only seven scene styles and one look are browsable. | Explicit authored catalog, deterministic seed and family-constrained remix. |
+| C02 | Preset format forces every kind into a whole scene and optional save normalization drops user preset storage. | Canonical typed preset snapshots and bounded optional user/favorite/recent state. |
+| C03 | Style emits success inside a transaction; rig replacement leaves orphaned animation targets; Add drops referenced collection identity. | One atomic kind-aware application path, track cleanup, ID remapping and owned collection filtering. |
+| C04 | Typed preset channels other than card tilt cannot play or be edited. | Bounded property sampler and generic preset-key editing; full timeline tooling remains D. |
+| C05 | Mood ignores grading contrast and style transitions only tween camera/lights. | Immutable mood baseline and neutral-compatible grade interpolation. |
+| C06 | Thumbnail queue eagerly renders offscreen tiles and grows with search/filter rebuilds. | Visibility-driven shared-clock queue with bounded cache and explicit resource release. |
+
+| C07 | The legacy developer gallery treats any gallery query as a standalone tier gallery and skips inventory/detail initialization. | Reserve gallery=presets for the lazy studio; retain legacy gallery routes. This tiny dev-runtime route fix is additive. |
+| C08 | Gallery gating used a nonexistent config.dev flag; opening it before invalidating thumbnails discarded its queued tiles. | Use the actual developer capability and queue the gallery after invalidation. Source corrected during the single session; manual gallery entry exercised it without reopening studio. |
+
+The already moved spec remains in the 1.0.0 feature folder. C continues this folder under the owner's version hold. Main's existing art-data, lighting and material inputs retain their contents and original line endings.
+
+
+
+## Milestone C final review and evidence
+
+C adds 24 individually authored styles in six families, 12 rigs, 13 camera moves, ten grading looks, eight prop sets and nine animation presets. Styles carry individual palette/rim/foil/Classic adaptation rules; a bounded raw-art luminance sample drives dark-art rim compensation. Complementary accents, foil intensity limits and softer/warmer Classic lighting are studio-only. Every preset kind produces canonical scene data; camera/animation presets produce editable keys. New grading values default to neutral when loading old scenes/photos. Very Low uses brightness/contrast/saturation fallback; full grading runs in the studio post pass. E still owns advanced Look tools and rendering quality.
+
+The shared browser offers search, family/mood/color tags, favorites, recents, similar styles, deterministic seed-based Surprise/Remix, and a 32-preset user library with save/rename/duplicate/delete/favorite/import/export and native text-copy support. Native arbitrary file dialogs are absent from this checkout's bridge, so import/export use browser fallbacks. Imported scene references are bounded and collection props only retain owned serials. Replace/Add asks once per studio session, can be reset in the browser, and each application is one history command. A look replaces its grading component; Add for object sets keeps the existing camera/look. Appending a move respects the 15-second limit and fails visibly if no time remains.
+
+The reference gallery contains all 24 styles × Basic, Holographic, Matte, Cosmic, Gold Foil, Classic and Legendary. Open the main index with ?dev=1&gallery=presets, then Inspect an owned card; rendering stays inside the studio session. Cosmic uses the existing Galaxy Holo port. Gold Foil has no gameplay variant in the current catalog, so its gallery cell is an explicitly studio-only foil reference fixture; it adds no inventory item, registry entry or gameplay coating. Other variants retain their existing limited-preview status. Final first-entry route/gating/queue fixes are source-reviewed; the session exercised the gallery manually after correcting the route flag in memory, without reopening studio.
+
+| ID | Final finding | Resolution / acceptance boundary |
+|---|---|---|
+| C09 | Reference switches rebuilt shader programs and a two-face cache repeatedly repainted the same seven references. | Reuse the thumbnail renderer's programs/geometry while replacing four owned face textures; retain at most seven reference faces and 72 small cached previews. Final resource optimization is source-reviewed without an additional session or profiling. |
+| C10 | A preset dialog could leave underlying workspace controls active, and text clipboard bypassed the available native bridge. | Own and restore inert states for underlying surfaces; contain shortcut bubbling; use Cardable.native.system.copyText with browser fallback. Final focus/clipboard changes are source-reviewed. |
+| C12 | The new shard mesh uses glass faces; the existing transparent pass initially admitted only glass cases. | Include shards in that existing pass and exclude them from the opaque mirror pass. Final correction is source-reviewed without another studio session or check run. |
+| C11 | Reducing duration only clamped legacy keys; typed keys/work area/markers/shots could exceed the new duration. | Clamp their ranges together. Full timeline tools remain D. |
+
+Testing: one main-game file:// studio session exercised the 168-cell gallery, preset browsing/search, Replace/Add prompting, styles/camera moves, generic Float key editing, warm grading, user save/rename/duplicate/favorite, resize and exit with no console errors; checkStudio2 ran exactly once and passed 25 assertions in 13 ms; no old suites, new test files, screenshots, recordings or profiling.
+
+The browser setup was recovered before studio entry after an automation timeout. The studio was entered once. On exit its DOM and scoped commands were gone. Final first-entry gallery routing, texture reuse, modal inert-state and text-copy fixes were source-reviewed; the studio was not reloaded or reopened. Runtime photo/clip output, native clipboard/dialog execution, exhaustive per-style taste review, physical devices and measured performance remain unverified, rather than certified by the gallery or source audit.
+
+C's owned sources are integrated through the existing main index.html lazy entry. The only non-studio code change is one developer-runtime condition reserving gallery=presets for studio; legacy galleries are unchanged. Protected packs/cutscenes, main's unrelated changes, app versions and save schema were not edited. Feature commits stay on the 1.0.0 hold; the already-created feature folder is continued rather than renumbered. The main checkout's independent 1.0.1 version remains untouched.
+
+Local desktop delivery was attempted once for C from the isolated 1.0.0 worktree. It stopped before building because @electron/asar is absent. No installer, Latest Build shortcut or old build was replaced; desktop packaging/cleanup/handoff remain pending. No release, tag or publication was performed.
+
+Unfinished implementation: D's complete timeline/keyframe/graph/motion-path/shot-transition/title tools; E's advanced Look page, Very High capability/render implementation, progressive still/export/clip/image-sequence and album upgrades; F's final polish/accessibility/bug pass. C supplies only the editable preset channels and sequence metadata needed now, not D's full editing workspace.
