@@ -42,7 +42,7 @@
   function upcoming(count) {
     if (!Number.isSafeInteger(count) || count < 0) throw new Error('Queue size must be a non-negative safe integer');
     var opened = C.state.current ? C.state.current.packs.openedCount : 0;
-    return Array.from({length: count}, function(_, i) { return i === 0 && forced ? C.pack(forced) : typeAt(opened + i + 1); });
+    return Array.from({length: count}, function(_, i) { return C.state.current && !C.state.current.tutorial.done ? C.pack('standard') : i === 0 && forced ? C.pack(forced) : typeAt(opened + i + 1); });
   }
   function refresh(reason) {
     if (!C.state.current) return;
@@ -59,7 +59,7 @@
   }
   C.packs = {
     typeAt: typeAt, upcoming: upcoming,
-    resolve: function(save) { return forced ? C.pack(forced) : typeAt(save.packs.openedCount + 1, save); },
+    resolve: function(save) { return !save.tutorial.done ? C.pack('standard') : forced ? C.pack(forced) : typeAt(save.packs.openedCount + 1, save); },
     get forced() { return forced; },
     forceNext: function(id) {
       if (C.opening && C.opening.phase !== 'idle') throw new Error('Finish opening before forcing a pack');

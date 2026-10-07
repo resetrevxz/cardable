@@ -39,16 +39,22 @@
     return tags;
   }
   function render(host, entry, instance, mode, now) {
-    var tags=derive(entry,instance,mode||'compact',now),signature=JSON.stringify(tags);
+    var tags=derive(entry,instance,'detail',now),signature=JSON.stringify([mode,tags]);
+    if(!host.dataset.tagBound){host.dataset.tagBound='true';host.dataset.tagState='compact';
+      function state(){host.dataset.tagState=host.dataset.tagPinned==='true'?'open':host.matches(':hover')||host.contains(root.document.activeElement)?'semi-open':'compact';}
+      host.addEventListener('pointerenter',state);host.addEventListener('pointerleave',state);host.addEventListener('focusin',state);host.addEventListener('focusout',function(){root.queueMicrotask(state);});
+      host.addEventListener('click',function(e){if(!e.target.closest('.cb-tag-toggle'))return;e.stopPropagation();host.dataset.tagPinned=host.dataset.tagPinned==='true'?'false':'true';state();host.querySelectorAll('.cb-tag-toggle').forEach(function(b){b.setAttribute('aria-expanded',host.dataset.tagPinned==='true');});});
+      host.addEventListener('keydown',function(e){if(e.key==='Escape'&&host.dataset.tagPinned==='true'){e.preventDefault();e.stopPropagation();host.dataset.tagPinned='false';state();host.querySelectorAll('.cb-tag-toggle').forEach(function(b){b.setAttribute('aria-expanded','false');});}});
+    }
     if(host.dataset.tagSignature===signature)return;host.dataset.tagSignature=signature;host.classList.add('card-tags');host.setAttribute('role','list');host.setAttribute('aria-label','Card Tags');
     while(host.children.length)host.children[0].remove();
-    tags.forEach(function(tag){var el=root.document.createElement('span');el.className='card-tag card-tag--'+tag.kind;el.setAttribute('role','listitem');if(mode==='detail')el.setAttribute('tabindex','0');el.setAttribute('aria-label',tag.label);el.title=tag.label;
+    tags.forEach(function(tag){var el=root.document.createElement('button');el.type='button';el.className='cb-tag-toggle card-tag card-tag--'+tag.kind;el.setAttribute('aria-expanded',host.dataset.tagPinned==='true');el.dataset.tagKind=tag.kind;el.setAttribute('aria-label',tag.label);el.title=tag.label;
       if(tag.kind==='pack') {
         if(tag.accent)el.style.setProperty('--pack-tag-accent',tag.accent);
         var glyph=root.document.createElement('span');glyph.className='pack-tag-glyph';glyph.textContent=tag.glyph;glyph.setAttribute('aria-hidden','true');el.appendChild(glyph);
       }
       var svg=root.document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');var path=root.document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',paths[tag.kind]||'');svg.appendChild(path);if(tag.kind!=='pack')el.appendChild(svg);
-      if(tag.text){var text=root.document.createElement('span');text.textContent=tag.text;el.appendChild(text);}else el.classList.add('card-tag--icon');host.appendChild(el);
+      if(tag.text){var text=root.document.createElement('span');text.className='cb-tag-text';text.textContent=tag.text;el.appendChild(text);}else el.classList.add('card-tag--icon');host.appendChild(el);
     });
   }
   C.cardTags={derive:derive,render:render,dateLabel:dateLabel};

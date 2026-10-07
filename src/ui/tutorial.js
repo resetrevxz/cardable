@@ -13,7 +13,7 @@
     var hours = C.config.packs.regenMs / 3600000;
     var interval = Number.isInteger(hours) ? hours + (hours === 1 ? ' hour' : ' hours') : C.config.packs.regenMs / 60000 + ' minutes';
     return { welcome: 'You have ' + C.state.current.packs.ready + (C.state.current.packs.ready === 1 ? ' pack.' : ' packs.'), hold: 'Hold ' + C.settings.holdKey + ' to open.',
-      cut: 'Drag across the top to cut.', keep: 'Press Space to keep it.', inventory: 'Your cards live here.',
+      cut: 'Drag across the top to cut.', keep: 'Press ' + (C.keybindings && C.keybindings.label ? C.keybindings.label('Space') : 'Space') + ' to keep it.', inventory: 'Your cards live here.',
       timer: 'A new pack arrives every ' + interval + '.', done: '' }[step];
   }
   function clearTarget() { if (target) target.classList.remove('is-tutorial-target'); target = null; }
@@ -47,7 +47,7 @@
     // Presentation resets, while the exact pull, serials and stock stay reserved.
     if (!active) return;
     if (C.state.current.pendingReveal && step === 'cut') {
-      if (phase === 'revealed') C.events.emit('opening:replay');
+      if (phase === 'revealed') advance('keep');
     } else if (C.state.current.pendingReveal && ['welcome', 'hold', 'inventory', 'timer'].indexOf(step) !== -1) advance('keep');
     else if (!C.state.current.pendingReveal && (step === 'cut' || step === 'keep')) advance(C.state.current.inventory.length ? 'inventory' : 'hold');
   }
@@ -72,7 +72,8 @@
   }
   function layout() {
     var nextTarget = active ? lessonTarget() : null, body = root.document.body;
-    if (!layoutDirty && nextTarget === target) return !!target;
+    // The shared frame measures the moving target, including sheet/pack transforms.
+    if (!active && !layoutDirty && nextTarget === target) return false;
     layoutDirty = false;
     if (nextTarget !== target) { clearTarget(); target = nextTarget; if (target) target.classList.add('is-tutorial-target'); }
     body.dataset.tutorial = target ? step : '';
@@ -138,9 +139,9 @@
       fastMs = parseFloat(root.getComputedStyle(root.document.documentElement).getPropertyValue('--t-fast'));
       cutHint = first(root.document.body, '.opening-cut-hint');
       if (!cutHint) return;
-      packHost = root.document.getElementById('pack-stage'); wrapperHost = first(root.document.body, '.opening-pack');
-      keepControl = first(root.document.body, '.opening-keep'); inventoryHost = root.document.getElementById('inventory-affordance');
-      meta = first(packHost, '.pack-meta'); toastHost = first(root.document.body, '.collection-toast'); enter = first(root.document.body, '.opening-enter-hint');
+      packHost = first(root.document.body, '[data-tutorial-target=pack]'); wrapperHost = first(root.document.body, '[data-tutorial-target=wrapper]');
+      keepControl = first(root.document.body, '[data-tutorial-target=keep]'); inventoryHost = first(root.document.body, '[data-tutorial-target=inventory]');
+      meta = first(packHost, '[data-tutorial-target=timer]'); toastHost = first(root.document.body, '.collection-toast'); enter = first(root.document.body, '.opening-enter-hint');
       shell = C.packMarkup.node('aside', 'tutorial', root.document.body); shell.hidden = true; shell.setAttribute('aria-label', 'Getting started');
       instruction = C.packMarkup.node('p', 'tutorial-instruction', shell); instruction.setAttribute('role', 'status'); instruction.setAttribute('aria-live', 'polite'); instruction.setAttribute('aria-atomic', 'true');
       skipButton = C.packMarkup.node('button', 'tutorial-skip', shell, 'Skip'); skipButton.setAttribute('type', 'button'); skipButton.setAttribute('aria-label', 'Skip tutorial');
@@ -151,14 +152,14 @@
       root.document.body.style.setProperty('--tutorial-dim', cfg.chromeOpacity);
       C.events.on('save:written', adopt);
       C.events.on('save:reset', function () { adopt(); });
-      C.events.on('save:imported', reconcile);
-      C.events.on('tutorial:replay', function () { elapsed = 0; adopt(); reconcile(); });
+      C.events.on('save:imported', function(){adopt();reconcile();});
+      C.events.on('tutorial:replay', function () { elapsed = 0; step = 'done'; active = false; adopt(); reconcile(); });
       C.events.on('opening:context', function (event) { phase = event.phase; layout(); C.fx.wake(); });
       C.events.on('opening:keepReady', function () { layout(); C.fx.wake(); });
       C.events.on('charge:start', function () { if (active && step === 'welcome') advance('hold'); });
       C.events.on('opening:prepareCommit', function (candidate) { if (active && (step === 'welcome' || step === 'hold')) { candidate.tutorial.step = 'cut'; candidate.tutorial.done = false; } });
       C.events.on('opening:prepareKeep', function (event) { if (active && step === 'keep' && event.final) { event.candidate.tutorial.step = 'inventory'; event.candidate.tutorial.done = false; } });
-      C.events.on('reveal:phase', function (next) { if (active && step === 'cut' && next === 'rising') advance('keep'); });
+      C.events.on('reveal:phase', function (next) { if (active && step === 'cut' && ['rising','rarityIntro','revealed'].indexOf(next) !== -1) advance('keep'); });
       C.events.on('cut:started', function () { cutStarted = true; layoutDirty = true; layout(); C.fx.wake(); });
       C.events.on('inventory:open', function () { if (active && step === 'inventory' && phase === 'idle') advance('timer'); });
       C.events.on('inventory:context', function (event) { inventoryActive = event.active; layout(); C.fx.wake(); });

@@ -35,3 +35,16 @@
 .inventory-summary > span { color:var(--text-dim); font:10px/1.5 var(--font-mono); }
 
 .card-tag:focus-visible { outline:1px solid var(--text); outline-offset:3px; border-color:var(--text); }
+
+/* Three explicit tag states; normal flex flow owns geometry at every state. */
+.cb-tag-toggle { color:inherit; cursor:pointer; touch-action:manipulation; max-width:100%; }
+.card-tags[data-tag-state=compact] .cb-tag-text { display:none; }
+.card-tags[data-tag-state=semi-open] .cb-tag-text { max-width:72px; }
+.card-tags[data-tag-state=open] .cb-tag-text { max-width:180px; }
+.cb-tag-text { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.inventory-tag-rail { flex-wrap:wrap; gap:4px; }
+.inventory-tag-rail .card-tag:nth-child(n+4) { display:none; }
+.inventory-selected-tags { pointer-events:auto; }
+.card-tags[data-tag-state] .card-tag { flex:0 1 auto; }
+.detail-chip-row .card-tags .cb-tag-text, .detail-chip-row > .card-tag .cb-tag-text { display:inline; }
+@media(pointer:coarse) { .cb-tag-toggle { min-height:44px; min-width:44px; } }

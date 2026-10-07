@@ -152,6 +152,7 @@
     if (candidate.pendingReveal || !C.timers.consumeInto(candidate, now)) { cancel('unavailable'); return; }
     var request = { pack: C.packs.resolve(candidate), options: {} };
     try { C.events.emit('opening:resolve', request); } catch (_) { cancel('backup-failed'); error.textContent='Could not preserve the save. Your pack is still here.'; errorUntil=root.performance.now()+cfg.errorMs; return; }
+    if (!candidate.tutorial.done) { request.pack=C.pack('standard'); delete request.buildPending; }
     if (request.pack && request.pack.enabled) usePack(request.pack);
     var forced = request.options.forcedTier || null;
     try {
@@ -721,6 +722,7 @@
       toastName = node('div', 'collection-toast-name', toastText);
       toastDetail = node('div', 'collection-toast-detail', toastText, 'Added to inventory'); closeToast();
       meniscus = C.springs.create(0); bounds(); revealBounds();
+      host.dataset.tutorialTarget='wrapper'; keepButton.dataset.tutorialTarget='keep';
       C.opening.el = stage; C.opening.wrapper = host; C.opening.glass = glass; C.opening.foil = foil; C.opening.halves = halves;
       C.opening.scene = scene; C.opening.keepButton = keepButton; C.opening.note = note; C.opening.toast = toast;
       C.opening.deleteButton = deleteButton;

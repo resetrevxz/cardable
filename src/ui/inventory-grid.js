@@ -28,7 +28,7 @@
       setActive:function(value){active=value;el.hidden=!value;tiles.forEach(function(t){if(t.view)t.view.setVisible(value);});dirty=true;},
       setModel:function(next,id,nextGroups){entries=next;groups=nextGroups||[{label:'',start:0,count:next.length}];tiles.forEach(C.inventoryTiles.destroy);tiles.clear();selected=Math.max(0,entries.findIndex(function(e){return e.stackKey===id;}));geometry();if(entries[selected])focusId(entries[selected].stackKey,true);else el.scrollTop=0;},
       refreshModel:function(next){entries=next;dirty=true;},
-      resize:function(value){height=Math.max(0,value-144);geometry();if(entries[selected])focusId(entries[selected].stackKey,true);},focus:focusId,
+      resize:function(value){var scroll=el.scrollTop;height=Math.max(0,value-144);geometry();el.scrollTop=scroll;},focus:focusId,
       update:function(){if(active&&dirty)paint();return false;},
       rect:function(id){var tile=Array.from(tiles.values()).find(function(t){return t.entry.stackKey===id;});return tile?tile.card.getBoundingClientRect():null;},
       take:function(tile){detailId=tile.entry.stackKey;return C.inventoryTiles.take(tile);},restore:function(event){detailId=null;var tile=Array.from(tiles.values()).find(function(t){return t.entry.stackKey===event.stackKey;});if(tile)C.inventoryTiles.restore(tile,event);else if(event.view)event.view.destroy();else event.visual.remove();focusId(event.stackKey,true);dirty=true;},

@@ -30,7 +30,7 @@
       C.packView.snapshot = function () { return Object.assign({}, interaction.state); };
       host.setAttribute('role', 'group');
       host.setAttribute('aria-description', 'Drag to inspect the sealed wrapper. Hold Space to open when ready. Press V for a closer look; Escape returns.');
-      var meta = node('div', 'pack-meta idle-chrome entrance', host); meta.style.setProperty('--entry', 2);
+      var meta = node('div', 'pack-meta idle-chrome entrance', host); meta.dataset.tutorialTarget='timer'; meta.style.setProperty('--entry', 2);
       var timer = node('div', 'pack-timer', meta); timer.setAttribute('role', 'timer'); timer.setAttribute('aria-live', 'off');
       var action = node('button', 'pack-open-action', meta, 'Open pack'); action.type = 'button';
       action.setAttribute('aria-label', 'Hold to open pack');
