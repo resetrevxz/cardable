@@ -1,0 +1,56 @@
+/* Local chrome visibility. Focus and short reward feedback remain discoverable. */
+.menu-shell #currency-counter { opacity: 0; pointer-events: none; transition: opacity 300ms var(--ease-out), transform 180ms var(--ease-out); }
+.menu-shell #currency-counter.is-credit-visible { opacity: 1; pointer-events: auto; }
+.is-quiet .menu-shell #currency-counter:not(.is-credit-pinned), .is-idle .menu-shell #currency-counter:not(.is-credit-pinned) { opacity: 0 !important; pointer-events: none; }
+.menu-shell #currency-counter.is-credit-pinned { opacity: 1 !important; pointer-events: auto; }
+:is(.is-opening,.settings-open,.inventory-depth-active,.is-afk,.qol-focus) .menu-shell #currency-counter { opacity: 0 !important; pointer-events: none; }
+.is-collecting .menu-shell #currency-counter.is-credit-pinned { opacity: 1 !important; pointer-events: none; }
+.menu-shell #currency-counter:focus-visible { outline: 1px solid var(--highlight); outline-offset: 4px; }
+#inventory-affordance, .inventory-sheet.is-peek { transition: opacity 280ms var(--ease-out), translate 280ms var(--ease-out); }
+.inventory-peek-quiet:not(.inventory-depth-active) :is(#inventory-affordance,.inventory-sheet.is-peek) { opacity: 0 !important; translate: 0 12px; pointer-events: none; }
+.inventory-peek-quiet #inventory-affordance:focus-within { opacity: 1 !important; translate: 0 0; pointer-events: auto; }
+
+/* Typography stays in the bundled UI family; values carry the mono accent. */
+.inventory-title { gap: 8px 16px; }
+.inventory-header h2 { font: 600 23px/1.18 var(--font-ui); letter-spacing: -.035em; margin: 0; }
+.inventory-count { color: var(--text-dim); font-size: 10px; }
+.inventory-progress { background: var(--hairline); margin: 2px 0; }
+.inventory-summary { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 0; }
+.inventory-summary :is(button,span) { display: inline-flex; gap: 6px; align-items: baseline; font: 11px/1.5 var(--font-ui); color: var(--text-dim); }
+.inventory-summary button { border: 0; background: transparent; padding: 0; cursor: pointer; text-align: left; }
+.inventory-summary strong { color: var(--text); font: 500 11px/1.5 var(--font-mono); }
+.inventory-summary button[aria-pressed="true"] { color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
+.inventory-summary button:focus-visible { outline: 1px solid var(--highlight); outline-offset: 4px; }
+
+.performance-display { max-width: calc(100% - 32px); font: 10px/1.4 var(--font-mono); color: var(--text-dim); }
+.performance-display[data-mode="simple"] { border: 0; padding: 0; background: transparent; box-shadow: none; }
+.performance-display[data-mode="advanced"] { display: grid; gap: 4px; padding: 8px 12px; border-radius: var(--r-button); background: var(--surface-2); }
+.performance-display[hidden] { display: none; }
+.performance-detail { font-size: 9px; overflow-wrap: anywhere; }
+:is(.inventory-detail-active,.settings-open,.is-opening) .performance-display[data-mode="advanced"] { opacity: .65; }
+
+/* Interactive chrome shares feedback without replacing card/spring transforms. */
+:is(.quiet-button,.inventory-icon,.inventory-menu-option,.settings-segment,.settings-switch,.context-item,.card-tag:is(button),.studio-button,.studio-tool,.dev-palette-result) { transition: color 160ms var(--ease-out), background-color 180ms var(--ease-out), border-color 180ms var(--ease-out), translate 180ms var(--ease-out); }
+@media (hover:hover) and (pointer:fine) {
+  :is(.quiet-button,.inventory-icon,.inventory-menu-option,.settings-segment,.context-item,.card-tag:is(button),.studio-button,.studio-tool,.dev-palette-result):not(:disabled):not([aria-disabled="true"]):hover { color: var(--text); border-color: var(--hairline-strong); translate: 0 -1px; }
+  :is(.quiet-button,.inventory-icon,.inventory-menu-option,.settings-segment,.context-item,.studio-button,.studio-tool):not(:disabled):active { translate: 0 1px; }
+}
+:is([data-animation-quality="low"],[data-animation-quality="very-low"],.reduced-motion) :is(.quiet-button,.inventory-icon,.inventory-menu-option,.settings-segment,.context-item,.studio-button,.studio-tool,.dev-palette-result) { translate: none !important; transform: none; }
+:is(.reduced-motion,[data-animation-quality="low"],[data-animation-quality="very-low"]) :is(#inventory-affordance,.inventory-sheet.is-peek) { translate: none !important; }
+
+.context-help-button { flex-shrink: 0; }
+.detail-heading { position: relative; padding-right: 44px; }
+.detail-heading > .context-help-button { position: absolute; top: 0; right: 0; }
+.context-keycap { font: 10px/1.2 var(--font-mono); padding: 4px 6px; border: 1px solid var(--hairline); border-radius: 6px; color: var(--text-dim); }
+.inventory-arrow > .context-keycap { position: absolute; left: calc(100% + 8px); top: 50%; translate: 0 -50%; }
+.settings-corner .context-keycap { position: absolute; right: calc(100% + 8px); top: 50%; translate: 0 -50%; opacity: 0; }
+.settings-corner:is(:hover,:focus-within) .context-keycap { opacity: 1; }
+.studio-inspect-action > .context-keycap { margin-left: 8px; }
+.hide-context-keycaps .context-keycap { display: none; }
+.context-help-popover, .context-help-tooltip { position: absolute; z-index: 150; border: 1px solid var(--hairline); border-radius: var(--r-button); color: var(--text); width: min(300px,calc(var(--layout-width,100vw) - 24px)); box-sizing: border-box; padding: 14px; font: 12px/1.6 var(--font-ui); }
+.context-help-popover p { margin: 0 0 12px; }
+.context-help-tooltip { pointer-events: none; padding: 8px 12px; font-size: 11px; }
+.context-help-actions { display: flex; justify-content: space-between; gap: 8px; }
+@media (max-width: 900px) { .inventory-header { flex-wrap: wrap; } .inventory-title { min-width: 160px; } .inventory-toolbar-buttons { justify-content: flex-end; flex-wrap: wrap; } }
+@media (max-width: 760px) { .inventory-title { display: grid; } .inventory-header h2 { font-size: 20px; } .inventory-summary { gap: 6px 14px; } }
+@media (hover:none), (pointer:coarse) { .context-help-button { width: 44px; height: 44px; } .context-help-actions button { min-height: 44px; } }

@@ -4,6 +4,7 @@
   function clear() {
     if (!reward) return;
     reward.el.remove(); reward.counter.classList.remove('has-pack-reward'); reward = null;
+    C.events.emit('currency:rewardPresentation', false);
     C.events.emit('menu:visibilityHold', { reason: 'pack-reward', active: false });
   }
   C.events.on('pack:reward', function (change) {
@@ -20,6 +21,7 @@
       coins.push({ el: coin, delay: i * 55, arc: 80 + i * 18, spread: (i - (cfg.rewardCoins - 1) / 2) * 11 });
     }
     root.document.body.appendChild(el); counter.classList.add('has-pack-reward');
+    C.events.emit('currency:rewardPresentation', true);
     reward = { el: el, counter: counter, receipt: receipt, coins: coins, born: root.performance.now(),
       dx: target.left + target.width / 2 - source.left - source.width / 2, dy: target.top + target.height / 2 - source.top - source.height / 2 };
     C.events.emit('menu:visibilityHold', { reason: 'pack-reward', active: true });

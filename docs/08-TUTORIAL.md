@@ -29,3 +29,7 @@ Shown to new players, who start with 2 packs. Short, quiet, skippable. It teache
 - The top highlighter and label are shared with ordinary opening; the tutorial highlights that area.
 - Keyboard-only players: `cut` shows "Press Enter to tear" after 5 s (`docs/04-PACK-OPENING.md`).
 - Reduced motion: no pulsing or ghost animation; use static highlights.
+
+## 1.2.0 refresh
+
+Cut advances to Keep across the modern cinematic/direct-flip phases and actual Keep readiness; recovered cards do not replay an already-completed tear. Skip sits below the settings gear, instructions wrap within the viewport, and replay refreshes copy/layout. The inventory lesson pins the pull-up visible.

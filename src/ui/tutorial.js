@@ -47,7 +47,7 @@
     // Presentation resets, while the exact pull, serials and stock stay reserved.
     if (!active) return;
     if (C.state.current.pendingReveal && step === 'cut') {
-      if (phase === 'revealed') C.events.emit('opening:replay');
+      if (['rarityIntro', 'rising', 'preFlip', 'flipping', 'settling', 'variantReveal', 'revealed'].indexOf(phase) !== -1) advance('keep');
     } else if (C.state.current.pendingReveal && ['welcome', 'hold', 'inventory', 'timer'].indexOf(step) !== -1) advance('keep');
     else if (!C.state.current.pendingReveal && (step === 'cut' || step === 'keep')) advance(C.state.current.inventory.length ? 'inventory' : 'hold');
   }
@@ -144,7 +144,7 @@
       shell = C.packMarkup.node('aside', 'tutorial', root.document.body); shell.hidden = true; shell.setAttribute('aria-label', 'Getting started');
       instruction = C.packMarkup.node('p', 'tutorial-instruction', shell); instruction.setAttribute('role', 'status'); instruction.setAttribute('aria-live', 'polite'); instruction.setAttribute('aria-atomic', 'true');
       skipButton = C.packMarkup.node('button', 'tutorial-skip', shell, 'Skip'); skipButton.setAttribute('type', 'button'); skipButton.setAttribute('aria-label', 'Skip tutorial');
-      skipButton.addEventListener('click', function (event) { if (event.button === 0) skip(); });
+      skipButton.addEventListener('click', skip);
       var svg = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'tutorial-ghost'); svg.setAttribute('viewBox', '0 0 100 20'); svg.setAttribute('aria-hidden', 'true'); cutHint.appendChild(svg);
       ghost = root.document.createElementNS('http://www.w3.org/2000/svg', 'path'); ghost.setAttribute('d', cfg.ghostPath); ghost.setAttribute('pathLength', '1'); svg.appendChild(ghost);
       C.tutorial.el = shell; C.tutorial.instruction = instruction; C.tutorial.skipButton = skipButton; C.tutorial.ghost = ghost;
@@ -152,13 +152,13 @@
       C.events.on('save:written', adopt);
       C.events.on('save:reset', function () { adopt(); });
       C.events.on('save:imported', reconcile);
-      C.events.on('tutorial:replay', function () { elapsed = 0; adopt(); reconcile(); });
+      C.events.on('tutorial:replay', function () { elapsed = 0; lastContext = ''; layoutDirty = true; adopt(); reconcile(); instruction.textContent = copy(); layout(); C.fx.wake(); });
       C.events.on('opening:context', function (event) { phase = event.phase; layout(); C.fx.wake(); });
-      C.events.on('opening:keepReady', function () { layout(); C.fx.wake(); });
+      C.events.on('opening:keepReady', function () { if (active && step === 'cut') advance('keep'); layoutDirty = true; layout(); C.fx.wake(); });
       C.events.on('charge:start', function () { if (active && step === 'welcome') advance('hold'); });
       C.events.on('opening:prepareCommit', function (candidate) { if (active && (step === 'welcome' || step === 'hold')) { candidate.tutorial.step = 'cut'; candidate.tutorial.done = false; } });
       C.events.on('opening:prepareKeep', function (event) { if (active && step === 'keep' && event.final) { event.candidate.tutorial.step = 'inventory'; event.candidate.tutorial.done = false; } });
-      C.events.on('reveal:phase', function (next) { if (active && step === 'cut' && next === 'rising') advance('keep'); });
+      C.events.on('reveal:phase', function (next) { if (active && step === 'cut' && ['rarityIntro', 'rising', 'preFlip', 'flipping', 'settling', 'variantReveal', 'revealed'].indexOf(next) !== -1) advance('keep'); });
       C.events.on('cut:started', function () { cutStarted = true; layoutDirty = true; layout(); C.fx.wake(); });
       C.events.on('inventory:open', function () { if (active && step === 'inventory' && phase === 'idle') advance('timer'); });
       C.events.on('inventory:context', function (event) { inventoryActive = event.active; layout(); C.fx.wake(); });

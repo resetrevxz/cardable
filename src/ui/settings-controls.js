@@ -1,7 +1,7 @@
 (function (C, root) {
   'use strict';
   var node = C.packMarkup.node;
-  function title(value) { return ({ 'very-low': 'Very Low', display: 'Display refresh', sleep: 'Sleep completely', timer: 'Timer/title only', pause: 'Pause visuals' })[value] || (value === '2.5' || value === '5' ? value + ' s' : /^\d+$/.test(value) ? value + ' FPS' : value.charAt(0).toUpperCase() + value.slice(1)); }
+  function title(value) { return ({ 'very-low': 'Very Low', display: 'Display refresh', unlimited: 'Unlimited', sleep: 'Sleep completely', timer: 'Timer/title only', pause: 'Pause visuals' })[value] || (value === '2.5' || value === '5' ? value + ' s' : /^\d+$/.test(value) ? value + ' FPS' : value.charAt(0).toUpperCase() + value.slice(1)); }
   C.uiKit = {
     create: function (descriptor, parent, binding) {
       binding = binding || { get: C.settings.get, set: C.settings.set, subscribe: C.settings.onChange };

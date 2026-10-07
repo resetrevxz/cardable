@@ -1,6 +1,6 @@
 # Designs.MD — Cardable's current design system
 
-This guide describes the current game, publicly numbered **1.1.0** after the 4.2.0 development series, including four graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
+This guide describes the current game, publicly numbered **1.2.0** after the 4.2.0 development series, including four graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
 
 ## Direction and visual hierarchy
 
@@ -38,7 +38,7 @@ Every tier retains the collectible's identity, readable information and all game
 
 The independent controls are card finishes, reflections, borders/props, particles, shadows, glass/blur, background effects, ambient animation, canvas resolution and cinematic detail. Changing one shows **Customized**. Applying a preset changes only those ten controls. Text stays at native CSS resolution. See [GRAPHICS-UPDATE](docs/GRAPHICS-UPDATE.md) and [settings-schema.js](src/data/settings-schema.js) for exact rates and choices.
 
-FPS stays independent: Display refresh, 20, 30, 45, 60, 90, 120, 144, 165 or 240. Hidden-tab options are Sleep completely and Timer/title only; visible unfocused windows can run normally, cap at 30 or pause visuals. Refill reconciles elapsed time on wake. A performance display must sleep with the game and label Idle/Paused honestly; it is not a GPU profiler. Recommendations offer a lower preset and require an explicit action.
+FPS stays independent: Display refresh, Unlimited (no game cap; browser/display cadence still applies), 20, 30, 45, 60, 90, 120, 144, 165 or 240. Hidden-tab options are Sleep completely and Timer/title only; visible unfocused windows can run normally, cap at 30 or pause visuals. Refill reconciles elapsed time on wake. A performance display must sleep with the game and label Idle/Paused honestly; it is not a GPU profiler. Recommendations offer a lower preset and require an explicit action.
 
 Use the shared scheduler. Full card effects belong to the focused card; browsing uses static front thumbnails, viewport-aware mount budgets and bounded caches/layers. Stop offscreen, hidden and inactive decorative work, and dispose temporary GL targets, particles and material bindings. High is a visual target with these same optimizations, not a guarantee of 240 FPS on every device.
 
@@ -56,7 +56,7 @@ Card face/back anatomy, rarity props, specs and permanent variants are governed 
 
 Shelf/Grid browsing uses static front-only thumbnails and local small art. Selecting promotes one full card; closing restores a fresh thumbnail and releases full bindings. Detail hides/dims the browsing scene instead of leaving many active materials behind it. A roughly 360 px information panel stacks on narrow layouts below 900 px. Content order emphasizes the collectible and meaningful provenance rather than repeating tier/serial/spec labels everywhere.
 
-Overview/History are quiet segments. Inspect is the primary detail action; Favorite, Flip and More remain compact but accessible. Metadata tags are neutral except approved pack identity, with the useful variant/pack/fresh tags before overflow. History describes actual events and never invents lost provenance. Multi-select or bulk actions require their own scope.
+The detail panel shows its overview directly. Card History is retired; saved journal records remain inert compatibility data. Inspect is the primary detail action; Favorite, Flip and More remain compact but accessible. Metadata tags are neutral except approved pack identity, with the useful variant/pack/fresh tags before overflow. Contextual help uses quiet keycaps and compact glass popovers. Multi-select or bulk actions require their own scope.
 
 Detail content uses the existing 40 ms stagger, 8 px rise and 250 ms settle when motion/animation quality allows. High alone adds the local 4 px blur when its glass policy allows; Medium keeps the rise without blur, and lower tiers favor opacity or static presentation. Segment/detail changes keep short readable transitions and respect reduced motion. [06-INVENTORY](docs/06-INVENTORY.md) owns layout, grouping, mount budgets and filters.
 
@@ -66,7 +66,7 @@ Inspect/Director uses the actual selected instance and separate photo storage. K
 
 The stock counter, refill timer and Credits are quiet, legible metrics. The pack drives the central interaction. Hold remains three seconds; cutting and reveal use the central opening state machine. Space-to-Keep obeys readiness and modal guards. Presentation does not alter pulls, rewards or reservations.
 
-Idle fade defaults to 15 seconds, retaining the small wordmark and useful metrics. The later AFK view uses a minimal timestamp/metrics presentation and suspends decorative scene work. Pointer proximity wakes appropriate controls without churning the whole scene. Waking must preserve an in-progress reveal. Timing choices and the ten-minute AFK behavior are in [05-MAIN-MENU](docs/05-MAIN-MENU.md).
+Idle fade defaults to 15 seconds, retaining the small wordmark and useful metrics. Credits wakes within 160 px or for focus/reward feedback, then fades after 600 ms away. The closed inventory pull-up rests after five seconds; open inventory stays open. The later AFK view uses a minimal timestamp/metrics presentation and suspends decorative scene work. Pointer proximity wakes appropriate controls without churning the whole scene. Waking must preserve an in-progress reveal. Timing choices and the ten-minute AFK behavior are in [05-MAIN-MENU](docs/05-MAIN-MENU.md).
 
 ## Approved color and artwork exceptions
 

@@ -3,14 +3,25 @@
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const {spawnSync} = require('node:child_process'), {pathToFileURL} = require('node:url');
 const asar = require('@electron/asar');
-const root = fs.realpathSync(path.resolve(__dirname, '..'));
+const sourceRoot = fs.realpathSync(path.resolve(__dirname, '..'));
+// A registered worktree can build into its primary checkout's existing delivery
+// owner. Shared Git ownership is mandatory; preview paths and locks stay bound.
+const root = process.env.CARDABLE_DELIVERY_OWNER ? fs.realpathSync(process.env.CARDABLE_DELIVERY_OWNER) : sourceRoot;
+if (root !== sourceRoot) {
+  function common(home) {
+    const result = spawnSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], {cwd:home,encoding:'utf8',windowsHide:true});
+    if (result.status !== 0) throw new Error('Delivery owner/source is not a Git checkout.');
+    return fs.realpathSync(result.stdout.trim()).toLowerCase();
+  }
+  if (common(root) !== common(sourceRoot)) throw new Error('Delivery owner must share the source worktree Git repository.');
+}
 const dist = path.join(root, 'dist'), home = path.join(dist, 'delivery');
 const backend = path.join(__dirname, 'desktop-delivery.ps1');
 const idPattern = /^[0-9TZ.-]+-[0-9a-f]{12}$/;
 const mode = ['inspect','verify','resume'].find(value=>process.argv.includes('--'+value)) || process.env.CARDABLE_DELIVERY_MODE || 'deliver';
 let scratch, owner;
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, {cwd:root, windowsHide:true, encoding:'utf8', maxBuffer:32*1024*1024, ...options});
+  const result = spawnSync(command, args, {cwd:sourceRoot, windowsHide:true, encoding:'utf8', maxBuffer:32*1024*1024, ...options});
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`${path.basename(command)} failed (${result.status}): ${result.stderr || ''}`);
   return (result.stdout || '').trim();
@@ -54,15 +65,15 @@ function removeTree(folder,expected) {
 function move(from,to){lexical(from);lexical(to);ps('Guard',{paths:[from,to]});fs.mkdirSync(path.dirname(to),{recursive:true});fs.renameSync(from,to);}
 function source() {
   const shipped=['index.html','desktop-release.json','CHANGELOG.md'];
-  for(const name of ['src','assets','electron','vendor']) shipped.push(...files(path.join(root,name)).map(file=>path.relative(root,file).replaceAll('\\','/')));
+  for(const name of ['src','assets','electron','vendor']) shipped.push(...files(path.join(sourceRoot,name)).map(file=>path.relative(sourceRoot,file).replaceAll('\\','/')));
   shipped.sort();
-  const entries=shipped.map(name=>({path:name,size:fs.statSync(path.join(root,name)).size,sha256:hash(path.join(root,name))}));
-  const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json')));
-  if(pkg.version!==JSON.parse(fs.readFileSync(path.join(root,'package-lock.json'))).version || !fs.readFileSync(path.join(root,'src/config.js'),'utf8').includes("version: '"+pkg.version+"'"))throw new Error('Version sources disagree');
-  const buildInputs=['package.json','package-lock.json','electron-builder.config.cjs','tools/deliver-desktop.cjs','tools/desktop-delivery.config.cjs','tools/desktop-delivery.ps1','tools/nsis-installer.nsh'].map(name=>({path:name,sha256:hash(path.join(root,name))}));
+  const entries=shipped.map(name=>({path:name,size:fs.statSync(path.join(sourceRoot,name)).size,sha256:hash(path.join(sourceRoot,name))}));
+  const pkg=JSON.parse(fs.readFileSync(path.join(sourceRoot,'package.json')));
+  if(pkg.version!==JSON.parse(fs.readFileSync(path.join(sourceRoot,'package-lock.json'))).version || !fs.readFileSync(path.join(sourceRoot,'src/config.js'),'utf8').includes("version: '"+pkg.version+"'"))throw new Error('Version sources disagree');
+  const buildInputs=['package.json','package-lock.json','electron-builder.config.cjs','tools/deliver-desktop.cjs','tools/desktop-delivery.config.cjs','tools/desktop-delivery.ps1','tools/nsis-installer.nsh'].map(name=>({path:name,sha256:hash(path.join(sourceRoot,name))}));
   const fingerprint=sha(JSON.stringify(entries)+JSON.stringify(buildInputs));
   const status=git(['status','--porcelain=v1','--untracked-files=all']);
-  const untracked=git(['ls-files','--others','--exclude-standard','-z']).split('\0').filter(Boolean).sort().map(name=>{const file=path.join(root,name);return [name,fs.lstatSync(file).isSymbolicLink()?'link':hash(file)];});
+  const untracked=git(['ls-files','--others','--exclude-standard','-z']).split('\0').filter(Boolean).sort().map(name=>{const file=path.join(sourceRoot,name);return [name,fs.lstatSync(file).isSymbolicLink()?'link':hash(file)];});
   return {version:pkg.version,sourceRevision:git(['rev-parse','HEAD']),sourceFingerprint:fingerprint,dirtyFingerprint:sha(git(['diff','--binary','HEAD'])+status+JSON.stringify(untracked)),dirtyStatus:status,files:entries,buildInputs};
 }
 function inspectLegacy(info) {
@@ -101,7 +112,7 @@ function validated(folder,identity) {
   if(pkg.version!==identity.version||pkg.name!=='cardable'||pkg.main!=='electron/main.js'||pkg.productName!=='Cardable'||JSON.stringify(pkg.cardableDelivery)!==JSON.stringify({buildId:identity.buildId,sourceRevision:identity.sourceRevision,sourceFingerprint:identity.sourceFingerprint}))throw new Error('Packaged source identity mismatch');
   if(pkg.cardableDesktop?.updateFixture||pkg.scripts||pkg.devDependencies)throw new Error('Development metadata leaked into package');
   const entries=new Set(asar.listPackage(archive).map(name=>name.replace(/^[/\\]/,'').replaceAll('\\','/')));
-  for(const name of ['electron/preload.js','electron/native/mini.html','src/core/journal.js','src/ui/journal.js','src/data/journal.js','CHANGELOG.md','assets/icons/icon.ico'])if(!entries.has(name))throw new Error('Missing bundled file: '+name);
+  for(const name of ['electron/preload.js','electron/native/mini.html','src/ui/activity-controls.js','src/ui/contextual-help.js','CHANGELOG.md','assets/icons/icon.ico'])if(!entries.has(name))throw new Error('Missing bundled file: '+name);
   for(const file of identity.files)if(!entries.has(file.path)||sha(asar.extractFile(archive,path.normalize(file.path)))!==file.sha256)throw new Error('Bundled source mismatch: '+file.path);
   const html=asar.extractFile(archive,'index.html').toString();
   if(!html.includes('Content-Security-Policy')||/<script[^>]+type="module"/.test(html))throw new Error('Offline/CSP contract changed');
@@ -262,7 +273,7 @@ if(!process.argv.includes('--locked')){
   if(result.error)console.error(result.error.message);process.exitCode=result.status|| (result.error?1:0);
 }else{
   try{
-    if(!equalPath(git(['rev-parse','--show-toplevel']),root))throw new Error('Not the actual repository root');
+    if(!equalPath(git(['rev-parse','--show-toplevel']),sourceRoot))throw new Error('Not the actual repository root');
     noLinks(home);fs.mkdirSync(home,{recursive:true});
     const lock=path.join(home,'lock.json'),prior=read(lock);
     if(prior){let alive=false;try{process.kill(prior.pid,0);alive=true;}catch(error){if(error.code!=='ESRCH')alive=true;}if(alive)throw new Error('Prior delivery process is still alive; refusing a stale-lock takeover.');}

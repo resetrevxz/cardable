@@ -8,10 +8,11 @@
   var schema = {
     motion: entry('Reduced motion', 'Auto follows your system.', 'Motion and effects', 'auto', ['auto', 'on', 'off']),
     quality: entry('Graphics preset', 'A complete graphics profile. FPS stays independent.', 'Graphics', 'medium', ['very-low', 'low', 'medium', 'high']),
-    fpsLimit: entry('FPS limit', 'Lower caps save power. Display refresh follows your screen.', 'Performance', 'display', ['display', '20', '30', '45', '60', '90', '120', '144', '165', '240'], 'select'),
+    fpsLimit: entry('FPS limit', 'Unlimited removes the game cap; browser/display cadence still applies. Lower caps save power.', 'Performance', 'display', ['display', 'unlimited', '20', '30', '45', '60', '90', '120', '144', '165', '240'], 'select'),
     backgroundMode: entry('Hidden tab', 'Packs refill by real time in either mode.', 'Performance', 'sleep', ['sleep', 'timer'], 'select'),
     unfocusedMode: entry('Unfocused window', 'For a visible window while using another app.', 'Performance', 'normal', ['normal', '30', 'pause'], 'select'),
-    showFps: entry('Performance display', 'Animation FPS and frame time; sleeps with the game.', 'Performance', false),
+    showFps: entry('Performance display', 'A quiet readout that sleeps with the game.', 'Performance', false),
+    performanceMode: entry('Display detail', 'Simple shows FPS only. Advanced adds frame and JS timing.', 'Performance', 'simple', ['simple', 'advanced']),
     dots: entry('Dot grid', 'A quiet response to the pointer.', 'Motion and effects', 'on', ['on', 'subtle', 'off']),
     cursorGlow: entry('Cursor glow', 'The native cursor stays visible.', 'Motion and effects', true),
     idleFade: entry('Idle fade', 'Keep the small logo and pack metrics while idle.', 'Motion and effects', '15', ['2.5', '5', '15', '30', 'never']),

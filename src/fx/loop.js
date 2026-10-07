@@ -7,7 +7,7 @@
     get subscribers() { return updates.length; }, get refreshHz() { return refreshHz; },
     get paused() { return paused; }, get targetFps() { return Math.min(refreshHz, cap()); } };
   function cap() {
-    var value = C.settings.get('fpsLimit'), fps = value === 'display' ? Infinity : Number(value);
+    var value = C.settings.get('fpsLimit'), fps = value === 'display' || value === 'unlimited' ? Infinity : Number(value);
     if (C.settings.batterySaving) fps = Math.min(fps,30);
     return !focused && C.settings.get('unfocusedMode') === '30' ? Math.min(fps, 30) : fps;
   }

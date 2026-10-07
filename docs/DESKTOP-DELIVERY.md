@@ -19,7 +19,7 @@ Milestone D consolidated documentation and evidence at 4.2.0. Public numbering n
    publishing disabled. Every build has a fresh owned staging directory. Previous
    unpacked binaries may remain open; their directory is never used for building.
 3. Validate version, source revision/fingerprint, required files (desktop bridge,
-   Mini, Card History, changelog/icons), every shipped source/asset hash and local
+   Mini, contextual help/activity controls, changelog/icons), every shipped source/asset hash and local
    HTML resources. Record installer/executable/ASAR size and SHA-256, all artifact
    hashes, Git dirty fingerprint, ownership, shortcut and pending cleanup.
 4. Promote only complete validated artifacts to `dist/delivery/builds/<buildId>`.
@@ -98,3 +98,7 @@ Milestone evidence is recorded in alpha-updates/4.2.0-cleanup/A-DELIVERY.md thro
 local manifests. Hash/config/handoff validation does not prove gameplay, installer
 execution, signing, update/relaunch, hardware or browser regression. Follow the
 restricted testing policy in the current spec and PROMPTING.md.
+
+## Isolated worktree delivery
+
+A registered worktree may set `CARDABLE_DELIVERY_OWNER` to its primary checkout and run the normal delivery command. Both JS and PowerShell require the same Git common directory. Source hashes/revision/build inputs come from the worktree; the existing owner mutex, manifests, output safety checks and preview binding stay in the primary checkout. This preserves the exact Latest Build storage origin while excluding unrelated primary changes. No new preview origin or cleanup guard bypass is allowed.

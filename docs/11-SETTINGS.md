@@ -206,3 +206,7 @@ Accent/theme colors, language, per-effect tuning, account or cloud sync, market 
 - Open key set to Enter works for the whole opening and Keep still works by click; setting it back works.
 - The panel is fully keyboard-operable, focus is trapped and restored, and there are no console errors.
 - All new regression checks print PASS in the dev console (defaults/validation, import checksum rejection, backup before reset, settings survive a reset).
+
+## 1.2.0 refresh
+
+Performance display defaults to Simple (FPS only); Advanced adds frame interval, average subscriber JS time and cap/status. Both use shared frame events and sleep normally. Unlimited removes only the game cap, preserving browser/display cadence and temporary power/unfocused limits. Display detail is an optional setting; no save schema change.

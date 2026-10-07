@@ -3,9 +3,9 @@
   var cfg,sheet,grip,body,toolbar,shelf,grid,arrow,empty,peek,peekView=null,spring,detents={},detent='peek',session=false,detailId=null,openingPhase='idle',preferences=false,drag=null,pendingClose=false,fixture=null,model={entries:[],groups:[],owned:0,total:0},query='',validQuery='',filters={},selected=null,signature='',dirty=true,mode=null,reorder=null,suppressClick=false,selectionAge=0,deferredModel=false,selectedTags;
   var stats={updates:0,mounted:0,maxMounted:0,opens:0,closes:0,snaps:0};var node=C.packMarkup.node;
   var extensionPage=null;
-  var warmed=false,selectedEntry=null,selectedTagsExpire=0,proximityGain=null;
+  var peekQuiet=false,warmed=false,selectedEntry=null,selectedTagsExpire=0,proximityGain=null;
   function prepare(value){
-    value=!!value&&openingPhase==='idle'&&!preferences&&!C.menu.afk;
+    value=!!value&&(!peekQuiet||session)&&openingPhase==='idle'&&!preferences&&!C.menu.afk;
     if(warmed===value)return;warmed=value;
     if(!session){shelf.setActive(value&&!extensionPage&&mode==='shelf');grid.setActive(value&&!extensionPage&&mode==='grid');if(value){resizeViews();view().update(root.performance.now(),0);}else{shelf.clear();grid.clear();}}
     C.fx.wake();
@@ -82,7 +82,7 @@
     moving=toolbar.update(now,dt)||moving;moving=C.inventoryTransition.update(now,dt)||moving;stats.mounted=shelf.tiles.size+grid.tiles.size;stats.maxMounted=Math.max(stats.maxMounted,stats.mounted);
     return moving||!!drag||!spring.settled();
   }
-  C.inventory={initialized:false,stats:stats,canRequest:function(ctx,next){return ctx.phase==='idle'&&!ctx.hidden&&!ctx.preferences&&!(ctx.detail&&next);},get open(){return session&&detent!=='peek';},get active(){return session;},get progress(){return spring?(spring.value-detents.peek)/(detents.normal-detents.peek):0;},get detent(){return detent;},get entries(){return model.entries;},get rendered(){return view()?view().tiles:new Map();},get center(){return view()?view().center:0;},get order(){return C.inventoryModel.current.sortMode;},get preview(){return !!fixture;},get gesturesActive(){return !!drag||!!(shelf&&shelf.dragging)||!!(reorder&&reorder.active);},request:request,refresh:refresh,setPage:setPage,get page(){return extensionPage;},
+  C.inventory={initialized:false,stats:stats,canRequest:function(ctx,next){return ctx.phase==='idle'&&!ctx.hidden&&!ctx.preferences&&!(ctx.detail&&next);},get open(){return session&&detent!=='peek';},get active(){return session;},get progress(){return spring?(spring.value-detents.peek)/(detents.normal-detents.peek):0;},get detent(){return detent;},get entries(){return model.entries;},get rendered(){return view()?view().tiles:new Map();},get center(){return view()?view().center:0;},get order(){return C.inventoryModel.current.sortMode;},get preview(){return !!fixture;},get gesturesActive(){return !!drag||!!(shelf&&shelf.dragging)||!!(reorder&&reorder.active);},request:request,refresh:refresh,warmPeek:prepare,setPeekQuiet:function(value){peekQuiet=!!value;if(peekQuiet&&!session)prepare(false);},setPage:setPage,get page(){return extensionPage;},
     init:function(){if(this.initialized)return;this.initialized=true;var params=new URLSearchParams(root.location.search);if(C.presentation.gallery)return;cfg=C.config.inventoryMotion;openingPhase=C.opening.phase;
       sheet=node('section','inventory-sheet glass glass--sheet is-peek',root.document.body);sheet.id='inventory-sheet';sheet.setAttribute('aria-label','Inventory');root.document.body.style.setProperty('--detail-backdrop-dim',cfg.detailBackdropDim);root.document.body.style.setProperty('--sheet-detail-opacity',cfg.sheetDetailOpacity);
       grip=node('div','inventory-grip',sheet);grip.setAttribute('aria-label','Drag inventory handle');node('i','inventory-handle',grip);grip.addEventListener('pointerdown',function(event){beginDrag(event,grip);});grip.addEventListener('lostpointercapture',function(){releaseDrag(null,true);});

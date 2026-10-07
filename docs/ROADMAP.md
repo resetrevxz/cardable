@@ -32,7 +32,7 @@ The primary main is the active checkout. Four feature worktrees remain registere
 | Rules, card/catalog, rarity | ARCHITECTURE, 01-GAME-RULES, 02-RARITIES, 03-CARD; VARIANTS-AND-TAGS for coatings/stack identity |
 | Packs/opening | 01-GAME-RULES, 04-PACK-OPENING, CINEMATICS; relevant active pack spec |
 | Menu/activity | 05-MAIN-MENU, 07-DOT-GRID-CURSOR, GRAPHICS-UPDATE |
-| Inventory/detail/History | 06-INVENTORY, 03-CARD, VARIANTS-AND-TAGS; archive/update-history/2.5.0-card-history and 2.7.0-card-detail |
+| Inventory/detail | 06-INVENTORY, 03-CARD, VARIANTS-AND-TAGS; archive/update-history/2.5.0-card-history and 2.7.0-card-detail |
 | Tutorial/settings/Data | 08-TUTORIAL, 11-SETTINGS, 01-GAME-RULES, ARCHITECTURE |
 | Achievements | ACHIEVEMENTS, ARCHITECTURE; archive/update-history/2.7.0-achievements for original intent |
 | Cinematics/materials | CINEMATICS, 02-RARITIES, GRAPHICS-UPDATE; archived Ascendant/Secret specs and their unresolved delivery reports |
@@ -58,3 +58,7 @@ The owner resets public app numbering to 1.0.0 and authorizes a public repositor
 installer/full-folder Releases and a download website. Read GITHUB-PAGES and
 RELEASING for this route. No save reset, new game rule or hardware certification
 follows from the version reset. AGENTS releases each completed update.
+
+## 1.2.0 fixes and visuals
+
+Local proximity visibility, five-second closed inventory rest, tutorial phase repair, Simple/Advanced performance display, explicit Unlimited, contextual help and quality-aware hover feedback. Card History is retired; saved journal data is inert and source is retained in [the retirement archive](../archive/card-history-retired/README.md).

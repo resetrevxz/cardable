@@ -72,13 +72,13 @@ Instances from Classic Pack carry `cardSkinId:'classic'`. Full reveal/detail car
 
 ## 2.7.0 detail panel (current)
 
-This replaces the historical detail information layout described above. Overview/History tabs reuse the settings segmented-control spring and the registered per-card journal renderer. The default panel contains only additional specs beyond the visible card plate, optional real lore, an ownership line and a collapsed selector for individual copies in the finish stack. Existing full journal access and studio inspection remain available.
+This replaces the historical detail information layout described above. The former Overview/History tabs were retired in 1.2.0; the overview is shown directly. The default panel contains only additional specs beyond the visible card plate, optional real lore, an ownership line and a collapsed selector for individual copies in the finish stack. Studio inspection remains available.
 
 At most three provenance chips include the +N control. Variant/pack/freshness take priority; additional freshness, Normal, serial, rarity, exact unpack time and other tags live in a glass popover. All specs expands additional specs without repeating the plate. The registered Inspect action remains primary; Flip/Favorite/More are icon controls. More retains collection membership and adds selected-card JSON export, serial copying and selected-copy deletion through the shared three-second hold confirmation. Removal requires a successful durable write and never adjusts rewards, pulls, serial counters or pack consumption.
 
-Navigation arrows move outside the information panel. Left/Right navigates result cards; I opens Inspect, H selects History, F toggles Favorite, R uses the existing card flip handler, and Escape dismisses a detail/collection popover before closing. Serial copying on either face uses Clipboard API with a textarea fallback. Inactive panes are inert and cannot contribute overflow. Tabs expose tablist/tab/tabpanel semantics.
+Navigation arrows move outside the information panel. Left/Right navigates result cards; I opens Inspect, F toggles Favorite, R uses the existing card flip handler, and Escape dismisses a detail/collection popover before closing. Serial copying on either face uses Clipboard API with a textarea fallback. Inactive panes are inert and cannot contribute overflow. Tabs expose tablist/tab/tabpanel semantics.
 
-The inventory sheet is hidden while detail owns its visual, preserving layout for its return. The panel is 360 px and vertically centered; below 900 px it stacks under the card with whole-view scrolling. Default 720p desktop content has no panel scroll, horizontal overflow or clipped actions. Expanded content/history use thin custom scrollbars. Card-plate specs, tier badge/meter and internal R hint are not repeated in the panel.
+The inventory sheet is hidden while detail owns its visual, preserving layout for its return. The panel is 360 px and vertically centered; below 900 px it stacks under the card with whole-view scrolling. Default 720p desktop content has no panel scroll, horizontal overflow or clipped actions. Expanded content uses thin custom scrollbars. Card-plate specs, tier badge/meter and internal R hint are not repeated in the panel.
 
 ## Current rendering and mount budgets
 
@@ -92,3 +92,7 @@ The inventory sheet is hidden while detail owns its visual, preserving layout fo
 - Spotlight cannot load external local image masks through file:// CSS masking in Chromium. Offline image cards keep their optical glint without that mask; procedural silhouettes retain their inline SVG mask. No network workaround is introduced.
 
 The complete original moving-scene matrix and fixture/measurement limits are retained in [archived INVENTORY-PERFORMANCE](../archive/4.2.0-cleanup/docs/INVENTORY-PERFORMANCE.md). Its scoped headless improvements do not certify physical devices, 240 Hz, later code or a stale activity-suite expectation. These measurements were not rerun for 4.2.0.
+
+## 1.2.0 fixes and visuals
+
+The header uses a compact Inter title, quiet completion count and spaced mono values with UI labels. New/variant summary actions still filter. Only the closed pull-up and peek fade after five seconds, returning with bottom-edge proximity, focus, I/Arrow Up or touch. Open browsing and the tutorial inventory lesson stay visible. The detail overview remains direct; History tabs, entrypoints and recording are retired. Existing save.journal records survive imports/exports unchanged. Original feature files are in [the retirement archive](../archive/card-history-retired/README.md).

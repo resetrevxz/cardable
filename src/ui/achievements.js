@@ -27,7 +27,7 @@
   }
   function safeMenu() {
     return !root.document.hidden && C.opening.phase === 'idle' && !C.state.current.pendingReveal && !C.inventory.active && !C.preferences.open &&
-      !C.menu.afk && !C.tutorial.active && !C.contextMenu.open && !C.studio?.active && !C.journalView?.open && !(C.dev && (C.dev.immersive || C.dev.paletteOpen)) && !(C.achievementView && C.achievementView.open);
+      !C.menu.afk && !C.tutorial.active && !C.contextMenu.open && !C.studio?.active && !(C.dev && (C.dev.immersive || C.dev.paletteOpen)) && !(C.achievementView && C.achievementView.open);
   }
   function hide() {
     toast.classList.remove('is-visible'); dismissedAt = root.performance.now();
@@ -138,7 +138,6 @@
     ['achievement:resetting', 'save:willReplace', 'save:willReset'].forEach(function (event) { C.events.on(event, function () { returnFromCard = null; closePanel(); updateTab(); }); });
     C.events.on('opening:context', function (p) { if (p.active) closePanel(); });
     C.events.on('preferences:context', function (p) { if (p.active) closePanel(); });
-    C.events.on('journal:context', function (p) { if (p.active) closePanel(); });
     C.events.on('studio:context', function (p) { if (p.active) closePanel(); });
     C.events.on('inventory:detailContext', function (p) {
       if (!p.active && returnFromCard) { var id = returnFromCard; returnFromCard = null; openPanel(id); }

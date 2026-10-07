@@ -86,3 +86,7 @@ The front and rear wrappers display upcoming positions one and two, including du
 - Activity wakes the existing scene without keeping, deleting or rerolling a card. A reserved reveal remains in the same phase and the same save.
 - Inventory opacity ranges from 32% away to 100% nearby, with a 600ms fade. Keyboard focus keeps controls readable. Within 160px of the sheet/button, the current bounded Shelf/Grid thumbnails mount at opening geometry before a session starts. Dragging exposes card content before release. Leaving the closed sheet releases the thumbnails; proximity alone never writes selection preferences or ownership.
 - The settings gear is visible on the resting menu, including during the tutorial. Inventory, detail, dragging, opening and settings panels suppress it. Idle/AFK presentation still hides secondary chrome; activity restores it.
+
+## 1.2.0 refresh
+
+Credits uses 160 px proximity and keyboard/context-menu focus, with a 600 ms departure grace and 300 ms fade. Currency feedback wakes it briefly. Closed inventory rests after five seconds with a 280 ms fade/12 px retreat; local proximity, keyboard or bottom-edge touch restores it. Open inventory stays open.

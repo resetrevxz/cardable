@@ -65,7 +65,8 @@
     base.settings = C.settingsSchema.normalize(base.settings);
     base.stats = Object.assign({ packsOpened: 0 }, base.stats || {});
     base.inventoryUi = C.inventoryModel.normalize(base.inventoryUi);
-    if (value.journal !== undefined && C.journal) base.journal = C.journal.normalize(value.journal, base);
+    // Retired history is inert compatibility data: never backfill, compact or record.
+    if (value.journal !== undefined) base.journal = JSON.parse(JSON.stringify(value.journal));
     if (value.studio !== undefined && C.studioScenes) base.studio = C.studioScenes.normalize(value.studio);
     if (value.achievements !== undefined) base.achievements = C.achievements ? C.achievements.normalize(value.achievements) : value.achievements;
     return base;
