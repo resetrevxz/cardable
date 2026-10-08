@@ -48,7 +48,7 @@
       zone.addEventListener('drop', function (e) { e.preventDefault(); zone.classList.remove('is-drag-over'); read(e.dataTransfer && e.dataTransfer.files[0]); });
       var reset = button('Reset save', host);
       node('p', 'settings-helper', host, 'Deletes your cards, packs and progress. Your settings are kept.');
-      reset.addEventListener('pointerdown', function () { cancelConfirms(resetConfirm); }); reset.addEventListener('keydown', function (e) { if (e.key === ' ' || e.key === 'Enter') cancelConfirms(resetConfirm); });
+      reset.addEventListener('pointerdown', function () { cancelConfirms(resetConfirm); }); C.keys.listen(reset, 'keydown', 'src.ui.settings-data.js.1', function (e) { if (e.key === ' ' || e.key === 'Enter') cancelConfirms(resetConfirm); });
       var resetConfirm = C.settingsControls.confirmation(reset, function () { perform(function () { C.saveTools.reset(); options.close(); }); }, { mode: 'hold', holdLabel: 'Hold to reset', announce: options.announce }); confirmations.push(resetConfirm);
       var restore = button('Restore previous save', host, function () { cancelConfirms(restoreConfirm); });
       var restoreConfirm = C.settingsControls.confirmation(restore, function () { perform(C.saveTools.restore); }, { announce: options.announce, confirmMessage: 'Click again within three seconds to restore the previous save.' }); confirmations.push(restoreConfirm);

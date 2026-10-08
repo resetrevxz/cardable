@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('cardableMini', {
   getState: () => ipcRenderer.invoke('mini:get-state'),
-  restore: () => ipcRenderer.invoke('mini:restore'),
+  restore: action => ipcRenderer.invoke('mini:restore',action==='settings'?'settings':null),
   open: () => ipcRenderer.invoke('mini:open'),
   configure: value => ipcRenderer.invoke('mini:configure', value),
   move: value => ipcRenderer.invoke('mini:move', value),

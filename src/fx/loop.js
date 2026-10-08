@@ -7,7 +7,7 @@
     get subscribers() { return updates.length; }, get refreshHz() { return refreshHz; },
     get paused() { return paused; }, get targetFps() { return Math.min(refreshHz, cap()); } };
   function cap() {
-    var value = C.settings.get('fpsLimit'), fps = value === 'display' ? Infinity : Number(value);
+    var value = C.settings.get('fpsLimit'), fps = value === 'display' || value === 'unlimited' ? Infinity : Number(value);
     if (C.settings.batterySaving) fps = Math.min(fps,30);
     return !focused && C.settings.get('unfocusedMode') === '30' ? Math.min(fps, 30) : fps;
   }
@@ -25,7 +25,7 @@
       if (gap >= 3 && gap <= 35) { bestGap = Math.min(bestGap, gap); refreshHz = Math.round(1000 / bestGap); }
     }
     rawLast = now;
-    if (nextDue !== null && now + 0.1 < nextDue) { stats.skipped++; raf = root.requestAnimationFrame(frame); return; }
+    if (!C.frame && nextDue !== null && now + 0.1 < nextDue) { stats.skipped++; raf = root.requestAnimationFrame(frame); return; }
     inFrame = true; requested = false;
     var frameBegin = root.performance.now();
     var realDt = last === null ? C.config.shell.frameMs : now - last;

@@ -39,8 +39,8 @@
         if (gesture && gesture.capture && gesture.capture.hasPointerCapture(gesture.id)) gesture.capture.releasePointerCapture(gesture.id);
       });
     },
-    chargeStart: function () { if (C.bootFailure || C.state.recovery && C.state.recovery.pending) { C.qol.toast('Choose a recovery action before opening a pack. Your original save is kept.'); return; } if (!preferencesActive && !inventoryActive && !contextActive) C.events.emit('input:chargeStart'); },
-    chargeEnd: function () { C.events.emit('input:chargeEnd'); },
+    chargeStart: function () { if (C.bootFailure || C.state.recovery && C.state.recovery.pending) { C.qol.toast('Choose a recovery action before opening a pack. Your original save is kept.'); return; } if (!preferencesActive && !inventoryActive && !contextActive) { if(C.settings.get('toggleHold')&&opening.phase==='charging')cancel('toggle');else C.events.emit('input:chargeStart'); } },
+    chargeEnd: function () { if(!C.settings.get('toggleHold'))C.events.emit('input:chargeEnd'); },
     cutMove: function (event) { C.events.emit('input:cutMove', event); },
     keep: function () { if (!preferencesActive && !spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:keep'); },
     discard: function () { if (!preferencesActive && !spaceDown && !enterDown && !root.document.hidden) C.events.emit('input:discard'); },
@@ -78,7 +78,7 @@
       });
       root.document.addEventListener('pointerup', function (event) { if(event.button === 0) C.events.emit('input:cutEnd', event); });
       root.document.addEventListener('pointercancel', function (event) { C.events.emit('input:cutEnd', event); });
-      root.document.addEventListener('keydown', function (event) {
+      C.keys.listen(root.document, 'keydown', 'src.core.input.js.1', function (event) {
         if (contextActive) return;
         modality('keyboard');
         var key = event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar' ? 'Space' : event.key === 'Enter' ? 'Enter' : null;
@@ -105,7 +105,7 @@
         if (key === C.settings.holdKey) {
           if (!chargeTarget(event.target)) return;
           if (opening.phase !== 'idle' || opening.ready) prevent(event);
-          if (event.repeat || wasDown || opening.phase !== 'idle' || !opening.ready || root.document.hidden) return;
+          if (event.repeat || wasDown || !['idle','charging'].includes(opening.phase) || opening.phase==='charging'&&!C.settings.get('toggleHold') || !opening.ready || root.document.hidden) return;
           chargeKey = key; C.input.chargeStart();
         } else if (actionTarget && (opening.phase === 'cutting' || opening.phase === 'revealed')) {
           prevent(event);
@@ -115,7 +115,7 @@
           else C.events.emit(discardTarget ? 'input:discard' : 'input:keep');
         }
       });
-      root.document.addEventListener('keyup', function (event) {
+      C.keys.listen(root.document, 'keyup', 'src.core.input.js.2', function (event) {
         var key = event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar' ? 'Space' : event.key === 'Enter' ? 'Enter' : null;
         if (chargeKey !== null && key === chargeKey) { prevent(event); chargeKey = null; C.input.chargeEnd(); }
         if (key === 'Space') spaceDown = false;
@@ -123,7 +123,7 @@
       });
       C.events.on('opening:context', function (event) { opening = event; });
       C.events.on('inventory:context', function (event) { inventoryActive = event.active; });
-      C.events.on('preferences:context', function (event) { preferencesActive = event.active; });
+      C.events.on('preferences:context', function (event) { if(event.active)cancel('settings');preferencesActive = event.active; });
       C.events.on('contextmenu:open', function () { cancel('context-menu'); contextActive = true; });
       C.events.on('contextmenu:close', function () { contextActive = false; });
       C.events.on('qol:context', function (event) { if(event.active)cancel('qol-tools');contextActive=event.active; });

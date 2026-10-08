@@ -1,7 +1,7 @@
 (function (C, root) {
   'use strict';
   var node = C.packMarkup.node, active = null, copied = new Map(), uid = 0;
-  function date(at) { return new Date(at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); }
+  function date(at) { if(C.settings.get('dateFormat')!=='system')return C.formats.date(at);return new Date(at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }); }
   function freshness(at) {
     var today = new Date(C.clock.now()), then = new Date(at);
     var days = Math.round((Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) - Date.UTC(then.getFullYear(), then.getMonth(), then.getDate())) / 86400000);
@@ -36,7 +36,7 @@
         el.dataset.copySerial = 'true'; el.setAttribute('role', 'button'); el.title = 'Copy serial';
         el.setAttribute('aria-label', 'Copy serial ' + view.instance.serial);
         el.addEventListener('click', function (event) { event.stopPropagation(); copy(view.instance.serial, el); });
-        el.addEventListener('keydown', function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); if (!event.repeat) copy(view.instance.serial, el); } });
+        C.keys.listen(el, 'keydown', 'src.ui.detail-panel.js.1', function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); if (!event.repeat) copy(view.instance.serial, el); } });
       }
       el.tabIndex = el.closest('.card__face--back') ? (view.side === 'back' ? 0 : -1) : (view.side === 'front' ? 0 : -1);
     });
@@ -92,7 +92,7 @@
     extensionHost.hidden = true;
     C.detailActions.render(extensionHost, { entry: entry, panel: overview, preview: context.preview, dismiss: function(){dismiss(false);} });
     var inspect = extensionHost.querySelector('.studio-inspect-action');
-    if (inspect) { actions.appendChild(inspect); inspect.dataset.tooltip = 'Inspect · I'; inspect.title = 'Inspect · I'; inspect.setAttribute('aria-keyshortcuts', 'I'); }
+    if (inspect) { actions.appendChild(inspect); inspect.dataset.keyAction='detail.inspect';inspect.dataset.keyLabel='Inspect';inspect.dataset.tooltip = C.keybindings.tooltip('I','Inspect'); inspect.title = 'Inspect · I'; inspect.setAttribute('aria-keyshortcuts', 'I'); }
     else { inspect = button(actions, 'Inspect', null, 'studio-inspect-action'); inspect.disabled = true; inspect.title = 'Collect this card to inspect it'; }
     C.icons.register('flip','M19 10a7 7 0 1 0-1 7M19 5v5h-5');
     var flip = C.inventoryIcons.button('flip', C.keybindings.tooltip('R','Flip'), context.flip, actions);
@@ -124,7 +124,7 @@
     function metadata() {
       var tags = C.cardTags.derive(entry, instance, 'detail').filter(function (tag) { return !['variant', 'pack', 'date', 'age'].includes(tag.kind); });
       if (entry.owned && !entry.variantId) tags.unshift({ kind: 'variant', text: 'Normal', label: 'Normal finish' });
-      if (entry.owned && instance) tags.push({ kind: 'timestamp', text: 'Unpacked ' + new Date(instance.pulledAt).toLocaleString() });
+      if (entry.owned && instance) tags.push({ kind: 'timestamp', text: 'Unpacked ' + C.formats.date(instance.pulledAt,true) });
       return tags;
     }
     function refresh(nextInstance) {
@@ -134,7 +134,7 @@
       ['variant', 'pack'].forEach(function (kind) {
         var tag = tags.find(function (t) { return t.kind === kind; }); if (!tag || kind === 'variant' && !entry.variantId) return;
         var el = rendered.querySelector('.card-tag--' + kind).cloneNode(true);
-        el.addEventListener('keydown', function (e) { if(e.key==='Escape'&&el.classList.contains('cb-tag-pinned')){e.preventDefault();e.stopPropagation();el.classList.remove('cb-tag-pinned');el.setAttribute('aria-expanded','false');} });
+        C.keys.listen(el, 'keydown', 'src.ui.detail-panel.js.2', function (e) { if(e.key==='Escape'&&el.classList.contains('cb-tag-pinned')){e.preventDefault();e.stopPropagation();el.classList.remove('cb-tag-pinned');el.setAttribute('aria-expanded','false');} });
         el.addEventListener('click', function () { var expanded = el.getAttribute('aria-expanded') !== 'true'; el.setAttribute('aria-expanded', String(expanded)); el.classList.toggle('cb-tag-pinned', expanded); });
         if (kind === 'pack') { var pack = C.pack(instance.packId); el.lastChild.textContent = pack.name; el.dataset.rare = String(pack.skin === 'rare'); }
         priorities.push({ el: el, text: tag.kind === 'pack' ? C.pack(instance.packId).name : tag.text });
@@ -199,8 +199,9 @@
     host.querySelectorAll('.detail-enter').forEach(function (el) {
       animations.push(el.animate([{ opacity: 0, transform: lift ? 'translateY(8px)' : 'none', filter: blur ? 'blur(4px)' : 'none' }, { opacity: 1, transform: 'none', filter: 'none' }], { duration: 250, delay: Number(el.style.getPropertyValue('--detail-order')) * 40, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }));
     });
-    return api;
+    api.keyAction=function(id){if(id==='delete'&&entry.owned&&!context.preview){dismiss(false);C.cardDeletionView.show(entry,instance,context.close);}else if(id==='replay'){var b=host.querySelector('.cb-replay-action');if(b&&!b.disabled)b.click();}else if(id==='copy-serial'&&instance)copy(instance.serial,more);else if(id==='tags'){var b=chips.querySelector('.detail-overflow');if(b)b.click();}};C.keys.refresh();return api;
   }
+  C.events.on('detail:keyAction',function(e){if(active&&active.keyAction)active.keyAction(e.id);});
   C.detailPanel = { build: build, bindCard: bindCard, copy: copy };
   C.events.on('app:ready', function () { C.fx.subscribe(function (now, dt) {
     var moving = active ? active.update(now, dt) : false;

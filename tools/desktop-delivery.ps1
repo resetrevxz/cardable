@@ -4,7 +4,16 @@ param(
   [string]$PayloadPath
 )
 $ErrorActionPreference='Stop'
-$repoPath=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$sourcePath=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$repoPath=$sourcePath
+if($env:CARDABLE_DELIVERY_OWNER) {
+  $candidate=[IO.Path]::GetFullPath($env:CARDABLE_DELIVERY_OWNER)
+  $sourceCommon=(& git -C $sourcePath rev-parse --path-format=absolute --git-common-dir)
+  if($LASTEXITCODE -ne 0){throw 'Delivery source is not a Git checkout'}
+  $ownerCommon=(& git -C $candidate rev-parse --path-format=absolute --git-common-dir)
+  if($LASTEXITCODE -ne 0 -or !([IO.Path]::GetFullPath($sourceCommon).Equals([IO.Path]::GetFullPath($ownerCommon),[StringComparison]::OrdinalIgnoreCase))){throw 'Delivery owner must share the source worktree Git repository'}
+  $repoPath=$candidate
+}
 if($Action -eq 'Run') {
   # A kernel mutex has atomic ownership and is released even after a crash.
   $sha=[Security.Cryptography.SHA256]::Create()

@@ -27,7 +27,8 @@ for (const file of [
   'vendor/gsap.min.js', 'vendor/ScrollTrigger.min.js', 'vendor/GSAP-LICENSE.txt', 'vendor/GSAP-LICENSE.html'
 ]) copy('site/' + file, file);
 
-for (const css of manifest.styles) copy('src/styles/' + css + '.css');
+for (const css of manifest.styles) { const target='src/styles/'+css+'.css';const source=fs.existsSync(path.join(root,target))?target:'src/ui/kit/components/'+css+'.css';copy(source,target); }
+copy('src/ui/kit/tokens.css');
 for (const js of manifest.scripts.filter(s => s !== '@adapter')) copy('src/' + js + '.js');
 
 for (const file of [
@@ -66,7 +67,7 @@ fs.writeFileSync(path.join(out, 'catalog.js'), 'window.CARDABLE_CATALOG = ' + JS
 let html = fs.readFileSync(path.join(root, 'site/home.html'), 'utf8');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-html = html.replace('<!-- RENDERER_STYLES -->', manifest.styles.map(s => '<link rel="stylesheet" href="src/styles/' + s + '.css">').join('\n'));
+html = html.replace('<!-- RENDERER_STYLES -->', manifest.styles.map(s => '<link rel="stylesheet" href="src/styles/' + s + '.css">').concat('<link rel="stylesheet" href="src/ui/kit/tokens.css">').join('\n'));
 html = html.replace('<!-- RENDERER_SCRIPTS -->', manifest.scripts.map(s => '<script defer src="' + (s === '@adapter' ? 'adapter.js' : 'src/' + s + '.js') + '"></script>').join('\n'));
 
 function preview(c, extra = '') {

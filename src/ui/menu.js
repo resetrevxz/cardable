@@ -94,7 +94,7 @@
       C.events.on('pointer:activity', activity);
       C.events.on('menu:activity', activity);
       ['pointerdown', 'keydown', 'wheel', 'input'].forEach(function (name) { root.document.addEventListener(name, activity, { capture: true, passive: true }); });
-      C.settings.onChange('idleFade', activity);
+      C.settings.onChange('idleFade', activity);C.settings.onChange('visibleIdleFade',activity);
       C.events.on('input:modality', keyboardHold);
       C.events.on('menu:visibilityHold', function (event) { C.menu.holdVisible(event.reason, event.active); });
       root.document.addEventListener('focusin', keyboardHold);

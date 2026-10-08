@@ -13,7 +13,7 @@
       rippleLimit: [0, 1, 2, 3][background], particles: [0, 0.15, 0.5, 1][rank('particleQuality')],
       blur: [0, 0, 0.6, 1][rank('glassQuality')], layers: reflection < 2 ? 7 : 10,
       shadows: [0, 1, 2, 3][rank('shadowQuality')], trail: background >= 2,
-      dpr: Math.min(batterySaving ? 1 : 2, [1, 1.25, 1.5, 2][rank('canvasQuality')]) };
+      dpr: Math.min(batterySaving ? 1 : 2, [1, 1.25, 1.5, 2][rank('canvasQuality')]) * (effective('resolutionScale') || 1) };
   }
   var policy = resolvePolicy();
   function attribute(key, value) { root.document.documentElement.setAttribute('data-' + key.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); }), String(value)); }
@@ -64,8 +64,9 @@
     },
     get holdKey() { return values.openKey === 'enter' ? 'Enter' : 'Space'; },
     get actionKey() { return values.openKey === 'enter' ? 'Space' : 'Enter'; },
-    get idleMs() { return values.idleFade === 'never' ? Infinity : Number(values.idleFade) * 1000; },
-    get tiltPolicy() { return { cap: policy.animation === 0 ? 0 : Math.min(policy.animation === 1 ? 8 : 18, { low: 8, normal: 14, high: 18 }[values.tilt]), stiffness: { low: 0.8, normal: 1, high: 1.15 }[values.tilt] }; },
+    get idleMs() { return values.visibleIdleFade===false||values.idleFade === 'never' ? Infinity : Number(values.idleFade) * 1000; },
+    get tiltPolicy() { return { cap: policy.animation === 0 ? 0 : Math.min(policy.animation === 1 ? 8 : 18, { low: 8, normal: 14, high: 18 }[values.tilt]) * values.tiltStrength / 100, stiffness: { low: 0.8, normal: 1, high: 1.15 }[values.tilt] }; },
+    get holdMs() { return {normal:3000,short:2000,quick:1000}[values.holdDuration] || C.config.hold.chargeMs; },
     get cutPolicy() { var easy = values.cutAssist === 'easy'; return { span: easy ? 0.6 : C.config.cut.autoFinishSpan, tolerance: easy ? 1.5 : 1, smoothing: easy ? 2 : 1 }; },
     revealTiming: function (reveal, tier, duplicate) {
       var fast = values.revealSpeed === 'fast', floor = tier === 10 || tier === 11 ? 0.6 : 0;
@@ -75,7 +76,7 @@
     },
     dotsPolicy: function () {
       var subtle = effective('dots') === 'subtle', base = C.config.dots;
-      return Object.assign({}, base, { enabled: effective('dots') !== 'off' && policy.background > 0,
+      return Object.assign({}, base, { enabled: effective('visibleDots')!==false && effective('dots') !== 'off' && policy.background > 0,
         spacing: base.spacing * (policy.background === 1 ? 1.5 : 1),
         maxAlpha: base.maxAlpha * (subtle ? 0.5 : 1) * (policy.background === 1 ? 0.7 : 1), influenceRadius: base.influenceRadius * (subtle ? 0.8 : 1),
         lean: subtle || policy.background < 2 ? 0 : base.lean, trail: !subtle && policy.trail,

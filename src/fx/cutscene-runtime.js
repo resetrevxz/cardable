@@ -7,7 +7,7 @@
     spec.sections.forEach(function (part) { result[part.id] = { start: offset, ms: part.ms }; offset += part.ms; });
     return { sections: result, total: offset };
   }
-  function mode(){return C.motion.reduced||C.settings.get('cutscenes')==='off'||C.settings.get('cinematicQuality')==='very-low'||!C.settings.policy.animation?'light':C.settings.get('cutscenes')==='short'?'short':'full';}
+  function mode(){if(C.cutscenes.openingRoute==='short'&&!C.motion.reduced&&C.settings.policy.animation)return 'short';if(C.cutscenes.openingRoute==='play'&&!C.motion.reduced&&C.settings.policy.animation)return 'full';return C.motion.reduced||C.settings.get('cutscenes')==='off'||C.settings.get('cinematicQuality')==='very-low'||!C.settings.policy.animation?'light':C.settings.get('cutscenes')==='short'?'short':'full';}
   function playDuration(spec,choice){
     if(choice==='light')return spec.light?spec.light.ms:3000;
     var total=sections(spec).total;
@@ -78,11 +78,11 @@
       }
       function skip() {
         if (!current || previous < 2000 || skipping) return false;
-        var endpoint = runMode==='light'?{start:film.total*((spec.light?spec.light.handoffMs:2600)/playDuration(spec,'light'))}:film.sections.explosion || film.sections.release;
+        C.cutscenes.lastSkipped=true;var endpoint = runMode==='light'?{start:film.total*((spec.light?spec.light.handoffMs:2600)/playDuration(spec,'light'))}:film.sections.explosion || film.sections.release;
         skipping = { from: clock, to: Math.max(clock, endpoint ? endpoint.start : film.total), age: 0 };
         C.fx.wake(); return true;
       }
-      root.addEventListener('keydown', function (event) {
+      C.keys.listen(root, 'keydown', 'src.fx.cutscene-runtime.js.1', function (event) {
         if (event.key === 'Escape' && current && previous >= 2000) {
           event.preventDefault(); event.stopImmediatePropagation(); skip();
         }
@@ -97,7 +97,7 @@
       }
       var api = {
         start: function (next, renderer,choice) {
-          ensureHint(); spec = next; painter = renderer; film = sections(spec); clock = previous = playClock = 0;runMode=choice||mode(); skipping = null;meterLast=null;meterHistory=[];meterCount=0;meterMax=0;pulseKey='';pulseEvents=[];sparkKey='';sparkEvents=[];
+          C.cutscenes.lastSkipped=false;ensureHint(); spec = next; painter = renderer; film = sections(spec); clock = previous = playClock = 0;runMode=choice||mode(); skipping = null;meterLast=null;meterHistory=[];meterCount=0;meterMax=0;pulseKey='';pulseEvents=[];sparkKey='';sparkEvents=[];
           level = quality(); rate = 1; current = true; beats = Object.create(null);
           adaptive = { samples: 0, sum: 0, dropped: false }; active = api;
           intensityProfile=C.cutscenes.profile();if(painter&&painter.setProfile)painter.setProfile(intensityProfile);

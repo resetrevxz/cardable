@@ -12,14 +12,14 @@
     host.dataset.walletState='loading';number.textContent='…';trigger.disabled=true;
     var pinned=false,queue=[],effect=null,closeTimer=null;
     function render(){
-      if(host.dataset.walletState==='loading')number.replaceChildren();host.dataset.walletState='ready';trigger.disabled=false;var save=C.state.current,total=C.currency.today(save);digits.set(compact(save.currency),['medium','high'].includes(C.settings.get('quality'))&&!C.motion.reduced);
+      if(host.dataset.walletState==='loading')number.replaceChildren();host.dataset.walletState='ready';trigger.disabled=false;var save=C.state.current,total=C.currency.today(save);digits.set(C.formats.number(save.currency,compact(save.currency)),['medium','high'].includes(C.settings.get('quality'))&&!C.motion.reduced);
       trigger.title=save.currency.toLocaleString()+' credits';trigger.setAttribute('aria-label','Wallet: '+save.currency.toLocaleString()+' credits');host.classList.toggle('cb-wallet-zero',save.currency===0);
       if(popover.hidden)return;popover.replaceChildren();node('h2','',popover,'Wallet');node('strong','cb-wallet-total',popover,save.currency.toLocaleString()+' credits');
       var summary=node('div','cb-wallet-today',popover);node('span','',summary,'Today earned +'+total.earned.toLocaleString());node('span','',summary,'Spent −'+total.spent.toLocaleString());
       var log=C.currency.normalize(save.wallet).log;
       if(!save.currency)node('p','cb-wallet-helper',popover,'Open a pack to earn credits.');
       if(!log.length)node('p','cb-wallet-helper',popover,'Your next credit change will appear here.');
-      var list=node('ol','cb-wallet-log',popover);log.slice(0,10).forEach(function(e){var row=node('li','',list);node('span','',row,e.reason);node('b',e.delta>0?'cb-wallet-gain':'',row,(e.delta>0?'+':'−')+Math.abs(e.delta).toLocaleString());var time=node('time','',row,new Date(e.at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));time.dateTime=new Date(e.at).toISOString();});
+      var list=node('ol','cb-wallet-log',popover);log.slice(0,10).forEach(function(e){var row=node('li','',list);node('span','',row,e.reason);node('b',e.delta>0?'cb-wallet-gain':'',row,(e.delta>0?'+':'−')+Math.abs(e.delta).toLocaleString());var time=node('time','',row,C.formats.time(e.at));time.dateTime=new Date(e.at).toISOString();});
       var close=node('button','cb-wallet-close',popover,'Close wallet');close.type='button';close.addEventListener('click',hide);
     }
     function show(){root.clearTimeout(closeTimer);popover.hidden=false;trigger.setAttribute('aria-expanded','true');render();}
@@ -27,7 +27,7 @@
     trigger.addEventListener('click',function(){if(pinned){hide();return;}pinned=true;show();C.events.emit('menu:visibilityHold',{reason:'wallet',active:true});popover.querySelector('button').focus();});
     host.addEventListener('pointerenter',function(e){if(e.pointerType==='mouse')show();});host.addEventListener('pointerleave',function(){if(!pinned)closeTimer=root.setTimeout(hide,180);});
     root.document.addEventListener('pointerdown',function(e){if(!host.contains(e.target))hide();});
-    host.addEventListener('keydown',function(e){if(e.key==='Escape'&&!popover.hidden){e.preventDefault();e.stopPropagation();hide();trigger.focus();}});
+    C.keys.listen(host, 'keydown', 'src.ui.currency.js.1', function(e){if(e.key==='Escape'&&!popover.hidden){e.preventDefault();e.stopPropagation();hide();trigger.focus();}});
     host.addEventListener('focusout',function(){root.queueMicrotask(function(){if(!host.contains(root.document.activeElement)&&!host.matches(':hover'))hide();});});
     function changed(e){render();var delta=e.delta==null?(e.direction||1)*e.amount:e.delta;if(!delta)return;var now=root.performance.now(),last=queue[queue.length-1];if(last&&now-last.at<=400){last.delta+=delta;last.at=now;}else queue.push({at:now,delta:delta});if(queue.length>30){queue[queue.length-2].delta+=queue.pop().delta;}C.fx.wake();}
     C.events.on('currency:changed',changed);C.events.on('save:written',render);C.events.on('save:willReplace',function(){queue=[];effect=null;hide();});C.events.on('menu:idle',function(idle){if(idle)hide();});

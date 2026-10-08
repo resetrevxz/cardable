@@ -7,7 +7,7 @@
         value: value || 0, velocity: 0, target: value || 0,
         step: function (dt, target, damping) {
           this.target = target;
-          var remaining = Math.max(0, Math.min(dt, C.config.shell.maxFrameDeltaMs)) / 1000;
+          var remaining = Math.max(0, Math.min(dt*(C.settings?C.settings.get('uiAnimationSpeed')||1:1), C.config.shell.maxFrameDeltaMs)) / 1000;
           while (remaining > 0) {
             var step = Math.min(remaining, cfg.stepMs / 1000);
             var acceleration = (cfg.stiffness * (this.target - this.value) - (damping || cfg.damping) * this.velocity) / cfg.mass;

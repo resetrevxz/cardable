@@ -47,7 +47,7 @@
     });
     root.document.addEventListener('pointerup', function (event) { if (!drag || event.pointerId !== drag.id) return; var d = drag; cancel(); if (d.active) options.drop(d.tile.index, d.to,d.finalRect); });
     root.document.addEventListener('pointercancel', cancel); root.addEventListener('blur', cancel);
-    root.document.addEventListener('keydown', function (event) { if (C.inventoryReorder.claimEscape(event,!!drag)) { event.preventDefault(); cancel(); } });
+    C.keys.listen(root.document, 'keydown', 'src.ui.inventory-reorder.js.1', function (event) { if (C.inventoryReorder.claimEscape(event,!!drag)) { event.preventDefault(); cancel(); } });
     return { get active() { return !!(drag && drag.active); }, get guarded() { return root.performance.now() < guard; }, cancel: cancel,
       update: function (now, dt) {
         if (!drag || !drag.active) return false;

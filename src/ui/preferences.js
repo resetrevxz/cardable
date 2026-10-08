@@ -16,9 +16,9 @@
     preview.el.setAttribute('tabindex', '-1'); previewHost.appendChild(preview.el); C.preferences.preview = preview; preview.setMode('full');
     C.preferences.preview = preview; C.preferences.tierLabel.textContent = rarity.name; C.fx.wake();
   }
-  function open(settingId) {
+  function open(settingId, emergency) {
     if (opened) { if (settingId && C.preferences.shell) C.preferences.shell.focus(settingId); return true; }
-    if (!canOpen()) return false;
+    if (!canOpen() && !emergency) return false;
     opened = true; previousCard = C.cardView.active; C.events.emit('preferences:context', { active: true });
     C.events.emit('settings:open'); C.events.emit('menu:visibilityHold', { reason: 'preferences', active: true });
     root.document.body.classList.add('settings-open');
@@ -100,11 +100,12 @@
       ['Data', 'About'].forEach(shell.group);
       Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group && key !== 'quality') controls.push(C.settingsControls.create(d, groups[d.group])); });
       controls.forEach(function (control) { if (control.row && control.row.dataset.setting) shell.add(control.row, C.settingsSchema.entries[control.row.dataset.setting]); });
+      C.controlsSettings.create(groups, shell);
       shell.refresh();
       C.preferences.data = C.settingsData.create(groups.Data, { close: close, announce: announce });
       var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
       if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(groups.About, { close: close, announce: announce });
-      button('Unreleased 1.2.0 notes', groups.About, function () { close(); C.friendly.showChangelog(); });
+      button('What’s new in 1.2.0', groups.About, function () { close(); C.friendly.showChangelog(); });
       button('How to play', groups.About, function () { C.friendly.showHelp(); });
       if (C.native) button('Desktop help', groups.About, function () { C.friendly.showHelp('desktop'); });
       button('Credits and licenses', groups.About, function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
@@ -132,8 +133,8 @@
       ['opening:context', 'inventory:context', 'preferences:context', 'tutorial:context', 'studio:enter', 'studio:exit', 'studio:albumContext', 'fx:visibility'].forEach(function (name) { C.events.on(name, syncNudge); });
       spring = C.springs.create(0, { stiffness: 220, damping: 26 });
       overlay.addEventListener('click', function (event) { if (event.target === overlay) close(); });
-      gear.addEventListener('keydown', function (event) { if (event.key === ' ') event.preventDefault(); });
-      root.document.addEventListener('keydown', function (event) {
+      C.keys.listen(gear, 'keydown', 'src.ui.preferences.js.1', function (event) { if (event.key === ' ') event.preventDefault(); });
+      C.keys.listen(root.document, 'keydown', 'src.ui.preferences.js.2', function (event) {
         if (event.settingsHandled) return;
         if (opened && event.key === 'Escape') {
           event.preventDefault(); event.settingsHandled = true;

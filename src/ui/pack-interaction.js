@@ -55,7 +55,7 @@
         if (blocked) return; event.preventDefault(); inspecting = !inspecting; measure();
         host.classList.toggle('is-inspecting', inspecting); targets.lift = inspecting ? cfg.inspectLiftPx : 0; C.fx.wake();
       });
-      host.addEventListener('keydown', function (event) {
+      C.keys.listen(host, 'keydown', 'src.ui.pack-interaction.js.1', function (event) {
         if (event.key === 'Escape') clear();
         if (event.key.toLowerCase() === 'v' && !blocked) { inspecting = !inspecting; measure(); targets.lift = inspecting ? cfg.inspectLiftPx : 0; host.classList.toggle('is-inspecting', inspecting); C.fx.wake(); }
       });

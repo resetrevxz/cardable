@@ -12,8 +12,8 @@
   function copy() {
     var hours = C.config.packs.regenMs / 3600000;
     var interval = Number.isInteger(hours) ? hours + (hours === 1 ? ' hour' : ' hours') : C.config.packs.regenMs / 60000 + ' minutes';
-    return { welcome: 'You have ' + C.state.current.packs.ready + (C.state.current.packs.ready === 1 ? ' pack.' : ' packs.'), hold: 'Hold ' + C.settings.holdKey + ' to open.',
-      cut: 'Drag across the top to cut.', keep: 'Press ' + (C.keybindings && C.keybindings.label ? C.keybindings.label('Space') : 'Space') + ' to keep it.', inventory: 'Your cards live here.',
+    return { welcome: 'You have ' + C.state.current.packs.ready + (C.state.current.packs.ready === 1 ? ' pack.' : ' packs.'), hold: 'Hold ' + C.keys.label('opening.hold') + ' to open.',
+      cut: 'Drag across the top to cut.', keep: 'Press ' + C.keys.label('opening.keep') + ' to keep it.', inventory: 'Your cards live here.',
       timer: 'A new pack arrives every ' + interval + '.', done: '' }[step];
   }
   function clearTarget() { if (target) target.classList.remove('is-tutorial-target'); target = null; }
@@ -162,12 +162,12 @@
       C.events.on('cut:started', function () { cutStarted = true; layoutDirty = true; layout(); C.fx.wake(); });
       C.events.on('inventory:open', function () { if (active && step === 'inventory' && phase === 'idle') advance('timer'); });
       C.events.on('inventory:context', function (event) { inventoryActive = event.active; layout(); C.fx.wake(); });
-      C.settings.onChange('openKey', function () { instruction.textContent = copy(); layoutDirty = true; C.fx.wake(); });
+      C.settings.onChange('keyBindings',function(){instruction.textContent=copy();layoutDirty=true;C.fx.wake();});C.settings.onChange('openKey', function () { instruction.textContent = copy(); layoutDirty = true; C.fx.wake(); });
       C.events.on('preferences:context', function (event) { preferencesActive = event.active; layout(); C.fx.wake(); });
       C.events.on('motion:changed', function () { C.fx.wake(); });
       C.events.on('fx:visibility', function () { C.fx.wake(); });
       root.document.getElementById('pack-stage').addEventListener('pointerenter', function () { if (active && step === 'welcome') advance('hold'); });
-      root.document.addEventListener('keydown', function (event) { if (!preferencesActive && active && event.key === 'Escape') { if (event.preventDefault) event.preventDefault(); skip(); } });
+      C.keys.listen(root.document, 'keydown', 'src.ui.tutorial.js.1', function (event) { if (!preferencesActive && active && event.key === 'Escape') { if (event.preventDefault) event.preventDefault(); skip(); } });
       C.viewport.onResize( function () { layoutDirty = true; layout(); C.fx.wake(); });
       if (root.document.fonts && root.document.fonts.ready) root.document.fonts.ready.then(function () { layoutDirty = true; layout(); C.fx.wake(); });
       C.fx.subscribe(update, 'tutorial'); adopt(); reconcile();

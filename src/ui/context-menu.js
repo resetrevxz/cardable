@@ -225,7 +225,7 @@
       e.preventDefault();e.stopImmediatePropagation();if(blocked()){close();return;}
       var target=host&&host.contains(e.target)?ctx.element:e.target;open(e.clientX,e.clientY,target,false);
     },true);
-    root.document.addEventListener('keydown',keydown,true);
+    C.keys.listen(root.document, 'keydown', 'src.ui.context-menu.js.1', keydown,true);
     root.document.addEventListener('pointerdown',function(e){outsideClick=false;if(opened&&e.button===0&&!host.contains(e.target)){outsideClick=true;e.preventDefault();e.stopImmediatePropagation();close();}},true);
     root.document.addEventListener('click',function(e){if(outsideClick){outsideClick=false;e.preventDefault();e.stopImmediatePropagation();}},true);
     root.document.addEventListener('pointermove',function(e){if(!opened)return;pointer={x:e.clientX,y:e.clientY};if(host.dataset.quality==='high'){panels.forEach(function(p){var r=p.surface.getBoundingClientRect();p.surface.style.setProperty('--context-light-x',e.clientX-r.left+'px');p.surface.style.setProperty('--context-light-y',e.clientY-r.top+'px');});}if(inTriangle(pointer))root.clearTimeout(leaveTimer);},true);

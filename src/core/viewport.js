@@ -1,10 +1,10 @@
 (function (C, root) {
   'use strict';
   var frame = null, container = null, desktopSize = null, ready = false, zoom = 1, watch, lastLayout = null;
-  function scale(width, height, userScale) { return Math.max(.62, Math.min(1.6, Math.min(width / 1920, height / 1080) * (userScale || 1))); }
+  function scale(width, height, userScale) { return Math.max(.35, Math.min(2.4, Math.min(width / 1920, height / 1080) * (userScale || 1))); }
   function update() {
     frame = null;
-    var enabled = !!C.native;
+    var enabled = !!C.native;if(!enabled){var size=C.settings.get('interfaceSize');zoom=size==='auto'?1:Number(size)/100;root.document.documentElement.style.zoom=zoom===1?'':String(zoom);}
     if (enabled && desktopSize) {
       var value = C.settings.get('interfaceSize'), next = scale(desktopSize.width, desktopSize.height, value === 'auto' ? 1 : Number(value) / 100);
       if (Math.abs(next - zoom) > .0001) { zoom = next; C.native.window.setUiScale(next).catch(function () {}); }
@@ -52,6 +52,7 @@
     onResize: function (fn) { return C.events.on('layout:resize', fn); }, refresh: schedule,
     init: function () {
       if (ready) return; ready = true;
+      C.settings.onChange('interfaceSize',schedule);
       if (C.native) {
         container = root.document.createElement('div'); container.className = 'qol-root';
         Array.from(root.document.body.children).forEach(function (element) { if (!['SCRIPT','CANVAS'].includes(element.tagName) && element.id !== 'cursor-glow') container.appendChild(element); });

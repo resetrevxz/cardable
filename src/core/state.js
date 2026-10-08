@@ -65,8 +65,8 @@
     base.settings = C.settingsSchema.normalize(base.settings);
     base.stats = Object.assign({ packsOpened: 0 }, base.stats || {});
     base.inventoryUi = C.inventoryModel.normalize(base.inventoryUi);
-    // Preserve inactive historical player data without mounting its consumers.
-    if (value.journal !== undefined) base.journal = value.journal;
+    // Normalize optional collection history against the restored save.
+    if(C.journal)base.journal=C.journal.normalize(value.journal,base);else if (value.journal !== undefined) base.journal = value.journal;
     base.wallet = C.currency.normalize(value.wallet);
     base.unlocks = C.cutsceneUnlocks.normalize(value.unlocks);
     if (value.studio !== undefined && C.studioScenes) base.studio = C.studioScenes.normalize(value.studio);

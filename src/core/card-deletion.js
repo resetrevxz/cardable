@@ -4,7 +4,7 @@
   function rules(save,instance,typed){
     var card=instance&&C.card(instance.cardId),rarity=card&&C.rarity(card.rarity),favorite=instance&&save.inventoryUi.favorites.includes(C.stacks.of(instance));
     return {blocked:!card||!!instance.locked||!!favorite,locked:!!(instance&&instance.locked),favorite:!!favorite,
-      typed:!!rarity&&rarity.tier>=7,holdMs:rarity&&rarity.tier>=7?2500:1500,
+      typed:!!rarity&&rarity.tier>=7,holdMs:rarity&&rarity.tier>=7?2500:C.settings.get('confirmLowDelete')?1500:0,
       nameMatches:!!card&&String(typed||'').trim().toLocaleLowerCase()===card.name.trim().toLocaleLowerCase(),refund:0};
   }
   function remove(id,typed,heldMs){

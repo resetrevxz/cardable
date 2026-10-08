@@ -20,6 +20,8 @@ const { registerStudioHandlers } = require('./ipc/studio-handlers');
 const { registerSupportHandlers } = require('./ipc/support-handlers');
 
 // Must run before Chromium initializes; the renderer quality override is session-only.
+const unlimitedGraphics = require('./config/graphics-preferences').read();
+if (unlimitedGraphics && !process.argv.includes('--safe-mode')) { app.commandLine.appendSwitch('disable-frame-rate-limit'); app.commandLine.appendSwitch('disable-gpu-vsync'); }
 if (process.argv.includes('--safe-mode')) app.disableHardwareAcceleration();
 
 const smokeTest = process.argv.includes('--smoke-test');
@@ -50,7 +52,7 @@ if (!gotTheLock) {
     const win = getMainWindow();
     if (win) {
       const life = require('./native/window-life');
-      if (!life.command(commandLine)) life.restore();
+      if(commandLine.includes('--reset-controls'))life.restore('reset-controls');else if (!life.command(commandLine)) life.restore();
       if (win.isMinimized()) win.restore();
       if (!win.isVisible()) win.show();
       win.focus();

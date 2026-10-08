@@ -192,7 +192,7 @@
       mount.addEventListener('lostpointercapture', function () { releaseDrag(null, true); });
       root.addEventListener('blur', function () { releaseDrag(null, true); });
       C.events.on('fx:visibility', function (visible) { if (!visible) releaseDrag(null, true); });
-      root.document.addEventListener('keydown', function (event) {
+      C.keys.listen(root.document, 'keydown', 'src.ui.detail.js.1', function (event) {
         if (preferencesActive) return;
         if (phase === 'closed' || event.repeat || C.studio && (C.studio.active || C.studio.pending)) return;
         if (infoPanel && infoPanel.key(event)) { prevent(event); return; }

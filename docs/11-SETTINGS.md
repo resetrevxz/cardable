@@ -212,3 +212,11 @@ Accent/theme colors, language, per-effect tuning, account or cloud sync, market 
 Performance > Performance overlay remembers Off/Simple/Advanced and the selected corner. F3 cycles the same setting; Very Low uses Simple only while preserving the saved Advanced choice for later quality. The former `showFps` preference migrates to Simple. Advanced sections collapse, the header drags, corner selection pins, and Copy report uses Clipboard API with the existing local fallback. Counts observed only since Advanced enable are labelled honestly.
 
 The wallet uses the fixed ledger reasons and capped optional state documented in ARCHITECTURE. Normal UI has restrained credit/action/gain colors; Cards > Color theme > monochrome also neutralizes the new components. Settings > About exposes the bundled Unreleased notes while version remains 1.1.0.
+
+## Controls and Advanced options (1.2 series)
+
+Controls provides context-aware primary/secondary code bindings, conflict Swap/Clear, per-action Reset/Clear, presets and JSON import/export. Ctrl/Cmd+, is reserved for emergency Settings; Escape and system/focus navigation cannot be rebound. Text/composition guards and repeat/held-key state belong to the shared dispatcher. `--reset-controls` restores bindings and interface visibility.
+
+Simple remains the default mode. Advanced reveals visibility, animation and Studio rows without discarding their saved values. Profiles preview changes and offer Undo. Interface visibility does not hide the card, context-menu Settings, emergency keyboard access, errors or Undo actions. UI scale spans 70–150% in 5% steps; native Unlimited requires restart after save flush. Battery/Safe/adaptive overrides remain temporary. Per-rarity Inherit and Studio Current defaults preserve existing preferences. Hold duration and toggle-to-hold leave reservation and reward commits unchanged. Legendary+ typed confirmation cannot be disabled.
+
+Settings and controls exports are JSON preferences; collection backups still use Data, and Studio photos remain a separate backup. Daily/sound placeholders stay disabled. See [integration and verification](1.2-CONTROLS-INTEGRATION.md).

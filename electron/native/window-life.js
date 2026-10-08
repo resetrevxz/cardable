@@ -62,7 +62,7 @@ function initMiniHandlers() {
         mini.webContents.send('mini:state',pack);
         return true;
       }
-      return restore(channel === 'mini:open' && pack && pack.ready>0 ? 'open-pack' : null);
+      return restore(channel==='mini:restore'&&value==='settings'?'settings':channel === 'mini:open' && pack && pack.ready>0 ? 'open-pack' : null);
     });
   });
 }
@@ -81,17 +81,18 @@ module.exports = {
     if(process.platform==='win32')app.setUserTasks(['inventory','settings','saves'].map(action=>({program:process.execPath,arguments:(app.isPackaged?'':'"'+app.getAppPath()+'" ')+'--cardable-'+action,iconPath:config.icons.ico,iconIndex:0,title:{inventory:'Open inventory',settings:'Open settings',saves:'Open saves folder'}[action],description:'Cardable '+action})));
     command(process.argv);
   },
-  preferences(value) { if(!value||typeof value.taskbarProgress!=='boolean'||typeof value.alwaysOnTop!=='boolean')return false;prefs={taskbarProgress:value.taskbarProgress,alwaysOnTop:value.alwaysOnTop};if(window&&!window.isDestroyed())window.setAlwaysOnTop(prefs.alwaysOnTop);if(mini&&!mini.isDestroyed())mini.setAlwaysOnTop(windowState.state.miniPinned??prefs.alwaysOnTop);taskbar();return true; },
+  preferences(value) { if(!value||typeof value.taskbarProgress!=='boolean'||typeof value.alwaysOnTop!=='boolean')return false;prefs={taskbarProgress:value.taskbarProgress,alwaysOnTop:value.alwaysOnTop,notifyPackReady:value.notifyPackReady!==false};if(window&&!window.isDestroyed())window.setAlwaysOnTop(prefs.alwaysOnTop);if(mini&&!mini.isDestroyed())mini.setAlwaysOnTop(windowState.state.miniPinned??prefs.alwaysOnTop);taskbar();return true; },
   pack(value) {
     if(!value||!Number.isInteger(value.ready)||value.ready<0||value.ready>100||!Number.isFinite(value.progress)||value.progress<0||value.progress>1||typeof value.packId!=='string'||value.packId.length>80||typeof value.countdown!=='string'||value.countdown.length>80||typeof value.canMini!=='boolean'||!['very-low','low','medium','high'].includes(value.quality))return false;
     if(value.graphics!=null&&(typeof value.graphics!=='object'||Array.isArray(value.graphics)||graphicsKeys.some(key=>value.graphics[key]!=null&&!tiers.includes(value.graphics[key]))))return false;
     const graphics={};graphicsKeys.forEach(key=>{graphics[key]=value.graphics&&value.graphics[key]!=null?value.graphics[key]:value.quality;});
-    pack={ready:value.ready,progress:value.progress,packId:value.packId,countdown:value.countdown,canMini:value.canMini,quality:value.quality,reduced:!!value.reduced,rarityColor:value.rarityColor==='mono'?'mono':'color',graphics,miniPinned:mini?mini.isAlwaysOnTop():windowState.state.miniPinned??prefs.alwaysOnTop,miniOpacity:mini?mini.getOpacity():windowState.state.miniOpacity||1};taskbar();
-    if(lastReady!==null&&pack.ready>lastReady&&!focused()&&!signalled){signalled=true;const win=mini||window;if(win){if(process.platform==='win32')win.setOverlayIcon(badge(),'Pack ready');win.flashFrame(true);cueTimer=setTimeout(()=>{if(!win.isDestroyed())win.flashFrame(false);},650);}}
+    const keys={};if(value.keyBindings&&typeof value.keyBindings==='object'){['menu.mini','opening.hold','global.settings'].forEach(id=>{if(Array.isArray(value.keyBindings[id]))keys[id]=value.keyBindings[id].filter(v=>typeof v==='string'&&v.length<60).slice(0,2);});}
+    pack={keyBindings:keys,ready:value.ready,progress:value.progress,packId:value.packId,countdown:value.countdown,canMini:value.canMini,quality:value.quality,reduced:!!value.reduced,rarityColor:value.rarityColor==='mono'?'mono':'color',graphics,miniPinned:mini?mini.isAlwaysOnTop():windowState.state.miniPinned??prefs.alwaysOnTop,miniOpacity:mini?mini.getOpacity():windowState.state.miniOpacity||1};taskbar();
+    if(lastReady!==null&&pack.ready>lastReady&&prefs.notifyPackReady!==false&&!focused()&&!signalled){signalled=true;const win=mini||window;if(win){if(process.platform==='win32')win.setOverlayIcon(badge(),'Pack ready');win.flashFrame(true);if(require('electron').Notification.isSupported()){const note=new (require('electron').Notification)({title:'Cardable · Pack ready',body:'A '+pack.packId+' pack is ready to open.',silent:true});note.on('click',()=>restore());note.show();}cueTimer=setTimeout(()=>{if(!win.isDestroyed())win.flashFrame(false);},650);}}
     lastReady=pack.ready;if(pack.ready===0)clearCue();if(mini)mini.webContents.send('mini:state',pack);
     if(queued){const action=queued;queued=null;restore(action);}return true;
   },
   awake(value) { if(typeof value!=='boolean')return false;if(value&&blocker===null)blocker=powerSaveBlocker.start('prevent-display-sleep');else if(!value)stopBlocker();return true; },
-  scale(value) { if(typeof value!=='number'||!Number.isFinite(value)||value<.62||value>1.6||!window)return false; window.webContents.setZoomFactor(value);return true; },
+  scale(value) { if(typeof value!=='number'||!Number.isFinite(value)||value<.35||value>2.4||!window)return false; window.webContents.setZoomFactor(value);return true; },
   aspect(value) { if(typeof value!=='boolean'||!window)return false;window.setAspectRatio(value?16/9:0);return true; }
 };

@@ -105,7 +105,7 @@
     sidebar=node('div','achievement-list',rail);sidebar.setAttribute('aria-label','Achievement groups');
     inspector=node('article','achievement-inspector',workspace);inspector.id='achievement-inspector';inspector.setAttribute('aria-label','Selected achievement');
     footer=node('footer','achievements-footer',panel);status=node('span','achievement-announcement',panel);status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-    root.document.addEventListener('keydown',function(event){
+    C.keys.listen(root.document, 'keydown', 'src.ui.achievements.js.1', function(event){
       if(!opened || event.key==='Tab')return;
       if(event.key==='Escape'&&!event.repeat){event.preventDefault();event.stopImmediatePropagation();if(mobileDetail){mobileDetail=false;panel.classList.remove('is-detail');sidebar.querySelector('[aria-pressed="true"]')?.focus();}else closePanel();}
       else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='f'){event.preventDefault();event.stopImmediatePropagation();mobileDetail=false;panel.classList.remove('is-detail');search.focus();}

@@ -4,6 +4,10 @@
   var rarity=C.data.rarities.find(function(r){return r.id==='ascendant';});
   var intro=rarity.openingIntro;
   intro.milestone='C';
+  // S0/S1 now travel through the sky; their original local spark beats guide the flight.
+  // A sustained cloud veil is a transition, not another flash/reversal.
+  intro.skyFlight={endMs:9000,veilOutMs:1600,travel:35,shakePx:1.8,
+    highSteps:48,mediumSteps:32,lowSteps:16,noiseSize:64};
   intro.sections=intro.sections.concat([
     {id:'ascend',ms:800},{id:'topPulse',ms:2200},{id:'morph',ms:2000},
     {id:'clock',ms:4000},{id:'title',ms:3000},{id:'shatter',ms:1000},
@@ -18,12 +22,18 @@
   intro.climax={curtainLayers:5,riseMs:2500,startHeight:.2,endHeight:.9,aberrationMs:700,flashRiseMs:110,flashDecayMs:590,flashOpacity:.76,shockwaveMs:700};
   intro.cardScene={section:'card',ms:1500,flipMs:400,fadeMs:160,scaleFrom:.96,borderMs:1200};
   intro.light={ms:3000,handoffMs:2600};
-  // The specified Short shot lengths total 15 seconds, plus the 1.5-second card shot.
-  intro.shortRoute=[{from:1000,to:4000,ms:1500},{from:4000,to:10000,ms:3000},
-    {from:10000,to:15000,ms:3000},{from:15000,to:20000,ms:3000},
-    {from:20000,to:28000,ms:2500},{from:28000,to:31000,ms:2000},{from:31000,to:32500,ms:1500}];
   var starts={},at=0;
   intro.sections.forEach(function(part){starts[part.id]={start:at,ms:part.ms};at+=part.ms;});
+  // Compress shot groups, never map through retired cave/water sections.
+  intro.shortRoute=[
+    {from:0,to:starts.veil.start,ms:4500},
+    {from:starts.veil.start,to:starts.topPulse.start,ms:1500},
+    {from:starts.topPulse.start,to:starts.clock.start,ms:2500},
+    {from:starts.clock.start,to:starts.title.start,ms:2500},
+    {from:starts.title.start,to:starts.aurora.start,ms:2000},
+    {from:starts.aurora.start,to:starts.card.start,ms:2000},
+    {from:starts.card.start,to:at,ms:1500}
+  ];
   function beat(id,section,fraction,key){intro.beats.push({id:id,key:key||id,ms:starts[section].start+starts[section].ms*fraction});}
   // Integrate a linear frequency ramp; no pulse exceeds the descriptor's 2.4 Hz end.
   var a=(intro.ritual.pulseHzEnd-intro.ritual.pulseHzStart)/(2*2.2),b=intro.ritual.pulseHzStart;

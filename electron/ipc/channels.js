@@ -2,6 +2,8 @@
 const IPC_CHANNELS = {
   // App
   APP_GET_INFO: 'app:get-info',
+  APP_SET_GRAPHICS: 'app:set-graphics',
+  APP_RESTART_GRAPHICS: 'app:restart-graphics',
   APP_GET_PATHS: 'app:get-paths',
   APP_QUIT: 'app:quit',
   APP_PREPARE_CLOSE: 'app:prepare-close',

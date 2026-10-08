@@ -12,7 +12,7 @@
     available: available,
     focusables: function (scope, extra) { return Array.from(new Set(Array.from(scope.querySelectorAll(selector)).concat(extra || []))).filter(available); }
   };
-  root.document.addEventListener('keydown', function (event) {
+  C.keys.listen(root.document, 'keydown', 'src.ui.accessibility.js.1', function (event) {
     if (event.key !== 'Tab' || !traps.length) return;
     var scope = traps[traps.length - 1];
     var extra = C.tutorial && C.tutorial.active && !(C.preferences && C.preferences.open) ? [C.tutorial.skipButton] : [];

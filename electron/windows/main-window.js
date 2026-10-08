@@ -132,20 +132,7 @@ function createMainWindow() {
 
   // Keyboard shortcut handlers
   win.webContents.on('before-input-event', (event, input) => {
-    if ((input.control || input.meta) && input.key.toLowerCase() === 'm' && input.type === 'keyDown') {
-      event.preventDefault(); if (!input.isAutoRepeat) require('../native/window-life').openMini(); return;
-    }
-    if ((input.control || input.meta) && ['+','=','-','_','0'].includes(input.key)) {
-      event.preventDefault();
-      if(input.type === 'keyDown')win.webContents.send(require('../ipc/channels').IPC_CHANNELS.WINDOW_COMMAND, input.key === '0' ? 'scale-reset' : ['-','_'].includes(input.key) ? 'scale-down' : 'scale-up');
-      return;
-    }
-    // F11 fullscreen toggle
-    if (input.key === 'F11' && input.type === 'keyDown') {
-      event.preventDefault();
-      win.setFullScreen(!win.isFullScreen());
-      return;
-    }
+    // Gameplay/window shortcuts are remappable and owned by Cardable.keys.
     // DevTools shortcut in development mode
     if (desktopConfig.isDev) {
       if ((input.key === 'F12' || (input.control && input.shift && input.key.toUpperCase() === 'I')) && input.type === 'keyDown') {

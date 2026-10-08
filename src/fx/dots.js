@@ -175,7 +175,7 @@
         else { if (!root.document.body.contains(canvas)) root.document.body.insertBefore(canvas, root.document.body.children[0]); resize(); }
         C.fx.wake();
       }
-      C.settings.onChange('dots', settingsChanged); C.settings.onChange('backgroundQuality', settingsChanged); C.settings.onChange('canvasQuality', settingsChanged);
+      C.settings.onChange('visibleDots',settingsChanged);C.settings.onChange('resolutionScale',settingsChanged);C.settings.onChange('dots', settingsChanged); C.settings.onChange('backgroundQuality', settingsChanged); C.settings.onChange('canvasQuality', settingsChanged);
       settingsChanged();
       C.viewport.onResize( resize);
       C.fx.subscribe(update, 'dots');

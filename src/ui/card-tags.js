@@ -20,7 +20,7 @@
     if(mode!=='compact') {
       tags.push({kind:'rarity',text:entry.rarity.name,label:'Card rarity: '+entry.rarity.name});
       if(entry.owned&&instance) {
-        tags.push({kind:'date',text:dateLabel(instance.pulledAt,now),label:'Unpacked '+new Date(instance.pulledAt).toLocaleString()});
+        tags.push({kind:'date',text:dateLabel(instance.pulledAt,now),label:'Unpacked '+C.formats.date(instance.pulledAt,true)});
         if(mode==='detail') {
           var days=Math.max(0,Math.floor((now-instance.pulledAt)/86400000));
           tags.push({kind:'age',text:days?days+' '+(days===1?'day':'days')+' old':'Less than a day old',label:'Time since unpacking'});
@@ -40,11 +40,11 @@
   }
   function render(host, entry, instance, mode, now) {
     var tags=derive(entry,instance,'detail',now),signature=JSON.stringify([mode,tags]);
-    if(!host.dataset.tagBound){host.dataset.tagBound='true';host.dataset.tagState='compact';
-      function state(){host.dataset.tagState=host.dataset.tagPinned==='true'?'open':host.matches(':hover')||host.contains(root.document.activeElement)?'semi-open':'compact';}
+    if(!host.dataset.tagBound){host.dataset.tagBound='true';host.dataset.tagState=C.settings.get('defaultTagMode')==='semi'?'semi-open':'compact';
+      function state(){host.dataset.tagState=host.dataset.tagPinned==='true'?'open':host.matches(':hover')||host.contains(root.document.activeElement)?'semi-open':C.settings.get('defaultTagMode')==='semi'?'semi-open':'compact';}
       host.addEventListener('pointerenter',state);host.addEventListener('pointerleave',state);host.addEventListener('focusin',state);host.addEventListener('focusout',function(){root.queueMicrotask(state);});
       host.addEventListener('click',function(e){if(!e.target.closest('.cb-tag-toggle'))return;e.stopPropagation();host.dataset.tagPinned=host.dataset.tagPinned==='true'?'false':'true';state();host.querySelectorAll('.cb-tag-toggle').forEach(function(b){b.setAttribute('aria-expanded',host.dataset.tagPinned==='true');});});
-      host.addEventListener('keydown',function(e){if(e.key==='Escape'&&host.dataset.tagPinned==='true'){e.preventDefault();e.stopPropagation();host.dataset.tagPinned='false';state();host.querySelectorAll('.cb-tag-toggle').forEach(function(b){b.setAttribute('aria-expanded','false');});}});
+      C.keys.listen(host, 'keydown', 'src.ui.card-tags.js.1', function(e){if(e.key==='Escape'&&host.dataset.tagPinned==='true'){e.preventDefault();e.stopPropagation();host.dataset.tagPinned='false';state();host.querySelectorAll('.cb-tag-toggle').forEach(function(b){b.setAttribute('aria-expanded','false');});}});
     }
     if(host.dataset.tagSignature===signature)return;host.dataset.tagSignature=signature;host.classList.add('card-tags');host.setAttribute('role','group');host.setAttribute('aria-label','Card Tags');
     while(host.children.length)host.children[0].remove();

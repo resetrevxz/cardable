@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current public app: **1.1.0**. This is the unreleased One Cardable foundation for 1.2.0. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current public app: **1.2.2**. This release completes the One Cardable foundation and Controls update for the 1.2 series. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -211,3 +211,13 @@ The public download page in `site/` uses the same monochrome typography and rest
 Source integration, a built installer and a successful app session are different evidence. [BUGS](docs/BUGS.md) and [ROADMAP](docs/ROADMAP.md) retain runtime, device, motion, cinematic, photo and installer gaps. Historical observations are archived with their original scopes; they do not certify the present game. Follow [PROMPTING](docs/PROMPTING.md) for the owner's restricted verification policy.
 
 New design work should improve hierarchy, clarity and resource bounds within the approved rules. Put unrelated concepts in [POLISH-BACKLOG](docs/POLISH-BACKLOG.md), rather than adding unrequested gameplay or visual systems.
+
+## Controls and release showcase
+
+The keybinding editor uses kit buttons in one stable row: action and context, primary, secondary, Reset and Clear. Capture has an explicit waiting state; conflicts name the affected action and context and offer Swap or Clear. Escape cancels capture; Ctrl/Cmd+, always reaches Settings. Treat context shortcuts separately from native focus navigation.
+
+Profiles use a kit dialog showing every changed value before Apply. Cancel preserves the previous state, and the following toast keeps its Undo action visible even when informational toasts are hidden. Advanced visibility uses root attributes, never removes the card or the emergency Settings routes, and stops hidden effects. Numeric scale and frame choices do not alter authored cutscene time.
+
+The release showcase uses actual local artwork, typography-led feature sections, finish specimens and nested card inspection. A preview specimen is clearly marked and never minted. Static previews are bounded; only the focused inspection receives live card effects. Accent selection follows the saved color/mono theme. Component examples live in the UI gallery; Controls and Profiles link to their actual Settings sections.
+
+Reference principles: [Vercel web interface guidelines](https://vercel.com/design/guidelines), [Apple keyboards](https://developer.apple.com/design/human-interface-guidelines/keyboards), [Apple color](https://developer.apple.com/design/human-interface-guidelines/color), and [Apple accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility). Local Cardable tokens and offline contracts remain authoritative.

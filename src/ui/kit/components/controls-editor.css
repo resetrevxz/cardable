@@ -1,0 +1,37 @@
+.cb-controls-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-2);margin:var(--s-4) 0}
+.cb-controls-actions input{min-width:160px;flex:1}.cb-controls-actions button{font-size:12px;min-height:36px}
+.cb-binding-group h4{font:500 11px/16px var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin:var(--s-5) 0 var(--s-2)}
+.cb-binding-row{display:grid;grid-template-columns:minmax(120px,1fr) 94px 94px 32px 32px;align-items:center;gap:var(--s-2);padding:var(--s-3) 0;border-bottom:1px solid var(--stroke)}
+.cb-binding-row strong{display:block;font:500 12px/18px var(--font-ui)}.cb-binding-row small{display:block;font-size:11px}
+.cb-binding-row .cb-button{padding:var(--s-2);font:500 11px/16px var(--font-mono);min-height:32px}
+.cb-binding-row .cb-icon-button{width:32px;height:32px;padding:0}.cb-profile-changes{max-height:260px}.cb-profile-changes .cb-row{justify-content:space-between;align-items:flex-start}
+.cb-binding-editor>h3{margin-top:var(--s-5);font:600 20px/24px var(--font-ui)}
+:root[data-hide-wordmark=true] #wordmark,:root[data-hide-credits=true] #currency-counter,:root[data-hide-pack-counter=true] .pack-metrics,:root[data-hide-stock-vials=true] .pack-stock,:root[data-hide-timer=true] .pack-timer,:root[data-hide-inventory-arrow=true] #inventory-affordance,:root[data-hide-achievements=true] #inventory-tab-achievements,:root[data-hide-help=true] .cb-help-button,:root[data-hide-tooltips=true] .cb-tooltip,:root[data-hide-tags=true] .card-tags,:root[data-hide-tags=true] .detail-chip-row,:root[data-hide-performance=true] .cb-performance,:root[data-hide-version=true] .settings-about-version,:root[data-hide-context-hint=true] .context-hint,:root[data-hide-dots=true] #dot-grid,:root[data-hide-cursor=true] #cursor-glow,:root[data-hide-mini=true] [data-action=mini],:root[data-hide-desktop=true] .qol-window-controls{display:none!important}
+:root[data-hide-toast-info=true] .cb-toast[data-variant=info]:not(:has(button)),:root[data-hide-toast-success=true] .cb-toast[data-variant=success]:not(:has(button)),:root[data-hide-toast-achievements=true] .cb-toast[data-variant=achievement]{display:none!important}
+:root[data-hover-animations=false] [data-hover]{transform:none!important;animation:none!important}
+:root[data-tag-animations=false] .cb-tag{transition:none!important;animation:none!important}
+:root[data-reduce-transparency=true] :is(.glass,.cb-panel,.cb-popover,.cb-dialog,.cb-sheet){background:var(--ink-1)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+:root[data-high-contrast=true]{--text-dim:var(--text);--stroke:var(--stroke-strong);--stroke-hover:var(--text-dim)}
+:root[data-larger-text=true] :is(.settings-label,.cb-binding-row strong,.cb-button,.context-row){font-size:16px}
+:root[data-focus-emphasis=true] :focus-visible{outline:3px solid var(--accent)!important;outline-offset:4px}
+:root[data-studio-hints=false] :is(.studio-hint,.director-help,.studio-simple-tour){display:none}
+@media(max-width:1100px){.cb-binding-row{grid-template-columns:minmax(120px,1fr) 84px 84px 32px 32px}}
+@media(max-width:800px){.cb-binding-row{grid-template-columns:minmax(0,1fr) 80px 32px}.cb-binding-row>div{grid-column:1/-1}.cb-binding-row>.cb-button:nth-child(3){grid-column:2}.cb-binding-row>.cb-icon-button{grid-row:2}}
+
+:root[data-hide-title-decorations=true] :is(.inventory-title-line,.settings-title-line){display:none}
+:root[data-hide-toast-info=true] .qol-toast:not(.is-error):not(:has(button)),:root[data-hide-toast-achievements=true] .achievement-toast{display:none!important}
+
+/* Local chrome visibility. Focus and short reward feedback remain discoverable. */
+.menu-shell #currency-counter { opacity: 0; pointer-events: none; transition: opacity 300ms var(--ease-out), transform 180ms var(--ease-out); }
+.menu-shell #currency-counter.is-credit-visible { opacity: 1; pointer-events: auto; }
+.is-quiet .menu-shell #currency-counter:not(.is-credit-pinned), .is-idle .menu-shell #currency-counter:not(.is-credit-pinned) { opacity: 0 !important; pointer-events: none; }
+.menu-shell #currency-counter.is-credit-pinned { opacity: 1 !important; pointer-events: auto; }
+:is(.is-opening,.settings-open,.inventory-depth-active,.is-afk,.qol-focus) .menu-shell #currency-counter { opacity: 0 !important; pointer-events: none; }
+.is-collecting .menu-shell #currency-counter.is-credit-pinned { opacity: 1 !important; pointer-events: none; }
+.menu-shell #currency-counter:focus-visible { outline: 1px solid var(--highlight); outline-offset: 4px; }
+#inventory-affordance, .inventory-sheet.is-peek { transition: opacity 280ms var(--ease-out), translate 280ms var(--ease-out); }
+.inventory-peek-quiet:not(.inventory-depth-active) :is(#inventory-affordance,.inventory-sheet.is-peek) { opacity: 0 !important; translate: 0 12px; pointer-events: none; }
+.inventory-peek-quiet #inventory-affordance:focus-within { opacity: 1 !important; translate: 0 0; pointer-events: auto; }
+
+
+:root[data-hide-version=true] .settings-version,:root[data-hide-settings=true] .settings-gear,:root[data-hide-release-notes=true] .patch-notes-hud-btn,:root[data-hide-tags=true] .inventory-selected-tags,:root[data-hide-tags=true] [data-tag-bound=true]{display:none!important}

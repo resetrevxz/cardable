@@ -455,7 +455,7 @@
         el.addEventListener('pointerenter', function () { view.setMode('full'); });
         el.addEventListener('focus', function () { view.setMode('full'); });
       }
-      if (!options.controlledReveal && options.keyboardFlip !== false) el.addEventListener('keydown', function (event) {
+      if (!options.controlledReveal && options.keyboardFlip !== false) C.keys.listen(el, 'keydown', 'src.ui.card.js.1', function (event) {
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); if (event.repeat) return; if (view.canFlip()) view.flip(); else view.setFace(view.side === 'front' ? 'back' : 'front'); }
       });
       if (root.IntersectionObserver) {
@@ -463,7 +463,7 @@
       }
       if (!subscribed) {
         subscribed = true; C.fx.subscribe(update, 'card');
-        root.document.addEventListener('keydown', function (event) {
+        C.keys.listen(root.document, 'keydown', 'src.ui.card.js.2', function (event) {
           var target = event.target;
           if (event.repeat || String(event.key).toLowerCase() !== 'r' || root.document.hidden || event.ctrlKey || event.metaKey || event.altKey ||
               target && (target.isContentEditable || target.closest && target.closest('input, select, textarea, [contenteditable], [data-tool-surface], .preferences-overlay'))) return;

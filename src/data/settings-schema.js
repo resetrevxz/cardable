@@ -48,6 +48,9 @@
   function valid(key, value) {
     var item = schema[key];
     if (!item) return undefined;
+    if (item.validate) return item.validate(value);
+    if (item.control === 'slider') return Number.isFinite(Number(value)) ? Math.round(Math.max(item.min, Math.min(item.max, Number(value))) / item.step) * item.step : item.defaultValue;
+    if (typeof item.defaultValue === 'number' && item.choices && typeof value === 'string') value = Number(value);
     if (key === 'volume') return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : item.defaultValue;
     if (item.choices) return item.choices.indexOf(value) !== -1 ? value : item.defaultValue;
     return typeof value === 'boolean' ? value : item.defaultValue;

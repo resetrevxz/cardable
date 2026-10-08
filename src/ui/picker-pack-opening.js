@@ -15,7 +15,7 @@
     function clear(){
       release();destroyViews();wings.forEach(function(w){w.remove();});wings=[];if(screen)screen.remove();screen=null;buttons=[];context=null;state='closed';age=0;selected=-1;hovered=-1;choice=null;lastPaint=-Infinity;
       foil.classList.remove('is-picker-unfolding');foil.style.removeProperty('--picker-unfold');foil.style.removeProperty('--picker-dissolve');foil.style.opacity='';
-      root.document.removeEventListener('keydown',key,true);root.removeEventListener('blur',release);
+      C.keys.remove(root.document, 'keydown',key,true);root.removeEventListener('blur',release);
       if(activeRelease===release)activeRelease=null;
     }
     function descriptor(option){return Object.assign({serial:'',pulledAt:C.state.current.pendingReveal.committedAt,seen:true,cardSkinId:null},option);}
@@ -90,7 +90,7 @@
       pending.options.forEach(function(_,i){preview(i,false);});
       node('p','picker-prompt',screen,'Pick 1 of '+buttons.length);node('small','picker-key-hint',screen,'1 · 2 · 3 to select / Enter to confirm');
       state=recover?'pick':'flipping';age=0;foil.style.opacity=0;
-      root.document.addEventListener('keydown',key,true);root.addEventListener('blur',release);
+      C.keys.listen(root.document, 'keydown', 'src.ui.picker-pack-opening.js.1', key,true);root.addEventListener('blur',release);
       activeRelease=release;
       if(recover){buttons.forEach(function(b){b.style.setProperty('--picker-flip',1);});buttons[0].focus({preventScroll:true});context.announce('Your saved options. Pick one card.');}
     }

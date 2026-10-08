@@ -18,7 +18,7 @@
   function clamp(value) { return Math.max(0, Math.min(1, value)); }
   function ease(value) { return 1 - Math.pow(1 - clamp(value), 3); }
   function context() { C.events.emit('opening:context', { enabled: enabled, active: phase !== 'idle', phase: phase, step:phase==='cutting'&&!!(cutStrategy&&cutStrategy.advance), ready: !C.state.current.pendingReveal && C.state.current.packs.ready > 0 }); }
-  function announce(text) { status.textContent = text; }
+  function announce(text) { if(C.settings.get('announcements'))status.textContent = text; }
   function focus(el) { if (el && el.focus) el.focus({ preventScroll: true }); }
   function blade(value) { value = value && finePointer.matches; host.classList.toggle('has-blade', value); C.events.emit('cursor:blade', value); }
   function phaseTo(next) {
@@ -49,17 +49,17 @@
     if (next === 'dissolving' || next === 'cutting') {
       var reserved = C.state.current.pendingReveal;
       var upcoming = reserved && reserved.cards[Number(reserved.keptCount) || 0];
-      if (upcoming) C.cutscenes.warmup(C.rarity(C.card(upcoming.cardId).rarity), upcoming.serial);
+      if (upcoming&&C.controlOptions.cutscene(C.rarity(C.card(upcoming.cardId).rarity))!=='skip') C.cutscenes.warmup(C.rarity(C.card(upcoming.cardId).rarity), upcoming.serial);
     }
     if (next !== 'cutting') { release(); blade(false); }
     hint.classList.toggle('is-held', next === 'charging');
     hint.style.opacity = next === 'charging' || next === 'draining' ? 1 : 0;
     if (next !== 'cutting') enterHint.style.opacity = 0;
-    if (next === 'charging') announce('Hold ' + C.settings.holdKey + ' to open the pack.');
+    if (next === 'charging') announce('Hold ' + C.keys.label('opening.hold') + ' to open the pack.');
     if (next === 'draining') announce('Opening cancelled. Pack preserved.');
     if (next === 'cutting') {
       if(cutStrategy)cutStrategy.begin({announce:announce,canActivate:function(){return phase==='cutting'&&!preferencesActive&&!root.document.hidden;},unseal:function(){phaseTo('vaultOpening');},reveal:function(){startReveal(false);}});
-      announce(cutStrategy&&cutStrategy.hint|| (cutStrategy&&!cutStrategy.usesSharedCut?'Drag the PULL tab upwards until it snaps free. Or press '+C.settings.actionKey+' to open.':'Swipe across the upper pack area; the blade aligns to the seal. Or press ' + C.settings.actionKey + ' to tear.'));focus(host);
+      announce(cutStrategy&&cutStrategy.hint|| (cutStrategy&&!cutStrategy.usesSharedCut?'Drag the PULL tab upwards until it snaps free. Or press '+C.settings.actionKey+' to open.':'Swipe across the upper pack area; the blade aligns to the seal. Or press ' + C.keys.label('opening.tear') + ' to tear.'));focus(host);
     }
     if (next === 'revealed') announce(C.card(C.state.current.pendingReveal.cards[cardIndex].cardId).name + '. ' + note.textContent + '.');
     keepButton.hidden = true; keepButton.disabled = true;
@@ -142,7 +142,7 @@
   function cancel(reason) {
     release(); blade(false);
     if (phase !== 'charging') return;
-    fill = clamp((root.performance.now() - chargeAt) / C.config.hold.chargeMs); drainFrom = fill;
+    fill = clamp((root.performance.now() - chargeAt) / C.settings.holdMs); drainFrom = fill;
     phaseTo('draining'); C.events.emit('charge:end', { reason: reason });
   }
   function commit() {
@@ -185,7 +185,7 @@
   }
   function chargeEnd() {
     if (phase !== 'charging') return;
-    if (root.performance.now() - chargeAt >= C.config.hold.chargeMs && !root.document.hidden) commit();
+    if (root.performance.now() - chargeAt >= C.settings.holdMs && !root.document.hidden) commit();
     else cancel('release');
   }
   function release(event) {
@@ -346,13 +346,15 @@
     if (currentView) currentView.destroy(); currentView = null; if(variantLabel){variantLabel.remove();variantLabel=null;}
     cardIndex = Math.max(0, Math.min(pending.cards.length - 1, Math.floor(Number(pending.keptCount) || 0)));
     var instance = pending.cards[cardIndex], card = C.card(instance.cardId); rarity = C.rarity(card.rarity);
-    if (!recover && !introDone && rarity.openingIntro) {
+    var route=C.controlOptions.cutscene(rarity);if(!introDone)C.cutscenes.openingRoute=route;
+    if (!recover && !introDone && rarity.openingIntro && route!=='skip') {
       cleanReveal(); particles.clear(); host.style.visibility = 'hidden'; foil.style.opacity = 0; gap.style.opacity = 0;
       phaseTo('rarityIntro'); C.events.emit('reveal:context', { hideCursor:true, gridDim:1, halo:null });
-      intro.start(rarity.openingIntro, rarity.name, ['ascendant','secret'].indexOf(rarity.reveal.cutscene) !== -1 ? instance.serial : instance.instanceId);
+      intro.start(rarity.openingIntro, rarity.name, ['ascendant','secret'].indexOf(rarity.reveal.cutscene) !== -1 ? instance.serial : instance.instanceId);C.cutscenes.openingRoute=null;
       lastVisual = root.performance.now();
       announce(rarity.name + ' reveal. The card appears after the light sequence.'); return;
     }
+    if(introDone&&!recover&&!C.cutscenes.lastSkipped)C.controlOptions.seen(rarity);
     if (introDone && !recover) intro.beginHandoff(); else intro.stop();
     if (recover) intro.restoreBackdrop(rarity.openingIntro, ['ascendant','secret'].indexOf(rarity.reveal.cutscene) !== -1 ? instance.serial : instance.instanceId);
     ownedCount = C.state.current.inventory.filter(function (item) { return item.cardId === card.id; }).length + pending.cards.slice(0, cardIndex).filter(function (item) { return item.cardId === card.id && (pending.discardedInstanceIds || []).indexOf(item.instanceId) === -1; }).length;
@@ -385,11 +387,12 @@
     if (first) C.events.emit('opening:keepReady');
     if (first && C.input.modality === 'keyboard') focus(keepButton);
   }
-  function keep(discard) {
+  function keep(discard,confirmed) {
     discard = discard === true;
     if (preferencesActive || phase !== 'revealed' || keeping || keepButton.hidden || keepButton.disabled || root.document.hidden) return;
     var candidate = JSON.parse(JSON.stringify(C.state.current)), pending = candidate.pendingReveal;
     if (!pending || (Number(pending.keptCount) || 0) !== cardIndex) return;
+    if(discard&&!confirmed){C.cardDeletionView.confirmPending(pending.cards[cardIndex],function(){keep(true,true);});return;}
     keeping = true; keepButton.disabled = true; deleteButton.disabled = true; pending.keptCount = cardIndex + 1;
     if (discard) { pending.discardedInstanceIds = pending.discardedInstanceIds || []; pending.discardedInstanceIds.push(pending.cards[cardIndex].instanceId); }
     var final = pending.keptCount >= pending.cards.length, discarded = pending.discardedInstanceIds || [];
@@ -519,7 +522,7 @@
       return phase !== 'revealed' || infoClock < keepAt || (shineAt !== null && revealClock - shineAt < motion.shineMs) || dustActive;
     }
     if (phase === 'variantReveal') {
-      var duration=reduced?C.config.variants.reducedRevealMs:C.config.variants.revealMs*(C.settings.get('revealSpeed')==='fast'?.7:1);
+      var option=C.settings.get('variantAnimation'),duration=option==='off'?1:(reduced?C.config.variants.reducedRevealMs:C.config.variants.revealMs*(C.settings.get('revealSpeed')==='fast'?.7:1))*(option==='short'?.35:1);
       var fraction=clamp(elapsed/duration), coating=reduced?fraction:clamp((fraction-.12)/.78);
       var steps=[.12,.36,.55,.70,.81,.88,.94], snap=0;
       if(!reduced&&fraction<.94){for(var n=0;n<steps.length-1;n++){if(fraction>=steps[n]&&fraction<steps[n+1]){var k=(fraction-steps[n])/(steps[n+1]-steps[n]);snap=(1-k)*(7-n)*(n%2?-1:1);break;}}}
@@ -529,7 +532,7 @@
     }
     if (phase === 'collecting') {
       if(swapTarget.swapIn){
-        var swapStill=C.motion.reduced||C.settings.policy.animation<2,turnMs=swapStill?0:C.config.packSwap.turnMs*.45,turnP=turnMs?clamp(elapsed/turnMs):1,to=collectionTarget,from=collectionSource;
+        var swapStill=C.motion.reduced||!C.settings.get('packSwapAnimations')||C.settings.policy.animation<2,turnMs=swapStill?0:C.config.packSwap.turnMs*.45,turnP=turnMs?clamp(elapsed/turnMs):1,to=collectionTarget,from=collectionSource;
         currentView.setRevealFrame({angle:180*turnP,frontOpacity:1-turnP});
         mount.style.transformOrigin='top left';mount.style.transform=swapStill?'none':'translate('+((to.left-from.left)*turnP)+'px,'+((to.top-from.top)*turnP)+'px) scale('+(1+(to.width/from.width-1)*turnP)+')';
         currentView.el.style.opacity=turnP<1?1:0;
@@ -592,7 +595,7 @@
     else if(currentView&&currentView.el.dataset.rarity==='ascendant'&&['flipping','settling','revealed','variantReveal'].indexOf(phase)!==-1){currentView.el.style.opacity='';currentView.el.style.transform='';C.finishes.registry.ascendant.drawBorder(currentView.el,1);}
     if (currentView && ['rising', 'preFlip', 'flipping', 'settling', 'variantReveal', 'revealed'].indexOf(phase) !== -1) { revealClock += dt; if (!intro.cardStageActive&&(phase === 'settling' || phase === 'variantReveal' || phase === 'revealed')) infoClock = Math.min(keepAt, infoClock + dt); }
     if (phase === 'charging') {
-      fill = clamp((now - chargeAt) / C.config.hold.chargeMs); paintFluid(dt);
+      fill = clamp((now - chargeAt) / C.settings.holdMs); paintFluid(dt);
       glass.el.style.opacity = 1; foil.style.opacity = 0;
       if (!C.motion.reduced && C.settings.policy.particles > 0 && elapsed >= pulseAt) {
         var rect = host.getBoundingClientRect();
@@ -732,13 +735,13 @@
       C.events.on('input:chargeStart', chargeStart); C.events.on('input:chargeEnd', chargeEnd); C.events.on('input:cancel', function (event) { cancel(event.reason); });
       C.events.on('inventory:context', function (event) { inventoryBlocked = event.active; });
       function keyHints() {
-        var hold = C.settings.holdKey, action = C.settings.actionKey;
+        var hold = C.keys.label('opening.hold'), action = C.keys.label('opening.tear');
         hint.querySelector('kbd').textContent = hold; enterHint.textContent = action + ' to tear';
-        var keepKey = keepButton.querySelector('kbd'); if (!keepKey) keepKey = node('kbd', 'opening-keep-key', keepButton); keepKey.textContent = 'Space';
-        keepButton.setAttribute('aria-keyshortcuts', action === 'Enter' ? 'Space Enter' : 'Space'); keepButton.setAttribute('aria-label', 'Keep card. Space.');
+        var keepKey = keepButton.querySelector('kbd'); if (!keepKey) keepKey = node('kbd', 'opening-keep-key', keepButton); keepKey.textContent=C.keys.label('opening.keep');keepKey.dataset.keyAction='opening.keep';
+        keepButton.setAttribute('aria-keyshortcuts', action === 'Enter' ? 'Space Enter' : 'Space'); keepButton.setAttribute('aria-label','Keep card. '+C.keys.label('opening.keep'));keepButton.dataset.keyAction='opening.keep';
         host.setAttribute('aria-label', 'Pack wrapper. Hold ' + hold + ' to charge; drag to cut or press ' + action + ' to tear.');
       }
-      C.settings.onChange('openKey', keyHints); keyHints();
+      C.settings.onChange('keyBindings',keyHints);C.settings.onChange('openKey', keyHints); keyHints();
       C.settings.onChange('revealSpeed', function () {
         if (!currentView || !timings || !rarity) return;
         var old = timings, speed = ownedCount && rarity.tier < 7 ? motion.duplicateMotionScale : 1;

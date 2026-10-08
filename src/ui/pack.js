@@ -53,8 +53,8 @@
         vials.push({ el: vial, fill: fill, value: initialFill, from: 0, target: 0, start: null, arrival: null });
       }
       var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); node('kbd', '', hint, 'Space');
-      function updateOpeningKey() { hint.querySelector('kbd').textContent = C.settings.holdKey; var description = host.getAttribute('aria-description'); if (description) host.setAttribute('aria-description', description.replace(/Hold (Space|Enter)/, 'Hold ' + C.settings.holdKey)); }
-      C.settings.onChange('openKey', updateOpeningKey); updateOpeningKey();
+      function updateOpeningKey() { hint.querySelector('kbd').dataset.keyAction='opening.hold';hint.querySelector('kbd').textContent = C.keys.label('opening.hold'); var description = host.getAttribute('aria-description'); if (description) host.setAttribute('aria-description', description.replace(/Hold (Space|Enter)/, 'Hold ' + C.settings.holdKey)); }
+      C.settings.onChange('keyBindings',updateOpeningKey);C.settings.onChange('openKey', updateOpeningKey); updateOpeningKey();
       var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, handoff = null, progress = C.timers.progress(Date.now());
       cachedStyle(host, '--pack-reflection-opacity', cfg.reflectionOpacity);
       var gallery = C.presentation.gallery;

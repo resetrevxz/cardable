@@ -7,7 +7,7 @@
     if (!dirty) return false;
     var pointer=C.input.pointer;
     var p = blade && cutTarget ? {x:cutTarget.x,y:cutTarget.y,inside:pointer.inside,interactive:false} : pointer, cfg = C.config.shell.cursor;
-    if ((!C.settings.get('cursorGlow') && !blade) || (!C.settings.policy.background && !blade) || revealHidden || !p.inside || !finePointer.matches) {
+    if (!C.settings.get('visibleCursor') || (!C.settings.get('cursorGlow') && !blade) || (!C.settings.policy.background && !blade) || revealHidden || !p.inside || !finePointer.matches) {
       present = false; element.classList.remove('is-present'); dirty = false; return false;
     }
     var amount = C.motion.reduced ? 1 : 1 - Math.pow(1 - (blade ? C.config.openingMotion.bladeFollow : cfg.follow), dt / C.config.shell.frameMs);

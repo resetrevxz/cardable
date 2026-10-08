@@ -2,6 +2,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 const IPC_CHANNELS = {
   APP_GET_INFO: 'app:get-info',
+  APP_SET_GRAPHICS: 'app:set-graphics',
+  APP_RESTART_GRAPHICS: 'app:restart-graphics',
   APP_GET_PATHS: 'app:get-paths',
   APP_QUIT: 'app:quit',
   APP_PREPARE_CLOSE: 'app:prepare-close',
@@ -62,6 +64,8 @@ const cardableDesktop = {
   isDesktop: true,
 
   app: {
+    setGraphics: value => ipcRenderer.invoke(IPC_CHANNELS.APP_SET_GRAPHICS,value),
+    restartGraphics: value => ipcRenderer.invoke(IPC_CHANNELS.APP_RESTART_GRAPHICS,value),
     getInfo: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_INFO),
     getPaths: () => ipcRenderer.invoke(IPC_CHANNELS.APP_GET_PATHS),
     quit: () => ipcRenderer.invoke(IPC_CHANNELS.APP_QUIT)
