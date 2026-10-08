@@ -20,3 +20,11 @@ Checkpoint 2: numeric global Very High budgets and hardware/slow-frame gates; sh
 ## Acceptance limits
 
 This is not 60 fps certification, physical-device or photosensitivity certification. Every pack opening/swap, seven-card rendering of every Director preset, sustained live GPU fallback, installer execution and a live updater upgrade were not individually exercised. Safe/Full, skip, reservation and final handoff contracts remain in their existing controllers. Contact sheets are composition aids, not measurements of the outer safety limiter. Publication and local delivery evidence are recorded separately after packaging.
+
+## Local Windows delivery
+
+Mandatory deliver:desktop completed successfully for source e5a9d74089b6c629d943967dd7909436c0c5ff8c. Build ID: 2026-10-08T07-49-08.114Z-0a15aaf815f5. Installer SHA256: e13fee06e94e02f10ec0f372a9a0a53d8ed794d514a98870a2700f6952e53bb0.
+
+Installer: dist/delivery/builds/2026-10-08T07-49-08.114Z-0a15aaf815f5/Cardable-Setup-1.2.2.exe. Stable preview remains dist/desktop-qol-4.1.0/win-unpacked/Cardable.exe; the existing OneDrive Desktop Cardable (Latest Build).lnk still targets it. The previous owned delivery was replaced after verification; unrelated worktrees, dirty incoming specs, player data and legacy unowned outputs were preserved. The helper did not install or launch the application. Signing remains unconfigured/unsigned.
+
+Publication is authorized by the owner's explicit approval to release as 1.2.2. The clean publication checkout is release-1.2.2, preserving dirty incoming specs in the main checkout. GitHub publication, workflow outcomes and live asset links must be verified independently.
