@@ -11,27 +11,28 @@
       row.dataset.setting = key;
       var label = node('span', 'settings-label', copy, descriptor.label); label.id = (descriptor.prefix || 'setting-') + key;
       node('span', 'settings-helper', copy, descriptor.helper);
+      var controlHost = node('div', 'settings-control', row);
       if (type === 'switch') {
-        control = node('button', 'settings-switch', row); control.type = 'button'; control.setAttribute('role', 'switch');
+        control = node('button', 'settings-switch', controlHost); control.type = 'button'; control.setAttribute('role', 'switch');
         knob = node('i', 'settings-switch-knob', control); control.disabled = disabled;
         control.addEventListener('click', function () { if (control.disabled) return; binding.set(key, key === 'rarityColor' ? binding.get(key) === 'color' ? 'mono' : 'color' : !binding.get(key)); });
       } else if (type === 'input') {
-        control = node('input', 'settings-input', row); control.type = descriptor.inputType || 'text';
+        control = node('input', 'settings-input', controlHost); control.type = descriptor.inputType || 'text';
         if (descriptor.min != null) control.min = descriptor.min;
         if (descriptor.max != null) control.max = descriptor.max;
         if (descriptor.step != null) control.step = descriptor.step;
         control.addEventListener('change', function () { binding.set(key, control.type === 'number' ? Number(control.value) : control.value); });
       } else if (type === 'select') {
-        control = node('select', 'settings-select', row);
+        control = node('select', 'settings-select', controlHost);
         descriptor.choices.forEach(function (choice) { var value = typeof choice === 'object' ? choice.value : choice; var option = node('option', '', control, typeof choice === 'object' ? choice.label : descriptor.format ? descriptor.format(value) : title(value)); option.value = value; option.disabled = !!choice.disabled; });
         control.addEventListener('change', function () { binding.set(key, control.value); });
       } else if (type === 'volume' || type === 'slider') {
-        control = node('input', 'settings-volume', row); control.type = 'range'; control.min = descriptor.min == null ? 0 : descriptor.min; control.max = descriptor.max == null ? 100 : descriptor.max; control.step = descriptor.step || 1; control.value = current; control.disabled = disabled || type === 'volume';
+        control = node('input', 'settings-volume', controlHost); control.type = 'range'; control.min = descriptor.min == null ? 0 : descriptor.min; control.max = descriptor.max == null ? 100 : descriptor.max; control.step = descriptor.step || 1; control.value = current; control.disabled = disabled || type === 'volume';
         control.setAttribute('aria-label', descriptor.label);
         control.addEventListener('input', function () { binding.set(key, Number(control.value)); refresh(Number(control.value)); });
-        var valueHost = node('span', 'settings-value', row), digits = C.numbers.create(valueHost); digits.set(current, false);
+        var valueHost = node('span', 'settings-value', controlHost), digits = C.numbers.create(valueHost); digits.set(current, false);
       } else {
-        control = node('div', 'settings-segments' + (type === 'keycaps' ? ' settings-keycaps' : ''), row); control.setAttribute('role', 'radiogroup');
+        control = node('div', 'settings-segments' + (type === 'keycaps' ? ' settings-keycaps' : ''), controlHost); control.setAttribute('role', 'radiogroup');
         indicator = node('i', 'settings-segments-highlight', control); indicator.setAttribute('aria-hidden', 'true');
         descriptor.choices.forEach(function (value) {
           var b = node('button', 'settings-segment', control, descriptor.format?descriptor.format(value):title(value)); b.type = 'button'; b.setAttribute('role', 'radio'); b.value = value;
@@ -58,7 +59,7 @@
         else if ((type === 'volume' || type === 'slider')) { control.value = value; digits.set(value); }
         else {
           buttons.forEach(function (b) { var selected = b.value === value; b.setAttribute('aria-checked', selected); b.setAttribute('tabindex', selected ? '0' : '-1'); });
-          var index = descriptor.choices.indexOf(value); indicator.style.setProperty('--segments', descriptor.choices.length); spring.target = index;
+          var index = descriptor.choices.indexOf(value); indicator.style.setProperty('--segments', descriptor.choices.length); control.style.setProperty('--segments', descriptor.choices.length); spring.target = index;
           if (C.motion.reduced) spring.reset(index); pending = true;
         }
         C.fx.wake();

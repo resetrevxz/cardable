@@ -354,10 +354,10 @@ body.studio-album-active > :not(.studio-album),body.studio-album-active > :not(.
 .studio-simple-tour{display:flex;justify-content:center;align-items:center;gap:8px;font:10px/1.5 var(--font-ui);color:var(--text-dim)}.studio-simple-tour .studio-button{min-height:32px;font-size:10px;padding:6px 10px}
 .studio-simple-tour[hidden],.studio-simple-captures [hidden]{display:none}.studio-inline-confirm{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px;border:1px solid var(--hairline);border-radius:var(--ui-radius-11);font-size:11px;background:var(--surface)}
 .studio-layer-tools{display:flex;gap:4px;margin:0 0 8px}.studio-layer-tools .studio-button{min-height:32px;font-size:10px;padding:6px 9px}
-.studio-layer-row{display:grid;grid-template-columns:minmax(0,1fr) 26px 26px;gap:2px;align-items:center;margin:2px 0}
+.studio-layer-row{display:grid;grid-template-columns:minmax(0,1fr) 32px 32px;gap:4px;align-items:center;margin:2px 0}
 .studio-layer-row .studio-button{border-color:transparent;min-height:34px;padding:6px 3px;border-radius:var(--ui-radius-17);min-width:0;font-size:12px}
-.studio-layer-row .studio-button:first-child{padding-left:calc(5px + var(--depth)*10px);justify-content:flex-start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
-.studio-layer-row .studio-button:first-child .studio-icon{width:13px;height:13px}.studio-layer-row [aria-pressed=true]{background:var(--ui-color-71)!important;border-color:var(--ui-color-24)!important}
+.studio-layer-row .studio-button:first-child{padding-left:calc(5px + var(--depth)*10px);justify-content:flex-start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+.studio-layer-row .studio-button:first-child .studio-icon{width:16px;height:16px}.studio-layer-row [aria-pressed=true]{background:var(--ui-color-71)!important;border-color:var(--ui-color-24)!important}
 .studio-library{border-top:1px solid var(--ui-color-148);margin-top:16px;padding-top:12px}.studio-library summary{cursor:pointer;font:500 11px var(--font-ui);padding:8px 0}.studio-library-body{display:grid;gap:10px;margin-top:8px}
 .studio-library-search{width:100%;min-height:38px;background:var(--ui-color-114);border:1px solid var(--hairline);border-radius:var(--ui-radius-4);padding:10px 11px;color:var(--text);font:11px var(--font-ui)}
 .studio-library-tabs{display:flex;flex-wrap:wrap;gap:4px}.studio-library-tabs .studio-button{min-height:30px;padding:5px 8px;font-size:9px}

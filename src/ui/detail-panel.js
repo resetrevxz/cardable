@@ -62,16 +62,18 @@
     var header = item(node('header', 'detail-heading', host), 0);
     node('p', 'detail-kicker', header, (entry.generation ? entry.generation.name : entry.card.generation) + ' · ' + entry.rarity.name);
     node('h1', 'detail-name', header, entry.owned ? entry.card.name : '???');
+    header.appendChild(C.ui.create('help', { help:'detail', label:'Help with this card' }));
     var chips = item(node('div', 'detail-chip-row', host), 4); chips.setAttribute('aria-label', 'Card provenance');
     var overview=item(node('section','detail-tab-pane is-active',host),2);
     var rows = entry.owned ? extraSpecs(entry) : [];
     function specs(list, rows) { rows.forEach(function (row) { var pair = node('div', '', list); node('dt', '', pair, row.label); node('dd', '', pair, row.value); }); }
     if (rows.length) specs(node('dl', 'detail-extra-specs', overview), rows.slice(0, 4));
-    else node('p', 'detail-dim detail-spec-note', overview, entry.owned ? 'Primary specs are on the card.' : 'Collect this card to see its details.');
+    else if (!entry.owned) node('p', 'detail-dim detail-spec-note', overview, 'Collect this card to see its details.');
     if (entry.owned) {
-      var all = node('details', 'detail-all-specs', overview); node('summary', '', all, 'All specs');
-      if (rows.length > 4) specs(node('dl', 'detail-extra-specs', all), rows.slice(4));
-      node('p', 'detail-dim', all, rows.length > 4 ? 'Primary specs remain on the card.' : 'All additional specs are shown above; primary specs are on the card.');
+      if (rows.length > 4) {
+        var all = node('details', 'detail-all-specs', overview); node('summary', '', all, 'All specs');
+        specs(node('dl', 'detail-extra-specs', all), rows.slice(4));
+      }
       var acquired = Math.max.apply(null, entry.instances.map(function (copy) { return copy.pulledAt; }));
       node('p', 'detail-dim detail-ownership', overview, entry.instances.length + (entry.instances.length === 1 ? ' copy' : ' copies') + ' · latest ' + date(acquired));
       if (entry.instances.length > 1) {

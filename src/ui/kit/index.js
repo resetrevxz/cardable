@@ -8,15 +8,18 @@
     var keys=data.shortcuts||[];if(keys.length)popup.appendChild(el('p','cb-small',keys.map(function(k){return C.keybindings&&C.keybindings.label?C.keybindings.label(k):k;}).join(' · ')));root.document.body.appendChild(popup);position(popup,anchor);emit('open',{component:'help',id:id});}
   function stopTooltip(){root.clearTimeout(tipTimer);if(tooltip){tooltip.remove();tooltip=null;}}
   function enhance(e){if(!e||e.nodeType!==1||e.closest('.collectible-card,.card,.card-thumbnail,.pack-unit,.gpu-art,.wordmark'))return;
-    var tag=e.tagName;if(upgraded.has(e)){if(tag==='BUTTON')e.classList.add('cb-button');else if(tag==='SELECT')e.classList.add('cb-select');else if(tag==='INPUT'||tag==='TEXTAREA')e.classList.add('cb-field');return;}var classes=e.className&&typeof e.className==='string'?e.className:'';
-    if(tag==='BUTTON'){e.classList.add('cb-button');if(!e.hasAttribute('data-hover'))e.dataset.hover='lift';if(!e.getAttribute('type'))e.type='button';}
-    if(tag==='INPUT'||tag==='TEXTAREA')e.classList.add('cb-field');if(tag==='SELECT')e.classList.add('cb-select');if(tag==='KBD')e.classList.add('cb-keycap');
+    var tag=e.tagName,classes=e.className&&typeof e.className==='string'?e.className:'';
+    // Enhancement supplies behavior. Named screen controls own their geometry;
+    // only explicitly created kit components receive a complete component skin.
+    if(upgraded.has(e)){e.classList.add('cb-control');return;}
+    if(tag==='BUTTON'){if(!classes.trim())e.classList.add('cb-button');e.classList.add('cb-control');if(!e.getAttribute('type'))e.type='button';if(e.classList.contains('cb-button')&&!e.hasAttribute('data-hover'))e.dataset.hover='lift';}
+    if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')e.classList.add('cb-control');if(tag==='KBD'&&!classes.trim())e.classList.add('cb-keycap');
     if(/(?:toast|undo-notice)$/.test(classes)){e.dataset.cbToast='true';}
     if(tag==='BUTTON'||tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'){upgraded.add(e);if(e.disabled&&!e.title)e.title='Unavailable in this context';}
     if(/(?:panel|sheet|toolbar|dialog|overlay|surface|inspector|friendly|timeline|library|outliner|workspace|tutorial)(?:\s|$)/.test(classes)){
       e.classList.add('cb-ui');var id=/achievement/.test(classes)?'achievements':/preferences|settings/.test(classes)?'settings':/timeline/.test(classes)?'timeline':/library/.test(classes)?'library':/studio/.test(classes)?'studio':/detail/.test(classes)?'detail':/inventory/.test(classes)?'inventory':/tutorial/.test(classes)?'tutorial':/dev-/.test(classes)?'developer':/palette/.test(classes)?'commands':/performance/.test(classes)?'performance':/qol-/.test(classes)?'welcome':/opening/.test(classes)?'opening':'menu';
       if(!e.dataset.help)e.dataset.help=id;
-      if(!/overlay|toolbar|surface/.test(classes)&&e.querySelector('h1,h2,h3')&&!e.querySelector('.cb-help-button')){var b=C.ui.create('help',{help:id,label:'Help with '+C.data.help[id].title});e.insertBefore(b,e.firstChild);}
+      if(!/overlay|toolbar|surface/.test(classes)&&!e.querySelector('.cb-help-button')){var heading=e.querySelector(':scope > h1,:scope > h2,:scope > h3,:scope > header > h1,:scope > header > h2');if(heading){heading.classList.add('cb-heading-with-help');heading.appendChild(C.ui.create('help',{help:id,label:'Help with '+C.data.help[id].title}));}}
     }
     if(e.matches('.settings-row,.studio-layer-row,.context-row,.dev-row,.achievement-row')&&!e.dataset.hover)e.dataset.hover='glow-edge';
     if(tag==='BUTTON'&&!e.dataset.help){var text=e.getAttribute('aria-label')||e.textContent.trim();if(text)e.dataset.help='control:'+text;}

@@ -82,7 +82,7 @@
       gear.appendChild(C.icons.create('settings'));node('span','settings-version',corner,'v'+C.config.version);
       overlay = node('div', 'preferences-overlay settings-overlay', root.document.body); overlay.hidden = true; overlay.inert = true;
       panel = node('section', 'preferences-panel settings-panel glass glass--sheet', overlay); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Settings');
-      var header = node('header', 'settings-header', panel); node('h2', '', header, 'Settings'); C.preferences.closeButton = button('Close', header, close);
+      var header = node('header', 'settings-header', panel); node('h2', '', header, 'Settings'); header.appendChild(C.ui.create('help',{help:'settings',label:'Settings help'})); C.preferences.closeButton = button('Close', header, close);
       var shell = C.preferences.shell = C.settingsShell.create(panel), scroll = shell.content, graphics = shell.group('Graphics');
       controls.push(shell);
       controls.push(C.settingsControls.create(C.settingsSchema.entries.quality, graphics));
@@ -93,8 +93,8 @@
       }
       C.settings.onChange('*', presetSummary); presetSummary();
       var previewSection = node('div', 'settings-preview', shell.preview); previewHost = node('div', 'settings-preview-mount', previewSection);
-      var selector = node('div', 'settings-preview-selector', previewSection); button('‹', selector, function () { tierIndex = (tierIndex + C.data.rarities.length - 1) % C.data.rarities.length; buildPreview(); });
-      C.preferences.tierLabel = node('span', '', selector); button('›', selector, function () { tierIndex = (tierIndex + 1) % C.data.rarities.length; buildPreview(); });
+      var selector = node('div', 'settings-preview-selector', previewSection), previous=button('', selector, function () { tierIndex = (tierIndex + C.data.rarities.length - 1) % C.data.rarities.length; buildPreview(); }); previous.setAttribute('aria-label','Previous rarity');previous.title='Previous rarity';previous.classList.add('cb-preview-previous');previous.appendChild(C.icons.create('chevron'));
+      C.preferences.tierLabel = node('span', '', selector); var next=button('', selector, function () { tierIndex = (tierIndex + 1) % C.data.rarities.length; buildPreview(); });next.setAttribute('aria-label','Next rarity');next.title='Next rarity';next.appendChild(C.icons.create('chevron'));
       var groups = shell.groups;
       Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group) shell.group(d.group); });
       ['Data', 'About'].forEach(shell.group);
@@ -162,7 +162,7 @@
         if (undo) { undoAge += dt; if (undoAge >= 8000) { undo = null; undoButton.hidden = true; } else moving = true; }
         if (!overlay.hidden) {
           if (C.motion.reduced) { position = Math.max(0, Math.min(1, position + (opened ? 1 : -1) * dt / 150)); spring.reset(position); } else { spring.step(dt, opened ? 1 : 0); position = spring.value; }
-          panel.style.transform = C.motion.reduced ? 'none' : 'translate3d(' + (1 - position) * 110 + '%,0,0)'; panel.style.opacity = C.motion.reduced ? position : 1;
+          panel.style.transform = C.motion.reduced ? 'none' : 'translate3d(0,' + (1 - position) * 24 + 'px,0)'; panel.style.opacity = Math.max(0, Math.min(1, position));
           var settled = C.motion.reduced ? position === (opened ? 1 : 0) : spring.settled();
           moving = !settled || moving;
           if (!opened && settled) overlay.hidden = true;

@@ -15,7 +15,7 @@
   --shadow-xl:0 8px 16px rgba(0,0,0,.50),0 32px 64px rgba(0,0,0,.40),0 72px 120px rgba(0,0,0,.25);
   --z-content:0; --z-sticky:10; --z-panel:20; --z-sheet:30; --z-overlay:40; --z-toast:50; --z-tooltip:60; --z-cursor:70;
   --blur-1:12px; --blur-2:24px; --blur-3:40px; --q-blur:.6; --q-motion:.8; --q-shadow:1;
-  --row-height:40px; --control-height:32px; --sheet-max:1200px; --settings-max:880px; --dialog-max:480px; --popover-max:320px;
+  --row-height:40px; --control-height:32px; --sheet-max:1200px; --settings-max:1040px; --dialog-max:480px; --popover-max:320px;
   --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px); --safe-left:env(safe-area-inset-left,0px); --safe-right:env(safe-area-inset-right,0px);
   /* Compatibility aliases keep established layout and artwork contracts intact. */
   --bg:var(--ink-0); --bg-elev:var(--ink-1); --surface:var(--ink-1); --surface-2:var(--ink-2);

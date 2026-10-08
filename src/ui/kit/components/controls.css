@@ -7,12 +7,12 @@
 .cb-button:active:not(:disabled),.cb-icon-button:active:not(:disabled) { transform:scale(.98); }
 .cb-field,.cb-select { min-height:var(--control-height); max-width:100%; color:var(--text); background:var(--ink-3); border:1px solid var(--stroke); border-radius:var(--radius-control); padding:var(--s-2) var(--s-3); font:400 14px/20px var(--font-ui); }
 .cb-field[type="range"] { accent-color:var(--accent); padding:0; }
-.cb-field[type="checkbox"],.cb-field[type="radio"] { accent-color:var(--accent); min-height:20px; width:20px; }
+.cb-field[type="checkbox"],.cb-field[type="radio"] { accent-color:var(--accent); min-height:20px; height:20px; width:20px; padding:0; flex-shrink:0; }
 .cb-switch { width:40px; height:24px; border-radius:var(--radius-chip); padding:2px; border:1px solid var(--stroke); background:var(--ink-3); cursor:pointer; }
 .cb-switch::after { content:""; display:block; width:18px; height:18px; border-radius:var(--radius-chip); background:var(--text-dim); transition:transform var(--duration-fast) var(--ease-out); }
 .cb-switch[aria-checked="true"] { background:rgba(var(--accent-rgb),.18); }
 .cb-switch[aria-checked="true"]::after { transform:translateX(16px); background:var(--accent); }
-.cb-segments,.cb-tabs { position:relative; isolation:isolate; display:flex; gap:var(--s-1); padding:var(--s-1); background:var(--ink-3); border:1px solid var(--stroke); border-radius:var(--radius-control); }
+.cb-segments,.cb-tabs { position:relative; isolation:isolate; display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:var(--s-1); padding:var(--s-1); background:var(--ink-3); border:1px solid var(--stroke); border-radius:var(--radius-control); }
 .cb-segments::before,.cb-tabs::before { content:""; position:absolute; top:var(--s-1); bottom:var(--s-1); left:var(--s-1); width:calc((100% - 2 * var(--s-1) - (var(--segments,1) - 1) * var(--s-1)) / var(--segments,1)); border-radius:var(--radius-control); background:var(--glass-3); box-shadow:inset 0 0 0 1px var(--stroke-strong); transform:translateX(calc(var(--selected,0) * (100% + var(--s-1)))); transition:transform var(--duration-base) var(--ease-in-out); pointer-events:none; }
 .cb-segments > button,.cb-tabs > button { flex:1; position:relative; z-index:var(--z-content); white-space:nowrap; }
 .cb-segments [aria-checked="true"],.cb-tabs [aria-selected="true"] { background:transparent; color:var(--accent); border-color:transparent; }
@@ -47,10 +47,6 @@
 .reduced-motion .cb-enter { animation:none; }
 :root[data-quality="very-low"] .cb-ui *, :root[data-animation-quality="very-low"] .cb-ui * { animation:none !important; transition:none !important; }
 
-.cb-ui .cb-button { min-height:var(--control-height); color:var(--text); background:var(--glass-1); border:1px solid var(--stroke); border-radius:var(--radius-control); font:500 12px/16px var(--font-ui); }
-.cb-ui .cb-button[data-variant="primary"] { background:var(--accent); color:var(--ink-0); border-color:var(--accent); }
-.cb-ui .cb-button[data-variant="ghost"] { background:transparent; border-color:transparent; }
-.cb-ui .cb-button[data-variant="danger"] { color:var(--danger); }
 .cb-ui .settings-switch[aria-checked="true"] { background:rgba(var(--accent-rgb),.18); }
 :root[data-quality="low"] .cb-ui [data-hover] { transform:none; }
 :root[data-glass-quality="very-low"] .glass,:root[data-glass-quality="low"] .glass { background:var(--ink-1); backdrop-filter:none; -webkit-backdrop-filter:none; }
@@ -69,3 +65,8 @@
 .cb-skeleton::after { content:""; position:absolute; inset:0; background:linear-gradient(100deg,transparent,var(--glass-3),transparent); transform:translateX(-100%); animation:cb-loader-sweep var(--duration-loader-sweep) linear infinite; }
 .reduced-motion .cb-skeleton::after,:root[data-quality="low"] .cb-skeleton::after,:root[data-quality="very-low"] .cb-skeleton::after { animation:none; }
 @media(prefers-reduced-motion:reduce) { .cb-skeleton::after { animation:none; } }
+
+/* A segmented item's surface belongs to the group, never a nested button box. */
+.cb-segments > .cb-button,.cb-tabs > .cb-button { min-width:0; border:0; background:transparent; border-radius:var(--radius-tiny); padding:var(--s-2) var(--s-3); color:var(--text-dim); }
+.cb-segments > [aria-checked="true"],.cb-tabs > [aria-selected="true"] { color:var(--accent); }
+.cb-segments > [data-hover="lift"]:hover,.cb-tabs > [data-hover="lift"]:hover { transform:none; }

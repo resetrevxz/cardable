@@ -61,6 +61,14 @@
         "title": "Fixed",
         "items": [
           {
+            "text": "Settings selectors, preview arrows, wallet and inventory controls retain their intended shapes and alignment.",
+            "target": "settings"
+          },
+          {
+            "text": "Achievement tiles keep readable names, and Studio layers have separate, clear visibility and lock controls.",
+            "target": "achievements"
+          },
+          {
             "text": "Interface colors now follow the saved color or monochrome setting without removing status labels.",
             "target": "rarityColor"
           }

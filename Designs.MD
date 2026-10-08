@@ -30,7 +30,7 @@ The source of truth is `src/ui/kit/tokens.css`, with compatibility aliases for e
 | Radius | Tiny 6, control 10, panel 14, card/sheet 20, large sheet 28, chip 999; inner radius = outer minus padding |
 | Elevation | Four layered shadows (sm/md/lg/xl); page scrim 40% ink |
 | Layers | Content 0, sticky 10, panels 20, sheets 30, overlays 40, toasts 50, tooltips 60, cursor 70 |
-| Layout | Existing 1920×1080 scale; max sheet 1200, Settings 880, dialog 480, popover 320; safe-area insets; comfortable 40 px rows, compact 32 px |
+| Layout | Existing 1920×1080 scale; max sheet 1200, Settings 1040, dialog 480, popover 320; safe-area insets; comfortable 40 px rows, compact 32 px |
 
 Use variables for color, timing, easing, radii, layers and shadows. Never convert collected art, pack identities or authored films into arbitrary generic component colors. Minimum contrast targets are 4.5:1 for body text and 3:1 for large text/icons; a token is not itself an accessibility certification.
 
@@ -48,7 +48,7 @@ Desktop targets are at least 32 px high; essential coarse-pointer targets are at
 
 ## 5. Components and API
 
-Classic scripts expose `Cardable.ui.create(type, props)` and `Cardable.ui.mount(root)`; `cb-` classes and data attributes own styling. Mount upgrades existing semantic controls without replacing their state, handlers or save contracts. `Cardable.ui.progress` exposes accurate progress updates; `Cardable.ui.loader` is bounded and never blocks input. Components are demonstrated at `?dev=1&gallery=ui`.
+Classic scripts expose `Cardable.ui.create(type, props)` and `Cardable.ui.mount(root)`; `cb-` classes and data attributes own styling. Mount adds behavior to existing semantic controls without replacing their state, handlers, save contracts or owner geometry. Full control skins are explicit kit components. Help belongs in an owner header; it must not insert an extra child into a sheet or grid. `Cardable.ui.progress` exposes accurate progress updates; `Cardable.ui.loader` is bounded and never blocks input. Components are demonstrated at `?dev=1&gallery=ui`.
 
 | Family | Anatomy / keyboard / states |
 |---|---|
