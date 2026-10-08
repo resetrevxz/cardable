@@ -7,7 +7,7 @@
   <title>Cardable Mini</title>
   <link rel="stylesheet" href="src/styles/tokens.css">
   <link rel="stylesheet" href="src/styles/base.css">
-  <link rel="stylesheet" href="src/styles/glass.css">
+  <link rel="stylesheet" href="src/ui/kit/components/surfaces.css">
   <link rel="stylesheet" href="src/styles/pack.css">
   <link rel="stylesheet" href="src/styles/pack-variants.css">
   <link rel="stylesheet" href="src/styles/brand-packs.css">
@@ -16,11 +16,14 @@
   <link rel="stylesheet" href="src/styles/titan-pack.css">
   <link rel="stylesheet" href="src/styles/picker-pack.css">
   <link rel="stylesheet" href="src/styles/graphics.css">
+  <link rel="stylesheet" href="src/ui/kit/tokens.css">
+  <link rel="stylesheet" href="src/ui/kit/base.css">
+  <link rel="stylesheet" href="src/ui/kit/components/controls.css">
   <link rel="stylesheet" href="electron/native/mini.css">
 </head>
 <body>
   <header><span>CARDABLE</span><button id="expand" aria-label="Restore full window">Expand</button></header>
-  <main aria-label="Next pack"><div id="pack" class="pack-stage" aria-hidden="true"></div><p id="name"></p><p id="countdown" role="status"></p><button id="open" class="quiet-button">Open pack</button></main>
+  <main aria-label="Next pack"><div id="pack" class="pack-stage" aria-hidden="true"></div><p id="name"></p><span id="stack" class="cb-chip" aria-label="Pack stock"></span><p id="countdown" role="status"></p><button id="open" class="quiet-button">Open pack</button></main>
   <script src="src/core/namespace.js"></script>
   <script src="src/config.js"></script>
   <script src="src/data/cards.js"></script>
@@ -32,6 +35,9 @@
   <script src="src/data/picker-pack.js"></script>
   <script src="src/ui/card-art.js"></script>
   <script src="electron/native/mini-runtime.js"></script>
+  <script src="src/data/help.js"></script>
+  <script src="src/ui/kit/icons.js"></script>
+  <script src="src/ui/kit/index.js"></script>
   <script src="src/ui/pack-skins.js"></script>
   <script src="src/ui/pack-markup.js"></script>
   <script src="src/ui/brand-pack-skins.js"></script>

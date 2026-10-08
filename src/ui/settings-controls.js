@@ -6,8 +6,9 @@
     create: function (descriptor, parent, binding) {
       binding = binding || { get: C.settings.get, set: C.settings.set, subscribe: C.settings.onChange };
       var key = descriptor.key, type = descriptor.control, control, buttons = [], indicator, knob, current = binding.get(key), pending = false;
-      var disabled = descriptor.group === 'Sound', spring = C.springs.create(0, { stiffness: 220, damping: 26 });
+      var disabled = descriptor.group === 'Sound' || descriptor.group === 'Desktop' && !C.native, spring = C.springs.create(0, { stiffness: 220, damping: 26 });
       var row = node('div', 'settings-row', parent), copy = node('div', 'settings-copy', row);
+      row.dataset.setting = key;
       var label = node('span', 'settings-label', copy, descriptor.label); label.id = (descriptor.prefix || 'setting-') + key;
       node('span', 'settings-helper', copy, descriptor.helper);
       if (type === 'switch') {
@@ -48,6 +49,7 @@
           b.addEventListener('keyup', function () { b.classList.remove('is-pressed'); }); b.addEventListener('blur', function () { b.classList.remove('is-pressed'); }); buttons.push(b);
         });
       }
+      if(disabled){control.disabled=true;control.title=descriptor.group==='Desktop'?'Available in the Windows app':'Sound is not enabled';buttons.forEach(function(b){b.disabled=true;b.title=control.title;});}
       control.setAttribute('aria-labelledby', label.id);
       function refresh(value) {
         current = value;
@@ -87,7 +89,7 @@
         listen(root.document, 'visibilitychange', function () { if (root.document.hidden) cancel(); });
       } else listen(button, 'click', function () {
         if (button.disabled) return;
-        if (armedAt !== null && root.performance.now() - armedAt < 3000) { cancel(); action(); }
+        if (armedAt !== null && root.performance.now() - armedAt < 3000) { cancel(); action(); if(C.ui)C.ui.emit('confirm',{component:'click-again'}); }
         else { armedAt = root.performance.now(); button.classList.add('is-confirming'); button.textContent = 'Click again to confirm'; announce(options.confirmMessage || 'Click again within three seconds to restore defaults.'); C.fx.wake(); }
       });
       return { get active() { return armedAt !== null || held || fill > 0; }, cancel: cancel,
@@ -98,7 +100,7 @@
             fill = Math.max(0, Math.min(1, held ? (now - heldAt) / (options.holdMs || 3000) : fill - dt / 700)); button.style.setProperty('--confirm-progress', fill);
             button.style.setProperty('--confirm-wave', C.motion.reduced ? '0px' : Math.sin(now / 140) * fill + 'px');
             if (held && Math.floor(fill * 4) > milestone) { milestone = Math.floor(fill * 4); if (milestone < 4) announce(milestone * 25 + ' percent.'); }
-            if (fill >= 1 - 1e-9 && !fired && held) { fired = true; held = false; button.classList.add('is-confirmed'); action(); announce('Confirmed.'); }
+            if (fill >= 1 - 1e-9 && !fired && held) { fired = true; held = false; button.classList.add('is-confirmed'); action(); if (C.ui) C.ui.emit('confirm', {component:'hold'}); announce('Confirmed.'); }
             if (!held && fill === 0) { button.classList.remove('is-confirming', 'is-confirmed'); button.textContent = text; } return held || fill > 0;
           }
           if (armedAt === null) return false;

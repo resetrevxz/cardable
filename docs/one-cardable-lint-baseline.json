@@ -1,6 +1,15 @@
 {
   "files": [
     {
+      "file": "electron/native/mini.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
       "file": "src/dev/workspace.css",
       "colors": 18,
       "durations": 0,
@@ -13,7 +22,7 @@
       "file": "src/studio/studio.css",
       "colors": 191,
       "durations": 6,
-      "easings": 8,
+      "easings": 0,
       "radii": 61,
       "layers": 23,
       "shadows": 14
@@ -22,7 +31,7 @@
       "file": "src/styles/achievements.css",
       "colors": 36,
       "durations": 1,
-      "easings": 4,
+      "easings": 0,
       "radii": 7,
       "layers": 1,
       "shadows": 2
@@ -31,7 +40,7 @@
       "file": "src/styles/activity.css",
       "colors": 0,
       "durations": 0,
-      "easings": 5,
+      "easings": 0,
       "radii": 0,
       "layers": 0,
       "shadows": 0
@@ -76,7 +85,7 @@
       "file": "src/styles/card-tags.css",
       "colors": 10,
       "durations": 1,
-      "easings": 1,
+      "easings": 0,
       "radii": 1,
       "layers": 1,
       "shadows": 1
@@ -85,7 +94,7 @@
       "file": "src/styles/card.css",
       "colors": 84,
       "durations": 0,
-      "easings": 6,
+      "easings": 0,
       "radii": 2,
       "layers": 9,
       "shadows": 2
@@ -103,7 +112,7 @@
       "file": "src/styles/context-menu.css",
       "colors": 14,
       "durations": 15,
-      "easings": 10,
+      "easings": 0,
       "radii": 6,
       "layers": 2,
       "shadows": 2
@@ -130,7 +139,7 @@
       "file": "src/styles/desktop-qol.css",
       "colors": 1,
       "durations": 1,
-      "easings": 4,
+      "easings": 0,
       "radii": 0,
       "layers": 5,
       "shadows": 0
@@ -139,7 +148,7 @@
       "file": "src/styles/detail-panel.css",
       "colors": 0,
       "durations": 2,
-      "easings": 2,
+      "easings": 0,
       "radii": 5,
       "layers": 3,
       "shadows": 0
@@ -175,7 +184,7 @@
       "file": "src/styles/inventory-controls.css",
       "colors": 1,
       "durations": 0,
-      "easings": 7,
+      "easings": 0,
       "radii": 3,
       "layers": 3,
       "shadows": 0
@@ -184,7 +193,7 @@
       "file": "src/styles/inventory-views.css",
       "colors": 26,
       "durations": 1,
-      "easings": 4,
+      "easings": 0,
       "radii": 3,
       "layers": 9,
       "shadows": 7
@@ -193,7 +202,7 @@
       "file": "src/styles/inventory.css",
       "colors": 3,
       "durations": 2,
-      "easings": 4,
+      "easings": 0,
       "radii": 1,
       "layers": 0,
       "shadows": 0
@@ -202,7 +211,7 @@
       "file": "src/styles/menu.css",
       "colors": 1,
       "durations": 0,
-      "easings": 6,
+      "easings": 0,
       "radii": 1,
       "layers": 0,
       "shadows": 0
@@ -211,7 +220,7 @@
       "file": "src/styles/opening.css",
       "colors": 6,
       "durations": 0,
-      "easings": 6,
+      "easings": 0,
       "radii": 1,
       "layers": 0,
       "shadows": 2
@@ -229,7 +238,7 @@
       "file": "src/styles/pack.css",
       "colors": 115,
       "durations": 0,
-      "easings": 10,
+      "easings": 0,
       "radii": 7,
       "layers": 2,
       "shadows": 10
@@ -238,7 +247,7 @@
       "file": "src/styles/picker-pack.css",
       "colors": 73,
       "durations": 0,
-      "easings": 2,
+      "easings": 0,
       "radii": 7,
       "layers": 2,
       "shadows": 6
@@ -247,7 +256,7 @@
       "file": "src/styles/polish.css",
       "colors": 6,
       "durations": 0,
-      "easings": 10,
+      "easings": 0,
       "radii": 0,
       "layers": 0,
       "shadows": 1
@@ -283,7 +292,7 @@
       "file": "src/styles/settings.css",
       "colors": 0,
       "durations": 0,
-      "easings": 6,
+      "easings": 0,
       "radii": 3,
       "layers": 4,
       "shadows": 1
@@ -292,7 +301,7 @@
       "file": "src/styles/stability.css",
       "colors": 18,
       "durations": 2,
-      "easings": 1,
+      "easings": 0,
       "radii": 4,
       "layers": 5,
       "shadows": 0
@@ -319,25 +328,16 @@
       "file": "src/styles/variants.css",
       "colors": 56,
       "durations": 0,
-      "easings": 2,
+      "easings": 0,
       "radii": 0,
       "layers": 1,
       "shadows": 1
-    },
-    {
-      "file": "electron/native/mini.css",
-      "colors": 0,
-      "durations": 0,
-      "easings": 0,
-      "radii": 0,
-      "layers": 0,
-      "shadows": 0
     }
   ],
   "totals": {
     "colors": 1450,
     "durations": 31,
-    "easings": 98,
+    "easings": 0,
     "radii": 171,
     "layers": 99,
     "shadows": 119

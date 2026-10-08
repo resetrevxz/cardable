@@ -92,8 +92,9 @@
     var inspect = extensionHost.querySelector('.studio-inspect-action');
     if (inspect) { actions.appendChild(inspect); inspect.dataset.tooltip = 'Inspect · I'; inspect.title = 'Inspect · I'; inspect.setAttribute('aria-keyshortcuts', 'I'); }
     else { inspect = button(actions, 'Inspect', null, 'studio-inspect-action'); inspect.disabled = true; inspect.title = 'Collect this card to inspect it'; }
-    var flip = C.inventoryIcons.button('more', C.keybindings.tooltip('R','Flip'), context.flip, actions);
-    flip.firstChild.querySelector('path').setAttribute('d', 'M19 10a7 7 0 1 0-1 7M19 5v5h-5'); flip.setAttribute('aria-keyshortcuts', 'R'); flip.disabled = !entry.owned;
+    C.icons.register('flip','M19 10a7 7 0 1 0-1 7M19 5v5h-5');
+    var flip = C.inventoryIcons.button('flip', C.keybindings.tooltip('R','Flip'), context.flip, actions);
+    flip.setAttribute('aria-keyshortcuts', 'R'); flip.disabled = !entry.owned;
     var favorite = C.inventoryIcons.button('favorite', C.keybindings.tooltip('F','Favorite'), function () {
       C.inventoryModel.favorite(entry.stackKey); refresh(instance);
     }, actions); favorite.setAttribute('aria-keyshortcuts', 'F'); favorite.disabled = !entry.owned || context.preview;

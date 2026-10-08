@@ -37,7 +37,7 @@
     },
     decorate:function(tile,entry){
       var outset=entry.rarity.propOutset||{};tile.pose.style.setProperty('--tag-prop-top',(outset.top||0)*100+'%');tile.pose.style.setProperty('--tag-prop-bottom',(outset.bottom||0)*100+'%');
-      C.cardTags.render(tile.tagRail,entry,entry.instances[0],'compact');tile.caption.children[0].textContent=entry.owned?entry.card.name:'Unknown '+entry.rarity.name;tile.caption.children[1].textContent=entry.rarity.name+' · '+(entry.instances.length>1?entry.instances.length+' copies':entry.generation.name);
+      C.cardTags.render(tile.tagRail,entry,entry.instances[0],'compact');tile.caption.children[0].textContent=entry.owned?entry.card.name:'Unknown '+entry.rarity.name;tile.caption.children[0].title=tile.caption.children[0].textContent;tile.caption.children[1].textContent=entry.rarity.name+' · '+(entry.instances.length>1?entry.instances.length+' copies':entry.generation.name);
     },
     destroy:function(tile){if(tile.view) tile.view.destroy(); if(tile.el.parentElement) tile.el.remove();},
     recycle:function(tile,entry,index){

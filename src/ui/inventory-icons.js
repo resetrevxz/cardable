@@ -2,7 +2,7 @@
   'use strict';
   var paths = { search:'M10.5 3a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15ZM16 16l5 5', filter:'M4 6h16M7 12h10M10 18h4M8 4v4M16 10v4M12 16v4', sort:'M6 4v16m-3-3 3 3 3-3M12 6h9M12 12h6M12 18h3', grid:'M4 4h6v6H4ZM14 4h6v6h-6ZM4 14h6v6H4ZM14 14h6v6h-6Z', shelf:'M3 7h4v10H3ZM9 4h6v16H9ZM17 7h4v10h-4Z', favorite:'m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9Z', collection:'M3 7h18v13H3ZM3 7V4h7l2 3', plus:'M12 4v16M4 12h16', close:'M6 6l12 12M18 6 6 18', collapse:'m6 9 6 6 6-6', expand:'m6 15 6-6 6 6', more:'M5 12h.01M12 12h.01M19 12h.01', lock:'M6 10h12v11H6ZM8 10V7a4 4 0 0 1 8 0v3M12 14v3', check:'m5 12 4 4L19 6', reorder:'M8 5h.01M16 5h.01M8 12h.01M16 12h.01M8 19h.01M16 19h.01', back:'m15 5-7 7 7 7', next:'m9 5 7 7-7 7', unknown:'M5 5h14v14H5ZM8 8h8v8H8ZM2 8h3M2 12h3M2 16h3M19 8h3M19 12h3M19 16h3' };
   C.inventoryIcons = {
-    create: function (name) { var svg = root.document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('aria-hidden','true'); svg.setAttribute('focusable','false'); var path = root.document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('d',paths[name] || paths.more); svg.appendChild(path); return svg; },
+    create: function(name){if(paths[name])C.icons.register(name,paths[name]);return C.icons.create(name);},
     button: function (name, label, action, parent) { var el = C.packMarkup.node('button','inventory-icon',parent); el.type = 'button'; el.setAttribute('aria-label',label); el.dataset.tooltip = label; el.appendChild(C.inventoryIcons.create(name)); if (action) el.addEventListener('click',action); return el; }
   };
 })(window.Cardable, window);

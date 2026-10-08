@@ -6,6 +6,7 @@
       apply: function (next, api) { api.attribute(this.key, next); } };
   }
   var schema = {
+    settingsMode: entry('', '', null, 'simple', ['simple','advanced']),
     motion: entry('Reduced motion', 'Auto follows your system.', 'Motion and effects', 'auto', ['auto', 'on', 'off']),
     quality: entry('Graphics preset', 'A complete graphics profile. FPS stays independent.', 'Graphics', 'medium', ['very-low', 'low', 'medium', 'high']),
     fpsLimit: entry('FPS limit', 'Lower caps save power. Display refresh follows your screen.', 'Performance', 'display', ['display', '20', '30', '45', '60', '90', '120', '144', '165', '240'], 'select'),
@@ -42,7 +43,7 @@
     canvasQuality: ['Canvas resolution', 'Pixel ratio ceiling: 1 / 1.25 / 1.5 / 2. Text stays sharp.'],
     cinematicQuality: ['Cinematic detail', 'Very Low uses calm Canvas scenes; higher tiers add geometry and post effects.']
   };
-  Object.keys(graphics).forEach(function (key) { schema[key] = entry(graphics[key][0], graphics[key][1], 'Advanced graphics', 'medium', tiers, 'select'); });
+  Object.keys(graphics).forEach(function (key) { schema[key] = entry(graphics[key][0], graphics[key][1], 'Advanced graphics', 'medium', tiers, 'select'); schema[key].advanced = true; });
   Object.keys(schema).forEach(function (key) { schema[key].key = key; });
   function valid(key, value) {
     var item = schema[key];

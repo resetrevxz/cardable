@@ -21,48 +21,42 @@
     eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6'
   };
   function node(tag, cls, parent, text) { return C.packMarkup.node(tag, cls, parent, text); }
-  function glyph(name, parent) {
-    var svg = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('class', 'achievement-glyph');
-    var path = root.document.createElementNS(svg.namespaceURI, 'path'); path.setAttribute('d', paths[name] || paths.star); svg.appendChild(path); parent.appendChild(svg); return svg;
+  function glyph(name,parent){if(paths[name])C.icons.register(name,paths[name]);var svg=C.icons.create(name);svg.classList.add('achievement-glyph');parent.appendChild(svg);return svg;}
+  function emblem(def,p){
+    var seed=2166136261;for(var i=0;i<def.id.length;i++){seed=Math.imul(seed^def.id.charCodeAt(i),16777619)>>>0;}
+    var svg=root.document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 64 64');svg.setAttribute('aria-hidden','true');svg.setAttribute('class','achievement-emblem cb-icon'+(hidden(def,p)?' is-hidden':''));
+    function shape(tag,attrs){var e=root.document.createElementNS(svg.namespaceURI,tag);Object.keys(attrs).forEach(function(k){e.setAttribute(k,attrs[k]);});svg.appendChild(e);}
+    shape('circle',{cx:32,cy:32,r:27});var sides=4+seed%5,points=[];
+    for(i=0;i<sides;i++){var angle=i*Math.PI*2/sides-Math.PI/2,radius=16+((seed>>>(i*3))&3);points.push((32+Math.cos(angle)*radius).toFixed(2)+','+(32+Math.sin(angle)*radius).toFixed(2));}
+    shape('polygon',{points:points.join(' ')});shape('path',{d:'M22 32h20M32 22v20'});
+    for(i=0;i<Math.min(5,p.rank||p.tier||0);i++){var angle=i*Math.PI*2/5;shape('circle',{cx:32+Math.cos(angle)*23,cy:32+Math.sin(angle)*23,r:1.6,fill:'currentColor'});}
+    shape('circle',{cx:32,cy:32,r:4+(seed%3)});return svg;
   }
   function safeMenu() {
     return !root.document.hidden && C.opening.phase === 'idle' && !C.state.current.pendingReveal && !C.inventory.active && !C.preferences.open &&
       !C.menu.afk && !C.tutorial.active && !C.contextMenu.open && !C.studio?.active && !(C.dev && (C.dev.immersive || C.dev.paletteOpen)) && !(C.achievementView && C.achievementView.open);
   }
-  function hide() {
-    toast.classList.remove('is-visible'); dismissedAt = root.performance.now();
-    showing = null; C.events.emit('menu:visibilityHold', { reason: 'achievement-toast', active: false }); C.fx.wake();
-  }
+  var toastReceipt = null;
+  function hide() { if (toastReceipt) toastReceipt.dismiss(); toastReceipt = null; showing = null; dismissedAt = root.performance.now(); C.events.emit('menu:visibilityHold', {reason:'achievement-toast',active:false}); C.fx.wake(); }
   function enqueue(entry) { pending.push(entry); C.fx.wake(); }
-  C.achievementView = { glyph: glyph, get open() { return opened; }, show: openPanel, close: closePanel, replayToast: function (id) {
-    var p = C.achievements.progress(id); if (p) enqueue({ id: id, tier: p.tier || 1 });
-  } };
-  C.events.on('achievement:unlocked', function (event) { if (!event.retro) enqueue(event); });
-  C.events.on('achievement:backfilled', function (event) { enqueue({ summary: true, count: event.count }); });
-  C.events.on('app:ready', function () {
-    toast = node('button', 'achievement-toast glass', root.document.body); toast.type = 'button'; toast.hidden = true;
-    toast.setAttribute('aria-live', 'polite'); toast.setAttribute('aria-atomic', 'true');
-    toast.addEventListener('click', function () { var id = showing && showing[0].id; hide(); C.events.emit('achievements:open', { id: id }); });
-    C.fx.subscribe(function (now) {
-      if (!C.settings.get('achievementToasts')) { pending = []; if (showing) hide(); }
-      if (showing && !safeMenu()) { pending = showing.concat(pending); hide(); toast.hidden = true; }
-      if (showing && now >= until) hide();
-      if (!showing && !toast.hidden && now - dismissedAt >= 250) toast.hidden = true;
-      if (!showing && pending.length && safeMenu() && C.settings.get('achievementToasts')) {
-        showing = pending.splice(0); toast.replaceChildren(); var first = showing[0], def = C.achievements.list().find(function (d) { return d.id === first.id; });
-        glyph(def ? def.glyph : 'star', toast); var copy = node('span', 'achievement-toast-copy', toast);
-        node('span', 'achievement-eyebrow', copy, first.summary ? 'From your collection' : def?.kind === 'weekly' ? 'Achievement ready to claim' : 'Achievement unlocked');
-        node('strong', '', copy, first.summary ? first.count + ' achievements unlocked from your collection' : showing.length > 1 ? showing.length + ' achievements unlocked' : (def?.name || 'Achievement') + (def?.tiers.length > 1 ? ' · Tier ' + first.tier : ''));
-        toast.hidden = false; toast.classList.add('is-visible'); until = now + 4000;
-        C.events.emit('menu:visibilityHold', { reason: 'achievement-toast', active: true }); C.events.emit('ui:achievement', { beat: 'toast', id: first.id, count: showing.length });
+  C.achievementView = { glyph:glyph, get open(){return opened;}, show:openPanel, close:closePanel, replayToast:function(id){var p=C.achievements.progress(id);if(p)enqueue({id:id,tier:p.tier||1});} };
+  C.events.on('achievement:unlocked',function(event){if(!event.retro)enqueue(event);});
+  C.events.on('achievement:backfilled',function(event){enqueue({summary:true,count:event.count});});
+  C.events.on('app:ready',function(){
+    C.fx.subscribe(function(now){
+      if(!C.settings.get('achievementToasts')){pending=[];if(showing)hide();}
+      if(showing&&!safeMenu()){pending=showing.concat(pending);hide();}
+      if(showing&&now>=until)hide();
+      if(!showing&&pending.length&&safeMenu()&&C.settings.get('achievementToasts')){
+        showing=pending.splice(0);var first=showing[0],def=C.achievements.list().find(function(d){return d.id===first.id;});
+        var label=first.summary?first.count+' achievements recorded from your collection':showing.length>1?showing.length+' achievements unlocked':(def?.name||'Achievement')+(def?.kind==='weekly'?' · Ready to claim':' · Unlocked');
+        toastReceipt=C.ui.toast(label,{label:'View',run:function(){var id=first.id;hide();C.events.emit('achievements:open',{id:id});}},'achievement',{tier:first.tier||1,icon:def?emblem(def,C.achievements.progress(def.id)):null});until=now+4000;
+        C.events.emit('menu:visibilityHold',{reason:'achievement-toast',active:true});C.events.emit('ui:achievement',{beat:'toast',id:first.id,count:showing.length});
       }
-      return !!showing || !toast.hidden;
-    }, 'achievements');
-    ['opening:context', 'inventory:context', 'preferences:context', 'tutorial:step', 'contextmenu:close', 'fx:visibility', 'menu:afk', 'settings:changed'].forEach(function (event) { C.events.on(event, function () { C.fx.wake(); }); });
-    C.events.on('achievement:resetting', function () { pending = []; if (showing) hide(); toast.hidden = true; });
-    buildPanel();
-
+      return !!showing||pending.length>0&&safeMenu();
+    },'achievements');
+    ['opening:context','inventory:context','preferences:context','tutorial:step','contextmenu:close','fx:visibility','menu:afk','settings:changed'].forEach(function(event){C.events.on(event,function(){C.fx.wake();});});
+    C.events.on('achievement:resetting',function(){pending=[];if(showing)hide();});buildPanel();
   });
   function button(label, parent, action, cls) {
     var el=node('button',cls || 'achievement-button',parent,label);el.type='button';el.addEventListener('click',action);return el;
@@ -95,7 +89,7 @@
     overlay=node('section','achievements-panel',C.inventory.content);panel=overlay;panel.id='inventory-achievements';panel.hidden=true;
     panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','inventory-tab-achievements');
     var header=node('header','achievements-header',panel), heading=node('div','',header);
-    node('p','achievement-eyebrow',heading,'The collection continues');node('h2','',heading,'Achievements');
+    var hero=node('div','achievement-hero',heading);hero.appendChild(C.ui.progress(0,'Current achievement objectives',true));var heroCopy=node('div','',hero);node('p','achievement-eyebrow',heroCopy,'The collection continues');node('h2','',heroCopy,'Achievements');node('p','achievement-next',heroCopy,'');
     var reset=node('div','achievement-week-reset',header);glyph('clock',reset);node('span','',reset,'Three goals. A fresh week.');
     var back=button('Back to cards',header,closePanel);back.dataset.focus='cards';
     var workspace=node('div','achievements-workspace',panel), rail=node('aside','achievements-sidebar',workspace);
@@ -182,7 +176,7 @@
   function renderRow(def,parent) {
     var p=C.achievements.progress(def.id),row=node('div','achievement-row',parent);row.dataset.rank=String(p.rank||0);row.dataset.difficulty=def.difficulty;row.classList.toggle('is-selected',selected===def.id);row.classList.toggle('is-ready',!!p.ready&&!p.claimed);row.classList.toggle('is-complete',complete(def,p));
     var select=button('',row,function(){selected=def.id;mobileDetail=true;panel.classList.add('is-detail');C.achievements.markSeen(def.id);render();inspector.scrollTop=0;if(root.matchMedia('(max-width: 760px)').matches)inspector.querySelector('h3').focus();},'achievement-row-select');select.dataset.achievement=def.id;select.dataset.focus='row-'+def.id;select.setAttribute('aria-pressed',String(selected===def.id));select.setAttribute('aria-controls','achievement-inspector');
-    glyph(hidden(def,p)?'secret':def.glyph,node('span','achievement-row-emblem',select));
+    node('span','achievement-row-emblem',select).appendChild(emblem(def,p));
     var copy=node('span','achievement-row-copy',select);node('strong','',copy,title(def,p));
     var meta=node('span','achievement-row-meta',copy);node('span','',meta,def.difficulty);node('span','achievement-row-state',meta,state(def,p));
     var progress=bar(copy,def.name+' completion',ratio(def,p)*100,100);node('span','achievement-chevron',select,'›');
@@ -198,7 +192,7 @@
     var surface=node('div','achievement-surface',inspector);surface.dataset.rank=String(rank);surface.dataset.difficulty=def.difficulty;
     var art=node('div','achievement-art',surface);art.setAttribute('aria-hidden','true');
     node('span','achievement-art-coordinate',art,'CBL / '+(def.kind==='recurring'?String(p.cycles).padStart(3,'0'):'001'));
-    var image=node('img','achievement-illustration',art);image.src='assets/achievements/'+(concealed?'hidden':def.glyph==='clock'?'time':def.glyph==='pack'?'pack':def.glyph==='camera'?'photo':'collection')+'.svg';image.alt='';image.width=320;image.height=240;
+    art.appendChild(emblem(def,p));
     var seal=node('div','achievement-seal',art);glyph(concealed?'secret':def.glyph,seal);
     node('span','achievement-art-edition',art,def.kind==='recurring'?(rank?C.data.achievementRankNames[rank-1]:'Unetched')+' / '+String(rank).padStart(2,'0'):'Collection record');
     var content=node('div','achievement-surface-content',surface), labels=node('div','achievement-labels',content);
@@ -250,7 +244,7 @@
     });
     var all=Array.from(definitions.values()).filter(function(d){return !d.archived;}),sum=0,cycles=0,oneTime=0,weekly=0;
     all.forEach(function(d){var p=values.get(d.id);sum+=ratio(d,p);if(d.kind==='recurring')cycles+=p.cycles;if(d.kind==='eternal'&&p.tier)oneTime++;if(d.kind==='weekly'&&p.ready)weekly++;});
-    var completion=all.length?sum/all.length:0;
+    var completion=all.length?sum/all.length:0;var ring=panel.querySelector('.achievement-hero .cb-ring');if(ring)ring.update(completion);var next=all.filter(function(d){var p=values.get(d.id);return !hidden(d,p)&&!complete(d,p);}).sort(function(a,b){return ratio(b,values.get(b.id))-ratio(a,values.get(a.id));}).slice(0,2);panel.querySelector('.achievement-next').textContent=oneTime+' permanent records · Next up: '+(next.map(function(d){return d.name;}).join(' · ')||'All current goals complete');
     if(!footer.firstChild){var copy=node('div','achievement-footer-copy',footer);node('strong','',copy,'');node('span','',copy,'');bar(footer,'Current achievement objectives',0,100);node('span','achievement-footer-percent',footer);}
     footer.firstChild.firstChild.textContent='Your progress';footer.firstChild.lastChild.textContent=weekly+'/3 weekly · '+cycles+' '+(cycles===1?'cycle':'cycles')+' · '+oneTime+' one-time';
     var b=footer.querySelector('.achievement-bar');b.setAttribute('aria-valuenow',String(Math.round(completion*100)));b.firstElementChild.style.transform='scaleX('+completion+')';footer.lastChild.textContent=Math.round(completion*100)+'%';

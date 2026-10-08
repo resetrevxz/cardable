@@ -13,6 +13,7 @@
     var s=session={el:el,instance:instance,hidden:[],cleanups:[],focus:root.document.activeElement,age:0,handoff:false,releaseAge:0};
     s.releaseMenu=C.menu.suspendActivity();s.releaseScope=C.fx.scope('cutscene-replay');
     C.viewport.layers().forEach(function(layer){if(layer===el||layer===C.performanceDisplay||layer.tagName==='SCRIPT')return;s.hidden.push({el:layer,inert:layer.inert,visibility:layer.style.visibility});layer.inert=true;layer.style.visibility='hidden';});
+    if(!el.querySelector('.cb-help-button')){var help=C.ui.create('help',{help:'cinematic',label:'Cinematic help'});el.appendChild(help);}
     var close=el.querySelector('.cb-replay-return');if(!close){close=node('button','cb-replay-return cb-action',el,'Return to card');close.type='button';close.addEventListener('click',stop);el.addEventListener('keydown',function(e){if(e.key==='Escape'){e.preventDefault();stop();}e.stopPropagation();});}
     s.intro=replayIntro||(replayIntro=C.rarityIntro.create(el));try{s.intro.start(rarity.openingIntro,rarity.name,instance.serial);}catch(error){stop();C.qol.toast('Could not start this cutscene.');return false;}
     // Reuse the cinematic clock/safety/skip, with no opening, reward or serial calls.

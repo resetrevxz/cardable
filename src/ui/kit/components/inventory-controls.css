@@ -24,12 +24,12 @@
 .inventory-search-input, .inventory-collection-name, .inventory-range input, .inventory-range select { min-width: 0; width: 100%; border: 1px solid var(--hairline); border-radius: var(--r-button); background: var(--glass); color: var(--text); padding: 9px 12px; font: 12px/1.4 var(--font-ui); }
 .inventory-search-input { flex: 1; }
 .inventory-search-error { grid-column: 1 / -1; margin: 0; color: var(--text-dim); font: 11px/1.5 var(--font-ui); overflow-wrap: anywhere; }
-.inventory-suggestions { position: absolute; top: 44px; left: var(--s-5); width: min(320px,calc(100% - 48px)); padding: var(--s-2); border-radius: var(--r-button); z-index: 5; }
+.inventory-suggestions { position: absolute; top: 44px; left: var(--s-5); width: min(320px,calc(100% - 48px)); padding: var(--s-2); border-radius: var(--r-button); z-index: var(--z-sticky); }
 .inventory-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); padding: 0 var(--s-5) var(--s-2); }
 .inventory-chips button { max-width: 100%; background: var(--glass); border: 1px solid var(--hairline); border-radius: var(--r-chip); padding: var(--s-1) var(--s-3); color: var(--text-dim); font: 10px/1.5 var(--font-mono); overflow-wrap: anywhere; cursor: pointer; }
 .inventory-chips button:hover { border-color: var(--hairline-strong); color: var(--text); }
 .inventory-chips button:active { opacity: .8; }
-.inventory-popover { position: absolute; right: var(--s-5); top: 84px; width: min(360px,calc(100% - 48px)); max-height: calc(100% - 108px); z-index: 8; border-radius: 20px; background-color: rgba(20,20,24,.93); overflow: hidden; animation: inventory-control-enter var(--t-ui) var(--ease-out); }
+.inventory-popover { position: absolute; right: var(--s-5); top: 84px; width: min(360px,calc(100% - 48px)); max-height: calc(100% - 108px); z-index: var(--z-sticky); border-radius: var(--ui-radius-3); background-color: var(--ui-color-6); overflow: hidden; animation: inventory-control-enter var(--t-ui) var(--ease-out); }
 .inventory-popover-heading { display: flex; align-items: center; justify-content: space-between; padding: var(--s-4); border-bottom: 1px solid var(--hairline); }
 .inventory-popover-heading h3 { font: 500 14px var(--font-ui); margin: 0; }
 .inventory-popover-body { padding: var(--s-2) var(--s-4) var(--s-4); max-height: min(calc(var(--layout-height,100vh) * 0.6),500px); overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
@@ -42,8 +42,8 @@
 .inventory-range { display: flex; align-items: center; gap: 8px; color: var(--text-dim); font: 11px var(--font-ui); }
 .inventory-range input { width: 78px; padding: 6px 8px; }
 .inventory-filter-options { display: grid; grid-template-columns: 1fr 1fr; }
-.inventory-tooltip { position: absolute; top: 56px; left: 0; pointer-events: none; padding: 6px 10px; font: 10px var(--font-ui); color: var(--text); border-radius: 8px; white-space: nowrap; z-index: 10; }
-.inventory-peek-thumbnail { width: 30px; height: 42px; overflow: hidden; border-radius: 4px; display: none; cursor: pointer; }
+.inventory-tooltip { position: absolute; top: 56px; left: 0; pointer-events: none; padding: 6px 10px; font: 10px var(--font-ui); color: var(--text); border-radius: var(--ui-radius-4); white-space: nowrap; z-index: var(--z-sticky); }
+.inventory-peek-thumbnail { width: 30px; height: 42px; overflow: hidden; border-radius: var(--ui-radius-5); display: none; cursor: pointer; }
 .inventory-peek-thumbnail .collectible-card { width: 100%; height: 100%; border-radius: inherit; }
 .inventory-sheet.is-peek .inventory-peek-thumbnail { display: block; }
 .inventory-sheet.is-peek .inventory-toolbar-buttons, .inventory-sheet.is-peek .inventory-tabs, .inventory-sheet.is-peek .inventory-content, .inventory-sheet.is-peek .inventory-search, .inventory-sheet.is-peek .inventory-chips { visibility: hidden; pointer-events: none; }

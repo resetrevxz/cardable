@@ -150,7 +150,7 @@
         finish.lite.appendChild(binding.lite());
       }
       if (i === 3 && back) { element.appendChild(node('div', 'card__back-dots')); element.appendChild(node('div', 'card__back-dots card__back-dots--lit')); }
-      if (i === 3 && !back && !context.presentation.hideArt) { var artWindow = node('div', 'card__art-window'); artWindow.appendChild(C.art.render(card)); element.appendChild(artWindow); }
+      if (i === 3 && !back && !context.presentation.hideArt) { var artWindow = node('div', 'card__art-window'); var art=C.art.render(card);artWindow.appendChild(art);if(C.ui)C.ui.cardLoading(artWindow,art);element.appendChild(artWindow); }
       if (i >= 4 && i <= 6) material(element, 'card__' + layerNames[i] + '-render');
       if (i === 7) {
         if (back) element = backText(instance, context);

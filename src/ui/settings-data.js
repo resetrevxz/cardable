@@ -54,18 +54,16 @@
       var restoreConfirm = C.settingsControls.confirmation(restore, function () { perform(C.saveTools.restore); }, { announce: options.announce, confirmMessage: 'Click again within three seconds to restore the previous save.' }); confirmations.push(restoreConfirm);
       var replay = button('Replay tutorial', host, function () { cancelConfirms(); perform(function () { C.saveTools.replay(); options.close(); }); });
       feedback = node('p', 'settings-data-feedback', zone); feedback.setAttribute('role', 'status'); feedback.setAttribute('aria-live', 'polite');
-      var toast = node('aside', 'settings-data-toast glass', root.document.body); toast.hidden = true; toast.setAttribute('aria-label', 'Save action');
-      var toastCopy = node('p', '', toast); toastCopy.setAttribute('role', 'status');
-      var undo = button('Undo', toast, function () { if (!perform(C.saveTools.undo)) toastCopy.textContent = feedback.textContent; });
+      var toast=null,undo=null,undoDeadline=0,undoKind=null;
       function refresh() {
-        var backup = C.saveTools.previous(); restore.hidden = !backup;
-        if (backup) restoreConfirm.setLabel('Restore previous save (' + new Date(backup.backedUpAt).toLocaleDateString() + ', ' + backup.summary.cardCount + ' cards)');
-        var record = C.saveTools.undoInfo;
-        if (record && record.remainingMs > 0) {
-          toastCopy.textContent = { import: 'Save imported. Undo', reset: 'Save reset. Undo', restore: 'Previous save restored. Undo', replay: 'Tutorial restarted. Undo' }[record.kind] || 'Save changed. Undo';
-          if (!toast.classList.contains('is-visible')) { toastMotion = 0; toast.style.willChange = 'transform'; }
-          toastExit = null; toast.hidden = false; toast.classList.add('is-visible'); C.events.emit('menu:visibilityHold', { reason: 'data-undo', active: true }); C.fx.wake();
-        } else { if (!toast.hidden && toastExit === null) { toastExit = 0; toastMotion = 0; toast.style.willChange = 'transform'; C.fx.wake(); } toast.classList.remove('is-visible'); C.events.emit('menu:visibilityHold', { reason: 'data-undo', active: false }); }
+        var backup=C.saveTools.previous();restore.hidden=!backup;
+        if(backup)restoreConfirm.setLabel('Restore previous save ('+new Date(backup.backedUpAt).toLocaleDateString()+', '+backup.summary.cardCount+' cards)');
+        var record=C.saveTools.undoInfo;
+        if(record&&record.remainingMs>0){
+          var deadline=Date.now()+record.remainingMs;
+          if(!toast||!toast.isConnected||undoKind!==record.kind||Math.abs(deadline-undoDeadline)>200){if(toast)toast.dismiss();undoDeadline=deadline;undoKind=record.kind;var text={import:'Save imported.',reset:'Save reset.',restore:'Previous save restored.',replay:'Tutorial restarted.'}[record.kind]||'Save changed.';toast=C.ui.toast(text,{label:'Undo',run:function(){if(!perform(C.saveTools.undo))C.ui.toast(feedback.textContent,null,'error');}},'undo',{duration:record.remainingMs});undo=toast.querySelector('button');}
+          C.events.emit('menu:visibilityHold',{reason:'data-undo',active:true});C.fx.wake();
+        }else{if(toast)toast.dismiss();toast=null;undo=null;undoKind=null;C.events.emit('menu:visibilityHold',{reason:'data-undo',active:false});}
       }
       function close() { epoch++; pending = null; preview.hidden = true; zone.classList.remove('is-drag-over'); cancelConfirms(); }
       C.events.on('settings:close', close); C.events.on('settings:open', refresh); C.events.on('data:changed', refresh); C.events.on('save:replaced', refresh);
@@ -77,14 +75,12 @@
           if (exportAge >= 1600) { exportAge = null; exportButton.disabled = false; exportButton.textContent = 'Export save'; } else moving = true;
         }
         if (C.preferences.open) confirmations.forEach(function (c) { moving = c.update(now, dt) || moving; });
-        if (toastExit !== null) { toastExit += dt; if (toastExit >= 250 || C.motion.reduced) { toast.hidden = true; toastExit = null; } else moving = true; }
-        if (toastMotion !== null) { toastMotion += dt; if (toastMotion >= 250 || C.motion.reduced) { toast.style.willChange = ''; toastMotion = null; } else moving = true; }
         var record = C.saveTools.undoInfo;
-        if (record) { if (record.remainingMs <= 0) C.saveTools.expireUndo(); else { toast.style.setProperty('--undo-progress', record.remainingMs / (record.kind === 'replay' ? 8000 : 15000)); moving = true; } }
+        if (record) { if (record.remainingMs <= 0) C.saveTools.expireUndo(); else { if(toast)toast.style.setProperty('--undo-progress', record.remainingMs / (record.kind === 'replay' ? 8000 : 15000)); moving = true; } }
         return moving;
       }, 'settings-data');
       refresh();
-      var api = { read: read, preview: preview, feedback: feedback, input: input, zone: zone, exportButton: exportButton, apply: apply, reset: reset, restore: restore, replay: replay, toast: toast, undo: undo, confirmations: confirmations,
+      var api = { read: read, preview: preview, feedback: feedback, input: input, zone: zone, exportButton: exportButton, apply: apply, reset: reset, restore: restore, replay: replay, get toast(){return toast;}, get undo(){return undo;}, confirmations: confirmations,
         escape: function () { var active = confirmations.find(function (c) { return c.active; }); if (!active) return false; active.cancel(); return true; } };
       C.settingsData.current = api; return api;
     }

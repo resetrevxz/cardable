@@ -676,7 +676,7 @@
       enabled = true; cfg = C.config.openingMotion; motion = C.config.revealMotion;
       root.document.body.style.setProperty('--opening-chrome-opacity', cfg.chargeChromeOpacity);
       stage = node('section', 'opening-stage', root.document.body); stage.hidden = true; stage.setAttribute('aria-label', 'Pack opening');
-      intro = C.rarityIntro.create(stage); C.opening.intro = intro;
+      intro = C.rarityIntro.create(stage); C.opening.intro = intro;var help=C.ui.create('help',{help:'opening',label:'Opening help'});help.classList.add('cb-opening-help');stage.appendChild(help);
       host = node('div', 'opening-pack', stage); host.setAttribute('tabindex', '0'); host.setAttribute('role', 'group');
       host.setAttribute('aria-label', 'Pack wrapper. Hold Space to charge; drag across the top strip or press Enter to tear.');
       cutZone=node('div','opening-cut-zone',host);cutZone.setAttribute('aria-hidden','true');

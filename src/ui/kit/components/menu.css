@@ -20,8 +20,8 @@
 }
 .cursor-glow.is-present { opacity: 1; }
 .cursor-glow__light {
-  position: absolute; inset: 0; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,var(--glow-opacity)) 0%, rgba(255,255,255,0) 70%);
+  position: absolute; inset: 0; border-radius: var(--ui-radius-1);
+  background: radial-gradient(circle, rgba(255,255,255,var(--glow-opacity)) 0%, var(--ui-color-3) 70%);
   transition: transform var(--t-ui) var(--ease-out), opacity var(--t-ui) var(--ease-out);
 }
 .cursor-glow__ring {

@@ -2,7 +2,7 @@
   'use strict';
   var node=C.packMarkup.node,hud=node('aside','cb-performance',root.document.body),simple=node('output','cb-performance-simple',hud),panel=node('section','cb-performance-panel glass',hud);
   hud.hidden=true;simple.setAttribute('aria-label','FPS and one percent low');panel.setAttribute('aria-label','Advanced performance');
-  var head=node('header','cb-performance-header',panel),handle=node('button','cb-performance-handle',head,'Performance'),corner=node('select','cb-performance-corner',head),copy=node('button','cb-action',head,'Copy report');handle.type=copy.type='button';handle.setAttribute('aria-label','Drag performance panel');corner.setAttribute('aria-label','Pin performance panel to corner');
+  var head=node('header','cb-performance-header',panel),handle=node('button','cb-performance-handle',head,'Performance'),corner=node('select','cb-performance-corner',head),copy=node('button','cb-action',head,'Copy report');handle.type=copy.type='button';head.appendChild(C.ui.create('help',{help:'performance',label:'Performance display help'}));handle.setAttribute('aria-label','Drag performance panel');corner.setAttribute('aria-label','Pin performance panel to corner');
   ['bottom-left','bottom-right','top-left','top-right'].forEach(function(c){var o=node('option','',corner,c.replace('-',' '));o.value=c;});
   var graph=node('canvas','cb-performance-graph',panel);graph.width=300;graph.height=52;graph.setAttribute('aria-label','Five seconds of frame times');
   function section(label){var d=node('details','cb-performance-section',panel);d.open=true;node('summary','',d,label);return node('pre','',d);}

@@ -14,6 +14,7 @@
   performance:{title:'Performance display',body:'Simple shows a quiet frame counter; Advanced adds observed details. Idle and paused states are labelled; these numbers do not certify hardware performance.'},
   developer:{title:'Developer tools',body:'These opt-in tools are for local editing and inspection. Preview controls must not grant rewards to real progress.'},
   commands:{title:'Command palette',body:'Search for an action, use the arrow keys to select it and press Enter to run. Escape returns to the previous screen.'},
-  opening:{title:'Card reveal',body:'This pack has already been reserved. Skip changes presentation only; keep or delete the resulting card once it is ready.'},
+  opening:{title:'Card reveal',body:'Keep or delete a card once the reveal is ready. Skipping a cinematic changes presentation only; it never repeats a reward.'},
+  cinematic:{title:'Cinematic replay',body:'Skip changes presentation only. Escape or Return to card brings you back to the selected collected copy.'},
   welcome:{title:'Cardable',body:'Progress stays on this computer. Help and Data tools provide the paths for saving, recovery and moving your collection.'}
-};})(window.Cardable);
+};Object.keys(C.data.help).forEach(function(id){var h=C.data.help[id];h.id=id;h.shortcuts=h.shortcuts||[];h.links=h.links||[];});})(window.Cardable);

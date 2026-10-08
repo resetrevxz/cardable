@@ -17,9 +17,9 @@
 .detail-chip-row .card-tag svg { width: 13px; height: 13px; flex-shrink: 0; }
 .detail-chip-row .detail-overflow { flex: 0 0 auto; cursor: pointer; }
 .detail-chip-row .detail-overflow:hover { border-color: var(--hairline-strong); color: var(--text); }
-.detail-tab-pane { min-width: 0; opacity: 0; transform: translateY(12px); visibility: hidden; transition: opacity var(--t-ui) var(--ease-out), transform var(--t-ui) var(--ease-out), visibility 0s var(--t-ui); }
+.detail-tab-pane { min-width: 0; opacity: 0; transform: translateY(12px); visibility: hidden; transition: opacity var(--t-ui) var(--ease-out), transform var(--t-ui) var(--ease-out), visibility var(--ui-duration-12) var(--t-ui); }
 .detail-tab-pane:not(.is-active) { position: absolute; inset: 0; pointer-events: none; }
-.detail-tab-pane.is-active { position: relative; opacity: 1; transform: none; visibility: visible; transition-delay: 0s; }
+.detail-tab-pane.is-active { position: relative; opacity: 1; transform: none; visibility: visible; transition-delay: var(--ui-duration-12); }
 .detail-extra-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; margin: 0 0 var(--s-4); font: 11px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; }
 .detail-extra-specs > div { min-width: 0; }
 .detail-extra-specs dt { color: var(--text-dim); font: 10px/1.4 var(--font-ui); margin-bottom: 3px; }
@@ -33,7 +33,7 @@
 .detail-ownership { padding: var(--s-3) 0 0; border-top: 1px solid var(--hairline); }
 .detail-copies { border-top: 0; margin-top: 4px; }
 .detail-copy-list { max-height: 144px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--hairline) transparent; }
-.detail-copy-option { display: block; text-align: left; width: 100%; padding: 8px; border: 1px solid transparent; background: transparent; border-radius: 8px; color: var(--text-dim); font: 10px/1.5 var(--font-ui); cursor: pointer; }
+.detail-copy-option { display: block; text-align: left; width: 100%; padding: 8px; border: 1px solid transparent; background: transparent; border-radius: var(--ui-radius-4); color: var(--text-dim); font: 10px/1.5 var(--font-ui); cursor: pointer; }
 .detail-copy-option[aria-pressed="true"] { border-color: var(--hairline); color: var(--text); background: var(--glass); }
 .detail-copy-serial { display: block; font: 9px/1.5 var(--font-mono); overflow-wrap: anywhere; }
 .detail-lore { margin-top: var(--s-3); }
@@ -46,21 +46,21 @@
 .inventory-detail .inventory-icon:hover, .inventory-detail .inventory-icon:active { transform: none; }
 .inventory-detail .detail-card-nav { position: absolute; width: 36px; height: 36px; border-radius: var(--r-chip); }
 .detail-card-hint { position: absolute; display: flex; align-items: center; gap: var(--s-2); margin: 0; transform: translateX(-50%); color: var(--text-dim); font: 10px/1.5 var(--font-mono); }
-.detail-card-hint kbd { padding: 3px 7px; background: var(--glass); border: 1px solid var(--hairline); border-radius: 5px; font: inherit; }
+.detail-card-hint kbd { padding: 3px 7px; background: var(--glass); border: 1px solid var(--hairline); border-radius: var(--ui-radius-10); font: inherit; }
 .inventory-detail .card__flip-hint, .inventory-detail .detail-top-tags { display: none !important; }
 .inventory-detail [data-copy-serial] { pointer-events: auto; cursor: pointer; position: relative; }
 .inventory-detail [data-copy-serial]:hover { color: var(--text); }
-.inventory-detail [data-copied="true"]::after { content: '✓ Copied'; position: absolute; right: 0; top: calc(100% + 4px); color: var(--text); background: var(--bg-elev); border: 1px solid var(--hairline); border-radius: 5px; padding: 3px 6px; font: 9px/1.4 var(--font-mono); white-space: nowrap; z-index: 2; }
+.inventory-detail [data-copied="true"]::after { content: '✓ Copied'; position: absolute; right: 0; top: calc(100% + 4px); color: var(--text); background: var(--bg-elev); border: 1px solid var(--hairline); border-radius: var(--ui-radius-10); padding: 3px 6px; font: 9px/1.4 var(--font-mono); white-space: nowrap; z-index: var(--z-sticky); }
 .inventory-detail .card__back-serial[data-copied="true"]::after { top: auto; bottom: calc(100% + 4px); }
-.detail-popover { position: fixed; z-index: 10; padding: var(--s-3); box-sizing: border-box; border-radius: var(--r-button); max-height: min(310px,calc(calc(var(--layout-height,100vh) * 1) - 32px)); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--hairline) transparent; }
+.detail-popover { position: fixed; z-index: var(--z-sticky); padding: var(--s-3); box-sizing: border-box; border-radius: var(--r-button); max-height: min(310px,calc(calc(var(--layout-height,100vh) * 1) - 32px)); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--hairline) transparent; }
 .detail-popover-close { float: right; color: var(--text-dim); font: 10px var(--font-ui); border: 0; background: transparent; padding: 4px; cursor: pointer; }
 .detail-metadata { clear: both; margin: 0; padding: 8px 0 0; list-style: none; font: 11px/1.7 var(--font-mono); color: var(--text-dim); user-select: text; }
 .detail-metadata li { padding: 5px 0; overflow-wrap: anywhere; }
-.detail-menu-item { position: relative; clear: both; width: 100%; padding: 10px; display: block; text-align: left; border: 0; border-radius: 8px; background: transparent; color: var(--text); font: 11px/1.4 var(--font-ui); cursor: pointer; }
+.detail-menu-item { position: relative; clear: both; width: 100%; padding: 10px; display: block; text-align: left; border: 0; border-radius: var(--ui-radius-4); background: transparent; color: var(--text); font: 11px/1.4 var(--font-ui); cursor: pointer; }
 .detail-menu-item:hover, .detail-menu-item:focus-visible { background: var(--glass); }
 .detail-menu-item:disabled { opacity: .35; }
 .detail-delete-note { padding: 4px 10px 8px; }
-.detail-tooltip { position: fixed; pointer-events: none; z-index: 11; padding: 7px 10px; border-radius: 8px; font: 10px/1.4 var(--font-ui); white-space: nowrap; }
+.detail-tooltip { position: fixed; pointer-events: none; z-index: var(--z-panel); padding: 7px 10px; border-radius: var(--ui-radius-4); font: 10px/1.4 var(--font-ui); white-space: nowrap; }
 .detail-live, .detail-copy-buffer { position: fixed; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); border: 0; }
 .inventory-detail.is-stacked { overflow-y: auto; scrollbar-width: none; }
 .inventory-detail.is-stacked::-webkit-scrollbar { display: none; }

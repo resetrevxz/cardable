@@ -48,12 +48,12 @@
     }
     if(host.dataset.tagSignature===signature)return;host.dataset.tagSignature=signature;host.classList.add('card-tags');host.setAttribute('role','group');host.setAttribute('aria-label','Card Tags');
     while(host.children.length)host.children[0].remove();
-    tags.forEach(function(tag){var el=root.document.createElement('button');el.type='button';el.className='cb-tag-toggle card-tag card-tag--'+tag.kind;el.setAttribute('aria-expanded',host.dataset.tagPinned==='true');el.dataset.tagKind=tag.kind;el.setAttribute('aria-label',tag.label);el.title=tag.label;
+    tags.forEach(function(tag){var el=C.ui.create('tag',{label:'',managed:true});el.replaceChildren();el.type='button';el.className='cb-ui cb-button cb-tag cb-tag-toggle card-tag card-tag--'+tag.kind;el.setAttribute('aria-expanded',host.dataset.tagPinned==='true');el.dataset.tagKind=tag.kind;el.setAttribute('aria-label',tag.label);el.title=tag.label;C.help.attach(el,'control:'+tag.label);
       if(tag.kind==='pack') {
         if(tag.accent)el.style.setProperty('--pack-tag-accent',tag.accent);
         var glyph=root.document.createElement('span');glyph.className='pack-tag-glyph';glyph.textContent=tag.glyph;glyph.setAttribute('aria-hidden','true');el.appendChild(glyph);
       }
-      var svg=root.document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');var path=root.document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',paths[tag.kind]||'');svg.appendChild(path);if(tag.kind!=='pack')el.appendChild(svg);
+      if(tag.kind!=='pack'){if(paths[tag.kind])C.icons.register('tag-'+tag.kind,paths[tag.kind]);el.appendChild(C.icons.create('tag-'+tag.kind));}
       if(tag.text){var text=root.document.createElement('span');text.className='cb-tag-text';text.textContent=tag.text;el.appendChild(text);}else el.classList.add('card-tag--icon');host.appendChild(el);
     });
   }

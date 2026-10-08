@@ -9,9 +9,7 @@
   function prevent(event) { if (event.preventDefault) event.preventDefault(); }
   function focus(el) { if (el && el.focus) el.focus({ preventScroll: true }); }
   function icon(button, pathData) {
-    var svg = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('focusable', 'false');
-    var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', pathData); svg.appendChild(path); button.appendChild(svg);
+    var hash=2166136261;for(var i=0;i<pathData.length;i++)hash=Math.imul(hash^pathData.charCodeAt(i),16777619)>>>0;var id='detail-'+hash.toString(16);C.icons.register(id,pathData);button.appendChild(C.icons.create(id));
   }
   function detailRect() {
     var margin = cfg.safeMarginPx, width = C.viewport.width, height = C.viewport.height;

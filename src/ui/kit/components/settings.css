@@ -1,4 +1,4 @@
-.settings-corner { position: fixed; top: var(--s-6); right: var(--s-6); z-index: calc(var(--z-toast) + 1); transition: opacity var(--t-fast) var(--ease-out); }
+.settings-corner { position: fixed; top: var(--s-6); right: var(--s-6); z-index:var(--z-panel); transition: opacity var(--t-fast) var(--ease-out); }
 .settings-corner .settings-gear { width: 44px; height: 44px; padding: 10px; border-radius: var(--r-chip); }
 .settings-gear svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; transition: transform var(--t-ui) var(--ease-out); }
 .settings-gear:hover:not(:disabled) svg { transform: rotate(30deg); }
@@ -17,17 +17,17 @@
 .settings-preview-selector { display: flex; align-items: center; justify-content: center; gap: var(--s-3); margin-top: var(--s-3); font: 10px var(--font-mono); color: var(--text-dim); }
 .settings-preview-selector span { width: 160px; text-align: center; }
 .settings-group { padding: 0 var(--s-5) var(--s-4); }
-.settings-group h3 { position: sticky; top: 0; z-index: 2; margin: 0 calc(-1 * var(--s-5)); padding: var(--s-3) var(--s-5); background: var(--bg-elev); color: var(--text-dim); font: 500 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.settings-group h3 { position: sticky; top: 0; z-index: var(--z-sticky); margin: 0 calc(-1 * var(--s-5)); padding: var(--s-3) var(--s-5); background: var(--bg-elev); color: var(--text-dim); font: 500 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .settings-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: 72px; border-bottom: 1px solid var(--hairline); }
 .settings-copy { min-width: 0; flex: 1; }
 .settings-label { display: block; font: 14px/1.4 var(--font-ui); color: var(--text); }
 .settings-helper { display: block; margin-top: var(--s-1); font: 11px/1.5 var(--font-ui); color: var(--text-dim); }
 .settings-segments { flex-shrink: 0; display: flex; position: relative; isolation: isolate; padding: 3px; border: 1px solid var(--hairline); border-radius: var(--r-chip); background: var(--glass); }
-.settings-segment { border: 0; border-radius: var(--r-chip); background: transparent; color: var(--text-dim); padding: 8px 7px; min-width: 39px; font: 10px var(--font-mono); cursor: pointer; z-index: 1; }
+.settings-segment { border: 0; border-radius: var(--r-chip); background: transparent; color: var(--text-dim); padding: 8px 7px; min-width: 39px; font: 10px var(--font-mono); cursor: pointer; z-index: var(--z-sticky); }
 .settings-segment[aria-checked="true"] { color: var(--text); }
 .settings-segments-highlight { position: absolute; left: 3px; top: 3px; bottom: 3px; width: calc((100% - 6px) / var(--segments)); border-radius: inherit; background: var(--glass-strong); border: 1px solid var(--hairline); box-sizing: border-box; pointer-events: none; }
 .settings-keycaps { border-radius: var(--r-button); }
-.settings-keycaps .settings-segment { border-radius: 8px; box-shadow: inset 0 -2px 0 var(--hairline); }
+.settings-keycaps .settings-segment { border-radius: var(--ui-radius-4); box-shadow: inset 0 -2px 0 var(--hairline); }
 .settings-keycaps .is-pressed { transform: translateY(2px); }
 .settings-switch { flex-shrink: 0; width: 42px; height: 25px; padding: 3px; border: 1px solid var(--hairline); border-radius: var(--r-chip); background: var(--glass); cursor: pointer; }
 .settings-switch-knob { display: block; width: 17px; height: 17px; border-radius: inherit; background: var(--text-dim); transition: background var(--t-fast); }
@@ -47,10 +47,10 @@
 .is-confirming { position: relative; outline: 1px solid var(--hairline-strong); background: linear-gradient(to top,var(--glass-strong) calc(var(--confirm-progress,0) * 100%),var(--glass) 0); }
 .is-confirming::after { content: ''; position: absolute; inset: -3px; border: 1px solid var(--text-dim); border-radius: inherit; clip-path: inset(0 calc((1 - var(--confirm-progress,1)) * 100%) 0 0); pointer-events: none; }
 .is-hold-confirm.is-confirming { overflow: hidden; background: var(--glass); isolation: isolate; }
-.is-hold-confirm.is-confirming::before { content: ''; position: absolute; z-index: -1; left: -3%; right: -3%; bottom: -1px; height: calc(var(--confirm-progress,0) * 100%); background: var(--glass-strong); border-top: 1px solid var(--hairline-strong); border-radius: 50% 50% 0 0 / 3px 3px 0 0; transform: translateY(var(--confirm-wave,0px)); pointer-events: none; }
+.is-hold-confirm.is-confirming::before { content: ''; position: absolute; z-index: var(--z-content); left: -3%; right: -3%; bottom: -1px; height: calc(var(--confirm-progress,0) * 100%); background: var(--glass-strong); border-top: 1px solid var(--hairline-strong); border-radius: var(--ui-radius-7); transform: translateY(var(--confirm-wave,0px)); pointer-events: none; }
 .reduced-motion .is-hold-confirm.is-confirming { background: linear-gradient(to right,var(--glass-strong) calc(var(--confirm-progress,0) * 100%),var(--glass) 0); }
 .reduced-motion .is-hold-confirm.is-confirming::before { display: none; }
-.settings-credits { position: absolute; inset: var(--s-4); z-index: 3; padding: var(--s-5); border-radius: var(--r-card); overflow: auto; background: var(--bg-elev); }
+.settings-credits { position: absolute; inset: var(--s-4); z-index: var(--z-sticky); padding: var(--s-5); border-radius: var(--r-card); overflow: auto; background: var(--bg-elev); }
 .settings-credits p { font: 13px/1.7 var(--font-ui); color: var(--text-dim); }
 .settings-license { white-space: pre-wrap; font: 10px/1.6 var(--font-mono); color: var(--text-dim); }
 .settings-nudge { position: fixed; bottom: var(--s-5); left: 50%; transform: translateX(-50%); padding: var(--s-4); border-radius: var(--r-button); z-index: var(--z-toast); font: 12px var(--font-ui); }
@@ -68,7 +68,7 @@
 .settings-corner:hover .settings-version, .settings-corner:focus-within .settings-version { opacity: 1; }
 [data-key-hints="false"] .pack-key-hint { visibility: hidden; }
 .has-tutorial .pack-key-hint { visibility: visible !important; }
-[data-dots="off"] .opening-stage[data-phase="charging"] .opening-pack::after { content: ''; position: absolute; inset: -12%; border: 1px solid var(--hairline-strong); border-radius: 50%; box-shadow: 0 0 24px var(--glass-strong); pointer-events: none; }
+[data-dots="off"] .opening-stage[data-phase="charging"] .opening-pack::after { content: ''; position: absolute; inset: -12%; border: 1px solid var(--hairline-strong); border-radius: var(--ui-radius-1); box-shadow: 0 0 24px var(--glass-strong); pointer-events: none; }
 .reduced-motion .settings-switch.is-on .settings-switch-knob { transform: translateX(17px); }
 .reduced-motion .settings-panel { transition: none; }
 
@@ -83,14 +83,14 @@
 .settings-import-preview button + button { margin-top: var(--s-2); }
 .is-exporting { position: relative; color: transparent !important; overflow: hidden; }
 .is-exporting::after { content: ''; position: absolute; left: var(--s-4); right: var(--s-4); top: 50%; height: 1px; background: var(--text); transform: scaleX(var(--export-progress,0)); transform-origin: left; }
-.settings-data-toast { position: fixed; bottom: var(--s-5); left: 50%; display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4); max-width: calc(calc(var(--layout-width,100vw) * 1) - 32px); box-sizing: border-box; border-radius: var(--r-button); z-index: calc(var(--z-toast) + 3); transform: translate(-50%,calc(100% + 32px)); clip-path: inset(100% 0 0 0 round var(--r-button)); transition: transform var(--t-ui) var(--ease-out), clip-path var(--t-ui) var(--ease-out); }
+.settings-data-toast { position: fixed; bottom: var(--s-5); left: 50%; display: flex; align-items: center; gap: var(--s-4); padding: var(--s-4); max-width: calc(calc(var(--layout-width,100vw) * 1) - 32px); box-sizing: border-box; border-radius: var(--r-button); z-index:var(--z-toast); transform: translate(-50%,calc(100% + 32px)); clip-path: inset(100% 0 0 0 round var(--r-button)); transition: transform var(--t-ui) var(--ease-out), clip-path var(--t-ui) var(--ease-out); }
 .settings-data-toast[hidden] { visibility: hidden; pointer-events: none; }
 .settings-data-toast.is-visible { transform: translate(-50%,0); clip-path: inset(0 round var(--r-button)); }
 .settings-data-toast p { margin: 0; font: 12px/1.5 var(--font-ui); }
 .settings-data-toast::after { content: ''; position: absolute; bottom: 0; left: var(--s-4); right: var(--s-4); height: 1px; background: var(--text-dim); transform: scaleX(var(--undo-progress,1)); transform-origin: left; }
 .is-hold-confirm.is-confirming::before { background: radial-gradient(circle at 22% 72%,var(--hairline-strong) 1px,transparent 2px), radial-gradient(circle at 66% 28%,var(--hairline-strong) 1px,transparent 2px), var(--glass-strong); }
 .is-hold-confirm.is-confirmed { animation: settings-confirm-pulse var(--t-ui) var(--ease-out); }
-@keyframes settings-confirm-pulse { from { box-shadow: inset 0 0 28px var(--hairline-strong); } to { box-shadow: inset 0 0 0 transparent; } }
+@keyframes settings-confirm-pulse { from { box-shadow: inset 0 0 28px var(--hairline-strong); } to { box-shadow: var(--ui-shadow-2); } }
 .reduced-motion .settings-data-toast { transition: none; transform: translate(-50%,0); }
 .reduced-motion .is-confirmed { animation: none; }
 

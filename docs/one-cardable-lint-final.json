@@ -1,0 +1,390 @@
+{
+  "files": [
+    {
+      "file": "src/styles/base.css",
+      "colors": 1,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/styles/brand-packs.css",
+      "colors": 107,
+      "durations": 0,
+      "easings": 0,
+      "radii": 3,
+      "layers": 1,
+      "shadows": 4
+    },
+    {
+      "file": "src/styles/card-remake-high.css",
+      "colors": 54,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 1
+    },
+    {
+      "file": "src/styles/card-remake.css",
+      "colors": 79,
+      "durations": 0,
+      "easings": 0,
+      "radii": 1,
+      "layers": 0,
+      "shadows": 3
+    },
+    {
+      "file": "src/styles/card.css",
+      "colors": 84,
+      "durations": 0,
+      "easings": 0,
+      "radii": 2,
+      "layers": 9,
+      "shadows": 2
+    },
+    {
+      "file": "src/styles/classic-pack.css",
+      "colors": 137,
+      "durations": 0,
+      "easings": 0,
+      "radii": 10,
+      "layers": 8,
+      "shadows": 28
+    },
+    {
+      "file": "src/styles/cut-swipe.css",
+      "colors": 10,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 3,
+      "shadows": 0
+    },
+    {
+      "file": "src/styles/cutscenes.css",
+      "colors": 9,
+      "durations": 0,
+      "easings": 0,
+      "radii": 2,
+      "layers": 2,
+      "shadows": 0
+    },
+    {
+      "file": "src/styles/finishes.css",
+      "colors": 126,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/styles/graphics.css",
+      "colors": 16,
+      "durations": 0,
+      "easings": 0,
+      "radii": 2,
+      "layers": 3,
+      "shadows": 3
+    },
+    {
+      "file": "src/styles/pack-variants.css",
+      "colors": 48,
+      "durations": 0,
+      "easings": 0,
+      "radii": 3,
+      "layers": 0,
+      "shadows": 5
+    },
+    {
+      "file": "src/styles/pack.css",
+      "colors": 115,
+      "durations": 0,
+      "easings": 0,
+      "radii": 7,
+      "layers": 2,
+      "shadows": 10
+    },
+    {
+      "file": "src/styles/picker-pack.css",
+      "colors": 73,
+      "durations": 0,
+      "easings": 0,
+      "radii": 7,
+      "layers": 2,
+      "shadows": 6
+    },
+    {
+      "file": "src/styles/rarity-intro.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 2,
+      "shadows": 0
+    },
+    {
+      "file": "src/styles/royal-pack.css",
+      "colors": 87,
+      "durations": 0,
+      "easings": 0,
+      "radii": 10,
+      "layers": 3,
+      "shadows": 9
+    },
+    {
+      "file": "src/styles/secret-cutscene.css",
+      "colors": 11,
+      "durations": 0,
+      "easings": 0,
+      "radii": 2,
+      "layers": 1,
+      "shadows": 1
+    },
+    {
+      "file": "src/styles/titan-pack.css",
+      "colors": 104,
+      "durations": 0,
+      "easings": 0,
+      "radii": 16,
+      "layers": 2,
+      "shadows": 15
+    },
+    {
+      "file": "src/styles/variants.css",
+      "colors": 56,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 1,
+      "shadows": 1
+    },
+    {
+      "file": "src/ui/kit/base.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/achievements.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/activity.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/card-tags.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/context-menu.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/controls.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/desktop-qol.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/detail-panel.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/developer.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/gallery.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/inventory-controls.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/inventory-views.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/inventory.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/menu.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/opening.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/patchnotes.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/polish.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/screen-layouts.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/settings.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/stability.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/studio.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/surfaces.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "src/ui/kit/components/tutorial.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    },
+    {
+      "file": "electron/native/mini.css",
+      "colors": 0,
+      "durations": 0,
+      "easings": 0,
+      "radii": 0,
+      "layers": 0,
+      "shadows": 0
+    }
+  ],
+  "totals": {
+    "colors": 1117,
+    "durations": 0,
+    "easings": 0,
+    "radii": 65,
+    "layers": 39,
+    "shadows": 88
+  }
+}

@@ -1,7 +1,12 @@
 (function (C, root) {
   'use strict';
   var loading = null, busy = false, scripts=new Map(),reopening=null;
-  function files(paths){return paths.reduce(function(chain,file){return chain.then(function(){if(scripts.has(file))return scripts.get(file);var pending=new Promise(function(resolve,reject){var script=root.document.createElement('script');script.src=file;script.async=false;script.onload=resolve;script.onerror=function(){script.remove();scripts.delete(file);reject(new Error('The studio could not load. Restore its local files.'));};root.document.head.appendChild(script);});scripts.set(file,pending);return pending;});},Promise.resolve());}
+  function files(paths){
+    var loader=null,loaded=0,groups={Art:paths.filter(function(p){return p.indexOf('art')>=0;}).length,UI:paths.filter(function(p){return p.indexOf('/ui/')>=0;}).length,Scene:paths.filter(function(p){return p.indexOf('art')<0&&p.indexOf('/ui/')<0;}).length},counts={Art:0,UI:0,Scene:0},rings={};
+    if(C.ui&&paths.length>6&&C.detail.panel){loader=C.ui.create('loader',{label:'Warming Studio assets',total:paths.length});loader.classList.add('cb-studio-loader');Object.keys(groups).forEach(function(g){if(groups[g]){rings[g]=C.ui.progress(0,g+' assets',true);loader.appendChild(rings[g]);}});C.detail.panel.appendChild(loader);}
+    var task=paths.reduce(function(chain,file){return chain.then(function(){var pending=scripts.get(file);if(!pending){pending=new Promise(function(resolve,reject){var script=root.document.createElement('script');script.src=file;script.async=false;script.onload=resolve;script.onerror=function(){script.remove();scripts.delete(file);reject(new Error('The studio could not load. Restore its local files.'));};root.document.head.appendChild(script);});scripts.set(file,pending);}return pending.then(function(){loaded++;var g=file.indexOf('art')>=0?'Art':file.indexOf('/ui/')>=0?'UI':'Scene';counts[g]++;if(loader){loader.update(loaded,paths.length);Object.keys(rings).forEach(function(k){rings[k].update(counts[k]/groups[k]);});}});});},Promise.resolve());
+    var timer=loader?root.setTimeout(function(){loader.remove();},8000):null;return task.finally(function(){if(loader)loader.remove();root.clearTimeout(timer);});
+  }
   function loadAlbum(){return files(['src/studio/files.js','src/studio/album.js','src/studio/photo.js','src/studio/ui/album.js']);}
   function load() {
     if(C.studioController)return Promise.resolve();if(loading)return loading;
@@ -49,7 +54,7 @@
   C.inventoryTabs.register('studio-album',function(host){var button=root.document.createElement('button');button.type='button';button.className='inventory-menu-option';button.textContent='Photo album';button.addEventListener('click',function(){C.studio.openAlbum();});host.appendChild(button);});
   C.contextMenu.register({target:'empty',build:function(){return [{id:'studio-album',type:'action',label:'Photo album',icon:'inventory',run:function(){C.studio.openAlbum();}}];}});
   C.detailActions.register('studio', function (host, context) { if (!context.entry.owned) return; var button = root.document.createElement('button'); button.type = 'button'; button.className = 'studio-inspect-action'; button.title = 'Inspect this instance · E'; button.setAttribute('aria-label', 'Inspect card in studio');
-    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-3h4l2 3h4v13H4ZM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/></svg><span>Inspect</span>'; button.addEventListener('click', function () { C.studio.enter(context); }); host.appendChild(button);
+    button.appendChild(C.icons.create('camera'));var caption=root.document.createElement('span');caption.textContent='Inspect';button.appendChild(caption); button.addEventListener('click', function () { C.studio.enter(context); }); host.appendChild(button);
   });
   root.document.addEventListener('keydown', function (event) { if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || String(event.key).toLowerCase() !== 'e' || C.studio.active || busy || C.detail.phase !== 'detail' || !C.detail.view || !C.detail.view.instance.serial || event.target.closest && event.target.closest('input,select,textarea,[contenteditable],[data-tool-surface]')) return; event.preventDefault(); C.studio.enter(); });
   C.events.on('app:ready', function () {

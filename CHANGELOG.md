@@ -1,11 +1,30 @@
 ## Unreleased (1.2.0)
 
+### New
+
+- One Cardable brings shared controls, tokens, Help mode and a developer component gallery to every screen.
+- Patch notes now has a version timeline, search, copy and feature links.
+- Mini mode has a lightweight real-skin pack view, per-display position, pinning and opacity controls.
+
+### Improved
+
 - Inventory stays mounted while inspecting; closing restores browsing state.
 - Tags expand on hover or focus and pin on click. Tutorial openings always use Standard Pack.
 - Wallet now shows credit changes, daily totals and a persistent ledger.
 - Delete a chosen copy with a tier-based hold, protection checks and a ten-second undo.
 - Unlock cutscene replay once per rarity tier with credits; later replays are free.
 - F3 cycles Simple and Advanced performance overlays; Settings remembers your choice.
+- Settings has group navigation, search, per-row and section resets, deep links and a Simple/Advanced scaffold.
+- Achievements uses a progress hero, category groups, collectible emblems, tiles and a detail inspector.
+- Inventory labels, tags, Director panels, menu chrome and overlays share one type and surface system.
+
+### Fixed
+
+- Interface colors now follow the saved color or monochrome setting without removing status labels.
+
+### Known issues
+
+- Hardware performance, installer execution and live updater acceptance require separate verification.
 
 # Cardable 1.1.0 — Director Rework & Achievements
 

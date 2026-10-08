@@ -8,10 +8,10 @@
   function disabled(item) { return typeof item.disabled === 'function' ? item.disabled(ctx) : !!item.disabled; }
   function editable(target) { return target && target.closest && target.closest('input,textarea,[contenteditable]:not([contenteditable="false"])'); }
   function blocked() {
-    return C.commands && C.commands.active || C.friendly && C.friendly.modal || root.document.hidden || C.studio && C.studio.active || C.studioAlbumUI && C.studioAlbumUI.active || C.inventory && C.inventory.active || C.preferences && (C.preferences.open || C.preferences.el && !C.preferences.el.hidden) ||
+    return C.patchNotes&&C.patchNotes.open||C.commands && C.commands.active || C.friendly && C.friendly.modal || root.document.hidden || C.studio && C.studio.active || C.studioAlbumUI && C.studioAlbumUI.active || C.inventory && C.inventory.active || C.preferences && (C.preferences.open || C.preferences.el && !C.preferences.el.hidden) ||
       C.opening && C.opening.phase !== 'idle' || C.tutorial && (C.tutorial.active || C.tutorial.el && !C.tutorial.el.hidden) ||
       C.dev && (C.dev.opened || C.dev.immersive || C.dev.paletteOpen) ||
-      !!root.document.querySelector('.save-notice, .settings-data-toast:not([hidden]), .collection-toast:not([hidden]), .dev-palette:not([hidden])');
+      !!root.document.querySelector('.save-notice, .settings-data-toast:not([hidden]), .collection-toast:not([hidden]), .dev-palette-backdrop:not([hidden]), .cb-scrim[data-tool-surface=ui], .cb-gallery');
   }
   function targetOf(el) {
     if (!el || !el.closest) return 'empty';
@@ -33,9 +33,7 @@
       copy:'M9 8h11v13H9zM5 16H3V3h11v2', coin:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M15 8c-5-3-7 8 0 8',
       check:'M5 12l4 4L19 6', chevron:'M9 5l7 7-7 7', volume:'M3 9h4l5-4v14l-5-4H3zM16 8l5 8M21 8l-5 8'
     };
-    var el = root.document.createElementNS('http://www.w3.org/2000/svg','svg');
-    el.setAttribute('viewBox','0 0 24 24'); el.setAttribute('aria-hidden','true'); el.setAttribute('class','context-icon');
-    var path = root.document.createElementNS(el.namespaceURI,'path');path.setAttribute('d',paths[name] || paths.info);el.appendChild(path);parent.appendChild(el);return el;
+    if(paths[name])C.icons.register(name,paths[name]);var el=C.icons.create(name||'help');el.classList.add('context-icon');parent.appendChild(el);return el;
   }
   function ensure() {
     if (host) return;

@@ -6,12 +6,12 @@
   function readout(id,label,value) { return {id:id,type:'readout',label:label,value:value}; }
   function action(id,label,icon,run,extra) { return Object.assign({id:id,type:'action',label:label,icon:icon,run:run},extra||{}); }
   function inventory() { C.inventory.request(true); }
-  function settings() { C.preferences.show(); }
+  function settings() { C.openSettings(); }
   function credits() { if(C.preferences.show() || C.preferences.open){C.preferences.credits.hidden=false;C.accessibility.trap(C.preferences.credits);C.preferences.creditsClose.focus();} }
   function about() { return [readout('version','alpha '+C.config.version),action('licenses','Credits and licenses','info',credits)]; }
   function openPack() { return action('open-pack','Open pack','pack',function(){C.input.chargeStart();},{disabled:C.state.current.packs.ready<=0,hint:'Next pack in '+C.timers.format(C.timers.remaining(Date.now())),value:'3 s auto-charge'}); }
   function choice(key,label,icon,options) {
-    return {id:'setting-'+key,type:'submenu',label:label,icon:icon,value:(options.find(function(o){return o[0]===C.settings.get(key);})||[null,C.settings.get(key)+' s'])[1],items:function(){return options.map(function(o){return {id:key+'-'+o[0],type:'radio',label:o[1],checked:C.settings.get(key)===o[0],run:function(){C.settings.set(key,o[0]);}};});}};
+    return {id:'setting-'+key,type:'submenu',label:label,icon:icon,value:(options.find(function(o){return o[0]===C.settings.get(key);})||[null,C.settings.get(key)+' s'])[1],items:function(){return [action('open-setting-'+key,'More '+label.toLowerCase()+' settings','settings',function(){C.contextMenu.close();C.openSettings(key);})].concat(options.map(function(o){return {id:key+'-'+o[0],type:'radio',label:o[1],checked:C.settings.get(key)===o[0],run:function(){C.settings.set(key,o[0]);}};}));}};
   }
   function toggle(key,label,icon) { return {id:'setting-'+key,type:'toggle',label:label,icon:icon,checked:!!C.settings.get(key),run:function(){C.settings.set(key,!C.settings.get(key));}}; }
   function quickSettings() {

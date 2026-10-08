@@ -16,8 +16,9 @@
     preview.el.setAttribute('tabindex', '-1'); previewHost.appendChild(preview.el); C.preferences.preview = preview; preview.setMode('full');
     C.preferences.preview = preview; C.preferences.tierLabel.textContent = rarity.name; C.fx.wake();
   }
-  function open() {
-    if (opened || !canOpen()) return false;
+  function open(settingId) {
+    if (opened) { if (settingId && C.preferences.shell) C.preferences.shell.focus(settingId); return true; }
+    if (!canOpen()) return false;
     opened = true; previousCard = C.cardView.active; C.events.emit('preferences:context', { active: true });
     C.events.emit('settings:open'); C.events.emit('menu:visibilityHold', { reason: 'preferences', active: true });
     root.document.body.classList.add('settings-open');
@@ -28,7 +29,7 @@
     tierIndex = Math.max(0, C.data.rarities.findIndex(function (r) { return r.id === card.rarity; }));
     overlay.hidden = false; overlay.inert = false; buildPreview(); C.accessibility.trap(panel); C.preferences.closeButton.focus({ preventScroll: true });
     if (!C.settings.saved) message('Your browser is blocking saving. Settings last for this session only.');
-    spring.target = 1; C.fx.wake(); return true;
+    spring.target = 1; if (settingId) C.preferences.shell.focus(settingId); C.fx.wake(); return true;
   }
   function close() {
     if (!opened) return;
@@ -50,7 +51,7 @@
     if (recovery.raw) button('Download original', actions, C.saveFiles.exportBackup);
     button('Import backup', actions, function () { C.desktopTools.openData('input'); });
     if (C.saveTools.previous()) button('Restore previous save…', actions, function () { C.desktopTools.openData('restore'); });
-    button('Choose a new collection…', actions, function () { C.preferences.show(); if(C.preferences.open){var reset=C.settingsData.current.reset;reset.scrollIntoView({block:'center'});reset.focus();announce('Hold Reset save for three seconds to confirm a new collection. Originals are kept.');} });
+    button('Choose a new collection…', actions, function () { C.openSettings('Data'); if(C.preferences.open){var reset=C.settingsData.current.reset;reset.scrollIntoView({block:'center'});reset.focus();announce('Hold Reset save for three seconds to confirm a new collection. Originals are kept.');} });
     button('Recovery help', actions, function () { C.friendly.showHelp('saves'); });
     if(C.native)button('Open saves folder',actions,function(){C.desktop.openSaveDirectory().then(function(ok){if(!ok)copy.textContent='Could not open saves. Originals remain; use Recovery help or download the original.';}).catch(function(){copy.textContent='Could not open saves. Originals remain; use Recovery help.';});});
     C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: true }); C.preferences.notice = notice;
@@ -78,13 +79,12 @@
       function occluded() { corner.classList.toggle('is-occluded', opened || C.inventory && C.inventory.active || C.opening && C.opening.phase !== 'idle'); }
       ['inventory:context', 'opening:context', 'preferences:context', 'tutorial:context', 'menu:visibilityHold'].forEach(function (event) { C.events.on(event, occluded); });
       occluded();
-      var icon = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg'); icon.setAttribute('viewBox', '0 0 24 24'); icon.setAttribute('aria-hidden', 'true');
-      var path = root.document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', 'M9 3h6l.5 2.4 2 1.2 2.3-.8 3 5.2-1.8 1.6v2.3l1.8 1.6-3 5.2-2.3-.8-2 1.2L15 24H9l-.5-2.4-2-1.2-2.3.8-3-5.2L3 15.4v-2.3L1.2 11.5l3-5.2 2.3.8 2-1.2z'); icon.setAttribute('viewBox', '0 0 24 27'); icon.appendChild(path); var circle = root.document.createElementNS('http://www.w3.org/2000/svg', 'circle'); circle.setAttribute('cx', '12'); circle.setAttribute('cy', '13.5'); circle.setAttribute('r', '4'); icon.appendChild(circle); gear.appendChild(icon); node('span', 'settings-version', corner, 'v' + C.config.version);
+      gear.appendChild(C.icons.create('settings'));node('span','settings-version',corner,'v'+C.config.version);
       overlay = node('div', 'preferences-overlay settings-overlay', root.document.body); overlay.hidden = true; overlay.inert = true;
       panel = node('section', 'preferences-panel settings-panel glass glass--sheet', overlay); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Settings');
       var header = node('header', 'settings-header', panel); node('h2', '', header, 'Settings'); C.preferences.closeButton = button('Close', header, close);
-      var scroll = node('div', 'settings-scroll', panel), graphics = node('section', 'settings-graphics', scroll);
-      node('h3', '', graphics, 'Graphics');
+      var shell = C.preferences.shell = C.settingsShell.create(panel), scroll = shell.content, graphics = shell.group('Graphics');
+      controls.push(shell);
       controls.push(C.settingsControls.create(C.settingsSchema.entries.quality, graphics));
       var presetStatus = node('p', 'settings-preset-status', graphics);
       function presetSummary() {
@@ -92,14 +92,15 @@
         presetStatus.textContent = (C.settings.customized ? 'Customized · ' : '') + descriptions[tier];
       }
       C.settings.onChange('*', presetSummary); presetSummary();
-      var previewSection = node('div', 'settings-preview', scroll); previewHost = node('div', 'settings-preview-mount', previewSection);
+      var previewSection = node('div', 'settings-preview', shell.preview); previewHost = node('div', 'settings-preview-mount', previewSection);
       var selector = node('div', 'settings-preview-selector', previewSection); button('‹', selector, function () { tierIndex = (tierIndex + C.data.rarities.length - 1) % C.data.rarities.length; buildPreview(); });
       C.preferences.tierLabel = node('span', '', selector); button('›', selector, function () { tierIndex = (tierIndex + 1) % C.data.rarities.length; buildPreview(); });
-      var groups = {};
-      var advanced = node('details', 'settings-advanced', scroll); node('summary', '', advanced, 'Advanced graphics'); groups['Advanced graphics'] = advanced;
-      ['Performance', 'Motion and effects', 'Cards', 'Controls', 'Sound', 'Data', 'About'].forEach(function (name) { var group = node('section', 'settings-group', scroll); node('h3', '', group, name); groups[name] = group; });
-      if (C.native) { groups.Desktop = node('section', 'settings-group', scroll); node('h3', '', groups.Desktop, 'Desktop'); scroll.insertBefore(groups.Desktop, groups.About); }
-      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group && groups[d.group] && key !== 'quality') controls.push(C.settingsControls.create(d, groups[d.group])); });
+      var groups = shell.groups;
+      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group) shell.group(d.group); });
+      ['Data', 'About'].forEach(shell.group);
+      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group && key !== 'quality') controls.push(C.settingsControls.create(d, groups[d.group])); });
+      controls.forEach(function (control) { if (control.row && control.row.dataset.setting) shell.add(control.row, C.settingsSchema.entries[control.row.dataset.setting]); });
+      shell.refresh();
       C.preferences.data = C.settingsData.create(groups.Data, { close: close, announce: announce });
       var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
       if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(groups.About, { close: close, announce: announce });

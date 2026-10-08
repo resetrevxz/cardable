@@ -49,8 +49,14 @@
     register: function (kind, factory) { entries[kind] = factory; },
     create: function (kind) { return entries[kind] ? entries[kind]() : null; },
     warmup: function (rarity, serial) {
-      if (rarity && rarity.reveal.cutscene === 'ascendant') C.ascendantIntro.warmup(rarity.openingIntro, String(serial));
-      if (rarity && rarity.reveal.cutscene === 'secret') C.secretIntro.warmup(rarity.openingIntro, String(serial));
+      if(!rarity||!['ascendant','secret'].includes(rarity.reveal.cutscene))return;
+      var loader=C.ui?C.ui.create('loader',{label:'Warming cinematic assets',total:2}):null,effects,fonts,timer;
+      if(loader){loader.classList.add('cb-cinematic-loader');effects=C.ui.progress(0,'Effects prepared',true);fonts=C.ui.progress(0,'Fonts prepared',true);loader.append(effects,fonts);C.viewport.parent(root.document.body).appendChild(loader);timer=root.setTimeout(dispose,8000);}
+      function dispose(){root.clearTimeout(timer);if(loader)loader.remove();}
+      try{if(rarity.reveal.cutscene==='ascendant')C.ascendantIntro.warmup(rarity.openingIntro,String(serial));else C.secretIntro.warmup(rarity.openingIntro,String(serial));if(loader){effects.update(1);loader.update(1,2);}}
+      catch(error){dispose();throw error;}
+      var fontTask=root.document.fonts?root.document.fonts.load(rarity.reveal.cutscene==='ascendant'?'48px "Ascendant Bodoni"':'48px "JetBrains Mono"'):Promise.resolve();
+      fontTask.then(function(){if(loader){fonts.update(1);loader.update(2,2);}dispose();},dispose);
     },
     get active() { return active; },
     createRuntime: function (parent) {

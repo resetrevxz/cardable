@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220" role="img" aria-labelledby="title desc">
+<title id="title">One Cardable</title><desc id="desc">A shared family of quiet controls, collection progress and pack indicators.</desc>
+<rect width="900" height="220" rx="20" fill="#0e0e11"/>
+<g stroke="#34343b" fill="#141418"><rect x="24" y="24" width="424" height="172" rx="14"/><rect x="472" y="24" width="174" height="172" rx="14"/><rect x="670" y="24" width="206" height="172" rx="14"/></g>
+<g font-family="Inter,Arial,sans-serif" fill="#f5f5f7"><text x="48" y="58" font-size="20" font-weight="600">One Cardable</text><text x="48" y="85" fill="#a1a1a6" font-size="14">Familiar controls. Room for the card.</text></g>
+<g fill="#1b1b20"><rect x="48" y="108" width="376" height="32" rx="10"/><rect x="48" y="152" width="116" height="24" rx="12"/><rect x="176" y="152" width="116" height="24" rx="12"/><rect x="304" y="152" width="120" height="24" rx="12"/></g>
+<rect x="52" y="112" width="120" height="24" rx="8" fill="#afb0ff"/>
+<g fill="#f5f5f7" font-family="Inter,Arial,sans-serif" font-size="12"><text x="88" y="128" fill="#08080a">Simple</text><text x="204" y="128">Advanced</text><text x="68" y="168">Your collection</text><text x="202" y="168">Patch notes</text><text x="338" y="168">Help mode</text></g>
+<g transform="translate(559 90)" fill="none" stroke-width="5"><circle r="37" stroke="#34343b"/><circle r="37" stroke="#91d6ba" stroke-dasharray="170 233" transform="rotate(-90)"/></g>
+<g font-family="Inter,Arial,sans-serif" fill="#f5f5f7" text-anchor="middle"><text x="559" y="96" font-size="20" font-weight="600">72%</text><text x="559" y="161" font-size="12">Next up</text></g>
+<g stroke="#afb0ff" fill="none" stroke-width="1.5"><rect x="740" y="44" width="66" height="92" rx="6"/><path d="M748 68h50m-50 54h50M748 84l25-12 25 12v16l-25 12-25-12Z"/></g>
+<g font-family="Inter,Arial,sans-serif" fill="#f5f5f7" text-anchor="middle" font-size="12"><text x="773" y="162">Your next pack</text><text x="773" y="180" fill="#a1a1a6">Ready when you are</text></g>
+</svg>

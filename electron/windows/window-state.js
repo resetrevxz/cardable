@@ -38,7 +38,10 @@ class WindowStateKeeper {
           isMaximized: parsed.isMaximized === true,
           isFullScreen: parsed.isFullScreen === true,
           miniX: Number.isFinite(parsed.miniX) ? parsed.miniX : undefined,
-          miniY: Number.isFinite(parsed.miniY) ? parsed.miniY : undefined
+          miniY: Number.isFinite(parsed.miniY) ? parsed.miniY : undefined,
+          miniPinned: typeof parsed.miniPinned === 'boolean' ? parsed.miniPinned : undefined,
+          miniOpacity: Number.isFinite(parsed.miniOpacity) ? Math.max(.5,Math.min(1,parsed.miniOpacity)) : 1,
+          miniByDisplay: Object.fromEntries(Object.entries(parsed.miniByDisplay && typeof parsed.miniByDisplay === 'object' ? parsed.miniByDisplay : {}).filter(([id,v])=>/^-?\d+$/.test(id)&&v&&Number.isFinite(v.x)&&Number.isFinite(v.y)).slice(0,16))
         };
         this.validateStateAgainstDisplays();
         return;
