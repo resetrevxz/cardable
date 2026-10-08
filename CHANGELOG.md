@@ -27,3 +27,11 @@ Optional settings and history fields keep the existing save schema and app ident
 Windows 10/11 x64. Choose the installer or extract the entire full-folder ZIP before running Cardable.exe. The browser build remains offline and uses local assets. This release is unsigned; installer signatures, a live updater upgrade and physical-device/cinematic acceptance are not certified by this update.
 
 The existing v1.2.0 and v1.2.1 tags and assets are preserved. This follow-up uses the next available patch version.
+
+## Unreleased (1.2.0)
+
+Part 4 · Visual overhaul, included in the pending 1.2.2 release.
+
+- All ten pack identities gain layered procedural materials, refined lean lighting and complete state/tier specimens.
+- Twenty-four Director additions: eight scenes, four light rigs, six camera moves and six looks; existing card-aware adaptation remains.
+- Smoother card-loading fluid, preserved actual asset counts, subtle panel/collection motion and calmer serial engraving.

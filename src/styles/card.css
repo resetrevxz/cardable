@@ -115,7 +115,7 @@
 .card__serial { font-family: var(--font-mono); font-size: clamp(7px,2.9cqw,10px); font-variant-numeric: tabular-nums; letter-spacing: .04em; white-space: nowrap; color: var(--card-ink-dim); }
 .card__serial-char { display: inline-block; }
 .card__serial.is-stamping .card__serial-char { opacity: 0; animation: serial-engrave var(--stamp-flicker) var(--ease-out) var(--char-delay) forwards; }
-@keyframes serial-engrave { 0% { opacity: 0; color: var(--highlight); text-shadow: 0 0 4px var(--highlight); } 35% { opacity: 1; color: var(--highlight); } 65% { opacity: .6; } 100% { opacity: 1; color: inherit; text-shadow: none; } }
+@keyframes serial-engrave { 0% { opacity: 0; color: var(--highlight); text-shadow: 0 0 4px var(--highlight); } 35% { opacity: .65; color: var(--highlight); } 65% { opacity: .88; } 100% { opacity: 1; color: inherit; text-shadow: none; } }
 .card__meter { display: grid; grid-template-columns: repeat(12,1fr); gap: 3px; }
 .card__meter-tick { height: 3px; border-radius: 1px; background: rgba(0,0,0,.12); }
 .card__meter-tick[data-filled="true"] { background: var(--card-ink); }
