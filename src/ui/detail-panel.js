@@ -56,7 +56,7 @@
   function build(host, context) {
     if (active) active.destroy(); host.replaceChildren();
     var entry = context.entry, instance = context.instance,  popover = null, anchor = null, confirm = null;
-    var id = 'detail-info-' + (++uid), animations = [], destroyed = false, tooltip = null;
+    var id = 'detail-info-' + (++uid), animations = [], statCounts=[],statAt=root.performance.now(),destroyed = false, tooltip = null;
     host.classList.add('detail-info--clean');
     function item(el, index) { el.classList.add('detail-enter'); el.style.setProperty('--detail-order', index); return el; }
     var header = item(node('header', 'detail-heading', host), 0);
@@ -66,7 +66,7 @@
     var chips = item(node('div', 'detail-chip-row', host), 4); chips.setAttribute('aria-label', 'Card provenance');
     var overview=item(node('section','detail-tab-pane is-active',host),2);
     var rows = entry.owned ? extraSpecs(entry) : [];
-    function specs(list, rows) { rows.forEach(function (row) { var pair = node('div', '', list); node('dt', '', pair, row.label); node('dd', '', pair, row.value); }); }
+    function specs(list, rows) { rows.forEach(function (row) { var pair = node('div', '', list); node('dt', '', pair, row.label); var value=node('dd','',pair,row.value),numeric=/^(\d+(?:\.\d+)?)(\s+(?:MHz|GHz|GB|MB|W|bit|nm|mm²))$/.exec(String(row.value));if(numeric&&!C.motion.reduced&&C.settings.policy.animation>=3){value.setAttribute('aria-label',row.value);statCounts.push({el:value,number:Number(numeric[1]),suffix:numeric[2],final:row.value,precision:(numeric[1].split('.')[1]||'').length});} }); }
     if (rows.length) specs(node('dl', 'detail-extra-specs', overview), rows.slice(0, 4));
     else if (!entry.owned) node('p', 'detail-dim detail-spec-note', overview, 'Collect this card to see its details.');
     if (entry.owned) {
@@ -193,9 +193,9 @@
       return false;
     }
     function destroy() { if (destroyed) return; destroyed = true; dismiss(false); hideTooltip(); root.document.removeEventListener('pointerdown', outside); context.overlay.removeEventListener('pointerover', showTooltip); context.overlay.removeEventListener('focusin', showTooltip); context.overlay.removeEventListener('pointerout', hideTooltip); context.overlay.removeEventListener('focusout', hideTooltip); animations.forEach(function (a) { a.cancel(); }); if (active === api) active = null; }
-    var api = { refresh: refresh, flipButton: flip, announce: announce, key: key, destroy: destroy, update: function (now, dt) { var moving = false; if (confirm) moving = confirm.update(now, dt) || moving; return moving; } };
+    var api = { refresh: refresh, flipButton: flip, announce: announce, key: key, destroy: destroy, update: function (now, dt) { var moving = false;if(statCounts.length){var p=C.motion.reduced?1:Math.min(1,(now-statAt)/350),ease=1-Math.pow(1-p,3);statCounts.forEach(function(s){s.el.textContent=p===1?s.final:(s.number*ease).toFixed(s.precision)+s.suffix;});if(p===1)statCounts=[];else moving=true;} if (confirm) moving = confirm.update(now, dt) || moving; return moving; } };
     active = api; refresh(instance);
-    var lift = !C.motion.reduced && C.settings.policy.animation >= 2, blur = lift && C.settings.get('quality') === 'high' && C.settings.policy.blur === 1;
+    var lift = !C.motion.reduced && C.settings.policy.animation >= 2, blur = lift && C.settings.policy.animation>=3 && C.settings.policy.blur>=1;
     host.querySelectorAll('.detail-enter').forEach(function (el) {
       animations.push(el.animate([{ opacity: 0, transform: lift ? 'translateY(8px)' : 'none', filter: blur ? 'blur(4px)' : 'none' }, { opacity: 1, transform: 'none', filter: 'none' }], { duration: 250, delay: Number(el.style.getPropertyValue('--detail-order')) * 40, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' }));
     });

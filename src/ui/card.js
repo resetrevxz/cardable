@@ -270,9 +270,9 @@
         setTiltLock: function (poseValue) { tiltLock = poseValue; C.fx.wake(); },
         setLamp: function (x, y) { lampX = x; lampY = y; painted = Object.create(null); glareClock = Infinity; C.fx.wake(); },
         setPresentation: function (value) { if (value !== 'full' && value !== 'art-only') throw new Error('Unknown card presentation'); el.dataset.presentation = value; },
-        setVariantProgress: function (progress, snap) { el.style.setProperty('--variant-progress', clamp(progress, 0, 1)); el.style.setProperty('--variant-snap', ((C.motion.reduced || policy().animation === 0) ? 0 : snap || 0) + 'px'); },
+        setVariantProgress: function (progress, snap) { el.classList.toggle('is-variant-evolving',progress>0&&progress<1);el.style.setProperty('--variant-progress', clamp(progress, 0, 1)); el.style.setProperty('--variant-snap', ((C.motion.reduced || policy().animation === 0) ? 0 : snap || 0) + 'px'); },
         applySettings: function () { var policy = C.settings.tiltPolicy; sx.configure({ stiffness: C.config.cardView.spring.stiffness * policy.stiffness }); sy.configure({ stiffness: C.config.cardView.spring.stiffness * policy.stiffness }); },
-        applyMode: function (mode) {
+        applyMode: function (mode) { el.classList.toggle('is-focused',mode==='full');
           if (view.mode === mode) return;
           view.mode = mode; el.dataset.mode = mode;
           if (mode === 'lite') {

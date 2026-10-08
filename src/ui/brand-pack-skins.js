@@ -16,11 +16,11 @@
     el.dataset.packQuality = C.settingsSchema.tiers[rank];
     if (state.appeared == null || time < state.appeared) state.appeared = time;
     var age = time - state.appeared, moving = !reduced && C.settings.policy.ambient;
-    var active = moving && (rank === 3 || rank === 2 && age < 1200);
-    var p = Math.min(1, (rank === 3 ? age % 6000 : age) / 1200);
+    var active = moving && (rank >= 3 || rank === 2 && age < 1200);
+    var p = Math.min(1, (rank >= 3 ? age % 6000 : age) / 1200);
     el.style.setProperty('--brand-sheen-x', (active ? -140 + p * 280 : 140) + '%');
     el.style.setProperty('--brand-sheen-opacity', active ? Math.sin(p * Math.PI).toFixed(3) : 0);
-    el.style.setProperty('--brand-light-x', rank === 3 ? (45 + (pose.ry || 0) * 1.5) + '%' : '45%');
+    el.style.setProperty('--brand-light-x', rank >= 3 ? (45 + (pose.ry || 0) * 1.5) + '%' : '45%');
     return active;
   }
   // Skin definitions own materials; pool and probability rules stay in data/core.

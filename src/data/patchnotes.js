@@ -4,11 +4,11 @@
     "codename": "One Cardable",
     "date": "October 8, 2026",
     "tag": "Update",
-    "tagline": "Your collection. Your controls. One considered experience.",
+    "tagline": "A richer collection, from sealed foil to first light.",
     "hero": {
-      "title": "Every detail.\nUnder your control.",
+      "title": "A closer look.\nA richer world.",
       "badge": "CARDABLE / 1.2.2",
-      "subtitle": "A shared design language, a complete creative workspace, and controls that feel like yours. Welcome to One Cardable.",
+      "subtitle": "Ten sealed identities. Cinematic rarity worlds. Twenty-four new Director compositions. All brought together by controls that feel like yours.",
       "mediaKind": "collection-preview",
       "media": [
         {
@@ -66,6 +66,46 @@
     "balanceTitle": "A more considered experience",
     "balanceSubtitle": "These are interface and presentation changes. Pull reservations, serials and reward commits retain their existing contracts.",
     "balanceChanges": [
+      {
+        "id": "visual-overhaul",
+        "category": "Materials & light",
+        "subtitle": "Every sealed moment, reconsidered.",
+        "icon": "cards",
+        "changes": [
+          {
+            "stat": "Sealed packs",
+            "entity": "All ten registered identities",
+            "from": "Existing wrappers",
+            "to": "Procedural material collection",
+            "type": "rework",
+            "note": "Brushed platinum, sapphire clearcoat, titanium, pearl triptych and distinct brand finishes. Lean lighting, state transitions and lightweight renders share one silhouette."
+          },
+          {
+            "stat": "Rarity worlds",
+            "entity": "Mythical / Ascendant",
+            "from": "Existing scene rendering",
+            "to": "Filmic optics and prism light",
+            "type": "rework",
+            "note": "High adds depth focus, bloom, filtered shadows and richer water. Ascendant introduces a glass-prism vignette within its existing cloud ritual."
+          },
+          {
+            "stat": "Graphics ladder",
+            "entity": "Settings",
+            "from": "Four tiers",
+            "to": "Gated Very High",
+            "type": "rework",
+            "note": "A fifth opt-in tier uses numeric budgets, a short hardware check and a temporary High fallback. Medium stays the default."
+          },
+          {
+            "stat": "Director presets",
+            "entity": "Creative workspace",
+            "from": "Existing catalog",
+            "to": "24 additional compositions",
+            "type": "rework",
+            "note": "Eight scenes, four rigs, six camera moves and six looks adapt to the card and join the seven-reference gallery."
+          }
+        ]
+      },
       {
         "id": "controls",
         "category": "Controls & accessibility",
@@ -168,7 +208,8 @@
         "A complete keybinding editor with two bindings, context conflicts, swap/clear, presets and JSON export/import.",
         "Advanced Settings adds interface visibility, effect controls, profiles, gameplay preferences, formats and accessibility.",
         "Director includes remappable tools, view presets, timeline operations, page tabs and navigation preferences.",
-        "History returns with collection milestones, a virtual timeline and per-card copy memories."
+        "History returns with collection milestones, a virtual timeline and per-card copy memories.",
+        "Dev-only pack material gallery and fixed-time composition contact sheets for Mythical and Ascendant."
       ],
       "systems": [
         "One shared frame scheduler enforces the selected animation cap. Battery saver temporarily reduces the effective cap.",
@@ -177,6 +218,11 @@
         "Picker offers remain unminted until selection. Rewards and Keep/Delete retain their exact-once commit path."
       ],
       "visuals": [
+        "All ten packs gain layered procedural materials, lean lighting and complete state/tier specimens.",
+        "High-tier Mythical and Ascendant rendering adds filmic grading, multi-scale bloom, depth focus, denser atmosphere and richer reflections.",
+        "Very High is opt-in, hardware gated and budgeted globally; sustained slow rendering temporarily uses High.",
+        "Director gains eight scenes, four light rigs, six camera moves and six looks, with card-aware adaptation.",
+        "Loader fluid, serial etching, achievement emblems, inventory skew and panel motion respect reduced motion and graphics controls.",
         "Shared shaded surfaces, concentric controls, readable Settings and repaired inventory and outliner geometry.",
         "Purposeful periwinkle, mint, warm and rose accents in the normal theme. Saved monochrome presents the same states.",
         "Ascendant now travels through clouds; Mythical retains its enriched crystal cave. Reduced motion and Safe presentation stay separate.",
@@ -196,6 +242,11 @@
       ]
     },
     "entries": [
+      "All ten packs gain layered procedural materials, lean lighting and complete state/tier specimens.",
+      "High-tier Mythical and Ascendant rendering adds filmic grading, multi-scale bloom, depth focus, denser atmosphere and richer reflections.",
+      "Very High is opt-in, hardware gated and budgeted globally; sustained slow rendering temporarily uses High.",
+      "Director gains eight scenes, four light rigs, six camera moves and six looks, with card-aware adaptation.",
+      "Loader fluid, serial etching, achievement emblems, inventory skew and panel motion respect reduced motion and graphics controls.",
       "A complete keybinding editor with two bindings, context conflicts, swap/clear, presets and JSON export/import.",
       "Advanced Settings adds interface visibility, effect controls, profiles, gameplay preferences, formats and accessibility.",
       "Director includes remappable tools, view presets, timeline operations, page tabs and navigation preferences.",

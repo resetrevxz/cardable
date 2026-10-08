@@ -120,8 +120,8 @@
       var lean = !C.motion.reduced && distance > 0 ? cfg.lean * hover / distance : 0;
       var radius = C.motion.reduced ? cfg.baseRadius : cfg.baseRadius + (cfg.maxRadius - cfg.baseRadius) * energy;
       ctx.globalAlpha = alpha;
-      ctx.beginPath(); ctx.arc(p.x + dx * lean, p.y + dy * lean, radius, 0, Math.PI * 2); ctx.fill();
-      stats.visibleDots += 1;
+      ctx.beginPath(); ctx.arc(p.x + dx * lean, p.y + dy * lean, radius, 0, Math.PI * 2); ctx.fill();if(C.settings.policy.background===4&&hover>.1){ctx.globalAlpha=alpha*hover*.22;ctx.beginPath();ctx.arc(p.x+dx*lean,p.y+dy*lean,radius+1.2,0,Math.PI*2);ctx.fill();}
+      stats.visibleDots += 1;if(C.settings.policy.background===4&&hover>.15&&!C.motion.reduced){ctx.globalAlpha=alpha*hover*.22;ctx.beginPath();ctx.arc(p.x+pitch*.5,p.y+pitch*.5,.6,0,Math.PI*2);ctx.fill();}
     });
     ctx.globalAlpha = 1;
     stats.draws += 1; stats.trailCells = heat.size; stats.ripples = ripples.length;

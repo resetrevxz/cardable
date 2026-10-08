@@ -1,6 +1,6 @@
 # Graphics tiers and performance contracts
 
-Four presets apply instantly: **Very Low, Low, Medium, High**. Medium is the new-player default. Existing saved High/Medium/Low settings migrate to the same tier. No inventory, pack timing, pull probabilities, serials or immutable variants change.
+Five presets: **Very Low, Low, Medium, High, Very High**. The first four apply immediately; Very High is opt-in and hardware gated. Medium is the new-player default. Existing saved High/Medium/Low settings migrate to the same tier. No inventory, pack timing, pull probabilities, serials or immutable variants change.
 
 | Effect | Very Low | Low | Medium | High |
 | --- | --- | --- | --- | --- |
@@ -41,3 +41,7 @@ The original behavior, touch and frame measurements are retained in [the archive
 Current inventory mount budgets and shaded surfaces are in [06-INVENTORY.md](06-INVENTORY.md). Later independent cinematic detail and desktop resize/IPC fixes are described in [GRAPHICS-REFRESH.md](../archive/workspace-organization/docs/GRAPHICS-REFRESH.md) and [OPTIMIZATION-4.1.1.md](../archive/workspace-organization/docs/OPTIMIZATION-4.1.1.md). Older graphics/inventory/activity expectations sometimes conflict with later source; their failures remain in archived evidence. The 4.2.0 cleanup did not rerun those suites or profiles.
 
 The current restricted testing policy is [PROMPTING.md](PROMPTING.md). Broad coverage, physical input/zoom/OS motion, paint/GPU cost and high-refresh acceptance remain separate work.
+
+## Visual overhaul budgets
+
+`src/data/quality-profiles.js` contains the shared numeric budgets exposed through `Cardable.quality.profile`. Very High requires accelerated WebGL 2, 4096 px texture/renderbuffer limits and twelve bounded startup paints. A three-second sustained slow-frame guard applies High temporarily and offers a quiet notification preference; it does not rewrite saved quality. Settings explains unavailable hardware. Studio retains its additional floating-point/render-capacity gate. Lower tiers never allocate the new optical targets.

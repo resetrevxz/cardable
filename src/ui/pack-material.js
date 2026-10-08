@@ -21,7 +21,7 @@
         update: function (pose, time, reduced) {
           var skinMoving = skin.quality(el, pose, time, reduced, skinState);
           var hz = C.settings.policy.glareHz;
-          if ((pack.skin || 'standard') !== 'standard' && el.dataset.packQuality !== 'high') return skinMoving;
+          if ((pack.skin || 'standard') !== 'standard' && !['high','very-high'].includes(el.dataset.packQuality)) return skinMoving;
           if (!hz) return;
           var rx = pose.rx || 0, ry = pose.ry || 0;
           // Idle glint is almost imperceptible; avoid repainting its optical layers

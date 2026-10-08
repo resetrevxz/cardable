@@ -27,12 +27,12 @@
     var fill=charging?Number(el.dataset.chargeFill)||0:waiting?C.timers.progress():1;
     var lit=Math.floor(fill*24);el.querySelectorAll('.titan-ring').forEach(function(r){if(r.dataset.lit===String(lit))return;r.dataset.lit=lit;Array.from(r.children).forEach(function(t,i){t.classList.toggle('is-lit',i<lit);});});
     el.style.setProperty('--titan-core-opacity',charging?.5+fill*.4:waiting?.12:.65+(active?Math.sin(age/cfg.coreMs*Math.PI*2)*.08:0));
-    var sweep=(rank===3?age%cfg.rimMs:age)/1400,shine=active&&sweep<1;
+    var sweep=(rank>=3?age%cfg.rimMs:age)/1400,shine=active&&sweep<1;
     el.style.setProperty('--titan-rim-x',(shine?-140+sweep*280:140)+'%');el.style.setProperty('--titan-rim-opacity',shine?Math.sin(sweep*Math.PI)*.2:0);
-    el.style.setProperty('--titan-light-x',(rank===3&&active?42+(pose.ry||0):42)+'%');
+    el.style.setProperty('--titan-light-x',(rank>=3&&active?42+(pose.ry||0):42)+'%');
     el.style.setProperty('--titan-steam-y',active?(-age%6000/6000*12)+'px':'0px');
-    el.style.setProperty('--titan-steam-opacity',active&&rank===3&&!waiting?policy.particles*(charging?fill*.18:.08):0);
-    state.active=active&&(rank===3||age<1400);return state.active;
+    el.style.setProperty('--titan-steam-opacity',active&&rank>=3&&!waiting?policy.particles*(charging?fill*.18:.08):0);
+    state.active=active&&(rank>=3||age<1400);return state.active;
   }
   C.titanPackArt={face:face,ring:ring};
   C.packSkins.register('titan',{renderIdle:render,renderWaiting:render,renderWrapper:render,quality:quality,

@@ -54,7 +54,7 @@
       el.dataset.packQuality = C.settingsSchema.tiers[rank];
       if (state.appeared == null || time < state.appeared) state.appeared = time;
       var moving = !reduced && C.settings.policy.ambient;
-      var high = rank === 3, medium = rank === 2;
+      var high = rank >= 3, medium = rank === 2;
       var age = time - state.appeared, sweep = high ? age % 6000 : age;
       var p = Math.min(1, sweep / 1200), active = moving && (high || medium && age < 1200);
       el.style.setProperty('--rare-sheen', (active ? -140 + p * 280 : 140) + '%');

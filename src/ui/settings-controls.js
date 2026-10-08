@@ -1,7 +1,7 @@
 (function (C, root) {
   'use strict';
   var node = C.packMarkup.node;
-  function title(value) { value=String(value); return ({ 'very-low': 'Very Low', display: 'Display refresh', sleep: 'Sleep completely', timer: 'Timer/title only', pause: 'Pause visuals' })[value] || (value === '2.5' || value === '5' ? value + ' s' : /^\d+$/.test(value) ? value + ' FPS' : value.charAt(0).toUpperCase() + value.slice(1)); }
+  function title(value) { value=String(value); return ({ 'very-low': 'Very Low','very-high':'Very High', display: 'Display refresh', sleep: 'Sleep completely', timer: 'Timer/title only', pause: 'Pause visuals' })[value] || (value === '2.5' || value === '5' ? value + ' s' : /^\d+$/.test(value) ? value + ' FPS' : value.charAt(0).toUpperCase() + value.slice(1)); }
   C.uiKit = {
     create: function (descriptor, parent, binding) {
       binding = binding || { get: C.settings.get, set: C.settings.set, subscribe: C.settings.onChange };
@@ -44,7 +44,7 @@
               binding.set(key, event.key === 'Enter' ? 'enter' : 'space'); b.classList.add('is-pressed');
             } else if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(event.key) !== -1) {
               event.preventDefault(); var delta = event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 1;
-              index = (index + delta + descriptor.choices.length) % descriptor.choices.length; binding.set(key, descriptor.choices[index]); buttons[index].focus();
+              for(var step=0;step<buttons.length;step++){index=(index+delta+buttons.length)%buttons.length;if(!buttons[index].disabled)break;}if(!buttons[index].disabled){binding.set(key,descriptor.choices[index]);buttons[index].focus();}
             }
           });
           C.keys.listen(b, 'keyup', 'src.ui.settings-controls.js.2', function () { b.classList.remove('is-pressed'); }); b.addEventListener('blur', function () { b.classList.remove('is-pressed'); }); buttons.push(b);
@@ -66,12 +66,14 @@
       }
       refresh(current); if (indicator) spring.reset(descriptor.choices.indexOf(current)); else if (knob) spring.reset(spring.target);
       var unsubscribe = binding.subscribe ? binding.subscribe(key, refresh) : function () {};
+      function gating(){if(!descriptor.choices||descriptor.choices.indexOf('very-high')<0||!C.quality)return;var result=C.quality.availability();buttons.forEach(function(b){if(b.value==='very-high'){b.disabled=!result.available;b.title=result.reason||'Additional detail for capable hardware';}});if(type==='select')Array.from(control.options).forEach(function(o){if(o.value==='very-high'){o.disabled=!result.available;o.textContent=result.available?'Very High':'Very High · '+result.reason;}});if(key==='quality'){copy.querySelector('.settings-helper').textContent=result.available?descriptor.helper:descriptor.helper+' Very High: '+result.reason;}}
+      gating();var stopGate=C.events.on('quality:availability',gating);
       return { el: control, row: row, buttons: buttons, update: function (now, dt) {
         if ((type === 'volume' || type === 'slider')) return digits.update(now);
         if ((!indicator && !knob) || !pending) return false;
         if (C.motion.reduced) spring.reset(spring.target); else spring.step(dt, spring.target);
         if (knob) knob.style.transform = 'translateX(' + spring.value * 17 + 'px)'; else indicator.style.transform = 'translateX(' + spring.value * 100 + '%)'; pending = !spring.settled(); return pending;
-      }, destroy: unsubscribe };
+      }, destroy: function(){unsubscribe();stopGate();} };
     },
     // Reusable click-again and hold controls for settings and Data actions.
     confirmation: function (button, action, options) {

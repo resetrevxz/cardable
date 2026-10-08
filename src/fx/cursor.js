@@ -12,7 +12,7 @@
     }
     var amount = C.motion.reduced ? 1 : 1 - Math.pow(1 - (blade ? C.config.openingMotion.bladeFollow : cfg.follow), dt / C.config.shell.frameMs);
     if (!present) { x = p.x; y = p.y; present = true; }
-    else { x += (p.x - x) * amount; y += (p.y - y) * amount; }
+    else { var steps=C.quality&&C.quality.profile.rank===4?2:1,sub=1-Math.pow(1-amount,1/steps);for(var step=0;step<steps;step++){x+=(p.x-x)*sub;y+=(p.y-y)*sub;} }
     var moving = Math.hypot(p.x - x, p.y - y) > cfg.settlePx;
     if (!moving) { x = p.x; y = p.y; }
     element.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) translate(-50%,-50%)';

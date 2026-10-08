@@ -8,7 +8,7 @@
   var schema = {
     settingsMode: entry('', '', null, 'simple', ['simple','advanced']),
     motion: entry('Reduced motion', 'Auto follows your system.', 'Motion and effects', 'auto', ['auto', 'on', 'off']),
-    quality: entry('Graphics preset', 'A complete graphics profile. FPS stays independent.', 'Graphics', 'medium', ['very-low', 'low', 'medium', 'high']),
+    quality: entry('Graphics preset', 'A complete graphics profile. FPS stays independent.', 'Graphics', 'medium', ['very-low', 'low', 'medium', 'high', 'very-high']),
     fpsLimit: entry('FPS limit', 'Lower caps save power. Display refresh follows your screen.', 'Performance', 'display', ['display', '20', '30', '45', '60', '90', '120', '144', '165', '240'], 'select'),
     backgroundMode: entry('Hidden tab', 'Packs refill by real time in either mode.', 'Performance', 'sleep', ['sleep', 'timer'], 'select'),
     unfocusedMode: entry('Unfocused window', 'For a visible window while using another app.', 'Performance', 'normal', ['normal', '30', 'pause'], 'select'),
@@ -29,8 +29,9 @@
     muted: entry('Mute', 'Coming soon', 'Sound', false),
     nudgeDismissed: entry('', '', null, false)
   };
+  schema.veryHighQuiet=entry('', '', null, false);
   schema.idleFade.format = function (value) { return value === 'never' ? 'Never' : value + ' s'; };
-  var tiers = ['very-low', 'low', 'medium', 'high'];
+  var tiers = ['very-low', 'low', 'medium', 'high', 'very-high'];
   var graphics = {
     finishQuality: ['Card finishes', 'Rarity materials and cosmetic coatings.'],
     reflectionQuality: ['Reflections', 'Foil, beams, glare and pack highlights.'],

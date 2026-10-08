@@ -25,16 +25,16 @@
     var age=time-state.appeared,move=!reduced&&policy.ambient&&policy.animation>=2;
     if(time-state.last<1000/(policy.animationHz||20)&&state.phase===phase)return state.active;
     state.last=time;state.phase=phase;
-    var sweep=(rank===3?age%7000:age)/1300,sheen=move&&rank>=1&&sweep<1;
+    var sweep=(rank>=3?age%7000:age)/1300,sheen=move&&rank>=1&&sweep<1;
     el.style.setProperty('--picker-sheen-x',(-150+Math.min(1,sweep)*300)+'%');
     el.style.setProperty('--picker-sheen-opacity',sheen?Math.sin(sweep*Math.PI)*.45:0);
-    el.style.setProperty('--picker-specular-x',(rank===3?45+(pose.ry||0)*1.3:45)+'%');
+    el.style.setProperty('--picker-specular-x',(rank>=3?45+(pose.ry||0)*1.3:45)+'%');
     var fill=charge?Number(el.dataset.chargeFill)||0:waiting?C.timers.progress():1;
     var windows=el.querySelectorAll('.picker-window');windows.forEach(function(w,i){
-      var glow=charge?Math.max(.05,Math.min(1,fill*3-i)):waiting?.08+fill*.3:move&&rank>=2?.22+(1+Math.sin(age/3000*Math.PI*2-i*2.094))*(rank===3?.2:.12):.35;
+      var glow=charge?Math.max(.05,Math.min(1,fill*3-i)):waiting?.08+fill*.3:move&&rank>=2?.22+(1+Math.sin(age/3000*Math.PI*2-i*2.094))*(rank>=3?.2:.12):.35;
       if(!charge&&!waiting&&move&&rank>=2&&age<900)glow=.08+.7*Math.max(0,Math.min(1,(age-i*220)/240));
       w.style.setProperty('--picker-window-light',glow.toFixed(3));
-      w.style.setProperty('--picker-back-y',move&&rank===3?(Math.sin(age/4200*Math.PI*2-i)*2)+'px':'0px');
+      w.style.setProperty('--picker-back-y',move&&rank>=3?(Math.sin(age/4200*Math.PI*2-i)*2)+'px':'0px');
       w.style.setProperty('--picker-back-turn',charge&&!reduced?(i-1)*fill*7+'deg':'0deg');
     });
     state.active=move&&(rank>=2||sheen);return state.active;

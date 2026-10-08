@@ -63,3 +63,34 @@
 :root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .card__serial.is-stamping::after { content:""; position:absolute; inset:0; width:1px; background:var(--highlight); transform-origin:left; animation:cb-etch 900ms var(--ease-out) both; opacity:.6; }
 @keyframes cb-etch { from { transform:translateX(0); opacity:.6; } to { transform:translateX(120px); opacity:0; } }
 .studio-preset-thumb { transition:opacity 180ms var(--ease-out); }
+.visual-contact-sheet { max-width:94vw; max-height:94vh; overflow:auto; padding:var(--s-5); }
+.visual-contact-sheet canvas { display:block; width:min(1200px,86vw); height:auto; border-radius:var(--radius-panel); }
+:root[data-quality="very-high"] .collectible-card.is-focused { box-shadow:0 20px 38px #0008,0 3px 8px #000a; }
+:root[data-quality="very-high"] .card__face--front { background:linear-gradient(var(--lamp-angle,125deg),#8A93A255,#EDF6FFAA 45%,#40495788 70%); }
+.is-hidden :is(.cb-loader-outline::after,.cb-skeleton::after,.card__serial-char,.card__meter-tick) { animation-play-state:paused; }
+
+/* The existing frame queue and mount lifecycle own all animated surfaces. */
+.visual-pack-marker { height:60px; display:grid; place-items:center; }
+:root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .cb-toast.cb-enter { animation:cb-toast-spring 420ms var(--ease-out) both; }
+@keyframes cb-toast-spring { 0% { opacity:0; transform:translateY(9px) scale(.98); } 65% { opacity:1; transform:translateY(-1px) scale(1.003); } 100% { transform:none; } }
+:root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .inventory-tile.is-acquired .inventory-tile-card::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg,transparent 32%,#fff2 48%,transparent 64%); animation:cb-new-glint 800ms var(--ease-out) both; }
+@keyframes cb-new-glint { from { opacity:0; transform:translateX(-70%); } 35% { opacity:.35; } to { opacity:0; transform:translateX(70%); } }
+:root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .collectible-card.is-variant-evolving .variant-plane { filter:contrast(calc(1 + (1 - var(--variant-progress,1))*.08)); }
+:root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .collectible-card.is-variant-evolving[data-variant="rainbow-holo"] .variant-plane { background-size:calc(220% + (1 - var(--variant-progress,1))*20%) 220%; }
+:root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .achievement-emblem path { stroke-dasharray:240; animation:cb-emblem-draw 600ms var(--ease-out) both; }
+@keyframes cb-emblem-draw { from { stroke-dashoffset:240; } to { stroke-dashoffset:0; } }
+:root:is([data-animation-quality="high"],[data-animation-quality="very-high"]) :is(.achievement-bar>i,.cb-ring circle:last-child) { transition:transform 350ms var(--ease-out),stroke-dashoffset 350ms var(--ease-out); }
+:root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) :is(.studio-gizmo-hit,.studio-transform-gizmo) { transition:opacity 150ms var(--ease-out); }
+:root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .cb-toast[data-variant="achievement"]::after { content:""; position:absolute; inset:0; border:1px solid var(--stroke-strong); border-radius:inherit; pointer-events:none; animation:cb-unlock-ring 650ms var(--ease-out) both; }
+@keyframes cb-unlock-ring { from { opacity:.3; transform:scale(.99); } to { opacity:0; transform:scale(1.04); } }
+.reduced-motion :is(.cb-toast.cb-enter,.achievement-emblem path,.inventory-tile-card::after,.cb-toast[data-variant="achievement"]::after) { animation:none !important; }
+.reduced-motion :is(.achievement-bar>i,.cb-ring circle:last-child,.studio-preset-thumb,.studio-gizmo-hit,.studio-transform-gizmo) { transition:none !important; }
+.is-afk .pack-stage::before { display:none; }
+
+:root[data-quality="very-high"] { --q-blur:1.2; --q-motion:1; }
+:root[data-glass-quality="very-high"] { --q-blur:1.2; }
+:root:is([data-glass-quality="low"],[data-glass-quality="very-low"]) { --q-blur:0; }
+
+:root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) body:not(.is-afk) .pack-stage::before { animation:cb-ambient-drift 18s ease-in-out infinite alternate; }
+@keyframes cb-ambient-drift { from { opacity:.24; transform:translate(calc(var(--film-x,0px) - 3px),calc(var(--film-y,0px) + 2px)); } to { opacity:.32; transform:translate(calc(var(--film-x,0px) + 3px),calc(var(--film-y,0px) - 2px)); } }
+.reduced-motion .pack-stage::before { animation:none !important; }

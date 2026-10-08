@@ -43,7 +43,7 @@
     var count=Math.min(3,Math.floor((end-start-2*margin)/gap)+1),first=Math.max(start+margin,Math.min(times[0],end-margin-(count-1)*gap));
     return original.slice(0,count).map(function(beat,i){return {id:beat.id,ms:storyTime(spec,choice,first+i*gap),key:beat.id};});
   }
-  function quality() { return ['very-low', 'low', 'medium', 'high'].indexOf(C.settings.get('cinematicQuality')); }
+  function quality() { return C.settingsSchema.tiers.indexOf(C.settings.get('cinematicQuality')); }
   C.cutscenes = {
     registry: entries, timeline: sections, mode:mode, playDuration:playDuration,pulseFactor:pulseFactor,pulses:pulses, debug:{meter:false},
     register: function (kind, factory) { entries[kind] = factory; },
@@ -134,10 +134,10 @@
           }else (spec.beats || []).filter(function(beat){return (!spec.ritual||beat.id!=='pulse')&&(spec.kind!=='prismatic'||!/^spark[123]$/.test(beat.id));}).concat(pulseEvents,spec.kind==='prismatic'?sparkEvents:[],painter&&painter.getBeats?painter.getBeats():[]).forEach(function (beat) { if (clock >= beat.ms) emit(beat.id, beat.ms, beat.key); });
           // Live adaptation is part of the presentation, not a separate profiling loop.
           // Programs and targets were warmed during cutting; ignore the first ten visible frames.
-          if ((spec.kind === 'prismatic' && clock >= 1000 && clock < 10000 || spec.kind === 'system' && clock >= 4000 && clock < 19000) && !staticPolicy && dt > 0 && !adaptive.dropped) {
+          if (((spec.kind === 'prismatic'||spec.kind === 'crimson') && clock >= 1000 && clock < 10000 || spec.kind === 'system' && clock >= 4000 && clock < 19000) && !staticPolicy && dt > 0 && !adaptive.dropped) {
             adaptive.samples += 1; if (adaptive.samples > 10) adaptive.sum += dt;
             var count = adaptive.samples - 10;
-            if (count >= 60 && adaptive.sum / count > 24 && level >= 2) {
+            if (count >= 60 && adaptive.sum / count > Math.max(24,1000/(C.frame?C.frame.cap():60)*1.35) && level >= 2) {
               level -= 1; adaptive.dropped = true; if (painter.setQuality) painter.setQuality(level);
               C.events.emit('cutscene:quality', { level: level, reason: 'adaptive' });
             }
@@ -174,7 +174,7 @@
         get mode(){return runMode;},get profile(){return intensityProfile;},
         jump: function (id) { if (film.sections[id]) api.seek(film.sections[id].start); },
         setRate: function (value) { rate = Math.max(.1, Math.min(4, Number(value) || 1)); },
-        setQuality: function (value) { level = Math.max(0, Math.min(3, value));if(level===0)api.setMode('light'); adaptive.dropped = true; if (painter.setQuality) painter.setQuality(level); },
+        setQuality: function (value) { level = Math.max(0, Math.min(4, value));if(level===0)api.setMode('light'); adaptive.dropped = true; if (painter.setQuality) painter.setQuality(level); },
         get presentationMs(){return previous;}, get timeMs() { return clock; }, get totalMs() { return film ? film.total : 0; },
         get skipState(){return skipping?{from:skipping.from,progress:math.clamp(skipping.age/500)}:null;}, get rate() { return rate; }, get level() { return level; }, get sections() { return film ? film.sections : {}; }
       };

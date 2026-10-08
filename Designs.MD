@@ -225,3 +225,7 @@ Reference principles: [Vercel web interface guidelines](https://vercel.com/desig
 ## Pack material family
 
 Shared silhouette, Cardable header band, central emblem and name/tagline/footer hierarchy; distinct authored palettes and materials. Use 3–4 procedural material layers with believable brushing, lacquer, ceramic, glass, seams and crimps. Three lean planes separate body/emblem/glints by 1–3 px, tied to the same upper-left lamp. Each pack owns ready, waiting/progress, arrival, charge, dissolve, hover, swap, counter and static low-tier states. Signature loops are slow (10–18 seconds), low amplitude and stop when inactive. Medium keeps static materials plus one existing moving highlight, Low one static highlight, Very Low flat; extra work is confined to High/Very High. Briefs live in docs/packs; ?dev=1&gallery=packs exposes tier/state/color specimens. Brand logo handling remains local.
+
+## Cinematic optics and Very High
+
+High and opt-in Very High share physically plausible procedural lighting and bounded filmic optics. The card remains the visual anchor; grain, edge dispersion, focus, bloom and micro-motion stay restrained. Low/Medium retain their lighter paths, and reduced motion removes gesture ornaments. Hardware gating explains unavailable Very High; temporary fallback preserves the requested saved tier. Window open/fullscreen transitions remain owned by the native platform. Review aids are ephemeral unminted specimens.

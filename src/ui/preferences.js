@@ -88,7 +88,7 @@
       controls.push(C.settingsControls.create(C.settingsSchema.entries.quality, graphics));
       var presetStatus = node('p', 'settings-preset-status', graphics);
       function presetSummary() {
-        var tier = C.settings.get('quality'), descriptions = { 'very-low': 'Minimum effects. Built for basic devices.', low: 'Clean materials with lightweight motion.', medium: 'Balanced detail and rendering cost.', high: 'Full materials, lighting and focused effects.' };
+        var tier = C.settings.get('quality'), descriptions = { 'very-low': 'Minimum effects. Built for basic devices.', low: 'Clean materials with lightweight motion.', medium: 'Balanced detail and rendering cost.', high: 'Full materials, lighting and focused effects.','very-high':'Extra reflections, cinematic optics and detail for capable hardware.' };
         presetStatus.textContent = (C.settings.customized ? 'Customized · ' : '') + descriptions[tier];
       }
       C.settings.onChange('*', presetSummary); presetSummary();

@@ -28,7 +28,7 @@
     var active=!reduced&&C.settings.policy.ambient&&C.settings.policy.animation>=2,step=Math.floor(time/cfg.ledStepMs);
     if(step!==state.step||charging||state.phase!==phase){state.step=step;state.phase=phase;el.querySelectorAll('.classic-display').forEach(function(screen){digits(screen,charging?progress*99:charged?99:waiting?Math.min(99,Math.ceil(C.timers.remaining(Date.now())/60000)):active?88-step%89:88);});el.style.setProperty('--classic-hdd',active&&(step%7===0||step%11===3||charging&&step%3===1)?1:.12);}
     el.querySelectorAll('.classic-progress').forEach(function(bar){var count=Math.floor(progress*bar.children.length);Array.from(bar.children).forEach(function(segment,i){segment.dataset.lit=i<count;});});
-    var age=time-state.appeared,p=(rank===3?age%cfg.lightPassMs:age)/1400,sweep=active&&(rank===3||rank===2&&age<1400)&&p<1;
+    var age=time-state.appeared,p=(rank>=3?age%cfg.lightPassMs:age)/1400,sweep=active&&(rank>=3||rank===2&&age<1400)&&p<1;
     el.style.setProperty('--classic-gloss-x',(sweep?-130+p*260:140)+'%');el.style.setProperty('--classic-gloss-opacity',sweep?Math.sin(p*Math.PI)*.25:0);
     el.style.setProperty('--classic-grille-turn',charging&&!reduced?progress*35+'deg':'0deg');
     el.style.setProperty('--classic-fill',progress);el.style.setProperty('--classic-tab-pulse',phase==='cutting'&&active&&!Number(el.dataset.tabPull)?(.65+.25*Math.sin(time/1800*Math.PI*2)):1);

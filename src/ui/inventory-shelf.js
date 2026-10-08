@@ -73,9 +73,9 @@
           // Pan one compositor layer. Content and stationary neighbours stay untouched.
           var placement='translateX('+((i-center)*pitch).toFixed(3)+'px)';
           if(tile.placement!==placement){tile.placement=placement;tile.el.style.transform=placement;}
-          var pose=C.motion.reduced||motion===0?'none':'scale('+(1-(1-cfg.shelfSideScale)*d).toFixed(4)+')';
+          var pose=C.motion.reduced||motion===0?'none':'scale('+(1-(1-cfg.shelfSideScale)*d).toFixed(4)+')'+(motion>=3?' skewX('+clamp(spring.velocity*-.14,-1.8,1.8).toFixed(3)+'deg)':'');
           if(tile.poseValue!==pose){tile.poseValue=pose;tile.pose.style.transform=pose;}
-          var opacity=motion===0?1:1-(1-cfg.shelfSideOpacity)*d;
+          var visualBlur=motion>=3&&!C.motion.reduced?Math.min(.7,Math.abs(delta)*.3):0;if(tile.visualBlur!==visualBlur){tile.visualBlur=visualBlur;tile.card.style.filter=visualBlur?'blur('+visualBlur.toFixed(2)+'px)':'none';}var opacity=motion===0?1:1-(1-cfg.shelfSideOpacity)*d;
           if(tile.opacityValue!==opacity){tile.opacityValue=opacity;tile.pose.style.opacity=opacity;}
           var centered=i===center;
           if(tile.centered!==centered){tile.centered=centered;tile.el.style.zIndex=centered?'20':'19';tile.el.classList.toggle('is-centered',centered);tile.el.setAttribute('aria-selected',centered);tile.el.setAttribute('tabindex',centered?'0':'-1');}

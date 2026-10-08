@@ -35,3 +35,11 @@ Part 4 · Visual overhaul, included in the pending 1.2.2 release.
 - All ten pack identities gain layered procedural materials, refined lean lighting and complete state/tier specimens.
 - Twenty-four Director additions: eight scenes, four light rigs, six camera moves and six looks; existing card-aware adaptation remains.
 - Smoother card-loading fluid, preserved actual asset counts, subtle panel/collection motion and calmer serial engraving.
+
+## Materials, light and motion
+
+Ten sealed pack identities gain distinct procedural materials and lean lighting. Mythical and Ascendant gain a shared High-tier filmic pipeline, richer reflections, depth focus and atmosphere. The glass-prism vignette preserves Ascendant's cloud ritual timing.
+
+Very High is an optional fifth graphics preset, offered after a bounded hardware check. Extra detail uses central numeric budgets; sustained slow frames temporarily return to High. Medium remains the default, and lower tiers retain their lighter scene paths.
+
+Director adds 24 card-aware presets: eight scenes, four rigs, six camera moves and six looks. Subtle inventory, serial, achievement and Settings motion follows quality and reduced-motion preferences. Loader fluid retains accurate asset progress.

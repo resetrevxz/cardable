@@ -2,18 +2,19 @@
   'use strict';
   var schema = C.settingsSchema, values = schema.normalize(), applying = false, initialized = false;
   var overrides = Object.create(null), batterySaving = false;
-  function effective(key) { var value = Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : values[key]; return batterySaving && (key === 'quality' || schema.graphicsKeys.includes(key)) ? schema.tiers[Math.max(0,schema.tiers.indexOf(value)-1)] : value; }
+  function effective(key) { var value = Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : values[key]; if(batterySaving && (key === 'quality' || schema.graphicsKeys.includes(key))) value=schema.tiers[Math.max(0,schema.tiers.indexOf(value)-1)];return C.quality&&(key==='quality'||schema.graphicsKeys.includes(key))?C.quality.effective(value):value; }
   var media = root.matchMedia('(prefers-reduced-motion: reduce)');
   function rank(key) { return schema.tiers.indexOf(effective(key)); }
+  function budget(key){return C.quality.resolve(schema.tiers[rank(key)]);}
   function resolvePolicy() {
     var finish = rank('finishQuality'), reflection = rank('reflectionQuality'), background = rank('backgroundQuality'), animation = rank('animationQuality');
-    return { finishHz: [0, 15, 30, 60][finish], glareHz: [0, 15, 30, Infinity][reflection],
+    return { finishHz: [0, 15, 30, 60, 60][finish], glareHz: [0, 15, 30, Infinity, Infinity][reflection],
       reflection: reflection, prop: rank('propQuality'), animation: animation, ambient: animation >= 2,
-      animationHz: [0, 15, 30, 60][animation], dotsHz: [0, 15, 30, 60][background], background: background,
-      rippleLimit: [0, 1, 2, 3][background], particles: [0, 0.15, 0.5, 1][rank('particleQuality')],
-      blur: [0, 0, 0.6, 1][rank('glassQuality')], layers: reflection < 2 ? 7 : 10,
-      shadows: [0, 1, 2, 3][rank('shadowQuality')], trail: background >= 2,
-      dpr: Math.min(batterySaving ? 1 : 2, [1, 1.25, 1.5, 2][rank('canvasQuality')]) * (effective('resolutionScale') || 1) };
+      animationHz: [0, 15, 30, 60, 60][animation], dotsHz: [0, 15, 30, 60, 60][background], background: background,
+      rippleLimit: [0, 1, 2, 3, 4][background], particles: budget('particleQuality').particles,
+      blur: budget('glassQuality').glass, layers: reflection < 2 ? 7 : 10,
+      shadows: [0, 1, 2, 3, 4][rank('shadowQuality')], trail: background >= 2,
+      dpr: Math.min(batterySaving ? 1 : 2.5, budget('canvasQuality').canvasDpr) * (effective('resolutionScale') || 1) };
   }
   var policy = resolvePolicy();
   function attribute(key, value) { root.document.documentElement.setAttribute('data-' + key.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); }), String(value)); }
@@ -55,9 +56,10 @@
     get snapshot() { return Object.assign({}, values); },
     get saved() { return C.state.persistenceAvailable; },
     get policy() { return policy; },
+    refreshQuality: function(){policy=resolvePolicy();['quality'].concat(schema.graphicsKeys).forEach(function(key){apply(key,effective(key));});},
     get customized() { return schema.graphicsKeys.some(function (key) { return values[key] !== values.quality; }); },
     applyPreset: function (tier) {
-      if (!C.state.current || schema.tiers.indexOf(tier) === -1) return false;
+      if (!C.state.current || schema.tiers.indexOf(tier) === -1 || tier==='very-high'&&!C.quality.availability().available) return false;
       var next = Object.assign({}, values, { quality: tier });
       schema.graphicsKeys.forEach(function (key) { next[key] = tier; });
       return replace(next);
@@ -77,7 +79,7 @@
     dotsPolicy: function () {
       var subtle = effective('dots') === 'subtle', base = C.config.dots;
       return Object.assign({}, base, { enabled: effective('visibleDots')!==false && effective('dots') !== 'off' && policy.background > 0,
-        spacing: base.spacing * (policy.background === 1 ? 1.5 : 1),
+        spacing: base.spacing * (policy.background === 4 ? .92 : policy.background === 1 ? 1.5 : 1),
         maxAlpha: base.maxAlpha * (subtle ? 0.5 : 1) * (policy.background === 1 ? 0.7 : 1), influenceRadius: base.influenceRadius * (subtle ? 0.8 : 1),
         lean: subtle || policy.background < 2 ? 0 : base.lean, trail: !subtle && policy.trail,
         ripple: Object.assign({}, base.ripple, { peakAlpha: base.ripple.peakAlpha * (subtle ? 0.5 : 1), maxSimultaneous: policy.rippleLimit }) });

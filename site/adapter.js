@@ -10,6 +10,7 @@
   C.settings={get:function(key){return key==='uiAnimationSpeed'?1:key==='rarityColor'?'color':key==='serialOnFront'?true:key==='cinematicQuality'?'medium':'high';},
     get policy(){return current;},cutPolicy:{smoothing:1,tolerance:1,span:.72},tiltPolicy:{cap:4,stiffness:1},onChange:function(){return function(){};},
     withPolicy:function(tier,fn){var before=current;current=tier==='low'||tier==='very-low'?low:full;try{return fn();}finally{current=before;}},policyFor:function(){return full;}};
+  C.quality={resolve:function(tier){return C.data.qualityProfiles[tier]||C.data.qualityProfiles.medium;},effective:function(tier){return tier;},get profile(){return C.data.qualityProfiles.high;}};
   C.viewport={parent:function(el){return el;}};C.presentation.gallery=true;
   C.cutscenes={debug:{profile:'safe',meter:false},register:function(){},profile:function(){return 'safe';},mode:function(){return 'full';},timeline:function(spec){var at=0,sections={};spec.sections.forEach(function(s){sections[s.id]={start:at,ms:s.ms};at+=s.ms;});return {sections:sections,total:at};}};
   // Pure pulse timing from cutscene-runtime.js; keep Safe's 1.8 Hz cap.
