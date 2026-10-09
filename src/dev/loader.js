@@ -1,11 +1,12 @@
 (function (C, root) {
   'use strict';
-  var files=['runtime','shell','saves','simulations','previews','tools','cutscenes','fun','checks','settings-checks','data-checks','bug-checks','inventory-checks','pack-checks','picker-check','picker-tools','achievements','qol-check','stability-check','controls-check','visual-gallery','visual-sheet','visual-check'];
+  var files=['runtime','backup','shell','saves','simulations','previews','tools','cutscenes','fun','checks','settings-checks','data-checks','bug-checks','inventory-checks','pack-checks','picker-check','picker-tools','achievements','qol-check','stability-check','controls-check','visual-gallery','visual-sheet','visual-check'];
   var css=root.document.createElement('link');css.rel='stylesheet';css.href='src/ui/kit/components/developer.css';root.document.head.appendChild(css);
   function load(index) {
     if(index===files.length){
-      Promise.resolve(C.desktop && C.desktop.prepare ? C.desktop.prepare() : false).then(function(){
-        C.dev.prepare();C.events.on('app:ready',function(){C.dev.init();});C.boot();if(C.setup){C.setup.finish();C.setup.welcome();}
+      Promise.resolve(C.desktop && C.desktop.prepare ? C.desktop.prepare() : false).then(async function(){
+        C.dev.prepare();C.boot();if(C.setup)C.setup.status('Preparing developer backup…');
+        await C.dev.prepareBackup();C.dev.init();if(C.setup){C.setup.finish();C.setup.welcome();}
       }).catch(function(error){C.bootFailure=true;if(C.setup)C.setup.finish();if(C.friendly)C.friendly.showStartupFailure(error);root.console.error('Cardable developer startup failed:',error);});
       return;
     }

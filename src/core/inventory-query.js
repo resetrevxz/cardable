@@ -41,10 +41,13 @@
   function group(entry, mode) { return mode === 'variant' ? entry.variant ? entry.variant.name : entry.owned ? 'Normal' : 'Undiscovered' : mode === 'rarity' ? entry.rarity.name : mode === 'generation' ? entry.generation.name : mode === 'brand' ? entry.card.brand || 'Other' : mode === 'ownership' ? entry.owned ? 'Owned' : 'Undiscovered' : mode === 'new' ? entry.isNew ? 'New' : 'Viewed' : ''; }
   function run(base, ui, text, filters) {
     var parsed = parse(text), f = filters || {}, collection = ui.collections.find(function (c) { return c.id === ui.activeCollectionId; });
-    base.entries.forEach(function(e){e.isFavorite=ui.favorites.indexOf(e.stackKey)>=0;});
+    var favorites=new Set(ui.favorites),members=new Map();
+    ui.collections.forEach(function(c){members.set(c.id,new Set(c.stackKeys));});
+    var activeMembers=collection&&members.get(collection.id);
+    base.entries.forEach(function(e){e.isFavorite=favorites.has(e.stackKey);});
     var entries = base.entries.filter(function (e) {
       if (!ui.showUnowned && !e.owned) return false;
-      if (ui.activeCollectionId === 'favorites' && (!e.owned || ui.favorites.indexOf(e.stackKey) < 0) || collection && (!e.owned || collection.stackKeys.indexOf(e.stackKey) < 0)) return false;
+      if (ui.activeCollectionId === 'favorites' && (!e.owned || !e.isFavorite) || activeMembers && (!e.owned || !activeMembers.has(e.stackKey))) return false;
       if (f.ownership === 'owned' && !e.owned || f.ownership === 'unowned' && e.owned || f.ownership === 'duplicates' && e.instances.length < 2) return false;
       if (f.variantOnly && !e.variantId) return false;
       if ((f.variant || []).length && (!e.owned || f.variant.indexOf(e.variantId || 'normal') < 0)) return false;
@@ -53,11 +56,16 @@
       var n = memory(e.card); if (f.vramMin !== '' && f.vramMin != null && (n == null || n < Number(f.vramMin)) || f.vramMax !== '' && f.vramMax != null && (n == null || n > Number(f.vramMax))) return false;
       return parsed.terms.every(function (term) { return matches(e, term); });
     });
-    var orders = ui.customOrders[ui.activeCollectionId] || [], ranks = new Map(orders.map(function (id, i) { return [id, i]; }));
-    function value(e, sort) { var times = e.instances.map(function (i) { return i.pulledAt; }); return sort === 'recent' ? times.length ? -Math.max.apply(null, times) : null : sort === 'oldest' ? times.length ? Math.min.apply(null, times) : null : sort.startsWith('name') ? e.owned ? lower(e.card.name) : null : sort.startsWith('rarity') ? e.rarity.tier * (sort.endsWith('desc') ? -1 : 1) : sort === 'generation' ? e.generation.order : sort.startsWith('vram') ? memory(e.card) == null ? null : memory(e.card) * (sort.endsWith('desc') ? -1 : 1) : sort === 'quantity' ? -e.instances.length : sort === 'serial' ? e.instances.length ? e.instances[0].serial : null : sort === 'custom' ? ranks.has(e.stackKey) ? ranks.get(e.stackKey) : Infinity : e.catalogIndex; }
+    var orders = ui.customOrders[ui.activeCollectionId] || [], ranks = new Map(orders.map(function (id, i) { return [id, i]; })), sortValues=new Map();
+    function value(e, sort) {
+      if(sortValues.has(e))return sortValues.get(e);
+      var time=null;if(sort==='recent'||sort==='oldest')e.instances.forEach(function(i){if(time===null|| (sort==='recent'?i.pulledAt>time:i.pulledAt<time))time=i.pulledAt;});
+      var result=sort==='recent'?time===null?null:-time:sort==='oldest'?time:sort.startsWith('name')?e.owned?lower(e.card.name):null:sort.startsWith('rarity')?e.rarity.tier*(sort.endsWith('desc')?-1:1):sort==='generation'?e.generation.order:sort.startsWith('vram')?memory(e.card)==null?null:memory(e.card)*(sort.endsWith('desc')?-1:1):sort==='quantity'?-e.instances.length:sort==='serial'?e.instances.length?e.instances[0].serial:null:sort==='custom'?ranks.has(e.stackKey)?ranks.get(e.stackKey):Infinity:e.catalogIndex;
+      sortValues.set(e,result);return result;
+    }
     entries.sort(function (a, b) { var ga = group(a, ui.groupMode), gb = group(b, ui.groupMode); if (ga !== gb && ui.groupMode !== 'none') { if (ui.groupMode === 'rarity') return a.rarity.tier - b.rarity.tier; if (ui.groupMode === 'generation') return a.generation.order - b.generation.order; return ga.localeCompare(gb); } var va = value(a, ui.sortMode), vb = value(b, ui.sortMode); if (va == null || vb == null) return va == null && vb == null ? a.catalogIndex - b.catalogIndex : va == null ? 1 : -1; var compare = typeof va === 'string' ? va.localeCompare(vb) * (ui.sortMode === 'name-desc' ? -1 : 1) : va === vb ? 0 : va < vb ? -1 : 1; return compare || a.catalogIndex - b.catalogIndex; });
     var groups = []; entries.forEach(function (entry, index) { var label = group(entry, ui.groupMode), last = groups[groups.length - 1]; if (!last || label !== last.label) groups.push({ label: label, start: index, count: 1 }); else last.count++; });
-    var counts={all:base.entries.filter(function(e){return e.owned||ui.showUnowned;}).length,favorites:0};ui.collections.forEach(function(c){counts[c.id]=0;});base.entries.forEach(function(e){if(!e.owned)return;if(ui.favorites.indexOf(e.stackKey)>=0)counts.favorites++;ui.collections.forEach(function(c){if(c.stackKeys.indexOf(e.stackKey)>=0)counts[c.id]++;});});
+    var counts={all:0,favorites:0};ui.collections.forEach(function(c){counts[c.id]=0;});base.entries.forEach(function(e){if(e.owned||ui.showUnowned)counts.all++;if(!e.owned)return;if(e.isFavorite)counts.favorites++;members.forEach(function(keys,id){if(keys.has(e.stackKey))counts[id]++;});});
     return { entries: entries, groups: groups, errors: parsed.errors, terms: parsed.terms, facets: facets(base.entries), owned: base.owned, total: base.total, shown: entries.length, collectionCounts:counts, stackCount:base.stackCount, variantCopies:base.variantCopies, newCopies:base.newCopies };
   }
   C.inventoryQuery = { parse: parse, memory: memory, matches: matches, facets: facets, group: group, run: run };

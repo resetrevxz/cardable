@@ -8,7 +8,7 @@
     if(changed||!lastState||!!lastState.ready!==!!state.ready){host.dataset.state=mode;C.packSkins.apply(unit.el,pack,state.ready?'idle':'waiting');open.disabled=state.ready<=0;}
     if(!lastState||lastState.ready!==state.ready)host.dataset.ready=state.ready;
     if(changed||!lastState||lastState.quality!==state.quality)root.document.documentElement.dataset.quality=state.quality;
-    var tiers=['very-low','low','medium','high'],graphics=state.graphics||{};
+    var tiers=['very-low','low','medium','high','very-high'],graphics=state.graphics||{};
     ['finishQuality','reflectionQuality','propQuality','particleQuality','shadowQuality','glassQuality','backgroundQuality','animationQuality','canvasQuality','cinematicQuality'].forEach(function(key){var value=graphics[key]||state.quality;if(!lastState||value!==((lastState.graphics||{})[key]||lastState.quality))root.document.documentElement.setAttribute('data-'+key.replace(/[A-Z]/g,function(letter){return '-'+letter.toLowerCase();}),value);});
     var packQuality=tiers[Math.min(tiers.indexOf(graphics.finishQuality||state.quality),tiers.indexOf(graphics.reflectionQuality||state.quality))];
     if(unit.el.dataset.packQuality!==packQuality)unit.el.dataset.packQuality=packQuality;

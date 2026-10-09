@@ -31,10 +31,10 @@
       C.settings.withPolicy(tier, paintFace);
     }
     paint();
-    var signature = ['finishQuality', 'propQuality', 'particleQuality'].map(C.settings.get).join('/');
+    var signature = C.settings.get('quality') === 'very-low' ? 'very-low' : 'low';
     var stop = C.settings.onChange('*', function (_, key) {
       if (key === 'rarityColor') { context.colorMode = C.settings.get('rarityColor'); el.dataset.colorMode = context.colorMode; el.querySelectorAll('.finish-surface').forEach(function (surface) { surface.dataset.colorMode = context.colorMode; }); }
-      var next = ['finishQuality', 'propQuality', 'particleQuality'].map(C.settings.get).join('/'); if (next !== signature) { signature = next; paint(); }
+      var next = C.settings.get('quality') === 'very-low' ? 'very-low' : 'low'; if (next !== signature) { signature = next; paint(); }
     });
     var untrack, view = { el: el, card: card, instance: instance, mode: 'lite', side: 'front', visible: true, destroyed: false, thumbnail: true,
       setMode: function () {}, setVisible: function (value) { if(view.visible===value)return;view.visible = value; el.dataset.visible = value; }, setPresentation: function () {},

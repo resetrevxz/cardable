@@ -22,7 +22,7 @@
 :is([data-glass-quality="very-low"],[data-glass-quality="low"]) :is(.glass,.glass--sheet,.card__info,.currency-counter,.currency-receipt,.collection-toast,.save-notice,.settings-data-toast) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background-color: var(--surface-2); }
 :is([data-glass-quality="very-low"],[data-glass-quality="low"]) .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail),
 :is([data-glass-quality="very-low"],[data-glass-quality="low"]) .inventory-depth-active .menu-shell { filter: none; }
-:is([data-glass-quality="very-low"],[data-glass-quality="low"]) .inventory-detail { background: rgba(8,8,10,calc(var(--detail-dim,0) * .95)); }
+:is([data-glass-quality="very-low"],[data-glass-quality="low"]) .inventory-detail { background: rgba(8,8,10,calc(var(--detail-dim,0) * .58)); }
 
 [data-shadow-quality="medium"] { --shadow-2: 0 2px 4px #0008, 0 12px 28px #0006; }
 [data-shadow-quality="low"] { --shadow-1: 0 6px 16px #0005; --shadow-2: 0 12px 28px #0006; }

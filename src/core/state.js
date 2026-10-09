@@ -174,6 +174,9 @@
       C.state.recovery = null; C.state.noticeShown = false;
     },
     encode: function (value) { return JSON.stringify(value); },
+    // Last encoded write, including the session fallback. Read-only consumers
+    // such as the optional HUD can reuse it without serializing the live save.
+    get serialized() { return cache.memory; },
     beforeWrite: null,
     lastError: null,
     get persistenceAvailable() { return !cache.unavailable; },

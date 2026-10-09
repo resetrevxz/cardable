@@ -11,7 +11,7 @@
   tutorial:{title:'Opening guide',body:'Follow the highlighted control. The guided opening uses a Standard Pack; you can dismiss the guide with Escape.'},
   data:{title:'Save and recovery',body:'Export before replacing progress. Import and restore retain their confirmation steps. Studio photos require their own Album exports.'},
   mini:{title:'Mini mode',body:'Watch your next pack in a lightweight window. Open pack expands the full game; double-click the background to return.'},
-  performance:{title:'Performance display',body:'Simple shows a quiet frame counter; Advanced adds observed details. Idle and paused states are labelled; these numbers do not certify hardware performance.'},
+  performance:{title:'Performance display',body:'Simple shows FPS and the average FPS of the slowest 1% of sampled frames. Advanced also shows the slowest 0.1%, frame-time percentiles and sample count. Wake-up frames, idle and paused periods are excluded. Short samples are provisional; these numbers do not certify hardware performance.'},
   developer:{title:'Developer tools',body:'These opt-in tools are for local editing and inspection. Preview controls must not grant rewards to real progress.'},
   commands:{title:'Command palette',body:'Search for an action, use the arrow keys to select it and press Enter to run. Escape returns to the previous screen.'},
   opening:{title:'Card reveal',body:'Keep or delete a card once the reveal is ready. Skipping a cinematic changes presentation only; it never repeats a reward.'},

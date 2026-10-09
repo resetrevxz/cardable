@@ -7,7 +7,7 @@ const config = require('../config/desktop-config');
 let window = null, mini = null, pending = null, blocker = null, cueTimer = null, onBattery = false, signalled = false, lastReady = null;
 let prefs = { taskbarProgress:true, alwaysOnTop:false }, pack = null, queued = null;
 let lastState = null, progressValues = new WeakMap();
-const tiers=['very-low','low','medium','high'],graphicsKeys=['finishQuality','reflectionQuality','propQuality','particleQuality','shadowQuality','glassQuality','backgroundQuality','animationQuality','canvasQuality','cinematicQuality'];
+const tiers=['very-low','low','medium','high','very-high'],graphicsKeys=['finishQuality','reflectionQuality','propQuality','particleQuality','shadowQuality','glassQuality','backgroundQuality','animationQuality','canvasQuality','cinematicQuality'];
 const miniUrl = pathToFileURL(path.join(__dirname,'mini.html')).href;
 function state() { const bounds = window && !window.isDestroyed() ? window.getContentBounds() : {width:1920,height:1080}; return {width:bounds.width,height:bounds.height,mini:!!mini,onBattery,fullscreen:!!window&&window.isFullScreen(),visible:!!window&&window.isVisible()&&!window.isMinimized()}; }
 function sendState(force = false) { pending = null; if(window && !window.isDestroyed() && !window.webContents.isDestroyed()){const value=state(),signature=JSON.stringify(value);if(!force&&signature===lastState)return;lastState=signature;window.webContents.send(IPC_CHANNELS.WINDOW_RUNTIME_STATE,value);} }
@@ -83,7 +83,7 @@ module.exports = {
   },
   preferences(value) { if(!value||typeof value.taskbarProgress!=='boolean'||typeof value.alwaysOnTop!=='boolean')return false;prefs={taskbarProgress:value.taskbarProgress,alwaysOnTop:value.alwaysOnTop,notifyPackReady:value.notifyPackReady!==false};if(window&&!window.isDestroyed())window.setAlwaysOnTop(prefs.alwaysOnTop);if(mini&&!mini.isDestroyed())mini.setAlwaysOnTop(windowState.state.miniPinned??prefs.alwaysOnTop);taskbar();return true; },
   pack(value) {
-    if(!value||!Number.isInteger(value.ready)||value.ready<0||value.ready>100||!Number.isFinite(value.progress)||value.progress<0||value.progress>1||typeof value.packId!=='string'||value.packId.length>80||typeof value.countdown!=='string'||value.countdown.length>80||typeof value.canMini!=='boolean'||!['very-low','low','medium','high'].includes(value.quality))return false;
+    if(!value||!Number.isInteger(value.ready)||value.ready<0||value.ready>100||!Number.isFinite(value.progress)||value.progress<0||value.progress>1||typeof value.packId!=='string'||value.packId.length>80||typeof value.countdown!=='string'||value.countdown.length>80||typeof value.canMini!=='boolean'||!tiers.includes(value.quality))return false;
     if(value.graphics!=null&&(typeof value.graphics!=='object'||Array.isArray(value.graphics)||graphicsKeys.some(key=>value.graphics[key]!=null&&!tiers.includes(value.graphics[key]))))return false;
     const graphics={};graphicsKeys.forEach(key=>{graphics[key]=value.graphics&&value.graphics[key]!=null?value.graphics[key]:value.quality;});
     const keys={};if(value.keyBindings&&typeof value.keyBindings==='object'){['menu.mini','opening.hold','global.settings'].forEach(id=>{if(Array.isArray(value.keyBindings[id]))keys[id]=value.keyBindings[id].filter(v=>typeof v==='string'&&v.length<60).slice(0,2);});}

@@ -45,3 +45,9 @@ The current restricted testing policy is [PROMPTING.md](PROMPTING.md). Broad cov
 ## Visual overhaul budgets
 
 `src/data/quality-profiles.js` contains the shared numeric budgets exposed through `Cardable.quality.profile`. Very High requires accelerated WebGL 2, 4096 px texture/renderbuffer limits and twelve bounded startup paints. A three-second sustained slow-frame guard applies High temporarily and offers a quiet notification preference; it does not rewrite saved quality. Settings explains unavailable hardware. Studio retains its additional floating-point/render-capacity gate. Lower tiers never allocate the new optical targets.
+
+## 1.2.4 frame consistency pass
+
+Navigation saves reuse unchanged inventory projections; static thumbnails repaint only when their actual bounded material tier changes. Detail retains a static shaded collection behind one full card. Medium's Mythical cave reduces wall subdivisions while retaining its major silhouettes and materials; High/Very High retain full geometry. Cinematic buffers/draw data are reused and adaptive resolution allocations step through bounded bands. Warmup scenes retire when a calm reveal starts or the starting quality changes.
+
+The HUD's 1% and 0.1% lows average FPS over the slowest sampled fraction; p99 remains a separate frame-time percentile. Initial wake-up placeholders and idle/paused periods are excluded. Advanced shows sample count and refreshes its graph at most 10 Hz, using the last serialized save for size. These corrections do not establish a measured FPS gain. [OPTIMIZATION-1.2.4](OPTIMIZATION-1.2.4.md) records the current functional/resource evidence and outstanding timing authorization.

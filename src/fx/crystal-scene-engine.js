@@ -17,8 +17,22 @@
   var prismaticGeometry=false;
   var identity=model(0,0,0,1,0);
   C.cutsceneMath={clamp:clamp,smooth:smooth,mix:mix,random:rng,
+    crystalFall:function(t,timeline,releaseAngle){
+      var phase=clamp((t-timeline.fall.start)/timeline.fall.ms),angle=releaseAngle+phase*.63;
+      // The scaled 1.2-unit crystal tip touches y=0 exactly at the splash beat.
+      var start=4.35+1.1016*(1-Math.cos(releaseAngle)),contact=1.62*Math.cos(releaseAngle+.63)-.0189*Math.sin(releaseAngle+.63),age=Math.max(0,t-timeline.impact.start);
+      var velocity=2*(start-contact)/timeline.fall.ms,depth=velocity*.42*(1-Math.exp(-age/.42))+.08*age;
+      return {phase:phase,hero:mix(start,contact,phase*phase)-depth,x:Math.sin(releaseAngle)*1.1016*(1-phase*.7),angle:angle+age*.11,depth:depth,impactAge:age};
+    },
     starTurns:function(age,ramp,max,factors){var a=Math.min(age,ramp);return (.1*a+(max-.1)*a*a/(2*ramp))*factors[0]+Math.max(0,age-ramp)*max*factors[1];}};
   function triangle(out,a,b,c) { var n=normalize(cross(sub(b,a),sub(c,a))); [a,b,c].forEach(function(p){out.push(p[0],p[1],p[2],n[0],n[1],n[2]);}); }
+  function writeTriangle(out,at,ax,ay,az,bx,by,bz,cx,cy,cz){
+    var ux=bx-ax,uy=by-ay,uz=bz-az,vx=cx-ax,vy=cy-ay,vz=cz-az;
+    var nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,length=Math.hypot(nx,ny,nz)||1;nx/=length;ny/=length;nz/=length;
+    out[at++]=ax;out[at++]=ay;out[at++]=az;out[at++]=nx;out[at++]=ny;out[at++]=nz;
+    out[at++]=bx;out[at++]=by;out[at++]=bz;out[at++]=nx;out[at++]=ny;out[at++]=nz;
+    out[at++]=cx;out[at++]=cy;out[at++]=cz;out[at++]=nx;out[at++]=ny;out[at++]=nz;return at;
+  }
   function crystal(out,x,y,z,r,length,angle,random) {
     var rings=[], sides=prismaticGeometry?6:7,tilt=prismaticGeometry?(random()-.5)*.28:0;
     for(var row=0;row<3;row++) { var ring=[]; for(var i=0;i<sides;i++){var a=i*TAU/sides+angle, rr=r*(row===0?.66:row===1?1:.62)*(1+(random()-.5)*.12);ring.push([x+Math.cos(a)*rr+tilt*[.48,.12,-.48][row]*length,y+[.48,.12,-.48][row]*length,z+Math.sin(a)*rr]);} rings.push(ring); }
@@ -98,9 +112,9 @@
   }`;
   var waterFragment = `#version 300 es
   precision highp float;in vec3 vWorld,vNormal;out vec4 result;
-  uniform sampler2D uReflection,uHeight;uniform float uSim;uniform mat4 uReflectVP;uniform vec3 uEye,uRuby;uniform float uTime,uImpact,uMono,uUnder,uOmen,uDawn;
+  uniform sampler2D uReflection,uHeight;uniform float uSim,uImpactCenter;uniform mat4 uReflectVP;uniform vec3 uEye,uRuby;uniform float uTime,uImpact,uMono,uUnder,uOmen,uDawn;
   void main(){
-    vec2 p=vWorld.xz;float d=length(p);float wave=sin(p.x*2.7+uTime*.9)*.019+sin(p.y*3.9-uTime*.7)*.014;
+    vec2 p=vWorld.xz;float d=length(p-vec2(uImpactCenter,0.));float wave=sin(p.x*2.7+uTime*.9)*.019+sin(p.y*3.9-uTime*.7)*.014;
     float ring=sin(d*16.-uImpact*11.)*exp(-abs(d-uImpact*2.5)*2.)*exp(-uImpact*.62)*step(0.,uImpact);
     vec3 n=normalize(vec3(cos(p.x*2.7+uTime)*.08+ring*.1,1.,sin(p.y*3.9-uTime)*.07+ring*.1));
     if(uSim>.5){vec2 st=clamp(p/16.+.5,vec2(.01),vec2(.99));float dx=texture(uHeight,st+vec2(.005,0.)).r-texture(uHeight,st-vec2(.005,0.)).r;float dz=texture(uHeight,st+vec2(0.,.005)).r-texture(uHeight,st-vec2(0.,.005)).r;n=normalize(n+vec3(dx*3.,0.,dz*3.));}
@@ -246,7 +260,7 @@
     void main(){vec3 c=mix(vColor,vec3(dot(vColor,vec3(.213,.715,.072))),uMono);result=vec4(c,(1.-abs(vStrip.y))*sin(vStrip.x*3.1415926)*vAlpha);}`;
   C.crystalSceneEngine = { create: function (seed,descriptor) {
     descriptor=descriptor||C.rarity('mythical').openingIntro;
-    var dawn=descriptor.kind==='prismatic',level=dawn?(descriptor.qualityLevel==null?2:descriptor.qualityLevel):C.settingsSchema.tiers.indexOf(C.settings.get('cinematicQuality')),resolution=dawn?[.5,.5,.75,1,1][level]:1;prismaticGeometry=dawn;
+    var dawn=descriptor.kind==='prismatic',level=dawn?(descriptor.qualityLevel==null?2:descriptor.qualityLevel):C.settingsSchema.tiers.indexOf(C.settings.get('cinematicQuality')),resolution=dawn?[.5,.5,.75,1,1][level]:1,sceneProfile=C.quality.resolve(C.settingsSchema.tiers[level]);prismaticGeometry=dawn;
     var timeline=Object.create(null),offset=0;descriptor.sections.forEach(function(s){timeline[s.id]={start:offset,ms:s.ms/1000};offset+=s.ms/1000;});
     var caveMs=dawn?0:timeline.cave.ms,tipStart=dawn?Infinity:timeline.tip.start,tipMs=dawn?1:timeline.tip.ms,fallStart=dawn?Infinity:timeline.fall.start,fallMs=dawn?1:timeline.fall.ms,impactStart=dawn?Infinity:timeline.impact.start,underStart=dawn?Infinity:timeline.underwater.start,underMs=dawn?1:timeline.underwater.ms,ascendStart=timeline.ascend.start,ascendMs=timeline.ascend.ms;
     var ritualStart=dawn?timeline.veil.start:ascendStart,ritualArrival=dawn?timeline.veil.ms+ascendMs:ascendMs;
@@ -255,8 +269,14 @@
     var stoneMesh,crystalsMesh,heroMesh,waterMesh,tendrilMesh,splashMesh,pointBuffer,reflection,scene,bloom,blur,fogAtlas,mainProgram,waterProgram,pointsProgram,postProgram,bloomProgram,sigilProgram,windProgram,windBuffer;
     var optics=null,worldProgram=null,shadowVP=null,shadowProgram=null,shadowTarget=null,focusDistance=6,lastPaintTime=null,adaptiveScale=1,targetAdaptiveScale=1;var highBuilt=level>=3;
     var detailTexture=null,hanging=[],caveArt=descriptor.caveArt||{},skyProgram=null,skyTarget=null,cloudTexture=null;
+    var rubyColor=new Float32Array(descriptor.color.map(function(v){return v/255;})),heroUniform=new Float32Array(3);
+    var drawMatrix=new Float32Array(16);drawMatrix[15]=1;
+    // uniformMatrix4fv copies synchronously. Each draw can reuse this matrix;
+    // the persistent identity/camera matrices remain separate.
+    function drawTransform(x,y,z,s,angle){var c=Math.cos(angle||0)*s,q=Math.sin(angle||0)*s;drawMatrix[0]=drawMatrix[5]=c;drawMatrix[1]=q;drawMatrix[4]=-q;drawMatrix[10]=s;drawMatrix[12]=x;drawMatrix[13]=y;drawMatrix[14]=z;return drawMatrix;}
+    var contactAngle=(caveArt.tipAngle||.23)+.63,impactCenterX=dawn?0:C.cutsceneMath.crystalFall(impactStart,timeline,caveArt.tipAngle||.23).x+.0189*Math.cos(contactAngle)+1.62*Math.sin(contactAngle);
     // 300 ambient points + 20 bubbles + 40 impact droplets can coexist at the side-shot cut.
-    var pulseTimeFactor=1,spinFactors=[1,1],intensityProfile='full',presentationFactor=1;var simulation=null,chainState=[],chainTime=null;var heroScreen=[.5,.3];var width=0,height=0,particleData=new Float32Array(3072),tendrilData=new Float32Array(22*32*6*6),particles=[];
+    var pulseTimeFactor=1,spinFactors=[1,1],intensityProfile='full',presentationFactor=1;var simulation=null,chainState=[],chainTime=null;var heroScreen=[.5,.3];var width=0,height=0,particleData=new Float32Array(3072),tendrilData=new Float32Array(22*32*6*6),splashData=new Float32Array(40*6*6),particles=[];
     try { gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,preserveDrawingBuffer:false,powerPreference:'high-performance'}); } catch (_) {}
     canvas.addEventListener('webglcontextlost',function(e){e.preventDefault();lost=true;stats.backend='canvas';});
     var gpu=null;
@@ -284,9 +304,9 @@
         float fog=1.-exp`);
     }
     function shadowPass(hero,heroX,angle,t){
-      var n=C.quality.resolve(C.settingsSchema.tiers[level]).shadowSize;sizeTarget(shadowTarget,n,n);
-      shadowVP=multiply(projection(1),view([-3,5.5,4],[0,2.2,0]));gl.bindFramebuffer(gl.FRAMEBUFFER,shadowTarget.f);gl.viewport(0,0,n,n);gl.clearColor(1,1,1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.useProgram(shadowProgram.p);gl.uniformMatrix4fv(uniform(shadowProgram,'uVP'),false,shadowVP);gl.uniform1f(uniform(shadowProgram,'uTime'),t);gl.uniform1f(uniform(shadowProgram,'uCrack'),0);gl.uniform1f(uniform(shadowProgram,'uMaterial'),0);
-      drawMesh(shadowProgram,stoneMesh);drawMesh(shadowProgram,crystalsMesh);hanging.forEach(function(c){drawMesh(shadowProgram,c.mesh,model(c.x,c.y,c.z,1,0));});drawMesh(shadowProgram,heroMesh,model(heroX,hero,0,1.35,angle));
+      var n=sceneProfile.shadowSize;sizeTarget(shadowTarget,n,n);
+      if(!shadowVP)shadowVP=multiply(projection(1),view([-3,5.5,4],[0,2.2,0]));gl.bindFramebuffer(gl.FRAMEBUFFER,shadowTarget.f);gl.viewport(0,0,n,n);gl.clearColor(1,1,1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.disable(gl.BLEND);gl.useProgram(shadowProgram.p);gl.uniformMatrix4fv(uniform(shadowProgram,'uVP'),false,shadowVP);gl.uniform1f(uniform(shadowProgram,'uTime'),t);gl.uniform1f(uniform(shadowProgram,'uCrack'),0);gl.uniform1f(uniform(shadowProgram,'uMaterial'),0);
+      drawMesh(shadowProgram,stoneMesh);drawMesh(shadowProgram,crystalsMesh);hanging.forEach(function(c){drawMesh(shadowProgram,c.mesh,drawTransform(c.x,c.y,c.z,1,0));});drawMesh(shadowProgram,heroMesh,drawTransform(heroX,hero,0,1.35,angle));
     }
     function cinemaComposite(t,w,h){
       var o=optics;sizeTarget(o.near,Math.max(1,w>>1),Math.max(1,h>>1));sizeTarget(o.nearTemp,o.near.w,o.near.h);sizeTarget(o.wide,Math.max(1,w>>3),Math.max(1,h>>3));sizeTarget(o.wideTemp,o.wide.w,o.wide.h);sizeTarget(o.history,w,h);gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
@@ -341,9 +361,12 @@
           heroScreen=[.5,.5];stats.backend='webgl2';stats.world='cloud-ritual';return;
         }
         var rocks=[],cluster=[],hero=[],water=[];
-        var rich=level>=3;
-        rockPlane(rocks,1,[-9,5.7,-10],20,18,rich?96:72,rich?64:56);rockPlane(rocks,2,[-9,-2,-8],18,9,rich?88:64,rich?48:40);
-        rockPlane(rocks,0,[-6,-2,-8],9,17,rich?48:40,rich?72:60);rockPlane(rocks,0,[6,-2,-8],9,17,rich?48:40,rich?72:60);
+        var rich=level>=3,gridScale=rich?1:level===2?.75:.6;
+        // Lower detail keeps the authored cave bounds, rough material and large
+        // silhouettes, with fewer wall cells to construct and draw.
+        function cavePlane(axis,origin,w,h,cols,rows){rockPlane(rocks,axis,origin,w,h,Math.max(2,Math.round(cols*gridScale)),Math.max(2,Math.round(rows*gridScale)));}
+        cavePlane(1,[-9,5.7,-10],20,18,rich?96:72,rich?64:56);cavePlane(2,[-9,-2,-8],18,9,rich?88:64,rich?48:40);
+        cavePlane(0,[-6,-2,-8],9,17,rich?48:40,rich?72:60);cavePlane(0,[6,-2,-8],9,17,rich?48:40,rich?72:60);
         for(var mass=0;mass<(rich?64:40);mass++){
           var side=mass%2?-1:1,z=-8+(mass>>1)*.47;
           rockMass(rocks,side*(5.7+random()*.4),.5+random()*5.8,z,.6+random()*.9,.5+random()*1.2,.7+random()*1.1,random);
@@ -357,7 +380,7 @@
             crystal(rocks,side*(5.65+random()*.4),1.1+random()*3.2,z,.35+random()*.55,1.1+random()*2.7,random()*TAU,random);
             if(ridge%3===0)crystal(rocks,side*(2.6+random()*1.8),5.9,z,.24+random()*.4,.6+random()*.9,random()*TAU,random);
           }
-          var groups=C.settings.get('cinematicQuality')==='high'?caveArt.highClusters:caveArt.clusters;
+          var groups=rich?caveArt.highClusters:caveArt.clusters;
           for(var group=0;group<(groups||12);group++){
             var gx=(group%2?-1:1)*(1.5+random()*3.9),gz=group<4?3.2+random()*1.4:-6+random()*8,geometry=[];
             var length=group<4?2.1+random()*1.2:.9+random()*1.4;
@@ -410,7 +433,7 @@
     function dispose(){if(disposed)return;if(gl&&!lost){buffers.forEach(function(b){gl.deleteBuffer(b);});textures.forEach(function(t){gl.deleteTexture(t);});frames.forEach(function(f){gl.deleteFramebuffer(f);});renderbuffers.forEach(function(r){gl.deleteRenderbuffer(r);});programs.forEach(function(p){gl.deleteProgram(p);});var release=gl.getExtension('WEBGL_lose_context');if(release)release.loseContext();}disposed=true;canvas.width=canvas.height=1;gl=null;stats.backend='canvas';}
     function drawMesh(p,m,transform){gl.uniformMatrix4fv(uniform(p,'uModel'),false,transform||identity);gl.bindBuffer(gl.ARRAY_BUFFER,m.buffer);gl.enableVertexAttribArray(0);gl.enableVertexAttribArray(1);gl.vertexAttribPointer(0,3,gl.FLOAT,false,24,0);gl.vertexAttribPointer(1,3,gl.FLOAT,false,24,12);gl.drawArrays(gl.TRIANGLES,0,m.count);stats.drawCalls++;}
     function scenePass(vp,eye,hero,heroX,angle,t,under,clip,reflectVP,impact){
-      gl.useProgram(mainProgram.p);gl.uniformMatrix4fv(uniform(mainProgram,'uVP'),false,vp);gl.uniform3fv(uniform(mainProgram,'uEye'),eye);gl.uniform3fv(uniform(mainProgram,'uHero'),[heroX,hero,0]);gl.uniform3fv(uniform(mainProgram,'uRuby'),descriptor.color.map(function(v){return v/255;}));gl.uniform1f(uniform(mainProgram,'uDawn'),dawn?1:0);gl.uniform1f(uniform(mainProgram,'uCrack'),t<fallStart?smooth(((t-tipStart)/tipMs-.22)/.7):0);gl.uniform1f(uniform(mainProgram,'uTime'),t);gl.uniform1f(uniform(mainProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);gl.uniform1f(uniform(mainProgram,'uUnder'),under?1:0);gl.uniform1f(uniform(mainProgram,'uClip'),clip?1:0);gl.uniform1f(uniform(mainProgram,'uPulse'),impact>=0?.6+(intensityProfile==='safe'?.09:.3)*Math.sin(t*3*(intensityProfile==='safe'?presentationFactor:1)):.15);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,mainProgram.stone);gl.uniform1i(uniform(mainProgram,'uStone'),0);gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,clip?mainProgram.stone:reflection.texture);gl.uniform1i(uniform(mainProgram,'uGlass'),2);gl.uniform2f(uniform(mainProgram,'uViewport'),clip?reflection.w:width,clip?reflection.h:height);
+      gl.useProgram(mainProgram.p);gl.uniformMatrix4fv(uniform(mainProgram,'uVP'),false,vp);gl.uniform3fv(uniform(mainProgram,'uEye'),eye);heroUniform[0]=heroX;heroUniform[1]=hero;gl.uniform3fv(uniform(mainProgram,'uHero'),heroUniform);gl.uniform3fv(uniform(mainProgram,'uRuby'),rubyColor);gl.uniform1f(uniform(mainProgram,'uDawn'),dawn?1:0);gl.uniform1f(uniform(mainProgram,'uCrack'),t<fallStart?smooth(((t-tipStart)/tipMs-.22)/.7):0);gl.uniform1f(uniform(mainProgram,'uTime'),t);gl.uniform1f(uniform(mainProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);gl.uniform1f(uniform(mainProgram,'uUnder'),under?1:0);gl.uniform1f(uniform(mainProgram,'uClip'),clip?1:0);gl.uniform1f(uniform(mainProgram,'uPulse'),impact>=0?.6+(intensityProfile==='safe'?.09:.3)*Math.sin(t*3*(intensityProfile==='safe'?presentationFactor:1)):.15);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,mainProgram.stone);gl.uniform1i(uniform(mainProgram,'uStone'),0);gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,clip?mainProgram.stone:reflection.texture);gl.uniform1i(uniform(mainProgram,'uGlass'),2);gl.uniform2f(uniform(mainProgram,'uViewport'),clip?reflection.w:width,clip?reflection.h:height);
       gl.activeTexture(gl.TEXTURE4);gl.bindTexture(gl.TEXTURE_2D,detailTexture);gl.uniform1i(uniform(mainProgram,'uDetail'),4);
       gl.uniform1f(uniform(mainProgram,'uWetness'),dawn?0:caveArt.wetness||.58);gl.uniform1f(uniform(mainProgram,'uHeroLight'),dawn?1:caveArt.heroLight||1.15);
       if(highBuilt){gl.uniform1f(uniform(mainProgram,'uVeryHigh'),level===4?1:0);gl.uniform1f(uniform(mainProgram,'uHigh'),level>=3?1:0);gl.uniformMatrix4fv(uniform(mainProgram,'uShadowVP'),false,shadowVP||identity);gl.activeTexture(gl.TEXTURE5);gl.bindTexture(gl.TEXTURE_2D,shadowTarget.texture);gl.uniform1i(uniform(mainProgram,'uShadow'),5);gl.uniform2f(uniform(mainProgram,'uShadowPixel'),1/shadowTarget.w,1/shadowTarget.h);}
@@ -419,39 +442,46 @@
         if(index>=(level>=3?caveArt.highClusters:caveArt.clusters))return;
         var tremor=t>=tipStart&&t<fallStart?smooth((t-tipStart)/tipMs)*Math.sin(t*19+cluster.phase)*.009:0;
         var sway=Math.sin(t*.65+cluster.phase)*(caveArt.sway||.012)*cluster.weight+tremor;
-        drawMesh(mainProgram,cluster.mesh,model(cluster.x,cluster.y,cluster.z,1,sway));
+        drawMesh(mainProgram,cluster.mesh,drawTransform(cluster.x,cluster.y,cluster.z,1,sway));
       });
-      gl.uniform1f(uniform(mainProgram,'uMaterial'),3);drawMesh(mainProgram,heroMesh,model(heroX,hero,0,1.35,angle));
+      gl.uniform1f(uniform(mainProgram,'uMaterial'),3);drawMesh(mainProgram,heroMesh,drawTransform(heroX,hero,0,1.35,angle));
       if(!dawn&&t>tipStart+tipMs*.32&&t<impactStart){
         // The joint sheds solid chips first; their paths continue through the hero release.
         for(var chip=0;chip<8;chip++){var age=t-tipStart-tipMs*.32-chip*.07;if(age<0)continue;
-          drawMesh(mainProgram,heroMesh,model(Math.sin(chip*2.399)*age*.32,5.45-age*age*1.65,Math.cos(chip*2.399)*age*.25,.025+(chip%3)*.015,chip+age*2));}
+          drawMesh(mainProgram,heroMesh,drawTransform(Math.sin(chip*2.399)*age*.32,5.45-age*age*1.65,Math.cos(chip*2.399)*age*.25,.025+(chip%3)*.015,chip+age*2));}
       }
-      if(impact>=0&&impact<.8){gl.uniform1f(uniform(mainProgram,'uMaterial'),dawn?2:4);drawMesh(mainProgram,splashMesh);}
+      if(impact>=0&&impact<.8){gl.uniform1f(uniform(mainProgram,'uMaterial'),dawn?2:4);drawMesh(mainProgram,splashMesh,drawTransform(impactCenterX,0,0,1,0));}
       if(under&&!clip){gl.uniform1f(uniform(mainProgram,'uMaterial'),2);drawMesh(mainProgram,tendrilMesh);}
-      if(!clip){gl.useProgram(waterProgram.p);gl.uniformMatrix4fv(uniform(waterProgram,'uVP'),false,vp);gl.uniformMatrix4fv(uniform(waterProgram,'uReflectVP'),false,reflectVP);gl.uniform3fv(uniform(waterProgram,'uEye'),eye);gl.uniform3fv(uniform(waterProgram,'uRuby'),descriptor.color.map(function(v){return v/255;}));gl.uniform1f(uniform(waterProgram,'uDawn'),dawn?1:0);gl.uniform1f(uniform(waterProgram,'uOmen'),smooth((t-ascendStart)/ascendMs));gl.uniform1f(uniform(waterProgram,'uTime'),t);gl.uniform1f(uniform(waterProgram,'uImpact'),impact);gl.uniform1f(uniform(waterProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);gl.uniform1f(uniform(waterProgram,'uUnder'),under?1:0);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,reflection.texture);gl.uniform1i(uniform(waterProgram,'uReflection'),0);if(highBuilt){gl.activeTexture(gl.TEXTURE4);gl.bindTexture(gl.TEXTURE_2D,reflection.depthTexture);gl.uniform1i(uniform(waterProgram,'uReflectionDepth'),4);gl.uniform1f(uniform(waterProgram,'uHigh'),level>=3?1:0);}gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,simulation&&level>=2?simulation.texture:mainProgram.stone);gl.uniform1i(uniform(waterProgram,'uHeight'),3);gl.uniform1f(uniform(waterProgram,'uSim'),dawn&&simulation&&level>=2?1:0);drawMesh(waterProgram,waterMesh);}
+      if(!clip){gl.useProgram(waterProgram.p);gl.uniformMatrix4fv(uniform(waterProgram,'uVP'),false,vp);gl.uniformMatrix4fv(uniform(waterProgram,'uReflectVP'),false,reflectVP);gl.uniform3fv(uniform(waterProgram,'uEye'),eye);gl.uniform3fv(uniform(waterProgram,'uRuby'),rubyColor);gl.uniform1f(uniform(waterProgram,'uDawn'),dawn?1:0);gl.uniform1f(uniform(waterProgram,'uOmen'),smooth((t-ascendStart)/ascendMs));gl.uniform1f(uniform(waterProgram,'uTime'),t);gl.uniform1f(uniform(waterProgram,'uImpact'),impact);gl.uniform1f(uniform(waterProgram,'uImpactCenter'),impactCenterX);gl.uniform1f(uniform(waterProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);gl.uniform1f(uniform(waterProgram,'uUnder'),under?1:0);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,reflection.texture);gl.uniform1i(uniform(waterProgram,'uReflection'),0);if(highBuilt){gl.activeTexture(gl.TEXTURE4);gl.bindTexture(gl.TEXTURE_2D,reflection.depthTexture);gl.uniform1i(uniform(waterProgram,'uReflectionDepth'),4);gl.uniform1f(uniform(waterProgram,'uHigh'),level>=3?1:0);}gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,simulation&&level>=2?simulation.texture:mainProgram.stone);gl.uniform1i(uniform(waterProgram,'uHeight'),3);gl.uniform1f(uniform(waterProgram,'uSim'),dawn&&simulation&&level>=2?1:0);drawMesh(waterProgram,waterMesh);}
     }
-    function tendrils(t,hero,progress,angle){
+    var ribbonPoints=new Float64Array(8);
+    function tendrils(t,hero,progress,angle,heroX){
       var strands=dawn?(level>=3?20:level===2?10:6):12,segments=dawn?28:32,offset=0;
-      function put(a,b,c){var n=normalize(cross(sub(b,a),sub(c,a)));[a,b,c].forEach(function(p){for(var j=0;j<3;j++)tendrilData[offset++]=p[j];for(var k=0;k<3;k++)tendrilData[offset++]=n[k];});}
-      var reset=chainTime===null||t<chainTime||t-chainTime>.3,dt=reset?1/60:Math.max(0,Math.min(.04,t-chainTime));
+      var reset=chainTime===null||t<chainTime||t-chainTime>.3,dt=reset?1/60:Math.max(0,Math.min(.04,t-chainTime)),physical=(dawn&&level>=2)||level>=3;
       for(var i=0;i<strands;i++){
-        var a=i*TAU/strands,rx=Math.cos(angle)*Math.cos(a)*.24-Math.sin(angle)*.15,ry=hero+Math.sin(angle)*Math.cos(a)*.24+Math.cos(angle)*.15,rz=Math.sin(a)*.24;
+        var a=i*TAU/strands,cos=Math.cos(a),sin=Math.sin(a),rx=(heroX||0)+Math.cos(angle)*cos*.24-Math.sin(angle)*.15,ry=hero+Math.sin(angle)*cos*.24+Math.cos(angle)*.15,rz=sin*.24;
         var length=(1.1+(i%4)*.27)*smooth(progress/.35),chain=chainState[i];
-        if((dawn&&level>=2)||level>=3){
-          if(reset||!chain){chain=chainState[i]=[];for(var s=0;s<=segments;s++){var u=s/segments,p=[rx+Math.cos(a)*u*.35,ry-u*length,rz+Math.sin(a)*u*.35];chain.push({p:p,old:p.slice()});}}
-          var root=chain[0];root.p=[rx,ry,rz];root.old=root.p.slice();
-          for(var s=1;s<=segments;s++){var item=chain[s],pos=item.p.slice(),u=s/segments,damping=.96;
-            for(var axis=0;axis<3;axis++){var force=axis===1?-.48:Math.sin(u*7+t*.8+i*2.399+axis*2.1)*.45;item.p[axis]+=(item.p[axis]-item.old[axis])*damping+force*dt*dt;}item.old=pos;}
+        if(physical){
+          if(reset||!chain){chain=chainState[i]=[];for(var stepIndex=0;stepIndex<=segments;stepIndex++){var u=stepIndex/segments,p=[rx+cos*u*.35,ry-u*length,rz+sin*u*.35];chain.push({p:p,old:p.slice()});}}
+          for(var axis=0;axis<3;axis++){var anchor=axis===0?rx:axis===1?ry:rz;chain[0].p[axis]=chain[0].old[axis]=anchor;}
+          for(var stepIndex=1;stepIndex<=segments;stepIndex++){var item=chain[stepIndex],u=stepIndex/segments;
+            for(var axis=0;axis<3;axis++){var previous=item.p[axis],force=axis===1?-.48:Math.sin(u*7+t*.8+i*2.399+axis*2.1)*.45;item.p[axis]+=(previous-item.old[axis])*.96+force*dt*dt;item.old[axis]=previous;}}
           var step=length/segments;
-          for(var iteration=0;iteration<4;iteration++)for(var s=1;s<=segments;s++){var prev=chain[s-1].p,next=chain[s].p,d=sub(next,prev),mag=Math.hypot.apply(Math,d)||1,ratio=(mag-step)/mag;for(var axis=0;axis<3;axis++){if(s>1)prev[axis]+=d[axis]*ratio*.5;next[axis]-=d[axis]*ratio*(s===1?1:.5);}}
+          for(var iteration=0;iteration<4;iteration++)for(var stepIndex=1;stepIndex<=segments;stepIndex++){var previous=chain[stepIndex-1].p,next=chain[stepIndex].p,dx=next[0]-previous[0],dy=next[1]-previous[1],dz=next[2]-previous[2],mag=Math.hypot(dx,dy,dz)||1,ratio=(mag-step)/mag;
+            for(var axis=0;axis<3;axis++){var delta=axis===0?dx:axis===1?dy:dz;if(stepIndex>1)previous[axis]+=delta*ratio*.5;next[axis]-=delta*ratio*(stepIndex===1?1:.5);}}
         }
-        for(var j=0;j<segments;j++){var points=[];for(var end=0;end<2;end++){var u=(j+end)/segments,p;
-          if((dawn&&level>=2)||level>=3)p=chain[j+end].p;else p=[rx+Math.cos(a)*u*u*.65+Math.sin(u*6-t*1.4+i)*u*.23,ry+(dawn?-1:1)*u*length,rz+Math.sin(a)*u*u*.65+Math.cos(u*7-t+i)*u*.22];
-          var pulse=Math.exp(-Math.pow((u-((t/1.1+i*.13)%1))*12,2)),width=.022*(1-u*.88)*(1+pulse*.5);points.push([[p[0]-width,p[1],p[2]],[p[0]+width,p[1],p[2]]]);}
-          put(points[0][0],points[1][0],points[0][1]);put(points[0][1],points[1][0],points[1][1]);}
+        for(var j=0;j<segments;j++){
+          for(var end=0;end<2;end++){var u=(j+end)/segments,at=end*4;
+            if(physical){var p=chain[j+end].p;ribbonPoints[at]=p[0];ribbonPoints[at+1]=p[1];ribbonPoints[at+2]=p[2];}
+            else{ribbonPoints[at]=rx+cos*u*u*.65+Math.sin(u*6-t*1.4+i)*u*.23;ribbonPoints[at+1]=ry+(dawn?-1:1)*u*length;ribbonPoints[at+2]=rz+sin*u*u*.65+Math.cos(u*7-t+i)*u*.22;}
+            var pulse=Math.exp(-Math.pow((u-((t/1.1+i*.13)%1))*12,2));ribbonPoints[at+3]=.022*(1-u*.88)*(1+pulse*.5);
+          }
+          var x0=ribbonPoints[0],y0=ribbonPoints[1],z0=ribbonPoints[2],w0=ribbonPoints[3],x1=ribbonPoints[4],y1=ribbonPoints[5],z1=ribbonPoints[6],w1=ribbonPoints[7];
+          offset=writeTriangle(tendrilData,offset,x0-w0,y0,z0,x1-w1,y1,z1,x0+w0,y0,z0);
+          offset=writeTriangle(tendrilData,offset,x0+w0,y0,z0,x1-w1,y1,z1,x1+w1,y1,z1);
+        }
       }
-      chainTime=t;gl.bindBuffer(gl.ARRAY_BUFFER,tendrilMesh.buffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,tendrilData);tendrilMesh.count=strands*segments*6;
+      chainTime=t;gl.bindBuffer(gl.ARRAY_BUFFER,tendrilMesh.buffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,tendrilData,0,offset);tendrilMesh.count=strands*segments*6;
     }
     function ritualPass(t,w,h,opacity){
       if(!sigilProgram||t<ritualStart)return;
@@ -490,8 +520,11 @@
     function paint(w,h,t){
       if(!gl||lost||disposed)return null;
       try {
-        adaptiveScale+=(targetAdaptiveScale-adaptiveScale)*.08;var cfg=C.config.rarityIntro,profile=C.quality.resolve(C.settingsSchema.tiers[level]),budget=level===4?profile.scenePixels:level>=3?cfg.mythicalMaxPixels:cfg.mythicalMediumPixels,dpr=Math.min((root.devicePixelRatio||1)*(level>=3?profile.supersample:1),level===4?2.5:cfg.maxDpr,C.settings.policy.dpr,Math.sqrt(budget/(w*h)))*adaptiveScale,rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
-        if(dawn){var desired=[.5,.5,.75,1,1][level];resolution+=Math.max(-.015,Math.min(.015,desired-resolution));dpr*=resolution;rw=Math.max(1,Math.floor(w*dpr));rh=Math.max(1,Math.floor(h*dpr));}
+        adaptiveScale+=(targetAdaptiveScale-adaptiveScale)*.08;
+        // Resolution can ease visually, but allocation uses bounded bands instead
+        // of reallocating every target for single-pixel changes on each frame.
+        var allocationScale=Math.round(adaptiveScale*16)/16,cfg=C.config.rarityIntro,profile=sceneProfile,budget=level===4?profile.scenePixels:level>=3?cfg.mythicalMaxPixels:cfg.mythicalMediumPixels,dpr=Math.min((root.devicePixelRatio||1)*(level>=3?profile.supersample:1),level===4?2.5:cfg.maxDpr,C.settings.policy.dpr,Math.sqrt(budget/(w*h)))*allocationScale,rw=Math.max(1,Math.floor(w*dpr)),rh=Math.max(1,Math.floor(h*dpr));
+        if(dawn){var desired=[.5,.5,.75,1,1][level];resolution+=Math.max(-.015,Math.min(.015,desired-resolution));dpr*=Math.round(resolution*16)/16;rw=Math.max(1,Math.floor(w*dpr));rh=Math.max(1,Math.floor(h*dpr));}
         if(width!==rw||height!==rh){width=rw;height=rh;canvas.width=rw;canvas.height=rh;sizeTarget(scene,rw,rh);if(reflection)sizeTarget(reflection,Math.max(1,Math.floor(rw*profile.reflectionScale)),Math.max(1,Math.floor(rh*profile.reflectionScale)));sizeTarget(bloom,Math.max(1,rw>>1),Math.max(1,rh>>1));sizeTarget(blur,rw,Math.max(1,rh>>1));}
         if(dawn){
           gl.bindFramebuffer(gl.FRAMEBUFFER,scene.f);gl.clearDepth(1);gl.clear(gl.DEPTH_BUFFER_BIT);stats.drawCalls=0;
@@ -516,9 +549,10 @@
           if(t>=tipStart){var focus=smooth((t-tipStart)/tipMs);eye[0]=mix(1.05,.72,focus);eye[2]=mix(7.9,7.1,focus);targetPoint[1]=mix(3.1,3.6,focus);}
         }
         if(t>=fallStart){var fall=clamp((t-fallStart)/fallMs);if(dawn)fall=fall*(.35+.65*fall);var releaseAngle=dawn?7*Math.PI/180:caveArt.tipAngle||.23;hero=mix(4.35+1.1016*(1-Math.cos(releaseAngle)),-.15,fall*fall);heroX=Math.sin(releaseAngle)*1.1016*(1-fall*.7);angle=releaseAngle+fall*.63;eye=[dawn?.9:mix(.72,.9,smooth(fall)),mix(dawn?2.6:2.75,1.55,smooth(fall)),mix(dawn?7.9:7.1,6.3,smooth(fall))];targetPoint=[0,mix(dawn?2.55:3.6,.5,smooth(fall)),0];}
+        if(!dawn&&t>=fallStart){var descent=C.cutsceneMath.crystalFall(t,timeline,caveArt.tipAngle||.23);hero=descent.hero;heroX=descent.x;angle=descent.angle;}
         if(t>=impactStart&&t<underStart){eye=[.9,1.55,6.3];targetPoint=[0,.5,0];}
-        if(under){var p=clamp((t-underStart)/(dawn?5:underMs));heroX=0;hero=-.15-1.8*(1-Math.pow(1-p,3));angle=(dawn?7*Math.PI/180+.63:(caveArt.tipAngle||.23)+.63)+(t-underStart)*.11;eye=[mix(3.9,3.1,smooth(p)),mix(-.7,-1.3,smooth(p)),mix(5.7,4.6,smooth(p))];targetPoint=[0,hero+.1,0];if(!dawn||!sigilProgram||t<timeline.clock.start)tendrils(t,hero,dawn?clamp((t-(timeline.tendrils||timeline.underwater).start)/2.5):p,angle);}
-        if(impact>=0&&impact<.8){var crown=[],r=.35+impact*.8,raise=Math.sin(impact/.8*Math.PI)*.38;for(var seg=0;seg<40;seg++){var a=seg*TAU/40,b=(seg+1)*TAU/40,h0=raise*(.5+.5*Math.pow(Math.sin(seg*2.1),2)),h1=raise*(.5+.5*Math.pow(Math.sin((seg+1)*2.1),2));triangle(crown,[Math.cos(a)*r,.015,Math.sin(a)*r],[Math.cos(b)*r,.015,Math.sin(b)*r],[Math.cos(a)*(r+.08),h0,Math.sin(a)*(r+.08)]);triangle(crown,[Math.cos(a)*(r+.08),h0,Math.sin(a)*(r+.08)],[Math.cos(b)*r,.015,Math.sin(b)*r],[Math.cos(b)*(r+.08),h1,Math.sin(b)*(r+.08)]);}gl.bindBuffer(gl.ARRAY_BUFFER,splashMesh.buffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,new Float32Array(crown));}
+        if(under){var p=clamp((t-underStart)/(dawn?5:underMs));if(dawn){heroX=0;hero=-.15-1.8*(1-Math.pow(1-p,3));angle=7*Math.PI/180+.63+(t-underStart)*.11;}eye=[mix(3.9,3.1,smooth(p)),mix(-.7,-1.3,smooth(p)),mix(5.7,4.6,smooth(p))];targetPoint=[heroX,hero+.1,0];if(!dawn||!sigilProgram||t<timeline.clock.start)tendrils(t,hero,dawn?clamp((t-(timeline.tendrils||timeline.underwater).start)/2.5):p,angle,heroX);}
+        if(impact>=0&&impact<.8){var crownAt=0,r=.35+impact*.8,raise=Math.sin(impact/.8*Math.PI)*.38;for(var seg=0;seg<40;seg++){var a=seg*TAU/40,b=(seg+1)*TAU/40,h0=raise*(.5+.5*Math.pow(Math.sin(seg*2.1),2)),h1=raise*(.5+.5*Math.pow(Math.sin((seg+1)*2.1),2)),ax=Math.cos(a),az=Math.sin(a),bx=Math.cos(b),bz=Math.sin(b);crownAt=writeTriangle(splashData,crownAt,ax*r,.015,az*r,bx*r,.015,bz*r,ax*(r+.08),h0,az*(r+.08));crownAt=writeTriangle(splashData,crownAt,ax*(r+.08),h0,az*(r+.08),bx*r,.015,bz*r,bx*(r+.08),h1,bz*(r+.08));}gl.bindBuffer(gl.ARRAY_BUFFER,splashMesh.buffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,splashData);}
         if(t>=ascendStart){var ascend=smooth((t-ascendStart)/ascendMs);
           var side=smooth(clamp((ascendStart-underStart)/(dawn?5:underMs)));
           eye=[mix(dawn?mix(3.9,3.1,side):3.1,.03,ascend),mix(dawn?mix(-.7,-1.3,side):-1.3,4.6,ascend),mix(dawn?mix(5.7,4.6,side):4.6,.035,ascend)];
@@ -537,12 +571,12 @@
         if(allowance>0&&under){for(var bubble=0;bubble<20;bubble++){var phase=bubble*.618,bi=(count+bubble)*4;particleData[bi]=Math.sin(bubble*2.399)*(.45+(bubble%3)*.22)+Math.sin(t+phase)*.025;particleData[bi+1]=hero+((t-underStart)*.28+phase)%2.6;particleData[bi+2]=Math.cos(bubble*2.399)*.6;particleData[bi+3]=-(.17+(bubble%4)*.035);}count+=20;}
         if(dawn&&allowance>0&&under){for(var spore=0;spore<chainState.length;spore++){var chain=chainState[spore],tip=chain[chain.length-1].p,si=count*4,age=(t+spore*.618)%1.1;particleData[si]=tip[0]+Math.sin(spore*2.399+age)*age*.08;particleData[si+1]=tip[1]+age*.13;particleData[si+2]=tip[2];particleData[si+3]=.085*(1-age/1.1);count++;}}
         // Impact droplets follow analytic ballistic paths and never enter saved state.
-        if(allowance>0&&impact>=0&&impact<1.4){for(var j=0;j<40;j++){var a=j*2.399,s=.7+(j%7)*.17,k=(count+j)*4;particleData[k]=Math.cos(a)*impact*s;particleData[k+1]=impact*(2.5+(j%5)*.2)-impact*impact*3;particleData[k+2]=Math.sin(a)*impact*s;particleData[k+3]=.13;}count+=40;}
-        gl.useProgram(pointsProgram.p);gl.uniformMatrix4fv(uniform(pointsProgram,'uVP'),false,vp);gl.uniform1f(uniform(pointsProgram,'uDpr'),dpr);gl.uniform3fv(uniform(pointsProgram,'uRuby'),descriptor.color.map(function(v){return v/255;}));gl.uniform1f(uniform(pointsProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);gl.bindBuffer(gl.ARRAY_BUFFER,pointBuffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,particleData);gl.enableVertexAttribArray(0);gl.disableVertexAttribArray(1);gl.vertexAttribPointer(0,4,gl.FLOAT,false,16,0);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.depthMask(false);gl.drawArrays(gl.POINTS,0,dawn&&sigilProgram&&t>=timeline.clock.start?0:count);gl.depthMask(true);gl.disable(gl.BLEND);gl.disable(gl.DEPTH_TEST);
+        if(allowance>0&&impact>=0&&impact<1.4){for(var j=0;j<40;j++){var a=j*2.399,s=.7+(j%7)*.17,k=(count+j)*4;particleData[k]=impactCenterX+Math.cos(a)*impact*s;particleData[k+1]=impact*(2.5+(j%5)*.2)-impact*impact*3;particleData[k+2]=Math.sin(a)*impact*s;particleData[k+3]=.13;}count+=40;}
+        gl.useProgram(pointsProgram.p);gl.uniformMatrix4fv(uniform(pointsProgram,'uVP'),false,vp);gl.uniform1f(uniform(pointsProgram,'uDpr'),dpr);gl.uniform3fv(uniform(pointsProgram,'uRuby'),rubyColor);gl.uniform1f(uniform(pointsProgram,'uMono'),C.config.rarityColorMode==='mono'?1:0);gl.bindBuffer(gl.ARRAY_BUFFER,pointBuffer);gl.bufferSubData(gl.ARRAY_BUFFER,0,particleData);gl.enableVertexAttribArray(0);gl.disableVertexAttribArray(1);gl.vertexAttribPointer(0,4,gl.FLOAT,false,16,0);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.depthMask(false);gl.drawArrays(gl.POINTS,0,dawn&&sigilProgram&&t>=timeline.clock.start?0:count);gl.depthMask(true);gl.disable(gl.BLEND);gl.disable(gl.DEPTH_TEST);
         if(dawn&&sigilProgram)ritualPass(t,w,h,1);
         composite(t,rw,rh);stats.frames++;return canvas;
       }catch(error){stats.failure=error.message;dispose();return null;}
     }
-    prepare();return {paint:paint,dispose:dispose,setProfile:function(value){intensityProfile=value;},setPresentationFactor:function(value){presentationFactor=value;},setPulseFactor:function(value){pulseTimeFactor=value;},setSpinFactors:function(value){spinFactors=value;},setQuality:function(next){if(next<level)targetAdaptiveScale=Math.max(.55,targetAdaptiveScale*.8);level=next;chainTime=null;},stats:stats,get anchor(){return heroScreen;},get canvas(){return canvas;}};
+    prepare();return {paint:paint,dispose:dispose,setProfile:function(value){intensityProfile=value;},setPresentationFactor:function(value){presentationFactor=value;},setPulseFactor:function(value){pulseTimeFactor=value;},setSpinFactors:function(value){spinFactors=value;},setQuality:function(next){if(next===level)return;if(next<level)targetAdaptiveScale=Math.max(.55,targetAdaptiveScale*.8);level=next;sceneProfile=C.quality.resolve(C.settingsSchema.tiers[level]);chainTime=null;},stats:stats,get anchor(){return heroScreen;},get canvas(){return canvas;}};
   } };
 })(window.Cardable, window);

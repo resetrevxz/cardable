@@ -1,5 +1,38 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.2.4',codename:'A steadier collection',date:'October 9, 2026',tag:'Optimization',tagline:'Less repeated work. A grounded collection.',
+    hero:{badge:'CARDABLE / 1.2.4',title:'A steadier collection.',subtitle:'Less repeated work. A grounded collection.',media:[]},
+    sections:{
+      fixes:[
+        'Developer backups no longer duplicate the save in limited local storage. Existing backups are preserved before migration.',
+        'Electron handles cancelled launch navigation without a false missing-files dialog. Very High pack settings reach Mini and taskbar state.',
+        'Inventory stays visible behind card detail and remains ready for the card’s return.',
+        'Mythical’s ruby touches the water at the splash beat and continues sinking into the underwater shot, including Canvas recovery.',
+        'Very High retains Mythical’s full hanging crystals and Secret’s authored High OS composition.',
+        'Secret and Ascendant discard cached GPU scenes when a reveal takes a calm route or starts at another quality.'
+      ],
+      systems:[
+        'Developer timer ticks avoid copying the collection until a refill needs a real save.',
+        'Navigation saves reuse unchanged inventory projections; sorting and collection filters do less repeated work.',
+        'Medium’s Mythical cave uses fewer wall subdivisions, with its major shapes and materials retained.',
+        'Cinematic buffers and draw data are reused; adaptive resolution reallocates in bounded steps.'
+      ],
+      qol:[
+        'Developer controls restore focus on close, and current or preceding session backups can be restored.',
+        'The performance display distinguishes slowest-frame averages from percentiles and excludes wake-up placeholders.',
+        'Initial and paused sampling are labelled, with sample count in Advanced. Its graph and save-size reads do less work.'
+      ]
+    },
+    entries:[
+      'Developer save backups move out of limited local storage, with verified preservation.',
+      'Inventory stays visible behind card detail.',
+      'Mythical water contact and sinking follow one continuous clock.',
+      'Inventory, Medium cave geometry and cinematic allocations do less repeated work.',
+      'Very High and calm-route cinematic handoffs retain their intended resource bounds.',
+      'Performance lows, sampling states and HUD overhead are corrected.'
+    ]
+  },
+  {
     "version": "1.2.3",
     "codename": "Ready to collect",
     "date": "October 9, 2026",

@@ -6,6 +6,7 @@ Give one authorized milestone per prompt. Read AGENTS.md, Designs.MD, the releva
 
 | Work | Implementation / commit | Packaging / runtime evidence | Remaining scope |
 |---|---|---|---|
+| 1.2.4 frame consistency / stage 46 | Developer backup quota repair, inventory/query/detail, Mythical contact, lower-preset resource budgets, cinematic warmup/disposal and HUD corrections | [OPTIMIZATION-1.2.4](OPTIMIZATION-1.2.4.md) records isolated functional/resource checks and the owner's browser Ascendant confirmation; delivery follows the reviewed checkpoint | Actual FPS/1% improvement awaits permitted measurement; installer/live updater and wider browser/film/hardware acceptance remain separate |
 | Classic browser stages 0–8 | Foundation, cards, packs, opening, tutorial, inventory and Data exist on main | Historical reports/QA in indexed archive; source remains file:// classic scripts | Later code, physical devices, full browser/zoom/material matrix are not certified by original checks |
 | Settings 11a/11b and permanent variants 12 | Engine/panel, import/export/restore/reset, finish-stack identity integrated | Historical settings/variant records retained | Native files, all material combinations and physical accessibility need scoped acceptance |
 | Graphics 13, inventory 14, refresh 15 | Four tiers, static thumbnail browsing, independent cinematic detail and shaded panels | Scoped historical Chromium measurements and regression records | Hardware/GPU/thermal/240 Hz performance not certified |

@@ -9,7 +9,15 @@
   var timing=section('Frames'),resources=section('Resources'),context=section('Context');
   var frames=[],history=[],snapshot=null,mode='off',timer=null,longObserver=null,longTasks=0,eventCount=0,eventStart=0,lastGraph=0,boot=root.performance.now(),originals=null,rafIds=new Set(),timerIds=new Map(),glRefs=[],gpu='Unavailable',eventHook=null,hiddenNative=false;
   function percentile(sorted,p){if(!sorted.length)return 0;var i=(sorted.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i);return sorted[lo]+(sorted[hi]-sorted[lo])*(i-lo);}
-  function statistics(values){var v=values.filter(function(n){return Number.isFinite(n)&&n>0;}).sort(function(a,b){return a-b;}),sum=v.reduce(function(n,x){return n+x;},0),p99=percentile(v,.99),p999=percentile(v,.999);return {fps:v.length?1000/(sum/v.length):0,low1:p99?1000/p99:0,low01:p999?1000/p999:0,p50:percentile(v,.5),p95:percentile(v,.95),p99:p99,max:v.length?v[v.length-1]:0};}
+  function statistics(values){
+    var v=values.filter(function(n){return Number.isFinite(n)&&n>0;}).sort(function(a,b){return a-b;}),sum=v.reduce(function(n,x){return n+x;},0);
+    // Mean FPS of the slowest fraction. A percentile threshold alone can miss
+    // a large isolated hitch, so retain p99 separately from the low metric.
+    function low(fraction){var count=Math.ceil(v.length*fraction),total=0;for(var i=v.length-count;i<v.length;i++)total+=1000/v[i];return count?total/count:0;}
+    return {samples:v.length,fps:v.length?1000/(sum/v.length):0,low1:low(.01),low01:low(.001),p50:percentile(v,.5),p95:percentile(v,.95),p99:percentile(v,.99),max:v.length?v[v.length-1]:0};
+  }
+  var savedText=null,savedBytes=0;
+  function saveSize(){var text=C.state.serialized;if(text!==savedText){savedText=text;savedBytes=text?new TextEncoder().encode(text).length:0;}return savedBytes;}
   function clearMetrics(){frames=[];history=[];snapshot=null;longTasks=0;eventCount=0;eventStart=root.performance.now();}
   function instrument(){
     if(originals)return;originals={raf:root.requestAnimationFrame,cancel:root.cancelAnimationFrame,timeout:root.setTimeout,interval:root.setInterval,clearTimeout:root.clearTimeout,clearInterval:root.clearInterval,context:root.HTMLCanvasElement.prototype.getContext,emit:C.events.emit};
@@ -30,7 +38,7 @@
   function sample(){
     if(!active())return;
     var now=root.performance.now();frames=frames.filter(function(f){return now-f.at<=5000;});history=history.filter(function(f){return now-f.at<=30000;});var stats=statistics(frames.map(function(f){return f.ms;}));
-    var state=C.fx.stats.paused?'Paused':!C.fx.stats.running?'Idle':null;
+    var state=C.fx.stats.paused?'Paused':!C.fx.stats.running?'Idle':!stats.samples?'Collecting frames…':null;
     simple.textContent=state||'FPS '+Math.round(stats.fps)+'  1% low '+Math.round(stats.low1);
     if(mode!=='advanced')return;
     glRefs=glRefs.filter(function(r){var gl=r.deref();return gl&&!gl.isContextLost();});
@@ -39,18 +47,18 @@
       dropped:frames.reduce(function(n,f){return n+Math.max(0,Math.round(f.ms/(1000/C.fx.stats.targetFps))-1);},0),longTasks:longTasks,memory:memory?Math.round(memory.usedJSHeapSize/1048576)+' / '+Math.round(memory.jsHeapSizeLimit/1048576)+' MiB':'Unavailable',
       dom:root.document.getElementsByTagName('*').length,animations:root.document.getAnimations().length,raf:rafIds.size,timers:timerIds.size,canvases:root.document.getElementsByTagName('canvas').length,webgl:glRefs.length,
       events:Math.round(eventCount*1000/Math.max(1,now-eventStart)),dpr:root.devicePixelRatio,resolutionScale:C.settings.policy.dpr,window:win.join(' × '),uiScale:C.native?C.settings.get('interfaceSize'):'browser native CSS',screen:screen,scene:C.cutscenes.active?C.cutscenes.active.spec?.kind||C.cutscenes.active.section||'cinematic':C.opening&&C.opening.phase,
-      gpu:gpu,uptime:Math.round((now-boot)/1000),saveBytes:new TextEncoder().encode(C.state.encode(C.state.current)).length};
+      gpu:gpu,uptime:Math.round((now-boot)/1000),saveBytes:saveSize(),samples:stats.samples};
     eventCount=0;eventStart=now;
-    timing.textContent=(state?state+' · ':'')+'FPS '+Math.round(stats.fps)+'  1% '+Math.round(stats.low1)+'  0.1% '+Math.round(stats.low01)+'\nFrame ms p50 '+stats.p50.toFixed(2)+' · p95 '+stats.p95.toFixed(2)+'\np99 '+stats.p99.toFixed(2)+' · max '+stats.max.toFixed(2)+'\nDropped '+snapshot.dropped+' · long tasks '+longTasks;
+    timing.textContent=(state?state+' · ':'')+'FPS '+Math.round(stats.fps)+'  1% '+Math.round(stats.low1)+'  0.1% '+Math.round(stats.low01)+'\nFrame ms p50 '+stats.p50.toFixed(2)+' · p95 '+stats.p95.toFixed(2)+'\np99 '+stats.p99.toFixed(2)+' · max '+stats.max.toFixed(2)+'\nSamples '+stats.samples+' · dropped '+snapshot.dropped+'\nLong tasks '+longTasks;
     resources.textContent='Heap '+snapshot.memory+'\nDOM '+snapshot.dom+' · animations '+snapshot.animations+'\nRAF pending '+snapshot.raf+' · timers '+snapshot.timers+'\nCanvases '+snapshot.canvases+' · WebGL observed '+snapshot.webgl+'\nBus '+snapshot.events+'/s · listeners '+C.events.listenerCount+'\nRAF/timers/GL: observed since Advanced enabled';
-    context.textContent=snapshot.quality+' · '+snapshot.screen+' · '+snapshot.scene+'\nDPR '+snapshot.dpr+' · canvas cap '+snapshot.resolutionScale+'\nWindow '+snapshot.window+' · UI '+snapshot.uiScale+'\nGPU '+snapshot.gpu+'\nUptime '+snapshot.uptime+' s · save '+snapshot.saveBytes+' B'+'\nStorage '+storageEstimate+(C.performanceStats.adaptive.length?'\nAdaptive '+C.performanceStats.adaptive.slice(-3).join(', '):'');
+    context.textContent=snapshot.quality+' · '+snapshot.screen+' · '+snapshot.scene+'\nDPR '+snapshot.dpr+' · canvas cap '+snapshot.resolutionScale+'\nWindow '+snapshot.window+' · UI '+snapshot.uiScale+'\nGPU '+snapshot.gpu+'\nUptime '+snapshot.uptime+' s · saved JSON '+snapshot.saveBytes+' B'+'\nStorage '+storageEstimate+(C.performanceStats.adaptive.length?'\nAdaptive '+C.performanceStats.adaptive.slice(-3).join(', '):'');
   }
   function setMode(){
     if(hud.parentElement!==root.document.body)root.document.body.appendChild(hud);stopTimer();uninstrument();clearMetrics();mode=C.settings.get('performanceMode');if(C.settings.get('quality')==='very-low'&&mode==='advanced')mode='simple';hud.hidden=mode==='off';panel.hidden=mode!=='advanced';simple.hidden=mode==='advanced';hud.dataset.mode=mode;
     hud.dataset.corner=C.settings.get('performanceCorner')||'bottom-left';corner.value=hud.dataset.corner;
     if(mode==='advanced'&&active()){instrument();estimateStorage();}if(active()){sample();timer=root.setInterval(sample,500);}C.fx.wake();
   }
-  function visibility(){stopTimer();if(!active()){uninstrument();simple.textContent='Paused';}else{if(mode==='advanced')instrument();clearMetrics();sample();timer=root.setInterval(sample,500);}}
+  function visibility(){stopTimer();if(!active()){uninstrument();simple.textContent='Paused';timing.textContent='Paused · frame sampling stopped';}else{if(mode==='advanced')instrument();clearMetrics();sample();timer=root.setInterval(sample,500);}}
   C.performanceStats={statistics:statistics,percentile:percentile,adaptive:[],get snapshot(){return snapshot;},get mode(){return mode;},report:function(){sample();var recent=statistics(history.map(function(f){return f.ms;})),min=history.length?Math.min.apply(null,history.map(function(f){return f.ms;})):0,avg=history.length?history.reduce(function(n,f){return n+f.ms;},0)/history.length:0;return 'Cardable performance report\n'+JSON.stringify(snapshot||{version:C.config.version,mode:mode},null,2)+'\nLast 30 s observed frame ms: min '+min.toFixed(2)+' / avg '+avg.toFixed(2)+' / max '+recent.max.toFixed(2)+'\nRAF/timers/WebGL are observed counts since Advanced was enabled. Idle has no rendered-frame samples. Storage estimate: '+storageEstimate;}};
   var storageEstimate='Unavailable';
   async function estimateStorage(){if(root.navigator.storage&&root.navigator.storage.estimate){try{var e=await root.navigator.storage.estimate();storageEstimate=Math.round(e.usage||0)+' / '+Math.round(e.quota||0)+' B';}catch(_){}}}
@@ -62,7 +70,7 @@
   corner.addEventListener('change',function(){hud.removeAttribute('style');C.settings.set('performanceCorner',corner.value);});
   root.addEventListener('resize',function(){if(hud.dataset.corner==='custom'){hud.style.left=Math.max(0,Math.min(root.innerWidth-hud.offsetWidth,parseFloat(hud.style.left)||0))+'px';hud.style.top=Math.max(0,Math.min(root.innerHeight-hud.offsetHeight,parseFloat(hud.style.top)||0))+'px';}});
   C.keys.listen(root.document, 'keydown', 'src.ui.performance.js.1', function(e){if(e.key==='F3'&&!e.repeat){e.preventDefault();var choices=C.settings.get('quality')==='very-low'?['off','simple']:['off','simple','advanced'],next=choices[(choices.indexOf(C.settings.get('performanceMode'))+1)%choices.length];C.settings.set('showFps',false);C.settings.set('performanceMode',next);}},true);
-  C.events.on('fx:frame',function(e){if(!active())return;frames.push({at:e.now,ms:e.realDt});history.push({at:e.now,ms:e.realDt});if(frames.length>5000)frames.shift();if(history.length>12000)history.shift();if(mode==='advanced'&&e.now-lastGraph>=1000/30){lastGraph=e.now;var q=graph.getContext('2d'),now=e.now;q.clearRect(0,0,300,52);q.strokeStyle='#999ba4';q.lineWidth=1;q.beginPath();frames.forEach(function(f,i){var x=300-(now-f.at)*.06,y=51-Math.min(50,f.ms*1.5);if(i===0)q.moveTo(x,y);else q.lineTo(x,y);});q.stroke();}});
+  C.events.on('fx:frame',function(e){if(!active()||e.sampled===false)return;frames.push({at:e.now,ms:e.realDt});history.push({at:e.now,ms:e.realDt});if(frames.length>5000)frames.shift();if(history.length>12000)history.shift();if(mode==='advanced'&&e.now-lastGraph>=100){lastGraph=e.now;var q=graph.getContext('2d'),now=e.now;q.clearRect(0,0,300,52);q.strokeStyle='#999ba4';q.lineWidth=1;q.beginPath();frames.forEach(function(f,i){var x=300-(now-f.at)*.06,y=51-Math.min(50,f.ms*1.5);if(i===0)q.moveTo(x,y);else q.lineTo(x,y);});q.stroke();}});
   C.events.on('cutscene:quality',function(e){if(mode!=='advanced')return;C.performanceStats.adaptive.push(JSON.stringify(e));if(C.performanceStats.adaptive.length>20)C.performanceStats.adaptive.shift();});
   C.events.on('fx:visibility',visibility);root.document.addEventListener('visibilitychange',visibility);C.events.on('desktop:visibility',function(v){hiddenNative=!v;visibility();});
   ['performanceMode','performanceCorner','showFps','quality'].forEach(function(key){C.settings.onChange(key,setMode);});C.events.on('app:ready',setMode);C.performanceDisplay=hud;

@@ -1,7 +1,8 @@
 (function(C,root){
   'use strict';
   var cfg,sheet,grip,body,toolbar,shelf,grid,arrow,empty,peek,peekView=null,spring,detents={},detent='peek',session=false,detailId=null,openingPhase='idle',preferences=false,drag=null,pendingClose=false,fixture=null,model={entries:[],groups:[],owned:0,total:0},query='',validQuery='',filters={},selected=null,signature='',dirty=true,mode=null,reorder=null,suppressClick=false,selectionAge=0,deferredModel=false,selectedTags;
-  var stats={updates:0,mounted:0,maxMounted:0,opens:0,closes:0,snaps:0};var node=C.packMarkup.node;
+  var stats={updates:0,mounted:0,maxMounted:0,opens:0,closes:0,snaps:0,projections:0,queries:0,refreshSkipped:0};var node=C.packMarkup.node;
+  var projection=null,projectionCatalog=null,projectionInventory=null,projectionRevision=-1,lastInput=null,lastQueryKey='';
   var extensionPage=null, detailScroll=0;
   var peekQuiet=false,warmed=false,selectedEntry=null,selectedTagsExpire=0,proximityGain=null;
   function prepare(value){
@@ -33,8 +34,19 @@
     if(selected!==entry.stackKey){selected=entry.stackKey;selectionAge=0;stats.snaps++;C.events.emit('inventory:selection',{cardId:entry.card.id,stackKey:selected});}
   }
   function refresh(force){
-    if(!sheet||!toolbar)return;var ui=C.inventoryModel.current,base=C.collection.project(fixture?fixture.cards:C.data.cards,fixture?fixture.instances:C.state.current.inventory,'all'),parsed=C.inventoryQuery.parse(query);
+    if(!sheet||!toolbar)return;
+    var ui=C.inventoryModel.current,catalog=fixture?fixture.cards:C.data.cards,inventory=fixture?fixture.instances:C.state.current.inventory,revision=C.collection.revision;
+    var sameProjection=projection&&projectionCatalog===catalog&&projectionInventory===inventory&&projectionRevision===revision;
+    if(!force&&sameProjection&&lastInput&&lastInput.ui===ui&&lastInput.query===query&&lastInput.filters===filters){stats.refreshSkipped++;return;}
+    // Navigation state is saved, but does not change a search/sort projection.
+    var queryKey=JSON.stringify([ui.viewMode,ui.sortMode,ui.groupMode,ui.showUnowned,ui.activeCollectionId,ui.favorites,ui.collections,ui.customOrders,query,filters]);
+    lastInput={ui:ui,query:query,filters:filters};
+    if(!force&&sameProjection&&queryKey===lastQueryKey){stats.refreshSkipped++;return;}
+    lastQueryKey=queryKey;
+    if(force||!sameProjection){projection=C.collection.project(catalog,inventory,'all');projectionCatalog=catalog;projectionInventory=inventory;projectionRevision=revision;stats.projections++;}
+    var base=projection,parsed=C.inventoryQuery.parse(query);
     if(!parsed.errors.length)validQuery=query;var next=C.inventoryQuery.run(base,ui,validQuery,filters);next.errors=parsed.errors;
+    stats.queries++;selectedEntry=null;shelf.tiles.forEach(function(tile){tile.contentCurrent=false;});grid.tiles.forEach(function(tile){tile.contentCurrent=false;});
     var nextSignature=JSON.stringify([next.entries.map(function(e){return [e.stackKey,e.owned];}),ui.viewMode,ui.groupMode]);model=next;toolbar.render(model);
     if(mode!==ui.viewMode){if(reorder)reorder.cancel();mode=ui.viewMode;shelf.setActive((session||warmed)&&!extensionPage&&mode==='shelf');grid.setActive((session||warmed)&&!extensionPage&&mode==='grid');selectedTags.hidden=mode==='grid';C.events.emit('inventory:viewChanged',mode);}
     if(force||signature!==nextSignature){signature=nextSignature;cancel();if(detailId)deferredModel=true;if(!detailId){shelf.setModel(model.entries,selected);grid.setModel(model.entries,selected,model.groups);resizeViews();}}else {shelf.refreshModel(model.entries);grid.refreshModel(model.entries);}
@@ -86,7 +98,7 @@
     init:function(){if(this.initialized)return;this.initialized=true;var params=new URLSearchParams(root.location.search);if(C.presentation.gallery)return;cfg=C.config.inventoryMotion;openingPhase=C.opening.phase;
       sheet=node('section','inventory-sheet glass glass--sheet is-peek',root.document.body);sheet.id='inventory-sheet';sheet.setAttribute('aria-label','Inventory');root.document.body.style.setProperty('--detail-backdrop-dim',cfg.detailBackdropDim);root.document.body.style.setProperty('--sheet-detail-opacity',cfg.sheetDetailOpacity);
       grip=node('div','inventory-grip',sheet);grip.setAttribute('aria-label','Drag inventory handle');node('i','inventory-handle',grip);grip.addEventListener('pointerdown',function(event){beginDrag(event,grip);});grip.addEventListener('lostpointercapture',function(){releaseDrag(null,true);});
-      toolbar=C.inventoryToolbar.create(sheet,{collapse:function(){request();},expand:function(){request(detent==='full'?'normal':'full');},layout:function(){resizeViews();},preference:preference,search:function(text){query=text;refresh(false);resizeViews();},filters:function(value){filters=value;refresh(false);resizeViews();},detail:detailById,move:function(id,delta){var at=model.entries.findIndex(function(e){return e.stackKey===id;});reorderCards(at,clamp(at+delta,0,model.entries.length-1));}});
+      toolbar=C.inventoryToolbar.create(sheet,{collapse:function(){request();},expand:function(){request(detent==='full'?'normal':'full');},layout:function(){resizeViews();},preference:preference,search:function(text){query=text;refresh(false);resizeViews();},filters:function(value){filters=Object.assign({},value);refresh(false);resizeViews();},detail:detailById,move:function(id,delta){var at=model.entries.findIndex(function(e){return e.stackKey===id;});reorderCards(at,clamp(at+delta,0,model.entries.length-1));}});
       peek=node('div','inventory-peek-thumbnail',toolbar.el);peek.addEventListener('click',function(){request(true);});toolbar.el.addEventListener('click',function(event){if(detent==='peek'&&!event.target.closest('button,input'))request(true);});
       body=node('div','inventory-content',sheet);empty=node('p','inventory-empty',body);
       selectedTags=node('div','inventory-selected-tags',body);

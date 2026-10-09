@@ -2,6 +2,24 @@
 
 Fixed history and its reproduction/coverage tables are preserved in [the original bug ledger](../archive/4.2.0-cleanup/docs/BUGS.md). A historical fixed label applies to its recorded checkpoint, not every later build. Deferred rows are evidence gaps rather than newly reproduced defects.
 
+## 1.2.4 developer saves and frame consistency
+
+The reported browser error identified `QuotaExceededError` writing the extra
+`cardable.save.dev-session-backup`, even with a ten-card collection. Developer
+backups now use separate IndexedDB storage and verify preserved legacy bytes
+before removing the unchanged local key. The owner confirmed forced Ascendant
+opens after refresh. Isolated native checks also verified successful preparation
+with the old key denied, and unchanged progress/no reservation when both backup
+stores fail. The focused developer panel now restores focus before hiding.
+
+Inventory stays mounted behind detail, repeated queries/navigation writes avoid
+full collection copies, and Mythical follows continuous water contact/sinking.
+Native Very High pack-state validation and Mini material resolution include the
+fifth tier. Initial native load cancellation is distinguished from missing files.
+See [the scoped evidence](OPTIMIZATION-1.2.4.md) for checks and limits. Actual FPS
+and 1% gains, full browser/film matrices and installer/updater execution are still
+unmeasured or unaccepted; no broad bug-free claim is made.
+
 ## 1.2.3 reliability and setup pass
 
 The native Settings Discord row has no schema descriptor. Simple-mode group

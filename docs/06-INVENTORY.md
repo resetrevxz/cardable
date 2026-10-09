@@ -78,7 +78,7 @@ At most three provenance chips include the +N control. Variant/pack/freshness ta
 
 Navigation arrows move outside the information panel. Left/Right navigates result cards; I opens Inspect, F toggles Favorite, R uses the existing card flip handler, and Escape dismisses a detail/collection popover before closing. Serial copying on either face uses Clipboard API with a textarea fallback. Popover focus restores to its trigger.
 
-The inventory sheet is hidden while detail owns its visual, preserving layout for its return. The panel is 360 px and vertically centered; below 900 px it stacks under the card with whole-view scrolling. Default 720p desktop content has no panel scroll, horizontal overflow or clipped actions. Expanded content uses thin custom scrollbars. Card-plate specs, tier badge/meter and internal R hint are not repeated in the panel.
+The inventory sheet stays visible and inert beneath a shaded detail scrim while detail owns its visual, preserving source and return context without full-window blur. The panel is 360 px and vertically centered; below 900 px it stacks under the card with whole-view scrolling. Default 720p desktop content has no panel scroll, horizontal overflow or clipped actions. Expanded content uses thin custom scrollbars. Card-plate specs, tier badge/meter and internal R hint are not repeated in the panel.
 
 ## Current rendering and mount budgets
 

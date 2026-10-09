@@ -71,10 +71,20 @@ function createMainWindow() {
 
   // Load the application
   const appHtml = path.join(__dirname, '../../index.html');
+  const expectedUrl = pathToFileURL(appHtml);
+  function isAppDocument(url) {
+    try { const parsed=new URL(url);return parsed.protocol==='file:'&&parsed.hostname===expectedUrl.hostname&&decodeURIComponent(parsed.pathname).toLowerCase()===decodeURIComponent(expectedUrl.pathname).toLowerCase(); }
+    catch (_) { return false; }
+  }
   const loadOptions = process.argv.includes('--smoke-dev-workspace') || process.argv.includes('--qa-dev-workspace') ? { query: { dev: '1' } } : undefined;
   win.loadFile(appHtml, loadOptions).catch(async err => {
-    logger.error('Failed to load index.html:', err);
     if(win.isDestroyed())return;
+    // A reload or developer navigation can supersede the
+    // launch request while the real game is loading. Cancellation is not a
+    // missing-file failure; keep reporting genuine load errors separately.
+    const aborted=err.code==='ERR_ABORTED'||err.errno===-3||/^ERR_ABORTED \(-3\) loading /.test(err.message||'');
+    if(aborted&&isAppDocument(win.webContents.getURL())){logger.info('Launch load superseded by application navigation');return;}
+    logger.error('Failed to load index.html:', err);
     win.show();
     let detail='Keep the original app files and player profile. Setup has not reset your collection. Ask the supplier for a complete build if files are missing.';
     while(!win.isDestroyed()){
@@ -87,12 +97,10 @@ function createMainWindow() {
   }).catch(err=>logger.error('Could not show startup recovery:',err.message));
 
   // Restrict navigation: never leave the local application
-  const expectedUrl = pathToFileURL(appHtml);
   function handleNavigation(event, navigationUrl) {
     try {
       const parsedUrl = new URL(navigationUrl);
-      const sameDocument = parsedUrl.protocol === 'file:' && parsedUrl.hostname === expectedUrl.hostname && decodeURIComponent(parsedUrl.pathname).toLowerCase() === decodeURIComponent(expectedUrl.pathname).toLowerCase();
-      if (sameDocument) return;
+      if (isAppDocument(navigationUrl)) return;
       event.preventDefault();
       logger.warn('Prevented unexpected navigation protocol:', parsedUrl.protocol);
       if (['http:', 'https:', 'mailto:'].includes(parsedUrl.protocol) && !parsedUrl.username && !parsedUrl.password && navigationUrl.length <= 2048) {

@@ -151,7 +151,12 @@
     C.timers.reconcileInto(candidate, now);
     if (candidate.pendingReveal || !C.timers.consumeInto(candidate, now)) { cancel('unavailable'); return; }
     var request = { pack: C.packs.resolve(candidate), options: {} };
-    try { C.events.emit('opening:resolve', request); } catch (_) { cancel('backup-failed'); error.textContent='Could not preserve the save. Your pack is still here.'; errorUntil=root.performance.now()+cfg.errorMs; return; }
+    try { C.events.emit('opening:resolve', request); } catch (failure) {
+      root.console.error('Cardable opening preparation failed:', failure);
+      cancel('backup-failed');
+      error.textContent=failure.name==='QuotaExceededError'?'Storage is full. Export your save from Settings → Data. Your pack is still here.':'Could not preserve the save. Your pack is still here. Open Settings → Data for recovery.';
+      errorUntil=root.performance.now()+cfg.errorMs;announce(error.textContent);return;
+    }
     if (!candidate.tutorial.done) { request.pack=C.pack('standard'); delete request.buildPending; }
     if (request.pack && request.pack.enabled) usePack(request.pack);
     var forced = request.options.forcedTier || null;

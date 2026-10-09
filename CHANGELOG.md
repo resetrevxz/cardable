@@ -1,3 +1,24 @@
+# Cardable v1.2.4 — A steadier collection
+
+A frame consistency and bug-fix pass, preserving saved collections and the existing installation/update flow.
+
+- Developer backups move to a separate IndexedDB store instead of duplicating the save in limited local storage. The old backup is removed only after its exact contents are stored and read back. Current and preceding session restores remain available; unavailable backups still block real edits safely.
+- Developer controls restore focus before hiding. Electron no longer reports a cancelled launch navigation as missing game files when its own game document is loading.
+- Very High pack settings now reach Mini and taskbar state, and Mini retains the selected pack material tier.
+- Inventory stays visible and inert behind card detail, so the lifted card returns to a visible collection. The shaded backdrop avoids a full-window blur pass.
+- Navigation saves no longer clone the entire collection or rebuild an unchanged inventory projection. Favorite/collection filtering uses lookup sets and sorting calculates each acquisition key once.
+- Developer timer ticks copy only pack state until a refill requires a real save. Selected favorite badges refresh with cached queries.
+- Static thumbnails avoid repainting when a graphics change leaves their bounded material tier unchanged.
+- Mythical's ruby touches the water at the splash beat and continues sinking into the underwater shot. Splash rings and droplets follow its contact point; Canvas recovery follows the same fall clock.
+- Medium's Mythical cave uses fewer wall subdivisions while retaining its bounds, major rock silhouettes and materials. High and Very High retain their full geometry; Very High now retains High's hanging cluster count.
+- Cinematic splash/ribbon buffers, draw matrices, color uniforms and fixed shadow camera data are reused. Adaptive resolution uses bounded allocation steps instead of reallocating targets for every eased pixel change.
+- Secret's Very High route uses the authored High OS composition. Secret/Ascendant warmups respect the starting quality and retire when the reveal takes a calm route. Retired Secret renderers release their context and backing canvas.
+- The performance display distinguishes average FPS of the slowest 1%/0.1% from frame-time percentiles, excludes wake-up placeholder frames, labels initial/paused sampling and shows sample count. Its graph refresh and save-size reads do less work.
+
+Functional checks used an isolated copied desktop profile and presentation-only samples. The owner confirmed forced Ascendant now opens in their browser. Reduced allocation/geometry is verified separately from measured FPS and physical hardware acceptance. Existing installer/upgrade, wider browser and full cinematic acceptance limits remain; this release is unsigned.
+
+---
+
 # Cardable v1.2.3 — Ready to collect
 
 A reliability and installer pass for Windows, with the same collection, serials and save schema.

@@ -1,6 +1,9 @@
 (function(C,root){
   'use strict';
   var warmed=null;
+  // Secret's authored OS buffers/window caps have four levels. Very High uses
+  // the High OS composition rather than falling through to an invalid index.
+  function qualityLevel(){return Math.max(0,Math.min(3,C.settingsSchema.tiers.indexOf(C.settings.get('cinematicQuality'))));}
   function create(){
     var spec,seed='secret',level=2,profile='safe',os=root.document.createElement('canvas'),q=os.getContext('2d',{alpha:false}),engine=null,shadowDone=false,skipped=false,model,desktop=null;
     var stats={backend:'canvas',frames:0,milestone:'C'},channels=null,fieldTime=0,fieldFirstAt=3,fieldStarted=null,invertStep=0,fieldBeats=[];
@@ -54,11 +57,11 @@
     }
     return {
       stats:stats,
-      start:function(next,value,light){this.releaseScene();if(desktop)desktop.stop();spec=next;seed=String(value);profile=C.cutscenes.profile();level=['very-low','low','medium','high'].indexOf(C.settings.get('cinematicQuality'));shadowDone=false;skipped=false;fieldStarted=null;fieldTime=0;fieldFirstAt=3;invertStep=0;fieldBeats=[];resize();desktop=C.secretOSScene.create(spec,seed,os);model=desktop.model;
-        if(warmed&&warmed.seed===seed){engine=warmed.engine;warmed=null;}else if(!light&&level>=2)engine=C.cutsceneScreenEngine.create();stats.backend=engine?engine.stats.backend:'canvas';},
+      start:function(next,value,light){this.releaseScene();if(desktop)desktop.stop();spec=next;seed=String(value);profile=C.cutscenes.profile();level=qualityLevel();shadowDone=false;skipped=false;fieldStarted=null;fieldTime=0;fieldFirstAt=3;invertStep=0;fieldBeats=[];resize();desktop=C.secretOSScene.create(spec,seed,os);model=desktop.model;
+        if(!light&&level>=2){if(warmed&&warmed.seed===seed&&warmed.level===level){engine=warmed.engine;warmed=null;}else engine=C.cutsceneScreenEngine.create();}if(warmed){warmed.engine.dispose();warmed=null;}stats.backend=engine?engine.stats.backend:'canvas';},
       setProfile:function(value){profile=value;},
       setSkipped:function(){skipped=true;},
-      setQuality:function(value){level=value;if(spec)resize();},
+      setQuality:function(value){level=Math.max(0,Math.min(3,value));if(level<2)this.releaseScene();if(spec)resize();},
       paint:function(g,w,h,section,time,staticProgress){
         stats.frames++;if(staticProgress!==null&&staticProgress!==undefined){calm(g,w,h,staticProgress);return;}
         if(section.id==='resurrection'){resurrection(g,w,h,section.p*4000);return;}
@@ -90,6 +93,6 @@
       get scene(){return engine;},get model(){return model;}
     };
   }
-  C.secretIntro={create:create,warmup:function(spec,seed){seed=String(seed);if(warmed&&warmed.seed===seed)return;if(warmed)warmed.engine.dispose();if(C.cutscenes.mode()==='light'||C.settings.get('cinematicQuality')==='low')return;var engine=C.cutsceneScreenEngine.create(),canvas=root.document.createElement('canvas');canvas.width=480;canvas.height=270;var q=canvas.getContext('2d');q.fillStyle='#000';q.fillRect(0,0,480,270);engine.render(canvas,C.viewport.width,C.viewport.height,0,{},C.settings.get('cinematicQuality')==='high'?3:2);warmed={seed:seed,engine:engine};}};
+  C.secretIntro={create:create,warmup:function(spec,seed){seed=String(seed);var level=qualityLevel();if(C.cutscenes.mode()==='light'||level<2){if(warmed)warmed.engine.dispose();warmed=null;return;}if(warmed&&warmed.seed===seed&&warmed.level===level)return;if(warmed)warmed.engine.dispose();warmed=null;var engine=C.cutsceneScreenEngine.create(),canvas=root.document.createElement('canvas'),size=spec.os.buffers[level];canvas.width=size[0];canvas.height=size[1];var q=canvas.getContext('2d');q.fillStyle='#000';q.fillRect(0,0,canvas.width,canvas.height);engine.render(canvas,C.viewport.width,C.viewport.height,0,{},level);warmed={seed:seed,level:level,engine:engine};}};
   C.cutscenes.register('secret',create);
 })(window.Cardable,window);

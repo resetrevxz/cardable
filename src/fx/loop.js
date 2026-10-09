@@ -28,7 +28,8 @@
     if (!C.frame && nextDue !== null && now + 0.1 < nextDue) { stats.skipped++; raf = root.requestAnimationFrame(frame); return; }
     inFrame = true; requested = false;
     var frameBegin = root.performance.now();
-    var realDt = last === null ? C.config.shell.frameMs : now - last;
+    var sampled = last !== null;
+    var realDt = sampled ? now - last : C.config.shell.frameMs;
     var dt = Math.min(realDt, C.config.shell.maxFrameDeltaMs) * (C.fx.presentationRate || 1);
     last = now;
     var interval = 1000 / cap();
@@ -51,7 +52,7 @@
         }
       });
       stats.frameCount += 1; stats.lastFrameMs = realDt; stats.jsMs = root.performance.now() - frameBegin;
-      C.events.emit('fx:frame', { now: now, dt: dt, realDt: realDt, frameCount: stats.frameCount, targetFps: stats.targetFps, jsMs: stats.jsMs });
+      C.events.emit('fx:frame', { now: now, dt: dt, realDt: realDt, sampled: sampled, frameCount: stats.frameCount, targetFps: stats.targetFps, jsMs: stats.jsMs });
     } finally {
       // Even a failed telemetry callback must release the scheduler's frame lock.
       inFrame = false;

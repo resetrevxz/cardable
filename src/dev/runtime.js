@@ -2,7 +2,7 @@
   'use strict';
   var realKey=C.config.storage.key, baseCap=C.config.packs.maxStored, baseRegen=C.config.packs.regenMs;
   var originals={clock:C.clock.now,tick:C.timers.tick,progress:C.timers.progress,emit:C.events.emit,encode:C.state.encode};
-  var backupDone=false, undo=null, undoContexts=Object.create(null), suppressWorkspace=false, stamps=Object.create(null), listeners=[], timerPauseAt=null;
+  var undo=null, undoContexts=Object.create(null), suppressWorkspace=false, stamps=Object.create(null), listeners=[], timerPauseAt=null;
   var D=C.dev={tools:new Map(),groups:new Map(),startups:[],frames:new Set(),closeHandlers:new Set(),jobs:new Map(),
     opened:false,immersive:false,sandbox:false,offset:0,luck:1,cap:baseCap,regen:'1',paused:false,
     settings:Object.create(null),metadata:Object.create(null),logs:[],errors:[],capture:true,logPaused:false,
@@ -25,7 +25,6 @@
     if(D.rebuildRail)D.rebuildRail();return function(){D.tools.delete(tool.id);var group=D.groups.get(tool.group)||[];var i=group.indexOf(tool.id);if(i>=0)group.splice(i,1);if(!group.length)D.groups.delete(tool.group);if(D.rebuildRail)D.rebuildRail();if(D.opened&&D.ui.heading&&D.ui.heading.textContent===tool.group){var group=D.groups.has(tool.group)?tool.group:Array.from(D.groups.keys())[0];if(group)D.selectGroup(group);}};
   };
   D.available=function(t){return !t.available||t.available()===true;};
-  D.backup=function(){if(D.sandbox||backupDone)return;var raw=root.localStorage.getItem(realKey),value={at:Date.now(),save:raw?JSON.parse(raw):D.clone(C.state.current)};D.write(realKey+'.dev-session-backup',value);backupDone=true;};
   function encoded(value){
     var next=D.clone(value);
     if(!D.sandbox){
@@ -66,7 +65,17 @@
   D.prepare=function(){
     var params=new URLSearchParams(root.location.search);D.sandbox=params.get('sandbox')==='1';C.presentation.gallery=!!params.get('gallery')&&params.get('gallery')!=='presets'&&params.get('gallery')!=='ui'; // Preset gallery belongs to the lazy studio, which needs normal card detail.
     C.clock.now=function(){return Date.now()+D.offset;};C.state.encode=encoded;C.state.beforeWrite=function(){if(D.offset||D.cap!==baseCap||D.regen!=='1'||D.force.tier||D.force.card||D.force.variant!=='random'||D.luck!==1)D.backup();};
-    C.timers.tick=function(now){now=D.paused?timerPauseAt:now==null?C.clock.now():now;if(!C.state.current)return originals.tick(now);var next=D.clone(C.state.current),ready=next.packs.ready,anchor=next.packs.timerStartedAt,result=C.timers.reconcileInto(next,now);if(ready!==next.packs.ready||anchor!==next.packs.timerStartedAt){try{if(D.offset||D.cap!==baseCap||D.regen!=='1')D.backup();if(!C.state.commit(C.state.validate(next,true)))throw new Error('Timer change could not persist; stock is unchanged.');}catch(e){D.message(e.message,true);return {ready:ready,gained:0};}}if(result.gained)C.events.emit('pack:ready',result);C.events.emit('timer:tick',{now:now});return result;};C.timers.progress=function(now){return originals.progress(D.paused?timerPauseAt:now);};
+    C.timers.tick=function(now){
+      now=D.paused?timerPauseAt:now==null?C.clock.now():now;if(!C.state.current)return originals.tick(now);
+      // Timer reconciliation owns packs only. Do not copy every card, journal
+      // entry and photo descriptor once a second when stock has not changed.
+      var next={packs:Object.assign({},C.state.current.packs)},ready=next.packs.ready,anchor=next.packs.timerStartedAt,result=C.timers.reconcileInto(next,now);
+      if(ready!==next.packs.ready||anchor!==next.packs.timerStartedAt){
+        try{if(D.offset||D.cap!==baseCap||D.regen!=='1')D.backup();var candidate=D.clone(C.state.current);candidate.packs=next.packs;if(!C.state.commit(C.state.validate(candidate,true)))throw new Error('Timer change could not persist; stock is unchanged.');}
+        catch(e){D.message(e.message,true);return {ready:ready,gained:0};}
+      }
+      if(result.gained)C.events.emit('pack:ready',result);C.events.emit('timer:tick',{now:now});return result;
+    };C.timers.progress=function(now){return originals.progress(D.paused?timerPauseAt:now);};
     if(D.sandbox)C.state.setStorageContext(realKey+'.dev-sandbox');D.restoreWorkspace();
     C.events.on('opening:resolve',function(request){var f=D.force;D.backup();request.options={forcedTier:f.tier||null,forcedCard:f.card||null,forcedVariant:f.variant==='random'?undefined:f.variant||null,luck:D.luck};});
     C.events.on('opening:prepareCommit',function(s){s.pendingReveal.cards.forEach(function(i){stamps[i.instanceId]=D.offset;});});

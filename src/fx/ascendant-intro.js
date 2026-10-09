@@ -13,9 +13,10 @@
     warmup: function (spec, serial) {
       if(root.document.fonts)root.document.fonts.load('48px "Ascendant Bodoni"').catch(function(){});
       if (C.cutscenes.mode()==='light') {if(warmed)warmed.scene.dispose();warmed=null;return;}
-      if (warmed && warmed.serial === serial) return;
+      var level=C.settingsSchema.tiers.indexOf(C.settings.get('cinematicQuality'));
+      if (warmed && warmed.serial === serial && warmed.level === level) return;
       if (warmed) warmed.scene.dispose();
-      warmed = { serial: serial, scene: build(spec, serial) };
+      warmed = { serial: serial, level:level, scene: build(spec, serial) };
       // Allocate targets and compile the same passes while the opaque foil covers the viewport.
       warmed.scene.paint(C.viewport.width, C.viewport.height, 4);
     },
@@ -279,7 +280,7 @@
         var bankRandom=M.random('flight-banks:'+serial);cloudBanks=[];cloudAtlas=null;cloudKey='';
         for(var bank=0;bank<28;bank++)cloudBanks.push({x:(bank%2?-1:1)*(.8+bankRandom()*3.5),y:(bankRandom()-.5)*4,z:10+bank*.9});
         cloudBanks.sort(function(a,b){return b.z-a.z;});
-        if(!quiet&&!C.motion.reduced&&C.settings.policy.animation&&level>0){scene=warmed&&warmed.serial===serial?warmed.scene:build(spec,serial);if(warmed&&warmed.scene!==scene)warmed.scene.dispose();warmed=null;}
+        if(!quiet&&!C.motion.reduced&&C.settings.policy.animation&&level>0){scene=warmed&&warmed.serial===serial&&warmed.level===level?warmed.scene:build(spec,serial);if(warmed&&warmed.scene!==scene)warmed.scene.dispose();warmed=null;}else if(warmed){warmed.scene.dispose();warmed=null;}
         if(scene)scene.setProfile(profile);stats.backend=scene?scene.stats.backend:'canvas';stats.failure=scene&&scene.stats.failure||null;
       }
       function paint(g,w,h,section,elapsed,staticProgress) {

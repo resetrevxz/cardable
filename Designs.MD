@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current public app: **1.2.3**. The 1.2 series includes the One Cardable foundation, Controls update and desktop reliability pass. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.2.4**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -100,7 +100,7 @@ Design references: [Vercel interface guidelines](https://vercel.com/design/guide
 
 # Designs.MD — Cardable's current design system
 
-This guide describes the current game, publicly numbered **1.1.0** after the 4.2.0 development series, including four graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
+This guide describes the current game, publicly numbered **1.2.4** after the 4.2.0 development series, including five graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
 
 ## Direction and visual hierarchy
 
@@ -156,7 +156,7 @@ Controls need visible focus, real keyboard actions, understandable disabled/sele
 
 Card face/back anatomy, rarity props, specs and permanent variants are governed by [03-CARD](docs/03-CARD.md), [02-RARITIES](docs/02-RARITIES.md) and [VARIANTS-AND-TAGS](docs/VARIANTS-AND-TAGS.md). Preserve real timestamps, serials and provenance. No fabricated specs, rarity indicators on an Unfound Secret, arbitrary extra color or duplicate reward effects.
 
-Shelf/Grid browsing uses static front-only thumbnails and local small art. Selecting promotes one full card; closing restores a fresh thumbnail and releases full bindings. Detail hides/dims the browsing scene instead of leaving many active materials behind it. A roughly 360 px information panel stacks on narrow layouts below 900 px. Content order emphasizes the collectible and meaningful provenance rather than repeating tier/serial/spec labels everywhere.
+Shelf/Grid browsing uses static front-only thumbnails and local small art. Selecting promotes one full card; closing restores a fresh thumbnail and releases full bindings. Detail keeps the static browsing scene visible beneath a shaded scrim, with background interaction disabled and no full-window blur. The lifted card remains grounded in its collection during entry and return. A roughly 360 px information panel stacks on narrow layouts below 900 px. Content order emphasizes the collectible and meaningful provenance rather than repeating tier/serial/spec labels everywhere.
 
 The detail overview is a quiet single pane. Inspect is the primary detail action; Favorite, Flip and More remain compact but accessible. Metadata tags are neutral except approved pack identity, with the useful variant/pack/fresh tags before overflow. Multi-select or bulk actions require their own scope.
 

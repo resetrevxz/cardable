@@ -2,6 +2,7 @@
   'use strict';
   // A projection of the catalog and instances. No second inventory save format.
   C.collection = {
+    revision: 0,
     project: function (catalog, inventory, order) {
       var grouped = new Map(), generations = new Map(), rarities = new Map();
       C.data.generations.forEach(function (g) { generations.set(g.id, g); });
@@ -34,6 +35,7 @@
     markSeen: function (cardId, inventory) {
       var changed = false;
       inventory.forEach(function (instance) { if (C.stacks.of(instance) === C.stacks.canonical(cardId) && !instance.seen) { instance.seen = true; changed = true; } });
+      if (changed) C.collection.revision++;
       return changed;
     }
   };

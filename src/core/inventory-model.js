@@ -22,8 +22,12 @@
   }
   function mutate(update) {
     var previousCollections=JSON.stringify(C.state.current.inventoryUi.collections);
-    var candidate = JSON.parse(JSON.stringify(C.state.current)); candidate.inventoryUi = normalize(candidate.inventoryUi);
-    update(candidate.inventoryUi, candidate); C.state.current = candidate; C.state.save();
+    // UI edits own only inventoryUi. Preserve card-instance identity and avoid
+    // cloning the complete collection/journal/Studio state on each selection.
+    var candidate = Object.assign({}, C.state.current);
+    candidate.inventoryUi = JSON.parse(JSON.stringify(candidate.inventoryUi));
+    update(candidate.inventoryUi, candidate); candidate.inventoryUi = normalize(candidate.inventoryUi);
+    C.state.current = candidate; C.state.save();
     C.events.emit('inventory:preferencesChanged', candidate.inventoryUi);
     if(previousCollections!==JSON.stringify(candidate.inventoryUi.collections))C.events.emit('inventory:collectionsChanged',candidate.inventoryUi.collections);
     return candidate.inventoryUi;
@@ -31,7 +35,7 @@
   C.inventoryModel = {
     defaults: defaults, normalize: normalize,
     get current() { return C.state.current.inventoryUi; },
-    update: function (patch) { return mutate(function (ui) { Object.assign(ui, patch); Object.assign(ui, normalize(ui)); }); },
+    update: function (patch) { return mutate(function (ui) { Object.assign(ui, patch); }); },
     favorite: function (id) { id = C.stacks.canonical(id); if (!C.state.current.inventory.some(function (item) { return C.stacks.of(item) === C.stacks.canonical(id); })) return; return mutate(function (ui) { var at = ui.favorites.indexOf(id); if (at < 0) ui.favorites.push(id); else ui.favorites.splice(at, 1); }); },
     create: function (name) { var id = C.randomId('collection'); mutate(function (ui) { ui.collections.push({ id: id, name: String(name).trim().slice(0, 60) || 'Collection', stackKeys: [] }); ui.customOrders[id] = []; ui.activeCollectionId = id; }); return id; },
     rename: function (id, name) { mutate(function (ui) { var item = ui.collections.find(function (c) { return c.id === id; }); if (item && String(name).trim()) item.name = String(name).trim().slice(0, 60); }); },
