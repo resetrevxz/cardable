@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current public app: **1.2.2**. This release completes the One Cardable foundation and Controls update for the 1.2 series. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current public app: **1.2.3**. The 1.2 series includes the One Cardable foundation, Controls update and desktop reliability pass. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -229,3 +229,9 @@ Shared silhouette, Cardable header band, central emblem and name/tagline/footer 
 ## Cinematic optics and Very High
 
 High and opt-in Very High share physically plausible procedural lighting and bounded filmic optics. The card remains the visual anchor; grain, edge dispersion, focus, bloom and micro-motion stay restrained. Low/Medium retain their lighter paths, and reduced motion removes gesture ornaments. Hardware gating explains unavailable Very High; temporary fallback preserves the requested saved tier. Window open/fullscreen transitions remain owned by the native platform. Review aids are ephemeral unminted specimens.
+
+## Desktop readiness and update pattern (1.2.3)
+
+The launch surface uses the kit ink, text, radius and shadow tokens, a static collectible silhouette and real preparation labels. Never delay startup to show branding or claim installation on an ordinary launch. First desktop use shows the actual executable folder, separate save/photo guidance and one Start collecting action. Setup uses native Windows folder selection; new installs may choose a location, while updates preserve the registered folder and photo origin.
+
+Installed-app updates download without taking over the game. A labelled corner panel shows download progress only when total work is known. A ready update may count down for 15 seconds only in a focused, visible, idle menu with no pending reveal, recovery, sheet, Studio or editing context. Later defers the session. Saving and the native disk mirror must succeed before restart. Reduced motion and monochrome retain the same labels. The gallery includes launch and update specimens.

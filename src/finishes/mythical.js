@@ -36,7 +36,7 @@
     C.finishes.svg('rect', { x: 18, y: 0, width: 364, height: 60, fill: '#000' }, mask);
     var fire = C.finishes.svg('g', { mask: 'url(#' + maskId + ')' }, svg);
     var random = C.art.random(card.art.seed), flames = [];
-    var flameCount = Math.max(4, Math.ceil(cfg.flameCount * [0.2, 0.5, 0.75, 1][C.settings.policy.prop]));
+    var flameCount = Math.max(4, Math.ceil(cfg.flameCount * [0.2, 0.5, 0.75, 1, 1][C.settings.policy.prop]));
     for (var i = 0; i < flameCount; i += 1) {
       var x = i / (flameCount - 1) * 400, side = i < 2 || i >= flameCount - 2;
       var height = side ? 72 + random() * 20 : 35 + random() * 38;

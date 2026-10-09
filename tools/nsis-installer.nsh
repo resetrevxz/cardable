@@ -1,6 +1,24 @@
 ; Small hooks for electron-builder's stock offline NSIS installer/uninstaller.
 ; Keep the stock identity, registry, extraction, shortcuts and upgrade machinery.
 
+!macro customWelcomePage
+  !define MUI_WELCOMEPAGE_TITLE "Install Cardable"
+  !define MUI_WELCOMEPAGE_TEXT "Your collection. Ready when you are.$\r$\n$\r$\nChoose a folder on the next screen. Cardable installs for your Windows user and includes everything needed for offline play.$\r$\n$\r$\nKeep the suggested location unless you need another drive. Future updates reuse this folder. Your cards and settings live separately in your Windows profile.$\r$\n$\r$\nClose Cardable normally before continuing."
+  !insertmacro skipPageIfUpdated
+  !insertmacro MUI_PAGE_WELCOME
+!macroend
+
+!macro customInstallMode
+  StrCpy $isForceCurrentInstall "1"
+!macroend
+
+; Assisted setup allows a new location on FIRST installation only. Check again
+; after the folder page and before the old app is uninstalled or files extracted.
+!macro customPageAfterChangeDir
+  !define MUI_PAGE_HEADER_TEXT "Cardable is installing"
+  !define MUI_PAGE_HEADER_SUBTEXT "Copying the game and creating your shortcuts."
+!macroend
+
 !macro cardableStop MESSAGE
   DetailPrint "${MESSAGE}"
   IfSilent +2
@@ -42,7 +60,7 @@
 
 !macro customInit
   !insertmacro cardableKeepAppData
-  ; Stock oneClick init reuses the current 64-bit HKCU InstallLocation.
+  ; Stock assisted init reuses the current 64-bit HKCU InstallLocation.
   ; Audit both views before extraction or executing any older uninstaller.
   !insertmacro cardableAuditRegistryView 32
   !insertmacro cardableAuditRegistryView 64
@@ -50,9 +68,9 @@
   !insertmacro GetDParameter $R0
   ${If} $R0 != ""
     ReadRegStr $R1 HKCU "${INSTALL_REGISTRY_KEY}" "InstallLocation"
-    ${If} $R1 == ""
-    ${OrIf} $R1 != $R0
-      !insertmacro cardableStop "Cardable uses a fixed per-user installation location. Omit /D and run setup normally. Existing custom locations are reused only when registered."
+    ${If} $R1 != ""
+    ${AndIf} $R1 != $R0
+      !insertmacro cardableStop "Cardable updates reuse your existing installation folder. Run setup without /D to keep your collection and Studio photo location."
     ${EndIf}
   ${EndIf}
 !macroend
@@ -62,6 +80,8 @@
 !macroend
 
 !macro customCheckAppRunning
+  !insertmacro cardableAuditRegistryView 32
+  !insertmacro cardableAuditRegistryView 64
   ; Use the builder's already bundled process plugin, with no close/kill calls.
   ; Name-based detection intentionally also defers for an open local preview.
   StrCpy $R1 0

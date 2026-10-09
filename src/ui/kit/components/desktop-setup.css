@@ -1,0 +1,15 @@
+.cb-startup { position:fixed; inset:0; z-index:var(--z-overlay); display:grid; place-items:center; background:var(--ink-0); color:var(--text-primary); padding:var(--s-5); }
+.cb-startup-panel { width:min(100%,var(--dialog-max)); display:grid; gap:var(--s-4); padding:var(--s-6); border:1px solid var(--stroke); border-top-color:var(--light-edge); border-radius:var(--radius-sheet); background:var(--ink-1); box-shadow:var(--shadow-lg); }
+.cb-startup h1,.cb-setup-welcome h2 { margin:0; font:600 28px/32px var(--font-ui); letter-spacing:-.03em; }
+.cb-startup p { margin:0; font:14px/20px var(--font-ui); color:var(--text-secondary); }
+.cb-setup-eyebrow { font:500 11px/14px var(--font-mono); letter-spacing:.08em; color:var(--text-tertiary); }
+.cb-startup-mark { width:48px; height:64px; border:1px solid var(--stroke-hover); border-radius:var(--radius-control); background:linear-gradient(145deg,var(--glass-3),var(--glass-1)); box-shadow:var(--shadow-sm); }
+.cb-startup-track { height:4px; border-radius:var(--radius-chip); background:var(--stroke); overflow:hidden; }
+.cb-startup-track::before { content:''; display:block; width:32%; height:100%; background:var(--accent); border-radius:inherit; }
+.cb-setup-path { padding:var(--s-3); border:1px solid var(--stroke); border-radius:var(--radius-control); background:var(--ink-0); color:var(--text-primary); font:12px/20px var(--font-mono); overflow-wrap:anywhere; user-select:text; }
+.cb-setup-actions { display:flex; flex-wrap:wrap; gap:var(--s-2); margin-top:var(--s-4); }
+.cb-desktop-update { position:fixed; right:max(var(--s-4),env(safe-area-inset-right)); bottom:max(var(--s-4),env(safe-area-inset-bottom)); z-index:var(--z-toast); width:min(360px,calc(100vw - 32px)); padding:var(--s-4); border:1px solid var(--stroke-strong); border-top-color:var(--light-edge); border-radius:var(--radius-panel); background:var(--ink-1); box-shadow:var(--shadow-md); }
+.cb-desktop-update[hidden] { display:none; }
+.cb-desktop-update p { margin:var(--s-2) 0; font:14px/20px var(--font-ui); color:var(--text-secondary); }
+.cb-desktop-update progress { width:100%; height:4px; accent-color:var(--accent); }
+.cb-desktop-update .cb-setup-actions { margin-top:var(--s-3); }

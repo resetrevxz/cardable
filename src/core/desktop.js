@@ -94,7 +94,7 @@
 
       // 3. Native close handshake: flush the primary save and wait for disk backup.
       if (desktop.lifecycle) desktop.lifecycle.onPrepareClose(function () {
-        if (C.bootFailure || C.state.recovery && C.state.recovery.pending) { desktop.lifecycle.closeReady(true); return; }
+        if (C.bootFailure || C.state.recovery && C.state.recovery.pending) { desktop.lifecycle.closeReady(false); return; }
         var saved = true;
         try { if (C.state) { C.state.save(); saved = C.state.persistenceAvailable; } } catch (_) { saved = false; }
         backupCurrent().catch(function () { return false; }).then(function (result) {

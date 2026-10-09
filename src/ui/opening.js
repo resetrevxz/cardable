@@ -173,14 +173,15 @@
       candidate.pendingReveal = request.buildPending ? request.buildPending(candidate, now) : { packId: pack.id, cards: cards, committedAt: now, keptCount: 0 };
       C.events.emit('opening:prepareCommit', candidate);
       if (!C.state.commit(candidate)) throw new Error('durable save unavailable');
-    } catch (_) {
-      error.textContent = 'Could not save. Your pack is still here.'; errorUntil = root.performance.now() + cfg.errorMs;
+    } catch (failure) {
+      root.console.error('Cardable pack reservation failed:', failure);
+      error.textContent = C.state.lastError && C.state.lastError.reason === 'quota' ? 'Storage is full. Export your save from Settings → Data. Your pack is still here.' : 'Could not save. Your pack is still here. Open Settings → Data for recovery.'; errorUntil = root.performance.now() + cfg.errorMs;
       cancel('save-failed'); announce(error.textContent); return;
     }
-    C.events.emit('opening:committed', { cards: candidate.pendingReveal.cards, options: request.options, pack: pack });
+    C.events.notify('opening:committed', { cards: candidate.pendingReveal.cards, options: request.options, pack: pack });
     stats.commits += 1; fill = 1; C.currency.notify(before,'pack opening');
-    C.events.emit('pack:reward', { before: before, value: candidate.currency, amount: C.config.currency.packOpenReward, source: host.getBoundingClientRect() });
-    C.events.emit('pack:opened', { ready: candidate.packs.ready }); C.events.emit('charge:complete', candidate.pendingReveal);
+    C.events.notify('pack:reward', { before: before, value: candidate.currency, amount: C.config.currency.packOpenReward, source: host.getBoundingClientRect() });
+    C.events.notify('pack:opened', { ready: candidate.packs.ready }); C.events.notify('charge:complete', candidate.pendingReveal);
     phaseTo('dissolving'); particles.emit('dissolve', null, width, height);
   }
   function chargeEnd() {
@@ -413,7 +414,7 @@
     if (!final) startReveal(false);
     else if (cards.length) { pendingCards = cards; beginCollect(); }
     else { currentView.setMode('lite'); currentView.el.inert = true; phaseTo('discarding'); announce('Card deleted. Pack reward kept.'); }
-    C.events.emit(discard ? 'card:discarded' : 'card:kept', decided);
+    C.events.notify(discard ? 'card:discarded' : 'card:kept', decided);
   }
   function closeToast() {
     if (toastView) toastView.destroy(); toastView = null; toastAge = null;

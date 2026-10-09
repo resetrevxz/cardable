@@ -62,7 +62,7 @@
       if (parent) parent.appendChild(element); return element;
     },
     uid: function (prefix) { nextId += 1; return 'finish-' + prefix + '-' + nextId; },
-    propDue: function (state, dt) { var hz = [0, 15, 30, 60][C.settings.policy.prop]; if (!hz) return false; state.propClock = (state.propClock || 0) + dt; if (state.propClock + 0.01 < 1000 / hz) return false; state.propClock = 0; return true; },
+    propDue: function (state, dt) { var hz = [0, 15, 30, 60, 60][C.settings.policy.prop]; if (!hz) return false; state.propClock = (state.propClock || 0) + dt; if (state.propClock + 0.01 < 1000 / hz) return false; state.propClock = 0; return true; },
     squircle: function (parent, className) {
       var svg = C.finishes.svg('svg', { viewBox: '0 0 100 140', class: 'finish-squircle-frame ' + className, 'data-shape': 'squircle', 'aria-hidden': 'true' }, parent);
       var defs = C.finishes.svg('defs', {}, svg), clipId = C.finishes.uid('frame-clip');

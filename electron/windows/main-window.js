@@ -40,6 +40,14 @@ function createMainWindow() {
   });
 
   mainWindow = win;
+  // Caught startup/transaction errors do not reach window.onerror. Capture them
+  // before scripts run so support logs contain the actual failure, not only the
+  // generic recovery dialog. Never log save payloads.
+  win.webContents.on('console-message', details => {
+    if (details.level === 'error' || details.level === 'warning') {
+      logger.warn('Renderer console:', { message: String(details.message).slice(0, 2000), source: details.sourceId, line: details.lineNumber });
+    }
+  });
   require('../native/window-life').init(win);
   win.webContents.setVisualZoomLevelLimits(1, 1);
   windowState.track(win);

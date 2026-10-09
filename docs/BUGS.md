@@ -2,6 +2,31 @@
 
 Fixed history and its reproduction/coverage tables are preserved in [the original bug ledger](../archive/4.2.0-cleanup/docs/BUGS.md). A historical fixed label applies to its recorded checkpoint, not every later build. Deferred rows are evidence gaps rather than newly reproduced defects.
 
+## 1.2.3 reliability and setup pass
+
+The native Settings Discord row has no schema descriptor. Simple-mode group
+classification previously read its missing descriptor's `advanced` field, crashing
+startup/refresh. Post-save listeners could then make a completed disk write look
+like a failed reservation. Group classification now handles custom rows, and
+post-transaction notifications log isolated observer failures while continuing.
+Preparation hooks still fail closed. Very High now has bounded Mythical flame,
+Exotic prop and shared prop-motion entries.
+
+Evidence: one isolated offline browser session and one native diagnostic session
+using copies of the existing profile (including reloads). The native failure was
+reproduced, then startup/settings were clean; a pack was opened, kept and reloaded
+with one retained instance and no pending reveal. Mythical mounted/updated at all
+five qualities without invalid paths. Injected update states showed 42% progress,
+an idle countdown, a Settings pause and Later deferral; these are UI evidence,
+not a real downloaded upgrade. The original native save was compared byte-for-byte
+and remained unchanged.
+
+The permitted `Cardable.dev.checkQol()` ran once and stopped at its first legacy
+scale assertion: expected 0.62 for 1100×680, current viewport returns 0.5729167.
+No old suite, new test file, game screenshot, recording or profiling was used.
+Guided installer execution, a public A→B updater/relaunch, signing, photo migration
+and physical-device/cinematic acceptance remain unverified.
+
 ## Outstanding historical gates
 
 | # | area | what | how to reproduce | status |
@@ -24,7 +49,7 @@ The old table describes old configuration and old dev tools. Current stock is fo
 4. Verify native file picker/download, browser storage restrictions and IndexedDB photo persistence without changing origins.
 5. Exercise real installer upgrade/uninstall, locked/legacy paths, Safe Mode relaunch, startup failure and native disk-error recovery in a separately authorized isolated environment.
 6. The C reduced-motion emulation did not activate runtime reduced state. OS preference changes and explicit On/Off still need acceptance. C did verify import preview, two-click replacement and retained corrupt text in a private profile.
-7. Public hosting, CI, live GitHub updates, signing/publisher and live Discord remain unconfigured/external. No updater success is claimed from offline packaging.
+7. Public hosting and GitHub release CI are configured. Live installed-app updates, signing/publisher and live Discord remain separate acceptance; offline packaging does not prove an updater upgrade.
 
 ## Intentional behavior
 

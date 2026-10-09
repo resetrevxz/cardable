@@ -5,12 +5,12 @@
   function load(index) {
     if(index===files.length){
       Promise.resolve(C.desktop && C.desktop.prepare ? C.desktop.prepare() : false).then(function(){
-        C.dev.prepare();C.events.on('app:ready',function(){C.dev.init();});C.boot();
-      });
+        C.dev.prepare();C.events.on('app:ready',function(){C.dev.init();});C.boot();if(C.setup){C.setup.finish();C.setup.welcome();}
+      }).catch(function(error){C.bootFailure=true;if(C.setup)C.setup.finish();if(C.friendly)C.friendly.showStartupFailure(error);root.console.error('Cardable developer startup failed:',error);});
       return;
     }
     var script=root.document.createElement('script');script.src='src/dev/'+files[index]+'.js';script.async=false;
-    script.onload=function(){load(index+1);};script.onerror=function(){root.console.error('Cannot load developer module: '+files[index]);};
+    script.onload=function(){load(index+1);};script.onerror=function(){var error=new Error('Cannot load developer module: '+files[index]);C.bootFailure=true;if(C.setup)C.setup.finish();if(C.friendly)C.friendly.showStartupFailure(error);root.console.error(error);};
     root.document.body.appendChild(script);
   }
   load(0);

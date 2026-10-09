@@ -4,7 +4,8 @@ From the actual repository root, run `npm run deliver:desktop`. Windows x64 and
 the existing Node/Electron development dependencies are required for building;
 players only need the resulting offline installer. This command never installs,
 launches, publishes, elevates, kills Cardable or changes the game/save schema.
-Milestone B adds the one-click per-user installer and [player guide](../PLAY.md).
+The installer uses guided per-user setup with folder selection on a new install
+and the [player guide](../PLAY.md). In-place updates retain the registered folder.
 Milestone C adds bundled Settings/palette help and explicit recovery choices.
 Milestone D consolidated documentation and evidence at 4.2.0. Public numbering now starts at 1.0.0. Each local delivery has a unique build ID; each completed public update also advances the release version under [RELEASING](RELEASING.md). Read-only questions and internal steps do not rebuild or release.
 

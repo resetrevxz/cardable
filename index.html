@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="src/ui/kit/components/studio.css">
   <link rel="stylesheet" href="src/ui/kit/components/detail-panel.css">
   <link rel="stylesheet" href="src/ui/kit/components/desktop-qol.css">
+  <link rel="stylesheet" href="src/ui/kit/components/desktop-setup.css">
   <link rel="stylesheet" href="src/ui/kit/components/stability.css">
   <link rel="stylesheet" href="src/ui/kit/tokens.css">
   <link rel="stylesheet" href="src/ui/kit/base.css">
@@ -54,6 +55,16 @@
   <link rel="stylesheet" href="src/styles/visual-overhaul.css">
 </head>
 <body>
+  <section id="cardable-startup" class="cb-startup" role="status" aria-live="polite" aria-label="Starting Cardable">
+    <div class="cb-startup-panel">
+      <div class="cb-startup-mark" aria-hidden="true"></div>
+      <span class="cb-setup-eyebrow">CARDABLE</span>
+      <h1>Getting Cardable ready</h1>
+      <p data-startup-status>Loading the game…</p>
+      <div class="cb-startup-track" aria-hidden="true"></div>
+      <p>Your collection stays with you.</p>
+    </div>
+  </section>
   <canvas id="dot-grid" aria-hidden="true"></canvas>
   <main class="menu-shell" aria-label="Cardable">
     <div id="wordmark" class="wordmark idle-chrome entrance" tabindex="0" role="img" aria-label="cardable" style="--entry: 0">
@@ -234,14 +245,17 @@
   <script src="src/ui/desktop-tools.js"></script>
   <script src="src/data/player-help.js"></script>
   <script src="src/ui/desktop-friendly.js"></script>
+  <script src="src/ui/desktop-setup.js"></script>
+  <script src="src/ui/desktop-update.js"></script>
   <script src="src/ui/patchnotes.js"></script>
   <script src="src/studio/entry.js"></script>
   <script src="src/boot.js"></script>
   <script>
     function startCardable() {
-      Promise.resolve().then(function () { return Cardable.desktop && Cardable.desktop.prepare ? Cardable.desktop.prepare() : false; }).then(function () { Cardable.boot(); }).catch(function (error) {
+      Promise.resolve().then(function () { Cardable.setup.status('Checking your saved collection…'); return Cardable.desktop && Cardable.desktop.prepare ? Cardable.desktop.prepare() : false; }).then(function () { Cardable.boot(); Cardable.setup.finish(); Cardable.setup.welcome(); }).catch(function (error) {
         Cardable.bootFailure = true;
-        if (Cardable.friendly) Cardable.friendly.showStartupFailure();
+        if (Cardable.setup) Cardable.setup.finish();
+        if (Cardable.friendly) Cardable.friendly.showStartupFailure(error);
         else { var message = document.createElement('p'); message.className = 'save-notice glass'; message.setAttribute('role', 'alert'); message.textContent = 'Cardable could not start. Keep your original files and saves; do not reset or delete your profile. Close this window and ask the supplier for a complete build.'; document.body.appendChild(message); }
         console.error('Cardable startup failed:', error);
       });

@@ -27,7 +27,10 @@ function registerAppHandlers() {
       arch: process.arch,
       resetControls: process.argv.includes('--reset-controls'),
       unlimitedGraphics: app.commandLine.hasSwitch('disable-frame-rate-limit'),
-      safeMode: process.argv.includes('--safe-mode')
+      safeMode: process.argv.includes('--safe-mode'),
+      updated: process.argv.includes('--updated'),
+      installed: require('../updater/auto-updater').updaterService.isInstalled,
+      installDirectory: require('path').dirname(process.execPath)
     };
   });
 

@@ -1,5 +1,38 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    "version": "1.2.3",
+    "codename": "Ready to collect",
+    "date": "October 9, 2026",
+    "tag": "Bug fixes",
+    "tagline": "Reliable saves. A calmer setup.",
+    "sections": {
+      "fixes": [
+        "Fixed a desktop Settings exception that interrupted startup and reported completed saves as failures.",
+        "Pack reservations and Keep notifications preserve successful writes even if an optional observer fails.",
+        "Mythical flames and Exotic props retain their detail on Very High."
+      ],
+      "qol": [
+        "Guided Windows setup lets a new installation choose its folder; updates retain the existing location.",
+        "Startup reports actual preparation work, with folder and backup guidance on first desktop use.",
+        "Installed updates download in the background and offer a 15-second restart when the menu is idle. Later postpones the session."
+      ]
+    },
+    "entries": [
+      "Fixed a desktop Settings exception that interrupted startup and reported completed saves as failures.",
+      "Pack reservations and Keep notifications preserve successful writes even if an optional observer fails.",
+      "Mythical flames and Exotic props retain their detail on Very High.",
+      "Guided Windows setup lets a new installation choose its folder; updates retain the existing location.",
+      "Startup reports actual preparation work, with folder and backup guidance on first desktop use.",
+      "Installed updates download in the background and offer a 15-second restart when the menu is idle. Later postpones the session."
+    ],
+    "hero": {
+      "badge": "CARDABLE / 1.2.3",
+      "title": "Ready to collect.",
+      "subtitle": "Reliable saves. A calmer setup.",
+      "media": []
+    }
+  },
+  {
     "version": "1.2.2",
     "codename": "One Cardable",
     "date": "October 8, 2026",

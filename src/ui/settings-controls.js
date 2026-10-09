@@ -6,7 +6,7 @@
     create: function (descriptor, parent, binding) {
       binding = binding || { get: C.settings.get, set: C.settings.set, subscribe: C.settings.onChange };
       var key = descriptor.key, type = descriptor.control, control, buttons = [], indicator, knob, current = binding.get(key), pending = false;
-      var disabled = !!descriptor.disabled || descriptor.group === 'Sound' || descriptor.group === 'Desktop' && !C.native || descriptor.group === 'Notifications' && !C.native, spring = C.springs.create(0, { stiffness: 220, damping: 26 });
+      var disabled = !!descriptor.disabled || descriptor.nativeOnly && !C.native || descriptor.group === 'Sound' || descriptor.group === 'Desktop' && !C.native || descriptor.group === 'Notifications' && !C.native, spring = C.springs.create(0, { stiffness: 220, damping: 26 });
       var row = node('div', 'settings-row', parent), copy = node('div', 'settings-copy', row);
       row.dataset.setting = key;
       var label = node('span', 'settings-label', copy, descriptor.label); label.id = (descriptor.prefix || 'setting-') + key;

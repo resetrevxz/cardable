@@ -1,7 +1,7 @@
 {
   "name": "cardable",
   "productName": "Cardable",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Cardable - GPU Card Collecting Game",
   "author": "Cardable Team",
   "main": "electron/main.js",
@@ -76,9 +76,10 @@
       "artifactName": "Cardable-Setup-${version}.${ext}"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": false,
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "runAfterFinish": true,

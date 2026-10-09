@@ -10,6 +10,15 @@ Gameplay remains offline; release traffic stays in the native process. Browser,
 development, unpacked preview and unconfigured builds make no scheduled requests.
 Public numbering starts at v1.0.0. Earlier 4.x installations need the new installer once; normal update checks do not downgrade. A live installed 1.x upgrade remains separate acceptance.
 
+From 1.2.3, a corner panel shows background download and ready status. With
+Settings → About → Restart for updates when idle enabled, a ready update counts
+down for 15 seconds only in a visible, focused idle menu. Pack opening/reservation,
+inventory, Settings, Studio, dialogs, recovery and other editing contexts postpone
+the countdown. Later defers this session; Settings still offers manual restart.
+The restart uses the same save and native disk mirror gate. A failure cancels it.
+The first relaunch from setup uses --updated and shows real collection restoration,
+without invented installation percentages or a mandatory branding delay.
+
 Settings → About displays progress, retained error details/retry, release notes,
 Restart and update now, and Skip update on this quit. Skip leaves the cached
 download and postpones automatic installation for the current app session;

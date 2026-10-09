@@ -24,7 +24,7 @@
   }
   function notify(before, reason) {
     var value=C.state.current.currency, delta=value-before;
-    if(delta) C.events.emit('currency:changed',{before:before,value:value,delta:delta,amount:Math.abs(delta),direction:Math.sign(delta),reason:reason});
+    if(delta) C.events.notify('currency:changed',{before:before,value:value,delta:delta,amount:Math.abs(delta),direction:Math.sign(delta),reason:reason});
   }
   function transact(amount, direction, reason) {
     if(!Number.isSafeInteger(amount)||amount<0)throw new TypeError('Invalid currency amount');

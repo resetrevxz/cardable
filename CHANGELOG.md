@@ -1,3 +1,18 @@
+# Cardable v1.2.3 — Ready to collect
+
+A reliability and installer pass for Windows, with the same collection, serials and save schema.
+
+- Fixed the native Discord Settings row crashing refresh during startup and saving. A completed save no longer becomes a failed pack opening because a post-write observer throws.
+- Preserved fail-closed preparation and atomic reservations, with clearer storage-full/recovery messages and startup error details in native logs.
+- Fixed missing Mythical flames, Exotic props and frozen prop motion on Very High.
+- Guided setup shows folder selection for new installations, progress and shortcut creation. Updates keep the registered location and preserve player data.
+- Every launch reports real preparation work. First desktop use explains the app folder, save location and separate Studio photo backups.
+- Installed updates download quietly, then offer a 15-second restart only in an idle menu. Later postpones this session; a save or native mirror failure cancels restart. Settings can disable idle restarts.
+
+Source sessions verified native startup, pack reservation, Keep and reload with a copied player profile. Installer packaging and UI state inspection are separate from live public A→B upgrade acceptance. This release remains unsigned.
+
+---
+
 # Cardable v1.2.2 — One Cardable: Your collection. Your controls.
 
 Every detail, under your control. The 1.2 series comes together with the shared Cardable interface, a complete creative workspace and a new Controls update.

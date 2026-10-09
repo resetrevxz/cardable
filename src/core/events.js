@@ -25,6 +25,15 @@
     emit: function (name, payload) {
       declare(name);
       (listeners[name] || []).slice().forEach(function (fn) { fn(payload); });
+    },
+    // Notifications run after a transaction. A broken observer must neither
+    // undo a successful write nor prevent the remaining observers from running.
+    // Preparation events deliberately retain emit's fail-closed behavior.
+    notify: function (name, payload) {
+      try { declare(name); } catch (error) { console.error('Cardable event declaration failed: ' + name, error); }
+      (listeners[name] || []).slice().forEach(function (fn) {
+        try { fn(payload); } catch (error) { console.error('Cardable notification failed: ' + name, error); }
+      });
     }
   };
 })(window.Cardable);

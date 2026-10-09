@@ -158,7 +158,7 @@
     if (!cache.unavailable || C.state.noticeShown) return;
     C.state.noticeShown = true;
     if (root.console) root.console.info('Cardable: local storage is unavailable; changes are kept in memory for this session.');
-    C.events.emit('save:unavailable');
+    C.events.notify('save:unavailable');
   }
   function preserveOriginal(store, raw) {
     var key = C.config.storage.key + '.corrupt', suffix = 0;
@@ -175,6 +175,7 @@
     },
     encode: function (value) { return JSON.stringify(value); },
     beforeWrite: null,
+    lastError: null,
     get persistenceAvailable() { return !cache.unavailable; },
     noticeShown: false,
     recovery: null,
@@ -191,10 +192,12 @@
     // Ordinary saves keep their existing session-only fallback.
     commit: function (candidate, options) {
       var recovery = C.state.recovery;
-      if (C.bootFailure || recovery && recovery.pending && !(options && options.recovery)) return false;
+      if (C.bootFailure || recovery && recovery.pending && !(options && options.recovery)) {
+        C.state.lastError = { reason: 'recovery', message: 'Choose a recovery action before saving.' }; return false;
+      }
       try {
         var store = root.localStorage;
-        if (!store) return false;
+        if (!store) throw new Error('Local storage is unavailable');
         if (recovery && recovery.pending && recovery.reason === 'storage-read') recovery.raw = store.getItem(C.config.storage.key);
         if (recovery && recovery.pending && recovery.raw && !recovery.backedUp) {
           preserveOriginal(store, recovery.raw); recovery.backedUp = true;
@@ -202,11 +205,17 @@
         if (C.state.beforeWrite) C.state.beforeWrite(candidate);
         var json = C.state.encode(candidate);
         store.setItem(C.config.storage.key, json);
-      } catch (_) { return false; }
+      } catch (error) {
+        cache.unavailable = true;
+        C.state.lastError = { reason: error.name === 'QuotaExceededError' ? 'quota' : 'write', message: error.message || 'Save write failed' };
+        if (root.console) root.console.error('Cardable durable save failed:', error);
+        notifyUnavailable(); return false;
+      }
       cache.written(json);
+      C.state.lastError = null;
       C.state.current = candidate;
       if (recovery && recovery.pending) C.state.recovery = null;
-      C.events.emit('save:written', candidate);
+      C.events.notify('save:written', candidate);
       return true;
     },
     save: function () {
@@ -216,10 +225,10 @@
       var json = C.state.encode(C.state.current);
       var store = storage();
       if (store) {
-        try { store.setItem(C.config.storage.key, json); cache.written(json); }
-        catch (_) { cache.unavailable = true; cache.memory = json; notifyUnavailable(); }
+        try { store.setItem(C.config.storage.key, json); cache.written(json); C.state.lastError = null; }
+        catch (error) { cache.unavailable = true; cache.memory = json; C.state.lastError = { reason: error.name === 'QuotaExceededError' ? 'quota' : 'write', message: error.message || 'Save write failed' }; notifyUnavailable(); }
       } else { cache.memory = json; cache.unavailable = true; notifyUnavailable(); }
-      C.events.emit('save:written', C.state.current);
+      C.events.notify('save:written', C.state.current);
       return C.state.current;
     },
     load: function (now) {

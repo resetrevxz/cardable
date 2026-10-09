@@ -37,6 +37,11 @@ const testUserDataArg = process.argv.find(arg => arg.startsWith('--test-user-dat
 if ((smokeTest || qaTest) && testUserDataArg) {
   app.setPath('userData', path.resolve(testUserDataArg.slice('--test-user-data='.length)));
 }
+// A local development session can inspect a COPY of a failing profile without
+// invoking the historical smoke/QA harnesses or touching the player's data.
+const diagnosticProfile = !app.isPackaged && process.argv.includes('--dev') &&
+  process.argv.find(arg => arg.startsWith('--diagnostic-user-data='));
+if (diagnosticProfile) app.setPath('userData', path.resolve(diagnosticProfile.slice('--diagnostic-user-data='.length)));
 
 // 1. Single Instance Lock
 const gotTheLock = app.requestSingleInstanceLock();
