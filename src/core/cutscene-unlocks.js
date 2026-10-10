@@ -12,5 +12,7 @@
     if(!result)return false;if(result.already)return true;if(!C.state.commit(candidate))return false;
     C.currency.notify(before,'cutscene unlock');C.events.emit('cutscene:unlocked',{tier:tier,price:result.paid,at:C.clock.now()});return true;
   }
-  C.cutsceneUnlocks={normalize:normalize,unlockInto:unlockInto,unlock:unlock,owned:function(tier){return normalize(C.state.current.unlocks).cutscenes[tier]===true;}};
+  C.cutsceneUnlocks={normalize:normalize,unlockInto:unlockInto,unlock:unlock,
+    // Replays are free from 1.3.1. Earlier paid unlocks stay recorded in the save.
+    owned:function(tier){return C.data.cutscenePrices[tier]!=null;}};
 })(window.Cardable);

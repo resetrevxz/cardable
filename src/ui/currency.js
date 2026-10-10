@@ -17,7 +17,7 @@
       if(popover.hidden)return;popover.replaceChildren();
       // Balance only: the ledger stays in the save, without a history list in the way.
       var head=node('div','cb-wallet-head',popover);node('span','cb-wallet-coin',head).innerHTML=coin;var copy=node('div','',head);node('h2','',copy,'Credits');node('strong','cb-wallet-total',copy,save.currency.toLocaleString());
-      node('p','cb-wallet-helper',popover,save.currency?'Earned from packs, duplicates and achievements. Spend them to unlock cutscene replays.':'Open a pack to earn your first credits.');
+      node('p','cb-wallet-helper',popover,save.currency?'Earned from packs, duplicates and achievements.':'Open a pack to earn your first credits.');
       var close=node('button','cb-wallet-close',popover,'Done');close.type='button';close.addEventListener('click',hide);
     }
     function show(){root.clearTimeout(closeTimer);popover.hidden=false;trigger.setAttribute('aria-expanded','true');render();}

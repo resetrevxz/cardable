@@ -14,16 +14,16 @@
   function detailRect() {
     var margin = cfg.safeMarginPx, width = C.viewport.width, height = C.viewport.height;
     var outset = payload.entry.rarity.propOutset || {}, above = outset.top || 0, below = outset.bottom || 0, sides = outset.side || 0;
-    var stacked = width < 900, infoWidth = 360;
+    var stacked = width < 900, infoWidth = 52, railGap = 64;
     // Budget the whole composition, including the metadata column and props.
-    var cardSpace = width - margin * 2 - 80 - (stacked ? 0 : cfg.detailGapPx + infoWidth);
+    var cardSpace = width - margin * 2 - 80 - (stacked ? 0 : railGap + infoWidth);
     var cardHeight = Math.min(height * cfg.detailHeightVh / 100, (height - margin * 2 - 36) / (1 + above + below), cardSpace / (1 + sides * 2) * 7 / 5);
     if (stacked) cardHeight = Math.min(cardHeight, height * cfg.detailStackHeightVh / 100);
-    var cardWidth = cardHeight * 5 / 7, groupWidth = cardWidth * (1 + sides * 2) + (stacked ? 0 : cfg.detailGapPx + infoWidth);
+    var cardWidth = cardHeight * 5 / 7, groupWidth = cardWidth * (1 + sides * 2) + (stacked ? 0 : railGap + infoWidth);
     var rect = { left: (width - groupWidth) / 2 + sides * cardWidth,
       top: (stacked ? margin + 36 : (height - cardHeight * (1 + above + below) + 36) / 2) + above * cardHeight, width: cardWidth, height: cardHeight };
-    panel.style.width = (stacked ? Math.min(infoWidth, width - margin * 2) : infoWidth) + 'px';
-    panel.style.left = (stacked ? (width - Math.min(infoWidth, width - margin * 2)) / 2 : rect.left + cardWidth * (1 + sides) + cfg.detailGapPx) + 'px';
+    panel.style.width = (stacked ? Math.min(360, width - margin * 2) : infoWidth) + 'px';
+    panel.style.left = (stacked ? (width - Math.min(360, width - margin * 2)) / 2 : rect.left + cardWidth * (1 + sides) + railGap) + 'px';
     panel.style.top = (stacked ? rect.top + cardHeight * (1 + below) + 64 : rect.top + cardHeight / 2) + 'px';
     panel.style.maxHeight = stacked ? 'none' : Math.max(200, height - margin * 2) + 'px';
     overlay.classList.toggle('is-stacked', stacked);

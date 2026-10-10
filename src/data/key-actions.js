@@ -32,9 +32,6 @@
   ['look-compare','front','side','top','perspective','ortho','mode','guides','shading','add-light','add-prop','hide','lock','auto-key','next-key','previous-key','step-next','step-previous','photo','render','record','presets','library-search','exit'].concat(['page-Set','page-Light','page-Camera','page-Animate','page-Look','page-Deliver']).forEach(function(id){add(id,id.replace(/-/g,' ').replace(/^./,function(c){return c.toUpperCase();}),'studio',[],{bridge:false,run:function(){if(id==='look-compare')C.keys.invoke('studio.compare');else C.events.emit('studio:keyAction',{id:id});}});});
   add('delete-alternate','Delete selection (alternate)','studio',['KeyX']);
   add('compare','Compare Look','studio',['Backslash']);
-  add('history','Collection history','global',[],{bridge:false,run:function(){C.journalView.show();}});
   add('notes-search','Search patch notes','dialogs',['Slash'],{when:function(){return !!C.patchNotes.open;}});
-  add('history-search','Search History','dialogs',['Slash'],{when:function(){return !!C.journalView.open;}});
-  ['ArrowUp','ArrowDown','Home','End'].forEach(function(code){add('history-'+code.toLowerCase(),'History '+code,'dialogs',[code],{repeat:true,when:function(){return !!C.journalView.open;}});});
   C.data.keyPresets={Default:{},'One-handed':{'menu.inventory':['KeyO'],'global.settings':['KeyP'],'opening.hold':['KeyU'],'opening.keep':['KeyU','Enter']},Compact:{'menu.inventory':['KeyI'],'global.settings':['KeyS'],'global.commands':['Mod+KeyK'],'opening.hold':['Space']}};
 })(window.Cardable);

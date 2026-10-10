@@ -3,14 +3,6 @@
 /* Keep the static, inert collection grounded behind the lifting/returning card.
    A shaded scrim avoids a full-window blur pass on every animated detail frame. */
 .inventory-detail-active .inventory-sheet { pointer-events: none; }
-.inventory-detail .detail-info--clean { position: absolute; padding: 4px 8px; transform: translateY(-50%); overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; scrollbar-color: transparent transparent; box-sizing: border-box; }
-.detail-info--clean:hover, .detail-info--clean:focus-within { scrollbar-color: var(--hairline-strong) transparent; }
-.detail-info--clean::-webkit-scrollbar, .detail-copy-list::-webkit-scrollbar, .detail-popover::-webkit-scrollbar { width: 3px; height: 0; }
-.detail-info--clean::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--r-chip); }
-.detail-info--clean:hover::-webkit-scrollbar-thumb, .detail-info--clean:focus-within::-webkit-scrollbar-thumb { background: var(--hairline-strong); }
-.detail-info--clean .detail-heading { margin-bottom: var(--s-4); }
-.detail-info--clean .detail-kicker { margin: 0 0 var(--s-2); font: 10px/1.5 var(--font-mono); }
-.detail-info--clean .detail-name { margin: 0; font: 600 26px/1.2 var(--font-ui); text-wrap: balance; }
 .detail-chip-row { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; min-width: 0; margin-bottom: var(--s-5); }
 .detail-chip-row .card-tag { flex: 0 1 auto; min-width: 0; padding: 5px 8px; border-radius: var(--r-chip); font: 10px/1.3 var(--font-mono); color: var(--text-dim); border: 1px solid var(--hairline); background: var(--glass); }
 .detail-chip-row .card-tag > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -39,7 +31,6 @@
 .detail-copy-option[aria-pressed="true"] { border-color: var(--hairline); color: var(--text); background: var(--glass); }
 .detail-copy-serial { display: block; font: 9px/1.5 var(--font-mono); overflow-wrap: anywhere; }
 .detail-lore { margin-top: var(--s-3); }
-.detail-info--clean .detail-action-row { display: grid; grid-template-columns: minmax(0,1fr) repeat(3,36px); gap: 8px; margin: 0; padding: 0; overflow: visible; }
 .detail-action-row .studio-inspect-action { min-width: 0; width: auto; margin: 0; height: 38px; border-radius: var(--r-button); display: flex; align-items: center; justify-content: center; gap: var(--s-2); background: var(--text); color: var(--bg); border: 1px solid var(--text); font: 500 12px var(--font-ui); cursor: pointer; }
 .detail-action-row .studio-inspect-action svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.4; }
 .detail-action-row .inventory-icon { width: 36px; height: 38px; }
@@ -67,7 +58,6 @@
 .inventory-detail.is-stacked { overflow-y: auto; scrollbar-width: none; }
 .inventory-detail.is-stacked::-webkit-scrollbar { display: none; }
 .inventory-detail.is-stacked .detail-card-mount { position: absolute; }
-.inventory-detail.is-stacked .detail-info--clean { width: min(360px,calc(100% - 32px)) !important; left: 50% !important; transform: translateX(-50%); overflow: visible; padding-bottom: var(--s-6); }
 .reduced-motion .detail-tab-pane, [data-animation-quality="low"] .detail-tab-pane, [data-animation-quality="very-low"] .detail-tab-pane { transform: none; }
 [data-glass-quality="low"] .inventory-detail, [data-glass-quality="very-low"] .inventory-detail { backdrop-filter: none; -webkit-backdrop-filter: none; }
 @media (prefers-reduced-motion: reduce) { .detail-tab-pane { transform: none; } }

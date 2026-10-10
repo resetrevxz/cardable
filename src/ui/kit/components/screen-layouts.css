@@ -65,7 +65,6 @@
 .studio-context-menu,.context-panel { background:var(--ink-2); box-shadow:var(--shadow-md); }
 .qol-friendly,.qol-shortcuts,.dev-palette,.save-notice { background:var(--ink-1); }
 .performance-display { background:var(--ink-1); border:1px solid var(--stroke); border-radius:var(--radius-panel); }
-.inventory-detail .detail-info--clean { padding:var(--s-5); background:var(--ink-1); border:1px solid var(--stroke); border-radius:var(--radius-card); }
 .cb-toast-stack .cb-button[data-hover="lift"]:hover { transform:none; }
 .cb-gallery .cb-help-button { position:static; float:none; }
 @media(max-width:1100px) { .cb-settings-work { grid-template-columns:minmax(0,1fr); } .cb-settings-preview { display:none; } }
@@ -120,19 +119,11 @@
 .inventory-summary { align-items:center; gap:var(--s-1) var(--s-4); }
 .inventory-summary button { min-height:32px; background:transparent; border-radius:0; padding:var(--s-1) 0; font:500 11px/16px var(--font-mono); }
 .inventory-summary > span { font:400 11px/16px var(--font-mono); }
-.detail-info--clean .detail-action-row { margin-top:var(--s-5); grid-template-columns:minmax(0,1fr) repeat(3,32px); }
 .detail-action-row .studio-inspect-action { height:36px; min-height:36px; background:rgba(var(--accent-rgb),.14); color:var(--accent); border-color:rgba(var(--accent-rgb),.25); }
 .detail-action-row .inventory-icon { width:32px; height:36px; padding:0; }
-.detail-info--clean .cb-replay-action { margin-top:var(--s-3); min-height:36px; font:500 11px/16px var(--font-ui); }
 .detail-chip-row { margin-bottom:var(--s-4); }
-.detail-info--clean .detail-heading { margin-bottom:var(--s-4); }
-.detail-info--clean .detail-kicker { font:500 11px/16px var(--font-mono); }
 @media(pointer:coarse) { .studio-layer-row { grid-template-columns:minmax(0,1fr) 44px 44px; } .studio-layer-row .studio-layer-toggle { width:44px; height:44px; } }
 
-.detail-info--clean .detail-heading { position:relative; }
-.detail-info--clean .detail-heading>.cb-help-button { position:absolute; right:0; top:0; width:32px; height:32px; padding:0; }
-.detail-info--clean .detail-kicker { padding-right:40px; min-height:32px; display:flex; align-items:center; }
-.detail-info--clean .detail-name { padding-right:var(--s-2); }
 
 /* The focused Simple workspace keeps replay in the card detail action. */
 .studio-2[data-mode="simple"] .studio-topbar-actions .cb-replay-action { display:none; }

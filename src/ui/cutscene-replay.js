@@ -29,13 +29,8 @@
   function button(host,instance){
     var card=C.card(instance.cardId),rarity=C.rarity(card.rarity);if(!rarity.openingIntro||C.data.cutscenePrices[rarity.id]==null)return null;
     var b=node('button','cb-replay-action cb-action',host);b.type='button';var armed=0;
-    function refresh(){var price=C.data.cutscenePrices[rarity.id],missing=price-C.state.current.currency;b.textContent=C.cutsceneUnlocks.owned(rarity.id)?'Replay cutscene':missing>0?'Locked · '+price.toLocaleString()+' credits · need '+missing.toLocaleString()+' more':'Unlock replay · '+price.toLocaleString()+' credits';b.setAttribute('aria-label',b.textContent+' · '+rarity.name);b.title='Unlock '+rarity.name+' replay for '+price.toLocaleString()+' credits, once per tier';if(!C.cutsceneUnlocks.owned(rarity.id))b.prepend(C.inventoryIcons.create('lock'));}
-    b.addEventListener('click',function(){
-      if(C.cutsceneUnlocks.owned(rarity.id)){play(instance);return;}
-      if(!C.currency.canAfford(C.data.cutscenePrices[rarity.id])){refresh();return;}
-      var now=root.performance.now();if(armed&&now-armed<3000){armed=0;if(C.cutsceneUnlocks.unlock(rarity.id)){refresh();play(instance);}else{b.textContent='Could not save unlock. Try again.';}}
-      else{armed=now;b.textContent='Click again to unlock · '+C.data.cutscenePrices[rarity.id]+' credits';C.fx.wake();}
-    });
+    function refresh(){b.textContent='Replay cutscene';b.setAttribute('aria-label','Replay '+rarity.name+' cutscene');}
+    b.addEventListener('click',function(){play(instance);});
     var off=C.fx.subscribe(function(now){if(!b.isConnected){off();return false;}if(armed&&now-armed>=3000){armed=0;refresh();}return !!armed;},C.studio&&C.studio.active?'studio':'detail-info');
     b.addEventListener('blur',function(){armed=0;refresh();});refresh();return b;
   }

@@ -1,7 +1,7 @@
 (function(C){'use strict';C.data.help={
   menu:{title:'Your next pack',body:'Hold the opening key to charge the pack, then tear its top. Packs refill by elapsed time; changing the interface never changes your pulls.'},
   inventory:{title:'Your collection',body:'Search, filter and sort your collected cards. Select a card for its details; closing details returns to the same browsing position.'},
-  detail:{title:'Card details',body:'Inspect this exact collected copy, flip it or use More for replay and deletion. Protected and high-tier cards retain their confirmation safeguards.'},
+  detail:{title:'Card detail',body:'The card is the menu. Point at its rarity, serial, name, specs or brand mark for details, and use the round buttons beside it to inspect, favorite, flip or do more. Drag the card down or press Esc to return.'},
   settings:{title:'Settings',body:'Pick a page on the left or search every option. Point at an option to preview it at the bottom. Changes apply at once; changed options show a reset arrow. Advanced adds more options without changing your saved choices.',shortcuts:['Ctrl+,','S']},
   achievements:{title:'Achievements',body:'Browse weekly, recurring and permanent goals. Claim completed weekly rewards; recurring rewards are automatic. Pins keep a goal within reach.'},
   notes:{title:'Patch notes',body:'Select a version, search its changes or copy them as Markdown. Try it opens the corresponding feature.'},

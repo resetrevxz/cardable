@@ -1,5 +1,31 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.3.1',codename:'The card is the menu',date:'October 10, 2026',tag:'Update',tagline:'Point at a card to explore it.',
+    hero:{badge:'CARDABLE / 1.3.1',title:'The card is the menu.',subtitle:'Card detail without a side panel: the card itself answers your pointer.',media:[]},
+    sections:{
+      features:[
+        'Opening a card lifts it larger and alone, with no information panel beside it.',
+        'Point at the rarity, generation, serial, brand mark, name or specs to open a callout joined to that part.',
+        'Replay a cutscene from the rarity callout. Replays are now free.'
+      ],
+      qol:[
+        'Round buttons beside the card: Inspect, Favorite, Flip, Copies and More.',
+        'Specs are labelled, and the generation shows how much of it you have collected.',
+        'Tab moves through the card, Enter pins a callout and Esc closes it.'
+      ],
+      systems:[
+        'The History tab, card history and their shortcuts are removed.',
+        'The credits button no longer animates on hover.'
+      ]
+    },
+    entries:[
+      'Card detail is rebuilt around the card, without a side panel.',
+      'Parts of the card open callouts with details and actions.',
+      'Cutscene replays are free.',
+      'History is removed from the inventory.'
+    ]
+  },
+  {
     version:'1.3.0',codename:'Smooth and seamless',date:'October 10, 2026',tag:'Update',tagline:'Glass, motion and an album beside your cards.',
     hero:{badge:'CARDABLE / 1.3.0',title:'Smooth and seamless.',subtitle:'A new Settings panel, an inventory that moves as one piece, and the photo album beside your cards.',media:[]},
     sections:{

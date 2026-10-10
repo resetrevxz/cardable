@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.3.0**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.3.1**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -104,7 +104,7 @@ Design references: [Vercel interface guidelines](https://vercel.com/design/guide
 
 # Designs.MD — Cardable's current design system
 
-This guide describes the current game, publicly numbered **1.3.0** after the 4.2.0 development series, including five graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
+This guide describes the current game, publicly numbered **1.3.1** after the 4.2.0 development series, including five graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
 
 ## Direction and visual hierarchy
 
@@ -240,6 +240,15 @@ Nothing should vanish, jump or arrive without motion. These rules apply to new w
 The photo album is an inventory page (`src/studio/ui/album.js`): header with usage, search and sort; tag chips; a selection bar; a photo grid; and an inspector for the selected photo. Photos remain in their own IndexedDB store. Deleting uses click-again plus an Undo toast that restores the full photo.
 
 Shared styles for these rules live in `src/ui/kit/components/smooth.css`.
+
+## The card is the menu (1.3.1)
+
+Card detail has no information panel. The lifted card sits alone, larger, with two additions:
+
+- **Hotspots.** The card's own parts are controls: rarity badge, generation, serial, brand mark, name, memory and specs. Each shows a hairline ring on hover or focus and opens a callout beside the card, joined to the part by a leader line. Hover opens after 140 ms and closes after 240 ms; a click or Enter pins it. On narrow windows the callout sits over the card instead. Parts pulse once in sequence when the card arrives so they can be found.
+- **Action rail.** Round glass buttons beside the card: Inspect (accent), Favorite, Flip, Copies when there are several, and More (copy serial, export, add to collection, delete). Labels slide out on hover with their key.
+
+A callout carries a mono eyebrow, a title, label and value rows, and at most one accent action (Replay cutscene, Copy serial). Hotspots are bound in `src/ui/detail-panel.js` by selector, so a card skin without a part simply has no hotspot for it. Cutscene replays are free.
 
 ## Pack material family
 

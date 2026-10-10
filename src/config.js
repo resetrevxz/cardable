@@ -4,7 +4,7 @@
 
   C.config = {
     gameName: 'Cardable',
-    version: '1.3.0',
+    version: '1.3.1',
     titanPack: { coreMs:4000, rimMs:7000, swapMs:1200, tickRadians:Math.PI/2, tickCount:3,
       tickPulseMs:450, unsealMs:1400, dipPx:2, steamCount:6 },
     royalPack: { glintMs:5000, sheenMs:1400, swapMs:1100, boxRiseMs:900, boxHintMs:2000,
@@ -164,7 +164,7 @@
       tileHeightPortion: 0.62, tileMinHeightPx: 120, tileMaxHeightPx: 280, tileGapPx: 24, shelfChromePx: 144,
       overscan: 6, sideScale: 0.82, sideOpacity: 0.6, sideTurnDegrees: 12, hoverLiftPx: 6,
       centerPulseMs: 220, centerPulseScale: 0.025, countMs: 700, shimmerMs: 1100,
-      detailHeightVh: 62, detailInfoWidthPx: 280, detailGapPx: 48, detailStackWidthPx: 760,
+      detailHeightVh: 72, detailInfoWidthPx: 280, detailGapPx: 48, detailStackWidthPx: 760,
       detailClosePortion: 0.18, detailFlickPxPerSecond: 600, detailShineMs: 700, detailStackHeightVh: 50,
       detailBackdropDim: 0.65, sheetDetailOpacity: 0.4,
       safeMarginPx: 32, previewCount: 300, previewDuplicateMax: 3
