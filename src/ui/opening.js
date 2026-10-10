@@ -718,7 +718,7 @@
       mount = node('div', 'opening-card-mount', scene);
       var dustHost = node('div', 'opening-dust', scene); dust = C.particles.create(dustHost, motion.dustCount);
       note = node('div', 'opening-card-note', scene);
-      flipButton = node('button', 'opening-flip', stage, 'Flip card'); flipButton.type = 'button'; flipButton.hidden = true; flipButton.addEventListener('click', function () { if (currentView) currentView.flip(); });
+      flipButton = node('button', 'opening-flip', scene, 'Flip card'); flipButton.setAttribute('aria-label', 'Flip card'); flipButton.title = 'Flip card'; flipButton.type = 'button'; flipButton.hidden = true; flipButton.addEventListener('click', function () { if (currentView) currentView.flip(); });
       keepButton = node('button', 'opening-keep glass', scene, 'Keep'); keepButton.setAttribute('type', 'button'); keepButton.hidden = true;
       keepButton.setAttribute('aria-keyshortcuts', 'Space Enter'); keepButton.setAttribute('aria-label', 'Keep card. Space or Enter.');
       node('kbd', 'opening-keep-key', keepButton, 'Space');

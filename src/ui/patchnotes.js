@@ -374,7 +374,7 @@
     initialized: false, version: version, get isOpen() { return opened; },get open(){return opened;},show:open,markdown:markdown,close:close,
     init: function () {
       if (C.patchNotes.initialized) return;
-      hud = button(C.viewport.parent(doc.body), 'Patch notes', 'patch-notes-hud-btn idle-chrome entrance', open, 'journal'); hud.id = 'patch-notes-hud-btn';
+      hud = button(C.viewport.parent(doc.body), 'Patch notes', 'patch-notes-hud-btn idle-chrome entrance', open, 'journal'); hud.id = 'patch-notes-hud-btn'; var hudWidth = function () { doc.documentElement.style.setProperty('--patch-hud-width', hud.offsetWidth + 'px'); }; hudWidth(); if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(hudWidth);
       node('span', 'patch-hud-version', hud, version);
       try { hud.classList.toggle('has-unread', root.localStorage.getItem(seenKey) !== version); } catch (_) { hud.classList.add('has-unread'); }
       hud.setAttribute('aria-label', 'Patch notes v' + version + (hud.classList.contains('has-unread') ? ', unread update' : ''));

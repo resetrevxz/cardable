@@ -18,7 +18,7 @@
 .wordmark[data-logo-style="neon"] svg { fill:var(--accent); filter:drop-shadow(0 0 10px rgba(var(--accent-rgb),.7)); }
 :root:is([data-quality="very-low"],[data-shadow-quality="very-low"]) .wordmark[data-logo-style="neon"] svg { filter:none; }
 .cbs-tile-mark { font:600 20px/1 var(--font-ui); letter-spacing:-.02em; color:var(--text); }
-.cbs-tile-mark[data-logo-style="outline"] { color:transparent; -webkit-text-stroke:1px var(--text); }
+.cbs-tile-mark[data-logo-style="outline"] { color:transparent; -webkit-text-stroke:.6px var(--text); }
 .cbs-tile-mark[data-logo-style="ghost"] { color:var(--glass-3); -webkit-text-stroke:.8px var(--ui-color-78); }
 .cbs-tile-mark[data-logo-style="neon"] { color:var(--accent); text-shadow:0 0 12px rgba(var(--accent-rgb),.75); }
 .cbs-tile-mark:is([data-logo-style="chrome"],[data-logo-style="prism"],[data-logo-style="ember"]) { color:transparent; -webkit-background-clip:text; background-clip:text; background-image:linear-gradient(180deg,#FFFFFF,#B9B9C0 38%,#F5F5F7 62%,#8E8E93); }

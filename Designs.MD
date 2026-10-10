@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.3.1**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.3.2**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -104,7 +104,7 @@ Design references: [Vercel interface guidelines](https://vercel.com/design/guide
 
 # Designs.MD — Cardable's current design system
 
-This guide describes the current game, publicly numbered **1.3.1** after the 4.2.0 development series, including five graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
+This guide describes the current game, publicly numbered **1.3.2** after the 4.2.0 development series, including five graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
 
 ## Direction and visual hierarchy
 
@@ -249,6 +249,14 @@ Card detail has no information panel. The lifted card sits alone, larger, with t
 - **Action rail.** Round glass buttons beside the card: Inspect (accent), Favorite, Flip, Copies when there are several, and More (copy serial, export, add to collection, delete). Labels slide out on hover with their key.
 
 A callout carries a mono eyebrow, a title, label and value rows, and at most one accent action (Replay cutscene, Copy serial). Hotspots are bound in `src/ui/detail-panel.js` by selector, so a card skin without a part simply has no hotspot for it. Cutscene replays are free.
+
+## Visual pass notes (1.3.2)
+
+- **Reveal decision.** Under the revealed card: a round Flip, an accent Keep pill with its key, and a quiet Delete that turns rose on hover. One row, centered on the card. Flip lives with the decision, not at the top of the screen.
+- **Cut prompt.** The Tear pill sits directly under the pack and the key hint under the pill; they never share a position.
+- **Top-right group.** Help, Patch notes, Credits and Settings form one row and leave together when the inventory or Settings opens.
+- **Tags on the shelf.** A card's tag rail shows for the centered, hovered or focused card only. The selected card's tags never sit on its caption.
+- **Dialogs, toasts and the command palette** use the same dense glass, light edge and radii as Settings. Help topics are an accordion of cards with a chevron, one open at a time by default.
 
 ## Pack material family
 

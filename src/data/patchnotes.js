@@ -1,5 +1,26 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.3.2',codename:'A closer look',date:'October 10, 2026',tag:'Update',tagline:'A visual pass over the weakest screens.',
+    hero:{badge:'CARDABLE / 1.3.2',title:'A closer look.',subtitle:'The reveal decision, the cut prompt, help and the shelf, redrawn.',media:[]},
+    sections:{
+      visuals:[
+        'Reveal: a large accent Keep with its key, a quiet Delete, and Flip beside them under the card.',
+        'Cutting: the Tear button sits under the pack and no longer covers the Enter hint.',
+        'Shelf: the selected card’s tags no longer overlap its name, and appear only for the card you are on.',
+        'Toasts, dialogs and the command palette share the Settings glass.'
+      ],
+      qol:[
+        'Help joins Patch notes, Credits and Settings in one top-right row.',
+        'How to play is an accordion with copy updated for the inventory, card detail and album.'
+      ]
+    },
+    entries:[
+      'The reveal decision is redrawn around a clear Keep.',
+      'Overlaps fixed on the cut screen and the shelf.',
+      'Help, toasts, dialogs and the command palette are restyled.'
+    ]
+  },
+  {
     version:'1.3.1',codename:'The card is the menu',date:'October 10, 2026',tag:'Update',tagline:'Point at a card to explore it.',
     hero:{badge:'CARDABLE / 1.3.1',title:'The card is the menu.',subtitle:'Card detail without a side panel: the card itself answers your pointer.',media:[]},
     sections:{
