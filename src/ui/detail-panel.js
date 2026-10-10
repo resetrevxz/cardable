@@ -175,6 +175,8 @@
       callout.addEventListener('pointerenter', function () { root.clearTimeout(hoverTimer); }); callout.addEventListener('pointerleave', function () { hover(part, false); });
       callout.addEventListener('pointerdown', function (event) { event.stopPropagation(); pinned = true; }); callout.addEventListener('click', function (event) { event.stopPropagation(); });
       place(); if (focusAction) { var first = callout.querySelector('button'); if (first) first.focus({ preventScroll: true }); }
+      // The arrival pulse teaches the hotspots; once one has been used it is retired for good.
+      try { root.localStorage.setItem('cardable.detailHintsKnown', '1'); } catch (_) { /* storage may be blocked */ } root.document.body.classList.add('detail-hints-known');
       C.ui.emit('open', { component: 'card-part', id: part.dataset.hot }); C.fx.wake();
     }
     // Hover opens after a beat and closes after a beat, so crossing the card does not flicker callouts.
@@ -223,6 +225,7 @@
     };
     C.keys.refresh(); return api;
   }
+  try { if (root.localStorage.getItem('cardable.detailHintsKnown')) root.document.body.classList.add('detail-hints-known'); } catch (_) { /* storage may be blocked */ }
   C.events.on('detail:keyAction', function (e) { if (active && active.keyAction) active.keyAction(e.id); });
   C.detailPanel = { build: build, bindCard: bindCard, copy: copy };
   C.events.on('app:ready', function () { C.fx.subscribe(function (now, dt) {

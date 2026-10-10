@@ -72,3 +72,5 @@ The old table describes old configuration and old dev tools. Current stock is fo
 ## Intentional behavior
 
 Chances normalize the written sum; empty tiers use the approved downgrade policy. Developer warnings are expected only in developer mode. Hidden visuals sleep and refills reconcile timestamps; no gameplay reward depends on continuous rendering. No market/audio is added.
+
+- Fixed in 1.3.3: Studio entry failed silently for Ascendant cards because the Ascendant finish passed its background painter with the wrong argument shape. Failures in Studio preparation now show an error toast and log to the console.

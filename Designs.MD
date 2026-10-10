@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.3.2**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.3.3**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -104,7 +104,7 @@ Design references: [Vercel interface guidelines](https://vercel.com/design/guide
 
 # Designs.MD — Cardable's current design system
 
-This guide describes the current game, publicly numbered **1.3.2** after the 4.2.0 development series, including five graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
+This guide describes the current game, publicly numbered **1.3.3** after the 4.2.0 development series, including five graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
 
 ## Direction and visual hierarchy
 
@@ -257,6 +257,15 @@ A callout carries a mono eyebrow, a title, label and value rows, and at most one
 - **Top-right group.** Help, Patch notes, Credits and Settings form one row and leave together when the inventory or Settings opens.
 - **Tags on the shelf.** A card's tag rail shows for the centered, hovered or focused card only. The selected card's tags never sit on its caption.
 - **Dialogs, toasts and the command palette** use the same dense glass, light edge and radii as Settings. Help topics are an accordion of cards with a chevron, one open at a time by default.
+
+## Visual pass notes (1.3.3)
+
+- **Inventory popovers** (Filters, Sort, Collection options, New collection) are glass cards inset from the sheet edge. Filter choices are pills that fill with the accent when chosen; the native checkbox stays underneath for keyboard and screen readers.
+- **Fields** in the inventory share one recipe: 38 px, 11 px radius, glass fill, a soft focus halo. Search carries its icon.
+- **Deleting a copy.** The card preview leads, each caution is a tinted row with a warning mark, and the hold button is rose while Cancel is neutral.
+- **Performance overlay** uses the same glass; its sections are small cards with a chevron.
+- **Studio, Simple mode.** Photo is the accent pill, the mood slider has an accent thumb, style tiles lift and ring when chosen, and help sits beside the mode switch. Scene colors and gizmos keep their own palette.
+- **Teaching motion retires.** The card-part pulse and its hint stop for good once the player has opened a callout, following the rule that frequent interactions should not keep animating.
 
 ## Pack material family
 

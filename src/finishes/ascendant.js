@@ -22,7 +22,8 @@
       nextAt: cfg.splashMinDelayMs + random() * (cfg.splashMaxDelayMs - cfg.splashMinDelayMs) };
   }
   C.finishes.register('ascendant', {
-    drawBackground: C.ascendantBackground.draw,
+    // Same target contract as the other finishes: { g, width, height }, then time and seed.
+    drawBackground: function (target, time, seed) { return C.ascendantBackground.draw(target.g, target.width, target.height, time, seed); },
     drawBorder:function(element,progress){element.querySelectorAll('.finish-ascendant-frame path[stroke]').forEach(function(path){path.setAttribute('stroke-dashoffset',String(1000*(1-progress)));});},
     mount: function (element, card, context) { var state = surface(card, context, false); element.appendChild(state.el); return state; },
     update: function (dt, pointer, state) {

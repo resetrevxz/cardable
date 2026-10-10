@@ -1,5 +1,29 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.3.3',codename:'Every corner',date:'October 10, 2026',tag:'Update',tagline:'The visual pass reaches the popovers, dialogs and Studio.',
+    hero:{badge:'CARDABLE / 1.3.3',title:'Every corner.',subtitle:'Popovers, the deletion dialog, the performance overlay and the Studio, redrawn. Ascendant cards can be inspected again.',media:[]},
+    sections:{
+      fixes:[
+        'Inspect now opens the Studio for Ascendant cards. It failed silently before.',
+        'If the Studio cannot prepare a card, it tells you.'
+      ],
+      visuals:[
+        'Inventory popovers are glass cards with pill filters.',
+        'The deletion dialog leads with the card and shows each caution as a clear row.',
+        'The performance overlay and the Studio’s Simple mode share the rest of the game’s controls.'
+      ],
+      qol:[
+        'Inventory search has its icon and a matching field style.',
+        'The card-part pulse in card detail stops after you open your first callout.'
+      ]
+    },
+    entries:[
+      'Ascendant cards can be inspected in the Studio again.',
+      'Inventory popovers, search and the deletion dialog are redrawn.',
+      'The performance overlay and Studio Simple mode match the rest of the game.'
+    ]
+  },
+  {
     version:'1.3.2',codename:'A closer look',date:'October 10, 2026',tag:'Update',tagline:'A visual pass over the weakest screens.',
     hero:{badge:'CARDABLE / 1.3.2',title:'A closer look.',subtitle:'The reveal decision, the cut prompt, help and the shelf, redrawn.',media:[]},
     sections:{

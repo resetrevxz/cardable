@@ -1,3 +1,20 @@
+# Cardable v1.3.3 — Every corner
+
+The second round of the visual pass, plus a fix for inspecting Ascendant cards. Saved collections, serials and the save schema are unchanged.
+
+- **Fixed: Inspect on Ascendant cards.** The Studio quietly failed to open for Ascendant cards. It opens now, and if the Studio ever cannot prepare a card it says so instead of doing nothing.
+- **Inventory popovers.** Filters, Sort, Collection options and New collection are glass cards set in from the edge. Filter choices are pills instead of small checkboxes.
+- **Search and fields.** The inventory search has its icon and the same field style as Settings. The Show Unowned checkbox is drawn to match.
+- **Deleting a copy.** The card leads, each caution is a clear tinted row, and the hold-to-delete button is rose while Cancel stays neutral.
+- **Performance overlay.** Same glass as the rest, with its sections as small cards.
+- **Studio, Simple mode.** Photo is the accent button, the mood slider and style tiles match the rest of the game, and help sits beside the mode switch.
+- **Card detail.** The one-time pulse that points out the card's parts stops for good after you open your first callout.
+- The centered card's tags stay on one line.
+
+Checked in a browser session with screenshots at a 1080p-equivalent layout: the context menu, inventory popovers and search, the deletion dialog, the performance overlay, the tutorial's first step, and the Studio in Simple mode on a Basic and an Ascendant card. Studio Pro mode, cinematics, touch input and the Windows app were not exercised. This release is unsigned.
+
+---
+
 # Cardable v1.3.2 — A closer look
 
 A visual pass over the weakest screens. Saved collections, serials and the save schema are unchanged.
