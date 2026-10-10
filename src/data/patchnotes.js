@@ -1,5 +1,34 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.3.0',codename:'Settings, in a new light',date:'October 10, 2026',tag:'Update',tagline:'A glass panel. Live previews. Any frame rate.',
+    hero:{badge:'CARDABLE / 1.3.0',title:'Settings, in a new light.',subtitle:'A glass panel on the left, with a live preview for what each option does.',media:[]},
+    sections:{
+      features:[
+        'Settings is a glass panel docked on the left with an icon rail, so the game stays in view while you tune it.',
+        'Point at an option to preview it: dots under a moving pointer with a live count, reduced motion beside full motion, and Off against On with a divider you can drag.',
+        'Set any frame-rate cap from 10 to 500 FPS with presets, a slider or an exact number.',
+        'New looks: accent color, seven wordmark finishes, dot spacing and color, click ripples, and cursor glow size and color.'
+      ],
+      qol:[
+        'Simple shows the options most players want; Advanced adds the rest without changing what you saved.',
+        'Graphics shows five preset tiles with all ten effects underneath. Advanced turns each into a dropdown.',
+        'Quick setups list every change before applying and offer Undo. Search covers every page at once.',
+        'Data separates back up, import, tutorial and reset. Reset save keeps its three-second hold, backup and Undo.'
+      ],
+      systems:[
+        'Disabled placeholders and duplicate visibility switches leave the panel. Saved preferences carry over.',
+        'Previews share the game scheduler, rest on a still frame when idle, and respect reduced motion and Very Low.'
+      ]
+    },
+    entries:[
+      'Settings is rebuilt as a glass panel on the left with an icon rail.',
+      'Live previews show what an option does, with draggable Off and On comparisons.',
+      'Any frame-rate cap from 10 to 500 FPS.',
+      'Accent color, wordmark finishes and new backdrop options.',
+      'Simple and Advanced modes, quick setups with Undo, and search across every page.'
+    ]
+  },
+  {
     version:'1.2.4',codename:'A steadier collection',date:'October 9, 2026',tag:'Optimization',tagline:'Less repeated work. A grounded collection.',
     hero:{badge:'CARDABLE / 1.2.4',title:'A steadier collection.',subtitle:'Less repeated work. A grounded collection.',media:[]},
     sections:{

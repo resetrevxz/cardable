@@ -15,7 +15,7 @@
     return axis((low + high) / 2, curve[1], curve[3]);
   }
   function hold() { return random(C.config.logo.holdMinMs, C.config.logo.holdMaxMs); }
-  function eligible() { return C.settings.policy.animation > 0 && !openingPaused && !C.motion.reduced && !root.document.hidden && visible; }
+  function eligible() { return C.settings.policy.animation > 0 && C.settings.get('logoAnimation') !== false && !openingPaused && !C.motion.reduced && !root.document.hidden && visible; }
   function paint(letter, progress) {
     var travel = C.config.shell.logo.cellHeight * C.config.logo.travelPortion, e = ease(progress);
     var outgoing = letter.snapshot || letter.real, incoming = letter.returnText || letter.alternate;
@@ -141,6 +141,20 @@
       C.events.on('pointer:leave', function () { hovered = false; if (!focused) settle(); });
       C.events.on('motion:changed', function (reduced) { if (reduced) reset(); else if (hovered || focused) start(false); });
       C.events.on('fx:visibility', function (shown) { if (!shown) { hovered = false; reset(); } else if (focused) start(false); });
+      C.settings.onChange('logoAnimation', function (value) { if (!value) reset(); });
+      // Gradient finishes are inline so the fragment resolves in this document; monochrome falls back to chrome.
+      function finish() {
+        var style = C.settings.get('logoStyle') || 'classic', mono = C.settings.get('rarityColor') === 'mono';
+        var paint = { chrome: 'chrome', prism: mono ? 'chrome' : 'prism', ember: mono ? 'chrome' : 'ember' }[style];
+        host.dataset.logoStyle = style; svg.style.fill = paint ? 'url(#cb-logo-' + paint + ')' : '';
+      }
+      var paints = make('svg', { 'class': 'cb-sprite', 'aria-hidden': 'true' }), paintDefs = make('defs');
+      [['chrome', 0, 1, ['#FFFFFF', '#B9B9C0', '#F5F5F7', '#8E8E93']], ['prism', 1, 1, ['#ADC4FF', '#C7A9FF', '#F3ADB8', '#F1CF99', '#9ADCC0']], ['ember', 0, 1, ['#FFE9C2', '#F1CF99', '#F3ADB8']]].forEach(function (g) {
+        var gradient = make('linearGradient', { id: 'cb-logo-' + g[0], x1: 0, y1: 0, x2: g[1], y2: g[2] });
+        g[3].forEach(function (color, i) { gradient.appendChild(make('stop', { offset: i / (g[3].length - 1), 'stop-color': color })); }); paintDefs.appendChild(gradient);
+      });
+      paints.appendChild(paintDefs); root.document.body.appendChild(paints);
+      C.settings.onChange('logoStyle', finish); C.settings.onChange('rarityColor', finish); finish();
       C.fx.subscribe(update, 'logo');
     }
   };

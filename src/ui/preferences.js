@@ -27,7 +27,7 @@
     var instance = instances[0], card = instance ? C.card(instance.cardId) : C.data.cards.find(function (c) { return !c.retired && c.active !== false; });
     previewBase = { card: card, instance: instance || { instanceId: 'settings-preview', cardId: card.id, serial: C.serial.format(C.state.current.playerCode, 0), pulledAt: 0, seen: true } };
     tierIndex = Math.max(0, C.data.rarities.findIndex(function (r) { return r.id === card.rarity; }));
-    overlay.hidden = false; overlay.inert = false; buildPreview(); C.accessibility.trap(panel); C.preferences.closeButton.focus({ preventScroll: true });
+    overlay.hidden = false; overlay.inert = false; buildPreview(); C.accessibility.trap(panel); C.preferences.shell.opened(); C.preferences.closeButton.focus({ preventScroll: true });
     if (!C.settings.saved) message('Your browser is blocking saving. Settings last for this session only.');
     spring.target = 1; if (settingId) C.preferences.shell.focus(settingId); C.fx.wake(); return true;
   }
@@ -81,43 +81,36 @@
       occluded();
       gear.appendChild(C.icons.create('settings'));node('span','settings-version',corner,'v'+C.config.version);
       overlay = node('div', 'preferences-overlay settings-overlay', root.document.body); overlay.hidden = true; overlay.inert = true;
-      panel = node('section', 'preferences-panel settings-panel glass glass--sheet', overlay); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Settings');
-      var header = node('header', 'settings-header', panel); node('h2', '', header, 'Settings'); header.appendChild(C.ui.create('help',{help:'settings',label:'Settings help'})); C.preferences.closeButton = button('Close', header, close);
-      var shell = C.preferences.shell = C.settingsShell.create(panel), scroll = shell.content, graphics = shell.group('Graphics');
+      panel = node('section', 'preferences-panel settings-panel cbs glass glass--sheet', overlay); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Settings');
+      var shell = C.preferences.shell = C.settingsShell.create(panel, { close: close }); C.preferences.closeButton = shell.closeButton;
       controls.push(shell);
-      controls.push(C.settingsControls.create(C.settingsSchema.entries.quality, graphics));
-      var presetStatus = node('p', 'settings-preset-status', graphics);
-      function presetSummary() {
-        var tier = C.settings.get('quality'), descriptions = { 'very-low': 'Minimum effects. Built for basic devices.', low: 'Clean materials with lightweight motion.', medium: 'Balanced detail and rendering cost.', high: 'Full materials, lighting and focused effects.','very-high':'Extra reflections, cinematic optics and detail for capable hardware.' };
-        presetStatus.textContent = (C.settings.customized ? 'Customized · ' : '') + descriptions[tier];
-      }
-      C.settings.onChange('*', presetSummary); presetSummary();
+      // The real card lives in the preview dock, so card options show the actual collectible.
       var previewSection = node('div', 'settings-preview', shell.preview); previewHost = node('div', 'settings-preview-mount', previewSection);
       var selector = node('div', 'settings-preview-selector', previewSection), previous=button('', selector, function () { tierIndex = (tierIndex + C.data.rarities.length - 1) % C.data.rarities.length; buildPreview(); }); previous.setAttribute('aria-label','Previous rarity');previous.title='Previous rarity';previous.classList.add('cb-preview-previous');previous.appendChild(C.icons.create('chevron'));
       C.preferences.tierLabel = node('span', '', selector); var next=button('', selector, function () { tierIndex = (tierIndex + 1) % C.data.rarities.length; buildPreview(); });next.setAttribute('aria-label','Next rarity');next.title='Next rarity';next.appendChild(C.icons.create('chevron'));
-      var groups = shell.groups;
-      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group) shell.group(d.group); });
-      ['Data', 'About'].forEach(shell.group);
-      Object.keys(C.settingsSchema.entries).forEach(function (key) { var d = C.settingsSchema.entries[key]; if (d.group && key !== 'quality') controls.push(C.settingsControls.create(d, groups[d.group])); });
-      controls.forEach(function (control) { if (control.row && control.row.dataset.setting) shell.add(control.row, C.settingsSchema.entries[control.row.dataset.setting]); });
-      C.controlsSettings.create(groups, shell);
+      C.controlsSettings.create(shell);
       shell.refresh();
-      C.preferences.data = C.settingsData.create(groups.Data, { close: close, announce: announce });
-      var version = node('div', 'settings-about-version', groups.About), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
-      if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(groups.About, { close: close, announce: announce });
-      button('What’s new in 1.2.0', groups.About, function () { close(); C.friendly.showChangelog(); });
-      button('How to play', groups.About, function () { C.friendly.showHelp(); });
-      if (C.native) button('Desktop help', groups.About, function () { C.friendly.showHelp('desktop'); });
-      button('Credits and licenses', groups.About, function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
+      C.preferences.data = C.settingsData.create(shell.slots, { close: close, announce: announce });
+      var about = shell.slots.about, hero = node('div', 'cbs-about-hero', about), heroMark = node('span', 'cbs-tile-mark', hero, 'cardable'); heroMark.setAttribute('aria-hidden', 'true');
+      function heroStyle() { heroMark.dataset.logoStyle = C.settings.get('logoStyle'); } C.settings.onChange('logoStyle', heroStyle); heroStyle();
+      var version = node('div', 'settings-about-version', hero), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);
+      node('p', 'cbs-about-line', hero, 'An offline card collector. Your collection stays on this device.');
+      var links = node('div', 'cbs-links', about);
+      function link(icon, text, action) { var el = button('', links, action); el.classList.add('cbs-link-row'); el.appendChild(C.icons.create(icon)); node('span', '', el, text); el.appendChild(C.icons.create('chevron')); return el; }
+      link('notes', 'What’s new', function () { close(); C.friendly.showChangelog(); });
+      link('book', 'How to play', function () { C.friendly.showHelp(); });
+      if (C.native) link('monitor', 'Desktop help', function () { C.friendly.showHelp('desktop'); });
+      link('info', 'Credits and licenses', function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
+      if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(about, { close: close, announce: announce });
       credits = node('section', 'settings-credits glass', panel); credits.hidden = true; credits.setAttribute('role', 'dialog'); credits.setAttribute('aria-modal', 'true'); credits.setAttribute('aria-label', 'Credits and licenses');
       node('h2', '', credits, 'Credits and licenses'); node('p', '', credits, 'Inter — Rasmus Andersson. JetBrains Mono — JetBrains. Both fonts use the SIL Open Font License 1.1.');
       node('p', '', credits, 'Local font files are optional. System UI and monospace fallbacks keep the game readable.');
       button('Read font licenses', credits, function () { C.preferences.licenseText.hidden = !C.preferences.licenseText.hidden; });
       C.preferences.licenseText = node('pre', 'settings-license', credits, C.fontLicense || 'SIL Open Font License 1.1: fonts may be used, studied, modified and redistributed with their copyright and license notices; fonts may not be sold by themselves. See assets/fonts/LICENSES.md.'); C.preferences.licenseText.hidden = true;
       C.preferences.creditsClose = button('Close credits', credits, function () { credits.hidden = true; C.accessibility.release(credits); });
-      var footer = node('footer', 'settings-footer', panel); feedback = node('p', 'preferences-feedback settings-feedback', footer); feedback.setAttribute('role', 'status'); feedback.setAttribute('aria-live', 'polite');
-      var defaults = button('Restore defaults', footer, function () {});
-      confirmation = C.settingsControls.confirmation(defaults, function () { undo = C.settings.snapshot; undoAge = 0; C.settings.resetToDefaults(); undoButton.hidden = false; announce('Settings restored. Undo available for eight seconds.'); }, { announce: announce });
+      var footer = shell.footer; feedback = node('p', 'preferences-feedback settings-feedback', footer); feedback.setAttribute('role', 'status'); feedback.setAttribute('aria-live', 'polite');
+      var defaults = button('Restore all defaults', footer, function () {});
+      confirmation = C.settingsControls.confirmation(defaults, function () { undo = C.settings.snapshot; undoAge = 0; C.settings.resetToDefaults(); undoButton.hidden = false; announce('Settings restored. Undo available for eight seconds.'); }, { announce: announce, confirmMessage: 'Click again within three seconds to restore every setting.' });
       undoButton = button('Undo', footer, function () { if (!undo) return; var previous = undo; undo = null; undoButton.hidden = true; C.settings.restore(previous); announce('Settings restored to your previous choices.'); }); undoButton.hidden = true;
       C.preferences.status = node('span', 'visually-hidden', panel); C.preferences.status.setAttribute('aria-live', 'polite');
       nudge = node('aside', 'settings-nudge glass', root.document.body); nudge.hidden = true;
@@ -163,7 +156,7 @@
         if (undo) { undoAge += dt; if (undoAge >= 8000) { undo = null; undoButton.hidden = true; } else moving = true; }
         if (!overlay.hidden) {
           if (C.motion.reduced) { position = Math.max(0, Math.min(1, position + (opened ? 1 : -1) * dt / 150)); spring.reset(position); } else { spring.step(dt, opened ? 1 : 0); position = spring.value; }
-          panel.style.transform = C.motion.reduced ? 'none' : 'translate3d(0,' + (1 - position) * 24 + 'px,0)'; panel.style.opacity = Math.max(0, Math.min(1, position));
+          panel.style.transform = C.motion.reduced || position === 1 ? '' : 'translate3d(' + (position - 1) * 40 + 'px,0,0) scale(' + (.985 + .015 * Math.min(1, position)) + ')'; panel.style.opacity = Math.max(0, Math.min(1, position)); overlay.style.setProperty('--settings-shade', Math.max(0, Math.min(1, position)));
           var settled = C.motion.reduced ? position === (opened ? 1 : 0) : spring.settled();
           moving = !settled || moving;
           if (!opened && settled) overlay.hidden = true;

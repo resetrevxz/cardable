@@ -2,7 +2,7 @@
   menu:{title:'Your next pack',body:'Hold the opening key to charge the pack, then tear its top. Packs refill by elapsed time; changing the interface never changes your pulls.'},
   inventory:{title:'Your collection',body:'Search, filter and sort your collected cards. Select a card for its details; closing details returns to the same browsing position.'},
   detail:{title:'Card details',body:'Inspect this exact collected copy, flip it or use More for replay and deletion. Protected and high-tier cards retain their confirmation safeguards.'},
-  settings:{title:'Settings',body:'Choose a group or search for an option. Changed options have a reset button; Advanced shows additional rows without changing your saved choices.',shortcuts:['Ctrl+,','S']},
+  settings:{title:'Settings',body:'Pick a page on the left or search every option. Point at an option to preview it at the bottom. Changes apply at once; changed options show a reset arrow. Advanced adds more options without changing your saved choices.',shortcuts:['Ctrl+,','S']},
   achievements:{title:'Achievements',body:'Browse weekly, recurring and permanent goals. Claim completed weekly rewards; recurring rewards are automatic. Pins keep a goal within reach.'},
   notes:{title:'Patch notes',body:'Select a version, search its changes or copy them as Markdown. Try it opens the corresponding feature.'},
   studio:{title:'Inspect and Director',body:'Edit the selected card in a separate scene. Simple keeps the essential tools close; Pro exposes the full workspace. Saved photos stay separate from JSON saves.'},

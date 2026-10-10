@@ -79,7 +79,7 @@
     dotsPolicy: function () {
       var subtle = effective('dots') === 'subtle', base = C.config.dots;
       return Object.assign({}, base, { enabled: effective('visibleDots')!==false && effective('dots') !== 'off' && policy.background > 0,
-        spacing: base.spacing * (policy.background === 4 ? .92 : policy.background === 1 ? 1.5 : 1),
+        spacing: base.spacing * (policy.background === 4 ? .92 : policy.background === 1 ? 1.5 : 1) * ({ sparse: 1.35, dense: .78 }[effective('dotDensity')] || 1),
         maxAlpha: base.maxAlpha * (subtle ? 0.5 : 1) * (policy.background === 1 ? 0.7 : 1), influenceRadius: base.influenceRadius * (subtle ? 0.8 : 1),
         lean: subtle || policy.background < 2 ? 0 : base.lean, trail: !subtle && policy.trail,
         ripple: Object.assign({}, base.ripple, { peakAlpha: base.ripple.peakAlpha * (subtle ? 0.5 : 1), maxSimultaneous: policy.rippleLimit }) });

@@ -220,3 +220,23 @@ Controls provides context-aware primary/secondary code bindings, conflict Swap/C
 Simple remains the default mode. Advanced reveals visibility, animation and Studio rows without discarding their saved values. Profiles preview changes and offer Undo. Interface visibility does not hide the card, context-menu Settings, emergency keyboard access, errors or Undo actions. UI scale spans 70–150% in 5% steps; native Unlimited requires restart after save flush. Battery/Safe/adaptive overrides remain temporary. Per-rarity Inherit and Studio Current defaults preserve existing preferences. Hold duration and toggle-to-hold leave reservation and reward commits unchanged. Legendary+ typed confirmation cannot be disabled.
 
 Settings and controls exports are JSON preferences; collection backups still use Data, and Studio photos remain a separate backup. Daily/sound placeholders stay disabled. See [integration and verification](1.2-CONTROLS-INTEGRATION.md).
+
+## Settings panel (1.3.0)
+
+The panel is a left-docked glass slab with an icon rail, one page at a time and a preview dock. It supersedes the two-pane sheet and the right-hand drawer described above; the engine, storage, instant apply and confirmation levels are unchanged.
+
+| Piece | Source |
+|---|---|
+| Pages, sections, new options, retired rows, readable choice names | `src/data/settings-layout.js` (`C.data.settingsPages`, `C.data.settingsAliases`, `C.data.settingsProfiles`) |
+| Shell: rail, search, Simple/Advanced, cards, page restore, deep links | `src/ui/kit/components/settings-shell.js` |
+| Dropdown, slider, frame-rate picker, tiers, level meter, swatches, tiles | `src/ui/settings-widgets.js` (wraps `C.uiKit.create`) |
+| Preview dock | `src/ui/settings-visualizers.js` (`C.settingsViz.views`) |
+| Styles | `src/ui/kit/components/settings-panel.css` |
+
+Pages: Graphics, Performance, Appearance, Motion, Gameplay, Controls (Advanced), Accessibility, Desktop (Windows app only), Studio (Advanced), Profiles, Data, About. A setting belongs to exactly one section; adding one means a schema entry, its key in a section and, optionally, a preview in `views`.
+
+New keys: `accentColor`, `logoStyle`, `logoAnimation`, `dotDensity`, `dotTint`, `clickRipples`, `cursorGlowSize`, `cursorGlowTint`, `settingsPreviews`. `fpsLimit` accepts `display`, `unlimited` (Windows app) or any whole number from 10 to 500.
+
+Retired from the panel, still valid in saves: `volume`, `muted`, `notifyDaily`, `notifySound`, `visibleDesktop`, `visibleDots`, `visibleCursor`, `visibleIdleFade`, `visiblePerformance`. A saved `false` on one of the four duplicate visibility keys folds into `dots`, `cursorGlow`, `idleFade` or `performanceMode` during normalization, so the remaining control tells the truth.
+
+Graphics shows the ten effect keys in both modes: level meters in Simple, dropdowns in Advanced. Interface scale commits on release because it re-lays out the page; the frame-rate slider previews while dragging and saves on release.

@@ -35,11 +35,11 @@
       element.style.setProperty('--blade-length', C.config.openingMotion.bladeLengthPx + 'px');
       element.style.setProperty('--blade-width', C.config.openingMotion.bladeWidthPx + 'px');
       var cfg = C.config.shell.cursor;
-      element.style.setProperty('--glow-size', cfg.glowPx + 'px');
+      function size() { var glow = cfg.glowPx * (C.settings.get('cursorGlowSize') || 100) / 100; element.style.setProperty('--glow-size', glow + 'px'); element.style.setProperty('--ring-ratio', cfg.ringPx / glow); }
       element.style.setProperty('--ring-size', cfg.ringPx + 'px');
       element.style.setProperty('--ring-scale', cfg.ringScale);
       element.style.setProperty('--glow-opacity', cfg.opacity);
-      element.style.setProperty('--ring-ratio', cfg.ringPx / cfg.glowPx);
+      size(); C.settings.onChange('cursorGlowSize', size);
       C.events.on('pointer:move', function () { dirty = true; });
       C.events.on('pointer:leave', function () { dirty = true; });
       C.events.on('motion:changed', function () { dirty = true; });

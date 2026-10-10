@@ -138,12 +138,14 @@
       C.dots.initialized = true;
       canvas = root.document.getElementById('dot-grid'); ctx = canvas.getContext('2d');
       if (!ctx) { canvas.hidden = true; return; }
-      ink = root.getComputedStyle(root.document.documentElement).getPropertyValue('--highlight').trim();
+      // White by default; the optional tint follows the accent and stays neutral in monochrome.
+      function tint() { var style = root.getComputedStyle(root.document.documentElement); ink = style.getPropertyValue(C.settings.get('dotTint') === 'accent' ? '--accent' : '--highlight').trim(); dirty = true; C.fx.wake(); }
+      tint(); ['dotTint', 'accentColor', 'rarityColor'].forEach(function (key) { C.settings.onChange(key, tint); });
       resize();
       C.events.on('pointer:move', function (event) { if (cursorBlocked || !C.settings.dotsPolicy().enabled) return; if (!C.motion.reduced && C.settings.dotsPolicy().trail) pendingPaths.push(event.path); dirty = true; });
       C.events.on('pointer:leave', function () { if (!cursorBlocked) dirty = true; });
       C.events.on('pointer:click', function (event) {
-        if (C.motion.reduced || cursorBlocked || !C.settings.dotsPolicy().enabled) return;
+        if (C.motion.reduced || cursorBlocked || !C.settings.dotsPolicy().enabled || C.settings.get('clickRipples') === false) return;
         // The cap includes queued echoes, so rapid clicks cannot accumulate hidden energy.
         ripples.push({ x: event.x, y: event.y, born: event.now, kind: 'click', delay: 0, scale: 1 });
         ripples.push({ x: event.x, y: event.y, born: event.now, kind: 'click', delay: C.config.dots.ripple.secondDelayMs, scale: C.config.dots.ripple.secondRingScale });
@@ -175,7 +177,7 @@
         else { if (!root.document.body.contains(canvas)) root.document.body.insertBefore(canvas, root.document.body.children[0]); resize(); }
         C.fx.wake();
       }
-      C.settings.onChange('visibleDots',settingsChanged);C.settings.onChange('resolutionScale',settingsChanged);C.settings.onChange('dots', settingsChanged); C.settings.onChange('backgroundQuality', settingsChanged); C.settings.onChange('canvasQuality', settingsChanged);
+      C.settings.onChange('visibleDots',settingsChanged);C.settings.onChange('dotDensity',settingsChanged);C.settings.onChange('resolutionScale',settingsChanged);C.settings.onChange('dots', settingsChanged); C.settings.onChange('backgroundQuality', settingsChanged); C.settings.onChange('canvasQuality', settingsChanged);
       settingsChanged();
       C.viewport.onResize( resize);
       C.fx.subscribe(update, 'dots');

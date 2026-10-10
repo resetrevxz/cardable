@@ -3,6 +3,8 @@
   var node = C.packMarkup.node;
   C.settingsData = {
     create: function (host, options) {
+      // One host per card: back up, import, tutorial and the hold-to-confirm reset.
+      var hosts = host.nodeType ? { backup: host, 'import': host, tutorial: host, danger: host } : host;
       var pending = null, epoch = 0, exportAge = null, exportText = '', feedback, busy = false, toastExit = null, toastMotion = null, confirmations = [];
       function button(text, parent, fn) { var b = node('button', 'quiet-button', parent, text); b.type = 'button'; if (fn) b.addEventListener('click', fn); return b; }
       function message(text) { feedback.textContent = text; }
@@ -12,17 +14,18 @@
         catch (error) { message(error.message); return false; }
         finally { busy = false; refresh(); }
       }
-      var exportButton = button('Export save', host, function () {
+      node('p', 'settings-helper', hosts.backup, 'A checked file with your cards, packs, credits and settings. Studio photos are exported from the Album.');
+      var exportButton = button('Export save', hosts.backup, function () {
         if (C.state.recovery && C.state.recovery.pending) { message('Recovery is pending. Download the original from the recovery notice, then import or restore before exporting a collection.'); return; }
         if (exportAge !== null) return;
         try { exportText = C.saveTools.exportText(); exportAge = 0; exportButton.disabled = true; exportButton.classList.add('is-exporting'); exportButton.textContent = 'Exporting'; C.fx.wake(); }
         catch (error) { message(error.message); }
       });
-      var zone = node('div', 'settings-drop-zone', host); zone.setAttribute('aria-label', 'Import a Cardable save');
-      node('p', '', zone, 'Drop a save file here or choose a file');
+      var zone = node('div', 'settings-drop-zone', hosts['import']); zone.setAttribute('aria-label', 'Import a Cardable save');
+      zone.appendChild(C.icons.create('upload')); node('p', '', zone, 'Drop a save file here or choose a file');
       var input = node('input', '', zone); input.type = 'file'; input.accept = '.json,application/json'; input.hidden = true;
       var choose = button('Import save', zone, function () { input.value = ''; input.click(); });
-      var preview = node('section', 'settings-import-preview glass', host); preview.hidden = true; preview.setAttribute('aria-label', 'Import preview');
+      var preview = node('section', 'settings-import-preview', hosts['import']); preview.hidden = true; preview.setAttribute('aria-label', 'Import preview');
       var previewCopy = node('p', '', preview);
       var apply = button('Replace my save', preview, function () { cancelConfirms(importConfirm); });
       var importConfirm = C.settingsControls.confirmation(apply, function () { if (pending) perform(function () { C.saveTools.importSave(pending.save); options.close(); }); }, { announce: options.announce, confirmMessage: 'Click again within three seconds to replace your save.' }); confirmations.push(importConfirm);
@@ -46,13 +49,14 @@
       ['dragenter', 'dragover'].forEach(function (name) { zone.addEventListener(name, function (e) { e.preventDefault(); zone.classList.add('is-drag-over'); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; }); });
       zone.addEventListener('dragleave', function () { zone.classList.remove('is-drag-over'); });
       zone.addEventListener('drop', function (e) { e.preventDefault(); zone.classList.remove('is-drag-over'); read(e.dataTransfer && e.dataTransfer.files[0]); });
-      var reset = button('Reset save', host);
-      node('p', 'settings-helper', host, 'Deletes your cards, packs and progress. Your settings are kept.');
+      node('p', 'settings-helper', hosts.danger, 'Deletes your cards, packs and progress. Your settings are kept, a backup is made first, and Undo stays for 15 seconds.');
+      var reset = button('Reset save', hosts.danger); reset.classList.add('cbs-danger');
       reset.addEventListener('pointerdown', function () { cancelConfirms(resetConfirm); }); C.keys.listen(reset, 'keydown', 'src.ui.settings-data.js.1', function (e) { if (e.key === ' ' || e.key === 'Enter') cancelConfirms(resetConfirm); });
-      var resetConfirm = C.settingsControls.confirmation(reset, function () { perform(function () { C.saveTools.reset(); options.close(); }); }, { mode: 'hold', holdLabel: 'Hold to reset', announce: options.announce }); confirmations.push(resetConfirm);
-      var restore = button('Restore previous save', host, function () { cancelConfirms(restoreConfirm); });
+      var resetConfirm = C.settingsControls.confirmation(reset, function () { perform(function () { C.saveTools.reset(); options.close(); }); }, { mode: 'hold', holdLabel: 'Keep holding to reset', announce: options.announce }); confirmations.push(resetConfirm);
+      var restore = button('Restore previous save', hosts.backup, function () { cancelConfirms(restoreConfirm); });
       var restoreConfirm = C.settingsControls.confirmation(restore, function () { perform(C.saveTools.restore); }, { announce: options.announce, confirmMessage: 'Click again within three seconds to restore the previous save.' }); confirmations.push(restoreConfirm);
-      var replay = button('Replay tutorial', host, function () { cancelConfirms(); perform(function () { C.saveTools.replay(); options.close(); }); });
+      node('p', 'settings-helper', hosts.tutorial, 'Walk through opening, cutting and keeping again. Your collection is untouched.');
+      var replay = button('Replay tutorial', hosts.tutorial, function () { cancelConfirms(); perform(function () { C.saveTools.replay(); options.close(); }); });
       feedback = node('p', 'settings-data-feedback', zone); feedback.setAttribute('role', 'status'); feedback.setAttribute('aria-live', 'polite');
       var toast=null,undo=null,undoDeadline=0,undoKind=null;
       function refresh() {

@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.2.4**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.3.0**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -10,7 +10,7 @@ Current app: **1.2.4**. The 1.2 series includes the One Cardable foundation, Con
 4. Physical light: a top-left lamp, a top hairline and a pointer-following edge where quality permits.
 5. Motion explains change. Ordinary feedback takes 150–240 ms; cinematic pacing remains separately authored.
 6. Precision: a 4 px grid, concentric radii, optical alignment and tabular numbers.
-7. Quiet color: periwinkle selection, mint success, warm progress/rewards and rose destructive/error accents. Meaning always has a label or shape. Mono replaces semantic accents with neutral values.
+7. Quiet color: periwinkle selection by default (the player may choose another accent), mint success, warm progress/rewards and rose destructive/error accents. Meaning always has a label or shape. Mono replaces semantic accents with neutral values.
 8. Consistency over novelty: reuse the kit; add a pattern to its API, gallery and rules before using it.
 9. Design idle, hover, pressed, focus, disabled, loading, empty and error states.
 10. Accessible by default: visible focus, meaningful labels, predictable keyboard navigation and reduced motion.
@@ -30,7 +30,7 @@ The source of truth is `src/ui/kit/tokens.css`, with compatibility aliases for e
 | Radius | Tiny 6, control 10, panel 14, card/sheet 20, large sheet 28, chip 999; inner radius = outer minus padding |
 | Elevation | Four layered shadows (sm/md/lg/xl); page scrim 40% ink |
 | Layers | Content 0, sticky 10, panels 20, sheets 30, overlays 40, toasts 50, tooltips 60, cursor 70 |
-| Layout | Existing 1920×1080 scale; max sheet 1200, Settings 1040, dialog 480, popover 320; safe-area insets; comfortable 40 px rows, compact 32 px |
+| Layout | Existing 1920×1080 scale; max sheet 1200, Settings 704 docked left, dialog 480, popover 320; safe-area insets; comfortable 40 px rows, compact 32 px |
 
 Use variables for color, timing, easing, radii, layers and shadows. Never convert collected art, pack identities or authored films into arbitrary generic component colors. Minimum contrast targets are 4.5:1 for body text and 3:1 for large text/icons; a token is not itself an accessibility certification.
 
@@ -68,7 +68,11 @@ Every family has a purpose, anatomy, variants, states, keyboard/accessible namin
 
 ## 6. Patterns
 
-Settings is a two-pane, schema-driven group rail and content area. Rows have label, one-line helper, control, changed dot and reset; search matches label/helper/key/aliases with highlights; section restore preserves unrelated choices. Advanced reveals flagged rows and never changes saved values. Preview is pinned beside active content. Deep links use `openSettings(settingId)`.
+Settings is a glass slab docked on the left (704 px, 12 px inset, 26 px radius), so the game stays visible beside it. An 84 px icon rail selects one page at a time, with a sliding accent pill; pages hold titled cards of rows. Rows have label, one-line helper, control, changed dot and reset. Search covers every page with highlights; a page restores its own defaults with click-again and Undo. Simple is the default; Advanced reveals flagged rows and pages and never changes saved values. Layout is data: `C.data.settingsPages` lists pages, sections and keys. Deep links use `openSettings(settingId)`; older group names still resolve.
+
+The preview dock sits under the page. Pointing at or focusing a row shows what it does: `split` previews draw Off and On on either side of a draggable divider, `pair` previews run two panes, and card options show the player's real card. Previews draw on one canvas through the shared scheduler only while Settings is open, rest on a still frame eight seconds after the last interaction, and hold still for reduced motion and Very Low animation. The dock folds away and remembers it. A preview never changes a saved value.
+
+Settings controls: switch, segments, dropdown (button plus listbox), slider with filled track, frame-rate picker (readout, slider, scrollable presets, exact field), graphics tiers, level meter, swatches and wordmark tiles. Scrollable strips keep keyboard roving and scroll the selection into view. Destructive actions keep their levels: hold for Reset save and Full strobing, click-again for restores and imports, a listed preview plus Undo for quick setups.
 
 Lists use 40/32 px rows, a glass hover and selected left accent bar. Sheets rise, drawers enter from the right, and both shade underlying content. Toasts stack bottom-center above inventory. Tooltips include current shortcut labels when available. Every screen/panel provides Help; F1 or ? toggles Help mode. First-use hints remain dismissible. Navigation uses segmented tabs, Escape and chevrons, never breadcrumbs.
 
@@ -100,7 +104,7 @@ Design references: [Vercel interface guidelines](https://vercel.com/design/guide
 
 # Designs.MD — Cardable's current design system
 
-This guide describes the current game, publicly numbered **1.2.4** after the 4.2.0 development series, including five graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
+This guide describes the current game, publicly numbered **1.3.0** after the 4.2.0 development series, including five graphics tiers, collectible finishes, inventory/detail, cinematics and Electron. Detailed gameplay rules live in the numbered docs; authored scene timings live in [CINEMATICS](docs/CINEMATICS.md). Historical milestone designs are preserved in [the organization archive](archive/workspace-organization/README.md).
 
 ## Direction and visual hierarchy
 
@@ -200,7 +204,7 @@ Retained fields leave a readable center and bounded quiet motion: static Legenda
 
 Electron adds the existing system window frame, Mini/taskbar integration, command palette, bundled Help, diagnostics, explicit recovery and local captures. Keep their UI consistent with the main chrome; native bridges handle filesystem/window/update operations. No developer setup belongs in the player path. [PLAY](PLAY.md) describes installation; [ELECTRON](docs/ELECTRON.md) and [UPDATES](docs/UPDATES.md) describe native behavior.
 
-Settings dims/shades the scene and uses a focused preview governed by the selected policy. Group graphics, performance, accessibility, controls and Data coherently. Preserve independent FPS/quality/motion controls and clearly distinguish temporary battery/Safe Mode overrides from saved preferences. Sound remains unavailable. Import/restore/reset actions require their existing explicit choices and recovery safeguards.
+Settings shades only its own side of the scene and previews options in its dock. Pages group graphics, performance, appearance, motion, gameplay, accessibility, controls and Data. Preserve independent FPS/quality/motion controls and clearly distinguish temporary battery/Safe Mode overrides from saved preferences. Sound remains unavailable and has no placeholder rows. Import/restore/reset actions require their existing explicit choices and recovery safeguards.
 
 Welcome/Help should get a player to opening and recovery without a terminal. Updater status is quiet and specific; display actionable errors and keep saves safe on quit. Development UI is opt-in through the existing development route and stays absent from normal play. Preview/replay tools must not mint real rewards.
 
