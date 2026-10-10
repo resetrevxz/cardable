@@ -68,7 +68,7 @@ Every family has a purpose, anatomy, variants, states, keyboard/accessible namin
 
 ## 6. Patterns
 
-Settings is a glass slab docked on the left (704 px, 12 px inset, 26 px radius), so the game stays visible beside it. An 84 px icon rail selects one page at a time, with a sliding accent pill; pages hold titled cards of rows. Rows have label, one-line helper, control, changed dot and reset. Search covers every page with highlights; a page restores its own defaults with click-again and Undo. Simple is the default; Advanced reveals flagged rows and pages and never changes saved values. Layout is data: `C.data.settingsPages` lists pages, sections and keys. Deep links use `openSettings(settingId)`; older group names still resolve.
+Settings is a glass slab docked on the left or right (704 px, 12 px inset, 26 px radius; the `settingsSide` option), so the game stays visible beside it. The rail stays on the outer edge. An 84 px icon rail selects one page at a time, with a sliding accent pill; pages hold titled cards of rows. Rows have label, one-line helper, control, changed dot and reset. Search covers every page with highlights; a page restores its own defaults with click-again and Undo. Simple is the default; Advanced reveals flagged rows and pages and never changes saved values. Layout is data: `C.data.settingsPages` lists pages, sections and keys. Deep links use `openSettings(settingId)`; older group names still resolve.
 
 The preview dock sits under the page. Pointing at or focusing a row shows what it does: `split` previews draw Off and On on either side of a draggable divider, `pair` previews run two panes, and card options show the player's real card. Previews draw on one canvas through the shared scheduler only while Settings is open, rest on a still frame eight seconds after the last interaction, and hold still for reduced motion and Very Low animation. The dock folds away and remembers it. A preview never changes a saved value.
 
@@ -98,7 +98,7 @@ New chrome uses the kit and shared tokens; new patterns appear here and in the g
 
 Exceptions: authored card/variant/pack/cinematic materials retain their recipes and timings; Studio viewport/gizmos retain scene colors and axis tints; Classic VT323, Ascendant Bodoni and Mythical vector title remain artwork-only; developer tools allow denser layouts. Layout compatibility selectors carry existing geometry into the kit without changing game actions. Archived histories are evidence, not new scope.
 
-Design references: [Vercel interface guidelines](https://vercel.com/design/guidelines), [Apple color](https://developer.apple.com/design/human-interface-guidelines/color), [Apple motion](https://developer.apple.com/design/human-interface-guidelines/motion), [Apple accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility). Cardable adopts their focus, semantic controls, redundant color, restraint and meaningful-motion guidance within its offline runtime and restricted verification policy.
+Design references: [Vercel interface guidelines](https://vercel.com/design/guidelines), [Apple color](https://developer.apple.com/design/human-interface-guidelines/color), [Apple motion](https://developer.apple.com/design/human-interface-guidelines/motion), [Apple accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility). Cardable adopts their focus, semantic controls, redundant color, restraint and meaningful-motion guidance within its offline runtime.
 
 ## Appendix: retained gameplay, artwork and delivery contracts
 
@@ -127,7 +127,7 @@ The main screen centers the active pack, Cardable wordmark, stock/refill metrics
 
 Use locally bundled Inter for UI and JetBrains Mono for values, labels, serials and technical detail, with system fallbacks. **VT323 is allowed only inside the Classic pack's terminal artwork. Bodoni Moda is allowed only for ASCENDANT artwork.** Mythical's Gothic title is original vector lettering. These exceptions do not authorize extra menu fonts.
 
-Prefer solid shaded surfaces for browsing and Settings over blurring the whole game. Very Low/Low use solid tinted panels. Medium/High can use the independent glass policy for appropriate local surfaces; Inventory remains shaded at every tier. Preserve borders, readable contrast and foreground separation when blur is disabled.
+Prefer solid shaded surfaces for browsing and Settings over blurring the whole game. Very Low/Low use solid tinted panels. Medium/High can use the independent glass policy for appropriate local surfaces; Inventory uses dense glass at Medium and above and a solid fill below. Preserve borders, readable contrast and foreground separation when blur is disabled.
 
 ## Four graphics tiers
 
@@ -212,7 +212,7 @@ Welcome/Help should get a player to opening and recovery without a terminal. Upd
 
 The public download page in `site/` uses the same monochrome typography and restraint, as nine authored scenes: arrival, pack ritual, reveal, real finishes, interactive demo collection, serial archive, four complete Safe rarity cutscenes with play/pause/restart, installation and finale. Actual game renderers and generated product posters carry the story; graphics tiers are a short installation disclosure. It is a separate static website; build it with `site:build`. Illustrations must be identified honestly, download links must derive from release versions, and essential content must work without animation or JavaScript. Keep development commands out of the player installation flow.
 
-Source integration, a built installer and a successful app session are different evidence. [BUGS](docs/BUGS.md) and [ROADMAP](docs/ROADMAP.md) retain runtime, device, motion, cinematic, photo and installer gaps. Historical observations are archived with their original scopes; they do not certify the present game. Follow [PROMPTING](docs/PROMPTING.md) for the owner's restricted verification policy.
+Source integration, a built installer and a successful app session are different evidence. [BUGS](docs/BUGS.md) and [ROADMAP](docs/ROADMAP.md) retain runtime, device, motion, cinematic, photo and installer gaps. Historical observations are archived with their original scopes; they do not certify the present game. Follow [PROMPTING](docs/PROMPTING.md) for how to verify work.
 
 New design work should improve hierarchy, clarity and resource bounds within the approved rules. Put unrelated concepts in [POLISH-BACKLOG](docs/POLISH-BACKLOG.md), rather than adding unrequested gameplay or visual systems.
 
@@ -225,6 +225,21 @@ Profiles use a kit dialog showing every changed value before Apply. Cancel prese
 The release showcase uses actual local artwork, typography-led feature sections, finish specimens and nested card inspection. A preview specimen is clearly marked and never minted. Static previews are bounded; only the focused inspection receives live card effects. Accent selection follows the saved color/mono theme. Component examples live in the UI gallery; Controls and Profiles link to their actual Settings sections.
 
 Reference principles: [Vercel web interface guidelines](https://vercel.com/design/guidelines), [Apple keyboards](https://developer.apple.com/design/human-interface-guidelines/keyboards), [Apple color](https://developer.apple.com/design/human-interface-guidelines/color), and [Apple accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility). Local Cardable tokens and offline contracts remain authoritative.
+
+## Smooth and seamless (1.3.0)
+
+Nothing should vanish, jump or arrive without motion. These rules apply to new work:
+
+- **Sheets carry their contents.** While the inventory sheet moves, its cards, tabs and tools stay visible and fade with `--inventory-open` (0 at peek, 1 at the normal height). Content is hidden only once the sheet has come to rest.
+- **Size follows position.** Between two heights the card views are sized from the sheet's current position each frame, so a height change never lands as a jump.
+- **One layout per header.** A header keeps the same arrangement in every state; elements that only apply to one state reserve their space and fade.
+- **Pages ease in.** Changing a page inside the sheet plays `cb-page-in` (rise, fade and a short unblur) on the incoming page. Cards, Achievements and the album are peers; choosing a collection returns to the cards.
+- **Shared feedback.** Hover lifts 1 to 3 px, press scales to .97, popovers and tooltips arrive with `cb-pop-in`, scrims fade. Use the duration tokens and `--ease-out`; scale durations by `--q-motion`. Everything stops for reduced motion, the Hover animations option and Very Low.
+- **Glass.** The inventory sheet and the credits popover use the Settings glass on Medium and above. The fill is dense enough (about 84 to 94 percent) to read without the blur; lower tiers and Reduce transparency use the solid fill.
+
+The photo album is an inventory page (`src/studio/ui/album.js`): header with usage, search and sort; tag chips; a selection bar; a photo grid; and an inspector for the selected photo. Photos remain in their own IndexedDB store. Deleting uses click-again plus an Undo toast that restores the full photo.
+
+Shared styles for these rules live in `src/ui/kit/components/smooth.css`.
 
 ## Pack material family
 

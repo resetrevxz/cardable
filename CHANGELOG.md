@@ -1,18 +1,45 @@
-# Cardable v1.3.0 — Settings, in a new light
+# Cardable v1.3.0 — Smooth and seamless
 
-Settings is rebuilt as a glass panel docked on the left, so the game stays in view while you tune it. Saved collections, serials and the save schema are unchanged; every existing preference carries over.
+A cleanup and visuals update. Settings is rebuilt as a glass panel, the inventory moves as one piece, and the photo album lives beside your cards. Saved collections, serials and the save schema are unchanged; every existing preference carries over.
 
-- **A new panel.** An icon rail replaces the group list: Graphics, Performance, Appearance, Motion, Gameplay, Accessibility, Profiles, Data and About, with Controls and Studio in Advanced. Search covers every page at once.
+## Settings
+
+- **A new panel.** A glass panel docked beside the game, with an icon rail: Graphics, Performance, Appearance, Motion, Gameplay, Accessibility, Profiles, Data and About, plus Controls and Studio in Advanced. Search covers every page at once.
+- **Left or right.** Dock the panel on either side from Appearance, or with the swap button in its header.
 - **Simple and Advanced.** Simple shows the options most players want. Advanced adds the rest without changing anything you saved.
-- **Live previews.** Point at an option and the dock at the bottom shows what it does: the dot grid under a moving pointer with a live dot count, reduced motion beside full motion, frames per tenth of a second for your cap, glass against solid panels, and more. Many previews split Off and On with a divider you can drag. Card options use your real card.
-- **Graphics in one place.** Five preset tiles, with all ten effects listed underneath as level meters. Advanced turns each meter into a dropdown; a customized mix can return to its preset in one tap.
+- **Live previews.** Point at an option and the dock shows what it does: the dot grid under a moving pointer with a live dot count, reduced motion beside full motion, frames for your cap, glass against solid panels. Many previews split Off and On with a divider you can drag. Card options use your real card.
+- **Graphics in one place.** Five preset tiles with all ten effects underneath. Advanced turns each into a dropdown; a customized mix returns to its preset in one tap.
 - **Any frame rate.** Pick a preset, drag the slider or type an exact cap from 10 to 500 FPS.
-- **New options.** Accent color, seven wordmark finishes, wordmark glyph swaps, dot spacing, dot color, click ripples, cursor glow size and color.
+- **New options.** Accent color, seven wordmark finishes, wordmark glyph swaps, dot spacing and color, click ripples, cursor glow size and color.
 - **Quick setups.** Balanced, Performance, Cinematic, Minimal and Comfort list every change before applying, with Undo afterwards.
-- **Safer Data.** Back up, import, tutorial and reset each have their own card. Reset save still needs a three-second hold, makes a backup first and offers Undo.
-- **Tidied.** Disabled placeholders (sound, daily notices) and duplicate visibility switches are gone from the panel. A hidden duplicate folds into the control that remains, so nothing is stuck off.
 
-Checked in a browser session at 1600×900 and 700×820: every page in both modes, all 69 previews, dropdowns, the frame-rate picker, search, deep links, quick setups and the Data cards, with no console errors. The session ran in a hidden browser pane, so the open animation, live preview motion and the look of the panel were not observed, and the Windows app was not launched. This release is unsigned.
+## Inventory
+
+- **It moves as one piece.** Cards, tabs and tools now travel with the sheet as it opens and closes, fading with its position. Before, they vanished the moment the sheet began to close.
+- **No more size jump.** Cards grow and shrink with the sheet between its heights instead of snapping when you let go.
+- **A steady header.** The title and tools keep one layout whether the sheet is tucked away or open.
+- **Seamless pages.** Cards, Achievements and the album ease in when you switch. Choosing a collection from another page takes you back to your cards.
+- **Glass.** The sheet uses the same glass as Settings on Medium and above, and stays solid on lower tiers or with Reduce transparency.
+
+## Photo album
+
+- **Inside the inventory.** The album is a tab beside Achievements instead of a separate full-screen view.
+- **Easier to manage.** Search, sort by newest, oldest or name, and filter by tag. Rename a photo in place, add or remove tags as chips, and star favorites.
+- **Viewer.** Open any photo full size and step through with the arrow keys, or compare two side by side.
+- **Selection.** Ctrl-click and Shift-click to select several, then download them together. Delete asks twice and offers Undo.
+- **Keyboard.** Arrows move, Enter opens, F favorites, Delete removes, / searches.
+
+## Credits
+
+- The credits popover is redrawn around the balance. The day summary and the history list are gone.
+
+## Polish and cleanup
+
+- Buttons, tabs, tiles, popovers, tooltips and dialogs share one set of hover, press and arrival animations. All of it respects reduced motion, the Hover animations option and Very Low.
+- Disabled placeholders (sound, daily notices) and duplicate visibility switches leave Settings. A hidden duplicate folds into the control that remains, so nothing is stuck off.
+- Removed the styles for the old album, the old two-pane Settings and the wallet history.
+
+Checked in a browser session at 1280×720 with screenshots: Settings on both sides, every page in both modes and all previews; the inventory opening, changing height and closing, measured frame by frame; Achievements and album page changes; album search, selection, inspector and viewer; and the credits popover. The Windows app paths (Desktop page, Unlimited frame cap, folder export, updates) were not exercised. This release is unsigned.
 
 ---
 

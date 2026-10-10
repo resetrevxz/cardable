@@ -223,7 +223,7 @@ Settings and controls exports are JSON preferences; collection backups still use
 
 ## Settings panel (1.3.0)
 
-The panel is a left-docked glass slab with an icon rail, one page at a time and a preview dock. It supersedes the two-pane sheet and the right-hand drawer described above; the engine, storage, instant apply and confirmation levels are unchanged.
+The panel is a glass slab docked on the left or right with an icon rail, one page at a time and a preview dock. It supersedes the two-pane sheet and the right-hand drawer described above; the engine, storage, instant apply and confirmation levels are unchanged.
 
 | Piece | Source |
 |---|---|
@@ -235,7 +235,7 @@ The panel is a left-docked glass slab with an icon rail, one page at a time and 
 
 Pages: Graphics, Performance, Appearance, Motion, Gameplay, Controls (Advanced), Accessibility, Desktop (Windows app only), Studio (Advanced), Profiles, Data, About. A setting belongs to exactly one section; adding one means a schema entry, its key in a section and, optionally, a preview in `views`.
 
-New keys: `accentColor`, `logoStyle`, `logoAnimation`, `dotDensity`, `dotTint`, `clickRipples`, `cursorGlowSize`, `cursorGlowTint`, `settingsPreviews`. `fpsLimit` accepts `display`, `unlimited` (Windows app) or any whole number from 10 to 500.
+New keys: `accentColor`, `logoStyle`, `logoAnimation`, `dotDensity`, `dotTint`, `clickRipples`, `cursorGlowSize`, `cursorGlowTint`, `settingsSide` (left or right), `settingsPreviews`. `fpsLimit` accepts `display`, `unlimited` (Windows app) or any whole number from 10 to 500.
 
 Retired from the panel, still valid in saves: `volume`, `muted`, `notifyDaily`, `notifySound`, `visibleDesktop`, `visibleDots`, `visibleCursor`, `visibleIdleFade`, `visiblePerformance`. A saved `false` on one of the four duplicate visibility keys folds into `dots`, `cursorGlow`, `idleFade` or `performanceMode` during normalization, so the remaining control tells the truth.
 

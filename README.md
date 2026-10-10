@@ -57,7 +57,7 @@ Progress stays on your computer. Use **Settings → Data → Export save** for a
 
 Installed builds check for newer published releases when online, download in the background and install after a successful save when you quit normally. The game itself works offline. Keep the same Windows user and installation location. Saves and photo storage are configured to survive ordinary upgrades and uninstall.
 
-Public numbering started at **v1.0.0**; the current release is **v1.3.0 — Settings, in a new light**. Earlier 4.x installations need the new installer once; the updater won't automatically downgrade. The game/save identity is preserved. See [PLAY](PLAY.md).
+Public numbering started at **v1.0.0**; the current release is **v1.3.0 — Smooth and seamless**. Earlier 4.x installations need the new installer once; the updater won't automatically downgrade. The game/save identity is preserved. See [PLAY](PLAY.md).
 
 ## Help and feedback
 

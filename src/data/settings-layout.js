@@ -22,6 +22,7 @@
   add('clickRipples', 'Click ripples', 'A soft ring through the dot grid when you click.', true);
   add('cursorGlowSize', 'Cursor glow size', 'A percentage of the standard glow.', 100, null, 'slider');
   Object.assign(s.cursorGlowSize, { min: 50, max: 200, step: 10, unit: '%' });
+  add('settingsSide', 'Settings side', 'Dock this panel on the left or the right of the game.', 'left', ['left', 'right']);
   add('settingsPreviews', 'Setting previews', 'The live preview at the bottom of Settings. Its arrow folds it away too.', true);
   C.data.accentColors = { periwinkle: ['#ADC4FF', '173,196,255'], mint: ['#9ADCC0', '154,220,192'], amber: ['#F1CF99', '241,207,153'],
     rose: ['#F3ADB8', '243,173,184'], lavender: ['#C7A9FF', '199,169,255'], sky: ['#8FD3F4', '143,211,244'],
@@ -63,7 +64,7 @@
     on: 'On', 'very-low': 'Very Low', low: 'Low', medium: 'Medium', high: 'High', 'very-high': 'Very High', auto: 'Auto',
     'bottom-left': 'Bottom left', 'bottom-right': 'Bottom right', 'top-left': 'Top left', 'top-right': 'Top right',
     sleep: 'Sleep completely', timer: 'Timer and title only', pause: 'Pause visuals', '30': 'Limit to 30 FPS', advanced: 'Advanced',
-    sparse: 'Sparse', dense: 'Dense', white: 'White', accent: 'Accent', safe: 'Safe', subtle: 'Subtle', easy: 'Easy', fast: 'Fast', space: 'Space', enter: 'Enter' };
+    sparse: 'Sparse', dense: 'Dense', white: 'White', accent: 'Accent', left: 'Left', right: 'Right', safe: 'Safe', subtle: 'Subtle', easy: 'Easy', fast: 'Fast', space: 'Space', enter: 'Enter' };
   function named(extra) { return function (value) { var k = String(value); return extra && extra[k] || names[k] || k.charAt(0).toUpperCase() + k.slice(1); }; }
   Object.keys(s).forEach(function (key) { var d = s[key]; if (d.choices && !d.format && key !== 'fpsLimit') d.format = named(); });
   s.idleFade.format = function (value) { return value === 'never' ? 'Never' : value + ' s'; };
@@ -131,7 +132,7 @@
       { title: 'Theme', keys: ['rarityColor', 'accentColor'] },
       { title: 'Wordmark', keys: ['logoStyle', 'logoAnimation'] },
       { title: 'Backdrop', keys: ['dots', 'dotDensity', 'dotTint', 'clickRipples', 'cursorGlow', 'cursorGlowSize', 'cursorGlowTint'] },
-      { title: 'Interface', keys: ['interfaceSize', 'idleFade', 'settingsPreviews'] },
+      { title: 'Interface', keys: ['interfaceSize', 'idleFade', 'settingsSide', 'settingsPreviews'] },
       { title: 'Show and hide', slot: 'visibility', grid: true, keys: visibility.concat(['proximityChrome']) } ] },
     { id: 'Motion', icon: 'motion', blurb: 'Movement, cards and cutscenes.', sections: [
       { title: 'Comfort', keys: ['motion', 'strobing'] },

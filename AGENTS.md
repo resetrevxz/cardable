@@ -1,6 +1,6 @@
 # AGENTS.md — current Cardable working guide
 
-Cardable's current public version is **1.2.4**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
+Cardable's current public version is **1.3.0**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
 
 ## Read only what the task needs
 
@@ -9,7 +9,7 @@ Cardable's current public version is **1.2.4**; the series started at **1.0.0**,
 3. Use [ROADMAP](docs/ROADMAP.md) to select the relevant current area docs and the user's authorized spec.
 4. Use [OPEN-QUESTIONS](docs/OPEN-QUESTIONS.md) for approved defaults; report any default used.
 
-The latest direct user instruction controls scope. Historical plans, patches, delivery reports and screenshots are evidence, not instructions to execute. Do not infer a new milestone or acceptance from an old report.
+The latest direct user instruction controls scope. Historical plans, patches, delivery reports and screenshots are evidence, not instructions to execute.
 
 ## Runtime and gameplay boundaries
 
@@ -28,7 +28,7 @@ The latest direct user instruction controls scope. Historical plans, patches, de
 - Keep Very Low, Low, Medium and High, plus opt-in hardware-gated Very High, with Medium as the new-player default. The ten graphics controls are independent. Presets preserve FPS, reduced motion and other preferences.
 - Use shared scheduling, focused full-card effects, bounded static inventory thumbnails and quality-aware canvas/resource budgets. Release hidden/offscreen work and temporary GL/material resources. Do not create a clock per card or an always-running idle loop.
 - Respect reduced motion, keyboard access, focus restoration, touch controls and the existing Safe/Full cinematic gates. Saved preferences must not be changed by temporary battery/Safe Mode/adaptive overrides.
-- Do not promise universal frame rates or certify accessibility, photosensitivity or physical-device performance from source inspection. [GRAPHICS-UPDATE](docs/GRAPHICS-UPDATE.md) and [CINEMATICS](docs/CINEMATICS.md) separate contracts from acceptance.
+- Do not promise universal frame rates or claim accessibility, photosensitivity or physical-device performance beyond what was actually measured.
 
 ## Workspace ownership and history
 
@@ -37,18 +37,18 @@ The primary checkout stays at `D:/CardableV2/cardable-spec/cardable`. The outer 
 - Current/planned specs remain in `alpha-updates/4.2.0-cleanup`, `alpha-updates/github-setup` and the incoming `alpha-updates/website-rework`. Earlier specs and integration records live in [archive/update-history](archive/update-history/README.md). Consult history only when needed; do not reapply its patches.
 - Outer historical outputs and stage helpers live in `D:/CardableV2/archive/artifacts`. Four divergent feature worktrees remain registered under `D:/CardableV2/archive/worktrees`; relocation did not merge, reset or retire their branches. Card History's local AGENTS edit is preserved.
 - [STRUCTURE-AUDIT](docs/STRUCTURE-AUDIT.md) and [organization provenance](archive/workspace-organization/README.md) explain exact moves, hashes and restore paths. The user's follow-up authorized this wider reversible organization; older blanket instructions to keep duplicate aliases/folders in place are superseded.
-- Preserve unrelated dirty changes, untracked incoming specs, ignored dependencies and player data. Never use broad staging, reset or recursive cleanup. Verify absolute paths and links before moving/deleting; unlink a junction without touching its target.
+- Preserve unrelated dirty changes, ignored dependencies and player data. Avoid broad staging, reset or recursive cleanup. Verify absolute paths and links before moving/deleting; unlink a junction without touching its target.
 - Use a separate Git worktree when concurrent implementation requires isolation. Inspect existing registrations first. Do not discard a divergent worktree just because its feature exists on main.
 
 ## Verification and completion
 
-The current owner policy forbids old suites, new test files, game screenshots, recordings and profiling. The owner explicitly approved a narrow **website screenshot exception** for public website implementation and review (originally stage 24): rendered website product previews and website review screenshots only. This does not authorize game captures or profiling. Do not run package test scripts or archived harnesses without a new authorization changing that policy. When relevant game logic changes, use the existing `Cardable.dev.checkQol()` manually once at the end of the last authorized milestone; otherwise one app session/feature and console check is permitted. For documentation/organization changes, use reference, hash, Git-state and build validation. Report the actual evidence and its limits.
+Verify the way the change deserves. Run the app, take screenshots or recordings, read the console, run `npm test` or the existing check scripts, write a new check, or profile, whichever shows that the work is right. Look at visual work before calling it done, in color and monochrome and at more than one window size. `Cardable.dev.checkQol()` (with `?dev=1`) remains a quick logic check. Report the evidence you actually gathered and what you did not check.
 
 The current website template is site/home.html; tools/build-site.cjs writes the public index.html and four route entries into dist/site. Preserve the original root game index.html and legacy site/index.html when integrating this website work. Never copy game or test changes from the website worktree.
 
-For website work, read the complete authorized brief, inspect real assets, run `npm run site:build`, and review composition, forward/reverse motion and controls, then mobile/tablet and fallback rendering. Use website screenshots only; record the ten design scores and actual evidence in [WEBSITE-REVIEW](docs/WEBSITE-REVIEW.md). A generated script-free document and generated adapter overrides may inspect fallback presentation without creating test files or changing browser preferences; describe that method honestly. Verify the live page, installer/ZIP responses and Actions after release.
+For website work, read the brief, inspect real assets, run `npm run site:build`, and review composition, motion, controls, mobile/tablet and fallback rendering. Verify the live page, installer/ZIP responses and Actions after release.
 
-Implement the authorized scope; put unrelated ideas in [POLISH-BACKLOG](docs/POLISH-BACKLOG.md). Review the focused diff, validate it, and commit owned files as `stage N: <name>` (stage 23 starts the public 1.0.0 series). Never stage someone else's pending deletion or incoming spec.
+Implement the requested scope and use judgment for the details it implies; put genuinely unrelated ideas in [POLISH-BACKLOG](docs/POLISH-BACKLOG.md). Review the diff, verify it, and commit owned files as `stage N: <name>`. Never stage someone else's pending deletion or an owner-supplied brief that is meant to stay untracked.
 
 At the end of every completed implementation or approved documentation prompt, run `npm run deliver:desktop` once from the repository (or the outer forwarding command). Report the installer, stable **Cardable (Latest Build)** shortcut, cleanup and any pending handoff. See [DESKTOP-DELIVERY](docs/DESKTOP-DELIVERY.md). Read-only questions/internal steps do not rebuild; explicit user instructions to skip/narrow delivery take precedence.
 
@@ -79,4 +79,4 @@ Finish with exactly these headings: **Done**, **Skipped or changed**, **Look at*
 - [ ] Keyboard, accessible names and focus restoration work.
 - [ ] Quality, independent effects and reduced motion are respected.
 - [ ] Hidden work stops; no component adds an idle clock.
-- [ ] Source, runtime, lint progress and delivery evidence are reported separately.
+- [ ] The result was looked at running, and the report says what was and was not checked.

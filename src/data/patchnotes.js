@@ -1,31 +1,38 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
-    version:'1.3.0',codename:'Settings, in a new light',date:'October 10, 2026',tag:'Update',tagline:'A glass panel. Live previews. Any frame rate.',
-    hero:{badge:'CARDABLE / 1.3.0',title:'Settings, in a new light.',subtitle:'A glass panel on the left, with a live preview for what each option does.',media:[]},
+    version:'1.3.0',codename:'Smooth and seamless',date:'October 10, 2026',tag:'Update',tagline:'Glass, motion and an album beside your cards.',
+    hero:{badge:'CARDABLE / 1.3.0',title:'Smooth and seamless.',subtitle:'A new Settings panel, an inventory that moves as one piece, and the photo album beside your cards.',media:[]},
     sections:{
       features:[
-        'Settings is a glass panel docked on the left with an icon rail, so the game stays in view while you tune it.',
+        'Settings is a glass panel beside the game with an icon rail. Dock it left or right.',
         'Point at an option to preview it: dots under a moving pointer with a live count, reduced motion beside full motion, and Off against On with a divider you can drag.',
-        'Set any frame-rate cap from 10 to 500 FPS with presets, a slider or an exact number.',
-        'New looks: accent color, seven wordmark finishes, dot spacing and color, click ripples, and cursor glow size and color.'
+        'The photo album is a tab in the inventory, with search, sorting, tags, favorites, a full-size viewer and compare.',
+        'Set any frame-rate cap from 10 to 500 FPS. New looks: accent color, wordmark finishes, dot spacing and color, click ripples, and cursor glow size and color.'
+      ],
+      visuals:[
+        'The inventory sheet uses glass on Medium and above.',
+        'Cards, tabs and tools travel with the sheet as it opens and closes instead of vanishing.',
+        'Cards grow with the sheet between its heights; they no longer snap when you let go.',
+        'Cards, Achievements and the album ease in when you switch pages.',
+        'Buttons, tabs, tiles, popovers and dialogs share one set of hover, press and arrival animations.'
       ],
       qol:[
         'Simple shows the options most players want; Advanced adds the rest without changing what you saved.',
-        'Graphics shows five preset tiles with all ten effects underneath. Advanced turns each into a dropdown.',
-        'Quick setups list every change before applying and offer Undo. Search covers every page at once.',
-        'Data separates back up, import, tutorial and reset. Reset save keeps its three-second hold, backup and Undo.'
+        'Quick setups list every change before applying and offer Undo. Search covers every Settings page.',
+        'Album: rename in place, tag chips, multi-select with Ctrl and Shift, keyboard shortcuts, and Undo after deleting.',
+        'The credits popover shows your balance without the day summary or history list.'
       ],
       systems:[
-        'Disabled placeholders and duplicate visibility switches leave the panel. Saved preferences carry over.',
-        'Previews share the game scheduler, rest on a still frame when idle, and respect reduced motion and Very Low.'
+        'Disabled placeholders and duplicate visibility switches leave Settings. Saved preferences carry over.',
+        'Old album, two-pane Settings and wallet-history styles are removed.'
       ]
     },
     entries:[
-      'Settings is rebuilt as a glass panel on the left with an icon rail.',
-      'Live previews show what an option does, with draggable Off and On comparisons.',
-      'Any frame-rate cap from 10 to 500 FPS.',
-      'Accent color, wordmark finishes and new backdrop options.',
-      'Simple and Advanced modes, quick setups with Undo, and search across every page.'
+      'Settings is rebuilt as a glass panel with live previews, on the left or right.',
+      'The inventory moves as one piece: no vanishing cards, no size snap.',
+      'The photo album is a tab in the inventory with search, tags and a viewer.',
+      'Any frame-rate cap from 10 to 500 FPS, plus accent color and wordmark finishes.',
+      'Shared hover, press and arrival animations across the game.'
     ]
   },
   {

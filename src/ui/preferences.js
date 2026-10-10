@@ -156,7 +156,7 @@
         if (undo) { undoAge += dt; if (undoAge >= 8000) { undo = null; undoButton.hidden = true; } else moving = true; }
         if (!overlay.hidden) {
           if (C.motion.reduced) { position = Math.max(0, Math.min(1, position + (opened ? 1 : -1) * dt / 150)); spring.reset(position); } else { spring.step(dt, opened ? 1 : 0); position = spring.value; }
-          panel.style.transform = C.motion.reduced || position === 1 ? '' : 'translate3d(' + (position - 1) * 40 + 'px,0,0) scale(' + (.985 + .015 * Math.min(1, position)) + ')'; panel.style.opacity = Math.max(0, Math.min(1, position)); overlay.style.setProperty('--settings-shade', Math.max(0, Math.min(1, position)));
+          panel.style.transform = C.motion.reduced || position === 1 ? '' : 'translate3d(' + (position - 1) * 40 * (C.settings.get('settingsSide') === 'right' ? -1 : 1) + 'px,0,0) scale(' + (.985 + .015 * Math.min(1, position)) + ')'; panel.style.opacity = Math.max(0, Math.min(1, position)); overlay.style.setProperty('--settings-shade', Math.max(0, Math.min(1, position)));
           var settled = C.motion.reduced ? position === (opened ? 1 : 0) : spring.settled();
           moving = !settled || moving;
           if (!opened && settled) overlay.hidden = true;

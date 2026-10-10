@@ -24,20 +24,9 @@ AGENTS and RELEASING for versioning, scoped commits and immutable release tags. 
 Advance the public version for each completed update; internal/read-only steps do
 not bump it. Local delivery manifests still distinguish builds using source identity.
 
-## Current 4.2.0 testing policy
+## Testing policy
 
-The cleanup spec restricts testing: no old suites, new test files, screenshots,
-recordings or profiling. Do not run npm test or packaged/NSIS/regression/cinematic
-harnesses for these milestones. Use the existing checkQol only if relevant game
-logic changes, extend that named check only as needed, and invoke manually once
-at the end of the last milestone authorized in the run. Delivery tooling does not
-require a game-logic check. Otherwise one app opening/feature and console check
-is allowed. Build/hash/config/handoff validation is delivery evidence, not runtime
-regression. Installer execution, upgrades, hardware and browser regression remain
-unverified without separate authorization.
-
-Archived evidence may be consulted when useful; preserve provenance and unresolved
-acceptance. The repository has real test runners; this policy limits their use here.
+Verify the way the change deserves: run the app, take screenshots or recordings, read the console, run `npm test` or the existing check scripts, write a new check, or profile. Look at visual work before calling it done. Report the evidence gathered and what was not checked. The older 4.2.0 restriction on suites, screenshots and profiling was lifted by the owner on 2026-10-10.
 
 ## Read routing, history and safe continuation
 
@@ -52,4 +41,4 @@ Continue only an unfinished authorized milestone. A–D of 4.2.0 and the automat
 The current request supersedes private-only/draft-only GitHub plans. After a completed
 update, perform the local handoff and the AGENTS release workflow. Public numbering
 starts at v1.0.0; preserve the legacy 4.x records, app identity and save schema.
-No additional game/browser suites or game capture/profile runs are authorized by publication. Stage 24 has an explicit owner-approved website-only screenshot exception for product poster generation and three visual review passes; use the procedure in AGENTS and WEBSITE-REVIEW.
+Game and website captures, suites and profiling may be used whenever they help verify the work.

@@ -13,12 +13,7 @@
 .cb-wallet-popover[hidden],.cb-performance[hidden],.cb-performance-panel[hidden],.cb-performance-simple[hidden],.cb-replay-overlay[hidden] { display:none; }
 .cb-wallet-popover h2 { font:500 16px var(--font-ui); margin:0 0 12px; }
 .cb-wallet-total { font:500 21px var(--font-mono); overflow-wrap:anywhere; }
-.cb-wallet-today { display:grid; gap:6px; font:11px var(--font-mono); margin:14px 0; color:var(--text-dim); }
 .cb-wallet-helper { font:12px/1.5 var(--font-ui); color:var(--text-dim); }
-.cb-wallet-log { list-style:none; padding:0; margin:16px 0; }
-.cb-wallet-log li { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; padding:10px 0; border-top:1px solid var(--hairline); font:11px var(--font-ui); }
-.cb-wallet-log b { font:11px var(--font-mono); }
-.cb-wallet-log time { grid-column:1 / -1; font:10px var(--font-mono); color:var(--text-dim); }
 .cb-wallet-gain { color:var(--cb-positive); }
 .cb-wallet-close,.cb-action { min-height:44px; padding:10px 14px; border:1px solid var(--hairline-strong); border-radius:var(--r-button); color:var(--text); background:var(--ui-color-70); font:500 12px var(--font-ui); cursor:pointer; touch-action:manipulation; }
 .cb-action:hover { border-color:var(--cb-action-tint); background:var(--ui-color-71); }

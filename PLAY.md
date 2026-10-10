@@ -10,7 +10,7 @@ For the alternative full-folder download, get **Cardable-1.3.0-Windows-x64.zip**
 
 The full source is also available through the repository's **Code → Download ZIP**. That source folder is separate from the ready-to-run Electron ZIP; source browser play uses index.html directly.
 
-Public numbering reset from the earlier 4.x series at **v1.0.0**. The current release is **v1.3.0 — Settings, in a new light**. An old installation needs the new installer once because normal update checks do not downgrade. App identity and save schema remain unchanged. Close Cardable normally first, export important progress and download Studio photos separately. Actual setup/upgrade execution and live updater acceptance remain unverified in this pass.
+Public numbering reset from the earlier 4.x series at **v1.0.0**. The current release is **v1.3.0 — Smooth and seamless**. An old installation needs the new installer once because normal update checks do not downgrade. App identity and save schema remain unchanged. Close Cardable normally first, export important progress and download Studio photos separately. Actual setup/upgrade execution and live updater acceptance remain unverified in this pass.
 
 Native saves/backups live under **%APPDATA%/Cardable/saves**; use **Settings → Open saves folder** rather than moving these files. The Chromium profile also holds local renderer/IndexedDB data. Do not delete AppData or change Windows users to troubleshoot a missing collection.
 

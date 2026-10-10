@@ -12,15 +12,13 @@
     host.dataset.walletState='loading';number.textContent='…';trigger.disabled=true;
     var pinned=false,queue=[],effect=null,closeTimer=null;
     function render(){
-      if(host.dataset.walletState==='loading')number.replaceChildren();host.dataset.walletState='ready';trigger.disabled=false;var save=C.state.current,total=C.currency.today(save);digits.set(C.formats.number(save.currency,compact(save.currency)),['medium','high'].includes(C.settings.get('quality'))&&!C.motion.reduced);
+      if(host.dataset.walletState==='loading')number.replaceChildren();host.dataset.walletState='ready';trigger.disabled=false;var save=C.state.current;digits.set(C.formats.number(save.currency,compact(save.currency)),['medium','high'].includes(C.settings.get('quality'))&&!C.motion.reduced);
       trigger.title=save.currency.toLocaleString()+' credits';trigger.setAttribute('aria-label','Wallet: '+save.currency.toLocaleString()+' credits');host.classList.toggle('cb-wallet-zero',save.currency===0);
-      if(popover.hidden)return;popover.replaceChildren();node('h2','',popover,'Wallet');node('strong','cb-wallet-total',popover,save.currency.toLocaleString()+' credits');
-      var summary=node('div','cb-wallet-today',popover);node('span','',summary,'Today earned +'+total.earned.toLocaleString());node('span','',summary,'Spent −'+total.spent.toLocaleString());
-      var log=C.currency.normalize(save.wallet).log;
-      if(!save.currency)node('p','cb-wallet-helper',popover,'Open a pack to earn credits.');
-      if(!log.length)node('p','cb-wallet-helper',popover,'Your next credit change will appear here.');
-      var list=node('ol','cb-wallet-log',popover);log.slice(0,10).forEach(function(e){var row=node('li','',list);node('span','',row,e.reason);node('b',e.delta>0?'cb-wallet-gain':'',row,(e.delta>0?'+':'−')+Math.abs(e.delta).toLocaleString());var time=node('time','',row,C.formats.time(e.at));time.dateTime=new Date(e.at).toISOString();});
-      var close=node('button','cb-wallet-close',popover,'Close wallet');close.type='button';close.addEventListener('click',hide);
+      if(popover.hidden)return;popover.replaceChildren();
+      // Balance only: the ledger stays in the save, without a history list in the way.
+      var head=node('div','cb-wallet-head',popover);node('span','cb-wallet-coin',head).innerHTML=coin;var copy=node('div','',head);node('h2','',copy,'Credits');node('strong','cb-wallet-total',copy,save.currency.toLocaleString());
+      node('p','cb-wallet-helper',popover,save.currency?'Earned from packs, duplicates and achievements. Spend them to unlock cutscene replays.':'Open a pack to earn your first credits.');
+      var close=node('button','cb-wallet-close',popover,'Done');close.type='button';close.addEventListener('click',hide);
     }
     function show(){root.clearTimeout(closeTimer);popover.hidden=false;trigger.setAttribute('aria-expanded','true');render();}
     function hide(){pinned=false;popover.hidden=true;trigger.setAttribute('aria-expanded','false');root.clearTimeout(closeTimer);C.events.emit('menu:visibilityHold',{reason:'wallet',active:false});}

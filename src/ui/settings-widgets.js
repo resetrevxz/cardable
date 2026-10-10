@@ -10,7 +10,7 @@
     ['access', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 7.5h.01M8 10.5c2.7 1 5.3 1 8 0M12 11v3.5M12 14.5l-2 3.5M12 14.5l2 3.5'], ['monitor', 'M3 4h18v12H3zM9 20h6M12 16v4'],
     ['layers', 'm12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5'], ['info', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 11v5M12 8h.01'], ['lock', 'M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3'],
     ['download', 'M12 4v11M7 11l5 5 5-5M5 20h14'], ['upload', 'M12 16V5M7 9l5-5 5 5M5 20h14'], ['trash', 'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13'], ['bolt', 'M13 3 5 14h6l-1 7 8-11h-6z'],
-    ['undo', 'M8 6 3 11l5 5M3 11h11a6 6 0 0 1 0 12h-3'], ['book', 'M4 5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2zM4 21V5M9 8h7']
+    ['undo', 'M8 6 3 11l5 5M3 11h11a6 6 0 0 1 0 12h-3'], ['swap', 'M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4'], ['image', 'M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6M15.5 9h.01'], ['book', 'M4 5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2zM4 21V5M9 8h7']
   ].forEach(function (icon) { C.icons.register(icon[0], icon[1]); });
 
   function label(d, value) { return d.format ? d.format(value) : String(value); }

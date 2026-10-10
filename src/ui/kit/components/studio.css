@@ -73,24 +73,11 @@ body.studio-active > :not(.studio-shell),body.studio-active > :not(.studio-shell
 .studio-shutter-finder { position:absolute; inset:10%; border:1px solid var(--ui-color-92); border-radius:var(--ui-radius-11); transform:scale(calc(1.035 - var(--shutter,0)*.035)); }
 .studio-shutter-sweep { position:absolute; inset:0; background:linear-gradient(110deg,transparent 48%,var(--ui-color-93) 49.9%,transparent 50.2%); transform:translateX(calc(-90% + var(--shutter,0)*180%)); }
 .studio-photo-flight { position:fixed; width:160px; height:100px; object-fit:contain; left:calc(50% - 80px); top:calc(50% - 50px); z-index:var(--z-panel); pointer-events:none; border-radius:var(--ui-radius-4); border:1px solid var(--ui-color-94); box-shadow:var(--shadow-2); }
-.studio-album { position:fixed; inset:0; padding:clamp(16px,calc(var(--layout-width,100vw) * 0.03),40px); display:flex; flex-direction:column; gap:12px; z-index:var(--z-overlay); background:var(--ui-color-95); color:var(--text); overflow:auto; }
-.studio-album-top { display:flex; justify-content:space-between; align-items:center; gap:16px; }
-.studio-album-top h1 { margin:8px 0; font:500 clamp(18px,calc(var(--layout-width,100vw) * 0.02),26px)/1.25 var(--font-ui); letter-spacing:-.03em; }
-.studio-album-layout { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,34%); gap:24px; }
-.studio-album-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); align-content:start; gap:12px; overflow:auto; padding:4px; }
-.studio-album-tile { padding:10px; text-align:left; overflow:hidden; display:flex; flex-direction:column; gap:8px; min-width:0; }
-.studio-album-tile img { width:100%; height:120px; object-fit:contain; border-radius:var(--ui-radius-4); }
-.studio-album-tile span { overflow-wrap:anywhere; }
-.studio-album-tile small { color:var(--text-dim); font:10px var(--font-mono); }
-.studio-album-preview { overflow:auto; padding:16px; background:var(--surface); border:1px solid var(--hairline); border-radius:var(--r-sheet); }
-.studio-album-photo { width:100%; max-height:calc(var(--layout-height,100vh) * 0.55); object-fit:contain; border-radius:var(--ui-radius-4); display:block; }
-body.studio-album-active > :not(.studio-album),body.studio-album-active > :not(.studio-album) * { animation-play-state:paused!important; }
 @media(max-width:800px) { .studio-album-layout { display:flex; flex-direction:column; overflow:auto; } .studio-album-grid { overflow:visible; } .studio-album-preview { overflow:visible; flex-shrink:0; } .studio-filmstrip { flex-wrap:wrap; } .studio-filmstrip-items { max-width:calc(100% - 80px); } .studio-filmstrip .studio-album-usage { flex-basis:100%; text-align:left; } }
 @media(prefers-reduced-motion:reduce) { .studio-shutter-sweep { display:none; } .studio-shutter-finder { transform:none; } .studio-photo-flight { transform:none!important; } }
 
 .studio-field input[type="number"] { width:100%; min-height:44px; padding:10px; background:var(--surface-2); border:1px solid var(--hairline); border-radius:var(--r-button); color:var(--text); font:12px var(--font-mono); }
 .reduced-motion .studio-shutter-sweep { display:none; }.reduced-motion .studio-shutter-finder { transform:none; }
-.studio-album :focus-visible { outline:1px solid var(--ui-color-96); outline-offset:3px; }
 
 /* Director chrome stays neutral; titles are composited into exports too. */
 .studio-title-overlay { position:absolute; bottom:13%; left:10%; width:80%; padding:22px 12px; display:grid; gap:9px; text-align:center; background:var(--ui-color-97); pointer-events:none; color:var(--text); z-index:var(--z-sticky); }
@@ -446,10 +433,6 @@ body.studio-album-active > :not(.studio-album),body.studio-album-active > :not(.
 .studio-render-progress{position:absolute;z-index:var(--z-tooltip);left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100% - 32px));padding:28px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;border:1px solid var(--ui-color-170);border-radius:var(--ui-radius-3);background:var(--ui-color-187);box-shadow:0 24px 100px var(--ui-color-188)}
 .studio-render-progress p{margin:0}.studio-render-ring{--progress:0%;position:relative;display:grid;place-items:center;width:88px;height:88px;border-radius:var(--ui-radius-1);background:radial-gradient(circle,var(--ink-2) 61%,transparent 63%),conic-gradient(var(--ui-color-189) var(--progress),var(--ui-color-190) 0);font:500 15px var(--font-mono)}
 .studio-record-stop{position:absolute;z-index:var(--z-tooltip);bottom:100px;left:50%;transform:translateX(-50%);border-color:var(--ui-color-173);background:var(--ui-color-191)}
-.studio-album-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.studio-album-search{min-width:160px;flex:1;padding:10px 12px;color:var(--ui-color-192);border:1px solid var(--ui-color-178);border-radius:var(--ui-radius-4);background:var(--ui-color-193);font:12px var(--font-ui)}
 .studio-storage-meter{width:100%;height:6px;accent-color:var(--ui-color-194);border:0}.studio-album-selectable{position:relative;padding:0;border:1px solid var(--ui-color-24);border-radius:var(--ui-radius-15);background:var(--ink-2)}
-.studio-album-selectable>button{display:flex;flex-direction:column;gap:8px;padding:14px;text-align:left;width:100%;height:100%;border:0;background:transparent}.studio-album-checkbox{position:absolute;top:8px;right:8px;accent-color:var(--ui-color-194);width:16px;height:16px}
-.studio-album-filmstrip{display:flex;gap:8px;overflow-x:auto;min-height:66px;flex-shrink:0;padding:6px 2px}.studio-album-filmstrip button{min-width:72px;padding:3px}.studio-album-filmstrip img{display:block;width:72px;height:48px;object-fit:contain}
-.studio-album-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}.studio-album-compare figure{margin:0;min-width:0}.studio-album-compare img{width:100%;height:280px;object-fit:contain}.studio-album-compare figcaption{overflow-wrap:anywhere}
 .studio-color-wheel:focus-visible{outline:2px solid var(--ui-color-189);outline-offset:4px}
 @media(max-width:780px){.studio-look-scope{bottom:60px}.studio-look-label{top:100px}.studio-album-compare img{height:200px}}

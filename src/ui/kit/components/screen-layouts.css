@@ -3,23 +3,6 @@
 .settings-panel { width:min(var(--settings-max),calc(var(--layout-width,100vw) - 48px)); height:min(840px,calc(var(--layout-height,100vh) - 48px)); border-radius:var(--radius-sheet); background:var(--ink-1); }
 .settings-header { padding:var(--s-5); gap:var(--s-3); }
 .settings-header h2 { font:600 28px/32px var(--font-ui); }
-.cb-settings-body { display:grid; grid-template-columns:176px minmax(0,1fr); min-height:0; flex:1; }
-.cb-settings-rail { display:flex; flex-direction:column; gap:var(--s-1); padding:var(--s-4) var(--s-3); border-right:1px solid var(--stroke); }
-.cb-settings-rail .cb-button { justify-content:flex-start; flex-shrink:0; text-align:left; min-height:40px; font-size:12px; padding:var(--s-2) var(--s-3); }
-.cb-settings-rail [aria-current="true"] { background:rgba(var(--accent-rgb),.12); color:var(--accent); }
-.cb-settings-column { display:flex; flex-direction:column; min-width:0; min-height:0; }
-.cb-settings-tools { display:flex; align-items:center; gap:var(--s-3); padding:var(--s-4) var(--s-5); border-bottom:1px solid var(--stroke); }
-.cb-settings-tools input { flex:1; min-width:120px; width:0; }
-.cb-settings-tools .cb-segments { flex-shrink:0; }
-.cb-settings-work { min-height:0; flex:1; display:grid; grid-template-columns:minmax(0,1fr) 192px; }
-.cb-settings-work .settings-scroll { min-width:0; padding:0; }
-.cb-settings-preview { border-left:1px solid var(--stroke); padding:var(--s-4); min-width:0; }
-.cb-settings-preview .settings-preview { padding:var(--s-4) 0; position:sticky; top:0; }
-.cb-settings-preview .settings-preview-mount { width:148px; }
-.cb-settings-preview .settings-preview-selector { display:grid; grid-template-columns:1fr 1fr; justify-content:center; gap:var(--s-2); margin-top:var(--s-5); }
-.cb-settings-preview .settings-preview-selector button { width:32px; height:32px; padding:0; display:grid; place-items:center; }
-.cb-settings-preview .settings-preview-selector button:first-child { justify-self:end; }
-.cb-settings-preview .settings-preview-selector span { width:auto; order:1; grid-column:1/-1; font:500 11px/16px var(--font-mono); text-align:center; overflow-wrap:normal; }
 .settings-group { padding:0 var(--s-5) var(--s-5); }
 .settings-group>.cb-section-header { gap:var(--s-2); align-items:center; padding:var(--s-4) 0; min-height:64px; border-bottom:1px solid var(--stroke); }
 .settings-group>.cb-section-header h3 { position:static; margin:0; padding:0; background:none; font:500 11px/16px var(--font-mono); letter-spacing:.08em; min-width:0; }

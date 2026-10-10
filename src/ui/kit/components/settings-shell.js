@@ -15,6 +15,7 @@
     var main = node('div', 'cbs-main', panel), header = node('header', 'settings-header', main), heading = node('div', 'cbs-heading', header);
     var title = node('h2', '', heading, 'Settings'), blurb = node('p', 'cbs-blurb', heading);
     var help = C.ui.create('help', { help: 'settings', label: 'Settings help' }); header.appendChild(help);
+    var flip = C.ui.create('icon-button', { label: 'Move settings to the other side', icon: 'swap', onClick: function () { C.settings.set('settingsSide', C.settings.get('settingsSide') === 'right' ? 'left' : 'right'); } }); flip.classList.add('cbs-flip'); header.appendChild(flip);
     var close = C.ui.create('icon-button', { label: 'Close settings', icon: 'close', onClick: options.close }); close.classList.add('cbs-close'); close.title = 'Close (Esc)'; header.appendChild(close);
     var tools = node('div', 'cbs-tools', main);
     var search = C.ui.create('search-field', { label: 'Search settings', placeholder: 'Search every setting…', onChange: function (value) { query = value.toLowerCase().trim(); refresh(); content.scrollTop = 0; } }); tools.appendChild(search);
@@ -89,7 +90,7 @@
       empty.hidden = !query || any; empty.childNodes[0].textContent = hiddenAdvanced ? 'This setting is in Advanced. Show Advanced to continue.' : 'No matching settings. Try another search.'; showAdvanced.hidden = !hiddenAdvanced;
       var page = pages.find(function (p) { return p.id === current; });
       title.textContent = query ? 'Search' : page.id; blurb.textContent = query ? 'Results from every page' + (isAdvanced ? '.' : ', Simple options only.') : page.blurb;
-      mode.style.setProperty('--selected', isAdvanced ? 1 : 0); mode.querySelectorAll('button').forEach(function (b, i) { var on = i === (isAdvanced ? 1 : 0); b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1; });
+      flip.title = C.settings.get('settingsSide') === 'right' ? 'Move to the left' : 'Move to the right'; mode.style.setProperty('--selected', isAdvanced ? 1 : 0); mode.querySelectorAll('button').forEach(function (b, i) { var on = i === (isAdvanced ? 1 : 0); b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1; });
       viz.el.dataset.idle = String(!query && !starts[current]); movePill();
       if (lastMode !== null && lastMode !== isAdvanced) enter(groups[current]); lastMode = isAdvanced;
     }
