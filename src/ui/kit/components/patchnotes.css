@@ -1,23 +1,14 @@
 /* Shaded inventory surfaces; collectible materials own the color. */
-.patch-notes-hud-btn {
-  position: fixed; top: calc(var(--s-6) + var(--safe-top, 0px)); right: calc(var(--s-6) + 216px + var(--safe-right, 0px));
-  z-index: var(--z-menu); display: flex; align-items: center; gap: var(--s-2); min-height: 44px;
-  padding: 8px 12px; border: 1px solid var(--hairline); border-radius: var(--r-button);
-  background: var(--surface); color: var(--text-dim); font: 500 12px var(--font-ui); cursor: pointer;
-  transition: color var(--t-fast), border-color var(--t-fast), opacity var(--t-fade);
-}
-.patch-notes-hud-btn:hover { color: var(--text); border-color: var(--hairline-strong); }
-.patch-hud-version { font: 10px var(--font-mono); color: var(--text-dim); padding-left: 6px; border-left: 1px solid var(--hairline); }
-.patch-notes-hud-btn.has-unread::after { content: ''; position: absolute; right: -3px; top: -3px; width: 7px; height: 7px; background: var(--text); border: 3px solid var(--bg); border-radius: 50%; }
-.is-quiet .patch-notes-hud-btn, .is-idle .patch-notes-hud-btn, .is-afk .patch-notes-hud-btn, .is-opening .patch-notes-hud-btn, .is-rarity-cinematic .patch-notes-hud-btn { opacity: 0; pointer-events: none; }
-body.patch-notes-open :is(.menu-shell, #pack-stage, #inventory-affordance, .patch-notes-hud-btn, #cursor-glow) { visibility: hidden; }
+/* The release journal opens from a small button in the inventory header. */
+.inventory-patch-notes { position: relative; }
+.inventory-patch-notes.has-unread::after { content: ''; position: absolute; right: 4px; top: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--ink-1); }
 .patch-icon { width: 18px; height: 18px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .patch-overlay, .patch-inspect-modal { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; box-sizing: border-box; background: var(--tone-08); }
 .patch-overlay { z-index: calc(var(--z-cursor) + 10); color: var(--text); font-family: var(--font-ui); color-scheme: dark; }
 .patch-overlay [hidden], .patch-overlay[hidden] { display: none !important; }
-.patch-overlay *, .patch-notes-hud-btn { box-sizing: border-box; }
-.patch-overlay :is(button, input, select, summary), .patch-notes-hud-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.patch-overlay :is(button, input, select, summary, textarea, [tabindex]):focus-visible, .patch-notes-hud-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.patch-overlay * { box-sizing: border-box; }
+.patch-overlay :is(button, input, select, summary) { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.patch-overlay :is(button, input, select, summary, textarea, [tabindex]):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 .patch-overlay h1, .patch-overlay h2, .patch-overlay h3, .patch-overlay h4, .patch-overlay p, .patch-overlay figure { margin: 0; }
 .patch-modal { width: min(1320px, 100%); height: min(920px, calc(100dvh - 48px)); display: flex; flex-direction: column; min-height: 0; background: var(--bg); border: 1px solid var(--hairline-strong); border-radius: var(--r-sheet); overflow: hidden; box-shadow: 0 24px 80px #0009, 0 4px 16px #0008, inset 0 1px 0 #ffffff12; animation: patch-arrive var(--t-sheet) var(--ease-out); }
 .patch-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 80px; padding: 16px 28px; background: var(--bg-elev); border-bottom: 1px solid var(--hairline); flex: 0 0 auto; }
@@ -218,7 +209,6 @@ body.patch-notes-open :is(.menu-shell, #pack-stage, #inventory-affordance, .patc
   .patch-inspect-stage .collectible-card { width: 200px; height: 280px; }
 }
 @media (max-width: 600px) {
-  .patch-notes-hud-btn { top: calc(82px + var(--safe-top, 0px)); right: calc(24px + var(--safe-right, 0px)); font-size: 11px; }
   .patch-overlay { padding: 0; }
   .patch-modal { width: 100%; height: 100dvh; border-radius: 0; border: 0; }
   .patch-header { padding: calc(12px + env(safe-area-inset-top)) 16px 12px; min-height: 68px; gap: 8px; }
@@ -271,8 +261,7 @@ body.patch-notes-open :is(.menu-shell, #pack-stage, #inventory-affordance, .patc
 .patch-hero{background:radial-gradient(ellipse at 10% 0,rgba(var(--accent-rgb),.14),transparent 65%),var(--ink-2)}
 .patch-release-tag,.patch-type-rework{color:var(--accent)}
 .patch-mono .patch-primary{background:var(--glass-2);border-color:var(--stroke-strong)}
-.patch-notes-hud-btn{z-index:var(--z-content);border-radius:var(--radius-control)}
-:root[data-hide-version=true] .patch-hud-version,:root[data-hide-title-decorations=true] .patch-notes-hud-btn{display:none}
+:root[data-hide-title-decorations=true] .inventory-patch-notes{display:none}
 .journal-sheet,.journal-card-history{border-radius:var(--r-sheet);background:var(--ink-1);font-family:var(--font-ui)}
 
 .patch-mode[aria-pressed="true"],.patch-primary{background:var(--accent);color:var(--ink-0);border-color:var(--accent)}

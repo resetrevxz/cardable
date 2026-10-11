@@ -2,7 +2,6 @@
 .settings-corner .settings-gear { width: 44px; height: 44px; padding: 10px; border-radius: var(--r-chip); }
 .settings-gear svg { display: block; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; transition: transform var(--t-ui) var(--ease-out); }
 .settings-gear:hover:not(:disabled) svg { transform: rotate(30deg); }
-.currency-counter { right: calc(var(--s-6) + 56px); }
 .is-idle .settings-corner { opacity: 0; transition-duration: var(--t-fade); pointer-events: none; }
 .settings-open .settings-corner { opacity: 1; pointer-events: auto; }
 .settings-overlay { display: flex; justify-content: flex-end; align-items: stretch; padding: 12px; box-sizing: border-box; background: transparent; pointer-events: auto; }
@@ -62,7 +61,7 @@
 [data-dots="off"] .opening-stage[data-phase="charging"] .opening-pack { outline: 1px solid var(--hairline-strong); box-shadow: 0 0 28px var(--glass-strong); }
 .reduced-motion .settings-gear:hover svg, .reduced-motion .settings-switch-knob, .reduced-motion .settings-keycaps .is-pressed { transform: none; }
 .reduced-motion .settings-open .menu-shell { scale: 1; }
-@media (max-width: 519px) { .settings-panel { width: calc(calc(var(--layout-width,100vw) * 1) - 24px); } .settings-group { padding-right: var(--s-4); padding-left: var(--s-4); } .settings-segment { min-width: 32px; padding-inline: 5px; } .settings-corner { right: var(--s-3); top: var(--s-3); } .currency-counter { right: calc(var(--s-3) + 56px); } }
+@media (max-width: 519px) { .settings-panel { width: calc(calc(var(--layout-width,100vw) * 1) - 24px); } .settings-group { padding-right: var(--s-4); padding-left: var(--s-4); } .settings-segment { min-width: 32px; padding-inline: 5px; } .settings-corner { right: var(--s-3); top: var(--s-3); } }
 
 .settings-version { position: absolute; top: calc(100% + var(--s-1)); right: 0; font: 9px var(--font-mono); color: var(--text-dim); opacity: 0; pointer-events: none; transition: opacity var(--t-fast); }
 .settings-corner:hover .settings-version, .settings-corner:focus-within .settings-version { opacity: 1; }

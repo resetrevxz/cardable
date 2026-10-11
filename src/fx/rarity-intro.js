@@ -241,6 +241,65 @@
         var r = Math.min(w, h) * mix(.26, .42, out(p)); cloudStar(r, 1, t); glow(w / 2, h / 2, r * .7, color(spec.starColor), .35 * Math.sin(p * Math.PI));
       } else if (s.id === 'fracture') crystalShards(p, t, Math.min(w, h) * .42);
     }
+    // Basic, Common and Uncommon: a single line grows from the centre and sheds particles.
+    // Every frame is analytic in the section clock, so scrubbing and resize never restart it.
+    var lineSet = null, lineSetKey = '';
+    function lineKind() { return spec && (spec.kind === 'pulse' || spec.kind === 'orbit'); }
+    function lineReach(u) { return w * mix(.03, .47, smooth(clamp(u / .8))); }
+    function lineClock(s) {
+      var total = 0, at = 0;
+      spec.sections.forEach(function (part) { if (part.id === s.id) at = total + part.ms * s.p; total += part.ms; });
+      return total ? at / total : 0;
+    }
+    function lineParticles() {
+      var key = seed + ':' + spec.kind + ':' + quality();
+      if (lineSet && lineSetKey === key) return lineSet;
+      var random = randomFor(key + ':line'), list = [];
+      var count = Math.round((spec.kind === 'orbit' ? 150 : spec.intensity > .8 ? 110 : 84) * (quality() === 'high' ? 1 : .6));
+      for (var i = 0; i < count; i++) list.push({
+        x: random() * 2 - 1, born: .06 + random() * .66, life: .2 + random() * .2, dir: random() < .5 ? -1 : 1,
+        rise: .1 + random() * .26, drift: (random() - .5) * .06, size: 1.5 + random() * 2.3, phase: random() * TAU, alt: random() < .4
+      });
+      lineSetKey = key; lineSet = list; return list;
+    }
+    function lineBody(reach, level, surge, thick) {
+      var c = color(spec.color), cx = w / 2, cy = h / 2;
+      g.save(); g.translate(cx, cy); g.scale(1, .1); glow(0, 0, reach * 1.05, c, .2 * level * spec.intensity * surge); g.restore();
+      var gradient = g.createLinearGradient(cx - reach, 0, cx + reach, 0);
+      gradient.addColorStop(0, rgba(c, 0)); gradient.addColorStop(.2, rgba(c, .6)); gradient.addColorStop(.5, rgba(c, 1));
+      gradient.addColorStop(.8, rgba(c, .6)); gradient.addColorStop(1, rgba(c, 0));
+      g.save(); g.fillStyle = gradient; g.globalAlpha = clamp(level * (.4 + .6 * spec.intensity));
+      g.fillRect(cx - reach, cy - thick / 2, reach * 2, thick);
+      g.globalAlpha *= .2; g.fillRect(cx - reach, cy - thick * 3, reach * 2, thick * 6); g.restore();
+      glow(cx - reach, cy, 15, c, .45 * level); glow(cx + reach, cy, 15, c, .45 * level);
+    }
+    function lineFrame(s, t) {
+      var c = color(spec.color), accent = color(spec.orbitColor || spec.color), u = lineClock(s), cx = w / 2, cy = h / 2;
+      var ret = s.id === 'retreat' ? smooth(s.p) : 0, reach = lineReach(u) * (1 - .86 * ret), level = (1 - .9 * ret) * Math.min(1, .3 + u * 8);
+      var surge = s.id === 'peak' || s.id === 'orbit' ? 1 + .3 * Math.sin(s.p * Math.PI) : 1;
+      lineBody(reach, level, surge, mix(2, 3.4, spec.intensity) * (1 - .55 * ret) * surge);
+      lineParticles().forEach(function (q) {
+        var age = (u - q.born) / q.life; if (age <= 0 || age >= 1) return;
+        var x = cx + q.x * lineReach(q.born) + q.drift * w * age + (spec.kind === 'orbit' ? Math.sin(age * TAU * 1.2 + q.phase) * 9 : 0);
+        var y = cy + q.dir * out(age) * q.rise * h, alpha = Math.pow(1 - age, 1.25) * smooth(age / .12) * clamp(.35 + spec.intensity * .6);
+        var tone = q.alt && spec.kind === 'orbit' ? accent : c, r = q.size * (1 - age * .45), trail = q.size * 9 * (1 - age) * (1 - age);
+        if (q.size > 2) glow(x, y, r * 4.5, tone, alpha * .35);
+        if (trail > 1) {
+          var tail = g.createLinearGradient(x, y, x, y - q.dir * trail * 1.8);
+          tail.addColorStop(0, rgba(tone, alpha * .7)); tail.addColorStop(1, rgba(tone, 0));
+          g.strokeStyle = tail; g.lineWidth = Math.max(1, r * .7); g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - q.dir * trail * 1.8); g.stroke();
+        }
+        g.fillStyle = rgba(tone, alpha); g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+      });
+    }
+    function lineStill(envelope) {
+      var c = color(spec.color), accent = color(spec.orbitColor || spec.color), cx = w / 2, cy = h / 2;
+      lineBody(w * .38, envelope, 1, mix(1.4, 2.4, spec.intensity));
+      lineParticles().slice(0, 22).forEach(function (q, i) {
+        var age = .22 + (i % 5) * .13, x = cx + q.x * w * .36, y = cy + q.dir * out(age) * q.rise * h;
+        g.fillStyle = rgba(q.alt && spec.kind === 'orbit' ? accent : c, envelope * (1 - age) * .8); g.beginPath(); g.arc(x, y, q.size * .85, 0, TAU); g.fill();
+      });
+    }
     function ring(radius, angle, opacity, inner) {
       var c = color(spec.orbitColor || spec.color), light = color(spec.starColor || c), count = inner ? 6 : 8;
       g.save(); g.translate(w / 2, h / 2); g.rotate(angle); g.globalAlpha *= opacity;
@@ -360,6 +419,7 @@
     }
     function staticFrame(p) {
       var envelope = smooth(p / .25) * (1 - smooth((p - .65) / .35)), c = color(spec.color);
+      if (lineKind()) { lineStill(envelope); return; }
       fronts(.7, envelope * .23, .04); glow(w / 2, h / 2, Math.min(w, h) * .38, c, envelope * .2);
       if (spec.kind === 'portal') {
         ring(Math.min(w, h) * .34, 0, envelope * .45, false); ring(Math.min(w, h) * .28, 0, envelope * .3, true);
@@ -401,7 +461,7 @@
           basicPrelude(section.p * spec.sections[0].ms);
         }
       }
-      else if (still()) staticFrame(clamp(elapsed / total)); else if (spec.kind === 'portal') portalFrame(section, elapsed / 1000); else pulseFrame(section, elapsed / 1000);
+      else if (still()) staticFrame(clamp(elapsed / total)); else if (spec.kind === 'portal') portalFrame(section, elapsed / 1000); else if (lineKind()) lineFrame(section, elapsed / 1000); else pulseFrame(section, elapsed / 1000);
       if (spec.kind === 'prismatic' && !still()) runtime.letterbox(g, w, h, elapsed / total * spec.sections.reduce(function(n,s){return n+s.ms;},0));
       if(spec.kind!=='system')runtime.meter(canvas,runtime.presentationMs);
       stats.paints++; stats.lastDrawMs = root.performance.now() - begin; stats.maxDrawMs = Math.max(stats.maxDrawMs, stats.lastDrawMs);

@@ -1,26 +1,11 @@
 /* 1.2.0 additive components; the normal palette retains subtle color. */
 :root { --cb-credit-gold:var(--ui-color-62); --cb-positive:var(--ui-color-63); --cb-action-tint:var(--ui-color-64); --cb-warning:var(--ui-color-65); }
 [data-rarity-color=mono], [data-color-mode=mono], body.mono { --cb-credit-gold:var(--ui-color-66); --cb-positive:var(--ui-color-66); --cb-action-tint:var(--ui-color-67); --cb-warning:var(--ui-color-66); }
-.cb-wallet-chip { padding:0; top:calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px)); }
-.cb-wallet-trigger { display:flex; align-items:center; gap:10px; background:none; color:inherit; border:0; padding:7px 13px 7px 8px; border-radius:inherit; min-height:44px; max-width:min(260px,45vw); cursor:pointer; }
-.cb-wallet-trigger .currency-value { font-variant-numeric:tabular-nums; }
-.cb-wallet-chip .currency-mark__face { fill:var(--cb-credit-gold); }
-.cb-wallet-chip .currency-mark-wrap { position:relative; overflow:hidden; }
-.cb-wallet-zero .currency-mark { opacity:.45; }
-.cb-wallet-popover { position:absolute; top:calc(100% + 10px); right:0; width:min(330px,calc(100vw - 32px)); padding:20px; box-sizing:border-box; border:1px solid var(--hairline-strong); border-radius:var(--r-button); background:var(--ui-color-69); z-index:var(--z-overlay); box-shadow:var(--shadow-2); text-align:left; max-height:calc(100vh - 150px); overflow-y:auto; overscroll-behavior:contain; }
-.cb-wallet-popover[hidden],.cb-performance[hidden],.cb-performance-panel[hidden],.cb-performance-simple[hidden],.cb-replay-overlay[hidden] { display:none; }
-.cb-wallet-popover h2 { font:500 16px var(--font-ui); margin:0 0 12px; }
-.cb-wallet-total { font:500 21px var(--font-mono); overflow-wrap:anywhere; }
-.cb-wallet-helper { font:12px/1.5 var(--font-ui); color:var(--text-dim); }
-.cb-wallet-gain { color:var(--cb-positive); }
-.cb-wallet-close,.cb-action { min-height:44px; padding:10px 14px; border:1px solid var(--hairline-strong); border-radius:var(--r-button); color:var(--text); background:var(--ui-color-70); font:500 12px var(--font-ui); cursor:pointer; touch-action:manipulation; }
+.cb-performance[hidden],.cb-performance-panel[hidden],.cb-performance-simple[hidden],.cb-replay-overlay[hidden] { display:none; }
+.cb-action { min-height:44px; padding:10px 14px; border:1px solid var(--hairline-strong); border-radius:var(--r-button); color:var(--text); background:var(--ui-color-70); font:500 12px var(--font-ui); cursor:pointer; touch-action:manipulation; }
 .cb-action:hover { border-color:var(--cb-action-tint); background:var(--ui-color-71); }
 .cb-action:disabled { opacity:.45; cursor:default; }
-:is(.cb-action,.cb-wallet-trigger,.cb-wallet-close,.cb-delete-option,.cb-performance-handle):focus-visible { outline:2px solid var(--cb-action-tint); outline-offset:3px; }
-.cb-wallet-delta { position:absolute; right:12px; top:calc(100% + 8px); font:11px var(--font-mono); pointer-events:none; color:var(--cb-credit-gold); }
-[data-quality=high] .cb-wallet-feedback { box-shadow:0 0 0 2px var(--ui-color-72),var(--shadow-1); }
-[data-quality=high]:not(.reduced-motion) .cb-wallet-feedback .currency-value { animation:cb-wallet-shimmer var(--ui-duration-15) var(--ease-out) both; }
-@keyframes cb-wallet-shimmer { 50% { opacity:.65; } }
+:is(.cb-action,.cb-delete-option,.cb-performance-handle):focus-visible { outline:2px solid var(--cb-action-tint); outline-offset:3px; }
 .cb-delete-overlay { position:fixed; inset:0; z-index:var(--z-tooltip); background:var(--ui-color-73); display:grid; place-items:center; padding:24px; box-sizing:border-box; }
 .cb-delete-dialog { width:min(440px,100%); max-height:calc(100% - 16px); overflow-y:auto; overscroll-behavior:contain; border:1px solid var(--hairline-strong); border-radius:var(--r-sheet); background:var(--ui-color-44); padding:24px; box-sizing:border-box; box-shadow:var(--shadow-2); }
 .cb-delete-dialog h2 { font:500 20px var(--font-ui); margin:0 0 8px; }
@@ -53,16 +38,12 @@
 .cb-performance-section { border-top:1px solid var(--hairline); padding:10px 0; }
 .cb-performance-section summary { cursor:pointer; color:var(--text); font:11px var(--font-ui); }
 .cb-performance-section pre { white-space:pre-wrap; overflow-wrap:anywhere; font:10px/1.7 var(--font-mono); margin:8px 0 0; }
-@media(max-width:600px) { .cb-wallet-popover { width:min(300px,calc(100vw - 32px)); } .cb-delete-overlay { padding:12px; } }
-.reduced-motion .cb-wallet-chip * { animation:none!important; }
 
-[data-rarity-color=mono] .cb-wallet-feedback { box-shadow:0 0 0 2px var(--ui-color-75),var(--shadow-1); }
 
 .cb-replay-action svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:1.5; vertical-align:middle; margin-right:7px; }
 
 /* Native composed scenes crop around their safe rectangle. */
-.cb-wallet-popover { width:min(330px,calc(var(--available-width,100vw) - 64px)); }
 .cb-delete-overlay { padding:calc(24px + var(--safe-top,0px) + var(--titlebar-inset,0px)) calc(24px + var(--safe-right,0px)) calc(24px + var(--safe-bottom,0px)) calc(24px + var(--safe-left,0px)); }
 .cb-delete-dialog { max-height:calc(var(--available-height,100vh) - 48px - var(--titlebar-inset,0px)); }
 .cb-replay-return { top:calc(20px + var(--safe-top,0px) + var(--titlebar-inset,0px)); right:calc(20px + var(--safe-right,0px)); }
-@media(max-width:600px) { .cb-wallet-popover { right:-56px; width:min(300px,calc(var(--available-width,100vw) - 64px)); } }
+@media(max-width:600px) { .cb-delete-overlay { padding:12px; } }

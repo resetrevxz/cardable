@@ -1,0 +1,49 @@
+/* Credits: a coin in the top-right row that opens into a readout when it matters.
+   Collapsed it is one 44 px chip like Help and Settings. It expands on hover, keyboard focus,
+   when the balance changes, and while its card is pinned open. Order from the right: Settings, Help, Credits. */
+html .currency-counter.cb-credits { position: fixed; top: calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px)); right: calc(var(--s-6) + 112px + var(--safe-right,0px)); z-index: var(--z-menu); display: block; width: 44px; height: 44px; min-width: 0; min-height: 0; padding: 0; gap: 0; box-sizing: border-box; background: none; border: 0; border-radius: var(--r-chip); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; overflow: visible; isolation: auto; font-variant-numeric: tabular-nums; }
+html .currency-counter.cb-credits::before { content: none; }
+html .currency-counter.cb-credits.idle-chrome:hover { transform: none; border-color: transparent; }
+.cb-credits .cb-wallet-trigger,
+.cb-credits-readout { background: linear-gradient(155deg,rgba(255,255,255,.105),rgba(255,255,255,.035) 58%,rgba(255,255,255,.065)); border: 1px solid rgba(255,255,255,.13); box-shadow: inset 0 1px 0 rgba(255,255,255,.14),0 5px 18px rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.45); backdrop-filter: blur(22px) saturate(125%); -webkit-backdrop-filter: blur(22px) saturate(125%); }
+.cb-credits .cb-wallet-trigger { position: relative; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; max-width: none; padding: 0; box-sizing: border-box; border-radius: 50%; color: var(--text); cursor: pointer; touch-action: manipulation; transition: transform var(--duration-fast,150ms) var(--ease-out), border-color var(--duration-fast,150ms) var(--ease-out), opacity var(--duration-base,240ms) var(--ease-out); }
+.cb-credits .cb-wallet-trigger:hover:not(:disabled), .cb-credits.is-expanded .cb-wallet-trigger { border-color: rgba(255,255,255,.22); }
+.cb-credits .cb-wallet-trigger:active { transform: scale(.97); }
+.cb-credits .cb-wallet-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.cb-credits:not(.is-expanded) .cb-wallet-trigger { opacity: .78; }
+.cb-credits.cb-wallet-zero .currency-mark { opacity: .45; }
+.currency-mark-wrap { position: relative; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle at 35% 24%,rgba(255,255,255,.14),rgba(255,255,255,.025) 70%); box-shadow: inset 0 1px 0 rgba(255,255,255,.14),0 1px 3px rgba(0,0,0,.35); }
+.currency-mark { width: 22px; height: 22px; overflow: visible; }
+.currency-mark__edge { fill: #28282C; stroke: rgba(255,255,255,.68); stroke-width: 1.05; }
+.currency-mark__face { fill: var(--cb-credit-gold,#BFC0C2); stroke: rgba(255,255,255,.2); stroke-width: .55; }
+.currency-mark__ring { fill: none; stroke: rgba(24,24,27,.52); stroke-width: .7; }
+.currency-mark__glyph { fill: none; stroke: #3B3B40; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The readout sits to the left of the coin and takes no space while collapsed. */
+.cb-credits-readout { position: absolute; top: 0; right: calc(100% + 6px); height: 44px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 0 16px; border-radius: var(--r-chip); white-space: nowrap; pointer-events: none; opacity: 0; visibility: hidden; transform: translate3d(10px,0,0) scale(.96); transform-origin: 100% 50%; transition: opacity var(--duration-fast,150ms) var(--ease-out), transform var(--duration-base,240ms) var(--ease-out), visibility 0s linear var(--duration-base,240ms); }
+.cb-credits.is-expanded .cb-credits-readout { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.cb-credits-label { color: var(--text-dim); font: 500 9px/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.cb-credits .currency-value { color: var(--text); font: 500 14px/1.25 var(--font-mono); letter-spacing: -.03em; }
+.cb-credits .currency-value.rolling-number { display: inline-flex; align-self: flex-start; white-space: pre; }
+
+/* A change in balance, shown briefly under the readout. */
+.cb-wallet-delta { position: absolute; right: 52px; top: calc(100% + 8px); font: 500 11px/1 var(--font-mono); color: var(--cb-credit-gold); pointer-events: none; }
+[data-quality=high] .cb-credits.cb-wallet-feedback .cb-credits-readout { border-color: rgba(255,255,255,.26); }
+
+/* The pinned card: the balance in full and where credits come from. */
+.cb-credits .cb-wallet-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: var(--z-overlay); width: min(268px,calc(var(--available-width,100vw) - 32px)); max-height: calc(100vh - 150px); overflow: hidden auto; box-sizing: border-box; padding: 16px 18px 14px; text-align: left; border: 1px solid var(--stroke-strong,rgba(255,255,255,.16)); border-radius: var(--radius-card,20px); background: linear-gradient(160deg,var(--tone-25,rgba(34,34,40,.94)),var(--tone-09,rgba(20,20,24,.94))); backdrop-filter: blur(calc(28px * var(--q-blur,1))) saturate(165%); -webkit-backdrop-filter: blur(calc(28px * var(--q-blur,1))) saturate(165%); box-shadow: inset 0 1px 0 var(--light-edge,rgba(255,255,255,.14)),var(--shadow-lg,0 24px 60px rgba(0,0,0,.5)); transform-origin: 100% 0; }
+.cb-credits .cb-wallet-popover[hidden] { display: none; }
+.cb-credits .cb-wallet-popover:not([hidden]) { animation: cb-pop-in calc(260ms * var(--q-motion,1)) var(--ease-out) both; }
+.cb-wallet-head { display: flex; align-items: center; gap: 12px; }
+.cb-wallet-coin { flex: none; width: 40px; height: 40px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.45)); }
+.cb-wallet-coin .currency-mark { display: block; width: 100%; height: 100%; }
+.cb-wallet-popover h2 { margin: 0; color: var(--text-dim); font: 500 10px/14px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.cb-wallet-total { display: block; margin-top: 2px; font: 600 26px/30px var(--font-ui); letter-spacing: -.03em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cb-wallet-helper { margin: 12px 0 0; color: var(--text-dim); font: 400 12px/18px var(--font-ui); }
+:root:is([data-glass-quality="very-low"],[data-glass-quality="low"],[data-reduce-transparency="true"]) .cb-credits :is(.cb-wallet-trigger,.cb-credits-readout,.cb-wallet-popover) { background: var(--ink-1,#0E0E11); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+@media (hover: none), (pointer: coarse) { .cb-credits .cb-wallet-trigger { opacity: 1; } }
+.reduced-motion .cb-credits :is(.cb-credits-readout,.cb-wallet-trigger) { transform: none !important; transition-property: opacity, visibility; }
+.reduced-motion .cb-credits * { animation: none !important; }
+:root[data-hover-animations="false"] .cb-credits :is(.cb-credits-readout,.cb-wallet-trigger) { transform: none !important; }
+:root[data-quality="very-low"] .cb-credits .cb-wallet-popover { animation: none; }

@@ -1,3 +1,15 @@
+# Cardable v1.5.1 — Cleaner corners
+
+Inspect and Director open reliably again, the top-right corner is rebuilt around a collapsing Credits chip, and Basic, Common and Uncommon openings become a single line of light. Saves, serials, odds, pack cadence and the save schema are unchanged. Achievements remain paused with their progress retained.
+
+- **Inspect and Director.** Opening the studio no longer fails with a "reading 'kind'" error after you last used Animate, and a studio that cannot open is cleaned up instead of staying half built. Closing the Layers or Inspector panel no longer collapses the viewport.
+- **Credits.** One coin sits beside Help and Settings. It opens into a readout on hover, keyboard focus or when your balance changes, then folds away again. Click it to pin the balance card.
+- **Patch notes.** The main menu button is gone; a small journal button with an unread dot sits in the Inventory header.
+- **Away summary.** "While you were away" no longer appears on the pack-ready card.
+- **Basic, Common and Uncommon.** The opening is a thin line that extends from the centre while particles drift away from it, then retreats. Uncommon adds a gentle wave and a second green. Reduced motion shows a still line.
+
+Verification: a source run in the built-in browser covered Inspect on a card whose last page was Animate at Medium, High and Very Low, building and previewing an Auto-director orbit, the Credits chip in both widths, Patch notes from the Inventory, and sampled frames of the three openings. A clean installer run, live updater upgrade and other hardware remain unverified. This release is unsigned.
+
 # Cardable v1.5.0 — Smoother collections
 
 Browse larger collections with fewer hitches, organize the cards you want, and open packs from the lightweight Mini companion. Existing cards, serials, pack odds, saved preferences and the save schema are preserved. Achievements remain paused with their progress retained.

@@ -31,7 +31,7 @@
   function alive(job,s){return !job.cancelled&&!s.closing&&s.root.isConnected;}
   function requireAlive(job,s){if(!alive(job,s))throw new Error('Capture cancelled.');}
   async function capture(s,value,job){
-    var o=options(value,s.renderer.maxSize,s.renderer.kind==='Simple'),scene=C.studioScenes.parse(value.scene||s.scene),tier=s.renderer.kind==='Simple'?'very-low':s.tier,at=Date.now(),record;
+    var o=options(value,s.renderer.maxSize,(s.renderer&&s.renderer.kind==='Simple')),scene=C.studioScenes.parse(value.scene||s.scene),tier=(s.renderer&&s.renderer.kind==='Simple')?'very-low':s.tier,at=Date.now(),record;
     scene.presentationTime=value.presentationTime==null?s.lightTime:value.presentationTime;scene.director.playhead=value.time==null?s.director.time:value.time;scene.director.preview=value.time!=null||s.director.preview;if(!value.scene)scene.card.tilt[1]=((scene.card.tilt[1]+s.director.turn*360+180)%360+360)%360-180;o.samples=Math.min(o.samples,C.studioQuality.samples(tier));if(o.motionBlur&&tier!=='very-high')o.motionBlur=false;var a=area(o),viewport=s.viewport.getBoundingClientRect();if(scene.camera.autoFrame){C.studioCamera.frame(scene,viewport.width/viewport.height);scene.camera.autoFrame=false;}var sceneJson=C.studioScenes.serialize(scene);
     try{
       if(!job.faces)job.faces=await C.studioFace.paint(s.view.card,s.view.instance,scene,tier,s.view.el,s.entry,function(){return alive(job,s);});requireAlive(job,s);

@@ -3,7 +3,7 @@
   'use strict';
   var node = C.packMarkup.node, doc = root.document;
   var version = C.config.version, seenKey = 'cardable.patchNotesSeen';
-  var overlay, modal, archive, content, scroll, search, sort, filters, status, progress, modeButton, hud, hover;
+  var overlay, modal, archive, content, scroll, search, sort, filters, status, progress, modeButton, hover;
   var opened = false, interactive = false, activeVersion = version, query = '', order = 'newest', filter = 'overview';
   var savedFocus, inspectFocus, inspectLayer, inspectView, inspector;
   var views = [], inertRecords = [], positions = {}, expansions = {}, observer, visibleViews = new Map();
@@ -63,9 +63,13 @@
     var view = C.cardView.create(card, specimen(item), { thumbnail: true, owned: false, presentation: 'art-only' });
     host.appendChild(view.el); watch(view); return view;
   }
+  function unread() {
+    try { return root.localStorage.getItem(seenKey) !== version; } catch (_) { return true; }
+  }
   function markSeen() {
+    var was = unread();
     try { root.localStorage.setItem(seenKey, version); } catch (_) {}
-    hud.classList.remove('has-unread'); hud.setAttribute('aria-label', 'Patch notes v' + version);
+    if (was) C.events.emit('patchnotes:seen', version);
   }
   function build() {
     if (overlay) return;
@@ -372,14 +376,9 @@
     if (savedFocus && savedFocus.isConnected) savedFocus.focus({ preventScroll: true });
   }
   C.patchNotes = {
-    initialized: false, version: version, get isOpen() { return opened; },get open(){return opened;},show:open,markdown:markdown,close:close,
+    initialized: false, version: version, get isOpen() { return opened; },get open(){return opened;},get unread(){return unread();},show:open,markdown:markdown,close:close,
     init: function () {
       if (C.patchNotes.initialized) return;
-      hud = button(C.viewport.parent(doc.body), 'Patch notes', 'patch-notes-hud-btn idle-chrome entrance', open, 'journal'); hud.id = 'patch-notes-hud-btn'; var hudWidth = function () { doc.documentElement.style.setProperty('--patch-hud-width', hud.offsetWidth + 'px'); }; hudWidth(); if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(hudWidth);
-      node('span', 'patch-hud-version', hud, version);
-      hudWidth(); if (root.ResizeObserver) new root.ResizeObserver(hudWidth).observe(hud);
-      try { hud.classList.toggle('has-unread', root.localStorage.getItem(seenKey) !== version); } catch (_) { hud.classList.add('has-unread'); }
-      hud.setAttribute('aria-label', 'Patch notes v' + version + (hud.classList.contains('has-unread') ? ', unread update' : ''));
       C.settings.onChange('*', function () { if (opened) applyPolicy(); });
       doc.addEventListener('visibilitychange', function () {
         if (doc.hidden && scroll) scroll.querySelectorAll('video').forEach(function (video) { video.pause(); });

@@ -45,7 +45,7 @@
     get active() { return !!(C.studioController && C.studioController.active); },
     get pending() { return busy || !!reopening; },
     enter: async function (context) { if (busy || this.active || !C.detail || C.detail.phase !== 'detail' || !C.detail.view || C.preferences.open) return false; busy = true; var selected = C.detail.view;
-      try { await load(); if (C.detail.view !== selected || C.detail.phase !== 'detail') return false; return await C.studioController.enter(context || {}, selected); } catch (error) { report(error.message); return false; } finally { busy = false; }
+      try { await load(); if (C.detail.view !== selected || C.detail.phase !== 'detail') return false; return await C.studioController.enter(context || {}, selected); } catch (error) { if (C.studioController) C.studioController.abort(); root.console.error('[Cardable studio]', error); report('The studio could not open this card. Close the card and try again.'); return false; } finally { busy = false; }
     },
     openAlbum:async function(id){try{await loadAlbum();await C.studioAlbumUI.open(id);}catch(error){report(error.message);if(C.contextMenu)C.contextMenu.notify(error.message);}},
     reopenPhoto:async function(photo){try{await load();return await reopen(photo);}catch(error){report(error.message);return false;}},

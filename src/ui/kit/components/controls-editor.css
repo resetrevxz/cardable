@@ -34,4 +34,4 @@
 .inventory-peek-quiet #inventory-affordance:focus-within { opacity: 1 !important; translate: 0 0; pointer-events: auto; }
 
 
-:root[data-hide-version=true] .settings-version,:root[data-hide-settings=true] .settings-gear,:root[data-hide-release-notes=true] .patch-notes-hud-btn,:root[data-hide-tags=true] .inventory-selected-tags,:root[data-hide-tags=true] [data-tag-bound=true]{display:none!important}
+:root[data-hide-version=true] .settings-version,:root[data-hide-settings=true] .settings-gear,:root[data-hide-release-notes=true] .inventory-patch-notes,:root[data-hide-tags=true] .inventory-selected-tags,:root[data-hide-tags=true] [data-tag-bound=true]{display:none!important}

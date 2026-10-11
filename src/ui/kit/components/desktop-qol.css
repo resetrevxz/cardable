@@ -2,7 +2,6 @@
 .qol-root { position:fixed; inset:0; }
 .qol-root.is-composed { right:auto; bottom:auto; width:1920px; height:1080px; transform:translateZ(0); }
 .wordmark { top:calc(var(--s-6) + var(--safe-top) + var(--titlebar-inset)); left:calc(var(--s-6) + var(--safe-left)); }
-.currency-counter { top:calc(var(--s-6) + var(--safe-top)); right:calc(var(--s-6) + 56px + var(--safe-right)); }
 .settings-corner, .detail-close { top:calc(var(--s-6) + var(--safe-top) + var(--titlebar-inset)); right:calc(var(--s-6) + var(--safe-right)); }
 .inventory-affordance { bottom:calc(var(--s-6) + var(--safe-bottom)); }
 .inventory-sheet { bottom:var(--safe-bottom); left:calc(var(--s-6) + var(--safe-left)); right:calc(var(--s-6) + var(--safe-right)); }

@@ -6,7 +6,8 @@
     if (!counter || !sheet || !arrow || C.presentation.gallery) return;
     var creditTimer, peekTimer, creditNear = false, creditMenu = false, rewardActive = false, feedbackUntil = 0;
     var peekUntil = root.performance.now() + 5000, quiet = false;
-    counter.tabIndex = 0;
+    // The coin button inside is the tab stop; the host stays out of the tab order.
+    counter.removeAttribute('tabindex');
     function distance(el, pointer) {
       var r = el.getBoundingClientRect();
       return Math.hypot(Math.max(r.left - pointer.x, 0, pointer.x - r.right), Math.max(r.top - pointer.y, 0, pointer.y - r.bottom));

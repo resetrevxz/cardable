@@ -1,5 +1,25 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.5.1',codename:'Cleaner corners',date:'October 11, 2026',tag:'Update',tagline:'Studio opens reliably, and the corner gets quieter.',
+    hero:{badge:'CARDABLE / 1.5.1',title:'Cleaner corners.',subtitle:'A Credits chip that folds away, Patch notes in the Inventory and a line of light for early openings.',media:[]},
+    sections:{
+      fixes:[
+        'Inspect and Director open again after Animate was your last page; a studio that fails to open is cleaned up.',
+        'Closing the Layers or Inspector panel keeps the viewport in the middle of the studio.',
+        'The pack-ready card no longer says how long you were away.'
+      ],
+      visuals:[
+        'Credits is one coin beside Help and Settings that opens into a readout and folds away when idle.',
+        'Basic, Common and Uncommon openings are a line that extends with particles drifting from it.'
+      ],
+      qol:[
+        'Patch notes moved from the main menu to a small button in the Inventory header, with an unread dot.',
+        'Help sits beside Settings, so the top-right row has the same three controls at every window width.'
+      ]
+    },
+    entries:['Inspect and Director open reliably.','Credits collapses when it is not needed.','Patch notes live in the Inventory.']
+  },
+  {
     version:'1.5.0',codename:'Smoother collections',date:'October 11, 2026',tag:'Update',tagline:'Smoother browsing and a companion that opens packs.',
     hero:{badge:'CARDABLE / 1.5.0',title:'Smoother collections.',subtitle:'Organize what you own, track what you want, and open packs from Mini.',media:[]},
     sections:{

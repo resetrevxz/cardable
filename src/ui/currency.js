@@ -4,31 +4,36 @@
   function compact(n){return n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,'')+'M':n>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,'')+'K':String(n);}
   C.currencyView={initialized:false,init:function(){
     if(this.initialized)return;this.initialized=true;
-    var node=C.packMarkup.node,host=root.document.getElementById('currency-counter');host.replaceChildren();host.classList.add('cb-wallet-chip');
+    var node=C.packMarkup.node,host=root.document.getElementById('currency-counter');host.replaceChildren();host.classList.add('cb-wallet-chip','cb-credits');
+    // A coin that opens into a readout: collapsed until hovered, focused, changed or pinned.
     var trigger=node('button','cb-wallet-trigger',host);trigger.type='button';trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-expanded','false');
     node('span','currency-mark-wrap',trigger).innerHTML=coin;
-    var balance=node('span','currency-balance',trigger);node('span','currency-label',balance,'Credits');var number=node('span','currency-value',balance),digits=C.numbers.create(number),feed=node('span','cb-wallet-delta',host),popover=node('section','cb-wallet-popover glass',host);
-    popover.hidden=true;popover.setAttribute('role','dialog');popover.setAttribute('aria-label','Wallet');popover.id='cb-wallet';trigger.setAttribute('aria-controls',popover.id);feed.setAttribute('role','status');feed.setAttribute('aria-live','polite');
+    var readout=node('span','cb-credits-readout',host);readout.setAttribute('aria-hidden','true');node('span','cb-credits-label',readout,'Credits');
+    var number=node('span','currency-value',readout),digits=C.numbers.create(number),feed=node('span','cb-wallet-delta',host),popover=node('section','cb-wallet-popover glass',host);
+    popover.hidden=true;popover.setAttribute('role','dialog');popover.setAttribute('aria-label','Credits');popover.id='cb-wallet';trigger.setAttribute('aria-controls',popover.id);feed.setAttribute('role','status');feed.setAttribute('aria-live','polite');
     host.dataset.walletState='loading';number.textContent='…';trigger.disabled=true;
-    var pinned=false,queue=[],effect=null,closeTimer=null;
+    var pinned=false,hover=false,glancing=false,queue=[],effect=null,glanceTimer=null,leaveTimer=null;
+    function expand(){var focused=C.input.modality==='keyboard'&&host.contains(root.document.activeElement);host.classList.toggle('is-expanded',hover||glancing||pinned||focused);}
+    function glance(ms){glancing=true;expand();root.clearTimeout(glanceTimer);glanceTimer=root.setTimeout(function(){glancing=false;expand();},ms);}
     function render(){
       if(host.dataset.walletState==='loading')number.replaceChildren();host.dataset.walletState='ready';trigger.disabled=false;var save=C.state.current;digits.set(C.formats.number(save.currency,compact(save.currency)),['medium','high'].includes(C.settings.get('quality'))&&!C.motion.reduced);
-      trigger.title=save.currency.toLocaleString()+' credits';trigger.setAttribute('aria-label','Wallet: '+save.currency.toLocaleString()+' credits');host.classList.toggle('cb-wallet-zero',save.currency===0);
+      trigger.title=save.currency.toLocaleString()+' credits';trigger.setAttribute('aria-label','Credits: '+save.currency.toLocaleString());host.classList.toggle('cb-wallet-zero',save.currency===0);
       if(popover.hidden)return;popover.replaceChildren();
       // Balance only: the ledger stays in the save, without a history list in the way.
       var head=node('div','cb-wallet-head',popover);node('span','cb-wallet-coin',head).innerHTML=coin;var copy=node('div','',head);node('h2','',copy,'Credits');node('strong','cb-wallet-total',copy,save.currency.toLocaleString());
       node('p','cb-wallet-helper',popover,save.currency?(C.config.flags.achievements===false?'Earned from packs and duplicates.':'Earned from packs, duplicates and achievements.'):'Open a pack to earn your first credits.');
-      var close=node('button','cb-wallet-close',popover,'Done');close.type='button';close.addEventListener('click',hide);
     }
-    function show(){root.clearTimeout(closeTimer);popover.hidden=false;trigger.setAttribute('aria-expanded','true');render();}
-    function hide(){pinned=false;popover.hidden=true;trigger.setAttribute('aria-expanded','false');root.clearTimeout(closeTimer);C.events.emit('menu:visibilityHold',{reason:'wallet',active:false});}
-    trigger.addEventListener('click',function(){if(pinned){hide();return;}pinned=true;show();C.events.emit('menu:visibilityHold',{reason:'wallet',active:true});popover.querySelector('button').focus();});
-    host.addEventListener('pointerenter',function(e){if(e.pointerType==='mouse')show();});host.addEventListener('pointerleave',function(){if(!pinned)closeTimer=root.setTimeout(hide,180);});
-    root.document.addEventListener('pointerdown',function(e){if(!host.contains(e.target))hide();});
-    C.keys.listen(host, 'keydown', 'src.ui.currency.js.1', function(e){if(e.key==='Escape'&&!popover.hidden){e.preventDefault();e.stopPropagation();hide();trigger.focus();}});
-    host.addEventListener('focusout',function(){root.queueMicrotask(function(){if(!host.contains(root.document.activeElement)&&!host.matches(':hover'))hide();});});
-    function changed(e){render();var delta=e.delta==null?(e.direction||1)*e.amount:e.delta;if(!delta)return;var now=root.performance.now(),last=queue[queue.length-1];if(last&&now-last.at<=400){last.delta+=delta;last.at=now;}else queue.push({at:now,delta:delta});if(queue.length>30){queue[queue.length-2].delta+=queue.pop().delta;}C.fx.wake();}
-    C.events.on('currency:changed',changed);C.events.on('save:written',render);C.events.on('save:willReplace',function(){queue=[];effect=null;hide();});C.events.on('menu:idle',function(idle){if(idle)hide();});
+    function show(){popover.hidden=false;trigger.setAttribute('aria-expanded','true');render();}
+    function hide(){pinned=false;popover.hidden=true;trigger.setAttribute('aria-expanded','false');expand();C.events.emit('menu:visibilityHold',{reason:'wallet',active:false});}
+    trigger.addEventListener('click',function(){if(pinned){hide();return;}pinned=true;show();expand();C.events.emit('menu:visibilityHold',{reason:'wallet',active:true});});
+    host.addEventListener('pointerenter',function(e){if(e.pointerType!=='mouse')return;root.clearTimeout(leaveTimer);hover=true;expand();});
+    host.addEventListener('pointerleave',function(){root.clearTimeout(leaveTimer);leaveTimer=root.setTimeout(function(){hover=false;expand();},220);});
+    root.document.addEventListener('pointerdown',function(e){if(pinned&&!host.contains(e.target))hide();});
+    C.keys.listen(host, 'keydown', 'src.ui.currency.js.1', function(e){if(e.key==='Escape'&&pinned){e.preventDefault();e.stopPropagation();hide();trigger.focus();}});
+    host.addEventListener('focusin',expand);
+    host.addEventListener('focusout',function(){root.queueMicrotask(function(){if(!host.contains(root.document.activeElement)&&pinned)hide();expand();});});
+    function changed(e){render();var delta=e.delta==null?(e.direction||1)*e.amount:e.delta;if(!delta)return;glance(2800);var now=root.performance.now(),last=queue[queue.length-1];if(last&&now-last.at<=400){last.delta+=delta;last.at=now;}else queue.push({at:now,delta:delta});if(queue.length>30){queue[queue.length-2].delta+=queue.pop().delta;}C.fx.wake();}
+    C.events.on('currency:changed',changed);C.events.on('save:written',render);C.events.on('save:willReplace',function(){queue=[];effect=null;hide();});C.events.on('menu:idle',function(idle){if(idle){hover=false;glancing=false;hide();}});
     C.fx.subscribe(function(now){
       var moving=digits.update(now);
       if(!effect&&queue.length&&now-queue[0].at>=400){effect=queue.shift();effect.born=now;feed.textContent=(effect.delta>=0?'+':'−')+Math.abs(effect.delta).toLocaleString();host.classList.add('cb-wallet-feedback');}

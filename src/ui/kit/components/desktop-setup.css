@@ -6,7 +6,7 @@
 @media (max-width:600px), (max-height:650px) { .cb-startup { --startup-pack:clamp(160px,28vh,200px); } }
 @media (max-height:500px) { .cb-startup { --startup-pack:clamp(116px,27vh,140px); } }
 /* Until the game has loaded, Settings and Patch notes stay out of sight and the pack's status waits where the bar is. */
-.is-booting :is(.settings-corner,.patch-notes-hud-btn,.cb-menu-help) { opacity:0 !important; visibility:hidden; pointer-events:none; }
+.is-booting :is(.settings-corner,.cb-menu-help) { opacity:0 !important; visibility:hidden; pointer-events:none; }
 .is-booting .pack-meta { opacity:0 !important; }
 .reduced-motion .cb-startup, .cb-startup.is-reduced { transition-duration:1ms; }
 .cb-startup-panel { width:min(100%,var(--dialog-max)); display:grid; gap:var(--s-4); padding:var(--s-6); border:1px solid var(--stroke); border-top-color:var(--light-edge); border-radius:var(--radius-sheet); background:var(--ink-1); box-shadow:var(--shadow-lg); }

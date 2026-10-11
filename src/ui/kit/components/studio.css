@@ -312,6 +312,8 @@ body.studio-active > :not(.studio-shell),body.studio-active > :not(.studio-shell
 .studio-2.studio-right-closed .studio-layout{grid-template-columns:var(--studio-left) minmax(160px,1fr) 0}
 .studio-2.studio-left-closed.studio-right-closed .studio-layout{grid-template-columns:0 minmax(160px,1fr) 0}
 .studio-2.studio-left-closed .studio-outliner,.studio-2.studio-right-closed .studio-inspector{visibility:hidden;padding:0;overflow:hidden;pointer-events:none}
+/* A closed side panel is also [hidden], so it leaves the grid; fixed columns keep the viewport in the middle one. */
+@media(min-width:781px){.studio-2 .studio-layout>.studio-outliner{grid-column:1;grid-row:1}.studio-2 .studio-layout>.studio-viewport{grid-column:2;grid-row:1}.studio-2 .studio-layout>.studio-inspector{grid-column:3;grid-row:1}}
 .studio-panel-toggle{font-size:10px;min-height:36px}.studio-panel-resize{position:absolute;top:0;bottom:0;right:0;width:7px;cursor:ew-resize;touch-action:none}
 .studio-inspector .studio-panel-resize{right:auto;left:0}.studio-panel-resize:hover{background:var(--ui-color-27)}
 .studio-2 .studio-bottom{gap:7px}.studio-2 .studio-tools{padding:4px;border-radius:var(--ui-radius-11);width:auto}.studio-2 .studio-tools .studio-button{min-height:36px;padding:8px 20px;margin:0;border-color:transparent;border-radius:var(--ui-radius-19);font-size:11px}
