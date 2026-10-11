@@ -1,6 +1,16 @@
-# Cardable v1.3.4 — Every corner
+# Cardable v1.4.0 — Every pack
 
-The second round of the visual pass, plus a fix for inspecting Ascendant cards. Saved collections, serials and the save schema are unchanged.
+Every card pack is redrawn as a 3D object you can move and turn over, with its own startup, hold and opening. This release also carries the Every corner visual pass (1.3.3 and 1.3.4 were never published) and the Ascendant inspect fix. Saved collections, serials and the save schema are unchanged.
+
+- **Packs are objects now.** Every pack is a real 3D object with a printed front and back. Drag to move it, press **R** (or the Flip control, or double-click) to turn it over, and right-click to inspect from any angle. An opening always starts from the front.
+- **Standard.** Black, with the dot grid printed down the right side, the cardable mark at the top and Series 01 at the bottom. The wrapper at the top shows the dots as you cut.
+- **Rare.** A chameleon that starts black and turns blue, with connected moving dots and a few bigger ones. While you hold Space the icons rematerialize into a clean white grid, and the cut brings the grid back.
+- **NVIDIA, AMD, Snapdragon and Apple.** Each has its own face, back, startup, hold and cut: a shroud and fan with the green band, a red slash, a package with its pin grid, and a frosted pearl.
+- **Classic.** A retro PC case. It pixelates and flies away on startup, the key turns and the lights blink while you hold, and you pull the sticker to tear it open. The card inside gets a more detailed command panel.
+- **Royal.** A glass coat that appears and dissolves every two seconds with translucent gold triangles; holding dissolves it. It tears open on both sides to reveal a small red carpet, then opens to the card. Each rarity has its own gold frame, Legendary above Secret.
+- **Titan.** A faceted aluminium shroud inspired by the Titan X and GTX 1080 Ti coolers. A machined knob releases it in three clicks.
+- **Picker.** Opens on a clear sleeve of three card backs that shuffle like a magician's riffle. After the cut the three cards are shown, turned over, shuffled by hand (overhand drops, a riffle, a cut, a deal and two swaps) and you pick one from the backs.
+- **Quieter stage.** The Flip control sits beside the timer. On shorter windows the stage rises so the timer, queue and counter clear the inventory, and each pack throws a faint pool of its own colour on the floor.
 
 - **Inventory height.** Appearance › Interface chooses how tall the inventory opens: Compact, Standard (the default) or Tall. It re-measures live, even with the inventory open.
 - **Panels rise in.** The performance panel and dialogs rise in; drawers slide in from the right.
@@ -27,9 +37,7 @@ The second round of the visual pass, plus a fix for inspecting Ascendant cards. 
 - **Shelf caption entrance.** Captions rise in as their card settles; they stay still with reduced motion. (Code-checked only.)
 - **Shelf captions.** Each card's "Basic · Generation 1" line stays on one row under its name instead of wrapping its number onto a second line.
 
-Checked in a browser session with screenshots at a 1080p-equivalent layout: the context menu, inventory popovers and search, the deletion dialog, the performance overlay, the tutorial's first step, and the Studio in Simple mode on a Basic and an Ascendant card. Studio Pro mode, cinematics, touch input and the Windows app were not exercised. This release is unsigned.
-
----
+Checked in a browser session with screenshots at several window sizes: every pack's front and back, charge, cut and arrival at controlled poses, a flip mid-turn, Royal's two-sided tear and carpet, the Picker flow from cut to pick to reveal, the Titan knob, reduced motion and the Very Low and Low tiers, plus the dev checks for faces, flip and the Picker. Real-hardware frame rate, the Very High tier, touch input, the monochrome theme on the stage, a clean Windows install and the cinematic matrix were not exercised. Saved collections, serials, odds, pack cadence and the save schema are unchanged. This release is unsigned.
 
 # Cardable v1.3.2 — A closer look
 

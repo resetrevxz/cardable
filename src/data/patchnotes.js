@@ -1,7 +1,7 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
-    version:'1.3.4',codename:'Every corner',date:'October 11, 2026',tag:'Update',tagline:'The visual pass reaches the popovers, dialogs and Studio.',
-    hero:{badge:'CARDABLE / 1.3.4',title:'Every corner.',subtitle:'Popovers, the deletion dialog, the performance overlay and the Studio, redrawn. Ascendant cards can be inspected again.',media:[]},
+    version:'1.4.0',codename:'Every pack',date:'October 11, 2026',tag:'Update',tagline:'All ten packs redrawn as objects you can turn over.',
+    hero:{badge:'CARDABLE / 1.4.0',title:'Every pack.',subtitle:'Ten packs redrawn as 3D objects with a front and a back, each with its own startup, hold and opening. Plus the Every corner visual pass.',media:[]},
     sections:{
       fixes:[
         'Inspect now opens the Studio for Ascendant cards. It failed silently before.',
@@ -14,6 +14,12 @@
         'Gameplay › Notices: Notice position puts unlock and action notices at the top or bottom. Top notices drop in from above.'
       ],
       visuals:[
+        'Every pack is a 3D object with a printed front and back. Press R, the Flip control or double-click to turn it over; an opening always starts from the front.',
+        'Standard and Rare are redrawn: a dot grid down the right, a chameleon Rare that rematerializes its icons while you hold.',
+        'NVIDIA, AMD, Snapdragon and Apple each have their own face, back and animations.',
+        'Classic is a retro PC case with a pull-sticker tear. Royal is glass that dissolves, with a two-sided tear and a red carpet.',
+        'Titan opens with a machined knob. Picker shuffles three cards by hand and you pick one from the backs.',
+        'Short windows raise the stage so the timer, queue and counter clear the inventory.',
         'Inventory popovers are glass cards with pill filters.',
         'The deletion dialog leads with the card and shows each caution as a clear row.',
         'The performance overlay and the Studio’s Simple mode share the rest of the game’s controls.',
@@ -33,6 +39,7 @@
       ]
     },
     entries:[
+      'All ten packs are redrawn as 3D objects you can turn over with R.',
       'Ascendant cards can be inspected in the Studio again.',
       'Inventory popovers, search and the deletion dialog are redrawn.',
       'The performance overlay and Studio Simple mode match the rest of the game.'
