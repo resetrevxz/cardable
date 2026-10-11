@@ -20,7 +20,7 @@
   function matches(entry, term) {
     var card = entry.card, key = term.key, value = term.value;
     if (key === 'era') return card.era === value;
-    if (!entry.owned && ['name', 'vram', 'memorytype'].indexOf(key) >= 0) return false;
+    if (!entry.owned && ['name', 'vram', 'memorytype'].indexOf(key) >= 0 && !(key==='name'&&entry.nameVisible)) return false;
     if (key === 'variant' || key === 'finish') return entry.owned && (value === 'any' ? !!entry.variantId : [entry.variantId || 'normal', entry.variant ? entry.variant.name : 'Normal'].some(function(v){return lower(v).replace(/\s/g,'-') === value.replace(/\s/g,'-');}));
     if (key === 'favorite') return !!entry.isFavorite === (value === 'true');
     if (key === 'vram') return numeric(memory(card), value);
@@ -29,8 +29,9 @@
     if (key === 'rarity') return [entry.rarity.id, entry.rarity.name, entry.rarity.code].some(function (v) { return lower(v).replace(/\s/g, '-') === value.replace(/\s/g, '-'); });
     // Hidden cards cannot leak names/specs through the search result set.
     if (!entry.owned && ['text', 'name', 'vram', 'memorytype'].indexOf(key) >= 0) {
+      if (key==='name')return entry.nameVisible&&lower(card.name).includes(value);
       if (key !== 'text') return false;
-      return lower([entry.generation && entry.generation.name, entry.rarity.name, 'unknown card'].join(' ')).includes(value);
+      return lower([entry.nameVisible?card.name:'unknown card',entry.generation && entry.generation.name, entry.rarity.name].join(' ')).includes(value);
     }
     if (key === 'memorytype') return lower((card.vram && card.vram.type || '')).includes(value);
     if (key !== 'text') return lower(card[key]).includes(value);
@@ -40,14 +41,9 @@
   function facets(entries) { var result = { rarity: [], generation: [], brand: [], vram: [], memoryType: [], type: [], variant: [] }; entries.forEach(function (e) { [['variant', e.owned ? e.variantId || 'normal' : null], ['rarity', e.rarity.id], ['generation', e.card.generation], ['brand', e.card.brand], ['vram', memory(e.card)], ['memoryType', (e.card.vram && e.card.vram.type || '')], ['type', e.card.type]].forEach(function (pair) { if (pair[1] != null && pair[1] !== '' && result[pair[0]].indexOf(pair[1]) < 0) result[pair[0]].push(pair[1]); }); }); result.vram.sort(function (a,b) { return a-b; }); return result; }
   function group(entry, mode) { return mode === 'variant' ? entry.variant ? entry.variant.name : entry.owned ? 'Normal' : 'Undiscovered' : mode === 'rarity' ? entry.rarity.name : mode === 'generation' ? entry.generation.name : mode === 'brand' ? entry.card.brand || 'Other' : mode === 'ownership' ? entry.owned ? 'Owned' : 'Undiscovered' : mode === 'new' ? entry.isNew ? 'New' : 'Viewed' : ''; }
   function run(base, ui, text, filters) {
-    var parsed = parse(text), f = filters || {}, collection = ui.collections.find(function (c) { return c.id === ui.activeCollectionId; });
-    var favorites=new Set(ui.favorites),members=new Map();
-    ui.collections.forEach(function(c){members.set(c.id,new Set(c.stackKeys));});
-    var activeMembers=collection&&members.get(collection.id);
-    base.entries.forEach(function(e){e.isFavorite=favorites.has(e.stackKey);});
-    var entries = base.entries.filter(function (e) {
-      if (!ui.showUnowned && !e.owned) return false;
-      if (ui.activeCollectionId === 'favorites' && (!e.owned || !e.isFavorite) || activeMembers && (!e.owned || !activeMembers.has(e.stackKey))) return false;
+    var parsed = parse(text), f = filters || {}, description=C.inventoryModel.describe(base,ui),active=description.active;
+    var entries = description.entries.filter(function (e) {
+      if (active.id==='all'&&!ui.showUnowned && !e.owned) return false;
       if (f.ownership === 'owned' && !e.owned || f.ownership === 'unowned' && e.owned || f.ownership === 'duplicates' && e.instances.length < 2) return false;
       if (f.variantOnly && !e.variantId) return false;
       if ((f.variant || []).length && (!e.owned || f.variant.indexOf(e.variantId || 'normal') < 0)) return false;
@@ -60,13 +56,13 @@
     function value(e, sort) {
       if(sortValues.has(e))return sortValues.get(e);
       var time=null;if(sort==='recent'||sort==='oldest')e.instances.forEach(function(i){if(time===null|| (sort==='recent'?i.pulledAt>time:i.pulledAt<time))time=i.pulledAt;});
-      var result=sort==='recent'?time===null?null:-time:sort==='oldest'?time:sort.startsWith('name')?e.owned?lower(e.card.name):null:sort.startsWith('rarity')?e.rarity.tier*(sort.endsWith('desc')?-1:1):sort==='generation'?e.generation.order:sort.startsWith('vram')?memory(e.card)==null?null:memory(e.card)*(sort.endsWith('desc')?-1:1):sort==='quantity'?-e.instances.length:sort==='serial'?e.instances.length?e.instances[0].serial:null:sort==='custom'?ranks.has(e.stackKey)?ranks.get(e.stackKey):Infinity:e.catalogIndex;
+      var result=sort==='missing-first'?Number(e.owned):sort==='recent'?time===null?null:-time:sort==='oldest'?time:sort.startsWith('name')?e.owned||e.nameVisible?lower(e.card.name):null:sort.startsWith('rarity')?e.rarity.tier*(sort.endsWith('desc')?-1:1):sort==='generation'?e.generation.order:sort.startsWith('vram')?memory(e.card)==null?null:memory(e.card)*(sort.endsWith('desc')?-1:1):sort==='quantity'?-e.instances.length:sort==='serial'?e.instances.length?e.instances[0].serial:null:sort==='custom'?ranks.has(e.stackKey)?ranks.get(e.stackKey):Infinity:e.catalogIndex;
       sortValues.set(e,result);return result;
     }
     entries.sort(function (a, b) { var ga = group(a, ui.groupMode), gb = group(b, ui.groupMode); if (ga !== gb && ui.groupMode !== 'none') { if (ui.groupMode === 'rarity') return a.rarity.tier - b.rarity.tier; if (ui.groupMode === 'generation') return a.generation.order - b.generation.order; return ga.localeCompare(gb); } var va = value(a, ui.sortMode), vb = value(b, ui.sortMode); if (va == null || vb == null) return va == null && vb == null ? a.catalogIndex - b.catalogIndex : va == null ? 1 : -1; var compare = typeof va === 'string' ? va.localeCompare(vb) * (ui.sortMode === 'name-desc' ? -1 : 1) : va === vb ? 0 : va < vb ? -1 : 1; return compare || a.catalogIndex - b.catalogIndex; });
     var groups = []; entries.forEach(function (entry, index) { var label = group(entry, ui.groupMode), last = groups[groups.length - 1]; if (!last || label !== last.label) groups.push({ label: label, start: index, count: 1 }); else last.count++; });
-    var counts={all:0,favorites:0};ui.collections.forEach(function(c){counts[c.id]=0;});base.entries.forEach(function(e){if(e.owned||ui.showUnowned)counts.all++;if(!e.owned)return;if(e.isFavorite)counts.favorites++;members.forEach(function(keys,id){if(keys.has(e.stackKey))counts[id]++;});});
-    return { entries: entries, groups: groups, errors: parsed.errors, terms: parsed.terms, facets: facets(base.entries), owned: base.owned, total: base.total, shown: entries.length, collectionCounts:counts, stackCount:base.stackCount, variantCopies:base.variantCopies, newCopies:base.newCopies };
+    var counts=Object.create(null);description.tabs.forEach(function(tab){counts[tab.id]=tab.count;});
+    return { entries: entries, groups: groups, errors: parsed.errors, terms: parsed.terms, facets: facets(description.entries), owned: active.owned, total: active.total, activeCollection:active,tabs:description.tabs,shown: entries.length, collectionCounts:counts, stackCount:base.stackCount, variantCopies:base.variantCopies, newCopies:base.newCopies };
   }
   C.inventoryQuery = { parse: parse, memory: memory, matches: matches, facets: facets, group: group, run: run };
 })(window.Cardable);
