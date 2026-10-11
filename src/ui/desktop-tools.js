@@ -11,7 +11,29 @@
   function search(){var query=palette.input.value;matches=Array.from(commands.values()).filter(allowed).map(function(item){return {item:item,score:C.qol.fuzzyScore(query,[item.label,item.group].concat(item.aliases||[]).join(' ')),recent:recent.indexOf(item.id)};}).filter(function(r){return r.score>0;}).sort(function(a,b){var ar=a.recent<0?999:a.recent,br=b.recent<0?999:b.recent;return (!query?ar-br||(a.item.group==='Cards')-(b.item.group==='Cards'):0)||b.score-a.score||a.item.label.localeCompare(b.item.label);});selected=0;render();}
   function cards(){Array.from(commands.keys()).filter(function(id){return id.indexOf('card:')===0;}).forEach(function(id){commands.delete(id);});var seen=new Set();C.state.current.inventory.forEach(function(instance){var key=C.stacks.key(instance.cardId,instance.variantId);if(seen.has(key))return;seen.add(key);var card=C.card(instance.cardId);if(!card)return;var variant=instance.variantId&&C.variant(instance.variantId),rarity=C.rarity(card.rarity);C.commands.register({id:'card:'+key,label:card.name+' · '+(rarity?rarity.name:card.rarity)+(variant?' · '+variant.name:''),group:'Cards',aliases:[card.generation,instance.variantId||'normal'],when:function(){return idle()&&C.detail.phase==='closed';},run:function(){if(C.preferences.open)C.preferences.close();if(!C.inventory.active)C.inventory.request(true);C.events.emit('inventory:showCard',{cardId:card.id,instanceId:instance.instanceId});}});});}
   function open(){if(!idle()||C.contextMenu.open)return;cards();origin=root.document.activeElement;C.paletteUI.show(palette.backdrop);palette.input.value='';context(true);search();palette.input.focus();}
-  function help(){if(!idle())return;hide();origin=root.document.activeElement;sheet.replaceChildren();node('h2','',sheet,'Keyboard shortcuts');var close=node('button','quiet-button',sheet,'Close');close.type='button';close.addEventListener('click',hide);var groups=new Map();C.keys.entries.forEach(function(item){var group=item.group;if(!groups.has(group)){var section=node('section','qol-shortcut-group',sheet);node('h3','',section,group);groups.set(group,section);}var row=node('div','qol-shortcut-row',groups.get(group));node('span','',row,item.label);var cap=node('kbd','',row,C.keys.label(item.id)||'Unbound');cap.dataset.keyAction=item.id;});C.paletteUI.show(sheet);context(true);C.accessibility.trap(sheet);close.focus();}
+  function help(){
+    if(!idle())return;hide();origin=root.document.activeElement;sheet.replaceChildren();
+    var head=node('header','qol-shortcuts-head',sheet);node('h2','',head,'Keyboard shortcuts');
+    var close=node('button','qol-shortcuts-close',head);close.type='button';close.setAttribute('aria-label','Close keyboard shortcuts');close.appendChild(C.icons.create('close'));close.addEventListener('click',hide);
+    var field=node('label','qol-shortcuts-search',sheet);field.appendChild(C.icons.create('search'));
+    var filter=node('input','',field);filter.type='search';filter.placeholder='Filter shortcuts…';filter.setAttribute('aria-label','Filter shortcuts');filter.autocomplete='off';
+    var groups=new Map(),rows=[];
+    C.keys.entries.forEach(function(item){
+      var group=item.group;
+      if(!groups.has(group)){var section=node('section','qol-shortcut-group',sheet);node('h3','',section,group);groups.set(group,section);}
+      var row=node('div','qol-shortcut-row',groups.get(group));node('span','',row,item.label);
+      var text=C.keys.label(item.id)||'Unbound',cap=node('kbd','',row,text);cap.dataset.keyAction=item.id;
+      rows.push({row:row,text:(item.label+' '+group+' '+text).toLowerCase()});
+    });
+    var none=node('p','qol-empty',sheet,'No shortcuts match.');none.hidden=true;
+    filter.addEventListener('input',function(){
+      var q=filter.value.trim().toLowerCase(),shown=0;
+      rows.forEach(function(r){var ok=!q||r.text.indexOf(q)>=0;r.row.hidden=!ok;if(ok)shown++;});
+      groups.forEach(function(section){section.hidden=!section.querySelector('.qol-shortcut-row:not([hidden])');});
+      none.hidden=shown>0;
+    });
+    C.paletteUI.show(sheet);context(true);C.accessibility.trap(sheet);filter.focus();
+  }
   function focus(value){focusMode=!!value;root.document.body.classList.toggle('qol-focus',focusMode);if(focusMode){try{if(!root.localStorage.getItem('cardable.qol.focusHint')){C.qol.toast('H to show the interface');root.localStorage.setItem('cardable.qol.focusHint','1');}}catch(_){}}}
   function data(action){if(C.detail.phase!=='closed')C.detail.close();if(C.inventory.active)C.inventory.request('peek');C.openSettings('Data');if(C.preferences.open)C.settingsData.current[action].click();else C.qol.toast('Finish the current interaction first.');}
   async function capture(copy){if(!C.native||busy)return;busy=true;try{var result;if(copy!=null){if(C.detail.phase!=='detail'||!C.detail.view)throw new Error('Not in detail');var el=C.detail.view.el;el.blur();await new Promise(function(resolve){root.requestAnimationFrame(function(){root.requestAnimationFrame(resolve);});});var r=el.getBoundingClientRect(),style=root.getComputedStyle(el);result=await C.native.capture.card({x:r.x,y:r.y,width:r.width,height:r.height,radius:parseFloat(style.borderTopLeftRadius)||0,squircle:style.cornerShape==='squircle'},copy);}else result=await C.native.capture.saveWindow();if(!result.success)throw new Error('Capture failed');C.events.emit('ui:screenshot',{kind:copy==null?'window':'card',copied:!!result.copied});root.document.body.classList.remove('qol-shutter');void root.document.body.offsetWidth;root.document.body.classList.add('qol-shutter');root.setTimeout(function(){root.document.body.classList.remove('qol-shutter');},300);C.qol.toast(result.copied?'Card image copied.':'Image saved to Pictures / Cardable.',result.id?{label:'Show in folder',run:function(){return C.native.capture.showInFolder(result.id);}}:null);}catch(_){C.qol.toast('Could not capture this view.');}finally{busy=false;}}

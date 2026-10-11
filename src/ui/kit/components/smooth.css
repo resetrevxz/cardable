@@ -413,3 +413,19 @@
 .album-bulk[data-empty="true"] > :not(strong):not(.album-status) { display:none; }
 .album-search:focus-within { box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.6),0 0 0 3px rgba(var(--accent-rgb),.2); }
 .album-search input:focus,.album-search input:focus-visible { outline:none !important; box-shadow:none !important; }
+/* A container focused by script (Patch notes) does not draw a ring around the whole window. */
+.patch-overlay .patch-modal[tabindex]:focus-visible { outline:none; box-shadow:0 24px 80px #0009,0 4px 16px #0008,inset 0 1px 0 #ffffff12; }
+/* Keyboard shortcuts: title with a close icon, a live filter, rows that hide cleanly. */
+.qol-shortcuts-head { display:flex; align-items:center; justify-content:space-between; gap:var(--s-3); margin-bottom:var(--s-3); }
+.qol-shortcuts-head h2 { margin:0; }
+.qol-shortcuts-close { display:grid; place-items:center; width:36px; height:36px; padding:0; border:0; border-radius:var(--radius-chip); background:var(--glass-2); box-shadow:inset 0 0 0 1px var(--stroke); color:var(--text-dim); cursor:pointer; transition:background-color var(--duration-fast) var(--ease-out),color var(--duration-fast) var(--ease-out); }
+.qol-shortcuts-close:hover { background:var(--glass-3); color:var(--text); }
+.qol-shortcuts-close svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+.qol-shortcuts-search { display:flex; align-items:center; gap:var(--s-2); height:40px; padding:0 var(--s-3); border-radius:var(--radius-control); background:var(--glass-1); box-shadow:inset 0 0 0 1px var(--stroke); color:var(--text-dim); transition:box-shadow var(--duration-fast) var(--ease-out); }
+.qol-shortcuts-search:focus-within { box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.6),0 0 0 3px rgba(var(--accent-rgb),.2); }
+.qol-shortcuts-search svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; flex:none; }
+.qol-shortcuts-search input { flex:1; min-width:0; border:0; background:transparent; color:var(--text); font:400 14px/20px var(--font-ui); }
+.qol-shortcuts-search input:focus,.qol-shortcuts-search input:focus-visible { outline:none !important; box-shadow:none !important; }
+.qol-shortcuts-search input::placeholder { color:var(--text-dim); }
+.qol-shortcut-row[hidden],.qol-shortcut-group[hidden],.qol-shortcuts .qol-empty[hidden] { display:none; }
+.qol-shortcut-row kbd { padding:2px 8px; border-radius:var(--radius-chip); background:var(--glass-2); box-shadow:inset 0 0 0 1px var(--stroke); font:500 11px/16px var(--font-mono); }
