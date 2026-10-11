@@ -50,7 +50,7 @@
     sheet=node('section','qol-shortcuts glass glass--sheet',C.viewport.parent(root.document.body));sheet.hidden=true;sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');sheet.setAttribute('aria-label','Keyboard shortcuts');
     command('pack','Open pack','Play',function(){C.input.chargeStart();},function(){return idle()&&!C.inventory.active&&!C.preferences.open&&C.state.current.packs.ready>0;},['charge'],'Space');
     command('inventory','Open inventory','Collections',function(){if(C.preferences.open)C.preferences.close();C.inventory.request(true);},idle,[],'I');
-    command('achievements','Open achievements','Collections',function(){if(C.preferences.open)C.preferences.close();C.achievementView.show();});
+    if(C.config.flags.achievements)command('achievements','Open achievements','Collections',function(){if(C.preferences.open)C.preferences.close();C.achievementView.show();});
     command('settings','Open settings','Settings',function(){C.preferences.show();},idle,[],'S');
     command('dots','Toggle dot grid','Settings',function(){C.settings.set('dots',C.settings.get('dots')==='off'?'on':'off');});
     command('mute','Mute (sound is not enabled)','Settings',function(){C.settings.set('muted',!C.settings.get('muted'));C.qol.toast('Mute preference saved; sound is not enabled.');});

@@ -4,6 +4,7 @@
   s.keyBindings=add('keyBindings','','',null,{});s.keyBindings.validate=function(value){return C.keys.normalize(value);};
   var visibility={wordmark:'Wordmark',credits:'Credits',packCounter:'Pack count',stockVials:'Stock vials',timer:'Refill timer',inventoryArrow:'Inventory arrow',achievements:'Achievements button',help:'Help buttons',tooltips:'Tooltips',tags:'Card tags',toastInfo:'Information toasts',toastSuccess:'Success toasts',toastAchievements:'Achievement toasts',performance:'Performance overlay',version:'Version label',contextHint:'Context menu hint',dots:'Dot grid',cursor:'Cursor glow',titleDecorations:'Title decorations',mini:'Mini button',desktop:'Desktop controls',idleFade:'Idle fade',settings:'Settings button',releaseNotes:'Patch notes button'};
   Object.keys(visibility).forEach(function(id){var e=add('visible'+id[0].toUpperCase()+id.slice(1),visibility[id],'Keep this part of the interface visible.','Interface visibility',true,null,'switch',true);e.apply=function(v,api){api.attribute('hide'+id[0].toUpperCase()+id.slice(1),!v);};});
+  if(C.config.flags.achievements===false){['visibleAchievements','visibleToastAchievements'].forEach(function(k){if(s[k])s[k].retired=true;});}
   s.visibleDesktop.disabled=true;s.visibleDesktop.helper='Native Windows controls stay available. Fullscreen hides the titlebar.';
   add('visibilityWarningSeen','','',null,false);
   add('proximityChrome','Proximity chrome','Fade credits and inventory peek until nearby, focused or receiving a reward.','Interface visibility',false,null,'switch',true);

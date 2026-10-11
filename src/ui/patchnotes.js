@@ -387,7 +387,7 @@
       C.keys.listen(doc, 'keydown', 'patchnotes.navigation', function (event) {
         if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
         if (opened && event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); if (inspectLayer) closeInspect(); else close(); return; }
-        var editing = event.target && (event.target.isContentEditable || event.target.closest('input,select,textarea'));
+        var editing = event.target && (event.target.isContentEditable || event.target.closest && event.target.closest('input,select,textarea'));
         if (opened && !inspectLayer && event.key === '/' && !editing) { event.preventDefault(); event.stopImmediatePropagation(); search.focus(); }
 
 

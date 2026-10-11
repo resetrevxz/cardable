@@ -262,7 +262,7 @@
     // Recover the narrow gap between a durable pack reservation and its event receipt.
     if (C.state.current.pendingReveal) C.achievements.handle('opening:committed', { cards: C.state.current.pendingReveal.cards });
   }
-  C.events.on('app:ready', function () { initialized = true; initialize(); timeSample = document.hidden ? null : performance.now(); C.achievements.handle('achievement:visit'); });
+  C.events.on('app:ready', function () { if (C.config.flags.achievements === false) return; initialized = true; initialize(); timeSample = document.hidden ? null : performance.now(); C.achievements.handle('achievement:visit'); });
   function visit() { if (initialized) C.achievements.handle('achievement:visit'); }
   var timeSample = null, remainder = 0, nativeVisible = true;
   function sampleTime(force) {

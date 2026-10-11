@@ -1,5 +1,7 @@
 (function (C, root) {
   'use strict';
+  // Achievements are paused for now: no tab, panel, toast, command or shortcut. The module stays intact for the rework.
+  if (C.config.flags.achievements === false) return;
   var toast, pending = [], showing = null, until = 0, dismissedAt = 0;
   var overlay, panel, search, filter, difficulty, sidebar, inspector, footer, status;
   var selected = null, progressRefs = [], mobileDetail = false;

@@ -146,7 +146,7 @@
     { id: 'Gameplay', icon: 'pack', blurb: 'Opening packs and your collection.', sections: [
       { title: 'Opening packs', keys: ['openKey', 'holdDuration', 'toggleHold', 'cutAssist', 'keyHints'] },
       { title: 'Cards', keys: ['serialOnFront', 'confirmLowDelete'] },
-      { title: 'Notices', keys: ['achievementToasts', 'toastPosition', 'notifyPackReady'] },
+      { title: 'Notices', keys: ['achievementToasts', 'toastPosition', 'notifyPackReady'].filter(function (key) { return !(s[key] && s[key].retired); }) },
       { title: 'Collection', keys: ['defaultSort', 'defaultView', 'defaultTagMode', 'startupScreen'] },
       { title: 'Formats', keys: ['timeFormat', 'dateFormat', 'numberFormat'] } ] },
     { id: 'Controls', icon: 'keyboard', advanced: true, blurb: 'Two keys for every action.', sections: [{ title: 'Keyboard', slot: 'bindings', keys: [] }] },
