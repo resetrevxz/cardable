@@ -429,3 +429,7 @@
 .qol-shortcuts-search input::placeholder { color:var(--text-dim); }
 .qol-shortcut-row[hidden],.qol-shortcut-group[hidden],.qol-shortcuts .qol-empty[hidden] { display:none; }
 .qol-shortcut-row kbd { padding:2px 8px; border-radius:var(--radius-chip); background:var(--glass-2); box-shadow:inset 0 0 0 1px var(--stroke); font:500 11px/16px var(--font-mono); }
+/* Tutorial: Skip and Help sit under the wordmark so they never cover Credits or Settings. */
+.tutorial .tutorial-skip { top:calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px) + 76px); right:auto; left:calc(var(--s-6) + var(--safe-left,0px)); display:inline-flex; align-items:center; min-height:40px; padding:0 var(--s-4); border:0; border-radius:var(--radius-chip); background:var(--glass-1); box-shadow:inset 0 0 0 1px var(--stroke); color:var(--text-dim); font:500 13px/1 var(--font-ui); transition:color var(--duration-fast) var(--ease-out),background-color var(--duration-fast) var(--ease-out); }
+.tutorial .tutorial-skip:hover { color:var(--text); background:var(--glass-3); }
+.cb-ui .tutorial > .cb-help-button { top:calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px) + 76px); right:auto; left:calc(var(--s-6) + var(--safe-left,0px) + 140px); width:40px; height:40px; min-height:40px; }

@@ -143,7 +143,7 @@
       meta = first(packHost, '[data-tutorial-target=timer]'); toastHost = first(root.document.body, '.collection-toast'); enter = first(root.document.body, '.opening-enter-hint');
       shell = C.packMarkup.node('aside', 'tutorial', root.document.body); shell.hidden = true; shell.setAttribute('aria-label', 'Getting started');shell.appendChild(C.ui.create('help',{help:'tutorial',label:'Tutorial help'}));
       instruction = C.packMarkup.node('p', 'tutorial-instruction', shell); instruction.setAttribute('role', 'status'); instruction.setAttribute('aria-live', 'polite'); instruction.setAttribute('aria-atomic', 'true');
-      skipButton = C.packMarkup.node('button', 'tutorial-skip', shell, 'Skip'); skipButton.setAttribute('type', 'button'); skipButton.setAttribute('aria-label', 'Skip tutorial');
+      skipButton = C.packMarkup.node('button', 'tutorial-skip', shell, 'Skip tutorial'); skipButton.setAttribute('type', 'button'); skipButton.setAttribute('aria-label', 'Skip tutorial');
       skipButton.addEventListener('click', function (event) { if (event.button === 0) skip(); });
       var svg = root.document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'tutorial-ghost'); svg.setAttribute('viewBox', '0 0 100 20'); svg.setAttribute('aria-hidden', 'true'); cutHint.appendChild(svg);
       ghost = root.document.createElementNS('http://www.w3.org/2000/svg', 'path'); ghost.setAttribute('d', cfg.ghostPath); ghost.setAttribute('pathLength', '1'); svg.appendChild(ghost);
