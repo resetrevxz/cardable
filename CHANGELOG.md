@@ -1,3 +1,12 @@
+# Cardable v1.5.5 — Low gets more
+
+The event-only touches that reached Medium in 1.5.4 now also run on Low, plus the lit card edge. Very Low is unchanged and stays static. Saves and the save schema are unchanged.
+
+- **Low.** Detail and toolbar panels rise in, serials etch, new cards glint, toasts spring and the stock meniscus sloshes. Each is a short transform or opacity animation that ends by itself. The card's lit edge is one static shadow.
+- **Left alone.** Looping light passes, filter blurs and the two-gradient glare stay on Medium and High; Very Low keeps everything static.
+
+Matching headless runs showed Low menu idle at 0.1% and shelf scrolling at 0.5% main-thread busy, unchanged. Real low-end hardware remains unmeasured. This release is unsigned.
+
 # Cardable v1.5.4 — Medium gets more
 
 Medium now shows several touches that were High-only because they cost almost nothing: they run once on an event or are a single static layer. Saves and the save schema are unchanged, and nothing was removed from any tier.

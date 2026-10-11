@@ -1,5 +1,20 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.5.5',codename:'Low gets more',date:'October 11, 2026',tag:'Update',tagline:'Event animations reach Low.',
+    hero:{badge:'CARDABLE / 1.5.5',title:'Low gets more.',subtitle:'Short event animations and the lit card edge now run on Low.',media:[]},
+    sections:{
+      fixes:[],
+      visuals:[
+        'Panels rise in, serials etch, new cards glint and toasts spring on Low.',
+        'The lit card edge shows on Low.'
+      ],
+      qol:[
+        'Very Low stays fully static.'
+      ]
+    },
+    entries:['Event animations now run on Low.','Very Low is unchanged.']
+  },
+  {
     version:'1.5.4',codename:'Medium gets more',date:'October 11, 2026',tag:'Update',tagline:'Cheap High touches now on Medium.',
     hero:{badge:'CARDABLE / 1.5.4',title:'Medium gets more.',subtitle:'Short event animations and richer card glare move down from High.',media:[]},
     sections:{

@@ -6,6 +6,7 @@ Give one authorized milestone per prompt. Read AGENTS.md, Designs.MD, the releva
 
 | Work | Implementation / commit | Packaging / runtime evidence | Remaining scope |
 |---|---|---|---|
+| 1.5.5 Low gets more / stage 112 | Event-only animations and lit card edge lifted to Low | Headless main-thread run: Low idle 0.1%, shelf 0.5% | Hardware |
 | 1.5.4 Medium gets more / stage 111 | Event-only animations and two-gradient glare lifted from High to Medium | Headless main-thread comparison, no regression; hardware not measured | Installer run, hardware |
 | 1.5.3 Smoother frames / stage 110 | Pack and card lighting writes reduced; forced restyles removed; Exotic colour cache; frame metrics | Headless Chromium main-thread measurements on one desktop CPU, journey run with no errors on four tiers; real low-end hardware and GPU cinematics not measured | Installer run, hardware |
 | 1.5.2 Straight to it / stage 109 | Exotic prelude removed; Secret starts past its fake-out via descriptor `startMs`; pack-ready return card removed | Source session stepping both intros; packaging and hardware not exercised | Installer run, live updater |
