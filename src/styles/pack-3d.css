@@ -104,26 +104,29 @@
 [data-state="waiting"] .pack-rear-generic { opacity: .25; }
 
 /* Flip affordance ----------------------------------------------------------- */
-.pack-meta { --flip-row: 30px; }
-.pack-flip-action { position: absolute; top: 0; left: calc(50% + 72px); height: var(--flip-row); box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-2); border: 0; border-bottom: 1px solid var(--hairline); background: transparent; color: var(--text-dim); font: 10px/1.5 var(--font-mono); letter-spacing: .15em; text-transform: uppercase; cursor: pointer; transition: color var(--t-fast),background var(--t-fast); }
-.pack-flip-action:hover, .pack-flip-action:focus-visible { color: var(--text); background: var(--glass); outline: 1px solid var(--hairline-strong); }
-.pack-flip-action kbd { padding: 0 var(--s-1); border: 1px solid var(--hairline); border-radius: var(--s-1); font: 9px var(--font-mono); }
-.pack-flip-action[hidden] { display: none; }
 .pack-key-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--s-2); }
 .pack-key-row + .pack-key-row { margin-top: var(--s-2); }
 .pack-key-row span { color: var(--text-dim); font: 9px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
 .pack-stage.is-orbiting { cursor: grabbing; }
 .pack-stage[data-flipped="true"] .pack-key-hint { opacity: 1; }
-@media (hover: none) { .pack-flip-action { height: 44px; top: -7px; } }
 
 /* Short windows: a smaller pack and a higher stage keep the timer, queue and counter clear of the inventory sheet. */
 /* The stage rises on shorter windows so the whole timer, queue and counter stack clears the inventory sheet. */
 :root { --stage-lift: 0px; }
-@media (max-height: 900px) { :root { --stage-lift: 6.5vh; } }
+@media (max-height: 900px) { :root { --stage-lift: 8vh; } }
 @media (max-height: 540px) { :root { --stage-lift: 9vh; } }
 .pack-stage, .opening-pack { top: calc(50% - var(--stage-lift)); }
 .royal-holder { top: calc(50% - var(--stage-lift)); }
 @media (max-height: 500px) { :root { --stage-lift: 12vh; } .pack-stage, .opening-pack { --pack-width: clamp(116px,calc(var(--layout-height,100vh) * .27),140px); } .pack-metrics { display: none; } }
+/* Wide and short: the status cluster stands beside the pack instead of under it, so nothing meets the inventory sheet. */
+@media (max-height: 500px) and (min-width: 640px) {
+  :root { --stage-lift: 0px; }
+  .pack-meta { top: 50%; left: calc(100% + var(--s-6)); transform: translateY(-50%); width: 172px; justify-items: start; text-align: left; }
+  .pack-actions { flex-wrap: wrap; justify-content: flex-start; }
+  .pack-stock { justify-content: flex-start; }
+  .pack-metrics { display: block; margin-top: 8px; }
+  .is-afk .pack-meta { left: 50%; transform: translate(-50%,-50%); width: 280px; justify-items: center; text-align: center; }
+}
 
 /* A floor reflection that follows the turn (High and Very High only). */
 #pack-stage .pack-unit[data-pack-quality="high"]:not(.pack-unit--back), #pack-stage .pack-unit[data-pack-quality="very-high"]:not(.pack-unit--back) { -webkit-box-reflect: below 2px linear-gradient(transparent 84%,rgba(255,255,255,.12)); }

@@ -2,10 +2,8 @@
 .wordmark { transform-origin: top left; transition: transform var(--t-fade) var(--ease-out), opacity var(--t-fast) var(--ease-out); }
 .is-idle .wordmark, .is-idle .pack-meta { opacity: 1 !important; }
 .is-idle .wordmark { transform: scale(.65); }
-.pack-metrics { margin-top: var(--s-3); color: var(--text-dim); font: 10px/1.5 var(--font-mono); font-variant-numeric: tabular-nums; }
 .is-idle .pack-open-action { opacity: 0; pointer-events: none; }
 .is-quiet #currency-counter, .is-idle #currency-counter { opacity: 0 !important; pointer-events: none; }
-.pack-open-action { transition: opacity var(--t-fade) var(--ease-out); }
 
 .inventory-sheet, .inventory-sheet.is-peek {
   opacity: calc(.32 + var(--inventory-proximity, 0) * .68);
@@ -29,7 +27,7 @@
 .is-afk #pack-stage { visibility: visible !important; opacity: 1 !important; pointer-events: none; }
 .is-afk .pack-meta { top: 50%; transform: translate(-50%,-50%); opacity: 1 !important; pointer-events: none; }
 .is-afk .pack-unit, .is-afk .pack-reflection, .is-afk .pack-key-hint,
-.is-afk .pack-open-action, .is-afk .inventory-sheet, .is-afk .inventory-detail,
+.is-afk .pack-actions, .is-afk .pack-open-action, .is-afk .inventory-sheet, .is-afk .inventory-detail,
 .is-afk .opening-stage, .is-afk .opening-toast, .is-afk .tutorial,
 .is-afk .collection-toast,
 .is-afk .settings-overlay, .is-afk .settings-corner, .is-afk .currency-counter,

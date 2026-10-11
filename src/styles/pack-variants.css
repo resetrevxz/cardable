@@ -41,7 +41,7 @@
 .is-stored .pack-counter-thumb { opacity: .9; }
 .pack-counter-thumb__seal { position: absolute; inset: 0 0 auto; height: 2px; background: #d1e5ff; box-shadow: 0 18px 0 #bad7ff; }
 .pack-counter-thumb__brand { position: absolute; inset: 0; display: grid; place-items: center; font: 600 10px var(--font-ui); color: #f0f6ff; }
-.pack-counter-glyph { position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%); color: var(--pack-rare-fluid); font: 500 7px/1 var(--font-mono); white-space: nowrap; }
+.pack-counter-glyph { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); color: var(--pack-rare-fluid); font: 500 9px/1 var(--font-ui); letter-spacing: .02em; white-space: nowrap; }
 .stock-card[data-queue-marked="true"] .stock-card__mark { opacity: 0; }
 .stock-card[data-queue-marked="true"] .stock-card__fill { background: linear-gradient(135deg,color-mix(in srgb,var(--queue-accent) 65%,white),color-mix(in srgb,var(--queue-accent) 40%,transparent)); }
 .pack-queue-beyond { position: absolute; top: 8px; white-space: nowrap; color: var(--pack-rare-fluid); font: 8px var(--font-mono); }

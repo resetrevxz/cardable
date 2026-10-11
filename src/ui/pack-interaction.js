@@ -55,7 +55,9 @@
         var total = flipSpring.value + orbitSpring.value;
         orbitSpring.reset(0); orbitTarget = 0; orbitPitch = 0; flipSpring.value = total;
         flipTarget = Math.round(total / 360) * 360;
+        var was = state.flipped;
         state.flipped = false; host.dataset.flipped = 'false';
+        if (was) C.events.emit('pack:flip', { flipped: false });
       }
       function move(event) {
         if (blocked || !bounds) return;

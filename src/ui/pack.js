@@ -37,9 +37,11 @@
       host.setAttribute('aria-description', 'Drag to inspect the sealed wrapper. Press R to flip it over. Hold Space to open when ready. Press V for a closer look; Escape returns.');
       var meta = node('div', 'pack-meta idle-chrome entrance', host); meta.dataset.tutorialTarget='timer'; meta.style.setProperty('--entry', 2);
       var timer = node('div', 'pack-timer', meta); timer.setAttribute('role', 'timer'); timer.setAttribute('aria-live', 'off');
-      var action = node('button', 'pack-open-action', meta, 'Open pack'); action.type = 'button';
+      var actions = node('div', 'pack-actions', meta);
+      var action = node('button', 'pack-open-action', actions); action.type = 'button';
+      node('span', '', action, 'Open pack'); var openKey = node('kbd', '', action, 'Space'); openKey.dataset.keyAction = 'opening.hold';
       action.setAttribute('aria-label', 'Hold to open pack');
-      var flipAction = node('button', 'pack-flip-action', meta); flipAction.type = 'button';
+      var flipAction = node('button', 'pack-flip-action', actions); flipAction.type = 'button';
       flipAction.setAttribute('aria-label', 'Flip pack'); flipAction.setAttribute('aria-pressed', 'false');
       node('span', '', flipAction, 'Flip'); node('kbd', '', flipAction, 'R').dataset.keyAction = 'menu.flip-pack';
       flipAction.addEventListener('click', function () { C.packView.flip(); });
@@ -62,7 +64,7 @@
         vials.push({ el: vial, fill: fill, value: initialFill, from: 0, target: 0, start: null, arrival: null });
       }
       var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); var holdRow = node('div', 'pack-key-row', hint); node('kbd', '', holdRow, 'Space'); node('span', '', holdRow, 'Open'); var flipRow = node('div', 'pack-key-row', hint); var flipKey = node('kbd', '', flipRow, 'R'); node('span', '', flipRow, 'Flip'); flipKey.dataset.keyAction = 'menu.flip-pack';
-      function updateOpeningKey() { hint.querySelector('kbd').dataset.keyAction='opening.hold';hint.querySelector('kbd').textContent = C.keys.label('opening.hold'); flipKey.textContent = C.keys.label('menu.flip-pack'); var description = host.getAttribute('aria-description'); if (description) host.setAttribute('aria-description', description.replace(/Hold (Space|Enter)/, 'Hold ' + C.settings.holdKey)); }
+      function updateOpeningKey() { hint.querySelector('kbd').dataset.keyAction='opening.hold';hint.querySelector('kbd').textContent = C.keys.label('opening.hold'); openKey.textContent = C.keys.label('opening.hold'); flipKey.textContent = C.keys.label('menu.flip-pack'); var description = host.getAttribute('aria-description'); if (description) host.setAttribute('aria-description', description.replace(/Hold (Space|Enter)/, 'Hold ' + C.settings.holdKey)); }
       C.settings.onChange('keyBindings',updateOpeningKey);C.settings.onChange('openKey', updateOpeningKey); updateOpeningKey();
       var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, handoff = null, progress = C.timers.progress(Date.now());
       cachedStyle(host, '--pack-reflection-opacity', cfg.reflectionOpacity);
@@ -99,7 +101,7 @@
         metrics.textContent = state.inventory.length + (state.inventory.length === 1 ? ' card · ' : ' cards · ') + ready + ' / ' + C.config.packs.maxStored + ' packs';
         host.setAttribute('aria-label', types[0].name + ': ' + (ready ? ready + ' ready' : 'regenerating'));
         action.disabled = ready <= 0; action.hidden = ready <= 0;
-        timer.dataset.label = ready >= C.config.packs.maxStored ? 'PACK STORAGE' : ready > 0 ? 'NEXT PACK' : 'REGENERATING';
+        timer.dataset.label = ready >= C.config.packs.maxStored ? 'Pack storage' : ready > 0 ? 'Next pack' : 'Regenerating';
         vials.forEach(function (vial, i) {
           var target = i < ready ? 1 : 0;
           if (initial) { vial.target = target; }

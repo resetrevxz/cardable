@@ -49,3 +49,6 @@ No rules, data, odds, timings of the opening state machine or save fields change
 - **Floor bounce.** Each designed pack throws a faint pool of its own colour on the floor through the existing ground shadow layer (`--face-glow`), so it follows the Shadow quality setting and goes grey in monochrome.
 - **Backs.** The generic rear copy wraps instead of truncating with an ellipsis. Classic's back moves the wordmark above the title (it sat on the painted connector), folds the series into the batch line and uses upper case. Picker's back copy lifts clear of the barcode.
 - **Checks.** `checkPackFaces` accepts a blocked flip while a pack is open instead of reporting a false failure.
+
+## 1.4.1: status cluster
+The area under the pack (timer, Open pack, Flip, stock row, counter) is redrawn to the kit's type and control language: sentence-case label, 22 px tabular time with dim units, an accent Open pack pill with its key, a secondary Flip pill, concentric 6 px stock cards (neutral when stored, accent while refilling) and a 12 px counter. `src/ui/pack.js` wraps the two buttons in `.pack-actions` and shows the hold key; styles live in `src/styles/pack.css` with the short-window side layout in `src/styles/pack-3d.css`. Behaviour, data and the hide-timer / hide-counter / hide-stock settings are unchanged.
