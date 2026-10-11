@@ -26,10 +26,6 @@
 .inventory-sheet[data-page="album"] .inventory-tab-list .is-selected { background:transparent; color:var(--text-dim); border-color:transparent; }
 .inventory-content.is-page-entering > :is(.achievements-panel,.album-page,.inventory-shelf,.inventory-grid):not([hidden]) { animation:cb-page-in calc(420ms * var(--q-motion,1)) var(--ease-out) both; }
 @keyframes cb-page-in { from { opacity:0; transform:translateY(14px) scale(.992); filter:blur(calc(6px * var(--q-blur))); } to { opacity:1; transform:none; filter:none; } }
-.achievements-panel { background:transparent; }
-.achievements-panel :is(.achievement-row,.achievement-filters button,.achievement-card) { transition:transform var(--duration-base) var(--ease-out),border-color var(--duration-fast) var(--ease-out),background-color var(--duration-fast) var(--ease-out),box-shadow var(--duration-base) var(--ease-out); }
-.achievements-panel .achievement-row:hover { transform:translateX(3px); border-color:var(--stroke-strong); }
-.achievements-panel .achievement-row:active { transform:translateX(1px) scale(.995); }
 
 /* Tabs */
 .inventory-tabs .inventory-menu-option { transition:background-color var(--duration-base) var(--ease-out),color var(--duration-fast) var(--ease-out),border-color var(--duration-base) var(--ease-out),transform var(--duration-fast) var(--ease-out); }
@@ -406,9 +402,6 @@
 .detail-card-hint > * { white-space:nowrap; }
 @media (max-width:520px), (pointer:coarse) { .detail-hint-parts { display:none; } }
 /* Achievement search: the field shows focus as a whole, not as a square ring on the bare input. */
-.achievement-search { transition:border-color var(--duration-fast) var(--ease-out),box-shadow var(--duration-fast) var(--ease-out); }
-.achievement-search:focus-within { border-color:rgba(var(--accent-rgb),.6); box-shadow:0 0 0 3px rgba(var(--accent-rgb),.2); }
-.achievement-search input:focus,.achievement-search input:focus-visible { outline:none !important; box-shadow:none !important; }
 /* Album: an empty album shows no selection tools; the search field shows focus as a whole. */
 .album-bulk[data-empty="true"] > :not(strong):not(.album-status) { display:none; }
 .album-search:focus-within { box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.6),0 0 0 3px rgba(var(--accent-rgb),.2); }
@@ -448,4 +441,3 @@
 /* Phone width: the peek thumbnail is invisible when the sheet is open, so it must not hold a third header row. */
 @media (max-width:520px) { .inventory-sheet .inventory-peek-thumbnail { position:absolute; top:25px; right:var(--s-4); } }
 /* Phone width: the Achievements title takes a full row so it never breaks inside a word; actions sit beneath it. */
-@media (max-width:520px) { .achievements-header { flex-wrap:wrap; row-gap:var(--s-2); } .achievements-header > :first-child { flex:1 1 100%; min-width:0; } .achievements-header .achievement-button { white-space:nowrap; margin-left:0; } .achievements-header > .cb-help-button { margin-left:auto; } }

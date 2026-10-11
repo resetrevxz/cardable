@@ -159,7 +159,7 @@
     if(shown.length&&!shown.some(function(d){return d.id===selected;}))selected=shown[0].id;
     sidebar.replaceChildren();progressRefs=[];
     var pinned=shown.filter(function(d){return C.achievements.isPinned(d.id);});
-    [['pinned','Pinned Achievements',pinned],['weekly','Weekly Achievements'],['unclaimed','Unclaimed Rewards'],['recurring','Recurring Achievements'],['eternal','One-time Achievements']].forEach(function(group){
+    [['pinned','Pinned',pinned],['weekly','Weekly'],['unclaimed','Unclaimed rewards'],['recurring','Recurring'],['eternal','One-time']].forEach(function(group){
       var members=group[2]||shown.filter(function(d){return (d.archived?'unclaimed':d.kind)===group[0]&&!C.achievements.isPinned(d.id);});
       if(!members.length&&group[0]!=='pinned')return;
       var section=node('details','achievement-section',sidebar);section.dataset.section=group[0];section.open=expanded[group[0]]??group[0]!=='eternal';
@@ -180,7 +180,7 @@
     node('span','achievement-row-emblem',select).appendChild(emblem(def,p));
     var copy=node('span','achievement-row-copy',select);node('strong','',copy,title(def,p));
     var meta=node('span','achievement-row-meta',copy);node('span','',meta,def.difficulty);node('span','achievement-row-state',meta,state(def,p));
-    var progress=bar(copy,def.name+' completion',ratio(def,p)*100,100);node('span','achievement-chevron',select).appendChild(C.icons.create('chevron'));
+    var progress=bar(copy,def.name+' completion',ratio(def,p)*100,100);
     var pin=button('',row,function(){C.achievements.togglePin(def.id);},'achievement-pin');pin.appendChild(C.icons.create('pin'));pin.dataset.focus='pin-'+def.id;pin.setAttribute('aria-label',(C.achievements.isPinned(def.id)?'Unpin ':'Pin ')+title(def,p));pin.setAttribute('aria-pressed',String(C.achievements.isPinned(def.id)));
     progressRefs.push({id:def.id,bar:progress,state:meta.lastElementChild});
   }
@@ -188,14 +188,11 @@
     releaseThumb();inspector.replaceChildren();if(!def)return;
     var p=C.achievements.progress(def.id),concealed=hidden(def,p),rank=p.rank||0;
     var back=button('‹ All achievements',inspector,function(){mobileDetail=false;panel.classList.remove('is-detail');sidebar.querySelector('[aria-pressed="true"]')?.focus();},'achievement-mobile-back');back.dataset.focus='browse';
-    var top=node('div','achievement-inspector-top',inspector);node('span','achievement-eyebrow',top,def.archived?'Previous week':def.kind==='eternal'?'One-time achievement':def.kind+' achievement');
+    var top=node('div','achievement-inspector-top',inspector);node('span','achievement-eyebrow',top,def.archived?'Previous week':def.kind==='eternal'?'One-time':def.kind==='weekly'?'Weekly':'Recurring');
     var pin=button(C.achievements.isPinned(def.id)?'Unpin achievement':'Pin achievement',top,function(){C.achievements.togglePin(def.id);});pin.dataset.focus='detail-pin';pin.setAttribute('aria-pressed',String(C.achievements.isPinned(def.id)));
     var surface=node('div','achievement-surface',inspector);surface.dataset.rank=String(rank);surface.dataset.difficulty=def.difficulty;
     var art=node('div','achievement-art',surface);art.setAttribute('aria-hidden','true');
-    node('span','achievement-art-coordinate',art,'CBL / '+(def.kind==='recurring'?String(p.cycles).padStart(3,'0'):'001'));
     art.appendChild(emblem(def,p));
-    var seal=node('div','achievement-seal',art);glyph(concealed?'secret':def.glyph,seal);
-    node('span','achievement-art-edition',art,def.kind==='recurring'?(rank?C.data.achievementRankNames[rank-1]:'Unetched')+' / '+String(rank).padStart(2,'0'):'Collection record');
     var content=node('div','achievement-surface-content',surface), labels=node('div','achievement-labels',content);
     node('span','achievement-difficulty',labels,def.difficulty);node('span','achievement-status',labels,state(def,p));
     var h=node('h3','',content,title(def,p));h.tabIndex=-1;
@@ -226,13 +223,13 @@
     }
   }
   function renderRanks(def,p,parent) {
-    var ranks=node('details','achievement-milestones',parent);ranks.dataset.section='ranks';ranks.open=true;node('summary','',ranks,'Milestone border');
+    var ranks=node('details','achievement-milestones',parent);ranks.dataset.section='ranks';ranks.open=true;node('summary','',ranks,'Milestone frame');
     var rail=node('ol','achievement-rank-rail',ranks);
     C.data.achievementRanks.forEach(function(goal,i){var row=node('li',p.cycles>=goal?'is-earned':'',rail);node('span','achievement-rank-mark',row,String(i+1).padStart(2,'0'));node('strong','',row,C.data.achievementRankNames[i]);node('span','',row,goal+' '+(goal===1?'cycle':'cycles'));});
-    var label=node('label','achievement-border-preview',ranks,'Preview border');var select=node('select','',label);select.setAttribute('aria-label','Preview recurring milestone border');select.dataset.focus='border-preview';
+    var label=node('label','achievement-border-preview',ranks,'Preview frame');var select=node('select','',label);select.setAttribute('aria-label','Preview recurring milestone frame');select.dataset.focus='border-preview';
     node('option','',select,'Current milestone').value='current';C.data.achievementRankNames.forEach(function(name,i){node('option','',select,name+(p.cycles>=C.data.achievementRanks[i]?' · Earned':' · Preview')).value=String(i+1);});
     select.addEventListener('change',function(){inspector.querySelector('.achievement-surface').dataset.rank=select.value==='current'?String(p.rank):select.value;});
-    node('p','achievement-border-note',ranks,'An unetched edge becomes a layered, dotted frame as you complete cycles. Previewing a border does not unlock it.');
+    node('p','achievement-border-note',ranks,'The frame around this record grows brighter as you complete cycles. Previewing a frame does not unlock it.');
   }
   function updateProgress() {
     if(!opened||root.document.hidden)return;
