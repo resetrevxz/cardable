@@ -403,3 +403,5 @@
 .dev-palette-hint kbd { display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 5px; box-sizing:border-box; border-radius:6px; background:var(--glass-2); box-shadow:inset 0 0 0 1px var(--stroke); font:500 10px/1 var(--font-mono); color:var(--text-dim); }
 .detail-hint-position { padding-left:10px; margin-left:4px; border-left:1px solid var(--stroke); color:var(--text-dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
 .detail-hint-position[hidden] { display:none; }
+.detail-card-hint > * { white-space:nowrap; }
+@media (max-width:520px), (pointer:coarse) { .detail-hint-parts { display:none; } }

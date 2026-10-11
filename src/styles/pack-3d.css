@@ -118,6 +118,11 @@
 .pack-stage, .opening-pack { top: calc(50% - var(--stage-lift)); }
 .royal-holder { top: calc(50% - var(--stage-lift)); }
 @media (max-height: 500px) { :root { --stage-lift: 12vh; } .pack-stage, .opening-pack { --pack-width: clamp(116px,calc(var(--layout-height,100vh) * .27),140px); } .pack-metrics { display: none; } }
+/* Phone width: the wordmark shrinks so Credits and Settings never cover it. */
+@media (max-width: 520px) { .wordmark svg { width: 128px; height: auto; } }
+/* Large displays: the status cluster grows with the pack so its type keeps its place in the scene. */
+@media (min-height: 1000px) { .pack-meta { transform: translateX(-50%) scale(1.2); transform-origin: 50% 0; } }
+@media (min-height: 1300px) { .pack-meta { transform: translateX(-50%) scale(1.45); } }
 /* Wide and short: the status cluster stands beside the pack instead of under it, so nothing meets the inventory sheet. */
 @media (max-height: 500px) and (min-width: 640px) {
   :root { --stage-lift: 0px; }
