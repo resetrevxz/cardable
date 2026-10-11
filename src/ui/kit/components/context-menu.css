@@ -57,3 +57,6 @@
 .reduced-motion .context-surface,.reduced-motion .context-item { transform:none; transition-property:opacity; transition-delay:var(--ui-duration-8); }
 .reduced-motion .context-switch::after { transition:none; }
 .reduced-motion .context-item-ripple { display:none; }
+/* The status line eases in when a menu action has something to say. */
+.context-notice { animation:cb-fade-in var(--t-fast) var(--ease-out) both; }
+.reduced-motion .context-notice { animation:none; }

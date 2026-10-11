@@ -234,6 +234,8 @@
   .achievement-list { flex:1; }
   .achievement-inspector { position:absolute; inset:0; background:var(--surface); display:none; }
   .achievements-panel.is-detail .achievement-inspector { display:block; }
+  .achievements-panel.is-detail .achievement-inspector { animation:cb-enter var(--t-ui) var(--ease-out) both; }
+.reduced-motion .achievements-panel.is-detail .achievement-inspector { animation:none; }
   .achievements-panel.is-detail .achievements-sidebar { visibility:hidden; }
   .achievement-mobile-back { display:block; margin-bottom:12px; }
   .achievement-inspector-top { gap:8px; margin-bottom:12px; }
