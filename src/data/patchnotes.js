@@ -4,12 +4,22 @@
     hero:{badge:'CARDABLE / 1.4.2',title:'One glass.',subtitle:'The four controls in the top corner now share one surface.',media:[]},
     sections:{
       fixes:[
-        'Help no longer overlaps Patch notes when Patch notes is wider than first measured.'
+        'Help no longer overlaps Patch notes when Patch notes is wider than first measured.',
+        'Credits no longer show a dollar sign in the pack menu and save preview.'
       ],
       visuals:[
         'Patch notes and Help use the same glass as Credits and Settings.',
         'The Settings gear takes the same glass so the row reads as one set.',
-        'The unread dot on Patch notes uses your accent color.'
+        'The unread dot on Patch notes uses your accent color.',
+        'The command palette has a rounded search field and keycap hints, and lists commands before cards.',
+        'Undiscovered shelf cards read “Unknown card” with a short “Common · Gen 2” line.',
+        'The pack’s timer and buttons grow on tall displays; on phones the wordmark and detail hint fit.',
+        'Tutorial Skip and Help sit under the wordmark instead of over Credits and Settings.'
+      ],
+      qol:[
+        'The Keyboard shortcuts sheet has a live filter and a close icon.',
+        'Card detail shows where you are, like “54 of 134”.',
+        'Search fields show focus around the whole field; an empty album hides its selection tools.'
       ]
     },
     entries:[

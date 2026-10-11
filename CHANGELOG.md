@@ -5,9 +5,18 @@ Patch notes and Help now share the surface of Credits and Settings. Saved collec
 - **Matching glass.** Patch notes and Help are the same rounded glass as Credits and Settings, with the same edge light, shadow and blur. Patch notes shows its label larger with the version beside it.
 - **Settings gear.** The gear takes the same glass so the row reads as one set.
 - **Unread dot.** The dot on Patch notes uses your accent color and sits inside the corner.
+- **Command palette.** A rounded search field with its own icon and a soft accent focus, keycap hints in the footer, and commands before cards when the field is empty.
+- **Keyboard shortcuts.** The sheet has a close icon, a live filter (type "flip" to find every flip shortcut) and clean keycaps.
+- **Where you are.** Card detail shows "54 of 134" beside the Flip hint.
+- **Shelf captions.** Undiscovered cards read "Unknown card" with "Common · Gen 2" under them, so nothing is cut off.
+- **Search fields.** Achievements and the photo album show focus around the whole field. Achievements has a magnifier, and an empty album hides its selection tools.
+- **Large displays and phones.** The pack's timer and buttons grow on tall displays. On phones the wordmark shrinks so Credits and Settings never cover it, and the detail hint stays on one line.
+- **Tutorial.** Skip tutorial and Help sit under the wordmark instead of over Credits and Settings.
+- **Cleaner details.** The cut hint is readable, and Patch notes no longer draws a focus ring around the whole window.
+- **Fixed: credits symbol.** Credits no longer show a dollar sign in the pack menu and save preview.
 - **Fixed: Help position.** Help no longer overlaps Patch notes when Patch notes is wider than first measured.
 
-Checked in a browser session with a screenshot at 1280 x 720 and the measured spacing of all four controls. Monochrome, the lower glass tiers, touch input and a clean Windows install were not exercised. This release is unsigned.
+Checked in a browser session with screenshots at 1280 x 720, 1920 x 1080 and phone width, and the pack, schedule, Picker and control dev checks. Monochrome, the lower glass tiers, touch input and a clean Windows install were not exercised. This release is unsigned.
 
 # Cardable v1.4.1 — Quiet details
 
