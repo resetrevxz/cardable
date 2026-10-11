@@ -24,6 +24,7 @@
 .cb-help-button { font:500 14px/20px var(--font-mono); }
 .cb-help-active [data-help] { outline:1px dashed var(--accent); outline-offset:4px; cursor:help; }
 .cb-toast-stack { position:absolute; z-index:var(--z-toast); bottom:calc(var(--s-8) + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:min(420px,90%); display:grid; gap:var(--s-2); pointer-events:none; }
+:root[data-toast-position="top"] .cb-toast-stack { top:calc(var(--s-8) + var(--safe-top) + var(--titlebar-inset,0px)); bottom:auto; }
 .cb-toast { display:flex; gap:var(--s-3); align-items:center; padding:var(--s-4); background:var(--ink-2); border:1px solid var(--stroke); border-radius:var(--radius-panel); box-shadow:var(--shadow-md); pointer-events:auto; font:400 14px/20px var(--font-ui); }
 .cb-toast span { flex:1; }
 .cb-toast[data-variant="error"] { border-color:var(--danger); }

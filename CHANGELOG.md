@@ -3,6 +3,7 @@
 The second round of the visual pass, plus a fix for inspecting Ascendant cards. Saved collections, serials and the save schema are unchanged.
 
 - **Inventory height.** Appearance › Interface chooses how tall the inventory opens: Compact, Standard (the default) or Tall. It re-measures live, even with the inventory open.
+- **Notice position.** Gameplay › Notices chooses whether unlock and action notices appear at the bottom (the default) or the top of the screen.
 - **Fixed: inventory pull from fully open.** Pulling the sheet down from its full height no longer detaches it from the bottom edge. It stays anchored and shrinks as one surface.
 - **Fixed: Inspect on Ascendant cards.** The Studio quietly failed to open for Ascendant cards. It opens now, and if the Studio ever cannot prepare a card it says so instead of doing nothing.
 - **Inventory popovers.** Filters, Sort, Collection options and New collection are glass cards set in from the edge. Filter choices are pills instead of small checkboxes.

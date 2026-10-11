@@ -23,6 +23,7 @@
   add('cursorGlowSize', 'Cursor glow size', 'A percentage of the standard glow.', 100, null, 'slider');
   Object.assign(s.cursorGlowSize, { min: 50, max: 200, step: 10, unit: '%' });
   add('inventoryHeight', 'Inventory height', 'How tall the inventory opens from the bottom edge.', 'standard', ['compact', 'standard', 'tall']);
+  add('toastPosition', 'Notice position', 'Where unlock and action notices appear. Bottom sits under the pack; top keeps the pack clear.', 'bottom', ['bottom', 'top']);
   add('shelfCaptions', 'Card captions', 'The name and tier under each card in the inventory shelf and grid.', true);
   add('settingsSide', 'Settings side', 'Dock this panel on the left or the right of the game.', 'left', ['left', 'right']);
   add('settingsPreviews', 'Setting previews', 'The live preview at the bottom of Settings. Its arrow folds it away too.', true);
@@ -145,7 +146,7 @@
     { id: 'Gameplay', icon: 'pack', blurb: 'Opening packs and your collection.', sections: [
       { title: 'Opening packs', keys: ['openKey', 'holdDuration', 'toggleHold', 'cutAssist', 'keyHints'] },
       { title: 'Cards', keys: ['serialOnFront', 'confirmLowDelete'] },
-      { title: 'Notices', keys: ['achievementToasts', 'notifyPackReady'] },
+      { title: 'Notices', keys: ['achievementToasts', 'toastPosition', 'notifyPackReady'] },
       { title: 'Collection', keys: ['defaultSort', 'defaultView', 'defaultTagMode', 'startupScreen'] },
       { title: 'Formats', keys: ['timeFormat', 'dateFormat', 'numberFormat'] } ] },
     { id: 'Controls', icon: 'keyboard', advanced: true, blurb: 'Two keys for every action.', sections: [{ title: 'Keyboard', slot: 'bindings', keys: [] }] },
