@@ -447,3 +447,5 @@
 @media (max-width:520px) { .inventory-tile:not(.is-centered) .inventory-tag-rail { display:none; } }
 /* Phone width: the peek thumbnail is invisible when the sheet is open, so it must not hold a third header row. */
 @media (max-width:520px) { .inventory-sheet .inventory-peek-thumbnail { position:absolute; top:25px; right:var(--s-4); } }
+/* Phone width: the Achievements title takes a full row so it never breaks inside a word; actions sit beneath it. */
+@media (max-width:520px) { .achievements-header { flex-wrap:wrap; row-gap:var(--s-2); } .achievements-header > :first-child { flex:1 1 100%; min-width:0; } .achievements-header .achievement-button { white-space:nowrap; margin-left:0; } .achievements-header > .cb-help-button { margin-left:auto; } }
