@@ -159,7 +159,7 @@
   function refresh(relocating) {
     if(!opened)return;host.dataset.quality=C.settings.get('quality');
     var p=panels[0],save=C.state.current,pack=ctx.pack=C.packs.upcoming(1)[0],ready=save.packs.ready;
-    p.packLabel.textContent=pack.name+(ready?' - Ready':' - Regenerating');
+    p.packLabel.textContent=pack.name+(ready?' · Ready':' · Regenerating');
     p.timer.set(ready>=C.config.packs.maxStored?'Stock full':(ready?'Next pack in ':'')+C.timers.format(C.timers.remaining(Date.now())));
     p.credits.set(C.config.currency.name+' '+Number(save.currency).toLocaleString());
     p.notice.textContent=note;p.el.style.setProperty('--context-fluid',ready?1:C.timers.progress(Date.now()));
