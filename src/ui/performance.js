@@ -28,10 +28,11 @@
     root.HTMLCanvasElement.prototype.getContext=function(kind,options){var gl=originals.context.call(this,kind,options);if(gl&&/^webgl/.test(kind)&&!glRefs.some(function(r){return r.deref()===gl;})){glRefs.push(new WeakRef(gl));try{var ext=gl.getExtension('WEBGL_debug_renderer_info');if(ext)gpu=gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);}catch(_){} }return gl;};
     eventHook=function(name,payload){eventCount++;return originals.emit(name,payload);};C.events.emit=eventHook;
     try{longObserver=new root.PerformanceObserver(function(list){longTasks+=list.getEntries().length;});longObserver.observe({type:'longtask',buffered:false});}catch(_){}
+    C.fx.profile.reset();C.fx.profile.enabled=true;
   }
   function uninstrument(){
     if(!originals)return;var o=originals;root.requestAnimationFrame=o.raf;root.cancelAnimationFrame=o.cancel;root.setTimeout=o.timeout;root.setInterval=o.interval;root.clearTimeout=o.clearTimeout;root.clearInterval=o.clearInterval;root.HTMLCanvasElement.prototype.getContext=o.context;if(C.events.emit===eventHook)C.events.emit=o.emit;
-    originals=null;eventHook=null;rafIds.clear();timerIds.clear();glRefs=[];if(longObserver)longObserver.disconnect();longObserver=null;
+    originals=null;eventHook=null;rafIds.clear();timerIds.clear();glRefs=[];if(longObserver)longObserver.disconnect();longObserver=null;C.fx.profile.enabled=false;
   }
   function active(){return mode!=='off'&&!root.document.hidden&&!hiddenNative&&!C.fx.stats.paused;}
   function stopTimer(){if(timer!==null)root.clearInterval(timer);timer=null;}
@@ -47,9 +48,13 @@
       dropped:frames.reduce(function(n,f){return n+Math.max(0,Math.round(f.ms/(1000/C.fx.stats.targetFps))-1);},0),longTasks:longTasks,memory:memory?Math.round(memory.usedJSHeapSize/1048576)+' / '+Math.round(memory.jsHeapSizeLimit/1048576)+' MiB':'Unavailable',
       dom:root.document.getElementsByTagName('*').length,animations:root.document.getAnimations().length,raf:rafIds.size,timers:timerIds.size,canvases:root.document.getElementsByTagName('canvas').length,webgl:glRefs.length,
       events:Math.round(eventCount*1000/Math.max(1,now-eventStart)),dpr:root.devicePixelRatio,resolutionScale:C.settings.policy.dpr,window:win.join(' × '),uiScale:C.native?C.settings.get('interfaceSize'):'browser native CSS',screen:screen,scene:C.cutscenes.active?C.cutscenes.active.spec?.kind||C.cutscenes.active.section||'cinematic':C.opening&&C.opening.phase,
-      gpu:gpu,uptime:Math.round((now-boot)/1000),saveBytes:saveSize(),samples:stats.samples};
+      gpu:gpu,uptime:Math.round((now-boot)/1000),saveBytes:saveSize(),samples:stats.samples,
+      // Frames well over the target interval (a hitch you can feel) and the callbacks behind the work.
+      overBudget:stats.samples?Math.round(100*frames.filter(function(f){return f.ms>1.5*(1000/Math.max(1,C.fx.stats.targetFps));}).length/frames.length):0,
+      busiest:C.fx.profile.report().slice(0,3).map(function(r){return r.label+' '+r.meanMs.toFixed(2)+' ms';}),
+      awake:C.fx.profile.report().filter(function(r){return r.keptAwake>0;}).sort(function(a,b){return b.keptAwake-a.keptAwake;}).slice(0,3).map(function(r){return r.label;})};
     eventCount=0;eventStart=now;
-    timing.textContent=(state?state+' · ':'')+'FPS '+Math.round(stats.fps)+'  1% '+Math.round(stats.low1)+'  0.1% '+Math.round(stats.low01)+'\nFrame ms p50 '+stats.p50.toFixed(2)+' · p95 '+stats.p95.toFixed(2)+'\np99 '+stats.p99.toFixed(2)+' · max '+stats.max.toFixed(2)+'\nSamples '+stats.samples+' · dropped '+snapshot.dropped+'\nLong tasks '+longTasks;
+    timing.textContent=(state?state+' · ':'')+'FPS '+Math.round(stats.fps)+'  1% '+Math.round(stats.low1)+'  0.1% '+Math.round(stats.low01)+'\nFrame ms p50 '+stats.p50.toFixed(2)+' · p95 '+stats.p95.toFixed(2)+'\np99 '+stats.p99.toFixed(2)+' · max '+stats.max.toFixed(2)+'\nSamples '+stats.samples+' · dropped '+snapshot.dropped+' / over budget '+snapshot.overBudget+'%\nLong tasks '+longTasks+'\nBusiest '+(snapshot.busiest.join(', ')||'idle')+'\nKeeping frames on: '+(snapshot.awake.join(', ')||'nothing');
     resources.textContent='Heap '+snapshot.memory+'\nDOM '+snapshot.dom+' · animations '+snapshot.animations+'\nRAF pending '+snapshot.raf+' · timers '+snapshot.timers+'\nCanvases '+snapshot.canvases+' · WebGL observed '+snapshot.webgl+'\nBus '+snapshot.events+'/s · listeners '+C.events.listenerCount+'\nRAF/timers/GL: observed since Advanced enabled';
     context.textContent=snapshot.quality+' · '+snapshot.screen+' · '+snapshot.scene+'\nDPR '+snapshot.dpr+' · canvas cap '+snapshot.resolutionScale+'\nWindow '+snapshot.window+' · UI '+snapshot.uiScale+'\nGPU '+snapshot.gpu+'\nUptime '+snapshot.uptime+' s · saved JSON '+snapshot.saveBytes+' B'+'\nStorage '+storageEstimate+(C.performanceStats.adaptive.length?'\nAdaptive '+C.performanceStats.adaptive.slice(-3).join(', '):'');
   }

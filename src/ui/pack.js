@@ -190,7 +190,8 @@
         var interacting = interaction.update(dt), pose = interaction.state, faceActive = false;
         var yaw = pose.yaw || 0, turned = Math.abs(Math.sin(yaw * Math.PI / 180)), facing = Math.abs(Math.cos(yaw * Math.PI / 180));
         if (yaw !== 0 && !front.rearBuilt) front.ensureRear();
-        if (interaction.flipFadeAt && reduced && now - interaction.flipFadeAt < 220) host.classList.add('is-flip-fade'); else host.classList.remove('is-flip-fade');
+        var flipFade = !!(interaction.flipFadeAt && reduced && now - interaction.flipFadeAt < 220);
+        if (flipFade !== host.classList.contains('is-flip-fade')) host.classList.toggle('is-flip-fade', flipFade);
         var ambient = C.settings.policy.ambient && !C.menu.idle && !reduced;
         var rx = pose.rx, ry = pose.ry;
         C.packView.progress = progress;

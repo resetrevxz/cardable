@@ -5,11 +5,9 @@
   function smooth(n) { n = clamp(n); return n * n * (3 - 2 * n); }
   function out(n) { return 1 - Math.pow(1 - clamp(n), 3); }
   function mix(a, b, t) { return a + (b - a) * t; }
-  function rgba(c, a) { return 'rgba(' + c.join(',') + ',' + clamp(a) + ')'; }
+  function rgba(c, a) { return C.fxColor.rgba(c, a); }
   function color(c) {
-    if (C.config.rarityColorMode !== 'mono') return c;
-    var l = Math.round(c[0] * .213 + c[1] * .715 + c[2] * .072);
-    return [l, l, l];
+    return C.fxColor.tone(c);
   }
   function tint(c, strength) { return c.map(function (v) { return Math.round(v * strength); }); }
   // Presentation randomness never touches the reserved pull's RNG.

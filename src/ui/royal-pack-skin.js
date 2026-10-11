@@ -45,7 +45,7 @@
   }
   function quality(el,pose,time,reduced,state){
     var cfg=C.config.royalPack,policy=C.settings.policy,rank=Math.min(C.settingsSchema.tiers.indexOf(C.settings.get('finishQuality')),policy.reflection);
-    el.dataset.packQuality=C.settingsSchema.tiers[rank];
+    {var q$=C.settingsSchema.tiers[rank];if(el.dataset.packQuality!==q$)el.dataset.packQuality=q$;}
     if(state.appeared==null||time<state.appeared){state.appeared=time;state.lastPaint=-Infinity;}
     var active=!reduced&&policy.ambient&&policy.animation>=2&&rank>=2,age=time-state.appeared;
     var host=el.closest('.opening-stage'),phase=host&&host.dataset.phase,charging=phase==='charging'||phase==='draining';

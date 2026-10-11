@@ -53,7 +53,7 @@
     },
     quality: function(el, pose, time, reduced, state) {
       var rank = Math.min(C.settingsSchema.tiers.indexOf(C.settings.get('finishQuality')), C.settings.policy.reflection);
-      el.dataset.packQuality = C.settingsSchema.tiers[rank];
+      {var q$=C.settingsSchema.tiers[rank];if(el.dataset.packQuality!==q$)el.dataset.packQuality=q$;}
       if (state.appeared == null || time < state.appeared) state.appeared = time;
       var moving = !reduced && C.settings.policy.ambient;
       var high = rank >= 3, medium = rank === 2;

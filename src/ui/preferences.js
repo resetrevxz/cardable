@@ -72,7 +72,7 @@
       var corner = node('div', 'settings-corner idle-chrome entrance', root.document.body); corner.style.setProperty('--entry', 2);
       gear = button('', corner, function () { if (opened) close(); else open(); }); gear.classList.add('settings-gear', 'preferences-entry'); gear.setAttribute('aria-label', 'Settings'); gear.setAttribute('aria-keyshortcuts', 'S');
       C.events.on('pointer:move', function (event) {
-        var p = event.pointer, r = corner.getBoundingClientRect();
+        var p = event.pointer, r = C.fx.rect(corner);
         var distance = Math.hypot(Math.max(r.left-p.x,0,p.x-r.right),Math.max(r.top-p.y,0,p.y-r.bottom));
         corner.classList.toggle('is-near', p.inside && distance < 120);
       });

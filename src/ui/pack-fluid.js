@@ -1,6 +1,8 @@
 (function (C) {
   'use strict';
   function clamp(n, cap) { return Math.max(-cap, Math.min(cap, n)); }
+  // Variables inherit, so tiny changes would restyle the pack subtree every frame for no visible effect.
+  function step(n, size) { return Math.round(n / size) * size; }
   C.packFluid = {
     create: function (item) {
       var cfg = C.config.packObject, angle = C.springs.create(0, cfg.fluidSpring), wave = C.springs.create(0, cfg.fluidSpring);
@@ -22,7 +24,7 @@
           var transform = 'translateY(' + ((1 - fill) * 100).toFixed(4) + '%)';
           if (painted.transform !== transform) { painted.transform = transform; item.fluid.style.transform = transform; if (item.rearFluid) item.rearFluid.style.transform = transform; }
           else if (item.rearFluid && item.rearFluid.style.transform !== transform) item.rearFluid.style.transform = transform;
-          set('--fluid-angle', a.toFixed(2) + 'deg'); set('--meniscus-wave', reduced ? '0px' : w.toFixed(2) + 'px');
+          set('--fluid-angle', step(a, 0.1).toFixed(1) + 'deg'); set('--meniscus-wave', reduced ? '0px' : step(w, 0.05).toFixed(2) + 'px');
           set('--fluid-top', ((1 - fill) * 100).toFixed(4) + '%'); set('--fluid-depth', (0.12 + fill * 0.22).toFixed(3));
           return !angle.settled() || !wave.settled();
         }

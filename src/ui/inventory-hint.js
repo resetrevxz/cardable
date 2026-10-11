@@ -40,7 +40,7 @@
         time += dt;
         var p = time % cfg.arrowNudgeMs / cfg.arrowNudgeDurationMs;
         arrow.style.setProperty('--arrow-bob', (p < 1 ? -Math.sin(p * Math.PI) * cfg.arrowNudgePx : 0) + 'px');
-        arrow.style.setProperty('--arrow-breath', cfg.arrowOpacity + Math.sin(time / cfg.arrowBreathMs * Math.PI * 2) * cfg.arrowOpacityRange);
+        arrow.style.setProperty('--arrow-breath', Math.round((cfg.arrowOpacity + Math.sin(time / cfg.arrowBreathMs * Math.PI * 2) * cfg.arrowOpacityRange) * 100) / 100);
         return true;
       }, 'inventory-arrow');
     }

@@ -23,7 +23,7 @@
   }
   function quality(el,pose,time,reduced,state){
     var cfg=C.config.classicPack,rank=Math.min(C.settingsSchema.tiers.indexOf(C.settings.get('finishQuality')),C.settings.policy.reflection);
-    el.dataset.packQuality=C.settingsSchema.tiers[rank];if(state.appeared==null||time<state.appeared)state.appeared=time;
+    {var q$=C.settingsSchema.tiers[rank];if(el.dataset.packQuality!==q$)el.dataset.packQuality=q$;}if(state.appeared==null||time<state.appeared)state.appeared=time;
     var host=el.closest('.opening-stage'),phase=host&&host.dataset.phase,charging=phase==='charging'||phase==='draining',charged=host&&phase!=='idle'&&!charging;
     var waiting=!host&&el.closest('[data-state="waiting"]'),progress=charging?Number(el.dataset.chargeFill)||0:waiting?C.timers.progress(Date.now()):1;
     var active=!reduced&&C.settings.policy.ambient&&C.settings.policy.animation>=2,step=Math.floor(time/cfg.ledStepMs);

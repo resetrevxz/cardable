@@ -12,7 +12,7 @@
     C.fx.wake();
   }
   function proximity(pointer){
-    if(!sheet||!pointer||session)return;var r=sheet.getBoundingClientRect(),a=arrow.getBoundingClientRect();
+    if(!sheet||!pointer||session)return;var r=C.fx.rect(sheet),a=C.fx.rect(arrow);
     var dx=Math.max(r.left-pointer.x,0,pointer.x-r.right),dy=Math.max(r.top-pointer.y,0,pointer.y-r.bottom);
     var distance=Math.min(Math.hypot(dx,dy),Math.hypot(pointer.x-(a.left+a.width/2),pointer.y-(a.top+a.height/2)));
     var gain=pointer.inside?clamp(1-distance/160,0,1):0;

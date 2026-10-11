@@ -9,7 +9,7 @@
     // The coin button inside is the tab stop; the host stays out of the tab order.
     counter.removeAttribute('tabindex');
     function distance(el, pointer) {
-      var r = el.getBoundingClientRect();
+      var r = C.fx.rect(el);
       return Math.hypot(Math.max(r.left - pointer.x, 0, pointer.x - r.right), Math.max(r.top - pointer.y, 0, pointer.y - r.bottom));
     }
     function creditFocus() { return C.input.modality === 'keyboard' && counter.contains(root.document.activeElement); }

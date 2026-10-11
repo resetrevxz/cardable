@@ -246,17 +246,22 @@
       function pose(rx, ry, raised) {
         var cfg = C.config.cardView;
         var lampAngle = Math.atan2(lampY + rx / cfg.tiltCap * 0.35, lampX - ry / cfg.tiltCap * 0.35) * 180 / Math.PI;
+        // Inherited variables restyle the whole card subtree on any change, so values are rounded to
+        // steps far below one device pixel (0.01deg is ~0.03px at the card edge): the card looks the same,
+        // while slow ambient drift stops forcing a restyle on every frame.
+        function r(n, digits) { var k = Math.pow(10, digits); return Math.round(n * k) / k; }
+        var still = C.motion.reduced || policy().animation === 0;
         var values = {
-          '--mx': pointer.x, '--my': pointer.y, '--rx': rx + 'deg', '--ry': ry + 'deg', '--lamp-angle': lampAngle + 'deg', '--lift': raised,
-          '--lift-px': raised * cfg.liftPx + 'px', '--card-scale': 1 + raised * 0.025,
-          '--glare-x': clamp(pointer.x - lampX * cfg.lampInfluence, 0, 1) * 100 + '%', '--glare-y': clamp(pointer.y - lampY * cfg.lampInfluence, 0, 1) * 100 + '%',
-          '--core-x': clamp(0.5 + (pointer.x - 0.5) * cfg.specularSpeed - lampX * cfg.lampInfluence, 0, 1) * 100 + '%',
-          '--core-y': clamp(0.5 + (pointer.y - 0.5) * cfg.specularSpeed - lampY * cfg.lampInfluence, 0, 1) * 100 + '%',
-          '--shadow-x': -ry * 0.5 + 'px', '--shadow-y': 12 + rx * 0.5 + raised * 8 + 'px',
-          '--shadow-blur': 18 + raised * 14 + 'px', '--far-edge-angle': Math.atan2(rx, ry) * 180 / Math.PI + 90 + 'deg',
-          '--parallax-x': ((C.motion.reduced || policy().animation === 0) ? 0 : ry / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
-          '--parallax-y': ((C.motion.reduced || policy().animation === 0) ? 0 : -rx / cfg.tiltCap * C.config.polish.parallaxPx) + 'px',
-          '--far-edge-alpha': Math.max(Math.abs(rx), Math.abs(ry)) / cfg.tiltCap * 0.2
+          '--mx': r(pointer.x, 3), '--my': r(pointer.y, 3), '--rx': r(rx, 2) + 'deg', '--ry': r(ry, 2) + 'deg', '--lamp-angle': r(lampAngle, 1) + 'deg', '--lift': r(raised, 3),
+          '--lift-px': r(raised * cfg.liftPx, 2) + 'px', '--card-scale': r(1 + raised * 0.025, 4),
+          '--glare-x': r(clamp(pointer.x - lampX * cfg.lampInfluence, 0, 1) * 100, 1) + '%', '--glare-y': r(clamp(pointer.y - lampY * cfg.lampInfluence, 0, 1) * 100, 1) + '%',
+          '--core-x': r(clamp(0.5 + (pointer.x - 0.5) * cfg.specularSpeed - lampX * cfg.lampInfluence, 0, 1) * 100, 1) + '%',
+          '--core-y': r(clamp(0.5 + (pointer.y - 0.5) * cfg.specularSpeed - lampY * cfg.lampInfluence, 0, 1) * 100, 1) + '%',
+          '--shadow-x': r(-ry * 0.5, 1) + 'px', '--shadow-y': r(12 + rx * 0.5 + raised * 8, 1) + 'px',
+          '--shadow-blur': r(18 + raised * 14, 1) + 'px', '--far-edge-angle': r(Math.atan2(rx, ry) * 180 / Math.PI + 90, 1) + 'deg',
+          '--parallax-x': r(still ? 0 : ry / cfg.tiltCap * C.config.polish.parallaxPx, 2) + 'px',
+          '--parallax-y': r(still ? 0 : -rx / cfg.tiltCap * C.config.polish.parallaxPx, 2) + 'px',
+          '--far-edge-alpha': r(Math.max(Math.abs(rx), Math.abs(ry)) / cfg.tiltCap * 0.2, 3)
         };
         var glareDue = policy().glareHz > 0 && glareClock + 0.01 >= 1000 / policy().glareHz;
         Object.keys(values).forEach(function (key) { if (/^--(core|glare|lamp|mx|my|far-edge|parallax)/.test(key) && !glareDue) return; if (painted[key] !== values[key]) { painted[key] = values[key]; el.style.setProperty(key, values[key]); } });

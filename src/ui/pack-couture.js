@@ -33,18 +33,30 @@
     var skin=C.packSkins.registry[id],quality=skin.quality;
     ['renderIdle','renderWaiting','renderWrapper'].forEach(function(key){var original=skin[key];skin[key]=function(el,pack){original(el,pack);decorate(el,pack,key==='renderWaiting'?'waiting':'ready');};});
     states.forEach(function(s){skin['render'+s.split('-').map(function(x){return x[0].toUpperCase()+x.slice(1);}).join('')]=function(el,pack){skin.renderIdle(el,pack);decorate(el,pack,s);};});
-    skin.renderStatic=function(el,pack,tier){skin.renderIdle(el,pack);el.dataset.packQuality=tier||'low';};
+    skin.renderStatic=function(el,pack,tier){skin.renderIdle(el,pack);{var q$=tier||'low';if(el.dataset.packQuality!==q$)el.dataset.packQuality=q$;}};
     skin.swapStyle=C.data.packs.find(function(p){return p.skin===id;}).swapIn||'shared-foil';
     skin.quality=function(el,pose,time,reduced,state){
       var active=quality(el,pose,time,reduced,state),rank=Math.min(C.settingsSchema.tiers.indexOf(C.settings.get('finishQuality')),C.settings.policy.reflection),r=recipes[id]||recipes.standard;
-      el.dataset.packQuality=C.settingsSchema.tiers[Math.max(0,rank)];
+      {var q$=C.settingsSchema.tiers[Math.max(0,rank)];if(el.dataset.packQuality!==q$)el.dataset.packQuality=q$;}
+      // Packs with a designed face are not couture-decorated: there are no layers to light.
+      if(!el.dataset.couture)return active;
       var rich=rank>=3&&!reduced&&C.settings.policy.ambient;
       if(rank<2)return active;
       var x=(pose.ry||0)/18,y=(pose.rx||0)/18;
-      el.style.setProperty('--couture-x',(50+x*25).toFixed(2)+'%');el.style.setProperty('--couture-y',(38+y*18).toFixed(2)+'%');
-      el.style.setProperty('--couture-parallax-x',(reduced?0:x*2).toFixed(2)+'px');el.style.setProperty('--couture-parallax-y',(reduced?0:-y*2).toFixed(2)+'px');
-      el.style.setProperty('--couture-sweep',(rich?Math.sin(time/r.period*Math.PI*2)*65:x*45).toFixed(2)+'%');
-      el.style.setProperty('--couture-breathe',rich?(.5+.5*Math.sin(time/r.period*Math.PI*2)).toFixed(3):'.4');
+      // Inherited variables restyle the whole pack subtree, so only the lamp position stays a variable
+      // (several layers read it). Sweep, parallax and breathing are written straight to the one element
+      // that uses each, which restyles that element alone. Values are quantized well under a device pixel.
+      function q(n,size){return (Math.round(n/size)*size).toFixed(size<.1?2:1);}
+      var refs=el._coutureRefs;
+      if(!refs||!refs.light||!refs.light.isConnected){refs=el._coutureRefs={light:el.querySelector('.pack-couture-light'),reflection:el.querySelector('.pack-couture-reflection'),graphics:Array.prototype.slice.call(el.querySelectorAll('.pack-graphic')),last:{}};}
+      function put(node,key,value,prop){var id=prop||'transform';if(!node)return;var memo=refs.last[key];if(memo===value)return;refs.last[key]=value;node.style[id]=value;}
+      el.style.setProperty('--couture-x',q(50+x*25,.1)+'%');el.style.setProperty('--couture-y',q(38+y*18,.1)+'%');
+      var px=reduced?0:x*2,py=reduced?0:-y*2,sweep=rich?Math.sin(time/r.period*Math.PI*2)*65:x*45,breathe=rich?Math.round((.5+.5*Math.sin(time/r.period*Math.PI*2))*100)/100:.4;
+      put(refs.light,'sweep','translateX('+q(sweep,.1)+'%)');
+      var tx=q(px,.05),ty=q(py,.05);
+      put(refs.reflection,'reflect','translate('+(tx*1.5).toFixed(2)+'px,'+(ty*1.5).toFixed(2)+'px)');
+      put(refs.reflection,'breathe',(.3+breathe*.3).toFixed(3),'opacity');
+      refs.graphics.forEach(function(g,i){put(g,'graphic'+i,'translate('+tx+'px,'+ty+'px)');});
       return active||rich;
     };
     var counter=skin.counterThumb;skin.counterThumb=function(host,pack){counter(host,pack);host.dataset.couture=pack.id;host.style.setProperty('--couture-accent',(recipes[pack.id]||recipes.standard).accent);};

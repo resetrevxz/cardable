@@ -1,6 +1,9 @@
 (function (C, root) {
   'use strict';
   function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+  // Lighting variables are inherited, so each change restyles the pack subtree. Steps below are
+  // far under one device pixel (0.1% of a pack face is about 0.3 px), so they stay invisible.
+  function step(n, size) { return Math.round(n / size) * size; }
   // Same lamp, specular speed and pointer/normal relationship as the card renderer.
   // Cached once per object; no frame-time style queries or layout measurements.
   C.packMaterial = {
@@ -34,15 +37,15 @@
           var light = clamp(0.32 + (ly * rx - lx * ry) / 30, 0.14, 0.82);
           if (shine) shine.style.opacity = (light * 0.6 * (0.96 + drift)).toFixed(3);
           var angle = Math.atan2(ly + rx / cfg.tiltCap * 0.35, lx - ry / cfg.tiltCap * 0.35) * 180 / Math.PI;
-          set('--lamp-angle', angle.toFixed(2) + 'deg');
-          set('--shine-x', (clamp(x - lx * cfg.lampInfluence, 0, 1) * 100).toFixed(2) + '%');
-          set('--shine-y', (clamp(y - ly * cfg.lampInfluence, 0, 1) * 100).toFixed(2) + '%');
-          set('--foil-core', (clamp(0.5 + (x - 0.5) * cfg.specularSpeed - lx * cfg.lampInfluence, 0, 1) * 100).toFixed(2) + '%');
-          set('--foil-light', light.toFixed(3));
-          set('--film-x', (reduced ? 0 : ry * (design.refraction || 0) * 0.3).toFixed(2) + 'px');
-          set('--film-y', (reduced ? 0 : -rx * (design.refraction || 0) * 0.3).toFixed(2) + 'px');
-          set('--emboss-x', (-lx + ry * 0.045).toFixed(2) + 'px');
-          set('--emboss-y', (-ly - rx * 0.045).toFixed(2) + 'px');
+          set('--lamp-angle', step(angle, 0.1).toFixed(1) + 'deg');
+          set('--shine-x', step(clamp(x - lx * cfg.lampInfluence, 0, 1) * 100, 0.1).toFixed(1) + '%');
+          set('--shine-y', step(clamp(y - ly * cfg.lampInfluence, 0, 1) * 100, 0.1).toFixed(1) + '%');
+          set('--foil-core', step(clamp(0.5 + (x - 0.5) * cfg.specularSpeed - lx * cfg.lampInfluence, 0, 1) * 100, 0.1).toFixed(1) + '%');
+          set('--foil-light', step(light, 0.005).toFixed(3));
+          set('--film-x', step(reduced ? 0 : ry * (design.refraction || 0) * 0.3, 0.05).toFixed(2) + 'px');
+          set('--film-y', step(reduced ? 0 : -rx * (design.refraction || 0) * 0.3, 0.05).toFixed(2) + 'px');
+          set('--emboss-x', step(-lx + ry * 0.045, 0.05).toFixed(2) + 'px');
+          set('--emboss-y', step(-ly - rx * 0.045, 0.05).toFixed(2) + 'px');
         }
       };
     }

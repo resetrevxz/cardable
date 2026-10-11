@@ -74,7 +74,7 @@
         if (reduced || quiet) m.spring.reset(x);
         m.el.style.transform = 'translateX(' + x.toFixed(2) + 'px)';
         m.el.style.opacity = Math.min(1, (now - m.born) / 250);
-        m.el.style.setProperty('--queue-pulse', reduced || quiet ? 0 : (1 + Math.sin(now / 2000 * Math.PI * 2)) * .12);
+        m.el.style.setProperty('--queue-pulse', reduced || quiet ? 0 : Math.round((1 + Math.sin(now / 2000 * Math.PI * 2)) * 12) / 100);
         active = !m.spring.settled() || now - m.born < 250 || !reduced && !quiet || active;
       });
       retiring = retiring.filter(function(m) {

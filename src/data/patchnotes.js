@@ -1,5 +1,22 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.5.3',codename:'Smoother frames',date:'October 11, 2026',tag:'Update',tagline:'Less work per frame in the menu, detail and Exotic.',
+    hero:{badge:'CARDABLE / 1.5.3',title:'Smoother frames.',subtitle:'The menu and card detail do less work every frame, with the same look.',media:[]},
+    sections:{
+      fixes:[
+        'Pack lighting stops rewriting unchanged values and skips layers a pack does not have.',
+        'Pointer proximity checks no longer force a restyle on every movement.'
+      ],
+      visuals:[
+        'Exotic builds its colour strings once per palette, lowering its script time.'
+      ],
+      qol:[
+        'The Advanced performance panel shows frames over budget, the busiest callbacks and what keeps frames running.'
+      ]
+    },
+    entries:['Lower idle and pointer cost on the menu.','New frame metrics in the Advanced performance panel.']
+  },
+  {
     version:'1.5.2',codename:'Straight to it',date:'October 11, 2026',tag:'Update',tagline:'Exotic and Secret begin at once.',
     hero:{badge:'CARDABLE / 1.5.2',title:'Straight to it.',subtitle:'Exotic and Secret skip their lead-ins, and the returning pack card is gone.',media:[]},
     sections:{

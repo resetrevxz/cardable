@@ -464,12 +464,12 @@
         var local = pair[1], rx = pose.rx || 0;
         var sx = Math.sin(local * Math.PI / 180), cos = Math.cos(local * Math.PI / 180);
         var vars = {
-          '--face-x': (50 + clamp(sx * 78 + (pose.ry || 0) * 0 , -90, 90)).toFixed(2) + '%',
-          '--face-y': (42 - clamp(rx * 1.7, -34, 34)).toFixed(2) + '%',
+          '--face-x': (Math.round((50 + clamp(sx * 78 + (pose.ry || 0) * 0 , -90, 90)) * 10) / 10).toFixed(1) + '%',
+          '--face-y': (Math.round((42 - clamp(rx * 1.7, -34, 34)) * 10) / 10).toFixed(1) + '%',
           '--face-angle': (53 + local * .9 - rx * .8).toFixed(1) + 'deg',
-          '--face-fresnel': (1 - Math.abs(cos)).toFixed(3),
+          '--face-fresnel': (Math.round((1 - Math.abs(cos)) * 200) / 200).toFixed(3),
           '--face-sweep': (clamp(local / 70, -1.2, 1.2) * 70).toFixed(1) + '%',
-          '--face-light': clamp(.3 + .7 * Math.max(0, cos) + (rx > 0 ? -rx : -rx) * .004, .12, 1).toFixed(3)
+          '--face-light': (Math.round(clamp(.3 + .7 * Math.max(0, cos) + (rx > 0 ? -rx : -rx) * .004, .12, 1) * 200) / 200).toFixed(3)
         };
         Object.keys(vars).forEach(function (key) { if (el._faceVars && el._faceVars[key] === vars[key]) return; (el._faceVars || (el._faceVars = {}))[key] = vars[key]; el.style.setProperty(key, vars[key]); });
         var visible = index === 0 ? frontVisible : !frontVisible;

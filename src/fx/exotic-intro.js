@@ -8,8 +8,8 @@
     var n = 2166136261; for (var i = 0; i < seed.length; i++) n = Math.imul(n ^ seed.charCodeAt(i), 16777619);
     return function () { n = (Math.imul(n, 1664525) + 1013904223) >>> 0; return n / 4294967296; };
   }
-  function rgb(c) { if (C.config.rarityColorMode !== 'mono') return c; var v = Math.round(c[0] * .213 + c[1] * .715 + c[2] * .072); return [v, v, v]; }
-  function rgba(c, a) { return 'rgba(' + rgb(c).join(',') + ',' + clamp(a) + ')'; }
+  function rgb(c) { return C.fxColor.tone(c); }
+  function rgba(c, a) { return C.fxColor.rgba(C.fxColor.tone(c), a); }
   C.exoticIntro = { create: function () {
     var spec, field = [], disk = [], sprites = Object.create(null), materials = [], materialKey = '', timeline = Object.create(null);
     var stellarLayers = [], stellarKey = '', instanceSeed = '';

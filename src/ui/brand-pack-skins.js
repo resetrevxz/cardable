@@ -14,7 +14,7 @@
   }
   function quality(el, pose, time, reduced, state) {
     var rank = Math.min(C.settingsSchema.tiers.indexOf(C.settings.get('finishQuality')), C.settings.policy.reflection);
-    el.dataset.packQuality = C.settingsSchema.tiers[rank];
+    {var q$=C.settingsSchema.tiers[rank];if(el.dataset.packQuality!==q$)el.dataset.packQuality=q$;}
     if (state.appeared == null || time < state.appeared) state.appeared = time;
     var age = time - state.appeared, moving = !reduced && C.settings.policy.ambient;
     var active = moving && (rank >= 3 || rank === 2 && age < 1200);

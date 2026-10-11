@@ -5,8 +5,8 @@
   function smooth(v){v=clamp(v);return v*v*(3-2*v);}
   function mix(a,b,t){return a+(b-a)*t;}
   function randomFor(seed){var n=2166136261;for(var i=0;i<seed.length;i++)n=Math.imul(n^seed.charCodeAt(i),16777619);return function(){n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
-  function rgb(c){if(C.config.rarityColorMode!=='mono')return c;var l=Math.round(c[0]*.213+c[1]*.715+c[2]*.072);return [l,l,l];}
-  function rgba(c,a){return 'rgba('+rgb(c).join(',')+','+clamp(a)+')';}
+  function rgb(c){return C.fxColor.tone(c);}
+  function rgba(c,a){return C.fxColor.rgba(C.fxColor.tone(c),a);}
   function polygon(g,pts){g.beginPath();pts.forEach(function(p,i){if(i)g.lineTo(p[0],p[1]);else g.moveTo(p[0],p[1]);});g.closePath();}
   // Original vector lettering: no third font, platform glyph dependency or network asset.
   var glyphs={

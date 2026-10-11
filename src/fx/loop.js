@@ -11,6 +11,21 @@
     if (C.settings.batterySaving) fps = Math.min(fps,30);
     return !focused && C.settings.get('unfocusedMode') === '30' ? Math.min(fps, 30) : fps;
   }
+  // Opt-in per-subscriber CPU timing (milliseconds of JS inside each frame callback).
+  // Off by default: enabling it costs two clock reads per subscriber per frame.
+  var profile = { enabled: false, labels: Object.create(null), frames: 0,
+    reset: function () { this.labels = Object.create(null); this.frames = 0; },
+    // Labels sorted by mean cost, with the worst single call, for a quick "what is expensive" view.
+    report: function () {
+      var frames = Math.max(1, this.frames), labels = this.labels;
+      return Object.keys(labels).map(function (key) {
+        var row = labels[key]; return { label: key, meanMs: row.total / frames, maxMs: row.max, calls: row.calls, keptAwake: row.kept };
+      }).sort(function (a, b) { return b.meanMs - a.meanMs; });
+    } };
+  function record(label, ms, kept) {
+    var row = profile.labels[label] || (profile.labels[label] = { total: 0, max: 0, calls: 0, kept: 0 });
+    row.total += ms; row.calls += 1; if (kept) row.kept += 1; if (ms > row.max) row.max = ms;
+  }
   function blocked() { return nativeHidden || root.document.hidden || !focused && C.settings.get('unfocusedMode') === 'pause'; }
   function sleep() {
     if (raf !== null) root.cancelAnimationFrame(raf);
@@ -41,7 +56,10 @@
         // AFK retains timestamp-driven pack metrics; decorative/rendering work sleeps.
         if (C.menu && C.menu.afk && update.subscriberLabel !== 'pack') return;
         try {
-          active = update(now, dt) === true || active;
+          var began = profile.enabled ? root.performance.now() : 0;
+          var kept = update(now, dt) === true;
+          active = kept || active;
+          if (profile.enabled) record(update.subscriberLabel || update.name || 'subscriber', root.performance.now() - began, kept);
           failures.delete(update);
         } catch (error) {
           // Report once until recovery, while other subscribers remain usable.
@@ -51,6 +69,7 @@
           }
         }
       });
+      profile.frames += 1;
       stats.frameCount += 1; stats.lastFrameMs = realDt; stats.jsMs = root.performance.now() - frameBegin;
       C.events.emit('fx:frame', { now: now, dt: dt, realDt: realDt, sampled: sampled, frameCount: stats.frameCount, targetFps: stats.targetFps, jsMs: stats.jsMs });
     } finally {
@@ -67,7 +86,18 @@
       var token = { label: label }, released = false; scopes.push(token); last = nextDue = rawLast = null;
       return function () { if (released) return; released = true; var index = scopes.indexOf(token); if (index >= 0) scopes.splice(index, 1); last = nextDue = rawLast = null; C.fx.wake(); };
     },
-    stats: stats,
+    // Bounding rect for proximity checks driven by pointer events. A fresh read after the last frame's
+    // style writes forces a synchronous restyle, so the rect is reused for 100 ms (these checks use a 160 px
+    // halo; a 100 ms old rect is well inside it, including for the moving inventory sheet).
+    rect: (function () {
+      var memo = new WeakMap();
+      return function (el) {
+        var now = root.performance.now(), hit = memo.get(el);
+        if (hit && now - hit.at < 100) return hit.rect;
+        var rect = el.getBoundingClientRect(); memo.set(el, { at: now, rect: rect }); return rect;
+      };
+    })(),
+    stats: stats, profile: profile,
     subscribe: function (update, label) {
       if (label) update.subscriberLabel = label;
       updates.push(update);

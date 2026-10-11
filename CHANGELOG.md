@@ -1,3 +1,14 @@
+# Cardable v1.5.3 — Smoother frames
+
+A performance pass on the menu, card detail and cinematics. Saves, serials, odds, pack cadence and the save schema are unchanged, and no graphics tier lost a visual feature.
+
+- **Calmer main thread.** Pack and card lighting no longer rewrites unchanged values every frame, skips layers a pack does not have, and rounds lighting values to steps far below one device pixel. In matching headless runs the menu's idle main-thread load fell from 7.1% to 3.3% on Medium and from 11.9% to 3.6% on High; moving the pointer over the menu fell from about 22% to 13% (Medium) and 16% (High).
+- **Fewer forced restyles.** Proximity checks for Credits, Settings and the Inventory peek reuse a rectangle for 100 ms instead of forcing a restyle on every pointer event.
+- **Exotic.** Colour strings are cached per palette and alpha; its per-frame script time fell from about 5.6 to 2.4 ms (Medium) and 9.3 to 3.5 ms (High) in the same headless runs.
+- **New metrics.** The Advanced performance panel shows frames over budget, the busiest frame callbacks and what keeps the frame loop awake. `Cardable.fx.profile` and `tools/profile-main-thread.cjs` expose the same numbers for development.
+
+Measurements are from one desktop CPU in headless Chromium with software rendering, so they compare changes, not devices. Cinematics that are bound by the GPU (Ascendant, Mythical, Secret on High) were left as they are. A clean installer run and real low-end hardware remain unverified. This release is unsigned.
+
 # Cardable v1.5.2 — Straight to it
 
 Exotic and Secret openings begin with their own scene instead of a Basic borrowed prelude or a card-back fake-out, and the returning-player pack card is gone. Saves, serials, odds and the save schema are unchanged.
