@@ -68,6 +68,7 @@
   // Selection state changes often; it updates classes without rebuilding the grid.
   function sync() {
     grid.querySelectorAll('.album-tile').forEach(function (tile) { var id = tile.dataset.id; tile.classList.toggle('is-picked', picked.has(id)); tile.setAttribute('aria-selected', String(id === selectedId)); tile.querySelector('.album-check').setAttribute('aria-pressed', String(picked.has(id))); });
+    bulk.dataset.empty = String(list.length === 0);
     bulk.dataset.active = String(picked.size > 0); bulkText.textContent = picked.size ? picked.size + ' selected' : shown.length + (shown.length === 1 ? ' photo' : ' photos');
   }
   function choose(id, event) {

@@ -95,7 +95,7 @@
     var back=button('Back to cards',header,closePanel);back.dataset.focus='cards';
     var workspace=node('div','achievements-workspace',panel), rail=node('aside','achievements-sidebar',workspace);
     var controls=node('div','achievements-controls',rail), searchLabel=node('label','achievement-search',controls);
-    glyph('eye',searchLabel);search=node('input','',searchLabel);search.type='search';search.placeholder='Find an achievement…';search.setAttribute('aria-label','Search achievements');search.autocomplete='off';search.addEventListener('input',render);
+    glyph('search',searchLabel);search=node('input','',searchLabel);search.type='search';search.placeholder='Find an achievement…';search.setAttribute('aria-label','Search achievements');search.autocomplete='off';search.addEventListener('input',render);
     var filters=node('div','achievement-filters',controls);filter={value:'all'};
     [['all','All'],['ready','Ready'],['active','Active'],['complete','Complete']].forEach(function(pair){
       var b=button(pair[1],filters,function(){filter.value=pair[0];render();},'achievement-filter');b.dataset.filter=pair[0];b.dataset.focus='filter-'+pair[0];filterButtons.push(b);

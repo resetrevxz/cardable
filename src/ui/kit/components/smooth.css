@@ -405,3 +405,11 @@
 .detail-hint-position[hidden] { display:none; }
 .detail-card-hint > * { white-space:nowrap; }
 @media (max-width:520px), (pointer:coarse) { .detail-hint-parts { display:none; } }
+/* Achievement search: the field shows focus as a whole, not as a square ring on the bare input. */
+.achievement-search { transition:border-color var(--duration-fast) var(--ease-out),box-shadow var(--duration-fast) var(--ease-out); }
+.achievement-search:focus-within { border-color:rgba(var(--accent-rgb),.6); box-shadow:0 0 0 3px rgba(var(--accent-rgb),.2); }
+.achievement-search input:focus,.achievement-search input:focus-visible { outline:none !important; box-shadow:none !important; }
+/* Album: an empty album shows no selection tools; the search field shows focus as a whole. */
+.album-bulk[data-empty="true"] > :not(strong):not(.album-status) { display:none; }
+.album-search:focus-within { box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.6),0 0 0 3px rgba(var(--accent-rgb),.2); }
+.album-search input:focus,.album-search input:focus-visible { outline:none !important; box-shadow:none !important; }
