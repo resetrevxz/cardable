@@ -14,9 +14,14 @@
 .inventory-icon:hover { color: var(--text); border-color: var(--hairline-strong); transform: translateY(-1px) scale(1.02); }
 .inventory-icon:active { transform: scale(.98); }
 .inventory-tabs { display: flex; align-items: center; gap: var(--s-3); padding: 0 var(--s-5) var(--s-3); }
-.inventory-tab-list { display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.inventory-tab-list { position: relative; display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
 .inventory-tab-list .inventory-menu-option { white-space: nowrap; width: auto; padding: 8px 12px; border: 1px solid transparent; border-radius: var(--r-chip); font-size: 11px; }
-.inventory-tab-list .is-selected { background: var(--glass); border-color: var(--hairline); color: var(--text); }
+.inventory-tab-list .is-selected { background: transparent; border-color: transparent; color: var(--text); }
+.inventory-tab-list .inventory-menu-option { position: relative; z-index: 1; }
+.inventory-tab-indicator { position: absolute; left: 0; top: 0; width: 0; height: 0; border-radius: var(--r-chip); background: var(--glass); box-shadow: inset 0 0 0 1px var(--hairline); pointer-events: none; z-index: 0; transition: transform var(--t-ui) var(--ease-out), width var(--t-ui) var(--ease-out), height var(--t-ui) var(--ease-out), opacity var(--t-fast) var(--ease-out); }
+.inventory-tab-indicator.is-still { transition: none; }
+.inventory-sheet[data-page]:not([data-page="cards"]) .inventory-tab-indicator { opacity: 0; }
+.reduced-motion .inventory-tab-indicator { transition: opacity var(--t-fast) var(--ease-out); }
 .inventory-unowned { order: 2; display: flex; align-items: center; gap: var(--s-2); color: var(--text-dim); font: 10px/1.5 var(--font-ui); white-space: nowrap; cursor: pointer; }
 .inventory-unowned input, .inventory-filter-check input { accent-color: var(--text); width: 12px; height: 12px; }
 .inventory-search { position: relative; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-3); animation: inventory-control-enter var(--t-ui) var(--ease-out); }
