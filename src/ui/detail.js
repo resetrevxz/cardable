@@ -65,7 +65,7 @@
     phase = 'lifting'; shineAge = 0; fillPanel(); to = detailRect(); pose(from, C.motion.reduced ? 0 : 1);
     if (view) { view.setPresentation('full'); view.setVisible(true); view.setFace('front'); view.setMode('full'); }
     root.document.body.classList.add('inventory-detail-active'); C.events.emit('inventory:detailContext', { active: true });
-    focus(closeButton); C.fx.wake();
+    position(); focus(closeButton); C.fx.wake();
   }
   function flip() {
     if (phase !== 'detail' || !view || !payload.entry.owned) return;
@@ -81,13 +81,23 @@
     visual = view.el; visual.style.opacity = 0; mount.appendChild(visual); view.setFace(side); view.setMode('full');
     swapping = { old: old, age: 0 }; shineAge = 0; syncSerial(); C.fx.wake();
   }
+  // "3 of 49" beside the Flip hint: where this card sits in the current view of the collection.
+  function position() {
+    if (!flipHint) return;
+    var request = { delta: 0 }; C.events.emit('inventory:detailNavigate', request);
+    var holder = flipHint.querySelector('.detail-hint-position');
+    if (!holder) holder = node('span', 'detail-hint-position', flipHint);
+    var parts = flipHint.querySelector('.detail-hint-parts'); if (parts && holder.nextSibling !== parts) flipHint.insertBefore(holder, parts);
+    holder.textContent = request.position && request.total > 1 ? request.position + ' of ' + request.total : '';
+    holder.hidden = !holder.textContent;
+  }
   function navigate(delta) {
     if (phase !== 'detail' || swapping) return;
     var request = { delta: delta }; C.events.emit('inventory:detailNavigate', request);
     if (!request.entry) return;
     scrollPositions.set(payload.entry.stackKey, panel.scrollTop || 0);
     var old = view; if (old) old.destroy(); else if (visual) visual.remove();
-    payload.entry = request.entry; if(payload.entry.owned)payload.entry.isNew=false; payload.preview = request.preview; serialIndex = 0; side = 'front';
+    payload.entry = request.entry; if(payload.entry.owned)payload.entry.isNew=false; payload.preview = request.preview; serialIndex = 0; side = 'front'; position();
     var entry = payload.entry;
     if (entry.owned || entry.rarity.finish === 'secret') {
       view = C.cardView.create(entry.card, entry.instances[0] || { instanceId: 'unknown-' + entry.card.id, cardId: entry.card.id, serial: '', seen: true }, { owned: entry.owned, autoFocus: false, keyboardFlip: false, autoStamp: false, shine: true });
