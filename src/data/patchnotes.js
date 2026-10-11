@@ -19,6 +19,8 @@
       qol:[
         'The Keyboard shortcuts sheet has a live filter and a close icon.',
         'Card detail shows where you are, like “54 of 134”.',
+        'In card detail, swipe sideways on touch or pen to move to the next card.',
+        'The command palette suggests everyday commands first when the field is empty.',
         'Search fields show focus around the whole field; an empty album hides its selection tools.'
       ]
     },

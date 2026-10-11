@@ -112,6 +112,11 @@
     if (!drag || event && event.pointerId !== drag.id) return;
     var d = drag; drag = null;
     if (mount.hasPointerCapture(d.id)) mount.releasePointerCapture(d.id);
+    // A quick sideways swipe on touch or pen moves to the neighbouring card.
+    if (event && !cancelled && d.touch && !d.moved && event.clientX !== undefined) {
+      var sx = event.clientX - d.x, sy = event.clientY - d.y;
+      if (Math.abs(sx) > 56 && Math.abs(sx) > Math.abs(sy) * 1.5) { dragSpring.target = 0; navigate(sx < 0 ? 1 : -1); return; }
+    }
     var velocity = d.velocity * Math.exp(-(root.performance.now() - d.at) / cfg.flickDecayMs);
     if (d.moved && !cancelled && (d.distance > to.height * cfg.detailClosePortion || velocity > cfg.detailFlickPxPerSecond)) close();
     else { dragSpring.target = 0; C.fx.wake(); }
@@ -186,12 +191,12 @@
       overlay.addEventListener('click', function (event) { if (event.target === overlay) close(); });
       mount.addEventListener('pointerdown', function (event) {
         if (preferencesActive || phase !== 'detail' || event.button !== 0 || event.isPrimary === false || event.target.closest('[data-copy-serial]')) return;
-        drag = { id: event.pointerId, y: event.clientY, lastY: event.clientY, at: root.performance.now(), moved: false, velocity: 0, distance: 0 };
+        drag = { id: event.pointerId, x: event.clientX, touch: event.pointerType !== 'mouse', y: event.clientY, lastY: event.clientY, at: root.performance.now(), moved: false, velocity: 0, distance: 0 };
       });
       root.document.addEventListener('pointermove', function (event) {
         if (!drag || event.pointerId !== drag.id) return;
         var dy = event.clientY - drag.y, now = root.performance.now();
-        if (Math.abs(dy) > cfg.dragSlopPx && !drag.moved) { drag.moved = true; mount.setPointerCapture(drag.id); }
+        if (Math.abs(dy) > cfg.dragSlopPx && !drag.moved && (!drag.touch || Math.abs(dy) > Math.abs(event.clientX - drag.x))) { drag.moved = true; mount.setPointerCapture(drag.id); }
         if (!drag.moved) return;
         prevent(event); dragSpring.value = C.motion.reduced ? 0 : Math.max(-cfg.rubberBandPx, dy);
         drag.distance = Math.max(0, dy);
