@@ -316,3 +316,38 @@
 }
 
 :root { --duration-loader-sweep:3000ms; }
+
+/* Named glass and scrim stops used by kit components. Values match the earlier literals exactly. */
+:root {
+  --tone-01:rgba(16,16,20,.9);
+  --tone-02:rgba(40,40,48,.82);
+  --tone-03:rgba(13,13,16,.96);
+  --tone-04:rgba(38,38,46,.92);
+  --tone-05:rgba(38,38,46,.94);
+  --tone-06:rgba(8,8,10,.72);
+  --tone-07:rgba(8,8,10,0);
+  --tone-08:rgba(0,0,0,.84);
+  --tone-09:rgba(12,12,15,.92);
+  --tone-10:rgba(13,13,16,.82);
+  --tone-11:rgba(13,13,16,.95);
+  --tone-12:rgba(13,13,16,.97);
+  --tone-13:rgba(14,14,17,.76);
+  --tone-14:rgba(14,14,17,.94);
+  --tone-15:rgba(14,14,17,.95);
+  --tone-16:rgba(14,14,17,.97);
+  --tone-17:rgba(15,15,18,.9);
+  --tone-18:rgba(16,16,20,.94);
+  --tone-19:rgba(24,24,29,.98);
+  --tone-20:rgba(24,24,29,0);
+  --tone-21:rgba(241,207,153,.07);
+  --tone-22:rgba(241,207,153,.22);
+  --tone-23:rgba(32,32,40,.84);
+  --tone-24:rgba(34,34,42,.68);
+  --tone-25:rgba(34,34,42,.86);
+  --tone-26:rgba(36,36,44,.9);
+  --tone-27:rgba(36,36,44,.92);
+  --tone-28:rgba(38,38,46,.9);
+  --tone-29:rgba(40,40,48,.9);
+  --tone-30:rgba(9,9,12,.82);
+  --tone-31:rgba(9,9,12,.94);
+}

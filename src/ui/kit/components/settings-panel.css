@@ -26,16 +26,16 @@
 :root:not([data-rarity-color="mono"]) .cbs-tile-mark[data-logo-style="ember"] { background-image:linear-gradient(180deg,#FFE9C2,var(--warning),var(--danger)); }
 
 /* Overlay and slab */
-.settings-overlay { display:flex; justify-content:flex-start; align-items:stretch; padding:calc(12px + var(--safe-top) + var(--titlebar-inset,0px)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); background:linear-gradient(90deg,rgba(8,8,10,calc(.66 * var(--settings-shade,1))),rgba(8,8,10,calc(.3 * var(--settings-shade,1))) 46%,rgba(8,8,10,0) 80%); }
+.settings-overlay { display:flex; justify-content:flex-start; align-items:stretch; padding:calc(12px + var(--safe-top) + var(--titlebar-inset,0px)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); background:linear-gradient(90deg,rgba(8,8,10,calc(.66 * var(--settings-shade,1))),rgba(8,8,10,calc(.3 * var(--settings-shade,1))) 46%,var(--tone-07) 80%); }
 .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail) { scale:1; opacity:1; }
-.settings-panel.cbs { position:relative; isolation:isolate; display:grid; grid-template-columns:var(--settings-rail) minmax(0,1fr); width:min(var(--settings-width),100%); max-width:100%; height:100%; max-height:none; padding:0; overflow:hidden; border-radius:26px; border:1px solid var(--stroke-strong); background:linear-gradient(160deg,rgba(34,34,42,.68),rgba(14,14,17,.76) 45%,rgba(9,9,12,.82)); backdrop-filter:blur(calc(34px * var(--q-blur))) saturate(170%); -webkit-backdrop-filter:blur(calc(34px * var(--q-blur))) saturate(170%); box-shadow:inset 0 1px 0 var(--light-edge),inset 0 0 0 1px var(--ui-color-171),var(--shadow-xl); transform-origin:0 50%; will-change:transform,opacity; }
+.settings-panel.cbs { position:relative; isolation:isolate; display:grid; grid-template-columns:var(--settings-rail) minmax(0,1fr); width:min(var(--settings-width),100%); max-width:100%; height:100%; max-height:none; padding:0; overflow:hidden; border-radius:26px; border:1px solid var(--stroke-strong); background:linear-gradient(160deg,var(--tone-24),var(--tone-13) 45%,var(--tone-30)); backdrop-filter:blur(calc(34px * var(--q-blur))) saturate(170%); -webkit-backdrop-filter:blur(calc(34px * var(--q-blur))) saturate(170%); box-shadow:inset 0 1px 0 var(--light-edge),inset 0 0 0 1px var(--ui-color-171),var(--shadow-xl); transform-origin:0 50%; will-change:transform,opacity; }
 .settings-panel.cbs::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:radial-gradient(460px circle at var(--light-x,18%) var(--light-y,0%),var(--glass-3),transparent 62%); opacity:.8; }
 :root:is([data-glass-quality="very-low"],[data-glass-quality="low"],[data-reduce-transparency="true"]) .settings-panel.cbs::before { display:none; }
 .cbs :is(button,input,[tabindex]):focus-visible { outline:2px solid var(--focus); outline-offset:2px; box-shadow:0 0 0 4px var(--focus-glow); }
 .cbs [hidden] { display:none !important; }
 
 /* Docked on the right: the rail stays on the outer edge. */
-:root[data-settings-side="right"] .settings-overlay { justify-content:flex-end; background:linear-gradient(270deg,rgba(8,8,10,calc(.66 * var(--settings-shade,1))),rgba(8,8,10,calc(.3 * var(--settings-shade,1))) 46%,rgba(8,8,10,0) 80%); }
+:root[data-settings-side="right"] .settings-overlay { justify-content:flex-end; background:linear-gradient(270deg,rgba(8,8,10,calc(.66 * var(--settings-shade,1))),rgba(8,8,10,calc(.3 * var(--settings-shade,1))) 46%,var(--tone-07) 80%); }
 :root[data-settings-side="right"] .settings-panel.cbs { grid-template-columns:minmax(0,1fr) var(--settings-rail); transform-origin:100% 50%; }
 :root[data-settings-side="right"] .cbs-rail { order:2; border-right:0; border-left:1px solid var(--stroke); }
 :root[data-settings-side="right"] .cbs-nav-pill::before { left:auto; right:-6px; border-radius:3px 0 0 3px; }
