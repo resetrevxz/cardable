@@ -19,7 +19,8 @@
         'Collection tabs share one indicator that slides to the collection you pick.',
         'Filter chips and the empty-collection note ease in instead of appearing at once.',
         'An achievement opened on a narrow window eases in, and menu notices fade in.',
-        'Inventory tooltips, search errors and the delete caution fade in instead of popping up.'
+        'Inventory tooltips, search errors and the delete caution fade in instead of popping up.',
+        'The performance panel and dialogs rise in; drawers slide in from the right.'
       ],
       qol:[
         'Inventory search has its icon and a matching field style.',

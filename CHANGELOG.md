@@ -3,6 +3,7 @@
 The second round of the visual pass, plus a fix for inspecting Ascendant cards. Saved collections, serials and the save schema are unchanged.
 
 - **Inventory height.** Appearance › Interface chooses how tall the inventory opens: Compact, Standard (the default) or Tall. It re-measures live, even with the inventory open.
+- **Panels rise in.** The performance panel and dialogs rise in; drawers slide in from the right.
 - **Quieter appearances.** Inventory tooltips, search errors and the delete caution fade in instead of popping up.
 - **Achievement and menu motion.** An achievement opened on a narrow window eases in, and menu notices fade in.
 - **Filter chips ease in.** Filter chips and the empty-collection note ease in instead of appearing at once.
