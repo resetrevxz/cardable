@@ -5,7 +5,8 @@
     sections:{
       fixes:[
         'Inspect now opens the Studio for Ascendant cards. It failed silently before.',
-        'If the Studio cannot prepare a card, it tells you.'
+        'If the Studio cannot prepare a card, it tells you.',
+        'Shelf captions keep “Basic · Generation 1” on one line instead of wrapping the number.'
       ],
       visuals:[
         'Inventory popovers are glass cards with pill filters.',
@@ -14,7 +15,9 @@
       ],
       qol:[
         'Inventory search has its icon and a matching field style.',
-        'The card-part pulse in card detail stops after you open your first callout.'
+        'The card-part pulse in card detail stops after you open your first callout.',
+        'The inventory’s “0 New · variant copies · finishes” line is removed; the title and count stand alone.',
+        'Achievements drops the “The collection continues” line above its heading.'
       ]
     },
     entries:[
