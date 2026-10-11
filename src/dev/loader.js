@@ -4,7 +4,10 @@
   var css=root.document.createElement('link');css.rel='stylesheet';css.href='src/ui/kit/components/developer.css';root.document.head.appendChild(css);
   function load(index) {
     if(index===files.length){
+      // ?bootDelay=1500 holds the start so the startup bar can be watched.
+      var hold=Number(new root.URLSearchParams(root.location.search).get('bootDelay'))||0;
       Promise.resolve(C.desktop && C.desktop.prepare ? C.desktop.prepare() : false).then(async function(){
+        if(hold){if(C.setup)C.setup.status('Holding the start…');await new Promise(function(r){root.setTimeout(r,hold);});}
         C.dev.prepare();C.boot();if(C.setup)C.setup.status('Preparing developer backup…');
         await C.dev.prepareBackup();C.dev.init();if(C.setup){C.setup.finish();C.setup.welcome();}
       }).catch(function(error){C.bootFailure=true;if(C.setup)C.setup.finish();if(C.friendly)C.friendly.showStartupFailure(error);root.console.error('Cardable developer startup failed:',error);});

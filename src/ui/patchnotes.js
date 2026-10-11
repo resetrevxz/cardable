@@ -356,6 +356,7 @@
     } catch (_) { finished = true; root.clearTimeout(timeout); fallbackCopy(text); }
   }
   function open() {
+    if(C.setup&&C.setup.loading)return false;
     if(C.opening.phase!=='idle'||C.studio.active||C.tutorial.active||C.state.recovery&&C.state.recovery.pending)return false;if(C.commands.active)C.commands.close();if(C.preferences.open)C.preferences.close();
     build(); if (opened) return; opened = true; savedFocus = doc.activeElement; overlay.hidden = false;
     // Restore exact prior inert values, including a Settings dialog beneath this journal.

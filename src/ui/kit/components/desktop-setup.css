@@ -1,11 +1,18 @@
-.cb-startup { position:fixed; inset:0; z-index:var(--z-overlay); display:grid; place-items:center; background:var(--ink-0); color:var(--text-primary); padding:var(--s-5); }
+/* Startup: only a small bar under the pack's place. It appears after a short delay, fills smoothly and leaves. */
+.cb-startup { --startup-pack:clamp(190px,22vh,360px); position:fixed; left:50%; top:calc(50% - var(--stage-lift,0px) + var(--startup-pack) * .74 + var(--s-6)); z-index:var(--z-overlay); width:132px; height:4px; margin-left:-66px; overflow:hidden; border-radius:var(--radius-chip); background:rgba(255,255,255,.1); opacity:0; pointer-events:none; transition:opacity 240ms var(--ease-out); }
+.cb-startup.is-visible { opacity:1; }
+.cb-startup.is-done { opacity:0; transition-duration:300ms; }
+.cb-startup-fill { display:block; width:100%; height:100%; border-radius:inherit; background:var(--accent); transform:scaleX(0); transform-origin:left center; will-change:transform; }
+@media (max-width:600px), (max-height:650px) { .cb-startup { --startup-pack:clamp(160px,28vh,200px); } }
+@media (max-height:500px) { .cb-startup { --startup-pack:clamp(116px,27vh,140px); } }
+/* Until the game has loaded, Settings and Patch notes stay out of sight and the pack's status waits where the bar is. */
+.is-booting :is(.settings-corner,.patch-notes-hud-btn,.cb-menu-help) { opacity:0 !important; visibility:hidden; pointer-events:none; }
+.is-booting .pack-meta { opacity:0 !important; }
+.reduced-motion .cb-startup, .cb-startup.is-reduced { transition-duration:1ms; }
 .cb-startup-panel { width:min(100%,var(--dialog-max)); display:grid; gap:var(--s-4); padding:var(--s-6); border:1px solid var(--stroke); border-top-color:var(--light-edge); border-radius:var(--radius-sheet); background:var(--ink-1); box-shadow:var(--shadow-lg); }
-.cb-startup h1,.cb-setup-welcome h2 { margin:0; font:600 28px/32px var(--font-ui); letter-spacing:-.03em; }
-.cb-startup p { margin:0; font:14px/20px var(--font-ui); color:var(--text-secondary); }
+.cb-setup-welcome h2 { margin:0; font:600 28px/32px var(--font-ui); letter-spacing:-.03em; }
 .cb-setup-eyebrow { font:500 11px/14px var(--font-mono); letter-spacing:.08em; color:var(--text-tertiary); }
 .cb-startup-mark { width:48px; height:64px; border:1px solid var(--stroke-hover); border-radius:var(--radius-control); background:linear-gradient(145deg,var(--glass-3),var(--glass-1)); box-shadow:var(--shadow-sm); }
-.cb-startup-track { height:4px; border-radius:var(--radius-chip); background:var(--stroke); overflow:hidden; }
-.cb-startup-track::before { content:''; display:block; width:32%; height:100%; background:var(--accent); border-radius:inherit; }
 .cb-setup-path { padding:var(--s-3); border:1px solid var(--stroke); border-radius:var(--radius-control); background:var(--ink-0); color:var(--text-primary); font:12px/20px var(--font-mono); overflow-wrap:anywhere; user-select:text; }
 .cb-setup-actions { display:flex; flex-wrap:wrap; gap:var(--s-2); margin-top:var(--s-4); }
 .cb-desktop-update { position:fixed; right:max(var(--s-4),env(safe-area-inset-right)); bottom:max(var(--s-4),env(safe-area-inset-bottom)); z-index:var(--z-toast); width:min(360px,calc(100vw - 32px)); padding:var(--s-4); border:1px solid var(--stroke-strong); border-top-color:var(--light-edge); border-radius:var(--radius-panel); background:var(--ink-1); box-shadow:var(--shadow-md); }

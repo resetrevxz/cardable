@@ -60,17 +60,8 @@
   <link rel="stylesheet" href="src/ui/kit/components/settings-panel.css">
   <link rel="stylesheet" href="src/ui/kit/components/smooth.css">
 </head>
-<body>
-  <section id="cardable-startup" class="cb-startup" role="status" aria-live="polite" aria-label="Starting Cardable">
-    <div class="cb-startup-panel">
-      <div class="cb-startup-mark" aria-hidden="true"></div>
-      <span class="cb-setup-eyebrow">CARDABLE</span>
-      <h1>Getting Cardable ready</h1>
-      <p data-startup-status>Loading the game…</p>
-      <div class="cb-startup-track" aria-hidden="true"></div>
-      <p>Your collection stays with you.</p>
-    </div>
-  </section>
+<body class="is-booting">
+  <div id="cardable-startup" class="cb-startup" role="progressbar" aria-label="Starting Cardable" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i class="cb-startup-fill"></i></div>
   <canvas id="dot-grid" aria-hidden="true"></canvas>
   <main class="menu-shell" aria-label="Cardable">
     <div id="wordmark" class="wordmark idle-chrome entrance" tabindex="0" role="img" aria-label="cardable" style="--entry: 0">

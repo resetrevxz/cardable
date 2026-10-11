@@ -18,6 +18,7 @@
   }
   function open(settingId, emergency) {
     if (opened) { if (settingId && C.preferences.shell) C.preferences.shell.focus(settingId); return true; }
+    if (!emergency && C.setup && C.setup.loading) return false;
     if (!canOpen() && !emergency) return false;
     opened = true; previousCard = C.cardView.active; C.events.emit('preferences:context', { active: true });
     C.events.emit('settings:open'); C.events.emit('menu:visibilityHold', { reason: 'preferences', active: true });

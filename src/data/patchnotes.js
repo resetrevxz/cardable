@@ -17,7 +17,8 @@
         'Undiscovered shelf cards read “Unknown card” with a short “Common · Gen 2” line.',
         'The pack’s timer and buttons grow on tall displays; on phones the wordmark and detail hint fit.',
         'Tutorial Skip and Help stand at the top left instead of over Credits and Settings, and the first step shows only the pack.',
-        'Achievements is remade: a calmer header, a segmented filter, plain section labels, clean rows and one clear record card with its reward and claim button.'
+        'Achievements is remade: a calmer header, a segmented filter, plain section labels, clean rows and one clear record card with its reward and claim button.',
+        'Starting Cardable shows only a small bar under the pack. Settings and Patch notes appear once the game has loaded, and the inventory says it is blocked until then.'
       ],
       qol:[
         'The Keyboard shortcuts sheet has a live filter and a close icon.',
