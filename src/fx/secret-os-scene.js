@@ -10,13 +10,15 @@
     var fresh=root.document.createElement('canvas'),freshQ=fresh.getContext('2d');
     var glass=root.document.createElement('canvas'),gq=glass.getContext('2d',{alpha:false});
     var desktopEnd=root.document.createElement('canvas'),eq=desktopEnd.getContext('2d',{alpha:false});
+    var desktopBase=root.document.createElement('canvas'),baseQ=desktopBase.getContext('2d',{alpha:false});
     var frozen=root.document.createElement('canvas'),freezeQ=frozen.getContext('2d',{alpha:false});
     var dying=root.document.createElement('canvas'),dyingQ=dying.getContext('2d',{alpha:false}),holds=[],freezeAt=0;
     var collapseRandom=M.random('northstar-collapse:'+seed),tiles=[],noise=root.document.createElement('canvas');noise.width=noise.height=32;
     var nq=noise.getContext('2d');for(var ny=0;ny<32;ny++)for(var nx=0;nx<32;nx++){var gray=42+Math.floor(collapseRandom()*40);nq.fillStyle='rgb('+gray+','+gray+','+gray+')';nq.fillRect(nx,ny,1,1);}
     while(freezeAt<spec.collapse.compressMs){holds.push(freezeAt);freezeAt+=spec.collapse.holdMinMs+collapseRandom()*(spec.collapse.holdMaxMs-spec.collapse.holdMinMs);}
     for(var ti=0;ti<48;ti++)tiles.push({x:ti%8*80,y:Math.floor(ti/8)*60,phase:collapseRandom()*6.28,offset:collapseRandom()*.8});
-    var plan=[],windows=[],births=[],beats=[],last=-1,previous=null,scale=1,level=2,profile='safe',presentation=0;
+    var plan=[],windows=[],births=[],beats=[],last=-1,previous=null,scale=1,level=Math.max(0,Math.min(3,C.settingsSchema.tiers.indexOf(C.settings.get('cinematicQuality')))),profile='safe',presentation=0,wrappedLines=new Map(),dialogRasters=new Map(),warmTicket=null,warmIndex=0,dead=false;
+    function clearDialogRasters(){dialogRasters.forEach(function(item){item.width=item.height=1;});dialogRasters.clear();}
     var fullBurst=null,burstArmed=true,calmUntil=-Infinity,burstTotal=0,lastTheme=-1,lastReboot=-1;
     var icons=cfg.icons.map(function(name,i){return {name:name,x:48+Math.floor(random()*7),y:38+i*69+Math.floor(random()*5),phase:random()*6.28};});
     var hex=[];for(var row=0;row<48;row++){var bytes=[];for(var col=0;col<24;col++)bytes.push(Math.floor(random()*256).toString(16).padStart(2,'0').toUpperCase());hex.push(bytes);}
@@ -46,17 +48,25 @@
     function bevel(g,x,y,w,h,down){rect(g,x,y,w,h,down?'#6d7177':'#eeeeef');rect(g,x+1,y+1,w-1,h-1,down?'#eeeeef':'#54575c');rect(g,x+1,y+1,w-2,h-2,p.face);}
     function line(g,x,y,xx,yy,color,width){g.beginPath();g.moveTo(px(x),px(y));g.lineTo(px(xx),px(yy));g.strokeStyle=color;g.lineWidth=(width||1)/scale;g.stroke();}
     function button(g,label,x,y,w,pressed){bevel(g,x,y,w,18,pressed);text(g,label,x+(w-label.length*6)/2+(pressed?1:0),y+4+(pressed?1:0),'#18191c',10);}
-    function wrap(g,message,x,y,w,size,height){size=size||11;height=height||14;text(g,'',x,y,null,size);var words=message.split(' '),row='',at=y;words.forEach(function(word){var next=row?row+' '+word:word;if(g.measureText(next).width>w&&row){text(g,row,x,at,null,size);at+=height;row=word;}else row=next;});if(row)text(g,row,x,at,null,size);}
+    function wrap(g,message,x,y,w,size,height){size=size||11;height=height||14;text(g,'',x,y,null,size);var key=JSON.stringify([message,w,g.font]),lines=wrappedLines.get(key);
+      if(!lines){lines=[];var words=message.split(' '),row='';words.forEach(function(word){var next=row?row+' '+word:word;if(g.measureText(next).width>w&&row){lines.push(row);row=word;}else row=next;});if(row)lines.push(row);wrappedLines.set(key,lines);if(wrappedLines.size>64)wrappedLines.delete(wrappedLines.keys().next().value);}
+      lines.forEach(function(row,i){text(g,row,x,y+i*height,null,size);});}
     function emit(id,key,story){if(!beats.some(function(b){return b.key===key;}))beats.push({id:id,key:key,ms:story});}
     function resize(){
       var changed=mask.width!==canvas.width||mask.height!==canvas.height;
       scale=canvas.width/640;
       if(changed){
+        wrappedLines.clear();
+        clearDialogRasters();
         // Scale retained feedback instead of replacing a dense desktop when quality adapts.
         var copy=root.document.createElement('canvas');copy.width=canvas.width;copy.height=canvas.height;copy.getContext('2d').drawImage(feedback,0,0,copy.width,copy.height);
         var oldMask=root.document.createElement('canvas');oldMask.width=canvas.width;oldMask.height=canvas.height;oldMask.getContext('2d').drawImage(trailMask,0,0,oldMask.width,oldMask.height);
         var hadMask=trailMask.width>1&&trailMask.dataset.ready;
-        [mask,trailMask,feedback,fresh,glass,desktopEnd,frozen,dying].forEach(function(c){c.width=canvas.width;c.height=canvas.height;});fq.drawImage(copy,0,0);
+        [mask,trailMask,feedback,fresh,glass,desktopEnd,desktopBase,frozen,dying].forEach(function(c){c.width=canvas.width;c.height=canvas.height;});fq.drawImage(copy,0,0);
+        // The wallpaper is unchanged through every desktop pose and theme.
+        // Rasterize its hundreds of dots once per actual buffer size.
+        baseQ.setTransform(scale,0,0,scale,0,0);rect(baseQ,0,0,640,360,p.desktop);
+        for(var yy=8;yy<340;yy+=16)for(var xx=8;xx<640;xx+=16)rect(baseQ,xx,yy,1,1,'rgba(255,255,255,.075)');
         if(hadMask)trailQ.drawImage(oldMask,0,0);else{trailQ.fillStyle='#fff';trailQ.fillRect(0,0,trailMask.width,trailMask.height);}trailMask.dataset.ready='1';
         previous=null;glass.dataset.ready='';desktopEnd.dataset.ready='';frozen.dataset.ready='';
       }
@@ -91,7 +101,7 @@
       g.restore();text(g,icon.name,x-icon.name.length*3,y+18,'#eef4f4',10);
     }
     function background(age,breakdown){
-      rect(q,0,0,640,360,p.desktop);for(var yy=8;yy<340;yy+=16)for(var xx=8;xx<640;xx+=16)rect(q,xx,yy,1,1,'rgba(255,255,255,.075)');
+      q.drawImage(desktopBase,0,0,desktopBase.width/scale,desktopBase.height/scale);
       icons.forEach(function(item,i){var fall=breakdown?Math.max(0,(age-9)*1.7-i*.3):0,x=item.x,y=item.y;
         if(fall){var drop=Math.min(1,fall);y=Math.min(313-i*4,y+fall*fall*130);x+=Math.sin(item.phase)*drop*42;}icon(q,item,x,y,age,1);});
       bevel(q,0,336,640,24,false);button(q,'NorthStar',4,339,80,false);rect(q,93,341,192,15,'#b7b9bd');text(q,age<2?'Desktop':'SECRET.DAT',101,344,'#34353b',10);
@@ -136,6 +146,16 @@
       if(yes)button(g,'Yes',x+window.w-145,y+window.h-26,62,false);
       else if(Number(window.id.split(':')[1])%3===1)button(g,['Retry','Ignore','Cancel'][Number(window.id.split(':')[1])%3],x+window.w-145,y+window.h-26,62,false);
     }
+    function dialogRaster(window,pressed,theme){
+      var key=window.id+':'+pressed+':'+(theme>=3?'late':'plain'),raster=dialogRasters.get(key);
+      if(!raster){
+        raster=root.document.createElement('canvas');raster.width=Math.ceil(window.w*scale);raster.height=Math.ceil(window.h*scale);
+        var rq=raster.getContext('2d',{alpha:false});rq.setTransform(scale,0,0,scale,0,0);rq.imageSmoothingEnabled=false;rect(rq,0,0,window.w,window.h,theme>=3?'#d1d4d7':p.face);
+        contents(rq,Object.assign({},window,{x:0,y:0}),pressed?2.5:3,false);dialogRasters.set(key,raster);
+        if(dialogRasters.size>cfg.windowCaps[level]+2){var oldest=dialogRasters.keys().next().value,retired=dialogRasters.get(oldest);retired.width=retired.height=1;dialogRasters.delete(oldest);}
+      }else{dialogRasters.delete(key);dialogRasters.set(key,raster);}
+      return raster;
+    }
     function drawWindow(g,window,position,age,theme,alpha,entrance,breakdown){
       g.save();g.globalAlpha*=alpha;
       var grow=profile==='safe'?M.smooth(entrance/cfg.desktop.safeEntranceMs):1;
@@ -153,7 +173,11 @@
       }else rect(g,3,3,window.w-6,19,'#979ca3');
       g.save();clip(g,3,24,window.w-6,window.h-27);
       // Contents are local to the transformed window, keeping every dialog draggable.
-      contents(g,Object.assign({},window,{x:0,y:0}),age,breakdown);g.restore();g.restore();
+      if(window.kind==='error'&&grow===1&&alpha===1&&g.globalAlpha===1&&theme!==2){
+        var pressed=window.id==='error:0'&&age>2.44&&age<2.65,raster=dialogRaster(window,pressed,theme);
+        g.drawImage(raster,0,0,raster.width/scale,raster.height/scale);
+      }else contents(g,Object.assign({},window,{x:0,y:0}),age,breakdown);
+      g.restore();g.restore();
     }
     function themeAt(age){
       var e=(age-9)*1000,cfgE=cfg.breakdown,base=Math.min(4,Math.max(0,Math.floor(e/cfgE.themeMs))),blend=M.smooth((e%cfgE.themeMs)/cfgE.safeCrossfadeMs);
@@ -324,7 +348,12 @@
       model.freezeHoldMs=index+1<holds.length?holds[index+1]-holds[index]:control.compressMs-holds[index];model.ghostCursors=count;
       return {curve:.055,shift:ms<control.compressMs?.6:0,noise:ms<control.compressMs?(active?.055:.005):0,tear:ms<control.compressMs?tear*.045:0};
     }
+    // One bounded sprite per shared frame ahead of the desktop's first wave.
+    var warmPlan=plan.filter(function(window){return window.kind==='error';}).slice(0,cfg.windowCaps[level]);
+    function warm(){warmTicket=null;if(dead||level<2)return;var transform=q.getTransform();try{resize();if(warmIndex<warmPlan.length)dialogRaster(warmPlan[warmIndex++],false,0);}finally{q.setTransform(transform);}if(warmIndex<warmPlan.length)warmTicket=C.frame.request(warm);}
+    if(level>=2)warmTicket=C.frame.request(warm);
     return {model:model,mask:mask,
+      get cacheStats(){var bytes=0;dialogRasters.forEach(function(c){bytes+=c.width*c.height*4;});return {dialogs:dialogRasters.size,bytes:bytes,warming:warmTicket!==null};},
       getBeats:function(){return beats;},
       paint:function(section,age,time,options){
         level=options.level;profile=options.profile;presentation=options.presentationMs;resize();model.section=section;
@@ -337,7 +366,7 @@
         previous={x:model.cursor.x,y:model.cursor.y};last=presentation;
         return effect;
       },
-      stop:function(){[mask,trailMask,feedback,fresh,glass,desktopEnd,frozen,dying,noise].forEach(function(c){c.width=c.height=1;});}
+      stop:function(){dead=true;if(warmTicket!==null)C.frame.cancel(warmTicket);warmTicket=null;wrappedLines.clear();clearDialogRasters();[mask,trailMask,feedback,fresh,glass,desktopEnd,desktopBase,frozen,dying,noise].forEach(function(c){c.width=c.height=1;});}
     };
   }};
 })(window.Cardable,window);

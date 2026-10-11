@@ -150,8 +150,8 @@
     fill = clamp((root.performance.now() - chargeAt) / C.settings.holdMs); drainFrom = fill;
     phaseTo('draining'); C.events.emit('charge:end', { reason: reason });
   }
-  function commit() {
-    if (phase !== 'charging' || root.document.hidden) return;
+  function commit(compact) {
+    if (compact ? phase !== 'idle' : phase !== 'charging' || root.document.hidden) return;
     var candidate = JSON.parse(JSON.stringify(C.state.current)), now = C.clock.now();
     C.timers.reconcileInto(candidate, now);
     if (candidate.pendingReveal || !C.timers.consumeInto(candidate, now)) { cancel('unavailable'); return; }
@@ -192,6 +192,7 @@
     stats.commits += 1; fill = 1; C.currency.notify(before,'pack opening');
     C.events.notify('pack:reward', { before: before, value: candidate.currency, amount: C.config.currency.packOpenReward, source: host.getBoundingClientRect() });
     C.events.notify('pack:opened', { ready: candidate.packs.ready }); C.events.notify('charge:complete', candidate.pendingReveal);
+    if (compact) { fill = 0; candidate.pendingReveal.cards.forEach(function(item){C.events.notify('card:revealed',item);}); return true; }
     phaseTo('dissolving'); particles.emit('dissolve', null, width, height);
   }
   function chargeEnd() {
@@ -323,7 +324,7 @@
   function cleanReveal() {
     if(cutStrategy&&cutStrategy.clearReveal)cutStrategy.clearReveal();packEntrance=false;
     if(swapEffect)swapEffect.destroy();swapEffect=null;
-    if (swapShell) swapShell.remove(); swapShell = null; swapUnit = null; swapTarget = null;
+    if (swapShell) { if (C.packFaces) C.packFaces.dispose(swapShell); swapShell.remove(); } swapShell = null; swapUnit = null; swapTarget = null;
     if (mount) { mount.style.transformOrigin = ''; mount.style.transform = ''; }
     if (intro) intro.stop();
     if (currentView) currentView.destroy(); currentView = null;
@@ -703,6 +704,34 @@
   }
   C.opening = {
     initialized: false, phase: phase, stats: stats,
+    miniAction: function (choice) {
+      if (phase !== 'idle' || !enabled || preferencesActive || inventoryBlocked) return false;
+      var pending = C.state.current.pendingReveal;
+      if (!pending) return choice == null && commit(true) === true;
+      if (pending.options && pending.choice == null) {
+        if (!Number.isInteger(choice) || choice < 0 || choice >= pending.options.length) return false;
+        var selected=C.picker.choose(choice);if(selected)C.events.notify('card:revealed',selected.instance);return !!selected;
+      }
+      if (choice != null || !pending.cards.length) return false;
+      var candidate = JSON.parse(JSON.stringify(C.state.current));
+      var discarded = pending.discardedInstanceIds || [];
+      var cards = candidate.pendingReveal.cards.filter(function (item) { return discarded.indexOf(item.instanceId) < 0; });
+      var owned = new Set(candidate.inventory.map(function (item) { return item.instanceId; }));
+      cards.forEach(function (item) { if (!owned.has(item.instanceId)) { candidate.inventory.push(item); owned.add(item.instanceId); } });
+      candidate.pendingReveal = null;
+      if (cards.length) candidate.inventoryUi.pendingFocusStackKey = C.stacks.of(cards[cards.length - 1]);
+      C.events.emit('opening:prepareKeep', { candidate: candidate, final: true });
+      var saved;
+      writingKeep = true;
+      try { saved = C.state.commit(candidate); } finally { writingKeep = false; }
+      if (!saved) return false;
+      pending.cards.slice(pending.keptCount || 0).forEach(function (item) {
+        if (discarded.indexOf(item.instanceId) < 0) { stats.keeps += 1; C.events.notify('card:kept', item); }
+      });
+      C.events.notify('opening:context', { phase: 'idle' });
+      return true;
+    },
+    resumeMini: function () { if (phase === 'idle' && C.state.current.pendingReveal) { usePack(C.pack(C.state.current.pendingReveal.packId)); startReveal(true); } },
     openNow: function (packId) {
       if (phase !== 'idle' || !enabled || preferencesActive || inventoryBlocked || C.state.current.pendingReveal) return false;
       if (packId) { var nextPack = C.pack(packId); if (!nextPack || !nextPack.enabled) return false; C.packs.forceNext(packId); }

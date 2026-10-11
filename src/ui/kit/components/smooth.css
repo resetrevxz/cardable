@@ -441,3 +441,9 @@
 /* Phone width: the peek thumbnail is invisible when the sheet is open, so it must not hold a third header row. */
 @media (max-width:520px) { .inventory-sheet .inventory-peek-thumbnail { position:absolute; top:25px; right:var(--s-4); } }
 /* Phone width: the Achievements title takes a full row so it never breaks inside a word; actions sit beneath it. */
+
+/* Retained fields can turn white. Keep the accent primary action and give the
+   quiet secondary gradient a stable dark backing; opaque controls need no blur. */
+.opening-stage.has-rarity-backdrop .opening-reveal :is(.opening-keep,.opening-delete) { backdrop-filter:none; -webkit-backdrop-filter:none; }
+.opening-stage.has-rarity-backdrop .opening-reveal .opening-delete,
+.opening-stage.has-rarity-backdrop .opening-reveal .opening-delete:hover:not(:disabled) { background-color:var(--ink-1); }

@@ -102,7 +102,7 @@
       link('book', 'How to play', function () { C.friendly.showHelp(); });
       if (C.native) link('monitor', 'Desktop help', function () { C.friendly.showHelp('desktop'); });
       link('info', 'Credits and licenses', function () { credits.hidden = false; C.accessibility.trap(credits); C.preferences.creditsClose.focus(); });
-      if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(about, { close: close, announce: announce });
+      if (C.settingsDesktop) C.preferences.desktop = C.settingsDesktop.create(about, { close: close, announce: announce, windowHost: shell.group('Desktop') });
       credits = node('section', 'settings-credits glass', panel); credits.hidden = true; credits.setAttribute('role', 'dialog'); credits.setAttribute('aria-modal', 'true'); credits.setAttribute('aria-label', 'Credits and licenses');
       node('h2', '', credits, 'Credits and licenses'); node('p', '', credits, 'Inter — Rasmus Andersson. JetBrains Mono — JetBrains. Both fonts use the SIL Open Font License 1.1.');
       node('p', '', credits, 'Local font files are optional. System UI and monospace fallbacks keep the game readable.');

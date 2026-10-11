@@ -115,7 +115,7 @@
     if (s[key].control === 'select') s[key].control = 'menu';
     if (/^visible[A-Z]/.test(key)) s[key].helper = '';
   });
-  ['aspectLock', 'alwaysOnTop', 'taskbarProgress', 'focusModeDefault', 'batterySaver', 'notifyPackReady', 'restartUpdatesWhenIdle']
+  ['windowAspect', 'miniSide', 'miniFps', 'aspectLock', 'alwaysOnTop', 'taskbarProgress', 'focusModeDefault', 'batterySaver', 'notifyPackReady', 'restartUpdatesWhenIdle']
     .forEach(function (key) { tune(key, { nativeOnly: true }); });
 
   base.graphicsKeys.forEach(function (key) { tune(key, { control: 'level', advanced: false }); });
@@ -154,7 +154,8 @@
       { title: 'Vision', keys: ['highContrast', 'largerText', 'reduceTransparency', 'focusEmphasis'] },
       { title: 'Assistive', keys: ['announcements'] } ] },
     { id: 'Desktop', icon: 'monitor', nativeOnly: true, blurb: 'The Windows app.', sections: [
-      { title: 'Window', keys: ['aspectLock', 'alwaysOnTop', 'focusModeDefault', 'taskbarProgress'] },
+      { title: 'Window', keys: ['windowAspect', 'alwaysOnTop', 'focusModeDefault', 'taskbarProgress'] },
+      { title: 'Mini mode', keys: ['miniSide', 'miniFps'] },
       { title: 'Updates', keys: ['restartUpdatesWhenIdle'] } ] },
     { id: 'Studio', icon: 'camera', advanced: true, blurb: 'Defaults for the photo studio.', sections: [{ title: 'Workspace', keys: studio }] },
     { id: 'Profiles', icon: 'layers', blurb: 'One-tap setups you can undo.', sections: [{ title: 'Quick setups', slot: 'profiles', keys: [] }] },

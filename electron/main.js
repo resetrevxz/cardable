@@ -165,6 +165,22 @@ if (!gotTheLock) {
                 if (performance.now() > bootDeadline) throw new Error('Cardable did not finish booting');
                 await new Promise(resolve => setTimeout(resolve, 25));
               }
+              // Current startup finishes after UI initialization. Exercise the
+              // ready game rather than clicking through its loading scrim.
+              while (Cardable.setup && Cardable.setup.loading) {
+                if (performance.now() > bootDeadline) throw new Error('Cardable loading surface did not finish');
+                await new Promise(resolve => setTimeout(resolve, 25));
+              }
+              Cardable.tutorial.skipButton.click();
+              if (Cardable.friendly && Cardable.friendly.active) Cardable.friendly.close();
+              if (Cardable.setup && !localStorage.getItem('cardable.desktop.welcome') && !localStorage.getItem('cardable.qol.welcomeSeen')) {
+                let welcome;
+                while (!(welcome = Array.from(document.querySelectorAll('.cb-setup-welcome button')).find(button => button.textContent.trim() === 'Start collecting'))) {
+                  if (performance.now() > bootDeadline) throw new Error('Desktop welcome did not appear');
+                  await new Promise(resolve => setTimeout(resolve, 25));
+                }
+                welcome.click();
+              }
               const res = {
                 hasCardableDesktop: typeof window.cardableDesktop === 'object',
                 hasCardable: typeof window.Cardable === 'object',

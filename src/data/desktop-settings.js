@@ -6,6 +6,11 @@
   add('interfaceSize','Interface size','Auto fits the 1920 × 1080 composition. Shortcuts: Ctrl/Cmd +, −, 0.','auto',['auto','90','100','110','125','150'],'select');
   C.settingsSchema.entries.interfaceSize.format=function(value){return value === 'auto' ? 'Auto' : value + ' %';};
   add('aspectLock','Lock window to 16:9','Keeps the desktop window at the design aspect ratio.',false);
+  add('miniSide','Mini dock side','Places the companion on the left or right of this display.','right',['left','right'],'select');
+  add('miniFps','Mini frame limit','Caps companion updates; idle frames are not rendered.',30,[30,60],'select');
+  C.settingsSchema.entries.miniFps.format=function(value){return value+' FPS';};
+  add('windowAspect','Window proportions','Free resizing, classic 16:9 or ultrawide 21:9. Applies in windowed mode.','free',['free','16:9','21:9'],'select');
+  C.settingsSchema.entries.windowAspect.format=function(value){return value==='free'?'Free':value;};
   add('batterySaver','Battery saver','Auto temporarily lowers effects one tier on battery; your saved choices stay unchanged.','auto',['off','auto'],'select');
   add('alwaysOnTop','Always on top','Keeps Cardable above other windows.',false);
   add('taskbarProgress','Taskbar progress','Shows next-pack progress and a full bar when a pack is ready.',true);

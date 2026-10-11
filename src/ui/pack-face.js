@@ -357,6 +357,7 @@
       });
     });
     var host = face.wrapper.parentNode; if (!host) return;
+    face.host = host;
     (host._packFaces || (host._packFaces = [])).push(face);
     observer.observe(host);
   }
@@ -365,28 +366,45 @@
   function build(wrapper, pack, rear, kind) {
     var spec = specOf(pack);
     if (!spec) return null;
-    if (wrapper._packFace) wrapper._packFace.dead = true;
+    if (wrapper._packFace) wrapper._packFace.destroy();
     var body = node('canvas', 'pack-face-art', wrapper), dyn = node('canvas', 'pack-face-fx', wrapper);
     body.setAttribute('aria-hidden', 'true'); dyn.setAttribute('aria-hidden', 'true');
     var face = {
       pack: pack, spec: spec, rear: !!rear, kind: kind || 'face', body: body, dyn: dyn, wrapper: wrapper,
       size: { w: 0, h: 0 }, nodes: null, cells: null, standard: null, t: 0, painted: false, dynKey: '',
       chameleon: 1, grid: 0, cut: null, network: 1, wave: 1, active: false, icons: null, dead: false,
-      charge: 0, arrive: 1, last: null, store: {}
+      charge: 0, arrive: 1, last: null, store: {}, ratio: 0
     };
     wrapper._packFace = face;
+    face.destroy = function () {
+      if (face.dead) return;
+      face.dead = true;
+      if (face.host && face.host._packFaces) {
+        var at = face.host._packFaces.indexOf(face);
+        if (at >= 0) face.host._packFaces.splice(at, 1);
+        if (!face.host._packFaces.length && observer) observer.unobserve(face.host);
+      }
+      body.width = body.height = dyn.width = dyn.height = 0;
+      face.nodes = face.cells = face.standard = face.icons = null; face.store = {};
+      if (wrapper._packFace === face) wrapper._packFace = null;
+      face.host = null;
+    };
     face.paint = function () {
+      if (face.dead) return false;
       var host = wrapper.parentNode || wrapper;
       if (host.offsetWidth === 0) return false;
       var size = sizeOf(host); face.size = size; face.icons = null;
       var ctx = fit(body, size); spec.paint(ctx, size.w, size.h, face.rear, pack.id);
-      fit(dyn, size); face.dynKey = ''; face.cells = null; face.standard = null; face.painted = true;
+      fit(dyn, size); face.ratio = pixelRatio(); face.dynKey = ''; face.cells = null; face.standard = null; face.painted = true;
       if (spec.nodes && !face.nodes) face.nodes = makeNetwork(pack.id + (face.rear ? ':r' : ''), spec.nodes);
       face.draw(true);
       return true;
     };
     face.draw = function (force) {
+      if (face.dead) return false;
       if (!face.painted) return false;
+      // Static and dynamic buffers must share the current quality/DPR budget.
+      if (face.ratio !== pixelRatio()) return face.paint();
       var size = face.size, key;
       var ctx = dyn.getContext('2d');
       var t = face.t / 1000;
@@ -425,6 +443,10 @@
     define: define, spec: specOf, layout: LAYOUT, palette: PALETTE, registry: registry,
     has: function (pack) { return !!specOf(pack); },
     build: build,
+    dispose: function (el) {
+      if (el._packFace) el._packFace.destroy();
+      el.querySelectorAll('.pack-face-root').forEach(function (wrapper) { if (wrapper._packFace) wrapper._packFace.destroy(); });
+    },
     // Called when an element carries solid faces: repaint after a size or quality change.
     repaint: function (root$1) {
       root$1.querySelectorAll('.pack-face-root').forEach(function (w) { if (w._packFace) w._packFace.paint(); });
@@ -451,7 +473,8 @@
         };
         Object.keys(vars).forEach(function (key) { if (el._faceVars && el._faceVars[key] === vars[key]) return; (el._faceVars || (el._faceVars = {}))[key] = vars[key]; el.style.setProperty(key, vars[key]); });
         var visible = index === 0 ? frontVisible : !frontVisible;
-        el.dataset.faceVisible = visible ? 'true' : 'false';
+        var visibility = visible ? 'true' : 'false';
+        if (el.dataset.faceVisible !== visibility) el.dataset.faceVisible = visibility;
         var wrapper = el.querySelector('.pack-face-root'), face = wrapper && wrapper._packFace;
         if (face && visible) {
           // The constellation only drifts on tiers that allow ambient motion; otherwise it holds its last pose.

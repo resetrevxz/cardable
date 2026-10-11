@@ -27,7 +27,7 @@
 .inventory-mystery-title svg { display: block; margin: 0 auto 8px; width: 14px; height: 14px; color: var(--text-dim); }
 .inventory-mystery-meta { position: absolute; top: 88%; left: 8%; right: 8%; text-align: center; font: clamp(7px,3cqw,10px)/1.4 var(--font-mono); color: var(--text-dim); z-index: var(--z-sticky); }
 .inventory-mystery[data-color-mode="mono"] { filter: grayscale(1); }
-.inventory-grid { height: 100%; overflow-y: auto; overflow-x: hidden; position: relative; overscroll-behavior: contain; scrollbar-width: thin; padding: 0 24px; }
+.inventory-grid { height: 100%; overflow-y: auto; overflow-x: hidden; position: relative; overscroll-behavior: contain; overflow-anchor: none; scrollbar-width: thin; padding: 0 24px; }
 .inventory-grid-canvas { position: relative; width: 100%; }
 .inventory-grid .inventory-tile { position: absolute; contain: layout style; }
 .inventory-grid .inventory-tile-card { -webkit-box-reflect: none !important; }

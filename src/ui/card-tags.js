@@ -7,9 +7,11 @@
     rarity:'M4 4h16v16H4ZM8 8h8v8H8Z', date:'M4 5h16v16H4ZM4 10h16M8 2v6m8-6v6',
     age:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 7v5l4 2', print:'M6 3h12v5H6ZM4 8h16v10h-3M7 18H4M7 14h10v7H7Z', era:'M3 4h18v13H3ZM7 20h10M12 17v3M6 7h12v7H6Z'
   };
+  var unpackedDateFormat;
   function dateLabel(timestamp, now) {
     var date=new Date(timestamp),today=new Date(now);today.setHours(0,0,0,0);var yesterday=new Date(today);yesterday.setDate(yesterday.getDate()-1);
-    return timestamp>=today.getTime()&&timestamp<new Date(today.getFullYear(),today.getMonth(),today.getDate()+1).getTime()?'Unpacked Today':timestamp>=yesterday.getTime()&&timestamp<today.getTime()?'Unpacked Yesterday':'Unpacked '+date.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+    if(Number.isNaN(date.getTime()))return 'Unpacked Invalid Date';
+    return timestamp>=today.getTime()&&timestamp<new Date(today.getFullYear(),today.getMonth(),today.getDate()+1).getTime()?'Unpacked Today':timestamp>=yesterday.getTime()&&timestamp<today.getTime()?'Unpacked Yesterday':'Unpacked '+(unpackedDateFormat||(unpackedDateFormat=new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric'}))).format(date);
   }
   function derive(entry, instance, mode, now) {
     now=now==null?C.clock.now():now;var tags=[],variant=C.variant(entry.variantId),favorite=C.inventoryModel.current.favorites.indexOf(entry.sourceStackKey||entry.stackKey)>=0;

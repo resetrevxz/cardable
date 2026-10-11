@@ -53,9 +53,10 @@
     return svg;
   }
   generators.set('procedural', procedural);
-  generators.set('image', function (card) {
+  generators.set('image', function (card, options) {
     if (!/^assets\//.test(card.art.src)) throw new Error('Card art must use a local assets/ path');
-    var image = root.document.createElement('img'); image.src = card.art.src; image.alt = card.name;
+    var image = root.document.createElement('img'); image.decoding = 'async'; image.alt = card.name;
+    image.src = options && options.thumbnail ? card.art.src.replace(/\.webp$/, '-thumb.webp') : card.art.src;
     image.addEventListener('error', function () {
       if (!image.parentNode) return;
       var seed = 0;
@@ -73,9 +74,7 @@
       var generator = generators.get(card.art.kind);
       if (!generator) throw new Error('Unknown card art kind: ' + card.art.kind);
       if (card.art.kind === 'image') {
-        var image = generator(card); image.decoding = 'async';
-        if (options.thumbnail || C.settings.get('quality') === 'very-low') image.src = card.art.src.replace(/\.webp$/, '-thumb.webp');
-        return image;
+        return generator(card, { thumbnail: options.thumbnail || C.settings.get('quality') === 'very-low' });
       }
       var key = JSON.stringify([card.art, card.rarity, options.thumbnail]);
       if (!cache.has(key)) {

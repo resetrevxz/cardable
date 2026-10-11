@@ -53,6 +53,7 @@
     get batterySaving() { return batterySaving; },
     setBatterySaver: function (active) { active = !!active; if (active === batterySaving) return; batterySaving = active; policy = resolvePolicy(); ['quality'].concat(schema.graphicsKeys).forEach(function(key){apply(key,effective(key));}); },
     get: function (key) { return effective(key); },
+    getRequested: function (key) { return values[key]; },
     get snapshot() { return Object.assign({}, values); },
     get saved() { return C.state.persistenceAvailable; },
     get policy() { return policy; },

@@ -1,5 +1,27 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.5.0',codename:'Smoother collections',date:'October 11, 2026',tag:'Update',tagline:'Smoother browsing and a companion that opens packs.',
+    hero:{badge:'CARDABLE / 1.5.0',title:'Smoother collections.',subtitle:'Organize what you own, track what you want, and open packs from Mini.',media:[]},
+    sections:{
+      fixes:[
+        'Large grids prepare a bounded number of thumbnails at a time and reuse their layout as the sheet changes height.',
+        'Retired pack canvases are released, and thumbnail artwork loads directly.',
+        'Keep and Delete stay readable over bright retained cinematic fields.'
+      ],
+      visuals:[
+        'Collections support colors, pins, descriptions and tab sorting; wishlists track missing cards and priorities.',
+        'The always-on-top Mini companion shows stock, refill progress and your three newest collected cards.'
+      ],
+      qol:[
+        'Open and Keep work inside Mini using your Controls bindings. Picker offers use 1, 2 and 3; Expand restores the same reserved card.',
+        'Mini remembers Left or Right docking and a 30 or 60 FPS ceiling.',
+        'Desktop settings offer Free, 16:9 and 21:9 proportions, presets and custom window sizes.',
+        'Searches reuse collection membership and selecting a tab reuses its labels and icons. Achievements remain paused with progress retained.'
+      ]
+    },
+    entries:['Smoother collection browsing with less repeated work.','Collections and wishlists have more organization tools.','Open, choose and Keep cards inside the lightweight Mini companion.']
+  },
+  {
     version:'1.4.3',codename:'Quiet start',date:'October 11, 2026',tag:'Update',tagline:'A bar instead of a panel, and Achievements take a break.',
     hero:{badge:'CARDABLE / 1.4.3',title:'Quiet start.',subtitle:'Cardable starts with a small bar under the pack. Achievements are paused while they are reworked, and your progress is kept.',media:[]},
     sections:{

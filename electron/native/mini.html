@@ -1,51 +1,44 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
-  <base href="../../">
-  <title>Cardable Mini</title>
-  <link rel="stylesheet" href="src/styles/tokens.css">
-  <link rel="stylesheet" href="src/styles/base.css">
-  <link rel="stylesheet" href="src/ui/kit/components/surfaces.css">
-  <link rel="stylesheet" href="src/styles/pack.css">
-  <link rel="stylesheet" href="src/styles/pack-variants.css">
-  <link rel="stylesheet" href="src/styles/brand-packs.css">
-  <link rel="stylesheet" href="src/styles/classic-pack.css">
-  <link rel="stylesheet" href="src/styles/royal-pack.css">
-  <link rel="stylesheet" href="src/styles/titan-pack.css">
-  <link rel="stylesheet" href="src/styles/picker-pack.css">
-  <link rel="stylesheet" href="src/styles/graphics.css">
-  <link rel="stylesheet" href="src/ui/kit/tokens.css">
-  <link rel="stylesheet" href="src/ui/kit/base.css">
-  <link rel="stylesheet" href="src/ui/kit/components/controls.css">
-  <link rel="stylesheet" href="electron/native/mini.css">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
+<base href="../../"><title>Cardable Mini</title>
+<link rel="stylesheet" href="src/styles/tokens.css">
+<link rel="stylesheet" href="src/ui/kit/tokens.css">
+<link rel="stylesheet" href="electron/native/mini.css">
 </head>
 <body>
-  <header><span>CARDABLE</span><button id="expand" aria-label="Restore full window">Expand</button></header>
-  <main aria-label="Next pack"><div id="pack" class="pack-stage" aria-hidden="true"></div><p id="name"></p><span id="stack" class="cb-chip" aria-label="Pack stock"></span><p id="countdown" role="status"></p><button id="open" class="quiet-button">Open pack</button></main>
-  <script src="src/core/namespace.js"></script>
-  <script src="src/config.js"></script>
-  <script src="src/data/cards.js"></script>
-  <script src="src/data/packs.js"></script>
-  <script src="src/data/brand-packs.js"></script>
-  <script src="src/data/classic-pack.js"></script>
-  <script src="src/data/royal-pack.js"></script>
-  <script src="src/data/titan-pack.js"></script>
-  <script src="src/data/picker-pack.js"></script>
-  <script src="src/ui/card-art.js"></script>
-  <script src="electron/native/mini-runtime.js"></script>
-  <script src="src/core/keys.js"></script>
-  <script src="src/data/help.js"></script>
-  <script src="src/ui/kit/icons.js"></script>
-  <script src="src/ui/kit/index.js"></script>
-  <script src="src/ui/pack-skins.js"></script>
-  <script src="src/ui/pack-markup.js"></script>
-  <script src="src/ui/brand-pack-skins.js"></script>
-  <script src="src/ui/classic-pack-skin.js"></script>
-  <script src="src/ui/royal-pack-skin.js"></script>
-  <script src="src/ui/titan-pack-skin.js"></script>
-  <script src="src/ui/picker-pack-skin.js"></script>
-  <script src="electron/native/mini-renderer.js"></script>
-</body>
-</html>
+<header class="mini-header"><div class="wordmark"><span class="brand-dot"></span>CARDABLE <span class="eyebrow">MINI</span></div><button id="settings" class="icon-button" aria-label="Mini settings" aria-expanded="false" title="Mini settings">⚙</button><button id="expand" class="icon-button" aria-label="Restore full window" title="Restore full window">↗</button></header>
+<main>
+<section class="stock-panel" aria-label="Pack stock">
+<div class="section-heading"><span class="eyebrow">YOUR PACKS</span><span class="pinned">Pinned on top</span></div>
+<div class="stock-value"><strong id="stock">—</strong><span id="capacity">/ 4 stored</span><span id="credits" class="credits"></span></div>
+<div id="slots" class="slots" aria-hidden="true"></div>
+<div class="timer-line"><span id="timer-label">Next refill</span><span id="countdown">Connecting…</span></div>
+<progress id="progress" max="1" value="0" aria-label="Next pack refill"></progress>
+</section>
+<section id="stage" class="pull-panel" aria-label="Pack opening">
+<div class="section-heading"><span id="stage-label" class="eyebrow">UP NEXT</span><span id="receipt" class="receipt"></span></div>
+<div id="preview" class="preview"></div>
+<div class="pull-copy"><h1 id="name">Your next collectible</h1><p id="detail">Your collection stays with you.</p></div>
+<div id="choices" class="choices" hidden></div>
+<button id="open" class="primary" disabled><span id="action-label">Open pack</span><kbd id="action-key">Space</kbd><span aria-hidden="true">→</span></button>
+<p id="action-hint" class="action-hint">Open here. Keep here. Carry on.</p>
+</section>
+<section class="recent-panel" aria-label="Recent cards"><div class="section-heading"><span class="eyebrow">RECENTLY COLLECTED</span><span id="recent-count"></span></div><div id="recent" class="recent"></div></section>
+<p id="message" class="message" role="status" aria-live="polite"></p>
+</main>
+<footer><span id="fps">30 FPS · quiet when idle</span><span id="restore-hint">Ctrl M to expand</span></footer>
+<section id="menu" class="mini-menu" aria-label="Mini settings" hidden>
+<div class="section-heading"><span class="eyebrow">MINI SETTINGS</span><button id="close-settings" class="icon-button" aria-label="Close mini settings">×</button></div>
+<label>Dock side<select id="side"><option value="left">Left</option><option value="right">Right</option></select></label>
+<label>Frame limit<select id="frame-limit"><option value="30">30 FPS</option><option value="60">60 FPS</option></select></label>
+<p>Always on top. Static artwork. The full game sleeps while this companion is open.</p>
+<button id="full-settings">Controls &amp; window settings ↗</button>
+</section>
+<script src="src/core/namespace.js"></script>
+<script src="electron/native/mini-runtime.js"></script>
+<script src="src/core/keys.js"></script>
+<script src="electron/native/mini-renderer.js"></script>
+</body></html>

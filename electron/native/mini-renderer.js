@@ -1,32 +1,60 @@
 (function(C,root){'use strict';
-  var unit=null,lastPack=null,lastState=null,host=root.document.getElementById('pack'),open=root.document.getElementById('open');
-  C.keys.emergency=function(){root.cardableMini.restore('settings');};C.keys.register({id:'menu.mini',label:'Restore full window',context:'menu',defaults:['Mod+KeyM'],run:function(){root.cardableMini.restore();}});C.keys.register({id:'opening.hold',label:'Open pack in full window',context:'menu',defaults:['Space'],run:function(){if(lastState&&lastState.ready)root.cardableMini.open();}});C.keys.register({id:'global.settings',label:'Settings',context:'global',defaults:['KeyS'],run:function(){root.cardableMini.restore('settings');}});
-  function update(state){if(!state)return;C.miniKeyBindings=state.keyBindings||{};var pack=C.pack(state.packId);if(!pack)return;
-    root.document.documentElement.dataset.rarityColor=state.rarityColor||'color';root.document.getElementById('stack').textContent=state.ready+' stored';
-    var changed=lastPack!==pack.id,mode=state.ready?'ready':'waiting';
-    if(changed){host.replaceChildren();unit=C.packMarkup.unit(host,false,pack);lastPack=pack.id;root.document.getElementById('name').textContent=pack.name;}
-    if(changed||!lastState||!!lastState.ready!==!!state.ready){host.dataset.state=mode;C.packSkins.apply(unit.el,pack,state.ready?'idle':'waiting');open.disabled=state.ready<=0;}
-    if(!lastState||lastState.ready!==state.ready)host.dataset.ready=state.ready;
-    if(changed||!lastState||lastState.quality!==state.quality)root.document.documentElement.dataset.quality=state.quality;
-    var tiers=['very-low','low','medium','high','very-high'],graphics=state.graphics||{};
-    ['finishQuality','reflectionQuality','propQuality','particleQuality','shadowQuality','glassQuality','backgroundQuality','animationQuality','canvasQuality','cinematicQuality'].forEach(function(key){var value=graphics[key]||state.quality;if(!lastState||value!==((lastState.graphics||{})[key]||lastState.quality))root.document.documentElement.setAttribute('data-'+key.replace(/[A-Z]/g,function(letter){return '-'+letter.toLowerCase();}),value);});
-    var packQuality=tiers[Math.min(tiers.indexOf(graphics.finishQuality||state.quality),tiers.indexOf(graphics.reflectionQuality||state.quality))];
-    if(unit.el.dataset.packQuality!==packQuality)unit.el.dataset.packQuality=packQuality;
-    if(!lastState||lastState.reduced!==state.reduced)root.document.documentElement.classList.toggle('reduced-motion',state.reduced);
-    if(changed||!lastState||lastState.ready!==state.ready||!state.ready&&lastState.progress!==state.progress)unit.fluid.style.transform='translateY('+(1-(state.ready?1:state.progress))*100+'%)';
-    if(!lastState||lastState.ready!==state.ready||!state.ready&&lastState.countdown!==state.countdown)root.document.getElementById('countdown').textContent=state.ready?state.ready+' pack'+(state.ready===1?'':'s')+' ready':'Next in '+state.countdown;
-    lastState=state;
+  var doc=root.document,queued=null,last=null,timer=null,lastPaint=0,busy=false,releaseAt=0,paints=0;
+  function el(id){return doc.getElementById(id);}
+  function node(tag,className,text){var n=doc.createElement(tag);if(className)n.className=className;if(text!=null)n.textContent=text;return n;}
+  function text(id,value){if(el(id).textContent!==String(value))el(id).textContent=value;}
+  function art(row,className){var box=node('div',className);if(row.art){var image=node('img');image.src=row.art;image.alt=row.name;image.decoding='async';image.addEventListener('error',function(){image.remove();box.textContent='◇';},{once:true});box.appendChild(image);}else box.textContent='◇';return box;}
+  function menu(show){el('menu').hidden=!show;el('settings').setAttribute('aria-expanded',String(show));if(show)el('side').focus();else el('settings').focus();}
+  function actionState(){var choice=queued&&queued.reveal&&queued.reveal.choices;el('open').disabled=busy||choice||!queued||!queued.canMini||!queued.reveal&&!queued.ready;doc.querySelectorAll('.choice').forEach(function(b){b.disabled=busy;});}
+  async function act(choice){
+    if(busy||!queued||!queued.canMini||!el('menu').hidden||root.performance.now()<releaseAt)return;
+    if(queued.reveal&&queued.reveal.choices&&choice==null||!queued.reveal&&!queued.ready)return;
+    busy=true;actionState();text('message','');
+    try{var result=await root.cardableMini.open({token:queued.token,choice:choice==null?null:choice});if(!result||!result.ok)text('message',result&&result.message||'Could not save. Expand Cardable to continue.');}
+    catch(error){text('message','The game is unavailable. Expand Cardable to recover your reserved card.');}
+    finally{busy=false;releaseAt=root.performance.now()+250;actionState();}
   }
-  var queued=null,timer=null,lastPaint=0,menu=null;
-  function enqueue(state){queued=state;if(root.document.hidden||timer!=null)return;timer=root.setTimeout(function(){timer=null;if(root.document.hidden)return;lastPaint=root.performance.now();update(queued);},Math.max(0,34-(root.performance.now()-lastPaint)));}
-  root.document.addEventListener('visibilitychange',function(){root.document.body.classList.toggle('is-occluded',root.document.hidden);if(!root.document.hidden&&queued)enqueue(queued);});
-  root.cardableMini.onState(enqueue);root.cardableMini.getState().then(enqueue).catch(function(error){root.console.error('Mini state:',error);});
-  root.document.getElementById('expand').addEventListener('click',function(){root.cardableMini.restore();});open.addEventListener('click',function(){root.cardableMini.open();});
-  var main=root.document.querySelector('main');main.dataset.help='mini';var help=C.ui.create('help',{help:'mini',label:'Mini mode help'});root.document.querySelector('header').appendChild(help);
-  var drag=null;root.document.addEventListener('pointerdown',function(e){if(e.button!==0||e.target.closest('button,input,select,.cb-mini-menu'))return;drag={x:e.screenX,y:e.screenY,id:e.pointerId};root.document.body.setPointerCapture(e.pointerId);});
-  root.document.addEventListener('pointermove',function(e){if(!drag)return;var dx=e.screenX-drag.x,dy=e.screenY-drag.y;if(Math.abs(dx)+Math.abs(dy)<3)return;drag.x=e.screenX;drag.y=e.screenY;root.cardableMini.move({dx:dx,dy:dy});});
-  root.document.addEventListener('pointerup',function(){drag=null;});root.document.addEventListener('pointercancel',function(){drag=null;});
-  root.document.addEventListener('contextmenu',function(event){event.preventDefault();if(menu)menu.remove();menu=C.ui.create('popover',{className:'cb-mini-menu'});menu.appendChild(C.ui.create('button',{label:'Expand Cardable',onClick:function(){root.cardableMini.restore();}}));var pin=C.ui.create('switch',{label:'Always on top',value:queued&&queued.miniPinned,onChange:function(v){root.cardableMini.configure({pinned:v});}});var label=root.document.createElement('label');label.textContent='Always on top';label.appendChild(pin);menu.appendChild(label);var opacity=root.document.createElement('label');opacity.textContent='Window opacity';opacity.appendChild(C.ui.create('slider',{label:'Window opacity',min:50,max:100,value:Math.round((queued&&queued.miniOpacity||1)*100),onChange:function(v){root.cardableMini.configure({opacity:v/100});}}));menu.appendChild(opacity);menu.appendChild(C.ui.create('button',{label:'Close menu',onClick:function(){menu.remove();menu=null;}}));root.document.body.appendChild(menu);menu.style.left=Math.max(8,Math.min(root.innerWidth-menu.offsetWidth-8,event.clientX))+'px';menu.style.top=Math.max(8,Math.min(root.innerHeight-menu.offsetHeight-8,event.clientY))+'px';menu.querySelector('button').focus();});
-  root.document.addEventListener('dblclick',function(event){if(!event.target.closest('button,input,select,.cb-mini-menu'))root.cardableMini.restore();});
-  C.keys.listen(root.document, 'keydown', 'electron.native.mini-renderer.js.1', function(event){if(event.key==='Escape'&&menu){event.preventDefault();menu.remove();menu=null;return;}if(event.key==='Escape'||(event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='m'){event.preventDefault();root.cardableMini.restore();}});
+  C.keys.emergency=function(){root.cardableMini.restore('settings');};
+  C.keys.register({id:'menu.mini',label:'Restore full window',context:'menu',defaults:['Mod+KeyM'],run:function(){root.cardableMini.restore();}});
+  C.keys.register({id:'opening.hold',label:'Open pack',context:'menu',defaults:['Space'],when:function(){return !queued||!queued.reveal;},run:function(){act();}});
+  C.keys.register({id:'opening.keep',label:'Keep card',context:'menu',defaults:['Space','Enter'],when:function(){return !!queued&&!!queued.reveal&&!queued.reveal.choices;},run:function(){act();}});
+  C.keys.register({id:'global.settings',label:'Mini settings',context:'global',defaults:['KeyS'],run:function(){menu(el('menu').hidden);}});
+  [0,1,2].forEach(function(i){C.keys.register({id:'mini.choice'+i,label:'Choose card '+(i+1),context:'menu',defaults:['Digit'+(i+1)],when:function(){return !!queued&&!!queued.reveal&&queued.reveal.choices;},run:function(){act(i);}});});
+  function update(state){
+    if(!state)return;paints++;C.miniKeyBindings=state.keyBindings||{};
+    doc.documentElement.dataset.rarityColor=state.rarityColor;doc.documentElement.classList.toggle('reduced-motion',state.reduced);
+    if(/^#[0-9a-f]{6}$/i.test(state.accent))doc.documentElement.style.setProperty('--accent',state.rarityColor==='mono'?'#F5F5F7':state.accent);
+    text('stock',state.ready);text('capacity','/ '+state.capacity+' stored');text('credits','$'+state.credits.toLocaleString());
+    if(!last||last.ready!==state.ready||last.capacity!==state.capacity){el('slots').replaceChildren();for(var i=0;i<Math.min(12,state.capacity);i++)el('slots').appendChild(node('span','slot'+(i<state.ready?' filled':'')));}
+    var seconds=Math.ceil(state.remainingMs/1000),time=Math.floor(seconds/3600)+':'+String(Math.floor(seconds%3600/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+    text('timer-label',state.ready>=state.capacity?'Stock is full':'Next refill');text('countdown',state.ready>=state.capacity?'Timer paused':time);el('progress').value=state.ready>=state.capacity?1:state.progress;
+    text('fps',state.miniFps+' FPS · quiet when idle');text('restore-hint',C.keys.label('menu.mini')+' to expand');
+    el('side').value=state.miniSide;el('frame-limit').value=String(state.miniFps);
+    var changed=!last||state.token!==last.token||state.packId!==last.packId;
+    if(changed){
+      var reveal=state.reveal,choice=reveal&&reveal.choices,row=reveal&&reveal.cards[0];doc.body.dataset.choice=String(!!choice);el('preview').replaceChildren();el('preview').classList.toggle('has-card',!!row&&!choice);el('choices').replaceChildren();el('choices').hidden=!choice;
+      text('stage-label',choice?'CHOOSE ONE':reveal?'RESERVED FOR YOU':'UP NEXT');text('receipt',reveal?'Saved safely':'');
+      if(choice){text('name','Three offers. One keeper.');text('detail',reveal.packName+' · choose with 1, 2 or 3');reveal.cards.forEach(function(card,index){var b=node('button','choice');b.type='button';if(card.art){var img=node('img');img.src=card.art;img.alt='';b.appendChild(img);}var copy=node('span','',card.name);copy.appendChild(node('small','',card.rarity+(card.variant?' · '+card.variant:'')));b.append(copy,node('kbd','',index+1));b.addEventListener('click',function(){act(index);});el('choices').appendChild(b);});}
+      else if(row){el('preview').appendChild(art(row,''));text('name',row.name);text('detail',row.rarity+(row.variant?' · '+row.variant:'')+' · '+row.serial);}
+      else{var p=node('div','pack-emblem');p.append(node('small','','CARDABLE'),node('strong','','C'),node('span','',state.packId.toUpperCase()));el('preview').appendChild(p);text('name',state.nextPackName);text('detail','One press to reveal your next card.');}
+      text('action-label',reveal?'Keep card':'Open pack');text('action-hint',choice?'Only your chosen offer receives a serial.':reveal?'Keep to add it to your collection. Expand for full card controls.':'Open here. Keep here. Carry on.');
+    }
+    text('action-key',C.keys.label(state.reveal?'opening.keep':'opening.hold')||'Click');el('open').hidden=!!(state.reveal&&state.reveal.choices);
+    if(!last||JSON.stringify(last.recent)!==JSON.stringify(state.recent)){
+      el('recent').replaceChildren();text('recent-count',state.recent.length?'LAST '+state.recent.length:'');
+      if(!state.recent.length)el('recent').appendChild(node('p','recent-empty','Your first pull belongs here. Open a pack to start.'));
+      state.recent.forEach(function(card){var row=node('div','recent-row'),copy=node('div');row.appendChild(art(card,'recent-art'));copy.append(node('strong','',card.name),node('small','',card.rarity+(card.variant?' · '+card.variant:'')));row.appendChild(copy);el('recent').appendChild(row);});
+    }
+    last=state;actionState();
+  }
+  function enqueue(state){queued=state;if(doc.hidden||timer!=null)return;var interval=1000/(state&&state.miniFps===60?60:30);timer=root.setTimeout(function(){timer=null;if(doc.hidden)return;lastPaint=root.performance.now();update(queued);},Math.max(0,Math.ceil(interval-(root.performance.now()-lastPaint))));}
+  doc.addEventListener('visibilitychange',function(){if(doc.hidden&&timer!=null){root.clearTimeout(timer);timer=null;}if(!doc.hidden&&queued)enqueue(queued);});
+  root.cardableMini.onState(enqueue);root.cardableMini.getState().then(enqueue).catch(function(){text('message','Cannot connect to Cardable. Use Expand to recover.');});
+  el('open').addEventListener('click',function(){act();});el('expand').addEventListener('click',function(){root.cardableMini.restore();});el('settings').addEventListener('click',function(){menu(el('menu').hidden);});el('close-settings').addEventListener('click',function(){menu(false);});el('full-settings').addEventListener('click',function(){root.cardableMini.restore('settings');});
+  async function configure(value){busy=true;actionState();el('side').disabled=el('frame-limit').disabled=true;try{var result=await root.cardableMini.configure(value);if(!result.ok)text('message',result.message);}catch(error){text('message','Could not save mini preferences.');}finally{busy=false;el('side').disabled=el('frame-limit').disabled=false;actionState();}}
+  el('side').addEventListener('change',function(){configure({side:el('side').value});});el('frame-limit').addEventListener('change',function(){configure({fps:Number(el('frame-limit').value)});});
+  doc.addEventListener('keydown',function(event){if(event.key==='Escape'){event.preventDefault();if(!el('menu').hidden)menu(false);else root.cardableMini.restore();}});
+  doc.addEventListener('contextmenu',function(event){event.preventDefault();menu(true);});
+  doc.addEventListener('pointerdown',function(event){if(!el('menu').hidden&&!event.target.closest('#menu,#settings'))menu(false);});
+  root.CardableMiniDebug={get paints(){return paints;},get busy(){return busy;}};
 })(window.Cardable,window);

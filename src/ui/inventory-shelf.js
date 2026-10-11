@@ -7,7 +7,7 @@
     create: function (entry, index, callbacks) {
       var el = node('div','inventory-tile'), pose = node('div','inventory-tile-pose',el), card = node('div','inventory-tile-card',pose);
       el.dataset.cardId = entry.card.id; el.dataset.stackKey = entry.stackKey; el.dataset.owned = entry.owned; el.setAttribute('role','option'); el.setAttribute('tabindex','-1');
-      var tile = { el:el, pose:pose, card:card, entry:entry, index:index, view:null, visual:null };
+      var tile = { el:el, pose:pose, card:card, entry:entry, index:index, view:null, visual:null, contentCurrent:true };
       if (entry.owned || entry.rarity.finish === 'secret') {
         tile.view = C.cardView.createThumbnail(entry.card,entry.instances[0] || { instanceId:'unknown-'+entry.stackKey,cardId:entry.card.id,serial:'',seen:true }, { owned:entry.owned });
         tile.visual=tile.view.el; tile.visual.setAttribute('tabindex','-1'); tile.visual.setAttribute('role','img'); tile.visual.setAttribute('aria-label',entry.owned ? entry.card.name : 'Unknown Secret card'); tile.view.setMode('lite');

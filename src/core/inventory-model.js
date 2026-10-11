@@ -44,7 +44,14 @@
     return candidate.inventoryUi;
   }
   // All collection membership, metrics and tab ordering are projections, never UI rules.
+  var descriptionBase=null,descriptionKey='',descriptionValue=null;
   function describe(base,ui) {
+    // Search/filter changes reuse membership; content keys also catch in-place
+    // developer edits without retaining older catalogs or save projections.
+    var key=JSON.stringify([ui.favorites,ui.collections,ui.tabSortMode,ui.showUnowned]);
+    if(descriptionBase===base&&descriptionKey===key&&descriptionValue){
+      return Object.assign({},descriptionValue,{active:descriptionValue.tabs.find(function(c){return c.id===ui.activeCollectionId;})||descriptionValue.tabs[0],entries:descriptionValue.sources.get(ui.activeCollectionId)||descriptionValue.sources.get('all')});
+    }
     var byStack=new Map(),byCard=new Map(),favorites=new Set(ui.favorites),sources=new Map();
     base.entries.forEach(function(e){byStack.set(e.stackKey,e);if(!byCard.has(e.card.id))byCard.set(e.card.id,[]);byCard.get(e.card.id).push(e);});
     function missing(key) {
@@ -61,7 +68,7 @@
       }):c.stackKeys.map(function(key){var e=byStack.get(key)||missing(key);return e&&Object.assign({},e,{sourceStackKey:key,isFavorite:favorites.has(key)});});
       entries=entries.filter(Boolean);sources.set(c.id,entries);return descriptor(c,entries,index);
     });
-    custom.forEach(function(c){var group=custom.filter(function(t){return t.pinned===c.pinned;}),at=group.indexOf(c);c.canMoveEarlier=ui.tabSortMode==='manual'&&at>0;c.canMoveLater=ui.tabSortMode==='manual'&&at<group.length-1;});
+    [false,true].forEach(function(pinned){var group=custom.filter(function(c){return !!c.pinned===pinned;});group.forEach(function(c,at){c.canMoveEarlier=ui.tabSortMode==='manual'&&at>0;c.canMoveLater=ui.tabSortMode==='manual'&&at<group.length-1;});});
     var ordered=custom.slice().sort(function(a,b){
       if(a.pinned!==b.pinned)return a.pinned?-1:1;if(a.pinned)return a.manualIndex-b.manualIndex;
       var mode=ui.tabSortMode,compare=mode==='name'?a.name.localeCompare(b.name,undefined,{sensitivity:'base'}):mode==='count'?b.count-a.count:mode==='completion'?b.completion-a.completion:mode==='color'?colors.indexOf(a.colorInfo)-colors.indexOf(b.colorInfo):mode==='created'?(b.createdAt==null?-Infinity:b.createdAt)-(a.createdAt==null?-Infinity:a.createdAt):0;
@@ -69,7 +76,8 @@
     });
     var allTab={id:'all',name:'All cards',count:all.filter(function(e){return e.owned||ui.showUnowned;}).length,owned:base.owned,total:base.total,completion:base.total?base.owned/base.total:0,colorInfo:colors[0],description:''},favTab=descriptor({id:'favorites',name:'Favorites',description:'',color:null},fav,-1);
     var tabs=[allTab,favTab].concat(ordered),active=tabs.find(function(c){return c.id===ui.activeCollectionId;})||allTab;
-    return {tabs:tabs,active:active,entries:sources.get(active.id)||[],sources:sources};
+    descriptionBase=base;descriptionKey=key;descriptionValue={tabs:tabs,active:active,entries:sources.get(active.id)||[],sources:sources};
+    return descriptionValue;
   }
   function identity() {var s=C.state.current;return C.config.storage.key+':'+s.playerCode+':'+s.createdAt;}
   C.inventoryModel = {

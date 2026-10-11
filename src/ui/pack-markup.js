@@ -54,7 +54,7 @@
   }
 
   function fillWrapper(wrapper, pack) {
-    if (wrapper._packFace) wrapper._packFace.dead = true;
+    if (wrapper._packFace) wrapper._packFace.destroy();
     wrapper.replaceChildren(); wrapper._packFace = null;
     if (solid(pack)) { wrapper.classList.add('pack-face-root'); C.packFaces.build(wrapper, pack, false); return wrapper; }
     wrapper.classList.remove('pack-face-root');
@@ -170,7 +170,7 @@
     };
     item.resetRear = function () {
       if (!item.rearBuilt) return;
-      item.rearBuilt = false; if (item.faceRear) item.faceRear.remove(); item.faceRear = null; item.rearFluid = null;
+      item.rearBuilt = false; if (item.faceRear) { if (C.packFaces) C.packFaces.dispose(item.faceRear); item.faceRear.remove(); } item.faceRear = null; item.rearFluid = null;
     };
     el._packUnit = item;
     return item;

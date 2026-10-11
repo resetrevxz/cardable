@@ -60,8 +60,9 @@
         C.native.window.onRuntimeState(runtime);
         C.native.window.getRuntimeState().then(runtime).catch(function () {});
         C.settings.onChange('interfaceSize', schedule);
-        C.settings.onChange('aspectLock', function (value) { C.native.window.setAspectLock(value).catch(function () {}); });
-        C.native.window.setAspectLock(C.settings.get('aspectLock')).catch(function () {});
+        if(C.settings.get('aspectLock')){if(C.settings.get('windowAspect')==='free')C.settings.set('windowAspect','16:9');C.settings.set('aspectLock',false);}
+        function aspect(){C.native.window.setAspectLock(C.settings.get('windowAspect')).catch(function(){});}
+        C.settings.onChange('windowAspect',aspect);aspect();
       }
       // Listen to the browser resize, not our own layout notification. Subscribing
       // to layout:resize here would schedule a new resize on every emitted frame.

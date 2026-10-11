@@ -6,6 +6,24 @@
     if (!host || !C.desktop.isAvailable) return null;
     var container = node('div', 'settings-desktop-controls', host), current = null, postponed = false;
     function button(text, parent, action) { var el = node('button', 'quiet-button', parent, text); el.type = 'button'; el.addEventListener('click', action); return el; }
+    var windowHost=options.windowHost||container;
+    var windowBox=node('section','settings-update-box glass',windowHost);
+    node('h4','settings-subhead',windowBox,'Window size');
+    node('p','settings-helper',windowBox,'Windowed presets and custom dimensions. Sizes fit this display; fullscreen and maximized windows return to windowed mode.');
+    var sizePresets=node('div','settings-update-actions',windowBox);
+    [['Compact',1280,720,'16:9'],['Comfortable',1440,900,'free'],['Widescreen',1680,720,'21:9']].forEach(function(p){button(p[0],sizePresets,function(){C.settings.set('aspectLock',false);C.settings.set('windowAspect',p[3]);resize(p[1],p[2]);});});
+    var dimensions=node('div','settings-update-actions',windowBox);
+    function dimension(label,value,min,max){var wrap=node('label','settings-helper',dimensions,label+' '),input=node('input','settings-input',wrap);input.type='number';input.min=min;input.max=max;input.step='1';input.value=value;input.setAttribute('aria-label','Custom window '+label.toLowerCase());input.style.width='100px';return input;}
+    var customWidth=dimension('Width',1440,1100,7680),customHeight=dimension('Height',900,680,4320);
+    var sizeStatus=node('p','settings-helper',windowBox);sizeStatus.setAttribute('role','status');
+    function resize(width,height){C.native.window.setSize({width:width,height:height}).then(function(result){if(!result){sizeStatus.textContent='Use whole pixels: width 1100–7680, height 680–4320.';return;}customWidth.value=result.width;customHeight.value=result.height;sizeStatus.textContent='Window set to '+result.width+' × '+result.height+'.';}).catch(function(){sizeStatus.textContent='Could not resize the window. Try again.';});}
+    button('Apply custom size',dimensions,function(){resize(Number(customWidth.value),Number(customHeight.value));});
+    C.native.window.getRuntimeState().then(function(s){customWidth.value=s.width;customHeight.value=s.height;}).catch(function(){});
+    var miniBox=node('section','settings-update-box glass',windowHost);
+    node('h4','settings-subhead',miniBox,'Your mini companion');
+    node('p','settings-helper',miniBox,'Use '+C.keys.label('menu.mini')+' from the menu. Always on top, with stock, refill time and your three latest collected cards. Open and Keep use your existing Controls bindings. Picker offers use 1, 2 and 3. The gear inside Mini saves dock side and 30 / 60 FPS too.');
+    button('Enter mini mode',miniBox,function(){C.preferences.close();rootTimeout();});
+    function rootTimeout(){window.setTimeout(function(){C.native.window.toggleMini().then(function(ok){if(!ok&&options.announce)options.announce('Close other panels or finish the current reveal before entering Mini.');});},250);}
     var updateBox = node('section', 'settings-update-box glass', container);
     node('h4', 'settings-subhead', updateBox, 'Software updates');
     var status = node('p', 'settings-update-status', updateBox, 'Loading update status…'); status.setAttribute('role', 'status');

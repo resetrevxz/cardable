@@ -7,6 +7,8 @@ function registerWindowHandlers() {
   registerSecureHandler(IPC_CHANNELS.WINDOW_GET_RUNTIME_STATE, () => life.state());
   registerSecureHandler(IPC_CHANNELS.WINDOW_SET_UI_SCALE, (_event,value) => life.scale(value));
   registerSecureHandler(IPC_CHANNELS.WINDOW_SET_ASPECT_LOCK, (_event,value) => life.aspect(value));
+  registerSecureHandler(IPC_CHANNELS.WINDOW_SET_SIZE, (_event,value) => life.size(value));
+  registerSecureHandler(IPC_CHANNELS.WINDOW_MINI_RESULT, (_event,value) => life.completeMiniAction(value));
   registerSecureHandler(IPC_CHANNELS.WINDOW_SET_PREFERENCES, (_event,value) => life.preferences(value));
   registerSecureHandler(IPC_CHANNELS.WINDOW_SET_PACK, (_event,value) => life.pack(value));
   registerSecureHandler(IPC_CHANNELS.WINDOW_SET_AWAKE, (_event,value) => life.awake(value));

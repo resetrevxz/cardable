@@ -10,7 +10,7 @@
   library:{title:'Scene library',body:'Add a light or procedural prop to your scene. Quality limits keep the workspace bounded.'},
   tutorial:{title:'Opening guide',body:'Follow the highlighted control. The guided opening uses a Standard Pack; you can dismiss the guide with Escape.'},
   data:{title:'Save and recovery',body:'Export before replacing progress. Import and restore retain their confirmation steps. Studio photos require their own Album exports.'},
-  mini:{title:'Mini mode',body:'Watch your next pack in a lightweight window. Open pack expands the full game; double-click the background to return.'},
+  mini:{title:'Mini mode',body:'Ctrl M enters the always-on-top companion from the menu. Watch stock, refill time and three recent collected cards. Your Open key reveals here; Keep adds the reserved card. Choose Picker offers with 1, 2 or 3. The gear saves Left/Right docking and 30/60 FPS. Expand or Escape returns to the full game; Controls can remap Open, Keep and Mini.'},
   performance:{title:'Performance display',body:'Simple shows FPS and the average FPS of the slowest 1% of sampled frames. Advanced also shows the slowest 0.1%, frame-time percentiles and sample count. Wake-up frames, idle and paused periods are excluded. Short samples are provisional; these numbers do not certify hardware performance.'},
   developer:{title:'Developer tools',body:'These opt-in tools are for local editing and inspection. Preview controls must not grant rewards to real progress.'},
   commands:{title:'Command palette',body:'Search for an action, use the arrow keys to select it and press Enter to run. Escape returns to the previous screen.'},

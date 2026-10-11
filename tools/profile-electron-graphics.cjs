@@ -9,7 +9,7 @@ const tiers = (process.env.CARDABLE_GRAPHICS_TIERS || 'very-low,low,medium,high'
 const scenes = (process.env.CARDABLE_GRAPHICS_SCENES || 'menu:standard,menu:rare,menu:classic,menu:royal,menu:titan,menu:picker,settings:mythical,detail:exotic,detail:ascendant,inventory:shelf,inventory:grid,studio:orbit,intro:mythical,intro:ascendant,intro:secret').split(',');
 const duration = Number(process.env.CARDABLE_GRAPHICS_MS) || 3000;
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'cardable-graphics-'));
-const evidence = { environment: null, samples: [], errors: [], network: [] };
+const evidence = { run: { label, root, tiers, scenes, duration, status: 'running' }, environment: null, samples: [], errors: [], network: [] };
 let application;
 async function boot(page) {
   await page.waitForFunction(() => window.Cardable?.state?.current && Cardable.preferences.initialized);
@@ -21,6 +21,7 @@ async function boot(page) {
     localStorage.removeItem('cardable.qol.lastSeen');
     if (C.friendly?.active) C.friendly.close();
   });
+  await page.waitForFunction(() => !Cardable.setup?.loading);
 }
 (async () => {
   fs.mkdirSync(output, { recursive: true });
@@ -60,11 +61,12 @@ async function boot(page) {
         C.settings.applyPreset(tier); C.settings.set('idleFade', 'never'); C.settings.set('fpsLimit', 'display');
         if (kind === 'menu') C.packs.forceNext(id);
         if (['detail', 'settings', 'studio'].includes(kind)) {
-          const card = C.data.cards.find(c => c.rarity === (kind === 'studio' ? 'rare' : id) && !c.retired);
+          const card = C.data.cards.find(c => c.rarity === (kind === 'studio' ? 'rare' : id) && !c.retired && c.active !== false);
+          if (!card) throw new Error('No active card for ' + scene);
           const instance = { instanceId: 'desktop-profile', cardId: card.id, variantId: 'galaxy-holo', serial: C.serial.format(C.state.current.playerCode, 1), pulledAt: Date.now(), seen: true, packId: 'standard', cardSkinId: 'standard' };
-          C.state.current.inventory.push(instance); C.state.current.serialCounter = 1; C.state.save();
+          C.state.current.inventory = C.state.current.inventory.concat(instance); C.state.current.serialCounter = 1; C.state.save();
           if (kind === 'settings') C.preferences.show();
-          else { C.inventoryModel.update({ showUnowned: false }); C.inventory.request('expanded'); }
+          else { C.inventoryModel.update({ showUnowned: false }); C.inventory.refresh(true); C.inventory.request('expanded'); }
         }
         if (kind === 'inventory') {
           const instances = [];
@@ -82,33 +84,50 @@ async function boot(page) {
       }, { tier, scene });
       await page.waitForTimeout(1200);
       if (scene.startsWith('detail:') || scene.startsWith('studio:')) {
+        if (!await page.locator('.inventory-tile.is-centered').count()) throw new Error('Detail setup failed: ' + JSON.stringify(await page.evaluate(() => ({ entries:Cardable.inventory.entries.length, open:Cardable.inventory.open, owned:Cardable.state.current.inventory.length, phase:Cardable.opening.phase, detent:Cardable.inventory.detent, page:Cardable.inventory.page, hidden:document.hidden, current:Cardable.inventory.center, rendered:Cardable.inventory.rendered.size }))));
         await page.locator('.inventory-tile.is-centered').click();
         await page.waitForFunction(() => Cardable.detail.phase === 'detail');
         if (scene.startsWith('studio:')) {
           await page.getByRole('button', { name: 'Inspect card in studio', exact: true }).click();
           await page.waitForFunction(() => Cardable.studio.active && document.querySelector('.studio-shell.is-ready'));
-          await page.getByRole('button', { name: 'Director', exact: true }).click();
+          await page.getByRole('button', { name: 'Pro', exact: true }).click();
+          await page.getByRole('button', { name: 'Animate', exact: true }).click();
+          await page.getByText('Auto-director & export', { exact: true }).click();
           await page.getByRole('button', { name: 'Build cinematic orbit', exact: true }).click();
-          const preview = page.getByRole('button', { name: 'Preview', exact: true });
-          await page.evaluate(() => { window.studioProbe.reduced = Cardable.motion.reduced; window.studioProbe.keyframes = Cardable.studioController.scene.keyframes.length; window.studioProbe.previewDisabled = document.querySelector('.director-preview').disabled; });
+          const preview = page.locator('[data-timeline-focus="Preview"]');
+          await page.evaluate(() => { window.studioProbe.reduced = Cardable.motion.reduced; window.studioProbe.keyframes = Cardable.studioAnimation.keyCount(Cardable.studioController.scene); window.studioProbe.previewDisabled = document.querySelector('[data-timeline-focus="Preview"]').disabled; });
           if (await preview.isEnabled()) await preview.click();
         }
         await page.waitForTimeout(600);
       }
+      let cpu;
+      if (process.env.CARDABLE_GRAPHICS_CPU === '1') { cpu = await page.context().newCDPSession(page); await cpu.send('Profiler.enable'); await cpu.send('Profiler.start'); }
+      let trace;
+      if (process.env.CARDABLE_GRAPHICS_TRACE === '1') { trace = await page.context().newCDPSession(page); await trace.send('Tracing.start', { categories: 'devtools.timeline,disabled-by-default-devtools.timeline,cc,gpu', transferMode: 'ReturnAsStream' }); }
       const sample = await page.evaluate(async ({ scene, duration }) => {
         const C = Cardable, gaps = [], js = [], [kind, id] = scene.split(':'), begin = performance.now(), initialFrames = C.fx.stats.frameCount; let previous;
         const off = C.events.on('fx:frame', event => js.push(event.jsMs));
         await new Promise(resolve => {
           function frame(now) {
             if (previous != null) gaps.push(now - previous); previous = now;
-            if (kind === 'inventory') { const seconds = (now - begin) / 1000; if (id === 'grid') C.inventory.grid.scrollTop = 1500 + seconds * 700; else C.inventory.carousel.move((20 + seconds * 3) * 180); }
+            // The public carousel wrapper accepts an absolute pixel target;
+            // it converts that target to a delta for the internal shelf.
+            if (kind === 'inventory') { const seconds = (now - begin) / 1000; if (id === 'grid') C.inventory.grid.scrollTop = 1500 + seconds * 700; else C.inventory.carousel.move(seconds * 700); }
             if (now - begin < duration) requestAnimationFrame(frame); else resolve();
           }
           requestAnimationFrame(frame);
         });
         off(); const percentile = (values, p) => values.length ? values.slice().sort((a, b) => a - b)[Math.floor((values.length - 1) * p)] : null;
-        return { browserFps: 1000 * gaps.length / gaps.reduce((a, b) => a + b, 0), gameFrames: C.fx.stats.frameCount - initialFrames, elapsedMs: performance.now() - begin, p95Ms: percentile(gaps, .95), jsP95Ms: percentile(js, .95), nodes: document.body.querySelectorAll('*').length, dpr: devicePixelRatio, paused: C.fx.stats.paused, renderer: kind === 'intro' ? C.opening.intro.rendererStats : kind === 'studio' ? window.studioProbe : null };
+        const ordered = gaps.slice().sort((a, b) => b - a), tail = ordered.slice(0, Math.max(1, Math.ceil(ordered.length * .01)));
+        return { browserFps: 1000 * gaps.length / gaps.reduce((a, b) => a + b, 0), low1Fps: tail.length ? 1000 * tail.length / tail.reduce((a, b) => a + b, 0) : null, frameSamples: gaps.length, p99Ms: percentile(gaps, .99), maxMs: ordered[0] || null, stalls50Ms: gaps.filter(ms => ms > 50).length, frameGapsMs: gaps, gameFrames: C.fx.stats.frameCount - initialFrames, elapsedMs: performance.now() - begin, p95Ms: percentile(gaps, .95), jsP95Ms: percentile(js, .95), nodes: document.body.querySelectorAll('*').length, dpr: devicePixelRatio, paused: C.fx.stats.paused, renderer: kind === 'intro' ? C.opening.intro.rendererStats : kind === 'studio' ? window.studioProbe : null };
       }, { scene, duration });
+      if (cpu) { const profile = await cpu.send('Profiler.stop'); fs.writeFileSync(path.join(output, label + '-' + tier + '-' + scene.replace(':', '-') + '-cpu.json'), JSON.stringify(profile)); await cpu.detach(); }
+      if (trace) {
+        const completed = new Promise(resolve => trace.once('Tracing.tracingComplete', resolve)); await trace.send('Tracing.end'); const { stream } = await completed; let contents = '', chunk;
+        do { chunk = await trace.send('IO.read', { handle: stream }); contents += chunk.data; } while (!chunk.eof);
+        await trace.send('IO.close', { handle: stream }); await trace.detach();
+        fs.writeFileSync(path.join(output, label + '-' + tier + '-' + scene.replace(':', '-') + '-trace.json'), contents);
+      }
       evidence.samples.push({ tier, scene, ...sample });
       fs.writeFileSync(path.join(output, label + '.json'), JSON.stringify(evidence, null, 2));
       console.log(JSON.stringify({ tier, scene, fps: Math.round(sample.browserFps), gameFrames: sample.gameFrames, p95: sample.p95Ms, jsP95: sample.jsP95Ms }));
@@ -121,6 +140,9 @@ async function boot(page) {
     evidence.environment.gpu = await application.evaluate(({ app }) => app.getGPUInfo('basic'));
     evidence.environment.features = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
     if (evidence.errors.length || evidence.network.length) throw new Error('Application errors or network requests; inspect evidence');
+    evidence.run.status = 'complete';
+  } catch (error) {
+    evidence.run.status = 'failed'; evidence.run.failure = error.stack || String(error); throw error;
   } finally {
     if (application) await application.close();
     fs.writeFileSync(path.join(output, label + '.json'), JSON.stringify(evidence, null, 2));

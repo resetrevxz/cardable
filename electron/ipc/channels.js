@@ -21,6 +21,8 @@ const IPC_CHANNELS = {
   WINDOW_RUNTIME_STATE: 'window:runtime-state',
   WINDOW_SET_UI_SCALE: 'window:set-ui-scale',
   WINDOW_SET_ASPECT_LOCK: 'window:set-aspect-lock',
+  WINDOW_SET_SIZE: 'window:set-size',
+  WINDOW_MINI_RESULT: 'window:mini-result',
   WINDOW_COMMAND: 'window:command',
   WINDOW_SET_PREFERENCES: 'window:set-preferences',
   WINDOW_SET_PACK: 'window:set-pack',

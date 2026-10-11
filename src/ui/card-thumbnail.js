@@ -12,15 +12,14 @@
     el.dataset.variant = context.presentation.concealed ? 'normal' : instance.variantId || 'normal'; el.setAttribute('aria-hidden', 'true'); el.inert = true;
     el.dataset.cardSkin=instance.cardSkinId||'standard';
     if (context.presentation.state) el.dataset.finishState = context.presentation.state;
-    el.appendChild(layer('shadow')); el.appendChild(tilter); tilter.appendChild(flipper);
+    el.appendChild(tilter); tilter.appendChild(flipper);
     function paintFace() {
       while (flipper.children.length) flipper.children[0].remove();
-      var face = node('card__face card__face--front'), finish = layer('finish'), art = layer('art'), props = layer('prop');
-      var finishHost = node('card__finish-render card__material card__material--lite'), propHost = node('card__prop-render card__material card__material--lite');
-      props.appendChild(propHost); finish.appendChild(finishHost);
-      finishHost.appendChild(C.finishes.registry[rarity.finish].lite(card, Object.assign({}, context, { propElement: propHost })));
+      // Art-only thumbnails hide body, finish, shadow and props in every preset.
+      // Do not construct their material trees during scrolling.
+      var face = node('card__face card__face--front'), art = layer('art');
       if (!context.presentation.hideArt) { var artWindow = node('card__art-window'); artWindow.appendChild(C.art.render(card, { thumbnail: true })); art.appendChild(artWindow); }
-      [layer('body'), finish, art, props, layer('edge')].forEach(function (part) { face.appendChild(part); });
+      [art, layer('edge')].forEach(function (part) { face.appendChild(part); });
       if (C.variantMaterials.registry[instance.variantId] && !context.presentation.concealed) { var coat = node('card__variant'), material = node('card__variant-render card__material card__material--lite'); material.appendChild(C.variantMaterials.registry[instance.variantId].lite(card, instance)); coat.appendChild(material); face.appendChild(coat); }
       flipper.appendChild(face);
       C.cardSkins.apply(face,card,instance,context);
