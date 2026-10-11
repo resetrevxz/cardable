@@ -14,12 +14,12 @@
 [data-glass-quality="medium"] .glass { backdrop-filter: blur(16.8px) saturate(130%); -webkit-backdrop-filter: blur(16.8px) saturate(130%); }
 [data-glass-quality="medium"] .glass--sheet { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
 [data-glass-quality="medium"] .card__info { backdrop-filter: blur(10.8px); -webkit-backdrop-filter: blur(10.8px); }
-[data-glass-quality="medium"] .currency-counter { backdrop-filter: blur(13.2px); -webkit-backdrop-filter: blur(13.2px); }
+[data-glass-quality="medium"] :is(.currency-counter,.patch-notes-hud-btn,.cb-menu-help,.settings-corner .settings-gear) { backdrop-filter: blur(13.2px); -webkit-backdrop-filter: blur(13.2px); }
 [data-glass-quality="medium"] .currency-receipt { backdrop-filter: blur(10.8px); -webkit-backdrop-filter: blur(10.8px); }
 /* A shaded background keeps the live preview clear without blurring the entire game. */
 .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail) { filter: none !important; }
 [data-glass-quality="medium"] .inventory-depth-active:not(.settings-open) .menu-shell { filter: blur(calc(var(--inventory-menu-blur,0px) * .6)); }
-:is([data-glass-quality="very-low"],[data-glass-quality="low"]) :is(.glass,.glass--sheet,.card__info,.currency-counter,.currency-receipt,.collection-toast,.save-notice,.settings-data-toast) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background-color: var(--surface-2); }
+:is([data-glass-quality="very-low"],[data-glass-quality="low"]) :is(.glass,.glass--sheet,.card__info,.currency-counter,.patch-notes-hud-btn,.cb-menu-help,.settings-corner .settings-gear,.currency-receipt,.collection-toast,.save-notice,.settings-data-toast) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background-color: var(--surface-2); }
 :is([data-glass-quality="very-low"],[data-glass-quality="low"]) .settings-open :is(.menu-shell,.inventory-sheet,.inventory-detail),
 :is([data-glass-quality="very-low"],[data-glass-quality="low"]) .inventory-depth-active .menu-shell { filter: none; }
 :is([data-glass-quality="very-low"],[data-glass-quality="low"]) .inventory-detail { background: rgba(8,8,10,calc(var(--detail-dim,0) * .58)); }

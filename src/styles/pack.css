@@ -97,6 +97,14 @@
 .rolling-char__previous { position: absolute; inset: 0; opacity: 0; }
 .currency-counter { position: absolute; top: var(--s-6); right: var(--s-6); display: flex; align-items: center; gap: 10px; min-width: 112px; min-height: 44px; box-sizing: border-box; padding: 7px 13px 7px 8px; overflow: visible; isolation: isolate; color: var(--text); background: linear-gradient(155deg,rgba(255,255,255,.105),rgba(255,255,255,.035) 58%,rgba(255,255,255,.065)); border: 1px solid rgba(255,255,255,.13); border-radius: var(--r-chip); box-shadow: inset 0 1px 0 rgba(255,255,255,.14),0 5px 18px rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.45); backdrop-filter: blur(22px) saturate(125%); -webkit-backdrop-filter: blur(22px) saturate(125%); font-variant-numeric: tabular-nums; }
 .currency-counter::before { content: ''; position: absolute; inset: 1px; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(110deg,rgba(255,255,255,.06),transparent 44%); }
+/* HUD glass: the credits pill, the settings gear, Patch notes and Help share one surface. */
+html :is(.settings-corner .settings-gear, .patch-notes-hud-btn, .cb-menu-help) { background: linear-gradient(155deg,rgba(255,255,255,.105),rgba(255,255,255,.035) 58%,rgba(255,255,255,.065)); border: 1px solid rgba(255,255,255,.13); border-radius: var(--r-chip); box-shadow: inset 0 1px 0 rgba(255,255,255,.14),0 5px 18px rgba(0,0,0,.22),0 1px 2px rgba(0,0,0,.45); backdrop-filter: blur(22px) saturate(125%); -webkit-backdrop-filter: blur(22px) saturate(125%); }
+html :is(.settings-corner .settings-gear, .patch-notes-hud-btn, .cb-menu-help):hover:not(:disabled) { border-color: rgba(255,255,255,.22); }
+html :is(.settings-corner .settings-gear, .patch-notes-hud-btn, .cb-menu-help):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html .patch-notes-hud-btn { gap: 10px; min-height: 44px; padding: 7px 16px 7px 12px; color: var(--text); font: 500 13px/1 var(--font-ui); }
+html .patch-notes-hud-btn .patch-hud-version { padding-left: 10px; color: var(--text-dim); font: 500 11px/1 var(--font-mono); border-left-color: rgba(255,255,255,.16); }
+html .patch-notes-hud-btn.has-unread::after { right: 2px; top: 2px; width: 6px; height: 6px; background: var(--accent); border: 0; box-shadow: 0 0 0 2px rgba(8,8,10,.7); }
+html .cb-menu-help { width: 44px; min-height: 44px; padding: 0; color: var(--text); font: 600 15px/1 var(--font-ui); }
 .currency-mark-wrap { position: relative; display: grid; place-items: center; flex: 0 0 29px; width: 29px; height: 29px; border-radius: 50%; background: radial-gradient(circle at 35% 24%,rgba(255,255,255,.14),rgba(255,255,255,.025) 70%); box-shadow: inset 0 1px 0 rgba(255,255,255,.14),0 1px 3px rgba(0,0,0,.35); }
 .currency-mark { width: 23px; height: 23px; overflow: visible; }
 .currency-mark__edge { fill: #28282C; stroke: rgba(255,255,255,.68); stroke-width: 1.05; }
