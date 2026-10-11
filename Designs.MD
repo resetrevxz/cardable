@@ -184,8 +184,8 @@ These authored surfaces retain their own palettes. Default chrome may use the pu
 | Brand packs | NVIDIA, AMD, Snapdragon and Apple wrapper colors, queue markers and provenance tags. |
 | Classic | Aged beige PC case, amber CRT/terminal, persistent bezel and engraved shared back; VT323 confined to terminal art. CLASSIC catalog identity remains independent from pack provenance. |
 | Royal | Faceted gold/crown, red woven band and lacquer holder; restrained wrapper/tag accents. The holder hint and keyboard fallback stay clear. |
-| Titan | Brushed steel `#8E9399`, carbon and ice-white armor/vault. No brand logo; the registered unseal interaction delegates to ordinary reveal. |
-| Picker | Pearl-white triptych, aluminum, engraved offer numbers and teal `#2DE2B8` wrapper/window/queue accents. Preview one focused offer at full quality; confirmation remains an explicit second action/hold. |
+| Titan | Brushed steel `#8E9399`, black heatsink window and ice-white LEDs; a faceted shroud released by a three-click knob. No brand logo; the registered unseal interaction delegates to ordinary reveal. |
+| Picker | A clear sleeve with three card backs and teal `#2DE2B8` label, ring and queue accents. The three offers are shown, shuffled by hand and picked from their backs; confirmation remains an explicit second action/hold. |
 | Authored cinematics | Approved rarity worlds and their retained fields, bounded by quality, Mono, reduced motion and Safe/Full policies. |
 
 Pack contracts and art recipes are in [04-PACK-OPENING](docs/04-PACK-OPENING.md), [ARCHITECTURE](docs/ARCHITECTURE.md) and [historical pack specs](archive/update-history/README.md). Picker's three offers remain unminted until confirmation; its selection presentation cannot imply ownership of every offer.
@@ -282,6 +282,7 @@ Every pack is a real object: a printed front, a printed back and an extruded edg
 - **Rare:** sapphire, a drifting dot network, a chameleon arrival, and a hold in which the printed marks re-form as a white grid. See [docs/packs](docs/packs/standard.md).
 - **Brand packs** (milestone B), each with its own startup, hold and cut: NVIDIA (shroud, spinning fan, laser cut), AMD (slash, tachometer), Snapdragon (chip package, routed traces, BGA back), Apple (aurora glass, light ring). Designs live in `src/ui/pack-designs-brand.js`; briefs in `docs/packs`.
 - **Classic and Royal** (milestone C): Classic is a beige tower-case front (key power-up, pull seal, pixel-away arrival); Royal is a crimson sleeve under a breathing gold glass coat, opened by tearing both sides, with a plated gold card frame per top tier. Both are boxes with real depth. Designs live in `src/ui/pack-designs-heritage.js`.
+- **Titan and Picker** (milestone D): Titan is a faceted aluminium shroud with a window onto a heatsink, opened with a machined knob (`shroudDial`). Picker is a clear sleeve with three card backs, opened with the shared cut and followed by a hand-shuffled pick table (`shuffleThree`: show, turn, gather, overhand drops, riffle, cut, deal, monte swaps, pick). Designs live in `src/ui/pack-designs-halo.js`, the table in `src/ui/picker-shuffle.js`.
 - Quality: Very Low is flat with no gloss layers or edge shading; Low keeps one specular lobe; Medium and High add the environment and brushed layers and the network drift; High adds the floor reflection.
 
 ## Cinematic optics and Very High

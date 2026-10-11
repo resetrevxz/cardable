@@ -15,7 +15,7 @@
     node('span','picker-tagline',face,pack.tagline);node('span','picker-footer',face,'SERIES '+pack.design.series+' / '+pack.design.batch+' / CBL');
     node('i','picker-pearl-sheen',face);return face;
   }
-  function render(el,pack){el.dataset.skin=pack.skin;el.querySelectorAll('.pack-wrapper').forEach(function(w){if(!w.querySelector('.picker-face'))face(w,pack);});}
+  function render(el,pack){el.dataset.skin=pack.skin;if(pack.design&&pack.design.face)return;el.querySelectorAll('.pack-wrapper').forEach(function(w){if(!w.querySelector('.picker-face'))face(w,pack);});}
   function quality(el,pose,time,reduced,state){
     var policy=C.settings.policy,rank=Math.min(C.settingsSchema.tiers.indexOf(C.settings.get('finishQuality')),policy.reflection);
     el.dataset.packQuality=C.settingsSchema.tiers[rank];

@@ -18,6 +18,12 @@
 
 **Classic.** Arrival `pixelAway`; the hold animates a key and a powering-up panel; the seal tear stays `pullTab`.
 
+## Pack remake, milestone D: Titan and Picker
+
+**Titan `shroudDial`** supersedes `vaultDial`: the same three-click rotation (drag clockwise, or Enter per click, `Next click` on touch), now on a machined knob on the shroud. After the third click two clone halves slide apart over a lit core, then `reveal()` runs. The reserved tier's cinematic and Keep/Delete gates are unchanged.
+
+**Picker `shuffleThree`** supersedes `pickThree`. The pack uses the shared three-second hold and the shared top cut. After the tear the strategy's `resume()` builds the table: cards shown, turned, gathered, shuffled (overhand packets, riffle, cut), dealt and swapped, then picked from the backs. The pick calls `C.picker.choose(optionIndex)` exactly as before; offers stay unminted until then and the unchosen options never gain serials. Recovery before a choice replays the sequence at 70% length; after a choice it goes straight to the saved reveal.
+
 ## 2.5.0 Titan vault dial
 
 Titan preserves the three-second hold, atomic stock/count/reward reservation and tier cinematic. After armor dissolution, drag the vault dial clockwise through three quarter-turn ticks, or press Enter once per tick. The touch action reads Next tick. Lights and a restrained local tick pulse show progress. After the third tick, bolts retract and the door unseals over 1.4 seconds, then the reserved tier's existing cinematic runs. The real card stays hidden until this handoff. Reload restores the exact committed card directly without replay or duplicate reward. Reduced motion keeps static tick lights and fades the door.

@@ -15,7 +15,7 @@
     var steam=node('div','titan-steam',el);for(var i=0;i<C.config.titanPack.steamCount;i++){var wisp=node('i','',steam);wisp.style.left=(i%2?92:5)+'%';wisp.style.top=(37+Math.floor(i/2)*18)+'%';wisp.style.setProperty('--steam-offset',i*400+'ms');}
     return el;
   }
-  function render(el,pack){el.dataset.skin=pack.skin;el.querySelectorAll('.pack-wrapper').forEach(function(w){if(!w.querySelector('.titan-face'))face(w,pack);});}
+  function render(el,pack){el.dataset.skin=pack.skin;if(pack.design&&pack.design.face)return;el.querySelectorAll('.pack-wrapper').forEach(function(w){if(!w.querySelector('.titan-face'))face(w,pack);});}
   function quality(el,pose,time,reduced,state){
     var policy=C.settings.policy,rank=Math.min(C.settingsSchema.tiers.indexOf(C.settings.get('finishQuality')),policy.reflection),cfg=C.config.titanPack;
     el.dataset.packQuality=C.settingsSchema.tiers[rank];

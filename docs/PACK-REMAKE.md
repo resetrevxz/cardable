@@ -7,7 +7,7 @@ Owner brief: remake every pack as a real 3D object (printed front and back, flip
 | A | 3D pack engine, flip and orbit, front-first opening, Standard, Rare | Implemented; see below |
 | B | NVIDIA, AMD, Snapdragon, Apple | Implemented; see below |
 | C | Classic, Royal | Implemented; see below |
-| D | Titan, Picker | Not started |
+| D | Titan, Picker | Implemented; see below |
 | E | Design refinement across all packs | Not started |
 
 ## A: what changed
@@ -35,3 +35,9 @@ Checked in a browser session at 1280x720: Standard front and back, Rare front an
 - `src/ui/card-skins.js` and `src/data/royal-pack.js`: a plated gold frame skin (`royal`) with a set per top tier; Classic's command panel is fuller.
 - Engine: per-design silhouette and edge outline (`outline`), designed registry exposed.
 - `src/studio/card-face.js`: Studio photos paint the Royal frame too.
+
+## D: what changed
+- `src/ui/pack-designs-halo.js`, `src/styles/pack-designs-halo.css`: Titan and Picker faces and backs, the three-card riffle arrival (`cardRiffle`).
+- `src/ui/titan-pack-effects.js`: `shroudDial` replaces `vaultDial`.
+- `src/ui/picker-shuffle.js`, `src/styles/picker-shuffle.css`: the shuffle and pick table (`shuffleThree`). `picker-pack-opening.js` and `picker-pack-swap.js` (`pickThree`, `fanCollapse`) were retired; `picker-pack.css` keeps only the queue marker and counter art.
+- `src/data/picker-pack.js`: new `motion` fields for the table (`showHoldMs`, `opMs`, `shuffleOps`, ...).
