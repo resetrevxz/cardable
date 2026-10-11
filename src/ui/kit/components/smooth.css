@@ -97,7 +97,7 @@
 .album-tag-editor { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
 .album-tag-input { flex:1; min-width:96px; height:28px; padding:0 10px; border:0; border-radius:var(--radius-chip); background:transparent; box-shadow:inset 0 0 0 1px var(--stroke); color:var(--text); font:400 11.5px/16px var(--font-ui); } .album-tag-input:focus { outline:0; box-shadow:inset 0 0 0 1px var(--stroke-hover); background:var(--glass-1); }
 .album-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
-.album-lightbox { position:absolute; inset:0; z-index:5; display:grid; grid-template-rows:minmax(0,1fr) auto auto; gap:10px; padding:24px 32px 20px; background:var(--ui-color-197); animation:cb-fade-in calc(240ms * var(--q-motion,1)) var(--ease-out) both; }
+.album-lightbox { position:absolute; inset:0; z-index:5; display:grid; grid-template-rows:minmax(0,1fr) auto auto; gap:10px; padding:24px 32px 20px; background:var(--ui-color-197); animation:cb-fade-in calc(var(--duration-base) * var(--q-motion,1)) var(--ease-out) both; }
 .album-lightbox-stage { display:flex; align-items:center; justify-content:center; gap:20px; min-height:0; } .album-lightbox-stage img { max-width:100%; max-height:100%; min-width:0; object-fit:contain; border-radius:12px; box-shadow:var(--shadow-xl); animation:cb-pop-in calc(320ms * var(--q-motion,1)) var(--ease-out) both; }
 .album-lightbox-stage[data-count="2"] img { max-width:calc(50% - 10px); }
 .album-lightbox-caption { margin:0; text-align:center; font:400 11.5px/16px var(--font-mono); color:var(--text-dim); white-space:pre-wrap; }
@@ -126,7 +126,7 @@
 
 /* ---- Shared feedback: things arrive, lift and press the same way everywhere ---- */
 .cb-tooltip, .cb-popover { animation:cb-pop-in calc(180ms * var(--q-motion,1)) var(--ease-out) both; }
-.cb-scrim { animation:cb-fade-in calc(240ms * var(--q-motion,1)) var(--ease-out) both; }
+.cb-scrim { animation:cb-fade-in calc(var(--duration-base) * var(--q-motion,1)) var(--ease-out) both; }
 .cb-toast { transition:transform var(--duration-base) var(--ease-out),opacity var(--duration-base) var(--ease-out); } .cb-toast:hover { transform:translateY(-1px); }
 .quiet-button { transition:translate var(--duration-fast) var(--ease-out),scale var(--duration-fast) var(--ease-out),color var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out),background-color var(--duration-fast) var(--ease-out); } .quiet-button:active:not(:disabled) { scale:.97; }
 .settings-corner .settings-gear { transition:transform var(--duration-base) var(--ease-out),background-color var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out); } .settings-corner .settings-gear:hover:not(:disabled) { transform:translateY(-1px); } .settings-corner .settings-gear:active:not(:disabled) { transform:scale(.94); }
@@ -171,7 +171,7 @@
 .inventory-detail .detail-hot.is-open { outline-color:var(--accent); }
 @keyframes cb-hot-hint { 0%,100% { outline-color:transparent; } 35% { outline-color:rgba(var(--white-rgb),.55); } }
 .detail-callout, .detail-menu { position:absolute; z-index:4; box-sizing:border-box; border:1px solid var(--stroke-strong); border-radius:18px; background:linear-gradient(160deg,rgba(38,38,46,.9),rgba(14,14,17,.94)); backdrop-filter:blur(calc(24px * var(--q-blur))) saturate(165%); -webkit-backdrop-filter:blur(calc(24px * var(--q-blur))) saturate(165%); box-shadow:inset 0 1px 0 var(--light-edge),var(--shadow-lg); color:var(--text); font-family:var(--font-ui); }
-.detail-callout { width:280px; padding:16px 18px; animation:cb-callout-in calc(240ms * var(--q-motion,1)) var(--ease-out) both; }
+.detail-callout { width:280px; padding:16px 18px; animation:cb-callout-in calc(var(--duration-base) * var(--q-motion,1)) var(--ease-out) both; }
 .detail-callout[data-side="over"] { animation-name:cb-pop-in; }
 @keyframes cb-callout-in { from { opacity:0; transform:translateX(10px) scale(.97); } to { opacity:1; transform:none; } }
 .detail-callout-leader { position:absolute; left:100%; height:1px; background:linear-gradient(90deg,var(--stroke-strong),rgba(var(--accent-rgb),.9)); transform-origin:0 50%; animation:cb-leader calc(320ms * var(--q-motion,1)) var(--ease-out) both; }

@@ -149,7 +149,7 @@
 /* Effect levels */
 .cbs-level { display:flex; align-items:flex-end; gap:3px; height:16px; }
 .cbs-level i { width:5px; border-radius:2px; background:var(--glass-3); box-shadow:inset 0 0 0 1px var(--stroke); transition:background-color var(--duration-base) var(--ease-out),box-shadow var(--duration-base) var(--ease-out); }
-.cbs-level i:nth-child(1) { height:6px; } .cbs-level i:nth-child(2) { height:8.5px; transition-delay:30ms; } .cbs-level i:nth-child(3) { height:11px; transition-delay:60ms; } .cbs-level i:nth-child(4) { height:13.5px; transition-delay:90ms; } .cbs-level i:nth-child(5) { height:16px; transition-delay:120ms; }
+.cbs-level i:nth-child(1) { height:6px; } .cbs-level i:nth-child(2) { height:8.5px; transition-delay:30ms; } .cbs-level i:nth-child(3) { height:11px; transition-delay:60ms; } .cbs-level i:nth-child(4) { height:13.5px; transition-delay:90ms; } .cbs-level i:nth-child(5) { height:16px; transition-delay:var(--duration-exit); }
 .cbs-level i.is-on { background:var(--accent); box-shadow:0 0 6px rgba(var(--accent-rgb),.35); }
 .settings-panel.cbs .cbs-row-level { min-height:50px; padding-block:8px; }
 .cbs[data-mode="simple"] .cbs-row-level .cbs-menu-button { min-width:0; padding:0 4px; background:none; box-shadow:none; color:var(--text-dim); pointer-events:none; }
