@@ -4,7 +4,7 @@
   var stats={updates:0,mounted:0,maxMounted:0,opens:0,closes:0,snaps:0,projections:0,queries:0,refreshSkipped:0};var node=C.packMarkup.node;
   var projection=null,projectionCatalog=null,projectionInventory=null,projectionRevision=-1,lastInput=null,lastQueryKey='';
   var extensionPage=null, detailScroll=0, fluidHeight=0, pageTimer=null;
-  var peekQuiet=false,warmed=false,selectedEntry=null,selectedTagsExpire=0,proximityGain=null;
+  var sheetAttached=false,peekQuiet=false,warmed=false,selectedEntry=null,selectedTagsExpire=0,proximityGain=null;
   function prepare(value){
     value=!!value&&(!peekQuiet||session)&&openingPhase==='idle'&&!preferences&&!C.menu.afk;
     if(warmed===value)return;warmed=value;
@@ -89,7 +89,12 @@
   function reset(){cancel();C.events.emit('detail:reset');detailId=null;pendingClose=false;body.inert=false;grip.inert=false;toolbar.el.inert=false;toolbar.tabs.inert=false;fixture=null;query='';validQuery='';filters={};toolbar.clearSearch();selected=null;detent='peek';if(session)finish();spring.reset(detents.peek);sheet.classList.add('is-peek');toolbar.controls.inert=true;toolbar.tabs.inert=true;toolbar.search.inert=true;body.inert=true;refresh(true);C.inventoryTransition.forget();}
   function update(now,dt){
     var moving=false;stats.updates++;if(!drag){if(C.motion.reduced){var delta=spring.target-spring.value;spring.value+=delta*Math.min(1,dt/65);spring.velocity=0;if(Math.abs(delta)<.1)spring.reset(spring.target);}else spring.step(dt,spring.target);}
-    if(dirty||!spring.settled()||drag){dirty=false;sheet.style.transform='translate3d(0,'+(detents.full-spring.value)+'px,0)';var depth=clamp((spring.value-detents.peek)/(detents.normal-detents.peek),0,1);root.document.body.style.setProperty('--inventory-menu-scale',C.motion.reduced?1:1-(1-cfg.menuScale)*depth);root.document.body.style.setProperty('--inventory-menu-blur',(C.motion.reduced?0:cfg.menuBlurPx*depth)+'px');root.document.body.style.setProperty('--inventory-menu-opacity',1-cfg.menuDim*depth);sheet.style.setProperty('--inventory-open',depth.toFixed(3));sheet.classList.toggle('is-moving',session||!!drag);
+    if(dirty||!spring.settled()||drag){dirty=false;
+      // While the player holds or moves the sheet, its bottom edge stays on the screen edge and only its height follows the pull. Nothing detaches or leaves a gap above the edge.
+      var attached=(session||!!drag)&&!C.motion.reduced;
+      if(attached){sheet.style.height=clamp(spring.value,0,detents.full).toFixed(1)+'px';sheet.style.transform='none';sheetAttached=true;}
+      else{if(sheetAttached){sheet.style.height=detents.full+'px';sheetAttached=false;}sheet.style.transform='translate3d(0,'+(detents.full-spring.value)+'px,0)';}
+      var depth=clamp((spring.value-detents.peek)/(detents.normal-detents.peek),0,1);root.document.body.style.setProperty('--inventory-menu-scale',C.motion.reduced?1:1-(1-cfg.menuScale)*depth);root.document.body.style.setProperty('--inventory-menu-blur',(C.motion.reduced?0:cfg.menuBlurPx*depth)+'px');root.document.body.style.setProperty('--inventory-menu-opacity',1-cfg.menuDim*depth);sheet.style.setProperty('--inventory-open',depth.toFixed(3));sheet.classList.toggle('is-moving',session||!!drag);
       if((session||drag)&&!C.motion.reduced){var fluid=clamp(spring.value,detents.normal,detents.full);if(Math.abs(fluid-fluidHeight)>.5)resizeViews(fluid);}}
     if(session&&detent==='peek'&&spring.settled())finish();
     if((session||warmed)&&!extensionPage&&!detailId&&!preferences){moving=view().update(now,dt)||moving;moving=reorder.update(now,dt)||moving;selectionAge+=dt;if(session&&selectionAge>250&&selected&&C.inventoryModel.current.lastSelectedStackKey!==selected&&!fixture&&!view().dragging&&(mode==='grid'||shelf.settled()))C.inventoryModel.update({lastSelectedStackKey:selected});}

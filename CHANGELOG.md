@@ -2,6 +2,7 @@
 
 The second round of the visual pass, plus a fix for inspecting Ascendant cards. Saved collections, serials and the save schema are unchanged.
 
+- **Fixed: inventory pull from fully open.** Pulling the sheet down from its full height no longer detaches it from the bottom edge. It stays anchored and shrinks as one surface.
 - **Fixed: Inspect on Ascendant cards.** The Studio quietly failed to open for Ascendant cards. It opens now, and if the Studio ever cannot prepare a card it says so instead of doing nothing.
 - **Inventory popovers.** Filters, Sort, Collection options and New collection are glass cards set in from the edge. Filter choices are pills instead of small checkboxes.
 - **Search and fields.** The inventory search has its icon and the same field style as Settings. The Show Unowned checkbox is drawn to match.
