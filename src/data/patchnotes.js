@@ -6,7 +6,8 @@
       fixes:[
         'Help no longer overlaps Patch notes when Patch notes is wider than first measured.',
         'Credits no longer show a dollar sign in the pack menu and save preview.',
-        'The Studio top bar no longer overlaps in Pro mode: History, Scenes, Layers, Inspector and Help each have their own place.'
+        'The Studio top bar no longer overlaps in Pro mode: History, Scenes, Layers, Inspector and Help each have their own place.',
+        'On phones the inventory’s collection tabs are visible again, and tags no longer overlap on the shelf.'
       ],
       visuals:[
         'Patch notes and Help use the same glass as Credits and Settings.',

@@ -441,3 +441,9 @@
 [data-tutorial="hold"] .tutorial > .cb-help-button { top:calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px)); }
 /* The first step is only about the pack: Credits, Patch notes and the second Help rest until it is done. */
 [data-tutorial="hold"] :is(.currency-counter,.patch-notes-hud-btn,.cb-menu-help) { opacity:0 !important; pointer-events:none; }
+/* Phone width: the collection tabs take their own row, so New collection, Achievements and Album never cover them. */
+@media (max-width:520px) { .inventory-tabs { flex-wrap:wrap; row-gap:var(--s-1); column-gap:var(--s-1); padding-inline:var(--s-3); } .inventory-tabs > .inventory-tab-list { flex:1 1 100%; order:-1; } .inventory-tabs > .inventory-menu-option { padding-inline:var(--s-2); } }
+/* Phone width: shelf cards sit too close for every tag rail, so only the card you are on shows its tags. */
+@media (max-width:520px) { .inventory-tile:not(.is-centered) .inventory-tag-rail { display:none; } }
+/* Phone width: the peek thumbnail is invisible when the sheet is open, so it must not hold a third header row. */
+@media (max-width:520px) { .inventory-sheet .inventory-peek-thumbnail { position:absolute; top:25px; right:var(--s-4); } }
