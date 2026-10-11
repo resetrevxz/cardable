@@ -11,6 +11,7 @@ The second round of the visual pass, plus a fix for inspecting Ascendant cards. 
 - **Plainer journal.** Journal entries state what happened, without filler lines like “a moment earned” or “now part of your story”.
 - **Settings accents.** Settings accents follow your accent color and the monochrome theme, like the rest of the game.
 - **Notice position.** Gameplay › Notices chooses whether unlock and action notices appear at the bottom (the default) or the top of the screen. Top notices drop in from above.
+- **Fixed: hover errors.** Hover effects no longer throw an error when the pointer passes over the page background.
 - **Fixed: inventory pull from fully open.** Pulling the sheet down from its full height no longer detaches it from the bottom edge. It stays anchored and shrinks as one surface.
 - **Fixed: Inspect on Ascendant cards.** The Studio quietly failed to open for Ascendant cards. It opens now, and if the Studio ever cannot prepare a card it says so instead of doing nothing.
 - **Inventory popovers.** Filters, Sort, Collection options and New collection are glass cards set in from the edge. Filter choices are pills instead of small checkboxes.

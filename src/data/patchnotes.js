@@ -7,6 +7,7 @@
         'Inspect now opens the Studio for Ascendant cards. It failed silently before.',
         'If the Studio cannot prepare a card, it tells you.',
         'Pulling the inventory down from fully open keeps it attached to the bottom edge instead of detaching.',
+        'Hover effects no longer throw an error when the pointer passes over the page background.',
         'Shelf captions keep “Basic · Generation 1” on one line instead of wrapping the number.',
         'Appearance › Interface: a Card captions switch hides the name and tier under each card.',
         'Appearance › Interface: Inventory height opens the sheet Compact, Standard or Tall.',
