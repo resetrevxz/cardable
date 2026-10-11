@@ -1,5 +1,27 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.4.1',codename:'Quiet details',date:'October 11, 2026',tag:'Update',tagline:'The area under the pack, redrawn.',
+    hero:{badge:'CARDABLE / 1.4.1',title:'Quiet details.',subtitle:'The timer, Open pack, Flip and the stock row now match the rest of the game.',media:[]},
+    sections:{
+      fixes:[
+        'The Flip button returns to “Flip” whenever the pack is brought back to the front.'
+      ],
+      visuals:[
+        'A clear label over a large time with dimmed units. The digits keep their width as they change.',
+        'Open pack is a single accent pill that shows its hold key; Flip is a quieter pill beside it.',
+        'Stored packs are bright cards and the refilling one fills with your accent color.',
+        'On short windows the status stands beside the pack instead of meeting the inventory.'
+      ],
+      qol:[
+        'Buttons are larger to hit, and the keyboard focus ring is clear.'
+      ]
+    },
+    entries:[
+      'The timer, Open pack, Flip and stock row are redrawn.',
+      'Short windows keep the status clear of the inventory.'
+    ]
+  },
+  {
     version:'1.4.0',codename:'Every pack',date:'October 11, 2026',tag:'Update',tagline:'All ten packs redrawn as objects you can turn over.',
     hero:{badge:'CARDABLE / 1.4.0',title:'Every pack.',subtitle:'Ten packs redrawn as 3D objects with a front and a back, each with its own startup, hold and opening. Plus the Every corner visual pass.',media:[]},
     sections:{
