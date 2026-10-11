@@ -153,6 +153,8 @@
 
     inventoryMotion: {
       detents: { peekPx: 104, normalVh: 62, expandedVh: 82, fullMarginPx: 16 },
+      // Inventory height choices (Settings › Appearance › Interface). Standard is the default detent.
+      heightsVh: { compact: 50, standard: 62, tall: 74 },
       shelfTurnDegrees: 10, shelfTurnCap: 24, shelfDepthPx: 12, shelfSideScale: 0.9,
       shelfSideOpacity: 0.72, gridMinWidthPx: 160, gridMaxWidthPx: 220, gridGapPx: 24, gridOverscanRows: 2,
       transitionMs: 450, transitionStaggerMs: 18, tooltipMs: 600, reorderHoldMs: 320, reorderEdgePx: 64, reorderScrollSpeed: 4, reorderGapPx: 16,
