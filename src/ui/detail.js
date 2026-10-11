@@ -30,7 +30,7 @@
     if (navPrevious) {
       navPrevious.style.left = (rect.left - cardWidth * sides - 44) + 'px'; navNext.style.left = (rect.left + cardWidth * (1 + sides) + 8) + 'px';
       navPrevious.style.top = navNext.style.top = (rect.top + cardHeight / 2 - 18) + 'px';
-      flipHint.style.left = (rect.left + cardWidth / 2) + 'px'; flipHint.style.top = (rect.top + cardHeight * (1 + below) + 16) + 'px'; flipHint.hidden = !payload.entry.owned;
+      flipHint.style.left = (rect.left + cardWidth / 2) + 'px'; flipHint.style.top = (rect.top + cardHeight * (1 + below) + 16) + 'px'; flipHint.hidden = false; flipHint.classList.toggle('is-unowned', !payload.entry.owned);
     }
     return rect;
   }

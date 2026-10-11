@@ -16,6 +16,8 @@ Patch notes and Help now share the surface of Credits and Settings. Saved collec
 - **Palette suggestions.** With the field empty, everyday commands lead: Open pack, Open inventory, Settings, Patch notes and the shortcuts; settings entries and cards follow.
 - **Swipe to browse.** In card detail, a quick sideways swipe on touch or pen moves to the next or previous card. (Code-checked only.)
 - **Counts explained.** Pointing at the Inventory title explains the two numbers: designs collected, and shelf entries with variant finishes.
+- **Hold feedback.** Open pack fills as you hold it, and a quick tap reads "Hold to open" for a moment so the gesture teaches itself.
+- **Counter on every card.** Undiscovered cards in detail keep the "N of M" position.
 - **Fixed: credits symbol.** Credits no longer show a dollar sign in the pack menu and save preview.
 - **Fixed: Help position.** Help no longer overlaps Patch notes when Patch notes is wider than first measured.
 

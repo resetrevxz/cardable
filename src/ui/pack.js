@@ -39,17 +39,24 @@
       var timer = node('div', 'pack-timer', meta); timer.setAttribute('role', 'timer'); timer.setAttribute('aria-live', 'off');
       var actions = node('div', 'pack-actions', meta);
       var action = node('button', 'pack-open-action', actions); action.type = 'button';
-      node('span', '', action, 'Open pack'); var openKey = node('kbd', '', action, 'Space'); openKey.dataset.keyAction = 'opening.hold';
+      var openLabel = node('span', '', action, 'Open pack'); var openKey = node('kbd', '', action, 'Space'); openKey.dataset.keyAction = 'opening.hold';
       action.setAttribute('aria-label', 'Hold to open pack');
       var flipAction = node('button', 'pack-flip-action', actions); flipAction.type = 'button';
       flipAction.setAttribute('aria-label', 'Flip pack'); flipAction.setAttribute('aria-pressed', 'false');
       node('span', '', flipAction, 'Flip'); node('kbd', '', flipAction, 'R').dataset.keyAction = 'menu.flip-pack';
       flipAction.addEventListener('click', function () { C.packView.flip(); });
       var chargePointer = null;
-      action.addEventListener('pointerdown', function (event) { if (event.button !== 0 || action.disabled) return; event.preventDefault(); chargePointer = event.pointerId; C.input.chargeStart(); });
-      function endCharge(event) { if (event.type === 'pointerup' && event.button !== 0) return; if (chargePointer !== null && event.pointerId === chargePointer) { chargePointer = null; C.input.chargeEnd(); } }
+      var holdAt = 0, labelTimer = null;
+      action.addEventListener('pointerdown', function (event) { if (event.button !== 0 || action.disabled) return; event.preventDefault(); chargePointer = event.pointerId; holdAt = root.performance.now(); C.input.chargeStart(); });
+      function endCharge(event) { if (event.type === 'pointerup' && event.button !== 0) return; if (chargePointer !== null && event.pointerId === chargePointer) {
+          chargePointer = null; C.input.chargeEnd();
+          // A quick tap teaches the gesture: the label says Hold to open for a moment.
+          if (root.performance.now() - holdAt < 350) { openLabel.textContent = 'Hold to open'; root.clearTimeout(labelTimer); labelTimer = root.setTimeout(function () { openLabel.textContent = 'Open pack'; }, 1600); }
+        } }
       root.document.addEventListener('pointerup', endCharge); root.document.addEventListener('pointercancel', endCharge);
       C.events.on('input:cancel', function () { chargePointer = null; });
+      C.events.on('charge:progress', function (fill) { action.style.setProperty('--hold', Math.max(0, Math.min(1, fill)).toFixed(3)); });
+      C.events.on('charge:end', function () { action.style.setProperty('--hold', 0); });
       var digits = C.numbers.create(node('span', '', timer));
       var stock = node('div', 'pack-stock', meta); stock.setAttribute('role', 'img');
       var metrics = node('div', 'pack-metrics', meta);

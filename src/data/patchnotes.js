@@ -20,6 +20,7 @@
         'The Keyboard shortcuts sheet has a live filter and a close icon.',
         'Card detail shows where you are, like “54 of 134”.',
         'In card detail, swipe sideways on touch or pen to move to the next card.',
+        'Open pack fills while you hold it, and a quick tap reads “Hold to open”.',
         'The command palette suggests everyday commands first when the field is empty.',
         'Search fields show focus around the whole field; an empty album hides its selection tools.'
       ]
