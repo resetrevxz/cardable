@@ -1,3 +1,9 @@
+# Cardable v1.5.6 — Very Low gets a little
+
+Very Low stays static for everything that loops, but two short event-only touches now run there too: panels and toasts fade and rise in once, and the card's lit edge is drawn. Each ends by itself and uses only opacity and transform. Saves and the save schema are unchanged.
+
+Matching headless runs showed Very Low menu idle at 0.1% main-thread busy, unchanged. Real low-end hardware remains unmeasured. This release is unsigned.
+
 # Cardable v1.5.5 — Low gets more
 
 The event-only touches that reached Medium in 1.5.4 now also run on Low, plus the lit card edge. Very Low is unchanged and stays static. Saves and the save schema are unchanged.

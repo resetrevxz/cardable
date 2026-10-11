@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.5.6',codename:'Very Low gets a little',date:'October 11, 2026',tag:'Update',tagline:'Two short event touches reach Very Low.',
+    hero:{badge:'CARDABLE / 1.5.6',title:'Very Low gets a little.',subtitle:'Panels and toasts fade in once and the card edge is lit, with nothing looping.',media:[]},
+    sections:{fixes:[],visuals:['Panels and toasts fade and rise in once on Very Low.','The lit card edge shows on Very Low.'],qol:['Nothing loops on Very Low.']},
+    entries:['Short event fades reach Very Low.','Very Low still has no looping effects.']
+  },
+  {
     version:'1.5.5',codename:'Low gets more',date:'October 11, 2026',tag:'Update',tagline:'Event animations reach Low.',
     hero:{badge:'CARDABLE / 1.5.5',title:'Low gets more.',subtitle:'Short event animations and the lit card edge now run on Low.',media:[]},
     sections:{

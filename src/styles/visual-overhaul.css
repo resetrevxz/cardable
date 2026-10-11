@@ -39,7 +39,7 @@
 :root[data-quality="very-high"] :is(.cb-panel,.cb-dialog,.cb-drawer) { --blur-panel:24px; box-shadow:inset 0 1px 0 #fff2,var(--shadow-2); }
 :root[data-animation-quality="high"] :is(.settings-row,.studio-layer-row),:root[data-animation-quality="very-high"] :is(.settings-row,.studio-layer-row) { animation:cb-material-arrive 400ms var(--ease-out) both; animation-delay:calc(var(--visual-order,0)*25ms); }
 @keyframes cb-material-arrive { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
-:root:not(.reduced-motion):is([data-animation-quality="low"],[data-animation-quality="medium"],[data-animation-quality="high"],[data-animation-quality="very-high"]) :is(.detail-panel,.inventory-toolbar,.studio-panel) { animation:cb-material-arrive 450ms var(--ease-out) both; }
+:root:not(.reduced-motion):is([data-animation-quality="very-low"],[data-animation-quality="low"],[data-animation-quality="medium"],[data-animation-quality="high"],[data-animation-quality="very-high"]) :is(.detail-panel,.inventory-toolbar,.studio-panel) { animation:cb-material-arrive 450ms var(--ease-out) both; }
 :root:not(.reduced-motion):is([data-animation-quality="low"],[data-animation-quality="medium"],[data-animation-quality="high"],[data-animation-quality="very-high"]) .stock-card.is-ready .stock-card__meniscus { animation:cb-slosh 700ms var(--ease-out) both; }
 @keyframes cb-slosh { 0% { transform:rotate(-8deg); } 40% { transform:rotate(5deg); } 70% { transform:rotate(-2deg); } 100% { transform:rotate(0); } }
 .reduced-motion :is(.settings-row,.studio-layer-row,.detail-panel,.inventory-toolbar,.studio-panel,.stock-card__meniscus) { animation:none !important; }
@@ -71,7 +71,7 @@
 
 /* The existing frame queue and mount lifecycle own all animated surfaces. */
 .visual-pack-marker { height:60px; display:grid; place-items:center; }
-:root:not(.reduced-motion):is([data-animation-quality="low"],[data-animation-quality="medium"],[data-animation-quality="high"],[data-animation-quality="very-high"]) .cb-toast.cb-enter { animation:cb-toast-spring 420ms var(--ease-out) both; }
+:root:not(.reduced-motion):is([data-animation-quality="very-low"],[data-animation-quality="low"],[data-animation-quality="medium"],[data-animation-quality="high"],[data-animation-quality="very-high"]) .cb-toast.cb-enter { animation:cb-toast-spring 420ms var(--ease-out) both; }
 @keyframes cb-toast-spring { 0% { opacity:0; transform:translateY(9px) scale(.98); } 65% { opacity:1; transform:translateY(-1px) scale(1.003); } 100% { transform:none; } }
 :root[data-toast-position="top"]:not(.reduced-motion) .cb-toast.cb-enter { animation-name:cb-toast-spring-top; }
 @keyframes cb-toast-spring-top { 0% { opacity:0; transform:translateY(-9px) scale(.98); } 65% { opacity:1; transform:translateY(1px) scale(1.003); } 100% { transform:none; } }
