@@ -6,7 +6,8 @@
       fixes:[
         'Inspect now opens the Studio for Ascendant cards. It failed silently before.',
         'If the Studio cannot prepare a card, it tells you.',
-        'Shelf captions keep “Basic · Generation 1” on one line instead of wrapping the number.'
+        'Shelf captions keep “Basic · Generation 1” on one line instead of wrapping the number.',
+        'Appearance › Interface: a Card captions switch hides the name and tier under each card.'
       ],
       visuals:[
         'Inventory popovers are glass cards with pill filters.',

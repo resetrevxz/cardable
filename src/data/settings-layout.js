@@ -22,6 +22,7 @@
   add('clickRipples', 'Click ripples', 'A soft ring through the dot grid when you click.', true);
   add('cursorGlowSize', 'Cursor glow size', 'A percentage of the standard glow.', 100, null, 'slider');
   Object.assign(s.cursorGlowSize, { min: 50, max: 200, step: 10, unit: '%' });
+  add('shelfCaptions', 'Card captions', 'The name and tier under each card in the inventory shelf and grid.', true);
   add('settingsSide', 'Settings side', 'Dock this panel on the left or the right of the game.', 'left', ['left', 'right']);
   add('settingsPreviews', 'Setting previews', 'The live preview at the bottom of Settings. Its arrow folds it away too.', true);
   C.data.accentColors = { periwinkle: ['#ADC4FF', '173,196,255'], mint: ['#9ADCC0', '154,220,192'], amber: ['#F1CF99', '241,207,153'],
@@ -132,7 +133,7 @@
       { title: 'Theme', keys: ['rarityColor', 'accentColor'] },
       { title: 'Wordmark', keys: ['logoStyle', 'logoAnimation'] },
       { title: 'Backdrop', keys: ['dots', 'dotDensity', 'dotTint', 'clickRipples', 'cursorGlow', 'cursorGlowSize', 'cursorGlowTint'] },
-      { title: 'Interface', keys: ['interfaceSize', 'idleFade', 'settingsSide', 'settingsPreviews'] },
+      { title: 'Interface', keys: ['interfaceSize', 'idleFade', 'shelfCaptions', 'settingsSide', 'settingsPreviews'] },
       { title: 'Show and hide', slot: 'visibility', grid: true, keys: visibility.concat(['proximityChrome']) } ] },
     { id: 'Motion', icon: 'motion', blurb: 'Movement, cards and cutscenes.', sections: [
       { title: 'Comfort', keys: ['motion', 'strobing'] },
