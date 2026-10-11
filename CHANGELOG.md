@@ -1,3 +1,13 @@
+# Cardable v1.5.2 — Straight to it
+
+Exotic and Secret openings begin with their own scene instead of a Basic borrowed prelude or a card-back fake-out, and the returning-player pack card is gone. Saves, serials, odds and the save schema are unchanged.
+
+- **Exotic.** The Basic corner prelude and its black beat are removed; the opening starts at the star field and runs 17.9 seconds.
+- **Secret.** The card-back rise and flip fake-out is removed; the film begins at its black screen. Later beats keep their authored times. Safe/Full gates, skip and the calm route are unchanged.
+- **Pack ready card.** The "pack ready" card shown when you return to the desktop app is removed entirely.
+
+Verification: a source run in the built-in browser stepped both openings through their sections without errors. Installer execution and hardware remain unverified. This release is unsigned.
+
 # Cardable v1.5.1 — Cleaner corners
 
 Inspect and Director open reliably again, the top-right corner is rebuilt around a collapsing Credits chip, and Basic, Common and Uncommon openings become a single line of light. Saves, serials, odds, pack cadence and the save schema are unchanged. Achievements remain paused with their progress retained.

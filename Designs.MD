@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.5.1**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.5.2**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -300,7 +300,7 @@ Every pack is a real object: a printed front, a printed back and an extruded edg
 
 - **Credits** (1.5.1): a 44 px glass coin at the left of Help and Settings, with the order Credits, Help, Settings. It is collapsed by default (coin at 78% opacity). The readout (mono label over the tabular balance, `.cb-credits-readout`) slides out to its left on hover, keyboard focus, a balance change (about 2.8 s) or while pinned, and takes no layout space while collapsed. Click or Enter pins a card with the full balance and where credits come from; Escape or an outside click closes it. Proximity chrome and the idle fade still hide the whole chip. Lower glass tiers use the solid fill; reduced motion drops the slide.
 - **Patch notes** (1.5.1): a 32 px journal icon in the Inventory header, between the options menu and Help, with an accent unread dot until the current version has been opened. The Release-notes visibility option hides it.
-- **Early openings** (1.5.1): Basic, Common and Uncommon are one horizontal line that extends from the centre while seeded particles rise and fall away from it with short fading tails, then it thins and retreats. Basic is white, Common silver, Uncommon lime with a second green and a slight wave. Reduced motion, Off and Very Low draw one still line with a few particles. Exotic and Secret keep Basic's corner fronts as their prelude.
+- **Early openings** (1.5.1): Basic, Common and Uncommon are one horizontal line that extends from the centre while seeded particles rise and fall away from it with short fading tails, then it thins and retreats. Basic is white, Common silver, Uncommon lime with a second green and a slight wave. Reduced motion, Off and Very Low draw one still line with a few particles. Exotic and Secret no longer borrow Basic: Exotic starts at its stars and Secret at its black screen (1.5.2).
 - **Studio panels** (1.5.1): a closed Layers or Inspector panel is also `hidden`; the viewport keeps column 2 through explicit grid columns so it never collapses.
 
 ## Cinematic optics and Very High

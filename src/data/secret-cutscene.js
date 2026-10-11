@@ -1,7 +1,7 @@
 (function(C){
   'use strict';
   var rarity=C.data.rarities.find(function(r){return r.id==='secret';});
-  rarity.openingIntro={kind:'system',cutscene:'secret',milestone:'C',color:[250,250,250],background:[0,0,0],
+  rarity.openingIntro={kind:'system',cutscene:'secret',milestone:'C',startMs:2400,color:[250,250,250],background:[0,0,0],
     sections:[{id:'fakeout',ms:2400},{id:'black',ms:1600},{id:'boot',ms:6000},{id:'desktop',ms:9000},{id:'breakdown',ms:8000},{id:'stop',ms:5000},{id:'collapse',ms:4000},{id:'resurrection',ms:4000}],
     shortRoute:[{ms:3000,from:0,to:4000},{ms:3000,from:4000,to:10000},{ms:4000,from:10000,to:19000},
       {ms:3000,from:19000,to:32000},{ms:1500,from:32000,to:36000},{ms:4000,from:36000,to:40000}],

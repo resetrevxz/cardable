@@ -1,5 +1,20 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.5.2',codename:'Straight to it',date:'October 11, 2026',tag:'Update',tagline:'Exotic and Secret begin at once.',
+    hero:{badge:'CARDABLE / 1.5.2',title:'Straight to it.',subtitle:'Exotic and Secret skip their lead-ins, and the returning pack card is gone.',media:[]},
+    sections:{
+      fixes:[
+        'The pack-ready card shown when returning to the desktop app is removed.'
+      ],
+      visuals:[
+        'Exotic starts directly at its star field.',
+        'Secret skips its card-back fake-out and begins at its black screen.'
+      ],
+      qol:[]
+    },
+    entries:['Exotic and Secret begin without a lead-in.','No more pack-ready card on return.']
+  },
+  {
     version:'1.5.1',codename:'Cleaner corners',date:'October 11, 2026',tag:'Update',tagline:'Studio opens reliably, and the corner gets quieter.',
     hero:{badge:'CARDABLE / 1.5.1',title:'Cleaner corners.',subtitle:'A Credits chip that folds away, Patch notes in the Inventory and a line of light for early openings.',media:[]},
     sections:{

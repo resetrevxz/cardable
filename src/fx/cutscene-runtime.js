@@ -102,6 +102,8 @@
           adaptive = { samples: 0, sum: 0, dropped: false }; active = api;
           intensityProfile=C.cutscenes.profile();if(painter&&painter.setProfile)painter.setProfile(intensityProfile);
           hint.hidden = true; if (painter && painter.setQuality) painter.setQuality(level);
+          // A descriptor may begin partway through its film (Secret skips its fake-out).
+          if (spec.startMs && runMode !== 'light') api.seek(spec.startMs);
         },
         update: function (elapsed, duration, staticPolicy) {
           var dt = Math.max(0, elapsed - previous); previous = elapsed;

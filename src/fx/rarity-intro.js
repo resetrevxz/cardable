@@ -435,17 +435,11 @@
         offset += s.ms;
       }
     }
-    function basicPrelude(time) {
-      var saved=spec,offset=0;spec=C.rarity('basic').openingIntro;
-      for(var i=0;i<spec.sections.length;i++){var part=spec.sections[i];if(time<=offset+part.ms){pulseFrame({id:part.id,p:clamp((time-offset)/part.ms)},time/1000);break;}offset+=part.ms;}
-      spec=saved;
-    }
     function paint(elapsed) {
       var begin = root.performance.now(), total = duration(); background(); section = segment(elapsed, total);
       if(spec.kind==='system'){
         if(notice.pending){g.fillStyle='#000';g.fillRect(0,0,w,h);return;}
         var skip=runtime.skipState,secretSection=skip?segment(skip.from/spec.sections.reduce(function(n,p){return n+p.ms;},0)*total,total):section;
-        if(!still()&&secretSection.id==='fakeout')basicPrelude(secretSection.p*2400);
         secret.paint(g,w,h,secretSection,elapsed/1000,still()?clamp(elapsed/total):null);
         if(skip){secret.setSkipped();g.fillStyle='rgba(0,0,0,'+smooth(skip.progress)+')';g.fillRect(0,0,w,h);}
         limiter.apply(canvas,root.performance.now());
@@ -456,10 +450,6 @@
       else if (spec.kind === 'crimson') mythical.paint(g, w, h, section, elapsed / 1000, still() ? clamp(elapsed / total) : null);
       else if (spec.kind === 'cosmic') {
         exotic.paint(g, w, h, section, elapsed / 1000, still() ? clamp(elapsed / total) : null);
-        if (!still() && section.id === 'prelude') {
-          // Use Basic's real fronts and palette, interrupting at its peak before any card mounts.
-          basicPrelude(section.p * spec.sections[0].ms);
-        }
       }
       else if (still()) staticFrame(clamp(elapsed / total)); else if (spec.kind === 'portal') portalFrame(section, elapsed / 1000); else if (lineKind()) lineFrame(section, elapsed / 1000); else pulseFrame(section, elapsed / 1000);
       if (spec.kind === 'prismatic' && !still()) runtime.letterbox(g, w, h, elapsed / total * spec.sections.reduce(function(n,s){return n+s.ms;},0));

@@ -140,11 +140,11 @@
       propSpec: 'A glowing outside square with small squircle edges border made of dark purple with a pink outline with white going circling border',
       finish: 'exotic', frontDesign: 'full-art', propOutset: { top: 0.045, bottom: 0.045, side: 0.045 },
       reveal: { riseMs: 1500, preFlipPauseMs: 500, flipMs: 1500, bloom: 0.75, gridDim: 0.9, shiftPx: 1 },
-      openingIntro: { kind: 'cosmic', preludeRarity: 'basic', color: [184, 111, 255], background: [3, 3, 9], intensity: 1,
+      openingIntro: { kind: 'cosmic', color: [184, 111, 255], background: [3, 3, 9], intensity: 1,
         palette: { nebula: [93, 54, 206], pink: [236, 119, 255], core: [255, 246, 233], gold: [255, 217, 143],
           stars: [[121, 148, 255], [173, 99, 255], [246, 123, 232], [170, 207, 255], [255, 179, 145]] },
         handoff: { flipMs: 400, fadeMs: 160 }, backdrop: { enabled: true, animated: true, exitMs: 450 },
-        sections: [{ id: 'prelude', ms: 880 }, { id: 'blackout', ms: 520 }, { id: 'starlight', ms: 1400 },
+        sections: [{ id: 'starlight', ms: 1400 },
           { id: 'acceleration', ms: 10000 }, { id: 'brake', ms: 420 }, { id: 'ignition', ms: 1000 },
           { id: 'galaxy', ms: 3600 }, { id: 'dissolve', ms: 1200 }, { id: 'release', ms: 280 }] },
       marketValueUsd: 208.7
