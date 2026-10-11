@@ -2,9 +2,9 @@
    Loaded last; it restyles the shared settings controls only inside .cbs. */
 :root { --danger-rgb:243,173,184; --settings-width:704px; --settings-rail:84px; }
 :root[data-rarity-color="mono"] { --danger-rgb:235,235,240; }
-:root[data-accent-color="mint"]:not([data-rarity-color="mono"]) { --accent:#9ADCC0; --accent-rgb:154,220,192; }
-:root[data-accent-color="amber"]:not([data-rarity-color="mono"]) { --accent:#F1CF99; --accent-rgb:241,207,153; }
-:root[data-accent-color="rose"]:not([data-rarity-color="mono"]) { --accent:#F3ADB8; --accent-rgb:243,173,184; }
+:root[data-accent-color="mint"]:not([data-rarity-color="mono"]) { --accent:var(--success); --accent-rgb:154,220,192; }
+:root[data-accent-color="amber"]:not([data-rarity-color="mono"]) { --accent:var(--warning); --accent-rgb:241,207,153; }
+:root[data-accent-color="rose"]:not([data-rarity-color="mono"]) { --accent:var(--danger); --accent-rgb:243,173,184; }
 :root[data-accent-color="lavender"]:not([data-rarity-color="mono"]) { --accent:#C7A9FF; --accent-rgb:199,169,255; }
 :root[data-accent-color="sky"]:not([data-rarity-color="mono"]) { --accent:#8FD3F4; --accent-rgb:143,211,244; }
 :root[data-accent-color="lime"]:not([data-rarity-color="mono"]) { --accent:#C5E59A; --accent-rgb:197,229,154; }
@@ -21,9 +21,9 @@
 .cbs-tile-mark[data-logo-style="outline"] { color:transparent; -webkit-text-stroke:.6px var(--text); }
 .cbs-tile-mark[data-logo-style="ghost"] { color:var(--glass-3); -webkit-text-stroke:.8px var(--ui-color-78); }
 .cbs-tile-mark[data-logo-style="neon"] { color:var(--accent); text-shadow:0 0 12px rgba(var(--accent-rgb),.75); }
-.cbs-tile-mark:is([data-logo-style="chrome"],[data-logo-style="prism"],[data-logo-style="ember"]) { color:transparent; -webkit-background-clip:text; background-clip:text; background-image:linear-gradient(180deg,#FFFFFF,#B9B9C0 38%,#F5F5F7 62%,#8E8E93); }
-:root:not([data-rarity-color="mono"]) .cbs-tile-mark[data-logo-style="prism"] { background-image:linear-gradient(120deg,#ADC4FF,#C7A9FF,#F3ADB8,#F1CF99,#9ADCC0); }
-:root:not([data-rarity-color="mono"]) .cbs-tile-mark[data-logo-style="ember"] { background-image:linear-gradient(180deg,#FFE9C2,#F1CF99,#F3ADB8); }
+.cbs-tile-mark:is([data-logo-style="chrome"],[data-logo-style="prism"],[data-logo-style="ember"]) { color:transparent; -webkit-background-clip:text; background-clip:text; background-image:linear-gradient(180deg,#FFFFFF,var(--ui-color-50) 38%,var(--text-primary) 62%,#8E8E93); }
+:root:not([data-rarity-color="mono"]) .cbs-tile-mark[data-logo-style="prism"] { background-image:linear-gradient(120deg,var(--accent),#C7A9FF,var(--danger),var(--warning),var(--success)); }
+:root:not([data-rarity-color="mono"]) .cbs-tile-mark[data-logo-style="ember"] { background-image:linear-gradient(180deg,#FFE9C2,var(--warning),var(--danger)); }
 
 /* Overlay and slab */
 .settings-overlay { display:flex; justify-content:flex-start; align-items:stretch; padding:calc(12px + var(--safe-top) + var(--titlebar-inset,0px)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); background:linear-gradient(90deg,rgba(8,8,10,calc(.66 * var(--settings-shade,1))),rgba(8,8,10,calc(.3 * var(--settings-shade,1))) 46%,rgba(8,8,10,0) 80%); }
