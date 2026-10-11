@@ -443,3 +443,5 @@ body.studio-active > :not(.studio-shell),body.studio-active > :not(.studio-shell
 .studio-shell.studio-2 .studio-topbar > .cb-help-button { position:static; order:9; flex:none; margin:0; }
 /* Narrow viewports: the toolbar wraps to several rows, so the view cube moves to the bottom left corner. */
 @media (max-width:1100px) { .studio-shell.studio-2 .studio-view-cube { top:auto; right:auto; left:10px; bottom:10px; } }
+/* Short windows: the viewport tools stay on one scrolling row so they never cover the card. */
+@media (max-height:560px) { .studio-shell.studio-2 .studio-viewport-toolbar { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; } .studio-shell.studio-2 .studio-viewport-toolbar > * { flex:none; } }
