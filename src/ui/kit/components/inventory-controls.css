@@ -63,6 +63,9 @@
 .is-idle .inventory-sheet.is-peek { opacity: 0; pointer-events: none; transition-duration: var(--t-fade); }
 @media(max-width:480px) { .inventory-header { flex-wrap: wrap; } .inventory-title { flex: 1; } .inventory-toolbar-buttons { justify-content: flex-end; width: 100%; } .inventory-sheet.is-peek .inventory-toolbar-buttons { display: none; } .inventory-tabs { gap: 4px; } }
 @keyframes inventory-control-enter { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+/* Chips, suggestions and the empty note ease in when they appear, as the search field does. */
+.inventory-chips:not([hidden]), .inventory-suggestions:not([hidden]), .inventory-empty:not([hidden]) { animation: inventory-control-enter var(--t-ui) var(--ease-out); }
+.reduced-motion :is(.inventory-chips, .inventory-suggestions, .inventory-empty) { animation: none; }
 @media(max-width:760px) { .inventory-sheet { left: 12px; right: 12px; } .inventory-header { padding-left: 16px; padding-right: 16px; gap: 8px; } .inventory-title { display: block; } .inventory-count { text-align: left; } .inventory-toolbar-buttons { gap: 4px; } .inventory-tabs { padding: 0 16px 12px; gap: 8px; } .inventory-unowned span { width: 52px; white-space: normal; } .inventory-header h2 { font-size: 15px; } }
 @media(max-width:760px) { .inventory-search, .inventory-chips { padding-left: var(--s-4); padding-right: var(--s-4); } }
 .reduced-motion .inventory-icon:hover, .reduced-motion .inventory-icon:active { transform: none; }

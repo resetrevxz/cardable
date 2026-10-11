@@ -16,7 +16,8 @@
         'Inventory popovers are glass cards with pill filters.',
         'The deletion dialog leads with the card and shows each caution as a clear row.',
         'The performance overlay and the Studio’s Simple mode share the rest of the game’s controls.',
-        'Collection tabs share one indicator that slides to the collection you pick.'
+        'Collection tabs share one indicator that slides to the collection you pick.',
+        'Filter chips and the empty-collection note ease in instead of appearing at once.'
       ],
       qol:[
         'Inventory search has its icon and a matching field style.',
