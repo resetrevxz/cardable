@@ -1,5 +1,22 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.4.2',codename:'One glass',date:'October 11, 2026',tag:'Update',tagline:'Patch notes and Help match Credits and Settings.',
+    hero:{badge:'CARDABLE / 1.4.2',title:'One glass.',subtitle:'The four controls in the top corner now share one surface.',media:[]},
+    sections:{
+      fixes:[
+        'Help no longer overlaps Patch notes when Patch notes is wider than first measured.'
+      ],
+      visuals:[
+        'Patch notes and Help use the same glass as Credits and Settings.',
+        'The Settings gear takes the same glass so the row reads as one set.',
+        'The unread dot on Patch notes uses your accent color.'
+      ]
+    },
+    entries:[
+      'Patch notes and Help match Credits and Settings.'
+    ]
+  },
+  {
     version:'1.4.1',codename:'Quiet details',date:'October 11, 2026',tag:'Update',tagline:'The area under the pack, redrawn.',
     hero:{badge:'CARDABLE / 1.4.1',title:'Quiet details.',subtitle:'The timer, Open pack, Flip and the stock row now match the rest of the game.',media:[]},
     sections:{

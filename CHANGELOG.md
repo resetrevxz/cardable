@@ -1,3 +1,14 @@
+# Cardable v1.4.2 — One glass
+
+Patch notes and Help now share the surface of Credits and Settings. Saved collections, serials, odds and the save schema are unchanged.
+
+- **Matching glass.** Patch notes and Help are the same rounded glass as Credits and Settings, with the same edge light, shadow and blur. Patch notes shows its label larger with the version beside it.
+- **Settings gear.** The gear takes the same glass so the row reads as one set.
+- **Unread dot.** The dot on Patch notes uses your accent color and sits inside the corner.
+- **Fixed: Help position.** Help no longer overlaps Patch notes when Patch notes is wider than first measured.
+
+Checked in a browser session with a screenshot at 1280 x 720 and the measured spacing of all four controls. Monochrome, the lower glass tiers, touch input and a clean Windows install were not exercised. This release is unsigned.
+
 # Cardable v1.4.1 — Quiet details
 
 The area under the pack is redrawn to match the rest of the game. Saved collections, serials, odds, pack cadence and the save schema are unchanged.
