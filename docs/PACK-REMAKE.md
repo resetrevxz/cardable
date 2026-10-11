@@ -8,7 +8,7 @@ Owner brief: remake every pack as a real 3D object (printed front and back, flip
 | B | NVIDIA, AMD, Snapdragon, Apple | Implemented; see below |
 | C | Classic, Royal | Implemented; see below |
 | D | Titan, Picker | Implemented; see below |
-| E | Design refinement across all packs | Not started |
+| E | Design refinement across all packs | Implemented; see below |
 
 ## A: what changed
 - `src/ui/pack-markup.js`: a unit is two faces plus extruded edge strips under one `perspective()` pose; the back is built lazily; `foil()` and `setPack()` build designed faces.
@@ -41,3 +41,11 @@ Checked in a browser session at 1280x720: Standard front and back, Rare front an
 - `src/ui/titan-pack-effects.js`: `shroudDial` replaces `vaultDial`.
 - `src/ui/picker-shuffle.js`, `src/styles/picker-shuffle.css`: the shuffle and pick table (`shuffleThree`). `picker-pack-opening.js` and `picker-pack-swap.js` (`pickThree`, `fanCollapse`) were retired; `picker-pack.css` keeps only the queue marker and counter art.
 - `src/data/picker-pack.js`: new `motion` fields for the table (`showHoldMs`, `opMs`, `shuffleOps`, ...).
+
+## E: what changed (design only)
+No rules, data, odds, timings of the opening state machine or save fields changed.
+- **Flip row.** The Flip control no longer adds a row under the timer. It sits beside the timer text, so the queue chips and the counter stay clear of the inventory sheet.
+- **Stage lift.** The pack stage, the opening pack and the Royal box rise by `--stage-lift` (0 above 900px tall, 6.5vh up to 900px, 9vh up to 540px, 12vh up to 500px with a smaller pack and the counter line hidden). The timer, Open pack button, queue and counter no longer cross the inventory sheet at 1280x720 or 800x450, and the opening pack still lands exactly on the idle pack.
+- **Floor bounce.** Each designed pack throws a faint pool of its own colour on the floor through the existing ground shadow layer (`--face-glow`), so it follows the Shadow quality setting and goes grey in monochrome.
+- **Backs.** The generic rear copy wraps instead of truncating with an ellipsis. Classic's back moves the wordmark above the title (it sat on the painted connector), folds the series into the batch line and uses upper case. Picker's back copy lifts clear of the barcode.
+- **Checks.** `checkPackFaces` accepts a blocked flip while a pack is open instead of reporting a false failure.

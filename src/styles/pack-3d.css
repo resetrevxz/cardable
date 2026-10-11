@@ -16,6 +16,20 @@
 .pack-fluid--rear .pack-fluid__body { transform: rotate(calc(var(--fluid-angle,0deg) * -1)); }
 .pack-fluid--rear .pack-meniscus { transform: translateY(var(--meniscus-wave,0px)) rotate(calc(var(--fluid-angle,0deg) * -1)); }
 .pack-ground-shadow { transition: none; }
+/* A faint bounce of the pack's own colour on the floor, so each pack sits in its own light. */
+.pack-ground-shadow::after { content: ''; position: absolute; left: 14%; right: 14%; top: 6%; height: 52%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 30%,color-mix(in srgb,var(--face-glow,transparent) 85%,transparent),transparent 72%); }
+[data-face="standard"] { --face-glow: #ffffff1f; }
+[data-face="rare"] { --face-glow: #3d7bff; }
+[data-face="nvidia"] { --face-glow: #76b900; }
+[data-face="amd"] { --face-glow: #ed1c24; }
+[data-face="snapdragon"] { --face-glow: #dab777; }
+[data-face="apple"] { --face-glow: #b8b4ff; }
+[data-face="classic"] { --face-glow: #e8dcc080; }
+[data-face="royal"] { --face-glow: #d9b65f; }
+[data-face="titan"] { --face-glow: #bfe4ff; }
+[data-face="picker"] { --face-glow: #2de2b8; }
+:root[data-rarity-color="mono"] .pack-ground-shadow::after { filter: grayscale(1); }
 
 /* Designed faces ---------------------------------------------------------- */
 [data-face] { --pack-ink: #f5f5f7; }
@@ -34,7 +48,7 @@
 .pack-print--face .pack-rare-mark { position: absolute; right: 9%; bottom: 8.4%; display: grid; place-items: center; min-width: calc(var(--pack-width) * .1); height: calc(var(--pack-width) * .1); padding: 0 calc(var(--pack-width) * .012); border: 1px solid rgba(255,255,255,.72); border-radius: 999px; font: 600 max(6px,calc(var(--pack-width) * .03))/1 var(--font-mono); letter-spacing: .04em; color: #f4f8ff; box-shadow: 0 0 calc(var(--pack-width) * .04) rgba(127,178,255,.45); }
 .pack-print--face .pack-rear-title { position: absolute; left: 9%; top: 19.4%; font: 500 max(6px,calc(var(--pack-width) * .028))/1 var(--font-mono); letter-spacing: .22em; text-transform: uppercase; color: rgba(245,245,247,.6); }
 .pack-print--face .pack-rear-copy { position: absolute; left: 56%; right: 7%; bottom: 22.8%; display: grid; gap: calc(var(--pack-width) * .02); font: 400 max(5px,calc(var(--pack-width) * .024))/1.3 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: rgba(245,245,247,.58); }
-.pack-print--face .pack-rear-copy span, .pack-rear-copy span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pack-print--face .pack-rear-copy span, .pack-rear-copy span { display: block; white-space: normal; overflow-wrap: anywhere; letter-spacing: .08em; }
 .pack-print--face .pack-batch { position: absolute; left: 56%; top: 84.6%; font: 400 max(5px,calc(var(--pack-width) * .022))/1 var(--font-mono); letter-spacing: .16em; color: rgba(245,245,247,.55); white-space: nowrap; }
 [data-face="rare"] .pack-print--face { --pack-ink: #f4f8ff; }
 .pack-print--face .pack-rare-mark { opacity: clamp(0,calc((var(--chameleon,1) - .55) * 2.5),1); }
@@ -90,7 +104,8 @@
 [data-state="waiting"] .pack-rear-generic { opacity: .25; }
 
 /* Flip affordance ----------------------------------------------------------- */
-.pack-flip-action { display: inline-flex; align-items: center; gap: var(--s-2); margin-left: var(--s-2); padding: var(--s-2) var(--s-3); border: 0; border-bottom: 1px solid var(--hairline); background: transparent; color: var(--text-dim); font: 10px/1.5 var(--font-mono); letter-spacing: .15em; text-transform: uppercase; cursor: pointer; transition: color var(--t-fast),background var(--t-fast); }
+.pack-meta { --flip-row: 30px; }
+.pack-flip-action { position: absolute; top: 0; left: calc(50% + 72px); height: var(--flip-row); box-sizing: border-box; display: inline-flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-2); border: 0; border-bottom: 1px solid var(--hairline); background: transparent; color: var(--text-dim); font: 10px/1.5 var(--font-mono); letter-spacing: .15em; text-transform: uppercase; cursor: pointer; transition: color var(--t-fast),background var(--t-fast); }
 .pack-flip-action:hover, .pack-flip-action:focus-visible { color: var(--text); background: var(--glass); outline: 1px solid var(--hairline-strong); }
 .pack-flip-action kbd { padding: 0 var(--s-1); border: 1px solid var(--hairline); border-radius: var(--s-1); font: 9px var(--font-mono); }
 .pack-flip-action[hidden] { display: none; }
@@ -99,7 +114,16 @@
 .pack-key-row span { color: var(--text-dim); font: 9px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
 .pack-stage.is-orbiting { cursor: grabbing; }
 .pack-stage[data-flipped="true"] .pack-key-hint { opacity: 1; }
-@media (hover: none) { .pack-flip-action { min-height: 44px; } }
+@media (hover: none) { .pack-flip-action { height: 44px; top: -7px; } }
+
+/* Short windows: a smaller pack and a higher stage keep the timer, queue and counter clear of the inventory sheet. */
+/* The stage rises on shorter windows so the whole timer, queue and counter stack clears the inventory sheet. */
+:root { --stage-lift: 0px; }
+@media (max-height: 900px) { :root { --stage-lift: 6.5vh; } }
+@media (max-height: 540px) { :root { --stage-lift: 9vh; } }
+.pack-stage, .opening-pack { top: calc(50% - var(--stage-lift)); }
+.royal-holder { top: calc(50% - var(--stage-lift)); }
+@media (max-height: 500px) { :root { --stage-lift: 12vh; } .pack-stage, .opening-pack { --pack-width: clamp(116px,calc(var(--layout-height,100vh) * .27),140px); } .pack-metrics { display: none; } }
 
 /* A floor reflection that follows the turn (High and Very High only). */
 #pack-stage .pack-unit[data-pack-quality="high"]:not(.pack-unit--back), #pack-stage .pack-unit[data-pack-quality="very-high"]:not(.pack-unit--back) { -webkit-box-reflect: below 2px linear-gradient(transparent 84%,rgba(255,255,255,.12)); }

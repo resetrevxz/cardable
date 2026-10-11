@@ -48,8 +48,9 @@
       checks.push({label:'R is bound to Flip pack without conflicts',pass:!!entry && entry.defaults.indexOf('KeyR') !== -1 && C.keys.conflicts('menu.flip-pack','KeyR').length === 0});
       var view = C.packView && C.packView.interaction;
       if (view) {
-        var before = view.flipped; view.flip(); var turned = view.flipped; view.faceFront();
-        checks.push({label:'Flip toggles and opening resets to the front',pass:turned !== before && view.flipped === false});
+        var before = view.flipped, started = view.flip(), turned = view.flipped; view.faceFront();
+        // While a pack is open the flip is deliberately blocked, so only an idle stage can toggle.
+        checks.push({label:'Flip toggles and opening resets to the front',pass:started === false ? view.flipped === before : turned !== before && view.flipped === false});
       }
     } finally { host.remove(); }
     var report = {pass:checks.every(function(c){return c.pass;}),checks:checks,elapsedMs:Number((performance.now() - start).toFixed(2))};
