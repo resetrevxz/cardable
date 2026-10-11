@@ -3,7 +3,7 @@
   var node = C.packMarkup.node;
   function clamp(v,a,b) { return Math.max(a,Math.min(b,v)); }
   C.inventoryTiles = {
-    label: function(entry){return (entry.owned?entry.card.name:'Unknown '+entry.rarity.name+' card')+', '+(entry.variant?entry.variant.name:entry.owned?'Normal finish':'Undiscovered')+', '+entry.rarity.name+(entry.instances.length>1?', '+entry.instances.length+' copies':'')+(entry.isNew?', New':'')+(C.inventoryModel.current.favorites.indexOf(entry.stackKey)>=0?', Favorite':'');},
+    label: function(entry){return (entry.owned||entry.nameVisible?entry.card.name:'Unknown '+entry.rarity.name+' card')+', '+(entry.variant?entry.variant.name:entry.owned?'Normal finish':'Undiscovered')+', '+entry.rarity.name+(entry.instances.length>1?', '+entry.instances.length+' copies':'')+(entry.isNew?', New':'')+(entry.isFavorite?', Favorite':'')+(entry.wishlist?', '+(entry.owned?'Owned':'Wanted')+', '+entry.priority+' priority':'');},
     create: function (entry, index, callbacks) {
       var el = node('div','inventory-tile'), pose = node('div','inventory-tile-pose',el), card = node('div','inventory-tile-card',pose);
       el.dataset.cardId = entry.card.id; el.dataset.stackKey = entry.stackKey; el.dataset.owned = entry.owned; el.setAttribute('role','option'); el.setAttribute('tabindex','-1');
@@ -37,7 +37,8 @@
     },
     decorate:function(tile,entry){
       var outset=entry.rarity.propOutset||{};tile.pose.style.setProperty('--tag-prop-top',(outset.top||0)*100+'%');tile.pose.style.setProperty('--tag-prop-bottom',(outset.bottom||0)*100+'%');
-      C.cardTags.render(tile.tagRail,entry,entry.instances[0],'compact');tile.caption.children[0].textContent=entry.owned?entry.card.name:'Unknown card';tile.caption.children[0].title=entry.owned?entry.card.name:'Unknown '+entry.rarity.name+' card';tile.caption.children[1].textContent=entry.rarity.name+' · '+(entry.instances.length>1?entry.instances.length+' copies':String(entry.generation.name).replace(/^Generation\s+/,'Gen '));tile.caption.children[1].title=entry.rarity.name+' · '+entry.generation.name;
+      C.cardTags.render(tile.tagRail,entry,entry.instances[0],'compact');tile.caption.children[0].textContent=entry.owned||entry.nameVisible?entry.card.name:'Unknown card';tile.caption.children[0].title=entry.owned||entry.nameVisible?entry.card.name:'Unknown '+entry.rarity.name+' card';tile.caption.children[1].textContent=entry.rarity.name+' · '+(entry.instances.length>1?entry.instances.length+' copies':String(entry.generation.name).replace(/^Generation\s+/,'Gen '));tile.caption.children[1].title=entry.rarity.name+' · '+entry.generation.name;
+      if(entry.wishlist){if(!tile.wishlistState){tile.wishlistState=C.ui.create('wishlist-state',{owned:entry.owned,priority:entry.priority});tile.caption.appendChild(tile.wishlistState);}tile.wishlistState.hidden=false;tile.wishlistState.update(entry.owned,entry.priority);}else if(tile.wishlistState)tile.wishlistState.hidden=true;
     },
     destroy:function(tile){if(tile.view) tile.view.destroy(); if(tile.el.parentElement) tile.el.remove();},
     recycle:function(tile,entry,index){

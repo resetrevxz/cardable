@@ -82,7 +82,7 @@
     if (inspect) { host.appendChild(inspect); inspect.classList.add('detail-rail-button', 'detail-rail-primary'); inspect.querySelector('span').className = 'detail-rail-label'; node('kbd', '', inspect.querySelector('span'), 'I'); inspect.dataset.keyAction = 'detail.inspect'; inspect.dataset.keyLabel = 'Inspect'; inspect.removeAttribute('title'); inspect.setAttribute('aria-keyshortcuts', 'I'); }
     else { inspect = railButton('camera', entry.owned ? 'Inspect' : 'Collect this card to inspect it', null, null); inspect.classList.add('detail-rail-primary'); inspect.disabled = true; }
     C.icons.register('flip', 'M19 10a7 7 0 1 0-1 7M19 5v5h-5'); C.icons.register('dots', 'M5 12h.01M12 12h.01M19 12h.01');
-    var favorite = railButton('star', 'Favorite', 'F', function () { C.inventoryModel.favorite(entry.stackKey); refresh(instance); }); favorite.disabled = !entry.owned || context.preview;
+    var favorite = railButton('star', 'Favorite', 'F', function () { C.inventoryModel.favorite(entry.sourceStackKey||entry.stackKey); refresh(instance); }); favorite.disabled = !entry.owned || context.preview;
     var flip = railButton('flip', 'Flip', 'R', context.flip); flip.disabled = !entry.owned;
     var copies = null;
     if (entry.owned && entry.instances.length > 1) { copies = railButton('layers', 'Copies', null, function () { openMenu(copies, 'copies'); }); node('i', 'detail-rail-count', copies, String(entry.instances.length)); copies.setAttribute('aria-haspopup', 'dialog'); }
@@ -109,6 +109,7 @@
           var url = root.URL.createObjectURL(blob), link = node('a', '', menu); link.href = url; link.download = 'cardable-' + entry.card.id + '.json'; link.click(); link.remove(); root.URL.revokeObjectURL(url); announce('Card data exported.');
         }, null, 'download').disabled = !entry.owned;
         if (entry.owned && !context.preview) button(menu, 'Add to collection', function () { var source = more; closeMenu(false); C.events.emit('inventory:detailMembership', { entry: entry, anchor: source }); }, null, 'folder');
+        if (!context.preview) menu.appendChild(C.ui.create('button',{label:'Add to wishlist',className:'detail-menu-item',variant:'ghost',onClick:function(){var source=more;closeMenu(false);C.events.emit('inventory:detailWishlist',{entry:entry,anchor:source});}}));
         extensionActions.forEach(function (action) { action.classList.add('detail-menu-item'); menu.appendChild(action); });
         if (entry.owned && !context.preview) button(menu, 'Delete this copy…', function () { var chosen = instance; closeMenu(false); C.cardDeletionView.show(entry, chosen, context.close); }, 'detail-menu-item detail-menu-danger', 'trash');
       }
@@ -146,7 +147,7 @@
         head((entry.generation ? entry.generation.name : 'Card') + ' · ' + entry.rarity.name, card.name);
         line(body, 'Copies', String(entry.instances.length)); line(body, 'Latest', date(latest));
         if (typeof lore === 'string' && lore.trim()) node('p', 'detail-callout-note', body, lore);
-        if (C.inventoryModel.current.favorites.includes(entry.stackKey)) line(body, 'Favorite', 'Yes');
+        if (C.inventoryModel.current.favorites.includes(entry.sourceStackKey||entry.stackKey)) line(body, 'Favorite', 'Yes');
       } else {
         head('Specifications', card.name); var list = node('dl', 'detail-callout-specs', body);
         allSpecs(entry).forEach(function (row) { var pair = node('div', '', list); node('dt', '', pair, row.label); node('dd', '', pair, row.value); });
@@ -187,7 +188,7 @@
     }
     function refresh(nextInstance) {
       instance = nextInstance; close(); closeMenu(false);
-      favorite.setAttribute('aria-pressed', String(C.inventoryModel.current.favorites.includes(entry.stackKey)));
+      favorite.setAttribute('aria-pressed', String(C.inventoryModel.current.favorites.includes(entry.sourceStackKey||entry.stackKey)));
       favorite.querySelector('.detail-rail-label').firstChild.textContent = favorite.getAttribute('aria-pressed') === 'true' ? 'Favorited' : 'Favorite';
       bindCard(view());
     }

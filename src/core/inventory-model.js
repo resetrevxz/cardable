@@ -53,7 +53,7 @@
       return {card:card,stackKey:key,sourceStackKey:key,variantId:parts[1],variant:C.variant(parts[1]),cardSkinId:parts[2]||null,generation:generation,rarity:rarity,instances:[],owned:false,isNew:false,catalogIndex:examples?examples[0].catalogIndex:base.entries.length+C.data.cards.indexOf(card)};
     }
     var all=base.entries.map(function(e){return Object.assign({},e,{sourceStackKey:e.stackKey,isFavorite:favorites.has(e.stackKey)});}),fav=all.filter(function(e){return e.owned&&e.isFavorite;});sources.set('all',all);sources.set('favorites',fav);
-    function descriptor(c,entries,index) {var owned=entries.filter(function(e){return e.owned;}).length,total=entries.length;return Object.assign({},c,{entries:undefined,count:total,owned:owned,total:total,completion:total?owned/total:0,manualIndex:index,colorInfo:color(c.color)});}
+    function descriptor(c,entries,index) {var owned=entries.filter(function(e){return e.owned;}).length,total=entries.length;return Object.assign({},c,{entries:undefined,count:total,owned:owned,total:total,completion:total?owned/total:0,manualIndex:index,colorInfo:color(c.color),canClear:!!(c.kind==='wishlist'?c.cardIds.length:c.stackKeys&&c.stackKeys.length)});}
     var custom=ui.collections.map(function(c,index){
       var entries=c.kind==='wishlist'?c.cardIds.map(function(id){
         var choices=byCard.get(id)||[],normal=choices.find(function(e){return e.owned&&e.variantId===null&&!e.cardSkinId;}),chosen=normal||choices.find(function(e){return e.owned;})||choices[0]||missing(C.stacks.key(id,null));if(!chosen)return null;
@@ -61,6 +61,7 @@
       }):c.stackKeys.map(function(key){var e=byStack.get(key)||missing(key);return e&&Object.assign({},e,{sourceStackKey:key,isFavorite:favorites.has(key)});});
       entries=entries.filter(Boolean);sources.set(c.id,entries);return descriptor(c,entries,index);
     });
+    custom.forEach(function(c){var group=custom.filter(function(t){return t.pinned===c.pinned;}),at=group.indexOf(c);c.canMoveEarlier=ui.tabSortMode==='manual'&&at>0;c.canMoveLater=ui.tabSortMode==='manual'&&at<group.length-1;});
     var ordered=custom.slice().sort(function(a,b){
       if(a.pinned!==b.pinned)return a.pinned?-1:1;if(a.pinned)return a.manualIndex-b.manualIndex;
       var mode=ui.tabSortMode,compare=mode==='name'?a.name.localeCompare(b.name,undefined,{sensitivity:'base'}):mode==='count'?b.count-a.count:mode==='completion'?b.completion-a.completion:mode==='color'?colors.indexOf(a.colorInfo)-colors.indexOf(b.colorInfo):mode==='created'?(b.createdAt==null?-Infinity:b.createdAt)-(a.createdAt==null?-Infinity:a.createdAt):0;

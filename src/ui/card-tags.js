@@ -12,7 +12,7 @@
     return timestamp>=today.getTime()&&timestamp<new Date(today.getFullYear(),today.getMonth(),today.getDate()+1).getTime()?'Unpacked Today':timestamp>=yesterday.getTime()&&timestamp<today.getTime()?'Unpacked Yesterday':'Unpacked '+date.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
   }
   function derive(entry, instance, mode, now) {
-    now=now==null?C.clock.now():now;var tags=[],variant=C.variant(entry.variantId),favorite=C.inventoryModel.current.favorites.indexOf(entry.stackKey)>=0;
+    now=now==null?C.clock.now():now;var tags=[],variant=C.variant(entry.variantId),favorite=C.inventoryModel.current.favorites.indexOf(entry.sourceStackKey||entry.stackKey)>=0;
     if(entry.card.era==='classic')tags.push({kind:'era',text:mode==='compact'?'':'CLASSIC',glyph:'▦',label:'Classic hardware · released through 2006'});
     tags.push({kind:'variant',text:entry.owned?(variant?variant.name:'Normal'):'Undiscovered',label:entry.owned?(variant?'Variant: '+variant.name+', '+variant.class:'Normal finish'):'Undiscovered card'});
     if(entry.isNew)tags.push({kind:'new',text:mode==='compact'?'':'New',label:'New · unseen copies in this finish stack'});
