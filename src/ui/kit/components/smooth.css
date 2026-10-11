@@ -436,3 +436,8 @@
 /* Undiscovered cards keep the position counter but not the flip hint. */
 .detail-card-hint.is-unowned > :not(.detail-hint-position) { display:none; }
 .detail-card-hint.is-unowned .detail-hint-position { padding-left:0; margin-left:0; border-left:0; }
+/* While the wordmark is hidden (the Hold step) the tutorial controls take its place. */
+[data-tutorial="hold"] .tutorial .tutorial-skip { top:calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px)); }
+[data-tutorial="hold"] .tutorial > .cb-help-button { top:calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px)); }
+/* The first step is only about the pack: Credits, Patch notes and the second Help rest until it is done. */
+[data-tutorial="hold"] :is(.currency-counter,.patch-notes-hud-btn,.cb-menu-help) { opacity:0 !important; pointer-events:none; }

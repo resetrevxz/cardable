@@ -11,7 +11,7 @@ Patch notes and Help now share the surface of Credits and Settings. Saved collec
 - **Shelf captions.** Undiscovered cards read "Unknown card" with "Common · Gen 2" under them, so nothing is cut off.
 - **Search fields.** Achievements and the photo album show focus around the whole field. Achievements has a magnifier, and an empty album hides its selection tools.
 - **Large displays and phones.** The pack's timer and buttons grow on tall displays. On phones the wordmark shrinks so Credits and Settings never cover it, and the detail hint stays on one line.
-- **Tutorial.** Skip tutorial and Help sit under the wordmark instead of over Credits and Settings.
+- **Tutorial.** Skip tutorial and Help stand at the top left instead of over Credits and Settings, and the first step shows only the pack.
 - **Cleaner details.** The cut hint is readable, and Patch notes no longer draws a focus ring around the whole window.
 - **Palette suggestions.** With the field empty, everyday commands lead: Open pack, Open inventory, Settings, Patch notes and the shortcuts; settings entries and cards follow.
 - **Swipe to browse.** In card detail, a quick sideways swipe on touch or pen moves to the next or previous card. (Code-checked only.)
