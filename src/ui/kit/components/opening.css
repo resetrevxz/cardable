@@ -33,7 +33,7 @@
 [data-phase="dissolving"] .opening-hint, [data-phase="tearing"] .opening-hint { opacity: 0; }
 [data-phase="cutting"] .opening-hint { top: calc(var(--s-5) * -1); left: var(--s-3); right: var(--s-3); text-align: center; }
 [data-phase="cutting"] .opening-keycap { display: none; }
-[data-phase="cutting"] .opening-cut-hint { display: block; color: var(--text-dim); font: 8px/1.5 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+[data-phase="cutting"] .opening-cut-hint { display: block; color: var(--text-dim); font: 500 11px/1.5 var(--font-ui); letter-spacing: .02em; }
 .opening-enter-hint { position: absolute; top: calc(100% + var(--s-5)); width: 100%; text-align: center; opacity: 0; transition: opacity var(--t-fast) var(--ease-out); color: var(--text-dim); font: 11px/1.5 var(--font-mono); pointer-events: none; }
 .opening-error { position: fixed; left: var(--s-6); right: var(--s-6); bottom: var(--s-6); text-align: center; z-index: var(--z-toast); pointer-events: none; color: var(--text-dim); font: 12px var(--font-ui); opacity: 0; transition: opacity var(--t-fast) var(--ease-out); }
 .menu-shell { transition: opacity var(--t-ui) var(--ease-out); }

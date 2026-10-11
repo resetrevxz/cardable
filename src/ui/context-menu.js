@@ -161,7 +161,7 @@
     var p=panels[0],save=C.state.current,pack=ctx.pack=C.packs.upcoming(1)[0],ready=save.packs.ready;
     p.packLabel.textContent=pack.name+(ready?' - Ready':' - Regenerating');
     p.timer.set(ready>=C.config.packs.maxStored?'Stock full':(ready?'Next pack in ':'')+C.timers.format(C.timers.remaining(Date.now())));
-    p.credits.set(C.config.currency.name+' '+C.config.currency.symbol+Number(save.currency).toLocaleString());
+    p.credits.set(C.config.currency.name+' '+Number(save.currency).toLocaleString());
     p.notice.textContent=note;p.el.style.setProperty('--context-fluid',ready?1:C.timers.progress(Date.now()));
     p.surface.setAttribute('aria-label',p.packLabel.textContent+' '+p.timer.text+', '+p.credits.text);
     var items=itemsFor(ctx.target),signature=JSON.stringify(items,function(k,v){return typeof v==='function'?undefined:v;});

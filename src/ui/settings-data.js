@@ -41,7 +41,7 @@
         return Promise.resolve(task).then(function (text) {
           if (ticket !== epoch || !C.preferences.open) return false;
           pending = C.saveTools.parse(text); var s = C.saveTools.summary(pending.save);
-          previewCopy.textContent = 'Exported ' + new Date(pending.exportedAt).toLocaleString() + '\n' + s.cardCount + ' cards · ' + s.uniqueCount + ' unique\n' + s.packs + ' packs ready · ' + C.config.currency.symbol + s.currency + '\nTutorial ' + (s.tutorialDone ? 'complete' : 'not complete');
+          previewCopy.textContent = 'Exported ' + new Date(pending.exportedAt).toLocaleString() + '\n' + s.cardCount + ' cards · ' + s.uniqueCount + ' unique\n' + s.packs + ' packs ready · ' + Number(s.currency).toLocaleString() + ' credits' + '\nTutorial ' + (s.tutorialDone ? 'complete' : 'not complete');
           preview.hidden = false; message('File checked. Your current save has not changed.'); apply.focus({ preventScroll: true }); return true;
         }).catch(function (error) { if (ticket === epoch) { pending = null; preview.hidden = true; message(error.message); } return false; });
       }

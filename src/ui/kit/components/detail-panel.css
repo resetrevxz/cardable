@@ -29,7 +29,7 @@
 .detail-copy-list { max-height: 144px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--hairline) transparent; }
 .detail-copy-option { display: block; text-align: left; width: 100%; padding: 8px; border: 1px solid transparent; background: transparent; border-radius: var(--ui-radius-4); color: var(--text-dim); font: 10px/1.5 var(--font-ui); cursor: pointer; }
 .detail-copy-option[aria-pressed="true"] { border-color: var(--hairline); color: var(--text); background: var(--glass); }
-.detail-copy-serial { display: block; font: 9px/1.5 var(--font-mono); overflow-wrap: anywhere; }
+.detail-copy-serial { display: block; font: 10px/1.5 var(--font-mono); overflow-wrap: anywhere; }
 .detail-lore { margin-top: var(--s-3); }
 .detail-action-row .studio-inspect-action { min-width: 0; width: auto; margin: 0; height: 38px; border-radius: var(--r-button); display: flex; align-items: center; justify-content: center; gap: var(--s-2); background: var(--text); color: var(--bg); border: 1px solid var(--text); font: 500 12px var(--font-ui); cursor: pointer; }
 .detail-action-row .studio-inspect-action svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.4; }
