@@ -1,5 +1,20 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.5.4',codename:'Medium gets more',date:'October 11, 2026',tag:'Update',tagline:'Cheap High touches now on Medium.',
+    hero:{badge:'CARDABLE / 1.5.4',title:'Medium gets more.',subtitle:'Short event animations and richer card glare move down from High.',media:[]},
+    sections:{
+      fixes:[],
+      visuals:[
+        'Panels rise in, serials etch, new cards glint and toasts spring on Medium.',
+        'Medium card glare and edge light match High.'
+      ],
+      qol:[
+        'Looping and filter-based effects stay High-only to protect frame times.'
+      ]
+    },
+    entries:['Cheap event animations now run on Medium.','Card glare and edge light match High on Medium.']
+  },
+  {
     version:'1.5.3',codename:'Smoother frames',date:'October 11, 2026',tag:'Update',tagline:'Less work per frame in the menu, detail and Exotic.',
     hero:{badge:'CARDABLE / 1.5.3',title:'Smoother frames.',subtitle:'The menu and card detail do less work every frame, with the same look.',media:[]},
     sections:{

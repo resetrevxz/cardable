@@ -6,6 +6,7 @@ Give one authorized milestone per prompt. Read AGENTS.md, Designs.MD, the releva
 
 | Work | Implementation / commit | Packaging / runtime evidence | Remaining scope |
 |---|---|---|---|
+| 1.5.4 Medium gets more / stage 111 | Event-only animations and two-gradient glare lifted from High to Medium | Headless main-thread comparison, no regression; hardware not measured | Installer run, hardware |
 | 1.5.3 Smoother frames / stage 110 | Pack and card lighting writes reduced; forced restyles removed; Exotic colour cache; frame metrics | Headless Chromium main-thread measurements on one desktop CPU, journey run with no errors on four tiers; real low-end hardware and GPU cinematics not measured | Installer run, hardware |
 | 1.5.2 Straight to it / stage 109 | Exotic prelude removed; Secret starts past its fake-out via descriptor `startMs`; pack-ready return card removed | Source session stepping both intros; packaging and hardware not exercised | Installer run, live updater |
 | 1.5.1 Cleaner corners / stage 108 | Studio entry guards a missing renderer and aborts cleanly; closed studio panels keep the viewport column; Credits coin that collapses; Patch notes in the Inventory header; line-of-light Basic, Common and Uncommon openings | Source session in the built-in browser at Medium, High and Very Low, 1280 x 720 and 390 x 800; sampled intro frames; Windows packaging, touch and monochrome not exercised | Installer run, live updater, other hardware |

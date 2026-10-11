@@ -1,3 +1,13 @@
+# Cardable v1.5.4 — Medium gets more
+
+Medium now shows several touches that were High-only because they cost almost nothing: they run once on an event or are a single static layer. Saves and the save schema are unchanged, and nothing was removed from any tier.
+
+- **Event animations on Medium.** Detail and toolbar panels rise in, the serial is etched on stamping, new cards glint on arrival, toasts spring in, and the stock meniscus sloshes when a pack is ready. Each is a short transform or opacity animation that ends on its own.
+- **Richer card glare and edge light on Medium.** The two-gradient glare and the lit edge use the same layer Medium already painted.
+- **Left on High.** Looping light passes, filter blurs, the ambient pack drift and per-row settings entrances still cost continuous or burst work, so they stay High features.
+
+A matching headless run showed Medium card detail at 5.6% main-thread busy and menu idle at 4.3%, with no regression against 1.5.3. Real low-end hardware remains unmeasured. This release is unsigned.
+
 # Cardable v1.5.3 — Smoother frames
 
 A performance pass on the menu, card detail and cinematics. Saves, serials, odds, pack cadence and the save schema are unchanged, and no graphics tier lost a visual feature.
