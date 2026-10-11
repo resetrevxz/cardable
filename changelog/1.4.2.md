@@ -18,7 +18,7 @@ Patch notes and Help now share the surface of Credits and Settings. Saved collec
 - **Counts explained.** Pointing at the Inventory title explains the two numbers: designs collected, and shelf entries with variant finishes.
 - **Hold feedback.** Open pack fills as you hold it, and a quick tap reads "Hold to open" for a moment so the gesture teaches itself.
 - **Counter on every card.** Undiscovered cards in detail keep the "N of M" position.
-- **Fixed: Studio top bar.** In Pro mode at 1280 px wide, History and Scenes sat under the Simple/Pro switch and Help covered Layers and Inspector. The bar now keeps everything on one row, and wraps cleanly on narrower windows.
+- **Fixed: Studio top bar.** In Pro mode at 1280 px wide, History and Scenes sat under the Simple/Pro switch and Help covered Layers and Inspector. The bar now keeps everything on one row, and wraps cleanly on narrower windows. In narrow Studio windows the view cube moves to the bottom left so it no longer sits under the viewport toolbar.
 - **Fixed: inventory on phones.** At phone width the collection tabs (All Cards, Favorites) were hidden behind New collection and Achievements. They now have their own row, only the card you are on shows its tags, and the empty peek thumbnail no longer adds a row to the header. Achievements keeps its title whole instead of breaking inside the word.
 - **Fixed: credits symbol.** Credits no longer show a dollar sign in the pack menu and save preview.
 - **Fixed: Help position.** Help no longer overlaps Patch notes when Patch notes is wider than first measured.
