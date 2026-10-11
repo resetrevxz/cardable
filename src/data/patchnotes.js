@@ -1,7 +1,7 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
-    version:'1.3.3',codename:'Every corner',date:'October 10, 2026',tag:'Update',tagline:'The visual pass reaches the popovers, dialogs and Studio.',
-    hero:{badge:'CARDABLE / 1.3.3',title:'Every corner.',subtitle:'Popovers, the deletion dialog, the performance overlay and the Studio, redrawn. Ascendant cards can be inspected again.',media:[]},
+    version:'1.3.4',codename:'Every corner',date:'October 11, 2026',tag:'Update',tagline:'The visual pass reaches the popovers, dialogs and Studio.',
+    hero:{badge:'CARDABLE / 1.3.4',title:'Every corner.',subtitle:'Popovers, the deletion dialog, the performance overlay and the Studio, redrawn. Ascendant cards can be inspected again.',media:[]},
     sections:{
       fixes:[
         'Inspect now opens the Studio for Ascendant cards. It failed silently before.',

@@ -1,4 +1,4 @@
-# Cardable v1.3.3 — Every corner
+# Cardable v1.3.4 — Every corner
 
 The second round of the visual pass, plus a fix for inspecting Ascendant cards. Saved collections, serials and the save schema are unchanged.
 
