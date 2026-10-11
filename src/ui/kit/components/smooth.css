@@ -385,3 +385,6 @@
 .studio-2[data-mode="simple"] .studio-simple-tour { color:var(--text-dim); }
 .studio-2[data-mode="simple"] .studio-status { font:500 11px/16px var(--font-mono); color:var(--text-dim); }
 .reduced-motion .studio-2[data-mode="simple"] .studio-button { transform:none !important; }
+/* The delete caution eases in when the confirmation opens. */
+.cb-delete-warning { animation:cb-fade-in var(--t-fast) var(--ease-out) both; }
+.reduced-motion .cb-delete-warning { animation:none; }
