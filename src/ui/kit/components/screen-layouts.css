@@ -73,7 +73,7 @@
 .cb-card-loader { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--ink-2); z-index:var(--z-panel); }
 .cb-studio-loader { display:flex; flex-wrap:wrap; padding:var(--s-4); border:1px solid var(--stroke); border-radius:var(--radius-panel); background:var(--ink-2); }
 .inventory-card-caption strong { font:600 14px/20px var(--font-ui); }
-.inventory-card-caption small { font:500 11px/14px var(--font-mono); }
+.inventory-card-caption small { font:500 10px/14px var(--font-mono); letter-spacing:0; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .cb-ui .card-tag--pack { color:var(--pack-tag-accent,var(--text)); }
 :root[data-rarity-color="mono"] .cb-ui .card-tag--pack { color:var(--text); }

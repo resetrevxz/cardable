@@ -12,6 +12,7 @@ The second round of the visual pass, plus a fix for inspecting Ascendant cards. 
 - The centered card's tags stay on one line.
 - **Cleaner inventory header.** The "0 New · variant copies · finishes" line is gone; the inventory title and count stand on their own.
 - **Achievements.** The "The collection continues" line above the heading is removed.
+- **Shelf captions.** Each card's "Basic · Generation 1" line stays on one row under its name instead of wrapping its number onto a second line.
 
 Checked in a browser session with screenshots at a 1080p-equivalent layout: the context menu, inventory popovers and search, the deletion dialog, the performance overlay, the tutorial's first step, and the Studio in Simple mode on a Basic and an Ascendant card. Studio Pro mode, cinematics, touch input and the Windows app were not exercised. This release is unsigned.
 
