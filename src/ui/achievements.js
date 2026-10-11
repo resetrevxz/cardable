@@ -89,7 +89,7 @@
     overlay=node('section','achievements-panel',C.inventory.content);panel=overlay;panel.id='inventory-achievements';panel.hidden=true;
     panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','inventory-tab-achievements');
     var header=node('header','achievements-header',panel), heading=node('div','',header);
-    var hero=node('div','achievement-hero',heading);hero.appendChild(C.ui.progress(0,'Current achievement objectives',true));var heroCopy=node('div','',hero);node('p','achievement-eyebrow',heroCopy,'The collection continues');node('h2','',heroCopy,'Achievements');node('p','achievement-next',heroCopy,'');
+    var hero=node('div','achievement-hero',heading);hero.appendChild(C.ui.progress(0,'Current achievement objectives',true));var heroCopy=node('div','',hero);node('h2','',heroCopy,'Achievements');node('p','achievement-next',heroCopy,'');
     var reset=node('div','achievement-week-reset',header);glyph('clock',reset);node('span','',reset,'Three goals. A fresh week.');
     header.appendChild(C.ui.create('help',{help:'achievements',label:'Achievements help'}));
     var back=button('Back to cards',header,closePanel);back.dataset.focus='cards';

@@ -10,6 +10,8 @@ The second round of the visual pass, plus a fix for inspecting Ascendant cards. 
 - **Studio, Simple mode.** Photo is the accent button, the mood slider and style tiles match the rest of the game, and help sits beside the mode switch.
 - **Card detail.** The one-time pulse that points out the card's parts stops for good after you open your first callout.
 - The centered card's tags stay on one line.
+- **Cleaner inventory header.** The "0 New · variant copies · finishes" line is gone; the inventory title and count stand on their own.
+- **Achievements.** The "The collection continues" line above the heading is removed.
 
 Checked in a browser session with screenshots at a 1080p-equivalent layout: the context menu, inventory popovers and search, the deletion dialog, the performance overlay, the tutorial's first step, and the Studio in Simple mode on a Basic and an Ascendant card. Studio Pro mode, cinematics, touch input and the Windows app were not exercised. This release is unsigned.
 
