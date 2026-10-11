@@ -22,7 +22,8 @@
         'Inventory search has its icon and a matching field style.',
         'The card-part pulse in card detail stops after you open your first callout.',
         'The inventory’s “0 New · variant copies · finishes” line is removed; the title and count stand alone.',
-        'Achievements drops the “The collection continues” line above its heading.'
+        'Achievements drops the “The collection continues” line above its heading.',
+        'Settings accents follow your accent color and the monochrome theme, like the rest of the game.'
       ]
     },
     entries:[
