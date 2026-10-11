@@ -603,10 +603,13 @@
     // Rare: the grid re-materialises on the opened wrapper, rising once as the cut begins.
     var grid = 0;
     if (rare) grid = phase === 'dissolving' ? 0 : reduced ? 1 : ease(phase === 'cutting' ? elapsed / 1500 : 1);
-    var fx = { cut: cut, grid: grid, network: 1, t: elapsed, wave: 1 };
+    var fx = { cut: cut, grid: grid, network: 1, t: elapsed, wave: 1, charge: 0 };
+    // Designs may carry their charged look onto the opened wrapper (a lit fan, a ring of light).
+    var designSpec = C.packFaces.spec(pack);
+    if (designSpec && designSpec.foil) designSpec.foil(fx, { phase: phase, elapsed: elapsed, reduced: reduced, ease: ease });
     var moved = C.packFaces.foil(foil, fx);
     if (phase === 'tearing') halves.forEach(function (half) { C.packFaces.foil(half, fx); });
-    return moved || (rare && !reduced && phase === 'cutting') || (phase === 'cutting' && cutHeatNow > 0);
+    return moved || (rare && !reduced && phase === 'cutting') || (phase === 'cutting' && cutHeatNow > 0) || !!(designSpec && designSpec.ambient && !reduced && phase !== 'tearing');
   }
   function update(now) {
     if (!enabled) return false;

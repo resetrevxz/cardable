@@ -371,7 +371,8 @@
     var face = {
       pack: pack, spec: spec, rear: !!rear, kind: kind || 'face', body: body, dyn: dyn, wrapper: wrapper,
       size: { w: 0, h: 0 }, nodes: null, cells: null, standard: null, t: 0, painted: false, dynKey: '',
-      chameleon: 1, grid: 0, cut: null, network: 1, wave: 1, active: false, icons: null, dead: false
+      chameleon: 1, grid: 0, cut: null, network: 1, wave: 1, active: false, icons: null, dead: false,
+      charge: 0, arrive: 1, last: null, store: {}
     };
     wrapper._packFace = face;
     face.paint = function () {
@@ -389,8 +390,9 @@
       var size = face.size, key;
       var ctx = dyn.getContext('2d');
       var t = face.t / 1000;
-      var animated = !!spec.nodes;
+      var animated = !!(spec.nodes || spec.ambient);
       key = [face.chameleon.toFixed(3), face.grid.toFixed(3), face.wave.toFixed(2), face.network.toFixed(2), animated ? Math.floor(t * 30) : 0,
+        face.charge.toFixed(3), face.arrive.toFixed(3),
         face.icons ? face.icons.map(function (i) { return i.u.toFixed(2); }).join() : '',
         face.cut ? [face.cut.min.toFixed(3), face.cut.max.toFixed(3), face.cut.tip.toFixed(3), face.cut.heat.toFixed(2), (face.cut.release || 0).toFixed(2)].join() : ''].join('|');
       if (!force && key === face.dynKey) return false;
@@ -409,8 +411,10 @@
         }
       } else if (spec.nodes && face.rear) {
         drawRare(ctx, size, face, t, { grid: face.grid, wave: face.wave, network: .8 });
+      } else if (spec.draw) {
+        spec.draw(ctx, size, face, t);
       }
-      if (face.cut) drawCutDots(ctx, size, face.cut, t, face.cutRgb || '255,255,255');
+      if (face.cut) (spec.cutDraw || drawCutDots)(ctx, size, face.cut, t, face.cutRgb || spec.cutRgb || '255,255,255', face);
       return true;
     };
     watch(face);
@@ -454,7 +458,7 @@
           var live = !reduced && C.settings.policy.animation >= 2;
           if (live) face.t = time;
           if (face.draw()) any = true;
-          if (face.spec.nodes && live) any = true;
+          if ((face.spec.nodes || face.spec.ambient) && live) any = true;
         }
       });
       return any;
@@ -466,6 +470,7 @@
       face.cut = fx.cut || null; face.cutRgb = fx.rgb || (face.spec.nodes ? '214,232,255' : '255,255,255');
       face.grid = fx.grid || 0; face.wave = fx.wave == null ? 1 : fx.wave; face.network = fx.network == null ? 0 : fx.network;
       face.chameleon = 1; face.t = fx.t || 0; face.icons = null;
+      face.charge = fx.charge == null ? 0 : fx.charge; face.arrive = 1;
       return face.draw();
     },
     chameleon: function (el, p) {
@@ -480,7 +485,9 @@
     charge: function (el, fill, time) {
       var changed = false;
       C.packFaces.faces(el).forEach(function (face) {
-        if (face.rear || !face.spec.nodes) return;
+        if (face.rear) return;
+        if (!face.spec.nodes) { face.charge = clamp(fill, 0, 1); face.t = time; changed = face.draw() || changed; return; }
+        face.charge = clamp(fill, 0, 1);
         if (!face.icons) {
           var layer = face.wrapper.parentNode && face.wrapper.parentNode.querySelector('.pack-print--face');
           face.icons = []; var windows = { wordmark: [.1, .56], series: [.3, .78], rare: [.46, .94] };
@@ -502,7 +509,7 @@
     reset: function (el) {
       C.packFaces.faces(el).forEach(function (face) {
         if (face.icons) face.icons.forEach(function (icon) { C.packTransitions.dither(icon.el, 1); });
-        face.icons = null; face.grid = 0; face.cut = null; face.chameleon = 1; face.wave = 1; face.draw(true);
+        face.icons = null; face.grid = 0; face.cut = null; face.chameleon = 1; face.wave = 1; face.charge = 0; face.arrive = 1; face.last = null; face.store = {}; face.draw(true);
       });
     }
   };
@@ -515,7 +522,7 @@
       if (rear) {
         node('div', 'pack-rear-title', layer, 'Standard pack');
         var copy = node('div', 'pack-rear-copy', layer);
-        ['One collectible graphics card', 'Hold to open', 'Keep or delete the card you receive'].forEach(function (line) { node('span', '', copy, line); });
+        ['One card per pack', 'Hold to open'].forEach(function (line) { node('span', '', copy, line); });
         node('div', 'pack-batch', layer, (pack.design.batch || 'CB / 00018472'));
       }
       node('div', 'pack-series-mark', layer, 'Series ' + (pack.design.series || '01')).dataset.packText = 'series';
@@ -529,7 +536,7 @@
       if (rear) {
         node('div', 'pack-rear-title', layer, 'Rare pack');
         var copy = node('div', 'pack-rear-copy', layer);
-        ['Rare or better', 'Every fourth pack', 'Keep or delete the card you receive'].forEach(function (line) { node('span', '', copy, line); });
+        ['Rare or better', 'Every fourth pack'].forEach(function (line) { node('span', '', copy, line); });
         node('div', 'pack-batch', layer, (pack.design.batch || 'R+ / CB / 00018472'));
       }
       node('div', 'pack-series-mark', layer, 'Series ' + (pack.design.series || '01')).dataset.packText = 'series';
@@ -556,8 +563,61 @@
     if (C.packSkins.registry.rare) C.packSkins.registry.rare.snapshot = snapshotOf(paintRare);
   }
 
+  // Generic arrival for designed packs: the face redraws itself from 0 to 1 (spec.draw reads face.arrive)
+  // while its printed text fades in behind it. Used by every brand pack for its startup.
+  C.packFaces.arrivals = C.packFaces.arrivals || {};
+  C.packFaces.arrive = function (el, p) {
+    var changed = false;
+    C.packFaces.faces(el).forEach(function (face) {
+      if (face.rear) return;
+      face.arrive = clamp(p, 0, 1); changed = face.draw() || changed;
+    });
+    return changed;
+  };
+  C.packFaces.defineArrival = function (id, opts) {
+    C.packFaces.arrivals[id] = opts;
+    if (!C.packTransitions) return;
+    C.packTransitions.register(id, function (host, sourcePack, targetEl, adopt, options) {
+      var rank = C.settings.policy.animation, still = C.motion.reduced || rank === 0;
+      var arriveMs = options.incomingAlready ? (opts.fadeMs || 420) : 0, hold = options.delay != null ? options.delay : (opts.holdMs || 240);
+      var run = still ? 360 : rank === 1 ? opts.ms * .5 : opts.ms, age = 0, done = false, adopted = false, last = -1;
+      function ease(v) { v = clamp(v, 0, 1); return v < .5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2; }
+      function paint(p) {
+        targetEl.style.setProperty('--arrive', p.toFixed(3));
+        targetEl.style.setProperty('--arrive-text', smooth(.55, 1, p).toFixed(3));
+        C.packFaces.arrive(targetEl, p);
+      }
+      function finish() {
+        done = true; targetEl.style.opacity = ''; targetEl.style.removeProperty('--arrive'); targetEl.style.removeProperty('--arrive-text');
+        C.packFaces.arrive(targetEl, 1);
+      }
+      if (!adopted) { adopted = true; adopt(); paint(0); }
+      if (options.incomingAlready) targetEl.style.opacity = 0;
+      return {
+        duration: arriveMs + hold + run,
+        update: function (dt) {
+          if (done) return false;
+          age += dt;
+          if (arriveMs && age < arriveMs) { targetEl.style.opacity = ease(age / arriveMs); return true; }
+          if (arriveMs) targetEl.style.opacity = 1;
+          var q = clamp((age - arriveMs - hold) / run, 0, 1), e = still ? q : q;
+          if (Math.abs(e - last) > .0025) { last = e; paint(e); }
+          if (q >= 1) { finish(); return false; }
+          return true;
+        },
+        destroy: function () { if (!done) finish(); }
+      };
+    });
+  };
+  C.packFaces.kit = {
+    clamp: clamp, smooth: smooth, mix: mix, rng: rng, seedOf: seedOf, node: node, TAU: TAU, LAYOUT: LAYOUT,
+    dotField: dotField, crimpBands: crimpBands, folds: folds, grain: grain, perforation: perforation,
+    barcode: barcode, body: body, finSeal: finSeal, drawCutDots: drawCutDots, pixelRatio: pixelRatio
+  };
+
   // The Rare pack's arrival: it comes up as an ordinary black pack and changes colour like a
   // chameleon: scales flush teal, then settle sapphire, spreading from one patch of skin.
+  C.packFaces.arrivals.chameleon = { ms: 2100 };
   if (C.packTransitions) C.packTransitions.register('chameleon', function (host, sourcePack, targetEl, adopt, options) {
     var rank = C.settings.policy.animation, still = C.motion.reduced || rank === 0;
     var arrive = options.incomingAlready ? 520 : 0, hold = options.delay != null ? options.delay : 420;

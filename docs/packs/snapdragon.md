@@ -1,9 +1,16 @@
-# Ceramic archive
+# Snapdragon: package and traces
 
-Warm ceramic and aluminum, translucent gold clearcoat and a sixteen-second softbox passage.
+Research: Snapdragon's identity uses gold, red, nickel, gunmetal and midnight with the fireball mark. The pack is a chip package in midnight and gold.
 
-Shared sealed silhouette, Cardable header, central emblem and footer hierarchy. Four procedural layers: base material, grain, relief and moving light/reflection. Three lean planes separate body, emblem and optical reflection by 1–3 px.
+## Front
+- Midnight foil with a gold hairline frame, a substrate, a die with fine grid and bond wires to 48 edge pads. The fireball mark glows red on the die; the full wordmark sits under the package.
 
-Ready, transparent waiting/progress, arrival, charge, dissolve, hover and swap specimens use the existing state machine; counter thumbnails retain their identity glyph. Very Low is flat; Low has one static highlight; Medium has existing single highlight and static material; High has the signature slow loop; Very High adds reflection detail. Reduced motion freezes light and lean. Normal theme uses the authored palette; monochrome removes hue.
+## Back
+- The underside: an 11 by 11 ball grid array in gold and a pin-one corner marker.
 
-No changes to probabilities, pack cadence, cutting strategy, reservations, serials or rewards.
+## Animations
+- **Startup (`bootUp`):** the package is dark until its pads light clockwise; the die wakes last.
+- **Hold:** 24 routed traces grow out of the die (a few in Snapdragon red) and carry data packets; the die core warms.
+- **Cut:** packets run the seam like data on a bus.
+
+No changes to probabilities, pack cadence, cutting strategy, reservations, serials or rewards. Owner-authorized brand colour lives on the wrapper, queue marker and provenance only.

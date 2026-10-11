@@ -1,9 +1,16 @@
-# Anodized glass
+# Apple: aurora glass
 
-Silver aluminum below a softly beveled glass plate, cool-white edge light and an eighteen-second sweep.
+Research: Apple presents silicon as a chip on soft gradient light with the mark glowing, nothing else.
 
-Shared sealed silhouette, Cardable header, central emblem and footer hierarchy. Four procedural layers: base material, grain, relief and moving light/reflection. Three lean planes separate body, emblem and optical reflection by 1–3 px.
+## Front
+- Pale silver glass with four soft aurora orbs (blue, violet, pink, amber), a frosted chip tile with pin ticks and the mark. `APPLE PACK` in light mono beneath. Ink is dark on this light surface; the light reflection layer is tuned for it.
 
-Ready, transparent waiting/progress, arrival, charge, dissolve, hover and swap specimens use the existing state machine; counter thumbnails retain their identity glyph. Very Low is flat; Low has one static highlight; Medium has existing single highlight and static material; High has the signature slow loop; Very High adds reflection detail. Reduced motion freezes light and lean. Normal theme uses the authored palette; monochrome removes hue.
+## Back
+- Quieter aurora, a small chip tile, fin seal, barcode.
 
-No changes to probabilities, pack cadence, cutting strategy, reservations, serials or rewards.
+## Animations
+- **Startup (`bloom`):** the pack arrives out of white as a bloom of light opens from the chip.
+- **Hold:** the orbs swell and a ring of light circles the body, brightening and thickening as the hold completes.
+- **Cut:** a gradient hairline follows the blade with a soft bloom at the tip.
+
+No changes to probabilities, pack cadence, cutting strategy, reservations, serials or rewards. Owner-authorized brand colour lives on the wrapper, queue marker and provenance only.

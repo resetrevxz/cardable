@@ -1,9 +1,18 @@
-# Redline archive
+# AMD: slash and tachometer
 
-Matte-black alloy with diagonal red anodized cuts and twelve-second lacquer highlights.
+Research: Radeon boxes are black with a red wrap-around stripe.
 
-Shared sealed silhouette, Cardable header, central emblem and footer hierarchy. Four procedural layers: base material, grain, relief and moving light/reflection. Three lean planes separate body, emblem and optical reflection by 1–3 px.
+## Front
+- Carbon-hatched black with one bold red slash rising to the right, two thinner companions and a bevel highlight.
+- The AMD mark rides the slash at its angle.
+- A tachometer ring of 28 ticks sits behind the mark.
 
-Ready, transparent waiting/progress, arrival, charge, dissolve, hover and swap specimens use the existing state machine; counter thumbnails retain their identity glyph. Very Low is flat; Low has one static highlight; Medium has existing single highlight and static material; High has the signature slow loop; Very High adds reflection detail. Reduced motion freezes light and lean. Normal theme uses the authored palette; monochrome removes hue.
+## Back
+- The slash mirrored, fin seal, barcode, batch code.
 
-No changes to probabilities, pack cadence, cutting strategy, reservations, serials or rewards.
+## Animations
+- **Startup (`slashIn`):** a red-edged white slash cuts diagonally across the pack from the left; what it has not reached is still black.
+- **Hold:** the tachometer fills red then white; speed streaks along the slash quicken; at full charge the slash flashes white-hot.
+- **Cut:** a red line follows the blade with a slanted flare leaving the tip in the direction of the slash.
+
+No changes to probabilities, pack cadence, cutting strategy, reservations, serials or rewards. Owner-authorized brand colour lives on the wrapper, queue marker and provenance only.

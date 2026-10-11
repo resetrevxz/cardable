@@ -280,6 +280,7 @@ Every pack is a real object: a printed front, a printed back and an extruded edg
 - **Designed faces** (`design.face` in `src/data/packs.js`, painters in `src/ui/pack-face.js`): artwork is painted once per size into a canvas; reflections are CSS gradients driven by each face's own normal; the only per-frame canvas is the face turned toward the player.
 - **Standard:** satin black, the dot grid parked on the right, `SERIES 01`, perforation dots that ignite behind the blade.
 - **Rare:** sapphire, a drifting dot network, a chameleon arrival, and a hold in which the printed marks re-form as a white grid. See [docs/packs](docs/packs/standard.md).
+- **Brand packs** (milestone B), each with its own startup, hold and cut: NVIDIA (shroud, spinning fan, laser cut), AMD (slash, tachometer), Snapdragon (chip package, routed traces, BGA back), Apple (aurora glass, light ring). Designs live in `src/ui/pack-designs-brand.js`; briefs in `docs/packs`.
 - Quality: Very Low is flat with no gloss layers or edge shading; Low keeps one specular lobe; Medium and High add the environment and brushed layers and the network drift; High adds the floor reflection.
 
 ## Cinematic optics and Very High

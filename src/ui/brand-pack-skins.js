@@ -3,6 +3,7 @@
   var node = C.packMarkup.node;
   function render(el, pack) {
     el.dataset.skin = pack.skin;
+    if (pack.design && pack.design.face) { delete el.dataset.brandPack; return; }
     el.dataset.brandPack = 'true';
     el.querySelectorAll('.pack-wrapper').forEach(function(wrapper) {
       if (wrapper.querySelector('.pack-brand-relief')) return;

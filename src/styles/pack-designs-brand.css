@@ -1,0 +1,44 @@
+/* Brand pack designs (pack remake, milestone B). Loaded last so designed faces win ties with the
+ * legacy brand skin rules. Colour lives on the wrappers and their provenance only. */
+.pack-brand-logo { position: absolute; display: block; pointer-events: none; user-select: none; }
+.pack-print--face .pack-band-text { position: absolute; left: 9%; font: 600 max(6px,calc(var(--pack-width) * .03))/1 var(--font-mono); letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+
+/* NVIDIA: black shroud, green wrap, a fan that spins up with the hold. */
+[data-face="nvidia"] { --edge-hi: #7f9468; --edge-lo: #070906; --pack-ink: #f1f5ec; }
+[data-face="nvidia"] .pack-body { background: #070906; }
+[data-face="nvidia"] .pack-brand-logo--nv-eye { left: 50%; top: 49%; width: calc(var(--pack-width) * .2); transform: translate(-50%,-50%); filter: drop-shadow(0 0 calc(var(--pack-width) * .02) rgba(118,185,0,.6)); }
+[data-face="nvidia"] .pack-brand-logo--nv-word { right: 9%; top: 12.2%; width: calc(var(--pack-width) * .21); filter: invert(1) brightness(1.4); opacity: .92; }
+[data-face="nvidia"] .pack-band-text { top: 80.2%; color: #0b1004; text-shadow: 0 1px 0 rgba(255,255,255,.22); }
+[data-face="nvidia"] .pack-series-mark { color: rgba(220,238,200,.8); }
+[data-face="nvidia"] .pack-gloss__env { background: linear-gradient(106deg,transparent calc(var(--face-x,50%) - 36%),rgba(220,245,190,.035) calc(var(--face-x,50%) - 20%),rgba(220,245,190,.11) calc(var(--face-x,50%) - 5%),rgba(220,245,190,.035) calc(var(--face-x,50%) + 12%),transparent calc(var(--face-x,50%) + 30%)); }
+
+/* AMD: black carbon, one red slash, a tachometer that fills with the hold. */
+[data-face="amd"] { --edge-hi: #c8333b; --edge-lo: #08080b; --pack-ink: #fff1f2; }
+[data-face="amd"] .pack-body { background: #08080b; }
+[data-face="amd"] .pack-brand-logo--amd { left: 50%; top: 50%; width: calc(var(--pack-width) * .5); transform: translate(-50%,-50%) rotate(-11.7deg); filter: drop-shadow(0 1px 1px rgba(80,0,5,.55)); }
+[data-face="amd"] .pack-band-text { top: 70.5%; color: rgba(255,225,226,.9); }
+[data-face="amd"] .pack-series-mark { color: rgba(255,225,226,.82); }
+
+/* Snapdragon: midnight package, gold pads, traces that route out of the die. */
+[data-face="snapdragon"] { --edge-hi: #d3ac5e; --edge-lo: #05070f; --pack-ink: #fbf1d8; }
+[data-face="snapdragon"] .pack-body { background: #05070f; }
+[data-face="snapdragon"] .pack-brand-logo--sd-mark { left: 50%; top: 49%; width: calc(var(--pack-width) * .17); height: calc(var(--pack-width) * .17); transform: translate(-50%,-50%); background-repeat: no-repeat; background-size: 555% auto; background-position: 2.44% 50%; filter: drop-shadow(0 0 calc(var(--pack-width) * .02) rgba(237,28,36,.55)); }
+[data-face="snapdragon"] .pack-brand-logo--sd-word { left: 50%; top: 75.5%; width: calc(var(--pack-width) * .52); transform: translate(-50%,-50%); }
+[data-face="snapdragon"] .pack-series-mark { color: rgba(246,227,180,.82); }
+
+/* Apple: pale glass, aurora, a chip tile; ink goes dark on the light surface. */
+[data-face="apple"] { --edge-hi: #ffffff; --edge-lo: #98a1b2; --pack-ink: #1c1d22; }
+[data-face="apple"] .pack-body { background: #e9ecf1; box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); }
+[data-face="apple"] .pack-mark { color: #1c1d22; text-shadow: 0 1px 0 rgba(255,255,255,.7); }
+[data-face="apple"] .pack-series-mark, [data-face="apple"] .pack-rear-title, [data-face="apple"] .pack-rear-copy, [data-face="apple"] .pack-batch { color: rgba(28,29,34,.62); }
+[data-face="apple"] .pack-brand-logo--apple { left: 50%; top: 49%; width: calc(var(--pack-width) * .1); height: calc(var(--pack-width) * .14); transform: translate(-50%,-50%); object-fit: contain; }
+[data-face="apple"] .pack-band-text { left: 0; right: 0; text-align: center; top: 69%; color: rgba(28,29,34,.7); font-weight: 500; letter-spacing: .3em; }
+[data-face="apple"] .pack-gloss__env { background: linear-gradient(106deg,transparent calc(var(--face-x,50%) - 34%),rgba(255,255,255,.28) calc(var(--face-x,50%) - 14%),rgba(255,255,255,.65) calc(var(--face-x,50%) - 2%),rgba(60,70,100,.05) calc(var(--face-x,50%) + 14%),transparent calc(var(--face-x,50%) + 34%)); }
+[data-face="apple"] .pack-gloss__aniso { display: none; }
+[data-face="apple"] .pack-gloss__spec { background: radial-gradient(ellipse 40% 20% at var(--face-x,50%) var(--face-y,40%),rgba(255,255,255,.7),transparent 100%); }
+[data-face="apple"] .pack-gloss__edge { box-shadow: inset 0 0 calc(var(--pack-width) * .1) rgba(60,70,100,calc(var(--face-fresnel,0) * .22)),inset 0 1px 0 rgba(255,255,255,.9); }
+[data-state="waiting"] [data-face="apple"] .pack-body { background: rgba(120,130,160,.08); box-shadow: inset 0 0 0 1px rgba(120,130,160,.5); }
+[data-state="waiting"] [data-face="apple"] .pack-print--face { color: #e9ecf1; }
+
+/* Arrival: text comes in behind the artwork. */
+[data-face] .pack-print--face :is(.pack-mark,.pack-series-mark,.pack-brand-logo,.pack-band-text) { opacity: var(--arrive-text,1); }

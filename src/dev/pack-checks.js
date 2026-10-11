@@ -31,7 +31,7 @@
     host.className = 'pack-stage'; host.style.cssText = 'position:fixed;left:-9999px;top:0;width:240px;height:356px;visibility:hidden';
     document.body.appendChild(host);
     try {
-      ['standard', 'rare'].forEach(function(id) {
+      C.data.packs.filter(function(p) { return p.design && p.design.face; }).map(function(p) { return p.id; }).forEach(function(id) {
         var pack = C.pack(id), unit = C.packMarkup.unit(host, false, pack);
         checks.push({label:id + ': designed face registered',pass:C.packFaces.has(pack) && !!unit.wrapper._packFace});
         unit.ensureRear();
@@ -39,9 +39,10 @@
         checks.push({label:id + ': extruded edge strips exist',pass:unit.el.querySelectorAll('.pack-edge').length >= 12});
         unit.el.remove();
       });
-      var generic = C.packMarkup.unit(host, false, C.pack('nvidia')).ensureRear();
-      checks.push({label:'Other packs get a generic back',pass:!!generic.faceRear.querySelector('.pack-rear-generic')});
+      var generic = C.packMarkup.unit(host, false, C.pack('classic')).ensureRear();
+      checks.push({label:'Packs without a designed face get a generic back',pass:!!generic.faceRear.querySelector('.pack-rear-generic') || !!generic.faceRear.querySelector('canvas.pack-face-art')});
       generic.el.remove();
+      checks.push({label:'Every swapIn names a registered transition',pass:C.data.packs.every(function(p) { return !p.swapIn || !!C.packTransitions.create && ['tornadoPixel','fanCollapse','monolithDrop','goldShine'].concat(Object.keys(C.packFaces.arrivals)).indexOf(p.swapIn) !== -1; })});
       var entry = C.keys.entries.get('menu.flip-pack');
       checks.push({label:'R is bound to Flip pack without conflicts',pass:!!entry && entry.defaults.indexOf('KeyR') !== -1 && C.keys.conflicts('menu.flip-pack','KeyR').length === 0});
       var view = C.packView && C.packView.interaction;

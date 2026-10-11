@@ -33,7 +33,8 @@
 .pack-print--face .pack-series-mark { position: absolute; left: 9%; bottom: 9.4%; font: 500 max(6px,calc(var(--pack-width) * .03))/1 var(--font-mono); letter-spacing: .26em; text-transform: uppercase; color: rgba(245,245,247,.82); white-space: nowrap; }
 .pack-print--face .pack-rare-mark { position: absolute; right: 9%; bottom: 8.4%; display: grid; place-items: center; min-width: calc(var(--pack-width) * .1); height: calc(var(--pack-width) * .1); padding: 0 calc(var(--pack-width) * .012); border: 1px solid rgba(255,255,255,.72); border-radius: 999px; font: 600 max(6px,calc(var(--pack-width) * .03))/1 var(--font-mono); letter-spacing: .04em; color: #f4f8ff; box-shadow: 0 0 calc(var(--pack-width) * .04) rgba(127,178,255,.45); }
 .pack-print--face .pack-rear-title { position: absolute; left: 9%; top: 19.4%; font: 500 max(6px,calc(var(--pack-width) * .028))/1 var(--font-mono); letter-spacing: .22em; text-transform: uppercase; color: rgba(245,245,247,.6); }
-.pack-print--face .pack-rear-copy { position: absolute; left: 56%; top: 61%; right: 9%; display: grid; gap: calc(var(--pack-width) * .022); font: 400 max(5.5px,calc(var(--pack-width) * .026))/1.35 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: rgba(245,245,247,.58); }
+.pack-print--face .pack-rear-copy { position: absolute; left: 56%; right: 7%; bottom: 22.8%; display: grid; gap: calc(var(--pack-width) * .02); font: 400 max(5px,calc(var(--pack-width) * .024))/1.3 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: rgba(245,245,247,.58); }
+.pack-print--face .pack-rear-copy span, .pack-rear-copy span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pack-print--face .pack-batch { position: absolute; left: 56%; top: 84.6%; font: 400 max(5px,calc(var(--pack-width) * .022))/1 var(--font-mono); letter-spacing: .16em; color: rgba(245,245,247,.55); white-space: nowrap; }
 [data-face="rare"] .pack-print--face { --pack-ink: #f4f8ff; }
 .pack-print--face .pack-rare-mark { opacity: clamp(0,calc((var(--chameleon,1) - .55) * 2.5),1); }
@@ -71,7 +72,7 @@
 [data-face="standard"] .pack-fluid__body { background: linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.16) 8%,rgba(255,255,255,.1) 60%,rgba(255,255,255,.06)); }
 [data-face="standard"] .pack-meniscus { background: rgba(255,255,255,.7); box-shadow: 0 2px 8px rgba(255,255,255,.25); }
 [data-face] .pack-fluid { z-index: 0; }
-.opening-glass[data-face] .pack-fluid { opacity: .5; }
+.opening-glass[data-face] .pack-fluid { opacity: .34; }
 .opening-foil[data-face] { box-shadow: none; }
 .opening-foil[data-face="rare"]::after { display: none; }
 
@@ -83,7 +84,7 @@
 .pack-print--rear { color: var(--couture-ink,#f5f5f7); font-family: var(--font-ui); }
 .pack-rear-wordmark { position: absolute; left: 9%; top: 11.5%; font: 600 max(10px,calc(var(--pack-width) * .062))/1 var(--font-ui); letter-spacing: .28em; text-transform: lowercase; }
 .pack-rear-name { position: absolute; left: 9%; top: 19%; font: 500 max(6px,calc(var(--pack-width) * .028))/1 var(--font-mono); letter-spacing: .2em; text-transform: uppercase; opacity: .7; }
-.pack-rear-copy { position: absolute; left: 56%; top: 62%; right: 9%; display: grid; gap: calc(var(--pack-width) * .02); font: 400 max(5.5px,calc(var(--pack-width) * .025))/1.3 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; opacity: .65; }
+.pack-rear-copy { position: absolute; left: 56%; bottom: 22.8%; right: 7%; display: grid; gap: calc(var(--pack-width) * .02); font: 400 max(5px,calc(var(--pack-width) * .024))/1.3 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; opacity: .65; }
 .pack-rear-bars { position: absolute; left: 56%; top: 79%; width: 32%; height: 4.2%; background: repeating-linear-gradient(90deg,currentColor 0 1px,transparent 1px 3px,currentColor 3px 5px,transparent 5px 6px,currentColor 6px 7px,transparent 7px 10px); opacity: .7; }
 .pack-rear-batch { position: absolute; left: 56%; top: 84.6%; font: 400 max(5px,calc(var(--pack-width) * .022))/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; opacity: .6; }
 [data-state="waiting"] .pack-rear-generic { opacity: .25; }

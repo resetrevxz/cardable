@@ -116,7 +116,7 @@
       node('div', 'pack-rear-wordmark', layer, C.config.gameName);
       node('div', 'pack-rear-name', layer, pack.name);
       var copy = node('div', 'pack-rear-copy', layer);
-      node('span', '', copy, pack.tagline || 'One collectible graphics card');
+      node('span', '', copy, pack.tagline || 'One card per pack');
       node('span', '', copy, 'Series ' + ((pack.design && pack.design.series) || '01'));
       node('div', 'pack-rear-bars', layer);
       node('div', 'pack-rear-batch', layer, (pack.design && pack.design.batch) || pack.id.toUpperCase());

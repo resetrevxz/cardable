@@ -146,8 +146,8 @@
       });
       refresh(true);
       // A Rare pack that is already next at launch still makes its entrance: black first, then blue.
-      if (C.packView.visible && pack.swapIn === 'chameleon' && !root.document.hidden) {
-        previewEffect = C.packTransitions.create('chameleon', host, pack, front.el, function () {}, { delay: 900 });
+      if (C.packView.visible && C.packFaces && C.packFaces.arrivals[pack.swapIn] && !root.document.hidden) {
+        previewEffect = C.packTransitions.create(pack.swapIn, host, pack, front.el, function () {}, { delay: 900 });
         if (previewEffect) { previewSwap = { pack: pack, at: root.performance.now(), adopted: true }; front.el.classList.add('is-pack-swapping'); }
       }
       C.fx.subscribe(function (now, dt) {
