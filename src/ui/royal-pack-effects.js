@@ -1,4 +1,5 @@
-/* Royal wrapper effects extend the existing scheduler, commit and reveal flow. */
+/* Royal wrapper effects extend the existing scheduler, commit and reveal flow.
+ * sideTear (milestone C) replaced the old holder box: tear both sides, doors open, a carpet unrolls. */
 (function(C,root) {
   'use strict';
   var node=C.packMarkup.node;
@@ -25,73 +26,159 @@
       if(p===1){if(!adopted){adopt();adopted=true;}done=true;clean();return false;}return true;
     },destroy:function(){done=true;clean();}};
   });
-  C.packOpenings.register('cutThenBox',{bind:function(host,foil,pack){
-    var cfg=C.config.royalPack,boxStage=null,button=null,lid=null,boxState='',age=0,lastPaint=-Infinity,context=null,ready=false,decor=null;
-    var fragments=null,fragmentCtx=null,triangles=[],fragmentAge=0,fragmentPaint=-Infinity;
-    function clearFragments(){if(fragments)fragments.remove();fragments=null;fragmentCtx=null;triangles=[];fragmentAge=0;fragmentPaint=-Infinity;}
-    function clearReveal(){if(decor)decor.remove();decor=null;}
-    function clearBox(){if(boxStage)boxStage.remove();boxStage=null;button=null;lid=null;boxState='';ready=false;}
-    function activate(){if(boxState!=='waiting'||!ready||!context.canActivate())return;boxState='opening';age=0;lastPaint=-Infinity;button.disabled=true;button.querySelector('.royal-box-hint').hidden=true;context.phase('boxOpening');context.announce('Opening the royal card holder.');C.fx.wake();}
-    var api={usesSharedCut:true,fallbackMs:cfg.fallbackMs,
-      begin:function(){},release:function(){},tear:function(){},clearReveal:clearReveal,
-      reset:function(){clearFragments();clearBox();clearReveal();context=null;},
-      activate:activate,
-      afterTear:function(next){
-        clearBox();clearReveal();context=next;boxState='waiting';age=0;lastPaint=-Infinity;
-        boxStage=node('div','royal-holder-stage',host.parentElement);
-        button=node('button','royal-holder',boxStage);button.type='button';button.disabled=true;button.setAttribute('aria-label','Royal card holder. Click or press Enter to open.');button.setAttribute('aria-keyshortcuts','Enter');
-        node('i','royal-box-ring',button);node('i','royal-box-light',button);
-        var body=node('span','royal-holder-box',button);node('i','royal-box-body',body);node('i','royal-box-interior',body);
-        lid=node('span','royal-box-lid',body);C.royalPackArt.crown(lid,'royal-box-crown');node('span','royal-box-engraving',body,C.config.gameName.toUpperCase());node('i','royal-box-shine',body);
-        var hint=node('span','royal-box-hint',button,'Click');hint.hidden=true;
-        button.addEventListener('click',activate);context.announce('A royal card holder rises. Click it or press Enter to open.');
+  // Royal opening, milestone C: tear both sides, the sleeve opens onto a small red carpet, the card follows.
+  C.packOpenings.register('sideTear',{bind:function(host,foil,pack){
+    var STRIP=12,cfg=C.config.royalPack,context=null,interior=null,layer=null,runner=null,tabs=[null,null],strips=[null,null],doors=[null,null];
+    var pr=[0,0],torn=[false,false],snap=[null,null],fall=[null,null],drag=null,state='idle',stateAge=0,lastPaint=-Infinity,announced=false;
+    var shape='polygon(1.6% 0,98.4% 0,100% 1.1%,100% 98.9%,98.4% 100%,1.6% 100%,0 98.9%,0 1.1%)';
+    function still(){return C.motion.reduced||C.settings.policy.animation===0;}
+    function pct(n){return (Math.round(n*100)/100)+'%';}
+    function clipFor(side,p){
+      // Strip clone: the not-yet-peeled lower part of the side strip.
+      var y=p*100,l=side===0;
+      return l?'polygon(0 '+y+'%,'+STRIP+'% '+y+'%,'+STRIP+'% 100%,1.6% 100%,0 98.9%)':'polygon('+(100-STRIP)+'% '+y+'%,100% '+y+'%,100% 98.9%,98.4% 100%,'+(100-STRIP)+'% 100%)';
+    }
+    function bodyClip(){
+      // The main wrapper with each peeled strip cut away from the top down.
+      var l=pr[0],r=pr[1],pts=[];
+      pts.push(l>0?[STRIP,0]:[1.6,0]);
+      if(r>0){pts.push([100-STRIP,0]);if(r<1)pts.push([100-STRIP,r*100],[100,r*100]);else pts.push([100-STRIP,100]);}
+      else pts.push([98.4,0],[100,1.1]);
+      if(r<1){pts.push([100,98.9],[98.4,100]);}
+      if(l<1){pts.push([1.6,100],[0,98.9]);if(l>0)pts.push([0,l*100],[STRIP,l*100]);}
+      else pts.push([STRIP,100]);
+      return 'polygon('+pts.map(function(p){return pct(p[0])+' '+pct(p[1]);}).join(',')+')';
+    }
+    function applyBody(){foil.style.clipPath=pr[0]>0||pr[1]>0?bodyClip():'';}
+    function clearAll(){
+      [interior,layer,runner].concat(tabs,strips,doors).forEach(function(el){if(el&&el.remove)el.remove();});
+      interior=layer=runner=null;tabs=[null,null];strips=[null,null];doors=[null,null];
+      pr=[0,0];torn=[false,false];snap=[null,null];fall=[null,null];drag=null;state='idle';stateAge=0;announced=false;
+      host.classList.remove('royal-doors-open');foil.style.clipPath='';
+    }
+    function build(){
+      clearAll();
+      interior=node('div','royal-interior',host);host.insertBefore(interior,foil);interior.setAttribute('aria-hidden','true');
+      interior.style.clipPath=shape;
+      runner=node('div','royal-runner',interior);
+      node('i','royal-runner__cloth',runner);node('i','royal-runner__roll',runner);node('i','royal-runner__card',runner);
+      layer=node('div','royal-tear-layer',host);
+      [0,1].forEach(function(side){
+        var el=C.packMarkup.foil(host,pack);el.classList.add('royal-strip');if(C.packFaces)C.packFaces.foil(el,{charge:1,t:0});el.style.opacity=1;el.style.clipPath=clipFor(side,0);el.setAttribute('aria-hidden','true');strips[side]=el;
+        var tab=node('button','royal-tear-tab royal-tear-tab--'+(side?'right':'left'),layer);tab.type='button';tab.tabIndex=-1;
+        tab.setAttribute('aria-label',(side?'Right':'Left')+' tear strip. Drag down, or press Enter.');
+        node('span','royal-tear-tab__arrow',tab,'↓');node('span','royal-tear-tab__label',tab,'TEAR');tabs[side]=tab;
+      });
+      layout();
+    }
+    function layout(){
+      [0,1].forEach(function(side){
+        if(!tabs[side])return;
+        var y=torn[side]?100:pr[side]*100;
+        tabs[side].style.top='calc('+Math.min(y,86)+'% + 1.5%)';
+        tabs[side].style.opacity=torn[side]?0:1;tabs[side].style.pointerEvents=torn[side]?'none':'auto';
+        if(strips[side])strips[side].style.clipPath=clipFor(side,Math.min(1,pr[side]));
+      });
+      applyBody();
+    }
+    function height(){return host.getBoundingClientRect().height||C.config.shell.packHeight;}
+    function finishSide(side){
+      if(torn[side])return;torn[side]=true;snap[side]=null;fall[side]={age:0};pr[side]=1;
+      layout();C.fx.wake();
+      if(torn[0]&&torn[1]&&state==='idle'){state='doors';stateAge=0;context.announce('Both sides torn. The royal sleeve opens.');openDoors();}
+      else context.announce((side?'Right':'Left')+' side torn.');
+    }
+    function openDoors(){
+      // Doors are clones of the wrapper hinged on the outer edges; the real foil steps aside.
+      [0,1].forEach(function(side){
+        var el=C.packMarkup.foil(host,pack);el.classList.add('royal-door');if(C.packFaces)C.packFaces.foil(el,{charge:1,t:0});el.style.opacity=1;
+        el.style.clipPath=side?'polygon(50% 0,'+(100-STRIP)+'% 0,'+(100-STRIP)+'% 100%,50% 100%)':'polygon('+STRIP+'% 0,50% 0,50% 100%,'+STRIP+'% 100%)';
+        el.style.transformOrigin=side?(100-STRIP)+'% 50%':STRIP+'% 50%';el.setAttribute('aria-hidden','true');doors[side]=el;
+      });
+      host.classList.add('royal-doors-open');
+    }
+    function paintDoors(p){
+      var s=still(),e=1-Math.pow(1-p,3);
+      doors.forEach(function(d,side){
+        if(!d)return;
+        d.style.transform=s?'none':'rotateY('+((side?1:-1)*e*104)+'deg)';
+        d.style.opacity=s?1-e:(e>.9?1-(e-.9)*10:1);
+      });
+    }
+    function paintRunner(p){
+      var e=1-Math.pow(1-clamp(p),3);
+      runner.style.setProperty('--roll',e.toFixed(3));runner.style.opacity=still()?e:Math.min(1,p*4);
+      runner.style.setProperty('--card',clamp((p-.55)/.45).toFixed(3));
+    }
+    function clamp(n){return Math.max(0,Math.min(1,n));}
+    var api={usesSharedCut:false,fallbackMs:cfg.fallbackMs,
+      hint:'Drag each side strip down to tear it away. Or press Enter.',actionLabel:'Tear',
+      begin:function(ctx){context=ctx;build();ctx.announce(api.hint);},
+      start:function(event){
+        if(!context||state!=='idle'||event.button!==0||event.isPrimary===false)return;
+        var target=event.target&&event.target.closest&&event.target.closest('.royal-tear-tab');if(!target)return;
+        var side=tabs.indexOf(target);if(side<0||torn[side])return;
+        drag={id:event.pointerId,side:side,y:event.clientY,p:pr[side],height:height()};
+        if(host.setPointerCapture)host.setPointerCapture(event.pointerId);host.classList.add('is-pull-dragging');
+        if(event.preventDefault)event.preventDefault();C.events.emit('cut:started');C.fx.wake();
       },
+      move:function(event){
+        if(!drag||event.pointerId!==drag.id)return;
+        var p=clamp(drag.p+(event.clientY-drag.y)/(drag.height*.8));pr[drag.side]=p;layout();C.events.emit('cut:progress',p);
+        if(p>=.92){var s=drag.side;api.release(event);finishSide(s);}
+        C.fx.wake();
+      },
+      release:function(event){
+        if(!drag||event&&event.pointerId!==drag.id)return;
+        var id=drag.id;drag=null;host.classList.remove('is-pull-dragging');
+        if(host.hasPointerCapture&&host.hasPointerCapture(id))host.releasePointerCapture(id);
+      },
+      advance:function(){
+        if(!context||state!=='idle')return;
+        var side=torn[0]?1:0;if(torn[side])return;
+        snap[side]={from:pr[side],age:0};C.fx.wake();
+      },
+      reset:function(){clearAll();context=null;},
+      clearReveal:function(){clearAll();},
+      dissolve:function(){},
+      geometry:function(){var z=[{x:0,y:0},{x:0,y:0},{x:0,y:0}];return {axis:'y',path:[{x:.5,y:0},{x:.5,y:1}],halves:[z,z],normal:{x:1,y:0}};},
+      tear:function(){},
       update:function(dt){
-        if(!button||!context)return false;age+=dt;
-        if(age-lastPaint<1000/(C.settings.policy.animationHz||20))return true;lastPaint=age;
-        var travel=moving(),ambient=travel&&C.settings.policy.ambient;
-        if(boxState==='waiting'){
-          var p=clamp(age/cfg.boxRiseMs),float=ambient&&p===1?Math.sin(age/2400)*2:0;
-          button.style.opacity=ease(p);button.style.setProperty('--royal-box-y',travel?(55*(1-ease(p))+float)+'px':'0px');
-          if(p===1&&!ready){ready=true;button.disabled=false;if(C.input.modality==='keyboard')button.focus({preventScroll:true});}
-          button.querySelector('.royal-box-hint').hidden=age<cfg.boxHintMs;
-          return ambient||age<cfg.boxHintMs;
-        }
-        if(boxState==='opening'){
-          var open=clamp(age/cfg.boxOpenMs),hinge=ease(clamp((open-.18)/.7));
-          lid.style.transform=travel?'rotateX('+(-108*hinge)+'deg)':'none';lid.style.opacity=travel?1:1-hinge;
-          button.style.setProperty('--royal-box-light',Math.sin(open*Math.PI)*.5);
-          button.style.setProperty('--royal-box-shine-x',(-130+open*260)+'%');
-          button.style.setProperty('--royal-box-shine',travel&&C.settings.policy.reflection>=1?Math.sin(open*Math.PI)*.35:0);
-          if(open===1){
-            var pending=C.state.current.pendingReveal,instance=pending.cards[Number(pending.keptCount)||0],fallback=!C.rarity(C.card(instance.cardId).rarity).openingIntro,ctx=context;
-            clearBox();
-            if(fallback){decor=node('div','royal-reveal-emblem',host.parentElement);decor.setAttribute('aria-hidden','true');C.royalPackArt.crown(decor,'royal-reveal-crown');node('i','royal-reveal-shine',decor);}
-            ctx.reveal(fallback);return true;
-          }return true;
-        }return false;
-      },
-      updateReveal:function(phase,time){
-        if(!decor)return;if(phase!=='rising'){clearReveal();return;}
-        var p=clamp(time/cfg.fallbackMs);decor.dataset.mono=C.config.rarityColorMode==='mono';
-        decor.style.opacity=Math.sin(p*Math.PI)*.65;decor.style.setProperty('--royal-glint',moving()?Math.pow(Math.sin(p*Math.PI),6):0);
-        decor.style.setProperty('--royal-sheen-x',moving()?(-130+p*260)+'%':'0%');
-      },
-      dissolve:function(glass,p,dt){
-        if(!moving()||C.settings.policy.particles<=0){clearFragments();return;}
-        if(!fragments){
-          var rect=host.getBoundingClientRect();fragments=node('canvas','royal-triangle-field',host);fragments.width=Math.round(rect.width);fragments.height=Math.round(rect.height);fragments.setAttribute('aria-hidden','true');fragmentCtx=fragments.getContext('2d');
-          var polygons=Array.from(glass.el.querySelectorAll('.royal-mosaic polygon')),step=C.settings.policy.animation===3?1:2;
-          polygons.forEach(function(poly,i){if(i%step)return;triangles.push({points:poly.getAttribute('points').split(' ').map(function(point){return point.split(',').map(Number);}),color:poly.getAttribute('fill'),seed:i});});
-        }
-        fragmentAge+=dt;if(fragmentAge-fragmentPaint<1000/(C.settings.policy.animationHz||20)&&p<1)return;fragmentPaint=fragmentAge;
-        var q=fragmentCtx,w=fragments.width,h=fragments.height;q.clearRect(0,0,w,h);
-        triangles.forEach(function(tri){
-          var points=tri.points.map(function(point){return [point[0]/180*w,point[1]/266*h];}),cx=points.reduce(function(n,pt){return n+pt[0];},0)/3,cy=points.reduce(function(n,pt){return n+pt[1];},0)/3;
-          q.save();q.translate(cx+Math.sin(tri.seed*2.4)*p*24,cy-p*(18+tri.seed%17));q.rotate(Math.sin(tri.seed)*p*.7);q.globalAlpha=Math.sin(clamp(p/.12)*Math.PI/2)*(1-p);q.fillStyle=tri.color;q.beginPath();points.forEach(function(pt,i){if(i)q.lineTo(pt[0]-cx,pt[1]-cy);else q.moveTo(pt[0]-cx,pt[1]-cy);});q.closePath();q.fill();q.restore();
+        if(!context)return false;
+        var moving=false,reduced=still();
+        [0,1].forEach(function(side){
+          if(snap[side]){
+            snap[side].age+=dt;var q=clamp(snap[side].age/(reduced?1:260));pr[side]=snap[side].from+(1-snap[side].from)*(1-Math.pow(1-q,3));layout();moving=true;
+            if(q>=1)finishSide(side);
+          }
+          if(fall[side]&&strips[side]){
+            fall[side].age+=dt;var f=clamp(fall[side].age/(reduced?1:520));
+            strips[side].style.transform=reduced?'none':'translate('+(side?1:-1)*f*14+'px,'+f*f*160+'px) rotate('+(side?1:-1)*f*18+'deg)';
+            strips[side].style.opacity=1-f;moving=true;
+            if(f>=1){strips[side].remove();strips[side]=null;fall[side]=null;}
+          }
         });
-        if(p===1)clearFragments();
-      },get active(){return false;}
-    };return api;
+        if(state==='doors'){
+          stateAge+=dt;
+          var doorMs=reduced?420:cfg.doorsMs,delay=reduced?0:cfg.carpetDelayMs,carpetMs=reduced?420:cfg.carpetMs,total=Math.max(doorMs,delay+carpetMs)+(reduced?0:cfg.carpetHoldMs),t=stateAge;
+          paintDoors(clamp(t/doorMs));
+          paintRunner(clamp((t-delay)/carpetMs));
+          if(t>=total){var ctx=context;state='done';ctx.reveal();}
+          return true;
+        }
+        if(state==='idle'){
+          stateAge+=dt;
+          // A quiet pulse on the open tabs so the gesture is found.
+          if(!reduced&&C.settings.policy.animation>=2){
+            var k=(Math.sin(stateAge/700)+1)/2;
+            tabs.forEach(function(t,side){if(t&&!torn[side])t.style.setProperty('--tab-pulse',(.55+.45*k).toFixed(3));});
+            moving=true;
+          }
+        }
+        return moving||!!drag;
+      },
+      get active(){return !!drag||state==='doors';}
+    };
+    return api;
   }});
 })(window.Cardable,window);

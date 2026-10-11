@@ -6,7 +6,7 @@ Owner brief: remake every pack as a real 3D object (printed front and back, flip
 |---|---|---|
 | A | 3D pack engine, flip and orbit, front-first opening, Standard, Rare | Implemented; see below |
 | B | NVIDIA, AMD, Snapdragon, Apple | Implemented; see below |
-| C | Classic, Royal | Not started |
+| C | Classic, Royal | Implemented; see below |
 | D | Titan, Picker | Not started |
 | E | Design refinement across all packs | Not started |
 
@@ -28,3 +28,10 @@ Checked in a browser session at 1280x720: Standard front and back, Rare front an
 - `src/data/brand-packs.js`: `design.face` and a `swapIn` per brand (`rayTrace`, `slashIn`, `bootUp`, `bloom`).
 - Rear copy anchored above the barcode on every designed back so it cannot collide at small sizes.
 - Liquid is lighter on designed packs so the hold effects read through it.
+
+## C: what changed
+- `src/ui/pack-designs-heritage.js` and `src/styles/pack-designs-heritage.css`: Classic and Royal faces, backs, key power-up, pixel-away arrival, glass coat.
+- `src/ui/royal-pack-effects.js`: `sideTear` replaces `cutThenBox`. New `royalPack` config values: `doorsMs`, `carpetDelayMs`, `carpetMs`, `carpetHoldMs`.
+- `src/ui/card-skins.js` and `src/data/royal-pack.js`: a plated gold frame skin (`royal`) with a set per top tier; Classic's command panel is fuller.
+- Engine: per-design silhouette and edge outline (`outline`), designed registry exposed.
+- `src/studio/card-face.js`: Studio photos paint the Royal frame too.

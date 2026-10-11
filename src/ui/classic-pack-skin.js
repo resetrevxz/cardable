@@ -6,6 +6,7 @@
   function digits(screen,value){value=String(Math.max(0,Math.min(99,Math.floor(value)))).padStart(2,'0');if(screen.dataset.value===value)return;screen.dataset.value=value;screen.querySelectorAll('.classic-digit').forEach(function(digit,i){digit.querySelectorAll('i').forEach(function(bar){bar.dataset.lit=segments[Number(value[i])].includes(bar.dataset.segment);});});}
   function render(el,pack){
     el.dataset.skin=pack.skin;
+    if(pack.design&&pack.design.face)return;
     el.querySelectorAll('.pack-wrapper').forEach(function(wrapper){
       if(wrapper.querySelector('.classic-case'))return;
       var bezel=node('div','pack-skin-layer classic-case',wrapper);

@@ -10,6 +10,14 @@
 
 **Rare.** Arrival: the chameleon swap-in (`swapIn: 'chameleon'`). Hold: the network morphs into a white grid assembling from the fluid line, and the printed marks dissolve into grid-cell squares and re-form (`C.packFaces.charge`). Cut: the grid re-forms on the opened wrapper and brightens near the blade. After the tear the registered rarity cinematic and reveal are untouched.
 
+## Pack remake, milestone C: Classic and Royal
+
+**Royal `sideTear` supersedes `cutThenBox`.** The shared top cut is gone for Royal. Two tear strips (left and right) are peeled by dragging each tab down, or one per Enter press. Each strip keeps its own progress and snaps at 92%. When both are gone the wrapper opens as two doors hinged on the outer edges, a red carpet rolls out inside, then `context.reveal()` starts the reserved tier's cinematic. The pack was already committed at the hold, so nothing here rolls, pays or consumes; reload restores the committed card directly.
+
+**Royal hold.** The glass coat (`face.charge`) dissolves as the hold fills.
+
+**Classic.** Arrival `pixelAway`; the hold animates a key and a powering-up panel; the seal tear stays `pullTab`.
+
 ## 2.5.0 Titan vault dial
 
 Titan preserves the three-second hold, atomic stock/count/reward reservation and tier cinematic. After armor dissolution, drag the vault dial clockwise through three quarter-turn ticks, or press Enter once per tick. The touch action reads Next tick. Lights and a restrained local tick pulse show progress. After the third tick, bolts retract and the door unseals over 1.4 seconds, then the reserved tier's existing cinematic runs. The real card stays hidden until this handoff. Reload restores the exact committed card directly without replay or duplicate reward. Reduced motion keeps static tick lights and fades the door.

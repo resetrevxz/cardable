@@ -67,6 +67,23 @@
     [['VRAM', C.cardSpecs.vram(card)], ['CLK', clock == null ? '—' : clock + ' MHZ'], ['BUS', specs.busBits == null ? '—' : specs.busBits + ' BIT'], ['TIER', rarity.code]].forEach(function (pair, i) { text(g, pair[0] + ' ' + String(pair[1]).toUpperCase(), 37 + i % 2 * 165, 452 + Math.floor(i / 2) * 28, 18, 'VT323', '#FFB000'); }); text(g, '█', 37, 514, 18, 'VT323', '#FFB000');
     for (var i = 0; i < 12; i++) { g.fillStyle = i <= rarity.tier ? '#D83D27' : '#773F2D'; g.fillRect(45 + i * 22, 543, 16, 5); } text(g, rarity.code, 329, 549, 9, 'JetBrains Mono', '#625846', 600);
   }
+  function royal(g, card, instance, context) {
+    // The plated gold frame for Studio photos: ring, inlay line and four gems, per tier.
+    var palette = { legendary: ['#fff2b8', '#e1b84d', '#8b5a1a', '#7a0f20'], mythical: ['#ffd9a8', '#c98a3d', '#5b2a0c', '#b0102a'], exotic: ['#f6ecbd', '#d6b155', '#6c5424', '#1d2f8a'],
+      ascendant: ['#fffaf0', '#f0d9a0', '#bd9a52', '#6a8cff'], secret: ['#e8ffd8', '#b8a24a', '#3c3418', '#19e0a0'] }[C.rarity(card.rarity).id] || ['#fff2b8', '#e1b84d', '#8b5a1a', '#7a0f20'];
+    var gold = g.createLinearGradient(0, 0, 400, 560); gold.addColorStop(0, palette[0]); gold.addColorStop(.3, palette[1]); gold.addColorStop(.55, palette[2]); gold.addColorStop(.78, palette[1]); gold.addColorStop(1, palette[0]);
+    g.strokeStyle = gold; g.lineWidth = 17; round(g, 9, 9, 382, 542, 12); g.stroke();
+    g.strokeStyle = palette[3]; g.lineWidth = 3.4; round(g, 20, 20, 360, 520, 9); g.stroke();
+    g.strokeStyle = 'rgba(255,236,170,.65)'; g.lineWidth = 1.2; round(g, 23, 23, 354, 514, 7); g.stroke();
+    [[12, 12], [388, 12], [12, 548], [388, 548]].forEach(function (p) {
+      g.fillStyle = gold; g.beginPath(); g.moveTo(p[0], p[1] - 13); g.lineTo(p[0] + 13, p[1]); g.lineTo(p[0], p[1] + 13); g.lineTo(p[0] - 13, p[1]); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(60,30,0,.5)'; g.lineWidth = 1; g.stroke();
+    });
+    if (context.side !== 'back') {
+      g.fillStyle = gold; g.beginPath(); g.moveTo(170, 14); g.lineTo(178, -4); g.lineTo(190, 6); g.lineTo(200, -10); g.lineTo(210, 6); g.lineTo(222, -4); g.lineTo(230, 14); g.closePath(); g.fill();
+    }
+  }
+  if (C.cardSkins.registry.royal) C.cardSkins.registry.royal.studio = { paint: royal };
   if (C.cardSkins.registry.classic) C.cardSkins.registry.classic.studio = { paint: classic };
   if (C.finishes.registry.ascendant && !C.finishes.registry.ascendant.studio) C.finishes.registry.ascendant.studio = { paint: function (g, time, context) { C.ascendantBackground.draw(g, 400, 560, 0, context.instance.serial); } };
   C.studioFace = {

@@ -422,7 +422,7 @@
   }
 
   C.packFaces = {
-    define: define, spec: specOf, layout: LAYOUT, palette: PALETTE,
+    define: define, spec: specOf, layout: LAYOUT, palette: PALETTE, registry: registry,
     has: function (pack) { return !!specOf(pack); },
     build: build,
     // Called when an element carries solid faces: repaint after a size or quality change.

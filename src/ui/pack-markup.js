@@ -29,10 +29,15 @@
   // The pack silhouette, in percent of width/height. The same outline cuts the faces
   // (--wrapper-shape in pack.css) and extrudes into the edge strips below.
   var OUTLINE = [[0,0],[100,0],[100,6],[98,9],[96,18],[97,77],[98,90],[100,94],[100,100],[0,100],[0,94],[2,90],[3,77],[4,18],[2,9],[0,6]];
-  function edges(parent) {
+  function outlineOf(pack) {
+    var spec = C.packFaces && C.packFaces.spec(pack);
+    return spec && spec.outline || OUTLINE;
+  }
+  function edges(parent, outline) {
+    outline = outline || OUTLINE;
     var ring = node('div', 'pack-edges', parent);
-    OUTLINE.forEach(function (a, i) {
-      var b = OUTLINE[(i + 1) % OUTLINE.length], dx = b[0] - a[0], dy = (b[1] - a[1]) * 1.48;
+    outline.forEach(function (a, i) {
+      var b = outline[(i + 1) % outline.length], dx = b[0] - a[0], dy = (b[1] - a[1]) * 1.48;
       var length = Math.sqrt(dx * dx + dy * dy); if (length < .01) return;
       var angle = Math.atan2(dy, dx) * 180 / Math.PI, mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
       // Outward normal against the top-left lamp: left and top edges catch light, right and bottom fall away.
@@ -132,7 +137,7 @@
     if (pack.design.face) el.dataset.face = pack.design.face;
     var shadow = node('div', 'pack-ground-shadow', el);
     var pose = node('div', 'pack-pose', el); node('div', 'pack-reflection', pose); node('div', 'pack-thickness', pose);
-    edges(pose);
+    edges(pose, outlineOf(pack));
     var front = node('div', 'pack-face pack-face--front', pose);
     var glass = node('div', 'pack-body', front);
     node('div', 'pack-internal-cards', glass);
@@ -175,7 +180,11 @@
     setPack: function(el, pack, mode) {
       el.dataset.pack = pack.id; el.dataset.material = pack.design.material; el.dataset.wrapper = pack.design.wrapper;
       if (pack.design.face) el.dataset.face = pack.design.face; else delete el.dataset.face;
-      if (el._packUnit) { el._packUnit.pack = pack; el._packUnit.resetRear(); }
+      if (el._packUnit) {
+        el._packUnit.pack = pack; el._packUnit.resetRear();
+        var ring = el.querySelector('.pack-pose > .pack-edges');
+        if (ring) { var posed = ring.parentNode; ring.remove(); var fresh = edges(posed, outlineOf(pack)); posed.insertBefore(fresh, posed.querySelector('.pack-face--front')); }
+      }
       el.querySelectorAll('.pack-skin-layer,.pack-facets,.pack-clearcoat,.pack-gloss-sweep').forEach(function(layer) { layer.remove(); });
       el.querySelectorAll('.pack-wrapper').forEach(function(wrapper) { fillWrapper(wrapper, pack); });
       el.querySelectorAll('.pack-print:not(.pack-print--rear)').forEach(function(old) {

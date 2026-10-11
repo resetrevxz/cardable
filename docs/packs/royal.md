@@ -1,9 +1,25 @@
-# Crowned mosaic
+# Royal: crimson sleeve and glass coat
 
-Satin gold faceting, crown and red woven holder retained; sixteen-second smooth gold reflections.
+A lacquered crimson sleeve with a gold frame, a medallion crown and a short red runner, under a coat of translucent gold glass.
 
-Shared sealed silhouette, Cardable header, central emblem and footer hierarchy. Four procedural layers: base material, grain, relief and moving light/reflection. Three lean planes separate body, emblem and optical reflection by 1–3 px.
+## Front
+- Crimson damask with a double gold frame, corner ornaments, gold caps and a medallion behind the crown.
+- `ROYAL PACK` and `LEGENDARY OR BETTER` in gold; a runner carpet rises from the foot.
 
-Ready, transparent waiting/progress, arrival, charge, dissolve, hover and swap specimens use the existing state machine; counter thumbnails retain their identity glyph. Very Low is flat; Low has one static highlight; Medium has existing single highlight and static material; High has the signature slow loop; Very High adds reflection detail. Reduced motion freezes light and lean. Normal theme uses the authored palette; monochrome removes hue.
+## Back
+- Gold ribbon down the centre with a wax seal, barcode and batch code.
 
-No changes to probabilities, pack cadence, cutting strategy, reservations, serials or rewards.
+## The glass coat
+Gold triangles materialise and dematerialise across the face on a two-second cycle, with a frosted veil and one travelling reflection. Holding Space dissolves the coat for good, so the pack is bare by the time it is ready to open.
+
+## Opening (`sideTear`)
+1. Tear both sides: a gold tab on each side strip; drag it down (or press Enter) to peel the strip away. Each side has its own progress.
+2. When both are gone the sleeve opens like double doors, hinged on the outer edges.
+3. A small red carpet unrolls inside with a glow where the card will land.
+4. The reserved tier's cinematic follows. Reduced motion fades instead of swinging.
+
+## Card frame
+Every card pulled from a Royal pack carries a plated gold frame (`cardSkinId: royal`), with a distinct set for each tier:
+Legendary (gold with a gem crest), Mythical (copper with crimson inlay and spiked gems), Exotic (star-set gold, blue inlay glow), Ascendant (pearl and prismatic gold), Secret (segmented, glitch-offset gold with brackets).
+
+No changes to probabilities, pack cadence, reservations, serials or rewards.

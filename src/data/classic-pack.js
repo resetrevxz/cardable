@@ -11,10 +11,10 @@
     id:'classic', name:'Classic Pack', enabled:true, priority:0, cadence:null, randomChance:.05,
     pool:{}, tierWeightModifiers:{secret:4}, eraWeightModifiers:{classic:3, modern:1},
     modernWeightConfig:'modernCardWeight', excludedVariantKinds:['frame'], cardSkinId:'classic',
-    variantChanceMultiplier:1, cardsPerPack:1, skin:'classic', opening:'pullTab', swapIn:'tornadoPixel',
+    variantChanceMultiplier:1, cardsPerPack:1, skin:'classic', opening:'pullTab', swapIn:'pixelAway',
     counterStyle:{accent:'#D8D2BE',glyph:'486',label:'CLASSIC PACK'},
     tagline:'PAST MEETS PRESENT', introText:'Classic Pack. Vintage hardware, a permanent monitor bezel, and every ordinary tier.',
-    design:{material:'aged-plastic',wrapper:'plastic-bezel',graphic:'die-ring',roughness:.85,foilStrength:.08,refraction:0,emboss:.25,
+    design:{face:'classic',material:'aged-plastic',wrapper:'plastic-bezel',graphic:'die-ring',roughness:.85,foilStrength:.08,refraction:0,emboss:.25,
       subtitle:'CLASSIC / HARDWARE ARCHIVE',showGenerationPool:false,series:'01',batch:'486 / 66 MHz',security:'CBL / ORIGINAL'},
     obtainable:'timer'
   });

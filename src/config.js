@@ -8,7 +8,7 @@
     titanPack: { coreMs:4000, rimMs:7000, swapMs:1200, tickRadians:Math.PI/2, tickCount:3,
       tickPulseMs:450, unsealMs:1400, dipPx:2, steamCount:6 },
     royalPack: { glintMs:5000, sheenMs:1400, swapMs:1100, boxRiseMs:900, boxHintMs:2000,
-      boxOpenMs:1100, fallbackMs:3000, facetColumns:8, facetRows:12, dustCount:12 },
+      boxOpenMs:1100, fallbackMs:3000, doorsMs:900, carpetDelayMs:260, carpetMs:900, carpetHoldMs:420, facetColumns:8, facetRows:12, dustCount:12 },
     classicPack: { modernCardWeight: 1, lightPassMs: 8000, ledStepMs: 600, pullDistance: .42,
       pullSnap: .85, vortexMs: 1400, appearanceMs: 1200, mediumVortexMs: 850, lowFadeMs: 450,
       pixelMax: 24, pixelColumns: 12, pixelRows: 20 },

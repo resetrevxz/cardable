@@ -33,7 +33,7 @@
     node('i','royal-carpet__threads',band);return band;
   }
   function render(el,pack){
-    el.dataset.skin=pack.skin;el.querySelectorAll('.pack-wrapper').forEach(function(wrapper){
+    el.dataset.skin=pack.skin;if(pack.design&&pack.design.face)return;el.querySelectorAll('.pack-wrapper').forEach(function(wrapper){
       if(wrapper.querySelector('.royal-face'))return;
       var face=node('div','pack-skin-layer royal-face',wrapper);facets(face);node('div','royal-facet-light',face);node('div','royal-charge-facets',face);
       var header=node('div','royal-header',face);node('span','royal-header__chip',header,'C');node('strong','',header,C.config.gameName);
