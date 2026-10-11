@@ -1,0 +1,34 @@
+/* Collections share inventory surfaces; colors resolve existing tokens. */
+.cb-swatch-row { display:flex; flex-wrap:wrap; gap:var(--s-2); padding:var(--s-2) var(--s-1); }
+.cb-swatch { --collection-color:var(--text-dim); position:relative; width:32px; height:32px; padding:0; border-radius:var(--radius-chip); color:var(--collection-color); background:var(--glass-1); border:1px solid var(--stroke); font:500 11px/14px var(--font-mono); }
+.cb-swatch::before { content:""; position:absolute; inset:4px; border:1px solid currentColor; border-radius:inherit; opacity:.5; }
+.cb-swatch[aria-checked="true"] { border-color:var(--text); box-shadow:inset 0 0 0 1px var(--stroke-hover); background:var(--glass-3); }
+.cb-swatch:hover:not(:disabled) { border-color:var(--stroke-hover); background:var(--glass-2); }
+.cb-wishlist-state { display:flex; gap:var(--s-1); justify-content:center; }
+.cb-wishlist-state .cb-badge { font:500 9px/14px var(--font-mono); padding:2px 6px; background:var(--ink-2); color:var(--text-dim); }
+.cb-wishlist-state [data-state="wanted"] { border-style:dashed; }
+.cb-wishlist-state [data-state="owned"]::before { content:"✓"; color:var(--success); }
+.inventory-collection-description { grid-column:1 / -1; margin:0; color:var(--text-dim); font:400 12px/16px var(--font-ui); max-width:100%; }
+.inventory-title[data-colored="true"] { background:linear-gradient(90deg,color-mix(in srgb,var(--collection-color) 8%,transparent),transparent); border-radius:var(--radius-tiny); }
+.inventory-title[data-colored="true"] h2 { padding-left:var(--s-2); border-left:2px solid var(--collection-color); }
+.inventory-collection-mark { display:inline-grid; place-items:center; width:16px; height:16px; flex:none; border:1px solid var(--collection-color,var(--stroke)); color:var(--collection-color,var(--text-dim)); border-radius:var(--radius-chip); font:500 9px/14px var(--font-mono); }
+.inventory-tab-list .inventory-menu-option { display:flex; align-items:center; gap:var(--s-2); flex:none; }
+.inventory-tab-name { max-width:180px; overflow:hidden; text-overflow:ellipsis; }
+.inventory-tab-count { color:var(--text-dim); font:400 10px/14px var(--font-mono); }
+.inventory-tab-kind,.inventory-tab-pin { width:12px; height:12px; flex:none; color:var(--text-dim); }
+.inventory-tab-list { padding:4px; scroll-padding:4px; }
+.inventory-tab-list .inventory-menu-option:focus-visible { outline-offset:1px; }
+.inventory-popover-body .inventory-menu-option { min-height:var(--row-height); }
+.inventory-popover-body :is(.cb-field,.cb-select) { height:38px; width:100%; border-radius:var(--ui-radius-23); background:var(--glass-1); font-size:12px; }
+.inventory-popover-body .cb-segments { margin:var(--s-2) 0 var(--s-3); }
+.inventory-popover-body .cb-segments .cb-button { min-height:32px; }
+.inventory-collection-field { display:grid; gap:var(--s-2); margin:var(--s-3) 0; color:var(--text-dim); font:400 12px/16px var(--font-ui); }
+.inventory-collection-error { margin:var(--s-2) 0; color:var(--danger); font:400 12px/16px var(--font-ui); }
+.inventory-collection-field small { font:400 11px/14px var(--font-mono); }
+.inventory-empty.cb-empty { position:absolute; top:25%; left:var(--s-4); right:var(--s-4); padding:var(--s-4); }
+.inventory-card-caption .cb-wishlist-state { margin-top:var(--s-1); }
+.inventory-tabs > .inventory-tab-sort { flex:none; }
+[data-rarity-color="mono"] :is(.cb-swatch,.inventory-collection-mark,.inventory-title) { --collection-color:var(--text-dim) !important; }
+.cb-gallery[data-gallery-state="error"] .cb-swatch-row { outline:1px solid var(--danger); border-radius:var(--radius-control); }
+@media(pointer:coarse) { .cb-swatch { width:44px; height:44px; } }
+@media(max-width:480px) { .inventory-tab-name { max-width:120px; } .inventory-tab-count { font-size:9px; } }
