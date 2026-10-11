@@ -271,6 +271,17 @@ A callout carries a mono eyebrow, a title, label and value rows, and at most one
 
 Shared silhouette, Cardable header band, central emblem and name/tagline/footer hierarchy; distinct authored palettes and materials. Use 3–4 procedural material layers with believable brushing, lacquer, ceramic, glass, seams and crimps. Three lean planes separate body/emblem/glints by 1–3 px, tied to the same upper-left lamp. Each pack owns ready, waiting/progress, arrival, charge, dissolve, hover, swap, counter and static low-tier states. Signature loops are slow (10–18 seconds), low amplitude and stop when inactive. Medium keeps static materials plus one existing moving highlight, Low one static highlight, Very Low flat; extra work is confined to High/Very High. Briefs live in docs/packs; ?dev=1&gallery=packs exposes tier/state/color specimens. Brand logo handling remains local.
 
+## Pack faces and the turn
+
+Every pack is a real object: a printed front, a printed back and an extruded edge in one 3D pose. The player can move it (drag), tip and orbit it (inspect, V or right-click), and turn it over with **R**, the Flip control beside Open pack, or a double-click.
+
+- **Front first.** Starting a hold always turns the pack to its front; the opening never begins on the back. Reduced motion swaps faces with a brief fade.
+- **Backs.** Standard and Rare paint their own backs (fin seal, plain copy, barcode). Other packs show a generic back in their own colours until they are redone.
+- **Designed faces** (`design.face` in `src/data/packs.js`, painters in `src/ui/pack-face.js`): artwork is painted once per size into a canvas; reflections are CSS gradients driven by each face's own normal; the only per-frame canvas is the face turned toward the player.
+- **Standard:** satin black, the dot grid parked on the right, `SERIES 01`, perforation dots that ignite behind the blade.
+- **Rare:** sapphire, a drifting dot network, a chameleon arrival, and a hold in which the printed marks re-form as a white grid. See [docs/packs](docs/packs/standard.md).
+- Quality: Very Low is flat with no gloss layers or edge shading; Low keeps one specular lobe; Medium and High add the environment and brushed layers and the network drift; High adds the floor reflection.
+
 ## Cinematic optics and Very High
 
 High and opt-in Very High share physically plausible procedural lighting and bounded filmic optics. The card remains the visual anchor; grain, edge dispersion, focus, bloom and micro-motion stay restrained. Low/Medium retain their lighter paths, and reduced motion removes gesture ornaments. Hardware gating explains unavailable Very High; temporary fallback preserves the requested saved tier. Window open/fullscreen transitions remain owned by the native platform. Review aids are ephemeral unminted specimens.

@@ -2,8 +2,9 @@
   'use strict';
   var registry = Object.create(null);
   function standard(el) { el.dataset.skin = 'standard'; }
-  function rare(el) {
+  function rare(el, pack) {
     el.dataset.skin = 'rare';
+    if (pack && pack.design && pack.design.face) return;
     el.querySelectorAll('.pack-wrapper').forEach(function(wrapper) {
       if (wrapper.querySelector('.pack-facets')) return;
       C.packMarkup.node('div', 'pack-facets', wrapper);
@@ -24,6 +25,7 @@
     apply: function(el, pack, mode) {
       var skin = C.packSkins.get(pack);
       if (!pack.design.companyLogo) delete el.dataset.brandPack;
+      if (pack.design.face) el.dataset.face = pack.design.face; else delete el.dataset.face;
       if (skin.fluidTint) {
         el.dataset.packTinted = 'true';
         el.style.setProperty('--pack-fluid-start', skin.fluidTint[0]); el.style.setProperty('--pack-fluid-end', skin.fluidTint[1]);

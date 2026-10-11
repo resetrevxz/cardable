@@ -27,13 +27,22 @@
         frontMaterial = C.packMaterial.create(front.el, pack);
       }
       C.packView.interaction = interaction; C.packView.fluidController = frontFluid;
+      C.packView.flip = function () {
+        if (interaction.blocked || openingPaused || inventoryPaused || !C.packView.visible) return false;
+        front.ensureRear(); return interaction.flip();
+      };
+      C.events.on('pack:flip', function (event) { flipAction.setAttribute('aria-pressed', event.flipped ? 'true' : 'false'); flipAction.firstChild.textContent = event.flipped ? 'Front' : 'Flip'; });
       C.packView.snapshot = function () { return Object.assign({}, interaction.state); };
       host.setAttribute('role', 'group');
-      host.setAttribute('aria-description', 'Drag to inspect the sealed wrapper. Hold Space to open when ready. Press V for a closer look; Escape returns.');
+      host.setAttribute('aria-description', 'Drag to inspect the sealed wrapper. Press R to flip it over. Hold Space to open when ready. Press V for a closer look; Escape returns.');
       var meta = node('div', 'pack-meta idle-chrome entrance', host); meta.dataset.tutorialTarget='timer'; meta.style.setProperty('--entry', 2);
       var timer = node('div', 'pack-timer', meta); timer.setAttribute('role', 'timer'); timer.setAttribute('aria-live', 'off');
       var action = node('button', 'pack-open-action', meta, 'Open pack'); action.type = 'button';
       action.setAttribute('aria-label', 'Hold to open pack');
+      var flipAction = node('button', 'pack-flip-action', meta); flipAction.type = 'button';
+      flipAction.setAttribute('aria-label', 'Flip pack'); flipAction.setAttribute('aria-pressed', 'false');
+      node('span', '', flipAction, 'Flip'); node('kbd', '', flipAction, 'R').dataset.keyAction = 'menu.flip-pack';
+      flipAction.addEventListener('click', function () { C.packView.flip(); });
       var chargePointer = null;
       action.addEventListener('pointerdown', function (event) { if (event.button !== 0 || action.disabled) return; event.preventDefault(); chargePointer = event.pointerId; C.input.chargeStart(); });
       function endCharge(event) { if (event.type === 'pointerup' && event.button !== 0) return; if (chargePointer !== null && event.pointerId === chargePointer) { chargePointer = null; C.input.chargeEnd(); } }
@@ -52,8 +61,8 @@
         var initialFill = i < C.state.current.packs.ready ? 1 : i === C.state.current.packs.ready ? C.timers.progress(Date.now()) : 0;
         vials.push({ el: vial, fill: fill, value: initialFill, from: 0, target: 0, start: null, arrival: null });
       }
-      var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); node('kbd', '', hint, 'Space');
-      function updateOpeningKey() { hint.querySelector('kbd').dataset.keyAction='opening.hold';hint.querySelector('kbd').textContent = C.keys.label('opening.hold'); var description = host.getAttribute('aria-description'); if (description) host.setAttribute('aria-description', description.replace(/Hold (Space|Enter)/, 'Hold ' + C.settings.holdKey)); }
+      var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); var holdRow = node('div', 'pack-key-row', hint); node('kbd', '', holdRow, 'Space'); node('span', '', holdRow, 'Open'); var flipRow = node('div', 'pack-key-row', hint); var flipKey = node('kbd', '', flipRow, 'R'); node('span', '', flipRow, 'Flip'); flipKey.dataset.keyAction = 'menu.flip-pack';
+      function updateOpeningKey() { hint.querySelector('kbd').dataset.keyAction='opening.hold';hint.querySelector('kbd').textContent = C.keys.label('opening.hold'); flipKey.textContent = C.keys.label('menu.flip-pack'); var description = host.getAttribute('aria-description'); if (description) host.setAttribute('aria-description', description.replace(/Hold (Space|Enter)/, 'Hold ' + C.settings.holdKey)); }
       C.settings.onChange('keyBindings',updateOpeningKey);C.settings.onChange('openKey', updateOpeningKey); updateOpeningKey();
       var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, handoff = null, progress = C.timers.progress(Date.now());
       cachedStyle(host, '--pack-reflection-opacity', cfg.reflectionOpacity);
@@ -136,6 +145,11 @@
         if (visible && arrivalStart !== null && root.performance.now() - arrivalStart >= cfg.readyMomentMs) { arrivalStart = null; host.classList.remove('is-arriving'); }
       });
       refresh(true);
+      // A Rare pack that is already next at launch still makes its entrance: black first, then blue.
+      if (C.packView.visible && pack.swapIn === 'chameleon' && !root.document.hidden) {
+        previewEffect = C.packTransitions.create('chameleon', host, pack, front.el, function () {}, { delay: 900 });
+        if (previewEffect) { previewSwap = { pack: pack, at: root.performance.now(), adopted: true }; front.el.classList.add('is-pack-swapping'); }
+      }
       C.fx.subscribe(function (now, dt) {
         if (!C.packView.visible || (openingPaused || inventoryPaused) && !C.menu.afk) return false;
         if (C.menu.afk) {
@@ -164,7 +178,10 @@
           if (slide === 1) { handoff = null; front.el.style.transform = ''; }
         }
         var reduced = C.motion.reduced || C.settings.policy.animation === 0;
-        var interacting = interaction.update(dt), pose = interaction.state;
+        var interacting = interaction.update(dt), pose = interaction.state, faceActive = false;
+        var yaw = pose.yaw || 0, turned = Math.abs(Math.sin(yaw * Math.PI / 180)), facing = Math.abs(Math.cos(yaw * Math.PI / 180));
+        if (yaw !== 0 && !front.rearBuilt) front.ensureRear();
+        if (interaction.flipFadeAt && reduced && now - interaction.flipFadeAt < 220) host.classList.add('is-flip-fade'); else host.classList.remove('is-flip-fade');
         var ambient = C.settings.policy.ambient && !C.menu.idle && !reduced;
         var rx = pose.rx, ry = pose.ry;
         C.packView.progress = progress;
@@ -177,10 +194,15 @@
         [front, back].forEach(function (item, index) {
           if (index && ready < 2) return;
           var lift = index === 0 && !reduced && arrivalStart !== null ? -Math.sin(arrivalP * Math.PI) * cfg.arrivalLiftPx : 0;
-          var amount = index ? 0.35 : 1;
-          cachedStyle(item.pose, 'transform', 'translate3d(' + pose.x * amount + 'px,' + (pose.y * amount - pose.lift * amount + lift) + 'px,' + pose.lift * amount + 'px) rotateX(' + rx * amount + 'deg) rotateY(' + ry * amount + 'deg) rotateZ(' + pose.rz * amount + 'deg) scale(' + (1 - pose.grip * 0.008) + ')');
-          cachedStyle(item.shadow, 'opacity', cfg.shadowOpacity - pose.lift * 0.003);
-          cachedStyle(item.shadow, 'transform', 'translate(' + (8 + pose.x * amount - ry * 0.4) + 'px,' + (12 + pose.y * amount + pose.lift * 0.35) + 'px) scale(' + (1 + pose.lift * 0.009) + ')');
+          var amount = index ? 0.35 : 1, turn = index ? 0 : yaw, toss = index ? 0 : turned * C.config.packObject.flipLiftPx;
+          cachedStyle(item.pose, 'transform', 'perspective(' + C.config.packObject.perspectivePx + 'px) translate3d(' + pose.x * amount + 'px,' + (pose.y * amount - pose.lift * amount + lift - toss * .35) + 'px,' + (pose.lift * amount + toss) + 'px) rotateX(' + rx * amount + 'deg) rotateY(' + (ry * amount + turn) + 'deg) rotateZ(' + pose.rz * amount + 'deg) scale(' + (1 - pose.grip * 0.008) + ')');
+          cachedStyle(item.shadow, 'opacity', (cfg.shadowOpacity - pose.lift * 0.003) * (1 - turned * .35));
+          cachedStyle(item.shadow, 'transform', 'translate(' + (8 + pose.x * amount - ry * 0.4) + 'px,' + (12 + pose.y * amount + pose.lift * 0.35 + toss * .5) + 'px) scale(' + ((1 + pose.lift * 0.009) * (index ? 1 : .42 + .58 * facing + turned * .25)) + ',' + (1 - turned * .12) + ')');
+          var designed = C.packFaces && C.packFaces.has(index ? rearPack : pack);
+          if (designed) {
+            var lit = C.packFaces.update(item, { rx: rx * amount, ry: ry * amount }, turn, time, reduced || !ambient || index > 0);
+            faceActive = faceActive || lit;
+          }
           cachedStyle(item.el, '--mass-x', (pose.massX - pose.x) * 0.045 + 'px');
           cachedStyle(item.el, '--mass-y', (pose.massY - pose.y) * 0.045 + 'px');
           cachedStyle(item.el, '--wrapper-flex', pose.flex * pose.grip * 1.1 + 'deg');
@@ -208,7 +230,7 @@
             else active = true;
           }
         });
-        return ambient || interacting || active || arrivalStart !== null || handoff !== null || previewSwap !== null;
+        return ambient || interacting || active || faceActive || arrivalStart !== null || handoff !== null || previewSwap !== null;
       }, 'pack');
     }
   };

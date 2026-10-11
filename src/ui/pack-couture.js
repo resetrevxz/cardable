@@ -16,6 +16,7 @@
   var states=['ready','waiting','ready-moment','charge','dissolve','hover','swap-in'];
   function decorate(el,pack,state){
     var r=recipes[pack.id]||recipes.standard;
+    if(pack.design&&pack.design.face){el.dataset.packVisualState=state||'ready';return;}
     el.dataset.couture=pack.id;el.dataset.packVisualState=state||'ready';
     ['base','dark','accent','ink'].forEach(function(k){el.style.setProperty('--couture-'+k,r[k]);});
     el.dataset.packPattern=r.pattern;

@@ -20,7 +20,8 @@
           }
           this.state.angle = a; this.state.wave = w; this.state.fill = fill;
           var transform = 'translateY(' + ((1 - fill) * 100).toFixed(4) + '%)';
-          if (painted.transform !== transform) { painted.transform = transform; item.fluid.style.transform = transform; }
+          if (painted.transform !== transform) { painted.transform = transform; item.fluid.style.transform = transform; if (item.rearFluid) item.rearFluid.style.transform = transform; }
+          else if (item.rearFluid && item.rearFluid.style.transform !== transform) item.rearFluid.style.transform = transform;
           set('--fluid-angle', a.toFixed(2) + 'deg'); set('--meniscus-wave', reduced ? '0px' : w.toFixed(2) + 'px');
           set('--fluid-top', ((1 - fill) * 100).toFixed(4) + '%'); set('--fluid-depth', (0.12 + fill * 0.22).toFixed(3));
           return !angle.settled() || !wave.settled();

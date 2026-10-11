@@ -14,7 +14,8 @@
   add('hold','Hold to open pack','opening',['Space'],{origin:function(){return C.settings.holdKey;},when:function(){return !C.opening||['idle','charging','draining'].includes(C.opening.phase);},repeat:false,hold:true,exclusive:'opening-phase'});
   add('keep','Keep revealed card','opening',['Space','Enter'],{exclusive:'opening-phase',when:function(){return C.opening&&C.opening.phase==='revealed';}});
   add('tear','Tear / activate pack','opening',['Enter'],{exclusive:'opening-phase',origin:function(){return C.settings.actionKey;},when:function(){return C.opening&&!['idle','charging','draining','revealed'].includes(C.opening.phase);}});
-  add('flip','Flip revealed card','opening',['KeyR'],{when:function(){return C.opening&&C.opening.phase==='revealed';}});
+  add('flip','Flip revealed card','opening',['KeyR'],{exclusive:'opening-phase',when:function(){return C.opening&&C.opening.phase==='revealed';}});
+  add('flip-pack','Flip pack','menu',['KeyR'],{bridge:false,exclusive:'opening-phase',when:function(){return !!(C.packView&&C.packView.flip&&C.packView.visible&&(!C.opening||C.opening.phase==='idle'));},run:function(){if(C.packView&&C.packView.flip)C.packView.flip();}});
   add('skip','Skip cutscene','cutscene',[],{bridge:false,run:function(){var b=document.querySelector('.cutscene-skip:not([hidden])');if(b)b.click();}});
   add('auto-charge','Auto-charge next pack','menu',[],{bridge:false,run:function(){if(C.state.current.packs.ready)C.input.chargeStart();}});
   add('previous','Previous card','detail',['ArrowLeft'],{repeat:true});add('next','Next card','detail',['ArrowRight'],{repeat:true});add('favorite','Favorite card','detail',['KeyF']);add('flip','Flip card','detail',['KeyR']);add('inspect','Inspect card','detail',['KeyE','KeyI'],{origin:'KeyI'});

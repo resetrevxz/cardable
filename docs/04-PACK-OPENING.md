@@ -1,5 +1,15 @@
 # 04 — Pack opening
 
+## Pack remake, milestone A: turn, Standard and Rare
+
+**Turning the pack.** The stage pack is a 3D object with a printed front and back. R (action `menu.flip-pack`), the Flip button and double-click turn it; inspect mode (V or right-click) lets a drag orbit it freely and folds back to the nearest face on exit. The turn is its own spring with a small overshoot and a toss lift. It is presentation only: nothing here touches the queue, stock, reservations or rewards.
+
+**Front first.** `chargeStart` snapshots the stage pose, including the yaw. The opening glass begins at that angle and swings to the front over the handoff (longer for a bigger turn), and the stage pack returns upright while hidden. A pack is never charged, cut or torn from its back.
+
+**Standard cut.** The opened wrapper paints its perforation row on a dynamic canvas. As the blade passes, dots swell and brighten and a second faint row appears near the tip; when the foil tears they lift away. The existing shared cut strategy, swipe thresholds, Enter and touch Tear are unchanged.
+
+**Rare.** Arrival: the chameleon swap-in (`swapIn: 'chameleon'`). Hold: the network morphs into a white grid assembling from the fluid line, and the printed marks dissolve into grid-cell squares and re-form (`C.packFaces.charge`). Cut: the grid re-forms on the opened wrapper and brightens near the blade. After the tear the registered rarity cinematic and reveal are untouched.
+
 ## 2.5.0 Titan vault dial
 
 Titan preserves the three-second hold, atomic stock/count/reward reservation and tier cinematic. After armor dissolution, drag the vault dial clockwise through three quarter-turn ticks, or press Enter once per tick. The touch action reads Next tick. Lights and a restrained local tick pulse show progress. After the third tick, bolts retract and the door unseals over 1.4 seconds, then the reserved tier's existing cinematic runs. The real card stays hidden until this handoff. Reload restores the exact committed card directly without replay or duplicate reward. Reduced motion keeps static tick lights and fades the door.

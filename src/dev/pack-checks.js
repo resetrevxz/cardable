@@ -24,7 +24,38 @@
     C.dev.packScheduleReport = report;
     return report;
   };
+  // Pack faces: every pack has a printed back, the flip key is bound without conflicts, and the
+  // opening always starts from the front. Builds throw-away units; no save writes.
+  C.dev.checkPackFaces = function() {
+    var start = performance.now(), checks = [], host = document.createElement('div');
+    host.className = 'pack-stage'; host.style.cssText = 'position:fixed;left:-9999px;top:0;width:240px;height:356px;visibility:hidden';
+    document.body.appendChild(host);
+    try {
+      ['standard', 'rare'].forEach(function(id) {
+        var pack = C.pack(id), unit = C.packMarkup.unit(host, false, pack);
+        checks.push({label:id + ': designed face registered',pass:C.packFaces.has(pack) && !!unit.wrapper._packFace});
+        unit.ensureRear();
+        checks.push({label:id + ': printed back built with its own artwork',pass:!!unit.faceRear && !!unit.faceRear.querySelector('canvas.pack-face-art') && !!unit.faceRear.querySelector('.pack-series-mark')});
+        checks.push({label:id + ': extruded edge strips exist',pass:unit.el.querySelectorAll('.pack-edge').length >= 12});
+        unit.el.remove();
+      });
+      var generic = C.packMarkup.unit(host, false, C.pack('nvidia')).ensureRear();
+      checks.push({label:'Other packs get a generic back',pass:!!generic.faceRear.querySelector('.pack-rear-generic')});
+      generic.el.remove();
+      var entry = C.keys.entries.get('menu.flip-pack');
+      checks.push({label:'R is bound to Flip pack without conflicts',pass:!!entry && entry.defaults.indexOf('KeyR') !== -1 && C.keys.conflicts('menu.flip-pack','KeyR').length === 0});
+      var view = C.packView && C.packView.interaction;
+      if (view) {
+        var before = view.flipped; view.flip(); var turned = view.flipped; view.faceFront();
+        checks.push({label:'Flip toggles and opening resets to the front',pass:turned !== before && view.flipped === false});
+      }
+    } finally { host.remove(); }
+    var report = {pass:checks.every(function(c){return c.pass;}),checks:checks,elapsedMs:Number((performance.now() - start).toFixed(2))};
+    C.dev.packFaceReport = report;
+    return report;
+  };
   C.dev.startups.push(function() {
+    C.dev.register({id:'checks.pack-faces',group:'Checks',label:'Check pack faces',type:'button',helper:'Manual only: printed backs, edge strips, the Flip key and the front-first opening. Throw-away elements; no save writes.',run:function(){var report=C.dev.checkPackFaces();C.dev.message((report.pass?'PASS':'FAIL')+' · Pack faces · '+report.elapsedMs+' ms',!report.pass);}});
     C.dev.register({id:'checks.pack-schedule',group:'Checks',label:'Check pack schedule',type:'button',helper:'Manual only: 100 openings, 3,000 seeded Rare pulls, and legacy count migration. No save writes.',run:function(){var report=C.dev.checkPackSchedule();C.dev.message((report.pass?'PASS':'FAIL')+' · Pack schedule · '+report.elapsedMs+' ms',!report.pass);}});
   });
 })(window.Cardable);

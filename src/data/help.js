@@ -1,5 +1,5 @@
 (function(C){'use strict';C.data.help={
-  menu:{title:'Your next pack',body:'Hold the opening key to charge the pack, then tear its top. Packs refill by elapsed time; changing the interface never changes your pulls.'},
+  menu:{title:'Your next pack',body:'Hold the opening key to charge the pack, then tear its top. Press R, double-click or use Flip to turn the pack over; it always opens from the front. Packs refill by elapsed time; changing the interface never changes your pulls.',shortcuts:['R']},
   inventory:{title:'Your collection',body:'Search, filter and sort your collected cards. Select a card for its details; closing details returns to the same browsing position.'},
   detail:{title:'Card detail',body:'The card is the menu. Point at its rarity, serial, name, specs or brand mark for details, and use the round buttons beside it to inspect, favorite, flip or do more. Drag the card down or press Esc to return.'},
   settings:{title:'Settings',body:'Pick a page on the left or search every option. Point at an option to preview it at the bottom. Changes apply at once; changed options show a reset arrow. Advanced adds more options without changing your saved choices.',shortcuts:['Ctrl+,','S']},

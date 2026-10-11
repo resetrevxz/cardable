@@ -22,7 +22,7 @@
       cardsPerPack: 1,                       // OPEN-QUESTIONS #4
       tierWeightModifiers: {},
       guarantees: [],                        // future: [{ minTier: 2, slot: 0 }]
-      design: { material: 'silver-foil', wrapper: 'satin-foil', graphic: 'die-ring',
+      design: { face: 'standard', material: 'satin-black', wrapper: 'satin-foil', graphic: 'die-ring',
         roughness: 0.42, foilStrength: 0.65, refraction: 0.32, emboss: 0.7,
         subtitle: 'Collectible graphics series', showGenerationPool: false, series: '01', batch: 'CB / 00018472',
         microprint: '', security: 'CBL / AUTHENTIC' },
@@ -30,7 +30,7 @@
     },
     {
       id: 'rare', name: 'Rare Pack', enabled: true,
-      priority: 10, cadence: { every: 4 }, pool: { minTier: 3 }, skin: 'rare',
+      priority: 10, cadence: { every: 4 }, pool: { minTier: 3 }, skin: 'rare', swapIn: 'chameleon',
       variantChanceMultiplier: 1,
       counterStyle: { accent: 'var(--pack-rare-blue)', glyph: 'R+', label: 'RARE PACK' },
       tagline: 'RARE OR BETTER', introText: 'Every fourth pack is a Rare Pack. Rare or better.',
@@ -38,7 +38,7 @@
       tierWeightModifiers: { 'super-rare': 1.5, 'unusual': 1.5, 'double-super-rare': 1.5,
         legendary: 2, mythical: 2, exotic: 2, ascendant: 2, secret: 2 },
       guarantees: [],
-      design: { material: 'sapphire-lacquer', wrapper: 'gloss-foil', graphic: 'die-ring',
+      design: { face: 'rare', material: 'sapphire-lacquer', wrapper: 'gloss-foil', graphic: 'die-ring',
         roughness: 0.12, foilStrength: 0.85, refraction: 0.32, emboss: 0.7,
         subtitle: 'Collectible graphics series', showGenerationPool: false,
         series: '01', batch: 'R+ / CB / 00018472', security: 'CBL / AUTHENTIC' },

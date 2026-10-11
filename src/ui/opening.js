@@ -12,6 +12,7 @@
   var finePointer = root.matchMedia('(hover: hover) and (pointer: fine)');
   var preferencesActive = false;
   var packPose = null, packMaterial, foilMaterial, halfMaterials, cutStrategy=null, swapEffect=null, packEntrance=false;
+  var cutHeatNow = 0, foilFxAt = 0;
   var stats = { commits: 0, transitions: 0, tears: 0, updates: 0, particles: 0, shines: 0, keeps: 0, collections: 0, recoveries: 0 };
   function node(tag, className, parent, text) { return C.packMarkup.node(tag, className, parent, text); }
   function svg(tag, parent) { var el = root.document.createElementNS('http://www.w3.org/2000/svg', tag); if (parent) parent.appendChild(el); return el; }
@@ -102,6 +103,7 @@
     release(); cutFinish=null;cutHeat=0;cutHeatAt=0;cutTipX=cutTargetX=0.5;host.classList.remove('is-cut-finishing');foil.style.transform='';if(cutGlow)cutGlow.setAttribute('d','');if(cutTip)cutTip.style.opacity=0;path = []; hot.forEach(function (item) { if (item.el) item.el.remove(); }); hot = []; split = null; cutIdle = 0;
     seam.setAttribute('d', ''); gap.setAttribute('d', ''); dirty = true;
     halves.forEach(function (half) { half.style.transform = ''; half.style.opacity = 0; half.style.clipPath = ''; });
+    if (C.packFaces) { C.packFaces.reset(foil); halves.forEach(function (half) { C.packFaces.reset(half); }); C.packFaces.reset(glass.el); }
   }
   function reset() {
     cleanReveal(); closeToast(); keeping = false; writingKeep = false;
@@ -137,6 +139,9 @@
     savedFocus = root.document.activeElement; clearCut(); particles.clear(); meniscus.reset(0); fill = 0;
     errorUntil = 0; error.style.opacity = 0; chargeAt = root.performance.now(); pulseAt = 0;
     packPose = C.packView.snapshot ? C.packView.snapshot() : null;
+    // A pack that was turned over always opens from the front: the glass starts at the
+    // stage pack's angle and swings round as the hold begins.
+    if (packPose && Math.abs(packPose.yaw || 0) > 1) glass.ensureRear();
     phaseTo('charging'); glass.el.style.opacity = 1; foil.style.opacity = 0; paintFluid(0); focus(host); C.events.emit('charge:start');
   }
   function cancel(reason) {
@@ -266,11 +271,19 @@
     glass.el.style.setProperty('--meniscus-wave', wave + 'px');
     glass.el.style.setProperty('--charge-leak', fill * fill);
     glass.el.dataset.chargeFill=fill;
-    var transfer = reduced ? 0 : 1 - ease(Math.min(1, elapsed / C.config.packObject.handoffMs));
-    var source = packPose || { x: 0, y: 0, lift: 0, rx: 0, ry: 0, rz: 0 };
+    var source = packPose || { x: 0, y: 0, lift: 0, rx: 0, ry: 0, rz: 0, yaw: 0 };
+    var yaw = source.yaw ? source.yaw - 360 * Math.round(source.yaw / 360) : 0;
+    var turnMs = C.config.packObject.handoffMs + Math.abs(yaw) / 180 * 420;
+    var transfer = reduced ? 0 : 1 - ease(Math.min(1, elapsed / turnMs));
     var pose = { rx: source.rx * transfer, ry: source.ry * transfer };
-    glass.pose.style.transform = reduced ? 'translate(0px,0px)' : 'translate3d(' + (source.x * transfer + Math.sin(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration) + 'px,' + ((source.y - source.lift) * transfer + Math.cos(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration * 0.5) + 'px,' + source.lift * transfer + 'px) rotateX(' + pose.rx + 'deg) rotateY(' + pose.ry + 'deg) rotateZ(' + source.rz * transfer + 'deg)';
+    var turn = yaw * transfer, toss = Math.abs(Math.sin(turn * Math.PI / 180)) * C.config.packObject.flipLiftPx;
+    glass.pose.style.transform = reduced ? 'translate(0px,0px)' : 'perspective(' + C.config.packObject.perspectivePx + 'px) translate3d(' + (source.x * transfer + Math.sin(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration) + 'px,' + ((source.y - source.lift) * transfer + Math.cos(elapsed / 1000 * cfg.vibrationHz * Math.PI * 2) * vibration * 0.5) + 'px,' + (source.lift * transfer + toss) + 'px) rotateX(' + pose.rx + 'deg) rotateY(' + (pose.ry + turn) + 'deg) rotateZ(' + source.rz * transfer + 'deg)';
     if (packMaterial) packMaterial.update(pose, elapsed, reduced);
+    if (C.packFaces && pack && C.packFaces.has(pack)) {
+      C.packFaces.update(glass, pose, turn, elapsed, reduced);
+      // Hold Space: a Rare pack's printed marks come apart and re-form as the white grid.
+      if (phase === 'charging' || phase === 'draining') C.packFaces.charge(glass.el, fill, elapsed);
+    }
     if (C.settings.policy.particles > 0 && !reduced) glass.specks.forEach(function (speck) { speck.el.style.transform = 'translateY(' + (-((elapsed / 1000 * cfg.speckSpeedPx + speck.phase * cfg.speckSpeedPx) % height)) + 'px)'; });
     C.events.emit('charge:progress', fill);
   }
@@ -286,11 +299,11 @@
     cutTip.setAttribute('cx',cutTipX*width);cutTip.setAttribute('cy',policy.guideY*height);
     cutTip.style.opacity=phase==='cutting'&&path.length?heat:0;
     cutGlow.style.opacity=phase==='tearing'?1-clamp(elapsed/cfg.tearMs):path.length?0.2+heat*0.8:0;
-    host.style.setProperty('--cut-heat',heat);
+    host.style.setProperty('--cut-heat',heat);cutHeatNow=heat;
     foil.style.transform=reduced?'none':'translateY('+(-heat*cfg.cutRecoilPx)+'px) rotate('+cutDirection*heat*cfg.cutRecoilDegrees+'deg)';
     if(drag){var r=host.getBoundingClientRect();C.events.emit('cursor:cutTarget',{x:r.left+cutTipX*width,y:r.top+policy.guideY*height,strength:heat});}
     var label=hint.querySelector('.opening-cut-hint');
-    if(phase==='cutting')label.textContent=cutFinish?'Seal released':path.length>1?(drag?'Keep swiping':'Continue swipe')+' Ã‚· '+Math.min(100,Math.round(cutRange().span/C.settings.cutPolicy.span*100))+'%':'Swipe to open';
+    if(phase==='cutting')label.textContent=cutFinish?'Seal released':path.length>1?(drag?'Keep swiping':'Continue swipe')+' · '+Math.min(100,Math.round(cutRange().span/C.settings.cutPolicy.span*100))+'%':'Swipe to open';
     hot=hot.filter(function(item){var age=now-item.at;if(age>=cfg.trailMs||reduced){if(item.el)item.el.remove();return false;}if(!item.el){item.el=svg('path',trails);item.el.setAttribute('class','opening-cut-glint');item.el.setAttribute('stroke-width',item.stroke);}item.el.setAttribute('d',C.cutGeometry.svg([item.a,item.b],width,height));item.el.style.opacity=1-ease(age/cfg.trailMs);return true;});
     return heat>0&&now-cutHeatAt<policy.heatDecayMs||Math.abs(cutTargetX-cutTipX)>0.001||!!drag||!!cutFinish;
   }
@@ -575,6 +588,26 @@
     }
     return false;
   }
+  // The opened wrapper of a designed pack paints its own cut dots and (Rare) grid.
+  function paintFoilFaces(now, dt) {
+    if (!pack || !pack.design.face || !C.packFaces || (phase !== 'dissolving' && phase !== 'cutting' && phase !== 'tearing')) return false;
+    var reduced = C.motion.reduced || !C.settings.policy.animation, rare = pack.design.face === 'rare';
+    var range = phase === 'cutting' && cutFinish ? { min: cutFinish.min, max: cutFinish.max } : cutRange();
+    var cut = null;
+    if (phase === 'cutting' || phase === 'tearing') {
+      var tip = cutTipX, torn = phase === 'tearing' ? clamp(elapsed / (cfg.tearMs + cfg.splitMs + cfg.fallMs)) : 0;
+      cut = path.length || cutFinish
+        ? { min: phase === 'tearing' ? 0 : range.min, max: phase === 'tearing' ? 1 : (cutFinish ? 1 : range.max), tip: tip, heat: cutHeatNow, release: reduced ? 0 : torn }
+        : { min: 1, max: 0, tip: .5, heat: 0, release: 0 };
+    }
+    // Rare: the grid re-materialises on the opened wrapper, rising once as the cut begins.
+    var grid = 0;
+    if (rare) grid = phase === 'dissolving' ? 0 : reduced ? 1 : ease(phase === 'cutting' ? elapsed / 1500 : 1);
+    var fx = { cut: cut, grid: grid, network: 1, t: elapsed, wave: 1 };
+    var moved = C.packFaces.foil(foil, fx);
+    if (phase === 'tearing') halves.forEach(function (half) { C.packFaces.foil(half, fx); });
+    return moved || (rare && !reduced && phase === 'cutting') || (phase === 'cutting' && cutHeatNow > 0);
+  }
   function update(now) {
     if (!enabled) return false;
     // Spatial/cosmic shots are analytic poses, so a slow frame must not lengthen the film.
@@ -621,6 +654,7 @@
     if (['rising', 'preFlip', 'flipping', 'settling', 'variantReveal', 'revealed', 'collecting', 'discarding'].indexOf(phase) !== -1) return updateReveal(dt) || backdropMoving || toastActive || errorUntil > 0;
     var particleActive = particles.update(dt); stats.particles = particles.count;
     var cutActive=paintCut(now,dt);
+    var faceFx = paintFoilFaces(now, dt);
     if (phase === 'dissolving') {
       var dissolve = clamp(elapsed / cfg.dissolveMs); glass.el.style.opacity = 1 - ease(dissolve); foil.style.opacity = ease(dissolve);
       paintFluid(dt);
@@ -639,7 +673,7 @@
       cutGuide.style.opacity = guideVisible ? (C.motion.reduced || !C.settings.policy.animation ? 0.65 : guideP > 0.82 ? (1 - guideP) / 0.18 * 0.65 : 0.65) : 0;
       cutTrack.style.opacity = guideVisible ? 1 : 0.35;
       enterHint.style.opacity = cutIdle >= cfg.enterHintMs ? 1 : 0;
-      return wrapperMoving || !C.motion.reduced && C.settings.policy.animation > 0 && guideVisible || cutIdle < cfg.enterHintMs || hot.length > 0 || particleActive || cutActive;
+      return wrapperMoving || faceFx || !C.motion.reduced && C.settings.policy.animation > 0 && guideVisible || cutIdle < cfg.enterHintMs || hot.length > 0 || particleActive || cutActive;
     }
     if (phase === 'tearing') {
       foil.style.opacity = 0; hint.style.opacity = 0; enterHint.style.opacity = 0;

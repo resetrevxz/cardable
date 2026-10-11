@@ -77,7 +77,10 @@
       liftPx: 24, inspectLiftPx: 42, dragSlopPx: 5, massLagMs: 34,
       spring: { stiffness: 180, damping: 22, mass: 1 },
       fluidSpring: { stiffness: 100, damping: 15, mass: 1 },
-      fluidAngleCap: 9, fluidWaveCapPx: 3, idleMaterialMs: 11000, handoffMs: 320
+      fluidAngleCap: 9, fluidWaveCapPx: 3, idleMaterialMs: 11000, handoffMs: 320,
+      // 3D turn: perspective depth, the weighty flip spring, free orbit while inspecting, and the toss lift.
+      perspectivePx: 1250, flipSpring: { stiffness: 70, damping: 10.5, mass: 1, epsilon: 0.05 },
+      orbitSpring: { stiffness: 120, damping: 17, mass: 1, epsilon: 0.05 }, orbitPerPx: 0.62, orbitPitchCap: 38, flipLiftPx: 30
     },
 
     // Stage 4 presentation; timestamp rules and pack data stay unchanged.
