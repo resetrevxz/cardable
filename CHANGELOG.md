@@ -1,3 +1,24 @@
+# Cardable v1.4.3 — Quiet start
+
+Cardable starts with a bar instead of a panel, Achievements step aside while they are reworked, and a long list of small interface fixes lands. Saved collections, serials, odds, pack cadence and the save schema are unchanged. Your achievement progress is kept in the save and returns when the feature does.
+
+- **Achievements are paused.** The tab, notices, shortcuts, commands and settings for Achievements are hidden for now. Nothing is deleted: the feature stays in the game and will come back reworked.
+- **A quieter start.** Cardable no longer opens with a full panel. A small bar sits under the pack and fills smoothly while the game loads, then leaves. It waits a moment before it shows, so a quick start never flashes it. Until the game has loaded, Settings and Patch notes stay out of sight and the inventory says it is blocked if you try to pull it up.
+- **Command palette.** A rounded search field with its own icon and a soft accent focus, keycap hints in the footer, and everyday commands first when the field is empty.
+- **Keyboard shortcuts.** The sheet has a close icon, a live filter (type "flip" to find every flip shortcut) and clean keycaps.
+- **Where you are.** Card detail shows "54 of 134" beside the Flip hint, including for undiscovered cards. On touch or pen, a quick sideways swipe moves to the next or previous card. (Code-checked only.)
+- **Hold feedback.** Open pack fills as you hold it, and a quick tap reads "Hold to open" for a moment so the gesture teaches itself.
+- **Shelf captions.** Undiscovered cards read "Unknown card" with "Common · Gen 2" under them, so nothing is cut off. Pointing at the Inventory title explains its two numbers.
+- **Photo album.** The search field shows focus around the whole field, and an empty album hides its selection tools.
+- **Large displays and phones.** The pack's timer and buttons grow on tall displays. On phones the wordmark shrinks so Credits and Settings never cover it, and the detail hint stays on one line.
+- **Tutorial.** Skip tutorial and Help stand at the top left instead of over Credits and Settings, and the first step shows only the pack.
+- **Cleaner details.** The cut hint is readable, and Patch notes no longer draws a focus ring around the whole window.
+- **Fixed: Studio top bar.** In Pro mode at 1280 px wide, History and Scenes sat under the Simple/Pro switch and Help covered Layers and Inspector. The bar now keeps everything on one row and wraps cleanly on narrower windows. In narrow Studio windows the view cube moves to the bottom left.
+- **Fixed: inventory on phones.** At phone width the collection tabs (All Cards, Favorites) were hidden behind New collection. They now have their own row, only the card you are on shows its tags, and the empty peek thumbnail no longer adds a row to the header.
+- **Fixed: credits symbol.** Credits no longer show a dollar sign in the pack menu and save preview.
+
+Checked in a browser session with screenshots at several window sizes, and the pack, schedule, Picker and control dev checks. Touch input, real-hardware frame rate, a clean Windows install and the packaged app's start were not exercised. This release is unsigned.
+
 # Cardable v1.4.2 — One glass
 
 Patch notes and Help now share the surface of Credits and Settings. Saved collections, serials, odds and the save schema are unchanged.
@@ -5,27 +26,9 @@ Patch notes and Help now share the surface of Credits and Settings. Saved collec
 - **Matching glass.** Patch notes and Help are the same rounded glass as Credits and Settings, with the same edge light, shadow and blur. Patch notes shows its label larger with the version beside it.
 - **Settings gear.** The gear takes the same glass so the row reads as one set.
 - **Unread dot.** The dot on Patch notes uses your accent color and sits inside the corner.
-- **Command palette.** A rounded search field with its own icon and a soft accent focus, keycap hints in the footer, and commands before cards when the field is empty.
-- **Keyboard shortcuts.** The sheet has a close icon, a live filter (type "flip" to find every flip shortcut) and clean keycaps.
-- **Where you are.** Card detail shows "54 of 134" beside the Flip hint.
-- **Shelf captions.** Undiscovered cards read "Unknown card" with "Common · Gen 2" under them, so nothing is cut off.
-- **Search fields.** Achievements and the photo album show focus around the whole field. Achievements has a magnifier, and an empty album hides its selection tools.
-- **Large displays and phones.** The pack's timer and buttons grow on tall displays. On phones the wordmark shrinks so Credits and Settings never cover it, and the detail hint stays on one line.
-- **Tutorial.** Skip tutorial and Help stand at the top left instead of over Credits and Settings, and the first step shows only the pack.
-- **Cleaner details.** The cut hint is readable, and Patch notes no longer draws a focus ring around the whole window.
-- **Palette suggestions.** With the field empty, everyday commands lead: Open pack, Open inventory, Settings, Patch notes and the shortcuts; settings entries and cards follow.
-- **Swipe to browse.** In card detail, a quick sideways swipe on touch or pen moves to the next or previous card. (Code-checked only.)
-- **Counts explained.** Pointing at the Inventory title explains the two numbers: designs collected, and shelf entries with variant finishes.
-- **Hold feedback.** Open pack fills as you hold it, and a quick tap reads "Hold to open" for a moment so the gesture teaches itself.
-- **Counter on every card.** Undiscovered cards in detail keep the "N of M" position.
-- **Fixed: Studio top bar.** In Pro mode at 1280 px wide, History and Scenes sat under the Simple/Pro switch and Help covered Layers and Inspector. The bar now keeps everything on one row, and wraps cleanly on narrower windows. In narrow Studio windows the view cube moves to the bottom left so it no longer sits under the viewport toolbar.
-- **Fixed: inventory on phones.** At phone width the collection tabs (All Cards, Favorites) were hidden behind New collection and Achievements. They now have their own row, only the card you are on shows its tags, and the empty peek thumbnail no longer adds a row to the header. Achievements keeps its title whole instead of breaking inside the word.
-- **Achievements, remade.** One quiet two-pane workspace: a calm header with the week reset beside it, a search field with a segmented All, Ready, Active and Complete control, plain section labels (Pinned, Weekly, Unclaimed rewards, Recurring, One-time) and clean glass rows with a single accent. Each record opens in a clear card: emblem, difficulty and status chips, progress, objectives, a credit reward with its claim button, and the milestone frame. Pins appear on hover, the rank decoration is a simple frame instead of double and dotted borders, and the footer is one summary line. It fits phones, short windows and Mono.
-- **A quieter start.** Cardable no longer opens with a full panel. A small bar sits under the pack and fills smoothly while the game loads, then leaves. It waits a moment before it shows, so a quick start never flashes it. Until the game has loaded, Settings and Patch notes stay out of sight and the inventory says it is blocked if you try to pull it up.
-- **Fixed: credits symbol.** Credits no longer show a dollar sign in the pack menu and save preview.
 - **Fixed: Help position.** Help no longer overlaps Patch notes when Patch notes is wider than first measured.
 
-Checked in a browser session with screenshots at 1280 x 720, 1920 x 1080 and phone width, and the pack, schedule, Picker and control dev checks. Monochrome, the lower glass tiers, touch input and a clean Windows install were not exercised. This release is unsigned.
+Checked in a browser session with a screenshot at 1280 x 720 and the measured spacing of all four controls. Monochrome, the lower glass tiers, touch input and a clean Windows install were not exercised. This release is unsigned.
 
 # Cardable v1.4.1 — Quiet details
 

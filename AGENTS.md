@@ -1,6 +1,6 @@
 # AGENTS.md — current Cardable working guide
 
-Cardable's current public version is **1.4.2**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
+Cardable's current public version is **1.4.3**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
 
 ## Read only what the task needs
 
@@ -19,6 +19,7 @@ The latest direct user instruction controls scope. Historical plans, patches, de
 - Cards, rarities, generations, variants and packs belong in `src/data/` and their registries. UI consumes data rather than hard-coding game rules.
 - Preserve stock/refill behavior, immutable serials, rolled variants and pack provenance. Reserve atomically before presentation; recovery and Keep/Delete must remain exact-once. A cinematic never rolls or pays again.
 - Picker offers may have an empty `cards` array until confirmation. Do not mint unchosen offers or assume `pendingReveal.cards[0]` exists.
+- Achievements are paused behind `C.config.flags.achievements = false`. The engine, data, UI and saved progress stay in the code and the save; the owner is reworking them by hand. Do not delete them or touch `state.achievements`.
 - Do not bump the save schema for optional feature state. Normalize optional fields explicitly and preserve event-bus boundaries. Never silently wipe or replace saves.
 - Preserve `com.cardable.game`, the primary `index.html` path, native user-data identity and separate Studio/photo IndexedDB blobs. JSON export is not a photo backup.
 

@@ -1,32 +1,45 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.4.3',codename:'Quiet start',date:'October 11, 2026',tag:'Update',tagline:'A bar instead of a panel, and Achievements take a break.',
+    hero:{badge:'CARDABLE / 1.4.3',title:'Quiet start.',subtitle:'Cardable starts with a small bar under the pack. Achievements are paused while they are reworked, and your progress is kept.',media:[]},
+    sections:{
+      fixes:[
+        'The Studio top bar no longer overlaps in Pro mode: History, Scenes, Layers, Inspector and Help each have their own place.',
+        'On phones the inventory’s collection tabs are visible again, and tags no longer overlap on the shelf.',
+        'Credits no longer show a dollar sign in the pack menu and save preview.',
+        'Patch notes no longer draws a focus ring around the whole window.'
+      ],
+      visuals:[
+        'Starting Cardable shows only a small bar under the pack. Settings and Patch notes appear once the game has loaded, and the inventory says it is blocked until then.',
+        'The command palette has a rounded search field and keycap hints, and lists everyday commands first.',
+        'Undiscovered shelf cards read “Unknown card” with a short “Common · Gen 2” line.',
+        'The pack’s timer and buttons grow on tall displays; on phones the wordmark and detail hint fit.',
+        'The tutorial’s first step shows only the pack, with Skip and Help at the top left.'
+      ],
+      qol:[
+        'Achievements are paused: no tab, notices, shortcuts or settings for now. Your progress stays in your save.',
+        'The Keyboard shortcuts sheet has a live filter and a close icon.',
+        'Card detail shows where you are, like “54 of 134”, and swiping sideways on touch or pen moves between cards.',
+        'Open pack fills while you hold it, and a quick tap reads “Hold to open”.'
+      ]
+    },
+    entries:[
+      'Cardable starts with a small bar instead of a panel.',
+      'Achievements are paused while they are reworked.',
+      'The palette, shortcuts and card detail are easier to use.'
+    ]
+  },
+  {
     version:'1.4.2',codename:'One glass',date:'October 11, 2026',tag:'Update',tagline:'Patch notes and Help match Credits and Settings.',
     hero:{badge:'CARDABLE / 1.4.2',title:'One glass.',subtitle:'The four controls in the top corner now share one surface.',media:[]},
     sections:{
       fixes:[
-        'Help no longer overlaps Patch notes when Patch notes is wider than first measured.',
-        'Credits no longer show a dollar sign in the pack menu and save preview.',
-        'The Studio top bar no longer overlaps in Pro mode: History, Scenes, Layers, Inspector and Help each have their own place.',
-        'On phones the inventory’s collection tabs are visible again, and tags no longer overlap on the shelf.'
+        'Help no longer overlaps Patch notes when Patch notes is wider than first measured.'
       ],
       visuals:[
         'Patch notes and Help use the same glass as Credits and Settings.',
         'The Settings gear takes the same glass so the row reads as one set.',
-        'The unread dot on Patch notes uses your accent color.',
-        'The command palette has a rounded search field and keycap hints, and lists commands before cards.',
-        'Undiscovered shelf cards read “Unknown card” with a short “Common · Gen 2” line.',
-        'The pack’s timer and buttons grow on tall displays; on phones the wordmark and detail hint fit.',
-        'Tutorial Skip and Help stand at the top left instead of over Credits and Settings, and the first step shows only the pack.',
-        'Achievements is remade: a calmer header, a segmented filter, plain section labels, clean rows and one clear record card with its reward and claim button.',
-        'Starting Cardable shows only a small bar under the pack. Settings and Patch notes appear once the game has loaded, and the inventory says it is blocked until then.'
-      ],
-      qol:[
-        'The Keyboard shortcuts sheet has a live filter and a close icon.',
-        'Card detail shows where you are, like “54 of 134”.',
-        'In card detail, swipe sideways on touch or pen to move to the next card.',
-        'Open pack fills while you hold it, and a quick tap reads “Hold to open”.',
-        'The command palette suggests everyday commands first when the field is empty.',
-        'Search fields show focus around the whole field; an empty album hides its selection tools.'
+        'The unread dot on Patch notes uses your accent color.'
       ]
     },
     entries:[
