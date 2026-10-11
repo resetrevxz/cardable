@@ -73,6 +73,8 @@
 .visual-pack-marker { height:60px; display:grid; place-items:center; }
 :root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .cb-toast.cb-enter { animation:cb-toast-spring 420ms var(--ease-out) both; }
 @keyframes cb-toast-spring { 0% { opacity:0; transform:translateY(9px) scale(.98); } 65% { opacity:1; transform:translateY(-1px) scale(1.003); } 100% { transform:none; } }
+:root[data-toast-position="top"]:not(.reduced-motion) .cb-toast.cb-enter { animation-name:cb-toast-spring-top; }
+@keyframes cb-toast-spring-top { 0% { opacity:0; transform:translateY(-9px) scale(.98); } 65% { opacity:1; transform:translateY(1px) scale(1.003); } 100% { transform:none; } }
 :root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .inventory-tile.is-acquired .inventory-tile-card::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg,transparent 32%,#fff2 48%,transparent 64%); animation:cb-new-glint 800ms var(--ease-out) both; }
 @keyframes cb-new-glint { from { opacity:0; transform:translateX(-70%); } 35% { opacity:.35; } to { opacity:0; transform:translateX(70%); } }
 :root:not(.reduced-motion):is([data-animation-quality="high"],[data-animation-quality="very-high"]) .collectible-card.is-variant-evolving .variant-plane { filter:contrast(calc(1 + (1 - var(--variant-progress,1))*.08)); }

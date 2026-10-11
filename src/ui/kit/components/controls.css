@@ -44,6 +44,9 @@
 [data-hover="reveal"]:is(:hover,:focus-within) .cb-reveal { opacity:1; }
 .cb-enter { animation:cb-enter calc(var(--duration-base) * var(--q-motion)) var(--ease-out) both; animation-delay:calc(min(var(--entry,0),7) * var(--ui-duration-17) * var(--q-motion)); }
 @keyframes cb-enter { from { opacity:0; transform:translateY(8px); filter:blur(calc(4px * var(--q-blur))); } to { opacity:1; transform:translateY(0); filter:blur(0); } }
+/* Top notices drop in from above instead of rising from below. */
+@keyframes cb-enter-down { from { opacity:0; transform:translateY(-8px); filter:blur(calc(4px * var(--q-blur))); } to { opacity:1; transform:translateY(0); filter:blur(0); } }
+:root[data-toast-position="top"] .cb-toast.cb-enter { animation-name:cb-enter-down; }
 .reduced-motion [data-hover],:root[data-quality="very-low"] [data-hover] { transform:none !important; }
 .reduced-motion .cb-enter { animation:none; }
 :root[data-quality="very-low"] .cb-ui *, :root[data-animation-quality="very-low"] .cb-ui * { animation:none !important; transition:none !important; }
