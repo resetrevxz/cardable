@@ -4,6 +4,7 @@ The second round of the visual pass, plus a fix for inspecting Ascendant cards. 
 
 - **Inventory height.** Appearance › Interface chooses how tall the inventory opens: Compact, Standard (the default) or Tall. It re-measures live, even with the inventory open.
 - **Collection tabs slide.** A single indicator glides to the collection you pick instead of the highlight jumping. It stays away on Achievements and the album.
+- **Plainer journal.** Journal entries state what happened, without filler lines like “a moment earned” or “now part of your story”.
 - **Settings accents.** Settings accents follow your accent color and the monochrome theme, like the rest of the game.
 - **Notice position.** Gameplay › Notices chooses whether unlock and action notices appear at the bottom (the default) or the top of the screen. Top notices drop in from above.
 - **Fixed: inventory pull from fully open.** Pulling the sheet down from its full height no longer detaches it from the bottom edge. It stays anchored and shrinks as one surface.
