@@ -766,6 +766,12 @@ textarea.mk-input { padding: 10px 12px; resize: vertical; min-height: 84px; line
 .mk-chart-dot { fill: var(--accent); stroke: var(--ink-0); stroke-width: 1; }
 .mk-chart-axis text { fill: var(--text-faint); font: 500 10px var(--font-mono); }
 .mk-field-error.is-inline { margin: 0; }
+.mk-analysis { border: 1px solid var(--hairline); border-radius: var(--radius-control); background: var(--glass-1); padding: 10px 12px; }
+.mk-analysis > summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; font: 600 13px/18px var(--font-ui); }
+.mk-analysis[open] > summary .mk-icon { transform: rotate(180deg); }
+.mk-analysis-rows { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+.mk-analysis-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; font-size: 13px; line-height: 18px; }
+.mk-analysis-row > :nth-child(3), .mk-analysis-row > :nth-child(4) { grid-column: 1 / -1; font-size: 12px; color: var(--text-dim); }
 @container mk (max-width: 760px) {
   .mk-sim-word { display: none; }
   .mk-offer { flex-direction: column; align-items: stretch; }

@@ -30,13 +30,13 @@ Titan preserves the three-second hold, atomic stock/count/reward reservation and
 
 ## 2.1.0 brand packs and collection turn
 
-The next scheduled pack is stable across preview, charge cancellation and reload. Non-cadence slots have a combined 5% branded chance, equal NVIDIA/AMD/Snapdragon/Apple shares; Rare retains every fourth opening. Each uses the existing commit, stock consumption, $200 reward and immutable pending reveal, with roster-restricted pools. Card and finish random draws are unchanged.
+The next scheduled pack is stable across preview, charge cancellation and reload. Non-cadence slots have a combined 5% branded chance, equal NVIDIA/AMD/Snapdragon/Apple shares; Rare retains every fourth opening. Each uses the existing commit, stock consumption, $200 reward and immutable pending reveal (no reward is paid), with roster-restricted pools. Card and finish random draws are unchanged.
 
 After a durable Keep, collecting rotates the earned card from front through its engraved back, changes surfaces at the hidden edge, and returns as the next scheduled pack. The turn advances no gameplay state. It works while ready or regenerating, uses the shared clock and a fade equivalent for reduced/low animation, and cleans up on save replacement. The inventory toast and collect pulse still confirm ownership. Delete retains its existing discard presentation.
 
 The most important sequence in the game. Build it as a state machine driven by a single timeline, with the pull already decided (`docs/01-GAME-RULES.md`).
 
-Owner-approved remake pass 1 adds **Delete** beside Keep after the same reveal delay. Delete durably resolves the current reserved instance, fades the card away, and returns to the menu without an inventory flight or collection pulse. A pack now awards **$200** in its charge-completion write; a separate silver coin flight heads to the balance. Failed writes preserve both stock and balance. Recovery exposes both decisions and does not pay again. Actions remain within the viewport on short windows. In future multi-card packs, discarded IDs are saved alongside the existing decision count, and only kept instances enter inventory.
+Owner-approved remake pass 1 added a decision beside Keep after the same reveal delay. Since Market Beta Stage 3 it is **Sell**, and the button states its price (`Sell · 23`): the reserved instance is resolved and its Quick Sell Credits are issued in the same durable write as the decision, once. A pack opening itself pays nothing. Reload with the decision pending shows Keep and Sell again and pays nothing; reload after Sell shows the Credits once. Favorite stacks cannot be sold. Cards of Legendary and above ask for the typed name and hold; other tiers ask for the hold when the saved setting is on.
 
 ## 1. States
 

@@ -39,7 +39,7 @@ After 15 s without activity, secondary controls fade out over 600 ms. Keep the p
 
 ## 5. Currency
 
-Top-right, mono, tabular. Value counts up when it changes, with a brief shimmer across the number. The owner-approved opening commit grants $200 once; no spending UI is introduced (`docs/01-GAME-RULES.md`).
+Top-right, mono, tabular. Value counts up when it changes, with a brief shimmer across the number. Opening a pack pays nothing since Market Beta Stage 3; Credits come from selling cards. The popover separates the balance from the collection estimate and the Quick Sell value, and links to Sell cards and Sale receipts (`docs/01-GAME-RULES.md`).
 
 ## 6. Inventory arrow
 

@@ -1,0 +1,56 @@
+/* Cardable — Bulk Sell, receipts and wallet value rows (Market Beta, Stage 3).
+ * Quiet panels on kit tokens. Price is mono and right-aligned; nothing here competes with the card art. */
+.sale-dialog { width: min(720px, calc(100vw - 32px)); max-height: min(86vh, 860px); overflow: auto; display: flex; flex-direction: column; gap: 12px; padding: 22px 24px 20px;
+  border: 1px solid var(--stroke-strong, rgba(255,255,255,.18)); border-radius: 24px; color: var(--text); font-family: var(--font-ui); text-align: left;
+  background: color-mix(in srgb, var(--ink-1, #0d0e12) 96%, transparent); box-shadow: 0 24px 80px rgba(0,0,0,.55); }
+.sale-dialog * { box-sizing: border-box; }
+.sale-dialog h2 { margin: 0; font: 600 22px/28px var(--font-ui); letter-spacing: -.025em; }
+.sale-bulk { overflow: hidden; }
+.sale-scroll { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; min-height: 0; overflow: auto; padding-right: 2px; scrollbar-width: thin; }
+.sale-note, .sale-muted, .sale-empty { margin: 0; color: var(--text-dim); font: 500 13px/18px var(--font-ui); }
+.sale-summary { margin: 0; font: 600 14px/20px var(--font-ui); }
+.sale-message { margin: 0; font: 500 13px/18px var(--font-ui); color: var(--warning); }
+.sale-message[hidden] { display: none; }
+.sale-presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.sale-pill { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--hairline, rgba(255,255,255,.12)); background: var(--glass-1); color: var(--text-dim); font: 500 13px/1 var(--font-ui); cursor: pointer; }
+.sale-pill:hover { color: var(--text); border-color: var(--stroke-hover, rgba(255,255,255,.28)); }
+.sale-pill[aria-pressed="true"] { color: var(--text); background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.sale-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.sale-field { display: flex; flex-direction: column; gap: 4px; font: 500 12px/16px var(--font-ui); color: var(--text-dim); }
+.sale-field select, .sale-field input { min-height: 38px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--glass-1); color: var(--text); font: 500 14px/1 var(--font-ui); }
+.sale-checks { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.sale-check { display: inline-flex; align-items: center; gap: 8px; font: 500 13px/18px var(--font-ui); color: var(--text); }
+.sale-list { position: relative; flex: 0 0 auto; height: min(300px, 38vh); overflow: auto; border: 1px solid var(--hairline); border-radius: 14px; background: var(--glass-1); scrollbar-width: thin; }
+.sale-list:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sale-list-inner { position: relative; width: 100%; }
+.sale-list-slice { position: absolute; left: 0; right: 0; top: 0; }
+.sale-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; height: 42px; padding: 0 12px; border-bottom: 1px solid var(--hairline); }
+.sale-row.is-off { opacity: .5; }
+.sale-name { display: flex; flex-direction: column; min-width: 0; }
+.sale-name strong { font: 600 13px/16px var(--font-ui); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sale-name small { font: 500 11px/14px var(--font-ui); color: var(--text-dim); }
+.sale-mono { font: 500 12px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.sale-serial { color: var(--text-dim); }
+.sale-price { min-width: 54px; text-align: right; font-weight: 600; }
+.sale-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.sale-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 2px; }
+.sale-hold { min-height: 44px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-ink, #05060a); font: 600 14px/1 var(--font-ui); cursor: pointer; }
+.sale-hold:disabled { opacity: .45; cursor: not-allowed; }
+.sale-hold[data-state="holding"] { filter: brightness(1.12); }
+.sale-receipts { display: flex; flex-direction: column; gap: 8px; }
+.sale-receipt { border: 1px solid var(--hairline); border-radius: 12px; background: var(--glass-1); padding: 10px 12px; }
+.sale-receipt summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 14px; cursor: pointer; font: 500 13px/18px var(--font-ui); }
+.sale-items { list-style: none; margin: 8px 0 6px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.sale-items li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; font: 500 12px/16px var(--font-ui); }
+.sale-excluded:empty { display: none; }
+/* Wallet popover: three clearly separate numbers. */
+.cb-wallet-values { display: grid; gap: 8px; margin: 10px 0 0; }
+.cb-wallet-values > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: baseline; }
+.cb-wallet-values dt { color: var(--text-dim); font: 500 12px/16px var(--font-ui); }
+.cb-wallet-values dd { margin: 0; font: 600 13px/16px var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.cb-wallet-values small { grid-column: 1 / -1; color: var(--text-faint, var(--text-dim)); font: 500 11px/15px var(--font-ui); }
+.cb-wallet-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.cb-delete-price { margin: 4px 0 0; font: 500 13px/18px var(--font-ui); color: var(--text-dim); }
+.cb-delete-price strong { display: block; color: var(--text); font: 600 22px/28px var(--font-mono); letter-spacing: -.02em; }
+@media (max-width: 520px) { .sale-row { grid-template-columns: 22px minmax(0, 1fr) auto; } .sale-serial { display: none; } .sale-dialog { padding: 18px 16px; } }
+.reduced-motion .sale-hold { transition: none; }

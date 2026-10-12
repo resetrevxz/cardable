@@ -28,7 +28,7 @@
   add('resolutionScale','Heavy canvas resolution','Text stays sharp; reduce heavy scene pixel work.','Performance',1,[.5,.75,1], 'select');
   add('holdDuration','Pack hold duration','Normal 3 s; Short 2 s; Quick 1 s.','Gameplay behavior','normal',['normal','short','quick']);
   add('toggleHold','Toggle to hold','Press once to charge, again to cancel; release does not cancel.','Gameplay behavior',false);
-  add('confirmLowDelete','Confirm low-tier deletion','Legendary and higher always keep typed confirmation.','Gameplay behavior',true);
+  add('confirmLowDelete','Confirm low-tier sales','Asks you to hold before selling a card. Legendary and higher always keep typed confirmation.','Gameplay behavior',true);
   add('defaultSort','Default inventory sort','Current preserves the existing remembered sort.','Gameplay behavior','current',['current','recent','oldest','rarity-desc','name-asc'],'select');
   add('defaultView','Default inventory view','Current preserves the remembered Shelf / Grid view.','Gameplay behavior','current',['current','shelf','grid']);
   add('startupScreen','Start at','Menu preserves today’s launch behavior.','Gameplay behavior','menu',['menu','last']);

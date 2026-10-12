@@ -14,7 +14,7 @@
   performance:{title:'Performance display',body:'Simple shows FPS and the average FPS of the slowest 1% of sampled frames. Advanced also shows the slowest 0.1%, frame-time percentiles and sample count. Wake-up frames, idle and paused periods are excluded. Short samples are provisional; these numbers do not certify hardware performance.'},
   developer:{title:'Developer tools',body:'These opt-in tools are for local editing and inspection. Preview controls must not grant rewards to real progress.'},
   commands:{title:'Command palette',body:'Search for an action, use the arrow keys to select it and press Enter to run. Escape returns to the previous screen.'},
-  opening:{title:'Card reveal',body:'Keep or delete a card once the reveal is ready. Skipping a cinematic changes presentation only; it never repeats a reward.'},
+  opening:{title:'Card reveal',body:'Keep a card, or sell it for the price shown on the button. Opening a pack pays nothing; Credits come from selling cards. Skipping a cinematic changes presentation only and never repeats a sale.'},
   cinematic:{title:'Cinematic replay',body:'Skip changes presentation only. Escape or Return to card brings you back to the selected collected copy.'},
   welcome:{title:'Cardable',body:'Progress stays on this computer. Help and Data tools provide the paths for saving, recovery and moving your collection.'}
 };Object.keys(C.data.help).forEach(function(id){var h=C.data.help[id];h.id=id;h.shortcuts=h.shortcuts||[];h.links=h.links||[];});})(window.Cardable);

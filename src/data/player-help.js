@@ -3,7 +3,7 @@
   C.playerHelp = [
     {id:'play',title:'Open a pack. Keep a card.',lines:[
       'Hold Space, or press and hold the pack, to charge a ready pack. Follow the tear or unseal prompt, then flip the card. Touch controls stay visible for each step.',
-      'Choose Keep to add the revealed card to your collection. Delete discards it after confirmation. Finish that decision before opening another pack; reserved reveals resume after reopening.',
+      'Choose Keep to add the revealed card to your collection. Sell pays the Quick Sell price shown on the button, after confirmation for valuable cards. Opening a pack pays no Credits: sell cards you do not want, or trade them on the Market. Finish that decision before opening another pack; reserved reveals resume after reopening.',
       'Drag the sheet up, or press I, to open your inventory. Open a card and point at its rarity, serial, name or specs for details; the round buttons beside it inspect, favorite and flip. Your photo album is a tab in the inventory.'
     ]},
     {id:'keys',title:'Find your way',lines:[

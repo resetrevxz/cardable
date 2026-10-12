@@ -120,3 +120,48 @@ test('a player listing appears with the right view, is locked, and a sale writes
   assert.equal(sold.length, 1); assert.equal(sold[0].fee, x.S.fee(200));
   assert.equal(x.host.state.balance, 2000 + 200 - x.S.fee(200));
 });
+
+test('changes over 24 h and 7 d are measured on executed trades and are null without enough of them', () => {
+  const x = setup(14);
+  const card = x.env.cards.find((c) => x.env.tierOf[c.id] === 3).id, key = x.S.keyOf(card, null, null);
+  const trade = (t, price) => ({ id: 'T' + t, c: card, v: null, k: null, s: 'CBL-X-000001', price: price, fee: 1, t: t, seller: 'b01', buyer: 'b02', kind: 'fixed', f: price, bw: '', sw: '' });
+  x.world.now = 10 * DAY;
+  x.world.trades.length = 0;
+  assert.equal(x.api.valuation('simulation', { cardId: card }).change24h, null, 'no trades, no change');
+  x.world.trades.push(trade(10 * DAY - 2 * HOUR, 120));
+  assert.equal(x.api.valuation('simulation', { cardId: card }).change24h, null, 'one trade is not a change');
+  x.world.trades.unshift(trade(8.5 * DAY, 100));
+  x.world._idx = null;
+  const v = x.api.valuation('simulation', { cardId: card });
+  assert.equal(v.change7d, null, 'the reference trade must sit near the start of the window, not be 1.5 days old and still pass for a week');
+  x.world.trades.length = 0;
+  x.world.trades.push(trade(10 * DAY - 7.2 * DAY, 100), trade(10 * DAY - 30 * HOUR, 105), trade(10 * DAY - 6 * HOUR, 110), trade(10 * DAY - 1 * HOUR, 120));
+  x.world._idx = null;
+  const w = x.api.valuation('simulation', { cardId: card });
+  assert.equal(w.change7d, 0.2, 'a 100 sale a week ago and a 120 sale now is +20%');
+  assert.ok(Math.abs(w.change24h - (120 / 105 - 1)) < 1e-9, '24 h is measured against the last trade on or before the start of the window');
+  // volume counts executed trades only, by window
+  assert.equal(w.volume24h, 2); assert.equal(w.volume7d, 3);
+  assert.equal(w.credits24h, 230);
+  // a window whose reference is far older than the window itself is not a change
+  x.world.trades.length = 0;
+  x.world.trades.push(trade(10 * DAY - 7.2 * DAY, 100), trade(10 * DAY - 1 * HOUR, 120));
+  x.world._idx = null;
+  assert.equal(x.api.valuation('simulation', { cardId: card }).change24h, null, 'no reference near the start of the 24 h window');
+  void key;
+});
+
+test('longer changes come from the daily aggregates and need a day that old', () => {
+  const x = setup(14);
+  const card = x.env.cards.find((c) => x.env.tierOf[c.id] === 3).id, key = x.S.keyOf(card, null, null);
+  x.world.now = 100 * DAY;
+  x.world.daily[key] = {};
+  assert.equal(x.api.valuation('simulation', { cardId: card }).change30d, null);
+  x.world.daily[key][20] = [80, 85, 78, 82, 2, 164];
+  x.world.daily[key][68] = [90, 95, 88, 92, 3, 276];
+  x.world.daily[key][99] = [100, 110, 98, 104, 4, 416];
+  const v = x.api.valuation('simulation', { cardId: card });
+  assert.ok(Math.abs(v.change30d - (104 / 92 - 1)) < 1e-9, '30 d against the close on or before day 70');
+  assert.equal(v.change90d, null, 'no day as old as 90 d, so no 90 d change');
+  assert.ok(Math.abs(v.changeAll - (104 / 80 - 1)) < 1e-9, 'all time against the first open');
+});

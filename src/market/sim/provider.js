@@ -84,9 +84,22 @@
       spread: spread, spreadReal: spreadReal != null, volatility: vol, liquidity: liquidity,
       volume24h: t24.length, volume7d: t7.length,
       credits24h: t24.reduce(function (n, t) { return n + t.price; }, 0), credits7d: t7.reduce(function (n, t) { return n + t.price; }, 0),
-      change24h: changeOver(world, trades, DAY), change7d: changeOver(world, trades, 7 * DAY), change30d: changeOver(world, trades, 30 * DAY),
+      change24h: changeOver(world, trades, DAY), change7d: changeOver(world, trades, 7 * DAY),
+      change30d: changeFromDaily(world, key, 30), change90d: changeFromDaily(world, key, 90), changeAll: changeFromDaily(world, key, Infinity),
       windowHours: null, tier: entry.tier, openAsks: (idx.asks[key] || []).length, openBids: (idx.bids[key] || []).length
     };
+  }
+  // Change of the daily close over a span of days, or null when the card has no day that old or only one day of trades.
+  function changeFromDaily(world, key, spanDays) {
+    var days = world.daily[key];
+    if (!days) return null;
+    var list = Object.keys(days).map(Number).sort(function (a, b) { return a - b; });
+    if (list.length < 2) return null;
+    var today = S.dayIndex(world.now), last = days[list[list.length - 1]][3], target = today - spanDays, ref = null;
+    if (spanDays === Infinity) ref = days[list[0]][0];
+    else for (var i = list.length - 2; i >= 0; i--) { if (list[i] <= target) { ref = days[list[i]][3]; break; } }
+    if (ref == null || !ref) return null;
+    return (last - ref) / ref;
   }
   function sellerView(world, id) {
     if (id === 'you') return { alias: 'You', isBot: false, isYou: true, persona: null, personaLabel: null, sales: world.stats.you.sold, rating: null, tenureDays: 0 };
@@ -241,8 +254,9 @@
         if (l.status === 'open' && l.maxes && l.maxes.you) bids.push(listingView(world, env, l));
       }
       for (var oid in world.orders) { var o = world.orders[oid]; if (o.owner === 'you' && o.status === 'open') orders.push(orderView(world, env, o)); }
-      var st = world.stats.you;
-      return { realm: realm, demo: false, holdings: holdings, total: total, count: holdings.length, byRarity: by, wallet: provider.wallet(realm),
+      var st = world.stats.you, quickSell = 0;
+      if (C.sales) p.inventory.forEach(function (i) { var qt = C.sales.quote(i); if (qt) quickSell += qt.quote; });
+      return { realm: realm, demo: false, quickSellValue: quickSell, holdings: holdings, total: total, count: holdings.length, byRarity: by, wallet: provider.wallet(realm),
         realized: st.realizedN ? st.realized : null, realizedCount: st.realizedN || 0,
         unrealized: known.length ? known.reduce(function (n, h) { return n + (h.estimate - h.basis); }, 0) : null, unrealizedCount: known.length,
         feesPaid: st.fees || 0, tradesSold: st.sold, tradesBought: st.bought, earned: st.earned, spent: st.spent,
@@ -398,7 +412,12 @@
     makeOffer: function (realm, spec) { return rt().act.propose(spec); },
     respondToOffer: function (realm, id, accept, requestId) { return rt().act.respond(id, accept, requestId); },
     withdrawOffer: function (realm, id) { return rt().act.withdraw(id); },
-    quickSell: function () { return { ok: false, error: 'not-available', message: 'Quick Sell arrives with the next update.' }; }
+    // Quick Sell is the system's bid, not a trade: it goes through the shared sales core and never touches the world.
+    quickSell: function (realm, spec) {
+      if (!C.sales) return { ok: false, error: 'not-available', message: 'Quick Sell is not available.' };
+      var ids = spec && spec.instanceIds || [];
+      return C.sales.sell(ids, { kind: ids.length > 1 ? 'bulk' : 'quick', strict: false, expectTotal: spec && spec.expectTotal });
+    }
   };
   Object.keys(actions).forEach(function (k) { provider[k] = actions[k]; });
 

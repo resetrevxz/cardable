@@ -36,7 +36,9 @@
 
     rarityColorMode: 'color',                 // 'color' | 'mono'             (OPEN-QUESTIONS #3)
 
-    currency: { name: 'Credits', symbol: '$', packOpenReward: 200, rewardFlightMs: 1100, rewardHoldMs: 1700, rewardCoins: 6 },
+    // Opening a pack no longer pays Credits (Market Beta, Stage 3): Credits come from selling cards. Saved Credits stay.
+    // packOpenReward is kept as the single switch; 0 means the opening commit issues nothing and shows no reward.
+    currency: { name: 'Credits', symbol: '$', packOpenReward: 0, rewardFlightMs: 1100, rewardHoldMs: 1700, rewardCoins: 6 },
 
     serial: { prefix: 'CBL', counterDigits: 6, playerCodeLength: 4 },
 

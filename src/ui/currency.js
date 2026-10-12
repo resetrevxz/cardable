@@ -19,9 +19,20 @@
       if(host.dataset.walletState==='loading')number.replaceChildren();host.dataset.walletState='ready';trigger.disabled=false;var save=C.state.current;digits.set(C.formats.number(save.currency,compact(save.currency)),['medium','high'].includes(C.settings.get('quality'))&&!C.motion.reduced);
       trigger.title=save.currency.toLocaleString()+' credits';trigger.setAttribute('aria-label','Credits: '+save.currency.toLocaleString());host.classList.toggle('cb-wallet-zero',save.currency===0);
       if(popover.hidden)return;popover.replaceChildren();
-      // Balance only: the ledger stays in the save, without a history list in the way.
+      // Three different numbers, never blended: what you hold, what the cards are estimated to be worth, and what the
+      // system would pay for all of them today. The ledger itself stays in the save; receipts are one click away.
       var head=node('div','cb-wallet-head',popover);node('span','cb-wallet-coin',head).innerHTML=coin;var copy=node('div','',head);node('h2','',copy,'Credits');node('strong','cb-wallet-total',copy,save.currency.toLocaleString());
-      node('p','cb-wallet-helper',popover,save.currency?(C.config.flags.achievements===false?'Earned from packs and duplicates.':'Earned from packs, duplicates and achievements.'):'Open a pack to earn your first credits.');
+      var worth=0,quick=0;
+      if(C.valuation&&C.sales)save.inventory.forEach(function(i){worth+=C.valuation.average(i);var q=C.sales.quote(i);if(q)quick+=q.quote;});
+      var dl=node('dl','cb-wallet-values',popover);
+      function value(label,amount,note){var row=node('div','',dl);node('dt','',row,label);node('dd','',row,amount);node('small','',row,note);}
+      value('Collection estimate','≈ '+worth.toLocaleString(),save.inventory.length+' cards at Average Value. An estimate, not Credits you hold.');
+      value('Quick Sell value','≈ '+quick.toLocaleString(),'What the system would pay for all of them now. Another trader would normally pay more.');
+      var held=C.marketSim&&C.marketSim.heldCredits?C.marketSim.heldCredits():0;
+      if(held)value('Held by open bids and orders',held.toLocaleString(),'Not spendable until they end. Your balance above still counts them.');
+      node('p','cb-wallet-helper',popover,save.currency?'Credits come from selling cards and from trades on the Market. Opening a pack pays nothing.':'Sell a card you do not need to earn your first Credits. Opening a pack pays nothing.');
+      var links=node('div','cb-wallet-links',popover);
+      [['Sell cards…',function(){hide();if(C.bulkSellView)C.bulkSellView.show();}],['Sale receipts',function(){hide();if(C.receiptsView)C.receiptsView.show();}]].forEach(function(pair){var b=node('button','cb-action',links,pair[0]);b.type='button';b.addEventListener('click',pair[1]);});
     }
     function show(){popover.hidden=false;trigger.setAttribute('aria-expanded','true');render();}
     function hide(){pinned=false;popover.hidden=true;trigger.setAttribute('aria-expanded','false');expand();C.events.emit('menu:visibilityHold',{reason:'wallet',active:false});}

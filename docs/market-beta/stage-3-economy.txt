@@ -1,0 +1,26 @@
+Quick Sell factor 0.55, band 0.4x to 1.5x baseline
+
+1. Income per pack, every card Quick Sold (20000 simulated pulls)
+   mean 32.48  median 8  p10 4  p90 48  p99 512  max 4098  mean Average Value 59.86  paid 54.3% of it
+   share of income by rarity: basic 8.3%, common 7.5%, uncommon 8.7%, rare 9.8%, super-rare 6.3%, unusual 7.9%, double-super-rare 8.5%, legendary 11.8%, mythical 17.0%, exotic 7.1%, ascendant 7.0%
+
+2. Days for a new player to afford each cinematic unlock by selling only (4 packs a day, 2 to start, 40 seeds)
+   basic                10 Credits   median day   0   p90 day   0
+   common               15 Credits   median day   0   p90 day   1
+   uncommon             20 Credits   median day   0   p90 day   1
+   rare                 30 Credits   median day   1   p90 day   1
+   super-rare           50 Credits   median day   1   p90 day   1
+   unusual              60 Credits   median day   1   p90 day   2
+   double-super-rare    80 Credits   median day   1   p90 day   2
+   legendary           100 Credits   median day   1   p90 day   3
+   mythical            150 Credits   median day   2   p90 day   4
+   exotic              250 Credits   median day   3   p90 day   5
+   ascendant           400 Credits   median day   4   p90 day   7
+   secret             1000 Credits   median day   8   p90 day  16
+
+3. Buy any open listing and Quick Sell it, over 30 simulated days
+   1614 listing observations, 0 where Quick Sell paid more than the ask; best gain anywhere -3 Credits (ask 7, quote 4, Average Value 8)
+   864 executed trades: best gain from Quick Selling the card at the price it traded -1 Credits
+
+4. Quick Sell as a share of what the market leaves after the 2% fee, by rarity tier
+   tier 0: 56%   tier 1: 56%   tier 2: 55%   tier 3: 55%   tier 4: 56%   tier 5: 56%   tier 6: 56%   tier 7: 56%   tier 8: 56%   tier 9: 56%

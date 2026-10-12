@@ -18,7 +18,7 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 | 8 | Many tiers will have no cards while the card set is small. | `downgrade`: an empty tier falls to the next lower tier that has cards | `config.pull.emptyTierPolicy` |
 | 9 | What do silhouettes show? | Card outline plus generation label, name hidden (`???`). Unowned Secret shows its Unfound design. | `docs/06-INVENTORY.md` section 3 |
 | 10 | Market values for Basic/Common read ">1$" (probably "<$1"). Card counts add up to 286, not the stated 289. | Values stored but reserved, never read. Counts are reference only. | `rarities.js` |
-| 11 | Currency name, symbol, earning and spending are not defined. | Owner approved $200 per pack opening; retain name Credits and use `$`. No new spending UI. | `config.currency` |
+| 11 | Currency name, symbol, earning and spending are not defined. | Credits, `$`. Opening a pack paid $200 until Market Beta Stage 3; it now pays nothing and Credits come from selling cards (Quick Sell 55% of Average Value, Bulk Sell, Market trades). Saved Credits and their history stay. | `config.currency`, `data/market-config.js` |
 | 12 | Can duplicates be sold or converted? | No. They stack visually only. | future |
 | 13 | Limited tier: pull chance and dates are undefined. | `pullable: false`, `availableUntil: null`, date text shown as `<date>` until set | `rarities.js` |
 | 14 | What happens to the timer when 4 packs are stored? | Timer pauses at the cap; time is not banked | `docs/01-GAME-RULES.md` section 1 |

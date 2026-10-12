@@ -19,6 +19,8 @@
     if (!s.pages[id]) s.pages[id] = { tab: 'for-you', sort: PAGES[id].sort || 'recommended', filters: K().emptyFilters(), pages: 1, saved: null };
     return s.pages[id];
   }
+  // Invented sample listings exist only as a developer aid (?dev=1); in play an unconnected Global Market is simply empty.
+  function devMode() { try { return new root.URLSearchParams(root.location.search).get('dev') === '1'; } catch (_) { return false; } }
   function rarityList(env) { return C.data.rarities.slice().sort(function (a, b) { return a.tier - b.tier; }).filter(function (r) { return env.data.cards.some(function (c) { return c.rarity === r.id; }); }); }
   function packName(id) { var p = (C.data.packs || []).find(function (x) { return x.id === id; }); return p ? p.name.replace(/ Pack$/, '') : id; }
   function genName(id) { var g = C.data.generations.find(function (x) { return x.id === id; }); return g ? g.name : id; }
@@ -393,7 +395,7 @@
           actions: [
             { label: 'Open Simulation', variant: 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } },
             { label: 'Draft a listing', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } },
-            { label: 'Preview the layout with sample listings', variant: 'ghost', icon: 'eye', run: function () { store.session.showGlobalSample = true; store.emit('realm'); } }] }));
+            { label: 'Preview the layout with sample listings', variant: 'ghost', icon: 'eye', run: function () { store.session.showGlobalSample = true; store.emit('realm'); } }].filter(function (action) { return action.icon !== 'eye' || devMode(); }) }));
         return;
       }
       var pool = ui.sim.live(realm)

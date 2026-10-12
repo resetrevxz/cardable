@@ -216,6 +216,7 @@
       termsHost.appendChild(typeSwitch);
       termsHost.appendChild(h('p.mk-hint', { text: ui.formatDef(draft.format).blurb }));
       var body = h('div.mk-terms');
+      if (v && live && selected().length === 1) body.appendChild(analysis(selected()[0]));
       if (v) body.appendChild(h('p.mk-guidance', icon('trend'), h('span', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' + (v.basis === 'baseline' ? ' (baseline estimate, no sales yet)' : ' from ' + v.samples + ' recent trades') + ' · Target Sell ' + ui.fmt.exact(v.targetSell) + (live ? '' : ' · about ' + v.windowHours + ' h to sell near it.') })));
       if (draft.format === 'buy-now') {
         var price = numberInput(draft.price, function (val) { draft.price = val; draft.touchedPrice = true; }, { min: '1' });
@@ -283,6 +284,31 @@
       }
       termsHost.appendChild(body);
       applyErrors();
+    }
+    // Price analysis for the chosen card: three ways to list with what each leaves after the fee, a realistic range to
+    // buy in, and the plain reasons for the figures. Only the first card of a bundle is analysed.
+    function analysis(inst) {
+      var g = C.valuation.guidance({ cardId: inst.cardId, variantId: inst.variantId || null, cardSkinId: inst.cardSkinId || null, serial: inst.serial });
+      var box = h('details.mk-analysis');
+      box.appendChild(h('summary', h('span', { text: 'Price analysis' }), icon('chevron')));
+      if (!g) return box;
+      var v = g.value, rows = h('div.mk-analysis-rows');
+      g.modes.forEach(function (m) {
+        rows.appendChild(h('div.mk-analysis-row', h('strong', { text: m.label }), h('span.mk-num', { text: ui.fmt.exact(m.ask) + ' Credits' }),
+          h('span', { text: 'You receive ' + ui.fmt.exact(m.net) + (m.vsAverage != null ? ' · ' + ui.fmt.pct(m.vsAverage, true) + ' vs Average Value' : '') }),
+          h('span.mk-muted', { text: m.etaHours ? 'Typically sells in about ' + (m.etaHours >= 48 ? Math.round(m.etaHours / 24) + ' days' : m.etaHours + ' hours') : 'Time to sell: insufficient sales' })));
+      });
+      box.appendChild(rows);
+      box.appendChild(ui.statGrid([
+        { label: 'Average Value', value: ui.fmt.exact(v.average), note: v.basis === 'baseline' ? 'Baseline estimate, no trades yet' : v.samples + ' recent trades', help: 'average-value' },
+        { label: 'Confidence', value: { high: 'High', medium: 'Medium', low: 'Low', none: 'Not enough data' }[v.confidence], help: 'confidence' },
+        { label: 'Worth buying at', value: ui.fmt.exact(g.buyRange.low) + ' to ' + ui.fmt.exact(g.buyRange.high), note: 'Target Buy range', help: 'target-buy' },
+        { label: 'Resale after the fee', value: (g.resaleMargin.net >= 0 ? '+' : '−') + ui.fmt.exact(Math.abs(g.resaleMargin.net)), note: 'Buying at ' + ui.fmt.exact(g.resaleMargin.buyAt) + ' and selling at Target Sell ' + ui.fmt.exact(g.resaleMargin.sellAt) },
+        { label: 'Spread', value: ui.fmt.pct(g.spread, false, 1), note: g.spreadReal ? 'From an open order and listing' : 'Estimated for this rarity', help: 'spread' },
+        { label: 'Liquidity', value: v.liquidity == null ? 'No trades yet' : Math.round(v.liquidity * 100) + ' of 100', help: 'liquidity' }
+      ], { cols: 2 }));
+      box.appendChild(h('p.mk-hint', { text: g.liquidityNote + ' ' + g.timeNote + ' ' + g.confidenceNote }));
+      return box;
     }
     function buildWanted(v) {
       var wrap = h('div.mk-wanted');

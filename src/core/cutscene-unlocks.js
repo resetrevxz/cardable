@@ -4,7 +4,8 @@
   function unlockInto(save,tier){
     var price=C.data.cutscenePrices[tier];if(!Number.isSafeInteger(price)||price<0)throw new Error('Unavailable cinematic');
     save.unlocks=normalize(save.unlocks);if(save.unlocks.cutscenes[tier])return {paid:0,already:true};
-    if(save.currency<price)return null;
+    // Credits held by an open Market bid or buy order are not free to spend.
+    if(save.currency-(C.marketSim&&C.marketSim.heldCredits?C.marketSim.heldCredits():0)<price)return null;
     C.currency.applyInto(save,-price,'cutscene unlock');save.unlocks.cutscenes[tier]=true;return {paid:price,already:false};
   }
   function unlock(tier){

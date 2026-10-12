@@ -34,9 +34,11 @@
     "release:github": "node tools/release-github.cjs",
     "test:mini": "node tools/test-mini-mode.cjs",
     "test:merged-collections": "node tools/check-merged-collections.cjs",
-    "test:market": "node --test tests/market-core.test.cjs tests/market-sim.test.cjs tests/market-sim-provider.test.cjs",
+    "test:market": "node --test tests/market-core.test.cjs tests/market-sim.test.cjs tests/market-sim-provider.test.cjs tests/market-sales.test.cjs",
     "check:market": "node tools/check-market-browser.cjs",
     "check:market-sim": "node tools/check-market-sim-browser.cjs",
+    "check:market-economy": "node tools/check-market-economy-browser.cjs",
+    "economy:experiment": "node tools/economy-experiment.cjs",
     "sim:experiment": "node tools/sim-experiment.cjs"
   },
   "dependencies": {

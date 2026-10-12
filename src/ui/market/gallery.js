@@ -77,6 +77,23 @@
         note: 'The card joins your collection straight away and the Credits leave your balance once.', confirmLabel: 'Buy for 120', icon: 'tag', run: function () { return { ok: true }; } });
     } }));
 
+    // selling cards (Credits economy)
+    var sell = group('Selling cards', 'The price comes first, in mono. A sale is one hold. Estimates are never mixed with the balance.');
+    var quote = h('p.cb-delete-price', h('strong', { text: '23 Credits' }), h('span.cb-delete-copy', { text: ' Quick Sell · 55% of Average Value 42. From 6 recent trades.' }));
+    sell.appendChild(quote);
+    var saleList = h('div.sale-list', { style: { height: 'auto' } });
+    [['GeForce GTX 1650', 'Common · Normal', 'CBL-7K3F-000142', '23'], ['Radeon RX 580', 'Uncommon · Normal', 'CBL-7K3F-000147', '38']].forEach(function (r, i) {
+      var row = h('div.sale-row' + (i ? '.is-off' : ''), h('input', { type: 'checkbox', props: { checked: !i }, 'aria-label': 'Sell ' + r[0] }),
+        h('span.sale-name', h('strong', { text: r[0] }), h('small', { text: r[1] })), h('span.sale-mono.sale-serial', { text: r[2] }), h('span.sale-mono.sale-price', { text: r[3] }));
+      saleList.appendChild(row);
+    });
+    sell.appendChild(saleList);
+    var sellRow = row(sell);
+    sellRow.appendChild(h('button.sale-pill', { type: 'button', 'aria-pressed': 'true' }, 'Extra copies'));
+    sellRow.appendChild(h('button.sale-pill', { type: 'button', 'aria-pressed': 'false' }, 'Basic and Common extras'));
+    sellRow.appendChild(h('button.sale-hold', { type: 'button', text: 'Hold 2 s to sell 14 copies for 311' }));
+    sellRow.appendChild(h('button.sale-hold', { type: 'button', disabled: true, text: 'Nothing to sell' }));
+
     // states
     var states = group('States', 'Loading, empty, offline, error, closed and draft states share one family.');
     states.appendChild(ui.skeletonGrid(3));

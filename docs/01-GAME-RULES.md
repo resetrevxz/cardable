@@ -53,7 +53,7 @@ pullCard(pack):
 
 ## 3. Inventory model (built for a future market)
 
-Every pulled card is a unique **instance** with its own serial. Stacks ("x3") are a display grouping by `[cardId, variantId]`, not merged data. The owner-approved Delete action discards a revealed instance before collection; its serial is never reused. Keep/Delete require a durable write. Mixed decisions in multi-card packs persist their progress and collect only kept instances.
+Every pulled card is a unique **instance** with its own serial. Stacks ("x3") are a display grouping by `[cardId, variantId]`, not merged data. At the reveal the choice is **Keep** or **Sell**: Sell resolves the reserved instance and issues its Quick Sell price in the same durable write, once; its serial is never reused. Keep and Sell require a durable write. Mixed decisions in multi-card packs persist their progress and collect only kept instances.
 
 ## 4. Serial numbers
 
@@ -65,12 +65,14 @@ Every pulled card is a unique **instance** with its own serial. Stacks ("x3") ar
 ## 5. Currency
 
 - Name and symbol come from `config.currency`: Credits, displayed with `$`.
-- Starts at 0. Every newly opened pack pays `config.currency.packOpenReward` (**$200**) at charge completion, in the same durable write that consumes the pack and reserves its results. Cancelled holds and failed commits pay nothing. Reload/replay and Keep/Delete never pay again. No backfill is applied to old saved openings.
-- The balance counts up while silver coins fly from the pack to the counter. Reduced motion uses a static reward receipt and count-up. No market or new spending UI is introduced.
+- Starts at 0. **Opening a pack pays nothing** (Market Beta, Stage 3; before that every opening paid `config.currency.packOpenReward`, $200). The key stays in config as the single switch and is `0`: the opening commit then issues no Credits and shows no reward. Credits **already in a save stay**, and their history is kept; nothing is clawed back and there is no backfill. Credits come from selling cards: Quick Sell to the system at the price shown, Bulk Sell, and trades on the Market. Cancelled holds and failed commits change nothing. Reload, replay and Keep never pay.
+- **Quick Sell** is the system's standing bid for an exact copy: `config` `quickSell.factor` (55%) of its Average Value, rounded down, at least 1 Credit, inside a band of 0.4x to 1.5x its baseline. It is not a trade and never counts as market volume, a last sale or part of Average Value. A sale is one durable write that removes the exact copies, issues the Credits once with a ledger entry naming a receipt, and stores the receipt (`save.market.sales`, newest 40). Favorite, locked and Market-listed copies cannot be sold. A 10 second session Undo exists only while it is still reversible (the Credits have not been spent).
+- The wallet ledger (`save.wallet.log`, newest 200) records for each entry its delta, reason, receipt reference, balance after and realm; `C.currency.audit` checks the chain. Estimated collection value is a separate number from the balance and is never Credits you hold.
+- The balance counts up and shows the signed change when it changes. With nothing to pay on opening there is no coin flight; a sale shows its own change. No new spending UI is introduced beyond selling.
 
 ## 6. Duplicates
 
-Duplicates stack visually ("x3") in the inventory. No selling or converting in v1.
+Duplicates stack visually ("x3") in the inventory. Extra copies can be sold one at a time (Sell this copy) or together (Bulk Sell, which keeps N of each and protects favorites, locked cards, finishes, collections and anything above Rare by default).
 
 ## 7. Save data
 

@@ -76,6 +76,15 @@
       base.market = { receipts: (Array.isArray(market.receipts) ? market.receipts : []).filter(function (id) { return typeof id === 'string' && id.length > 0 && id.length <= 96; }).slice(-600) };
       // A per-save secret signs the effects the simulator may apply to this save, so a simulation file from elsewhere cannot add cards or Credits.
       if (typeof market.secret === 'string' && /^[A-Za-z0-9]{12,64}$/.test(market.secret)) base.market.secret = market.secret;
+      // Sale receipts (Quick Sell and Bulk Sell): the exact copies sold, what each paid and the total, newest first.
+      var intOf = function (n) { return Number.isSafeInteger(n) && n >= 0 ? n : null; };
+      base.market.sales = (Array.isArray(market.sales) ? market.sales : []).filter(function (r) {
+        return r && typeof r.id === 'string' && r.id.length > 0 && r.id.length <= 48 && Number.isFinite(r.at) && ['quick', 'bulk', 'reveal'].indexOf(r.kind) >= 0 && intOf(r.count) != null && intOf(r.total) != null && Array.isArray(r.items);
+      }).slice(0, 40).map(function (r) {
+        return { id: r.id, at: r.at, kind: r.kind, realm: 'local', count: r.count, total: r.total, fair: intOf(r.fair) || 0, undone: r.undone === true, more: intOf(r.more) || 0,
+          items: r.items.slice(0, 25).filter(function (i) { return i && typeof i.i === 'string' && typeof i.c === 'string' && typeof i.s === 'string' && intOf(i.p) != null; })
+            .map(function (i) { return { i: i.i, c: i.c, v: typeof i.v === 'string' ? i.v : null, k: typeof i.k === 'string' ? i.k : null, s: i.s, p: i.p, f: intOf(i.f) || 0 }; }) };
+      });
     }
     if (value.achievements !== undefined) base.achievements = C.achievements ? C.achievements.normalize(value.achievements) : value.achievements;
     return base;

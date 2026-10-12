@@ -177,8 +177,9 @@
       candidate.stats.packsOpened += 1;
       candidate.packs.openedCount += 1;
       if (!Number.isSafeInteger(candidate.packs.openedCount)) throw new Error('Pack count exceeds its safe range');
-      var before = candidate.currency;
-      C.currency.applyInto(candidate,C.config.currency.packOpenReward,'pack opening',now);
+      var before = candidate.currency, reward = Number(C.config.currency.packOpenReward) || 0;
+      // Opening a pack pays nothing since Market Beta Stage 3. The switch stays so a saved opening replays identically.
+      if (reward > 0) C.currency.applyInto(candidate,reward,'pack opening',now);
       if (!Number.isSafeInteger(candidate.currency)) throw new Error('Currency exceeds its safe range');
       candidate.pendingReveal = request.buildPending ? request.buildPending(candidate, now) : { packId: pack.id, cards: cards, committedAt: now, keptCount: 0 };
       C.events.emit('opening:prepareCommit', candidate);
@@ -189,8 +190,11 @@
       cancel('save-failed'); announce(error.textContent); return;
     }
     C.events.notify('opening:committed', { cards: candidate.pendingReveal.cards, options: request.options, pack: pack });
-    stats.commits += 1; fill = 1; C.currency.notify(before,'pack opening');
-    C.events.notify('pack:reward', { before: before, value: candidate.currency, amount: C.config.currency.packOpenReward, source: host.getBoundingClientRect() });
+    stats.commits += 1; fill = 1;
+    if (candidate.currency !== before) {
+      C.currency.notify(before,'pack opening');
+      C.events.notify('pack:reward', { before: before, value: candidate.currency, amount: candidate.currency - before, source: host.getBoundingClientRect() });
+    }
     C.events.notify('pack:opened', { ready: candidate.packs.ready }); C.events.notify('charge:complete', candidate.pendingReveal);
     if (compact) { fill = 0; candidate.pendingReveal.cards.forEach(function(item){C.events.notify('card:revealed',item);}); return true; }
     phaseTo('dissolving'); particles.emit('dissolve', null, width, height);
@@ -398,11 +402,21 @@
       phaseTo('revealed'); note.style.opacity = 1; bloom.style.opacity = bloomLevel(); showKeep();
     } else { phaseTo(introDone && rarity.openingIntro.handoff ? 'flipping' : 'rising'); announce('Revealing card ' + (cardIndex + 1) + ' of ' + pending.cards.length + '.'); }
   }
+  // The Sell button always states what it pays before it is pressed.
+  function labelSell() {
+    var pending = C.state.current.pendingReveal, card = pending && pending.cards && pending.cards[cardIndex], q = card && C.sales ? C.sales.quote(card) : null;
+    var text = q ? 'Sell · ' + q.quote.toLocaleString() : 'Sell';
+    if (deleteButton.dataset.sell === text) return;
+    deleteButton.dataset.sell = text; deleteButton.textContent = text;
+    deleteButton.setAttribute('aria-label', q ? 'Sell this card for ' + q.quote.toLocaleString() + ' Credits' : 'Sell this card');
+    deleteButton.title = q ? 'Quick Sell pays ' + q.quote.toLocaleString() + ' Credits, below what another trader would pay.' : '';
+  }
   function showKeep() {
     if (phase !== 'revealed' || infoClock < keepAt || keeping) return;
     var first = keepButton.hidden || keepButton.disabled;
     keepButton.hidden = false; keepButton.disabled = false;
     deleteButton.hidden = false; deleteButton.disabled = false;
+    labelSell();
     flipButton.hidden = false;
     if (first) C.events.emit('opening:keepReady');
     if (first && C.input.modality === 'keyboard') focus(keepButton);
@@ -410,9 +424,17 @@
   function keep(discard,confirmed) {
     discard = discard === true;
     if (preferencesActive || phase !== 'revealed' || keeping || keepButton.hidden || keepButton.disabled || root.document.hidden) return;
-    var candidate = JSON.parse(JSON.stringify(C.state.current)), pending = candidate.pendingReveal;
+    var candidate = JSON.parse(JSON.stringify(C.state.current)), pending = candidate.pendingReveal, sale = null;
     if (!pending || (Number(pending.keptCount) || 0) !== cardIndex) return;
     if(discard&&!confirmed){C.cardDeletionView.confirmPending(pending.cards[cardIndex],function(){keep(true,true);});return;}
+    if (discard) {
+      // The sale is part of this same durable write: the card is resolved and its Credits are issued together, once.
+      try { sale = C.sales.settleInto(candidate, [pending.cards[cardIndex]], { kind: 'reveal', remove: false }); }
+      catch (failure) {
+        error.textContent = failure.code === 'favorite' ? 'That card is a favorite, so it cannot be sold. Keep it.' : 'Could not sell that card. Keep it, or try again.';
+        errorUntil = root.performance.now() + cfg.errorMs; announce(error.textContent); C.fx.wake(); return;
+      }
+    }
     keeping = true; keepButton.disabled = true; deleteButton.disabled = true; pending.keptCount = cardIndex + 1;
     if (discard) { pending.discardedInstanceIds = pending.discardedInstanceIds || []; pending.discardedInstanceIds.push(pending.cards[cardIndex].instanceId); }
     var final = pending.keptCount >= pending.cards.length, discarded = pending.discardedInstanceIds || [];
@@ -430,9 +452,10 @@
       errorUntil = root.performance.now() + cfg.errorMs; announce(error.textContent); C.fx.wake(); return;
     }
     if (!discard) stats.keeps += 1;
+    if (sale) { C.currency.notify(candidate.currency - sale.total, 'quick sell'); C.events.notify('card:sold', { receipt: sale.receipt, count: 1, total: sale.total, source: 'reveal' }); }
     if (!final) startReveal(false);
     else if (cards.length) { pendingCards = cards; beginCollect(); }
-    else { currentView.setMode('lite'); currentView.el.inert = true; phaseTo('discarding'); announce('Card deleted. Pack reward kept.'); }
+    else { currentView.setMode('lite'); currentView.el.inert = true; phaseTo('discarding'); announce(sale ? 'Card sold for ' + sale.total + ' Credits.' : 'Card discarded.'); }
     C.events.notify(discard ? 'card:discarded' : 'card:kept', decided);
   }
   function closeToast() {
@@ -789,8 +812,8 @@
       keepButton.setAttribute('aria-keyshortcuts', 'Space Enter'); keepButton.setAttribute('aria-label', 'Keep card. Space or Enter.');
       node('kbd', 'opening-keep-key', keepButton, 'Space');
       keepButton.addEventListener('click', function () { C.input.keep(); });
-      deleteButton = node('button', 'opening-delete glass', scene, 'Delete'); deleteButton.setAttribute('type', 'button'); deleteButton.hidden = true;
-      deleteButton.setAttribute('aria-label', 'Delete this revealed card'); deleteButton.addEventListener('click', function () { C.input.discard(); });
+      deleteButton = node('button', 'opening-delete glass', scene, 'Sell'); deleteButton.setAttribute('type', 'button'); deleteButton.hidden = true;
+      deleteButton.setAttribute('aria-label', 'Sell this revealed card'); deleteButton.addEventListener('click', function () { C.input.discard(); });
       toast = node('aside', 'collection-toast glass', root.document.body); toast.setAttribute('role', 'status');
       toastThumb = node('div', 'collection-toast-thumb', toast); toastThumb.style.width = motion.toastThumbnailWidthPx + 'px'; toastThumb.setAttribute('aria-hidden', 'true'); toastThumb.inert = true;
       var toastText = node('div', 'collection-toast-text', toast);

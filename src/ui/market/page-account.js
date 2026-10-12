@@ -27,7 +27,8 @@
         { label: 'Credits', value: ui.fmt.exact(w.balance), note: w.held ? ui.fmt.exact(w.held) + ' held by open bids and buy orders' : 'None held' },
         { label: 'Realized profit', value: p.realized == null ? '—' : signed(p.realized), note: p.realizedCount ? 'From ' + p.realizedCount + (p.realizedCount === 1 ? ' sale' : ' sales') + ' of cards you bought here, after fees' : 'Appears after you sell a card you bought here', help: 'settlement' },
         { label: 'Unrealized change', value: p.unrealized == null ? '—' : signed(p.unrealized), note: p.unrealizedCount ? 'Across ' + p.unrealizedCount + ' cards you bought here' : 'Cards from packs have no cost basis' },
-        { label: 'Fees paid', value: ui.fmt.exact(p.feesPaid), note: cfg().fee.label + ' on your sales' }
+        { label: 'Fees paid', value: ui.fmt.exact(p.feesPaid), note: cfg().fee.label + ' on your sales' },
+        { label: 'If sold to the system', value: ui.fmt.exact(p.quickSellValue || 0), note: 'Quick Sell value of all your cards. Another trader would normally pay more.', help: 'quick-sell' }
       ], { cols: 2 }));
     } else summary.appendChild(ui.statGrid([
       { label: realm === 'global' ? 'Global wallet' : 'Credits', value: w.balance == null ? 'Not connected' : ui.fmt.exact(w.balance), note: w.note },
@@ -400,12 +401,17 @@
     if (!store.persistent) data.appendChild(h('p.mk-field-error.is-inline', { role: 'status', text: 'Storage is unavailable here, so these choices last for this session only.' }));
     layout.appendChild(data);
 
-    var realmCard = h('section.mk-box', h('div.mk-panel-head', h('h3', { text: 'Global Market preview' })));
-    realmCard.appendChild(h('p.mk-hint', { text: 'Global Market is not connected, so it has no real listings. You can switch on invented sample listings to see how it would look. They are always labelled and never count as volume.' }));
-    var sample = h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Show sample listings in Global Market', props: { checked: !!store.session.showGlobalSample } });
-    sample.addEventListener('change', function () { store.session.showGlobalSample = sample.checked; store.emit('realm'); });
-    realmCard.appendChild(h('div.mk-setting', h('div.mk-setting-copy', h('span.mk-setting-label', { text: 'Sample listings in Global Market' }), h('span.mk-hint', { text: 'Off by default. Resets each time you open the game.' })), h('label.mk-switch', sample, h('span.mk-switch-track', { 'aria-hidden': 'true' }, h('i')))));
-    layout.appendChild(realmCard);
+    // Invented sample listings are a developer aid (?dev=1). In play, Global Market is empty and says so.
+    var devMode = false;
+    try { devMode = new root.URLSearchParams(root.location.search).get('dev') === '1'; } catch (_) { devMode = false; }
+    if (devMode) {
+      var realmCard = h('section.mk-box', h('div.mk-panel-head', h('h3', { text: 'Global Market preview (developer)' })));
+      realmCard.appendChild(h('p.mk-hint', { text: 'Global Market is not connected, so it has no real listings. You can switch on invented sample listings to see how it would look. They are always labelled and never count as volume.' }));
+      var sample = h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Show sample listings in Global Market', props: { checked: !!store.session.showGlobalSample } });
+      sample.addEventListener('change', function () { store.session.showGlobalSample = sample.checked; store.emit('realm'); });
+      realmCard.appendChild(h('div.mk-setting', h('div.mk-setting-copy', h('span.mk-setting-label', { text: 'Sample listings in Global Market' }), h('span.mk-hint', { text: 'Off by default. Resets each time you open the game.' })), h('label.mk-switch', sample, h('span.mk-switch-track', { 'aria-hidden': 'true' }, h('i')))));
+      layout.appendChild(realmCard);
+    }
 
     if (advanced) {
       var tuning = h('section.mk-box', h('div.mk-panel-head', h('h3', { text: 'Provisional tuning' })));

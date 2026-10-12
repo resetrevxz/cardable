@@ -111,7 +111,7 @@
         if (entry.owned && !context.preview) button(menu, 'Add to collection', function () { var source = more; closeMenu(false); C.events.emit('inventory:detailMembership', { entry: entry, anchor: source }); }, null, 'folder');
         if (!context.preview) menu.appendChild(C.ui.create('button',{label:'Add to wishlist',className:'detail-menu-item',variant:'ghost',onClick:function(){var source=more;closeMenu(false);C.events.emit('inventory:detailWishlist',{entry:entry,anchor:source});}}));
         extensionActions.forEach(function (action) { action.classList.add('detail-menu-item'); menu.appendChild(action); });
-        if (entry.owned && !context.preview) button(menu, 'Delete this copy…', function () { var chosen = instance; closeMenu(false); C.cardDeletionView.show(entry, chosen, context.close); }, 'detail-menu-item detail-menu-danger', 'trash');
+        if (entry.owned && !context.preview) button(menu, 'Sell this copy…', function () { var chosen = instance; closeMenu(false); C.cardDeletionView.show(entry, chosen, context.close); }, 'detail-menu-item detail-menu-danger', 'trash');
       }
       var rect = C.viewport.rect(source.getBoundingClientRect()), stacked = overlay.classList.contains('is-stacked');
       menu.style.left = Math.max(12, Math.min(C.viewport.width - menu.offsetWidth - 12, stacked ? rect.left + rect.width / 2 - menu.offsetWidth / 2 : rect.right + 12)) + 'px';
@@ -120,6 +120,17 @@
     }
 
     // ---- Callouts for card parts ----
+    // Average Value and the Quick Sell price for the exact copy being inspected.
+    function worthLines(body) {
+      if (!instance || !C.valuation) return;
+      var v = C.valuation.ofInstance(instance), q = C.sales ? C.sales.quote(instance) : null;
+      if (v) {
+        line(body, 'Average Value', v.average.toLocaleString() + ' Credits');
+        line(body, 'Based on', v.basis === 'baseline' ? 'Baseline estimate, no trades yet' : v.samples + ' recent trade' + (v.samples === 1 ? '' : 's'));
+        if (v.change7d != null) line(body, '7 day change', (v.change7d > 0 ? '+' : v.change7d < 0 ? '−' : '') + Math.abs(Math.round(v.change7d * 1000) / 10) + '%');
+      }
+      if (q) line(body, 'Quick Sell pays', q.quote.toLocaleString() + ' Credits');
+    }
     function line(parent, label, value) { var row = node('div', 'detail-callout-row', parent); node('span', '', row, label); node('strong', '', row, value); return row; }
     function fill(kind, body) {
       var card = entry.card, all = C.inventory.entries || [], actions = node('div', 'detail-callout-actions', null), pack = instance && C.pack(instance.packId);
@@ -136,6 +147,7 @@
         var bar = node('div', 'detail-callout-bar', body); node('i', '', bar).style.transform = 'scaleX(' + (designs.size ? owned.size / designs.size : 0) + ')';
       } else if (kind === 'serial') {
         head('Serial', instance.serial); line(body, 'Unpacked', C.formats.date(instance.pulledAt, true)); if (pack) line(body, 'From', pack.name);
+        worthLines(body);
         node('p', 'detail-callout-note', body, 'A serial is unique to this copy and never changes.');
         button(actions, 'Copy serial', function () { copy(instance.serial, calloutPart); }, 'detail-callout-action', 'copy');
       } else if (kind === 'finish') {
@@ -145,7 +157,7 @@
       } else if (kind === 'name') {
         var latest = Math.max.apply(null, entry.instances.map(function (c) { return c.pulledAt; })), lore = card.lore || card.flavor;
         head((entry.generation ? entry.generation.name : 'Card') + ' · ' + entry.rarity.name, card.name);
-        line(body, 'Copies', String(entry.instances.length)); line(body, 'Latest', date(latest));
+        line(body, 'Copies', String(entry.instances.length)); line(body, 'Latest', date(latest)); worthLines(body);
         if (typeof lore === 'string' && lore.trim()) node('p', 'detail-callout-note', body, lore);
         if (C.inventoryModel.current.favorites.includes(entry.sourceStackKey||entry.stackKey)) line(body, 'Favorite', 'Yes');
       } else {

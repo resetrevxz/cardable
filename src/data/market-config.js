@@ -113,6 +113,7 @@
     // Unified glossary shown in help popovers and the Market guide.
     glossary: [
       { id: 'average-value', term: 'Average Value', body: 'A robust average of recent completed sales for this exact card, finish and skin, pulled toward a baseline when there are few sales. It is an estimate, not a promise.' },
+      { id: 'quick-sell', term: 'Quick Sell', body: 'A fixed price from the system for a card you do not want to list: a share of its Average Value, always below what another trader would pay. It is not a trade and never counts as volume or sets a price.' },
       { id: 'target-buy', term: 'Target Buy', body: 'A price at or below which this card looks well priced against its Average Value, after allowing for the spread.' },
       { id: 'target-sell', term: 'Target Sell', body: 'A price at which a listing is likely to sell in a reasonable time, given liquidity and the market fee.' },
       { id: 'volume', term: 'Volume', body: 'Completed sales only, counted in cards and in Credits. Listings, bids, Quick Sell and cancelled offers never count.' },
@@ -128,10 +129,38 @@
       { id: 'volatility', term: 'Volatility', body: 'How far the price tends to move day to day. Scarcer rarities move more.' }
     ],
 
-    // Provisional tuning table, mirrored in docs/market-beta/stage-1.md.
+    // ---- Credits from cards (Stage 3) ----------------------------------------------------------------------------
+    // Quick Sell is the system's standing bid for a card: a fixed share of its Average Value, always below what
+    // another trader would pay. It is not a trade: it never becomes volume, a last sale or part of Average Value.
+    quickSell: {
+      factor: 0.55,               // share of Average Value paid
+      tierFactor: {},             // optional per-rarity override, by rarity id
+      ceilingOverBaseline: 1.5,   // the value a quote starts from never exceeds this multiple of the baseline
+      floorUnderBaseline: 0.4,    // ... nor falls under this share of it, so a thin or bruised market cannot zero a card
+      minPrice: 1,
+      quoteTtlMs: 45000,          // a shown quote stands this long; Refresh quote gets a new one
+      undoMs: 10000,              // the session Undo window, only while it is still reversible
+      receiptsKept: 40, receiptItemsKept: 25
+    },
+    // Bulk Sell: safe by default. The presets only ever start from cards that are not protected.
+    bulkSell: {
+      defaultKeep: 1,             // copies of each card kept
+      defaultMaxTier: 3,          // up to and including Rare unless the player raises it
+      maxPerSale: 500,            // instances in one commit
+      previewRows: 60,            // rows drawn at a time in the preview
+      presets: [
+        { id: 'extras', label: 'Extra copies', note: 'Keeps one of every card and finish. Never touches favorites, locked cards, finishes or anything above Rare.', keep: 1, maxTier: 3, finishes: false },
+        { id: 'commons', label: 'Basic and Common extras', note: 'Keeps two of each. The gentlest clean-up.', keep: 2, maxTier: 1, finishes: false },
+        { id: 'duplicates-all', label: 'All extra copies', note: 'Keeps one of each card, any rarity. Finishes are still kept.', keep: 1, maxTier: 11, finishes: false }
+      ]
+    },
+
+    // Provisional tuning table, mirrored in docs/market-beta/stage-3.md.
     tuning: [
       { key: 'fee.bps', value: 200, note: '2% of the sale price; rounded half up with a one Credit minimum.' },
-      { key: 'quickSell', value: 'Stage 3', note: 'Quick Sell percentage is set from balance tests.' },
+      { key: 'quickSell.factor', value: 0.55, note: 'Quick Sell pays 55% of Average Value, rounded down, at least 1 Credit.' },
+      { key: 'quickSell.quote', value: '45 s', note: 'A quote is good for 45 seconds, then refreshes. A changed total is shown before anything is sold.' },
+      { key: 'packOpenReward', value: 0, note: 'Opening a pack pays nothing. Credits come from selling cards.' },
       { key: 'auction.presets', value: '6h / 24h / 3d', note: 'Safe presets for Simple mode. Custom 1 hour to 14 days is Advanced only.' },
       { key: 'auction.incrementPct', value: 5, note: 'Minimum raise of 5% or 1 Credit, whichever is larger.' },
       { key: 'auction.snipe', value: '5 min', note: 'A bid in the last five minutes extends the close by five.' },

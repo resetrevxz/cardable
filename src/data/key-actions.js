@@ -19,7 +19,7 @@
   add('skip','Skip cutscene','cutscene',[],{bridge:false,run:function(){var b=document.querySelector('.cutscene-skip:not([hidden])');if(b)b.click();}});
   add('auto-charge','Auto-charge next pack','menu',[],{bridge:false,run:function(){if(C.state.current.packs.ready)C.input.chargeStart();}});
   add('previous','Previous card','detail',['ArrowLeft'],{repeat:true});add('next','Next card','detail',['ArrowRight'],{repeat:true});add('favorite','Favorite card','detail',['KeyF']);add('flip','Flip card','detail',['KeyR']);add('inspect','Inspect card','detail',['KeyE','KeyI'],{origin:'KeyI'});
-  ['delete','replay','copy-serial','tags'].forEach(function(id){add(id,{delete:'Delete card',replay:'Replay cutscene','copy-serial':'Copy serial',tags:'Card tags'}[id],'detail',[],{bridge:false,run:function(){C.events.emit('detail:keyAction',{id:id});}});});
+  ['delete','replay','copy-serial','tags'].forEach(function(id){add(id,{delete:'Sell card',replay:'Replay cutscene','copy-serial':'Copy serial',tags:'Card tags'}[id],'detail',[],{bridge:false,run:function(){C.events.emit('detail:keyAction',{id:id});}});});
   add('search','Search inventory','inventory',['Mod+KeyF'],{allowInput:true});if(!(C.config&&C.config.flags&&C.config.flags.achievements===false))add('search','Search achievements','achievements',['Mod+KeyF'],{allowInput:true});
   ['Left','Right','Up','Down'].forEach(function(d){add('navigate-'+d.toLowerCase(),'Navigate '+d.toLowerCase(),'inventory',['Arrow'+d],{repeat:true});});
   ['Home','End','PageUp','PageDown'].forEach(function(d){add('navigate-'+d.toLowerCase(),d,'inventory',[d],{repeat:true});});

@@ -10,7 +10,7 @@
   function normalize(value) {
     var result = Object.assign(defaults(), value && typeof value === 'object' && !Array.isArray(value) ? value : {});
     ['viewMode', 'sortMode', 'groupMode'].forEach(function (key) {
-      var options = key === 'viewMode' ? ['shelf', 'grid'] : key === 'groupMode' ? ['none', 'rarity', 'generation', 'brand', 'ownership', 'new', 'variant'] : ['catalog', 'custom', 'missing-first', 'recent', 'oldest', 'name-asc', 'name-desc', 'rarity-asc', 'rarity-desc', 'generation', 'vram-asc', 'vram-desc', 'quantity', 'serial'];
+      var options = key === 'viewMode' ? ['shelf', 'grid'] : key === 'groupMode' ? ['none', 'rarity', 'generation', 'brand', 'ownership', 'new', 'variant'] : ['catalog', 'custom', 'missing-first', 'recent', 'oldest', 'value-desc', 'value-asc', 'change-desc', 'change-asc', 'name-asc', 'name-desc', 'rarity-asc', 'rarity-desc', 'generation', 'vram-asc', 'vram-desc', 'quantity', 'serial'];
       if (options.indexOf(result[key]) < 0) result[key] = defaults()[key];
     });
     result.showUnowned = result.showUnowned !== false; result.favorites = ids(result.favorites);

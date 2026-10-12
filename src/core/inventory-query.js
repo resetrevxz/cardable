@@ -1,6 +1,8 @@
 (function (C) {
   'use strict';
-  var fields = ['name', 'rarity', 'vram', 'generation', 'brand', 'owned', 'new', 'type', 'memorytype', 'variant', 'finish', 'favorite', 'era'];
+  var fields = ['name', 'rarity', 'vram', 'generation', 'brand', 'owned', 'new', 'type', 'memorytype', 'variant', 'finish', 'favorite', 'era', 'value'];
+  // Average Value of a stack (per copy), from the shared valuation. Unknown until the catalog is loaded.
+  function unitValue(entry) { return C.valuation && C.valuation.stackValue ? C.valuation.stackValue(entry) : null; }
   function lower(value) { return String(value == null ? '' : value).toLowerCase(); }
   function memory(card) { return card.vram && !card.vram.shared && card.vram.amount != null ? card.vram.amount / (card.vram.unit === 'MB' ? 1024 : 1) : null; }
   function parse(text) {
@@ -12,6 +14,7 @@
       if (!value) { errors.push('Add a value after ' + key + ':'); return; }
       if (key === 'era' && ['classic','modern'].indexOf(value)<0) { errors.push('Use era:classic or era:modern'); return; }
       if ((key === 'owned' || key === 'new' || key === 'favorite') && ['true', 'false'].indexOf(value) < 0) { errors.push(key + ' needs true or false'); return; }
+      if (key === 'value' && !/^(>=|<=|>|<)?\d+(\.\d+)?$|^\d+(\.\d+)?-\d+(\.\d+)?$/.test(value)) { errors.push('Use value:100, value:>=100 or value:50-200'); return; }
       if (key === 'vram' && !/^(>=|<=|>|<)?\d+(\.\d+)?(gb|mb)?$|^\d+(\.\d+)?-\d+(\.\d+)?(gb|mb)?$/.test(value)) { errors.push('Use vram:16, vram:>=16 or vram:8-16'); return; }
       terms.push({ key: key, value: value, token: token });
     }); return { terms: terms, errors: errors };
@@ -24,6 +27,7 @@
     if (key === 'variant' || key === 'finish') return entry.owned && (value === 'any' ? !!entry.variantId : [entry.variantId || 'normal', entry.variant ? entry.variant.name : 'Normal'].some(function(v){return lower(v).replace(/\s/g,'-') === value.replace(/\s/g,'-');}));
     if (key === 'favorite') return !!entry.isFavorite === (value === 'true');
     if (key === 'vram') return numeric(memory(card), value);
+    if (key === 'value') return numeric(unitValue(entry), value);
     if (key === 'owned' || key === 'new') return (key === 'owned' ? entry.owned : entry.isNew) === (value === 'true');
     if (key === 'generation') return [card.generation, entry.generation && entry.generation.name, (card.generation.match(/\d+/) || [''])[0]].some(function (v) { return lower(v) === value; });
     if (key === 'rarity') return [entry.rarity.id, entry.rarity.name, entry.rarity.code].some(function (v) { return lower(v).replace(/\s/g, '-') === value.replace(/\s/g, '-'); });
@@ -49,6 +53,8 @@
       if ((f.variant || []).length && (!e.owned || f.variant.indexOf(e.variantId || 'normal') < 0)) return false;
       if (f.newOnly && !e.isNew || f.quantity && e.instances.length < Number(f.quantity)) return false;
       if (['rarity', 'generation', 'brand', 'memoryType'].some(function (key) { var values = f[key] || [], value = key === 'memoryType' ? (e.card.vram && e.card.vram.type || '') : e.card[key]; return values.length && values.indexOf(value) < 0; })) return false;
+      var u = f.valueMin !== '' && f.valueMin != null || f.valueMax !== '' && f.valueMax != null ? unitValue(e) : null;
+      if (f.valueMin !== '' && f.valueMin != null && (u == null || u < Number(f.valueMin)) || f.valueMax !== '' && f.valueMax != null && (u == null || u > Number(f.valueMax))) return false;
       var n = memory(e.card); if (f.vramMin !== '' && f.vramMin != null && (n == null || n < Number(f.vramMin)) || f.vramMax !== '' && f.vramMax != null && (n == null || n > Number(f.vramMax))) return false;
       return parsed.terms.every(function (term) { return matches(e, term); });
     });
@@ -56,7 +62,7 @@
     function value(e, sort) {
       if(sortValues.has(e))return sortValues.get(e);
       var time=null;if(sort==='recent'||sort==='oldest')e.instances.forEach(function(i){if(time===null|| (sort==='recent'?i.pulledAt>time:i.pulledAt<time))time=i.pulledAt;});
-      var result=sort==='missing-first'?Number(e.owned):sort==='recent'?time===null?null:-time:sort==='oldest'?time:sort.startsWith('name')?e.owned||e.nameVisible?lower(e.card.name):null:sort.startsWith('rarity')?e.rarity.tier*(sort.endsWith('desc')?-1:1):sort==='generation'?e.generation.order:sort.startsWith('vram')?memory(e.card)==null?null:memory(e.card)*(sort.endsWith('desc')?-1:1):sort==='quantity'?-e.instances.length:sort==='serial'?e.instances.length?e.instances[0].serial:null:sort==='custom'?ranks.has(e.stackKey)?ranks.get(e.stackKey):Infinity:e.catalogIndex;
+      var result=sort==='missing-first'?Number(e.owned):sort==='recent'?time===null?null:-time:sort==='oldest'?time:sort.startsWith('change')?(function(){var c=C.valuation&&C.valuation.stackChange?C.valuation.stackChange(e):null;return c==null?null:c*(sort.endsWith('desc')?-1:1);})():sort.startsWith('value')?(function(){var u=unitValue(e);return u==null?null:u*(sort.endsWith('desc')?-1:1);})():sort.startsWith('name')?e.owned||e.nameVisible?lower(e.card.name):null:sort.startsWith('rarity')?e.rarity.tier*(sort.endsWith('desc')?-1:1):sort==='generation'?e.generation.order:sort.startsWith('vram')?memory(e.card)==null?null:memory(e.card)*(sort.endsWith('desc')?-1:1):sort==='quantity'?-e.instances.length:sort==='serial'?e.instances.length?e.instances[0].serial:null:sort==='custom'?ranks.has(e.stackKey)?ranks.get(e.stackKey):Infinity:e.catalogIndex;
       sortValues.set(e,result);return result;
     }
     entries.sort(function (a, b) { var ga = group(a, ui.groupMode), gb = group(b, ui.groupMode); if (ga !== gb && ui.groupMode !== 'none') { if (ui.groupMode === 'rarity') return a.rarity.tier - b.rarity.tier; if (ui.groupMode === 'generation') return a.generation.order - b.generation.order; return ga.localeCompare(gb); } var va = value(a, ui.sortMode), vb = value(b, ui.sortMode); if (va == null || vb == null) return va == null && vb == null ? a.catalogIndex - b.catalogIndex : va == null ? 1 : -1; var compare = typeof va === 'string' ? va.localeCompare(vb) * (ui.sortMode === 'name-desc' ? -1 : 1) : va === vb ? 0 : va < vb ? -1 : 1; return compare || a.catalogIndex - b.catalogIndex; });
