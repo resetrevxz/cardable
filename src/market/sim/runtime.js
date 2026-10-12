@@ -26,6 +26,7 @@
       balance: function () { return deps.player.balance(); },
       instance: function (id) { return deps.player.instance(id); },
       hasReceipt: function (id) { return deps.player.hasReceipt(id); },
+      sign: function (effect) { return deps.player.sign ? deps.player.sign(effect) : effect; },
       settle: function (effect) {
         // The intent is durable in the simulator before the save changes, so a crash between the two is repairable.
         persistNow('settle');

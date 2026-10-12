@@ -351,6 +351,7 @@
     var playerPays = youGive ? cash : 0, playerGets = youGive ? 0 : cash - cashFee;
     if (youGive && cash > 0 && host.balance() < cash) { S.closeOffer(world, offer, 'declined', 'Not enough Credits'); return false; }
     effect.delta = playerGets - playerPays;
+    if (host.sign) host.sign(effect);
     world.receipts[effect.receiptId] = { state: 'pending', t: world.now, effect: effect, swap: offer.id };
     world.pending.push(effect.receiptId);
     offer.status = 'settling'; offer.settleId = effect.receiptId;

@@ -74,6 +74,8 @@
     if (value.market !== undefined) {
       var market = value.market && typeof value.market === 'object' && !Array.isArray(value.market) ? value.market : {};
       base.market = { receipts: (Array.isArray(market.receipts) ? market.receipts : []).filter(function (id) { return typeof id === 'string' && id.length > 0 && id.length <= 96; }).slice(-600) };
+      // A per-save secret signs the effects the simulator may apply to this save, so a simulation file from elsewhere cannot add cards or Credits.
+      if (typeof market.secret === 'string' && /^[A-Za-z0-9]{12,64}$/.test(market.secret)) base.market.secret = market.secret;
     }
     if (value.achievements !== undefined) base.achievements = C.achievements ? C.achievements.normalize(value.achievements) : value.achievements;
     return base;

@@ -16,6 +16,23 @@
   function save() { return C.state.current; }
   function identity() { var s = save(); return s ? s.playerCode + ':' + s.createdAt : 'none'; }
 
+  // Two independent 32-bit hashes over a canonical form of the effect: tamper evidence, not cryptography.
+  function signature(key, effect) {
+    var parts = [key, effect.receiptId, effect.kind, effect.delta, effect.reason, (effect.remove || []).join(','),
+      (effect.add || []).map(function (i) { return i.instanceId + ':' + i.cardId + ':' + (i.variantId || '') + ':' + i.serial; }).join(',')].join('|');
+    var core = C.market.core;
+    return core.hash32('a' + parts).toString(36) + core.hash32(parts.split('').reverse().join('') + 'b').toString(36);
+  }
+  function secret() {
+    var s = save();
+    if (!s) return null;
+    if (s.market && s.market.secret) return s.market.secret;
+    var candidate = JSON.parse(C.state.encode(s)), text = '';
+    while (text.length < 24) text += C.randomId('k').replace(/[^A-Za-z0-9]/g, '');
+    candidate.market = Object.assign({ receipts: [] }, candidate.market, { secret: text.slice(0, 24) });
+    return C.state.commit(candidate) ? candidate.market.secret : null;
+  }
+
   var player = {
     balance: function () { var s = save(); return s ? s.currency : 0; },
     instance: function (id) {
@@ -24,12 +41,16 @@
     },
     hasReceipt: function (id) { var s = save(); return !!(s && s.market && s.market.receipts.indexOf(id) >= 0); },
     identity: identity,
+    // Effects are signed with this save's own secret when they are created and checked before they are applied.
+    sign: function (effect) { var key = secret(); if (key) effect.sig = signature(key, effect); return effect; },
     codes: function () { var s = save(); return s ? [s.playerCode] : []; },
     // The one place a simulated trade changes the player's save: cards, Credits and the receipt in a single commit.
     apply: function (effect) {
       var current = save();
       if (!current) return false;
       if (player.hasReceipt(effect.receiptId)) return true;
+      var key = current.market && current.market.secret;
+      if (!key || typeof effect.sig !== 'string' || effect.sig !== signature(key, effect)) return false;
       var candidate = JSON.parse(C.state.encode(current)), before = current.currency;
       var ids = {};
       candidate.inventory.forEach(function (i) { ids[i.instanceId] = true; });
@@ -40,7 +61,7 @@
       try { C.currency.applyInto(candidate, effect.delta, effect.reason); } catch (_) { return false; }
       var receipts = (candidate.market && candidate.market.receipts) || [];
       receipts.push(effect.receiptId);
-      candidate.market = { receipts: receipts.slice(-600) };
+      candidate.market = Object.assign({}, candidate.market, { receipts: receipts.slice(-600) });
       // The same checks a loaded save passes: unique serials and instance ids, known packs and finishes.
       try { C.state.validate(JSON.parse(JSON.stringify(candidate)), false); } catch (_) { return false; }
       if (!C.state.commit(candidate)) return false;

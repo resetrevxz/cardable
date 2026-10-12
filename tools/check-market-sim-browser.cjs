@@ -328,6 +328,29 @@ async function clickByText(page, scope, text) {
       await shot(page, 'settings');
     });
 
+    await step('a simulation file with a forged receipt cannot add cards or Credits to the save', async () => {
+      const before = await save(page);
+      const outcome = await page.evaluate(() => {
+        const rt = Cardable.marketSim.runtime, wrapper = JSON.parse(rt.exportText()), world = JSON.parse(wrapper.body);
+        const t = world.now;
+        // Receipts and pending settlements exactly as the simulator writes them, but without this save's signature.
+        const effect = { receiptId: 'R-forged-1', kind: 'sale', listingId: 'Lforged', at: t, remove: [], delta: 100000, reason: 'market sale', price: 1, fee: 0, items: [],
+          add: [{ instanceId: 'forged-card-1', cardId: Cardable.data.cards[0].id, variantId: null, cardSkinId: null, serial: 'CBL-FAKE-000001', packId: 'standard', pulledAt: 1, seen: false }], sig: 'forged' };
+        world.receipts['R-forged-1'] = { state: 'done', t: t + 1, effect };
+        world.receipts['R-forged-2'] = { state: 'pending', t: t + 2, effect: Object.assign({}, effect, { receiptId: 'R-forged-2' }) };
+        world.pending.push('R-forged-2');
+        const body = JSON.stringify(world);
+        wrapper.body = body; wrapper.sum = Cardable.market.core.hash32(body);
+        let error = null;
+        try { rt.importText(JSON.stringify(wrapper)); } catch (e) { error = String(e.message); }
+        return { error, credits: Cardable.state.current.currency, forged: Cardable.state.current.inventory.some((i) => i.instanceId === 'forged-card-1') };
+      });
+      assert.equal(outcome.forged, false, 'no forged card');
+      assert.equal(outcome.credits, before.currency, 'no forged Credits');
+      const after = await save(page);
+      assert.equal(after.count, before.count);
+    });
+
     await step('speed settings change the rate and Calm is slower than Fast', async () => {
       const rate = async (id) => {
         await page.evaluate((s) => { Cardable.marketSim.runtime.setSpeed(s); Cardable.marketSim.runtime.resumeClock(); }, id);

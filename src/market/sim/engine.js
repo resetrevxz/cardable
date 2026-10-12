@@ -281,6 +281,7 @@
         effect.add = l.items.map(function (it) { return S.instanceFrom(it, world.now, world); });
         effect.delta = -price;
       }
+      if (host.sign) host.sign(effect);
       l.status = 'settling'; l.settle = { receiptId: effect.receiptId, buyer: o.buyer, price: price, kind: o.kind || 'fixed', fee: f };
       world.receipts[effect.receiptId] = { state: 'pending', t: world.now, effect: effect };
       world.pending.push(effect.receiptId);
