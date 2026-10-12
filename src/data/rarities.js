@@ -51,7 +51,8 @@
       designSpec: 'A light blue shade with sparkles going to a less light blue without sparkles', propSpec: null,
       finish: 'rare', frontDesign: 'full-art',
       openingIntro: { kind: 'crystal', color: [41,135,250], orbitColor: [96,194,255], starColor: [208,247,255], background: [5,12,27], intensity: .62, handoff: { flipMs:400, fadeMs:160 },
-        sections: [{ id:'sideLight', ms:850 }, { id:'starRise', ms:900 }, { id:'timelapse', ms:2300 }, { id:'fracture', ms:680 }, { id:'wash', ms:700 }] },
+        sections: [{ id:'sideLight', ms:1200 }, { id:'starRise', ms:1500 }, { id:'timelapse', ms:3300 }, { id:'fracture', ms:1100 }, { id:'wash', ms:900 }],
+        shortRoute: [{ from:0, to:1200, ms:650 }, { from:1200, to:2700, ms:800 }, { from:2700, to:6000, ms:2200 }, { from:6000, to:7100, ms:850 }, { from:7100, to:8000, ms:700 }] },
       reveal: { riseMs: 1000, preFlipPauseMs: 300, flipMs: 900, bloom: 0.2, gridDim: 0.7, shiftPx: 0 },
       marketValueUsd: 1.1
     },

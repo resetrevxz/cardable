@@ -29,7 +29,7 @@
     previewBase = { card: card, instance: instance || { instanceId: 'settings-preview', cardId: card.id, serial: C.serial.format(C.state.current.playerCode, 0), pulledAt: 0, seen: true } };
     tierIndex = Math.max(0, C.data.rarities.findIndex(function (r) { return r.id === card.rarity; }));
     overlay.hidden = false; overlay.inert = false; buildPreview(); C.accessibility.trap(panel); C.preferences.shell.opened(); C.preferences.closeButton.focus({ preventScroll: true });
-    if (!C.settings.saved) message('Your browser is blocking saving. Settings last for this session only.');
+    if (!C.settings.saved) message('Settings could not be saved. They apply for this session; retry saving or export before closing.');
     spring.target = 1; if (settingId) C.preferences.shell.focus(settingId); C.fx.wake(); return true;
   }
   function close() {
@@ -58,11 +58,19 @@
     C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: true }); C.preferences.notice = notice;
   }
   function storageNotice() {
+    if (C.state.recovery && C.state.recovery.pending) return;
     if ((!C.state.noticeShown && !C.desktop.storageIssue) || C.preferences.notice) return;
-    var notice = node('aside', 'save-notice glass', root.document.body); var copy = node('p', '', notice, C.desktop.storageIssue ? 'Desktop backup is unavailable. Keep the original backups and export your current collection before closing. Local saving may still work.' : 'Saving is unavailable. Changes last for this session only. Export this session before closing; keep your original files.'); copy.setAttribute('role', 'status');
+    var notice = node('aside', 'save-notice glass', root.document.body); notice.dataset.saveNotice = 'storage';
+    var copy = node('p', '', notice, C.desktop.storageIssue ? 'Desktop backup is unavailable. Keep the original backups and export your current collection before closing. Local saving may still work.' : C.state.lastError && C.state.lastError.operation === 'commit' ? 'Could not save this change. Your previous save is kept, and an opened card stays reserved. Retry saving, then use Keep again. Export your session before closing if saving remains unavailable.' : 'Saving is unavailable. Changes last for this session only. Retry saving or export this session before closing; keep your original files.'); copy.setAttribute('role', 'status');
+    button('Retry saving', notice, function () { C.state.save(); if (!C.state.lastWriteSucceeded) copy.textContent = 'Saving is still unavailable. Any reserved card remains in the last successful save. Export this session before closing.'; });
     button('Export save', notice, function () { C.desktopTools.openData('exportButton'); });
     button('Recovery help', notice, function () { C.friendly.showHelp('saves'); });
     button('Dismiss', notice, function () { notice.remove(); C.preferences.notice = null; }); C.preferences.notice = notice;
+  }
+  function storageRecovered() {
+    var notice = C.preferences.notice;
+    if (!C.state.lastWriteSucceeded || C.desktop.storageIssue || C.state.recovery) return;
+    if (notice && notice.dataset.saveNotice === 'storage') { notice.remove(); C.preferences.notice = null; }
   }
   C.preferences = {
     initialized: false, get open() { return opened; }, show: open, close: close,
@@ -166,7 +174,7 @@
         return moving;
       }, 'settings');
       C.preferences.el = overlay; C.preferences.panel = panel; C.preferences.gear = gear; C.preferences.feedback = feedback; C.preferences.controls = controls; C.preferences.defaults = defaults; C.preferences.undo = undoButton; C.preferences.confirmation = confirmation; C.preferences.credits = credits; C.preferences.nudge = nudge;
-      enabled(); recoverNotice(); storageNotice(); C.events.on('save:recovery', recoverNotice); C.events.on('save:unavailable', storageNotice); C.events.on('desktop:storageError', storageNotice);
+      enabled(); recoverNotice(); storageNotice(); C.events.on('save:recovery', recoverNotice); C.events.on('save:unavailable', storageNotice); C.events.on('desktop:storageError', storageNotice); C.events.on('save:available', storageRecovered); C.events.on('desktop:storageRecovered', storageRecovered);
     }
   };
 })(window.Cardable, window);

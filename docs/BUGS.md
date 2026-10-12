@@ -2,6 +2,12 @@
 
 Fixed history and its reproduction/coverage tables are preserved in [the original bug ledger](../archive/4.2.0-cleanup/docs/BUGS.md). A historical fixed label applies to its recorded checkpoint, not every later build. Deferred rows are evidence gaps rather than newly reproduced defects.
 
+## 1.6.3 save warning after Double Super Rare
+
+The owner reported “Saving is unavailable” after a Double Super Rare opening. The last real-profile log showed 1.5.4 and did not record the caught error. A copied profile on current source successfully opened Double Super Rare, kept one card and retained it after reload; the original failure is not reproduced or diagnosed. The original profile was read only.
+
+Two confirmed reporting defects are corrected: preparation/encoding failures used to mark primary storage unavailable, and an existing warning remained visible after subsequent saves succeeded. Retry saving now writes the current reserved state and clears the storage notice only when both primary storage and native backup are healthy. Caught errors log operation/stage/name/size metadata without collection contents. Injected failed Keep left durable bytes and the reserved card unchanged; reload recovered the same instance, and a successful Keep minted exactly one copy with no extra reward. The native copied-profile check verified warning recovery and caught-error logging.
+
 ## 1.2.4 developer saves and frame consistency
 
 The reported browser error identified `QuotaExceededError` writing the extra

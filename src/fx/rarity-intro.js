@@ -34,6 +34,7 @@
     var nebula = null, nebulaKey = '', nebulaAt = -Infinity;
     var portalCloud = null, portalCloudKey = '', portalWhite = 0;
     var refraction = C.refractionIntro.create();
+    var rare = C.rareIntro.create();
     var gilded = C.gildedIntro.create(), backdrop, backdropG, backSpec = null, backAge = null, seed = '';
     var mythical = C.mythicalIntro.create(), backTime = 0, backPaintAt = -Infinity, backdropFocused = true;
     C.cutscenes.register('crimson', C.mythicalIntro.create); C.cutscenes.register('cosmic', C.exoticIntro.create);
@@ -222,56 +223,8 @@
         g.strokeStyle = rgba(light, .8); g.lineWidth = 1; g.stroke(); g.restore();
       });
     }
-    function rareSideLight(level, wash) {
-      var c = color(spec.orbitColor), pale = color(spec.starColor), reach = w * .47;
-      g.save();
-      [-1, 1].forEach(function (side) {
-        var edge = side < 0 ? 0 : w, inner = edge - side * reach;
-        var beam = g.createLinearGradient(edge, 0, inner, 0);
-        beam.addColorStop(0, rgba(pale, .26 * level));
-        beam.addColorStop(.2, rgba(c, .18 * level));
-        beam.addColorStop(1, rgba(c, 0));
-        g.fillStyle = beam; g.fillRect(Math.min(edge, inner), 0, reach, h);
-        glow(edge, h * .5, Math.max(h * .7, reach), pale, .19 * level);
-      });
-      if (wash > 0) {
-        g.fillStyle = rgba(c, wash * .48); g.fillRect(0, 0, w, h);
-        g.fillStyle = rgba(pale, wash * .76); g.fillRect(0, 0, w, h);
-      }
-      g.restore();
-    }
-    function rareCloudBank(progress, opacity) {
-      if (opacity <= 0) return;
-      var atlas = cloudTexture(), sweep = out(progress) * (w * 1.5), width = Math.max(w * .76, h * .8);
-      g.save(); g.globalAlpha = opacity * .26;
-      g.drawImage(atlas, w * .88 - sweep, h * .27, width, h * .5);
-      g.globalAlpha = opacity * .14;
-      g.drawImage(atlas, w * 1.22 - sweep * .73, h * .39, width * .8, h * .35);
-      g.restore();
-    }
     function rareFrame(s, t) {
-      var p = s.p, r = Math.min(w, h) * .42, pale = color(spec.starColor), blue = color(spec.color);
-      var light = s.id === 'sideLight' ? smooth(p) * .75 : s.id === 'starRise' ? mix(.75, 1, smooth(p)) : 1;
-      var wash = s.id === 'fracture' ? smooth(p) * .38 : s.id === 'wash' ? mix(.38, .96, smooth(p)) : 0;
-      rareSideLight(light, wash);
-      if (s.id === 'sideLight') return;
-      if (s.id === 'starRise') {
-        var arrive = smooth(p);
-        cloudStar(r * mix(.38, 1, arrive), arrive, t, .08 * p);
-        glow(w / 2, h / 2, r * 1.6, pale, .12 * arrive);
-      } else if (s.id === 'timelapse') {
-        // Distance is cubic: visible motion starts gently and becomes a fast cloud timelapse.
-        var travel = .08 + p * .45 + p * p * p * 5.5;
-        rareCloudBank(p, smooth(p / .2));
-        cloudStar(r, 1, t, travel);
-        glow(w / 2, h / 2, r * 1.9, pale, .12 + .18 * p);
-      } else if (s.id === 'fracture') {
-        rareCloudBank(1, 1 - smooth(p));
-        crystalShards(p, t, r);
-        glow(w / 2, h / 2, r * mix(.9, 2.6, out(p)), pale, .22 * (1 - p));
-      } else if (s.id === 'wash') {
-        glow(w / 2, h / 2, Math.hypot(w, h) * .75, blue, .18 + .18 * p);
-      }
+      rare.paint(g, w, h, s, t, quality());
     }
     function pulseFrame(s, t) {
       var p = s.p, c = color(spec.color), isCrystal = spec.kind === 'crystal', retreat = s.id === 'retreat' || s.id === 'release';
@@ -580,7 +533,7 @@
           shards.push({ points: points, cx: (points[0][0] + points[1][0] + points[2][0]) / 3, cy: (points[0][1] + points[1][1] + points[2][1]) / 3, speed: random(), turn: (random() - .5) * 1.1 });
         });
       }
-      if (!still() && (spec.kind === 'crystal' || spec.kind === 'portal')) cloudTexture();
+      if (!still() && spec.kind === 'portal') cloudTexture();
       if (!still() && spec.kind === 'portal') portalCloudTexture();
       C.events.emit('opening:introStart', { rarity: label, durationMs: duration(), sections: next.sections }); update(0, root.performance.now());
     }
@@ -621,6 +574,7 @@
       if(spec&&spec.kind==='system'){secret.releaseScene();notice.stop();limiter.hide();root.document.body.classList.remove('is-secret-cinematic');}
       if (spec && spec.kind === 'crimson') mythical.releaseScene();
       if (spec && spec.kind === 'prismatic') ascendant.releaseScene();
+      rare.stop();
       active = false; handing = false;cardStage=false;cardState=null; canvas.hidden = true; canvas.style.opacity = ''; spec = null; section = null;
       C.events.emit('opening:introEnd', { rarity: name });
     }
@@ -666,7 +620,7 @@
       backdrop.style.opacity = String(1 - smooth(p)); if (p === 1) clearBackdrop();
       return p < 1;
     }
-    function stop() { notice.stop();limiter.hide();secret.stop();root.document.body.classList.remove('is-secret-cinematic');runtime.stop(); endOverlay(); clearBackdrop(); mythical.stop(); ascendant.stop(); }
+    function stop() { notice.stop();limiter.hide();secret.stop();rare.stop();root.document.body.classList.remove('is-secret-cinematic');runtime.stop(); endOverlay(); clearBackdrop(); mythical.stop(); ascendant.stop(); }
     return { start: start, update: update, stop: stop, resize: resize, beginHandoff: beginHandoff, updateRelease: updateRelease,
       restoreBackdrop: restoreBackdrop, exitBackdrop: exitBackdrop, updateBackdrop: updateBackdrop,
       get cardFrame(){return cardState;},get cardStageActive(){return cardStage;},

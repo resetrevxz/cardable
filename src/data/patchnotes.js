@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.6.3',codename:'Cloudbreak',date:'October 12, 2026',tag:'Update',tagline:'Rare moves through a sky of light.',
+    hero:{badge:'CARDABLE / 1.6.3',title:'Cloudbreak.',subtitle:'A glass star, accelerating clouds and a pale-blue break into the card reveal.',media:[]},
+    sections:{fixes:['Saving warnings clear after recovery and offer Retry saving. Preparation errors no longer report that primary storage is unavailable.'],visuals:['Rare has layered clouds, a curved glass star, luminous lighting and sixteen fragments that retain the original material.'],qol:['Rare Full lasts 8 seconds; Short keeps all five stages in 5.2 seconds.']},
+    entries:['Rare has a new atmospheric cutscene.','Save warnings offer retry and clear when saving recovers.']
+  },
+  {
     version:'1.6.2',codename:'Blue and gold',date:'October 12, 2026',tag:'Update',tagline:'Double Super Rare flows through both colors.',
     hero:{badge:'CARDABLE / 1.6.2',title:'Blue and gold.',subtitle:'Blended glass, crossing ribbons and a turning prism give Double Super Rare a new look.',media:[]},
     sections:{fixes:['Blue and gold now mix throughout Double Super Rare, with no hard center seam.'],visuals:['Crossing glass ribbons, moving reflections, a turning faceted prism and brighter bevels refresh the cutscene.'],qol:[]},

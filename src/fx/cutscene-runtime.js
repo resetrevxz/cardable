@@ -49,6 +49,7 @@
     register: function (kind, factory) { entries[kind] = factory; },
     create: function (kind) { return entries[kind] ? entries[kind]() : null; },
     warmup: function (rarity, serial) {
+      if (rarity && rarity.openingIntro && rarity.openingIntro.kind === 'crystal') { C.rareIntro.warmup(); return; }
       if(!rarity||!['ascendant','secret'].includes(rarity.reveal.cutscene))return;
       var loader=C.ui?C.ui.create('loader',{label:'Warming cinematic assets',total:2}):null,effects,fonts,timer;
       if(loader){loader.classList.add('cb-cinematic-loader');effects=C.ui.progress(0,'Effects prepared',true);fonts=C.ui.progress(0,'Fonts prepared',true);loader.append(effects,fonts);C.viewport.parent(root.document.body).appendChild(loader);timer=root.setTimeout(dispose,8000);}

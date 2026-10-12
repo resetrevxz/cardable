@@ -45,8 +45,8 @@
     next = schema.normalize(next); var before = values; values = next; policy = resolvePolicy();
     C.state.current.settings = next;
     Object.keys(schema.entries).forEach(function (key) { if (before[key] !== next[key]) apply(key, effective(key)); });
-    C.state.save(); C.events.emit('settings:persisted', { saved: C.state.persistenceAvailable });
-    return C.state.persistenceAvailable;
+    C.state.save(); C.events.emit('settings:persisted', { saved: C.state.lastWriteSucceeded });
+    return C.state.lastWriteSucceeded;
   }
   C.settings = {
     get batterySaving() { return batterySaving; },
@@ -54,7 +54,7 @@
     get: function (key) { return effective(key); },
     getRequested: function (key) { return values[key]; },
     get snapshot() { return Object.assign({}, values); },
-    get saved() { return C.state.persistenceAvailable; },
+    get saved() { return C.state.lastWriteSucceeded; },
     get policy() { return policy; },
     refreshQuality: function(){policy=resolvePolicy();['quality'].concat(schema.graphicsKeys).forEach(function(key){apply(key,effective(key));});},
     get customized() { return schema.graphicsKeys.some(function (key) { return values[key] !== values.quality; }); },
@@ -88,7 +88,7 @@
       if (!schema.entries[key] || !C.state.current) return false;
       if (key === 'quality') return C.settings.applyPreset(schema.validate(key, value));
       var next = Object.assign({}, values); next[key] = schema.validate(key, value);
-      if (next[key] === values[key]) return C.state.persistenceAvailable;
+      if (next[key] === values[key]) return C.state.lastWriteSucceeded;
       return replace(next);
     },
     withPolicy: function (tier, fn) {

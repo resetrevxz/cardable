@@ -84,6 +84,12 @@
       });
 
       // 2. Double-persistence: Backup every save write to userData
+      C.events.on('save:error', function (error) {
+        if (!primaryStorage()) return;
+        // Caught storage errors do not reach window.onerror. Log metadata only;
+        // no serialized collection or player identity leaves the renderer.
+        desktop.logs.write('ERROR', 'Save rejected: ' + error.operation + '/' + error.stage, error).catch(function () {});
+      });
       C.events.on('save:written', function () {
         if (!primaryStorage()) return;
         try {
@@ -96,7 +102,7 @@
       if (desktop.lifecycle) desktop.lifecycle.onPrepareClose(function () {
         if (C.bootFailure || C.state.recovery && C.state.recovery.pending) { desktop.lifecycle.closeReady(false); return; }
         var saved = true;
-        try { if (C.state) { C.state.save(); saved = C.state.persistenceAvailable; } } catch (_) { saved = false; }
+        try { if (C.state) { C.state.save(); saved = C.state.lastWriteSucceeded; } } catch (_) { saved = false; }
         backupCurrent().catch(function () { return false; }).then(function (result) {
           desktop.lifecycle.closeReady(saved && (!primaryStorage() || !!(result && result.success)));
         });

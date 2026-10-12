@@ -160,6 +160,22 @@
     if (root.console) root.console.info('Cardable: local storage is unavailable; changes are kept in memory for this session.');
     C.events.notify('save:unavailable');
   }
+  function writeSucceeded(json) {
+    var recovering = cache.unavailable || !!C.state.lastError;
+    cache.written(json); C.state.lastError = null; C.state.noticeShown = false;
+    if (recovering) C.events.notify('save:available');
+  }
+  function writeFailed(error, operation, stage, json) {
+    // A serialization or developer-backup guard can reject a transaction while
+    // primary storage still works. Only an actual storage failure marks it unavailable.
+    if (stage === 'storage') cache.unavailable = true;
+    C.state.lastError = { reason: error.name === 'QuotaExceededError' ? 'quota' : stage === 'storage' ? 'write' : stage,
+      message: error.message || 'Save write failed', operation: operation, stage: stage,
+      name: error.name || 'Error', bytes: typeof json === 'string' ? json.length * 2 : null };
+    if (root.console) root.console.error('Cardable save failed (' + operation + '/' + stage + '):', error);
+    C.events.notify('save:error', C.state.lastError);
+    if (stage === 'storage') notifyUnavailable();
+  }
   function preserveOriginal(store, raw) {
     var key = C.config.storage.key + '.corrupt', suffix = 0;
     while (store.getItem(key) && store.getItem(key) !== raw) key = C.config.storage.key + '.corrupt.' + (++suffix);
@@ -180,6 +196,7 @@
     beforeWrite: null,
     lastError: null,
     get persistenceAvailable() { return !cache.unavailable; },
+    get lastWriteSucceeded() { return !cache.unavailable && !C.state.lastError && !C.state.recovery && !C.bootFailure; },
     noticeShown: false,
     recovery: null,
     preserveOriginal: preserveOriginal,
@@ -198,6 +215,7 @@
       if (C.bootFailure || recovery && recovery.pending && !(options && options.recovery)) {
         C.state.lastError = { reason: 'recovery', message: 'Choose a recovery action before saving.' }; return false;
       }
+      var writeStage = 'storage', json;
       try {
         var store = root.localStorage;
         if (!store) throw new Error('Local storage is unavailable');
@@ -205,32 +223,35 @@
         if (recovery && recovery.pending && recovery.raw && !recovery.backedUp) {
           preserveOriginal(store, recovery.raw); recovery.backedUp = true;
         }
+        writeStage = 'guard';
         if (C.state.beforeWrite) C.state.beforeWrite(candidate);
-        var json = C.state.encode(candidate);
+        writeStage = 'encode'; json = C.state.encode(candidate);
+        writeStage = 'storage';
         store.setItem(C.config.storage.key, json);
       } catch (error) {
-        cache.unavailable = true;
-        C.state.lastError = { reason: error.name === 'QuotaExceededError' ? 'quota' : 'write', message: error.message || 'Save write failed' };
-        if (root.console) root.console.error('Cardable durable save failed:', error);
-        notifyUnavailable(); return false;
+        writeFailed(error, 'commit', writeStage, json); return false;
       }
-      cache.written(json);
-      C.state.lastError = null;
       C.state.current = candidate;
       if (recovery && recovery.pending) C.state.recovery = null;
+      writeSucceeded(json);
       C.events.notify('save:written', candidate);
       return true;
     },
     save: function () {
       if (C.bootFailure || C.state.recovery && C.state.recovery.pending) return C.state.current;
       if (!C.state.current) C.state.current = freshState();
-      if (C.state.beforeWrite) C.state.beforeWrite(C.state.current);
-      var json = C.state.encode(C.state.current);
-      var store = storage();
-      if (store) {
-        try { store.setItem(C.config.storage.key, json); cache.written(json); C.state.lastError = null; }
-        catch (error) { cache.unavailable = true; cache.memory = json; C.state.lastError = { reason: error.name === 'QuotaExceededError' ? 'quota' : 'write', message: error.message || 'Save write failed' }; notifyUnavailable(); }
-      } else { cache.memory = json; cache.unavailable = true; notifyUnavailable(); }
+      var writeStage = 'guard', json;
+      try {
+        if (C.state.beforeWrite) C.state.beforeWrite(C.state.current);
+        writeStage = 'encode'; json = C.state.encode(C.state.current);
+        writeStage = 'storage'; var store = root.localStorage;
+        if (!store) throw new Error('Local storage is unavailable');
+        store.setItem(C.config.storage.key, json); writeSucceeded(json);
+      } catch (error) {
+        if (writeStage === 'storage') cache.memory = json;
+        writeFailed(error, 'save', writeStage, json);
+        if (writeStage !== 'storage') return C.state.current;
+      }
       C.events.notify('save:written', C.state.current);
       return C.state.current;
     },

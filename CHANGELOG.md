@@ -1,3 +1,11 @@
+# Cardable v1.6.3 — Cloudbreak
+
+Rare has a new atmospheric cloud material, a curved glass star, directional bevels and a luminous core. Pale-blue side light introduces the scene; layered clouds cross the star faster and faster, the star fractures into sixteen pieces carrying its last cloud image, and a growing pale-blue wash hands directly to the card. Full lasts 8 seconds; authored Short retains all five stages in 5.2 seconds. Off and reduced motion retain the calm route. Materials warm during the committed wrapper opening and are released after the reveal.
+
+Save warnings now offer Retry saving and clear when storage recovers. Preparation/encoding errors no longer incorrectly mark primary storage unavailable. Caught failures record their operation, stage and error metadata in the desktop log without recording the collection. Reservations and rewards remain atomic.
+
+Verification covered color and monochrome, 1280 × 720 and 390 × 844, Full/Short/Fast/Off/reduced motion, the Rare opening through Keep, injected failed Keep followed by reload and exact-once recovery, and warning retry/recovery. A copied native profile successfully opened Double Super Rare and retained it after reload; native injected failures verified the new warning and caught-error logging. The final Rare opening also completed through Keep and reload in the copied desktop profile. The owner's original failure was not reproduced and its cause remains unconfirmed. The real player profile was not modified. Installer execution, live updater and hardware performance remain unverified. This build is unsigned.
+
 # Cardable v1.6.2 — Blue and gold
 
 Double Super Rare now blends its blue and gold across the whole cinematic. Flowing color bands, crossing translucent ribbons, a turning faceted prism, moving reflections and brighter bevel highlights replace the fixed blue-left/gold-right presentation. The accelerating light passes resolve into an overlapping pearl, blue and gold wash before the existing card handoff.
