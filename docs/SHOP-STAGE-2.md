@@ -17,6 +17,8 @@ Date: 2026-10-12. Worktree: `D:/CardableV2/Shop`; branch: `feature/daily-shop`.
 - Statistical fixture: 12,000 first-slot draws with rarity weights 7:2:1 yielded Basic **8,321 (69.34%)**, Common **2,443 (20.36%)**, Rare **1,236 (10.30%)**, within 2 percentage points of expected 70/20/10. An empty tier with weight 1,000 stole no probability. The test also checks uniqueness after pool depletion.
 - Pricing guardrail fixtures use hypothetical resale ceilings per rarity and a hypothetical Titan expected-value ceiling of 6,200 Credits. All standard Shop quotes exceed those resale ceilings and the featured 7,600 quote exceeds the synthetic pack ceiling. The current game has no quick-sell payout, so these are test assumptions, **not** observed sale values or a real Titan pack expected return.
 - Captures: `artifacts/shop-stage2-desktop.png`, `artifacts/shop-stage2-mobile-offers.png`, `artifacts/shop-stage2-mono-low.png`. The desktop and phone captures were visually inspected.
+- `npm run check:data` and `node tools/verify-assets.cjs` passed. `npm test` passed all eight Electron service tests, then stopped because this isolated worktree has no `node_modules/electron/dist/electron.exe`. A direct smoke run pointed at the primary checkout's Electron binary exited before its smoke assertions with code `2147483651`.
+- `npm run deliver:desktop` first stopped on missing local `@electron/asar`; retrying with the primary checkout's dependency path reached the Windows process check, then failed because `Get-CimInstance` was unavailable in this sandbox. No installer or Latest Build shortcut was produced or replaced.
 
 ## Remaining acceptance
 
