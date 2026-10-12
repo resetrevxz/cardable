@@ -25,6 +25,7 @@ Var /GLOBAL cardableHadInstall
   !define MUI_PAGE_HEADER_SUBTEXT "Copying the game and creating your shortcuts."
 !macroend
 
+!ifndef BUILD_UNINSTALLER
 Function cardableMotionPage
   ${If} ${isUpdated}
     Abort
@@ -46,6 +47,7 @@ FunctionEnd
 Function cardableMotionLeave
   ${NSD_GetState} $cardableMotionCheckbox $cardableReducedMotion
 FunctionEnd
+!endif
 
 !macro customInstall
   ; The installer choice seeds only a new collection. Updating cannot reset it.
