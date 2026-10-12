@@ -73,12 +73,13 @@
       var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); var holdRow = node('div', 'pack-key-row', hint); node('kbd', '', holdRow, 'Space'); node('span', '', holdRow, 'Open'); var flipRow = node('div', 'pack-key-row', hint); var flipKey = node('kbd', '', flipRow, 'R'); node('span', '', flipRow, 'Flip'); flipKey.dataset.keyAction = 'menu.flip-pack';
       function updateOpeningKey() { hint.querySelector('kbd').dataset.keyAction='opening.hold';hint.querySelector('kbd').textContent = C.keys.label('opening.hold'); openKey.textContent = C.keys.label('opening.hold'); flipKey.textContent = C.keys.label('menu.flip-pack'); var description = host.getAttribute('aria-description'); if (description) host.setAttribute('aria-description', description.replace(/Hold (Space|Enter)/, 'Hold ' + C.settings.holdKey)); }
       C.settings.onChange('keyBindings',updateOpeningKey);C.settings.onChange('openKey', updateOpeningKey); updateOpeningKey();
-      var ready = C.state.current.packs.ready, pendingGain = 0, arrivalStart = null, time = 0, handoff = null, progress = C.timers.progress(Date.now());
+      var ready = C.state.current.packs.ready, purchasedReady = false, pendingGain = 0, arrivalStart = null, time = 0, handoff = null, progress = C.timers.progress(Date.now());
       cachedStyle(host, '--pack-reflection-opacity', cfg.reflectionOpacity);
       var gallery = C.presentation.gallery;
       if (gallery) C.packView.visible = false;
       function refresh(initial) {
         var state = C.state.current, next = state.packs.ready, now = root.performance.now();
+        purchasedReady = !!(C.shopPurchase && C.shopPurchase.entitlement(state));
         var types = C.packs.upcoming(2);
         if (pack.id !== types[0].id) {
           if (initial || openingPaused || inventoryPaused || !C.packView.visible || root.document.hidden || C.menu.afk) {
@@ -87,7 +88,7 @@
           } else if (!previewSwap || previewSwap.pack.id !== types[0].id) {
             clearPreviewEffect();
             previewSwap = { pack: types[0], at: now, adopted: false };
-            if(types[0].swapIn)previewEffect=C.packTransitions.create(types[0].swapIn,host,pack,front.el,function(){adopt(previewSwap.pack);previewSwap.adopted=true;C.packSkins.apply(front.el,pack,ready?'idle':'waiting');});
+            if(types[0].swapIn)previewEffect=C.packTransitions.create(types[0].swapIn,host,pack,front.el,function(){adopt(previewSwap.pack);previewSwap.adopted=true;C.packSkins.apply(front.el,pack,ready||purchasedReady?'idle':'waiting');});
             front.el.classList.add('is-pack-swapping');
           }
         } else if (previewSwap && previewSwap.pack.id !== types[0].id) {
@@ -96,18 +97,20 @@
         }
         if (rearPack.id !== types[1].id) { rearPack = types[1]; C.packMarkup.setPack(back.el, rearPack); backMaterial = C.packMaterial.create(back.el, rearPack); }
         host.dataset.pack = types[0].id;
-        C.packSkins.apply(front.el, pack, next ? 'idle' : 'waiting');
+        C.packSkins.apply(front.el, pack, next || purchasedReady ? 'idle' : 'waiting');
         C.packSkins.apply(back.el, rearPack, next ? 'idle' : 'waiting');
         progress = C.timers.progress(Date.now());
         if (!initial && next > ready) pendingGain = next - ready;
         if (next < ready) { pendingGain = 0; arrivalStart = null; host.classList.remove('is-arriving'); }
-        ready = next; host.dataset.state = ready > 0 ? 'ready' : 'waiting'; host.dataset.ready = ready;
-        back.el.style.opacity = ready > 1 ? cfg.backOpacity : 0;
+        ready = next; host.dataset.state = ready > 0 || purchasedReady ? 'ready' : 'waiting'; host.dataset.ready = ready;
+        back.el.style.opacity = (purchasedReady ? ready > 0 : ready > 1) ? cfg.backOpacity : 0;
         host.classList.toggle('is-first-visit', !state.tutorial.done && state.stats.packsOpened === 0);
         stock.setAttribute('aria-label', ready + ' of ' + C.config.packs.maxStored + ' packs stored');
-        metrics.textContent = state.inventory.length + (state.inventory.length === 1 ? ' card · ' : ' cards · ') + ready + ' / ' + C.config.packs.maxStored + ' packs';
-        host.setAttribute('aria-label', types[0].name + ': ' + (ready ? ready + ' ready' : 'regenerating'));
-        action.disabled = ready <= 0; action.hidden = ready <= 0;
+        metrics.textContent = state.inventory.length + (state.inventory.length === 1 ? ' card · ' : ' cards · ') + ready + ' / ' + C.config.packs.maxStored + ' timer packs' + (purchasedReady ? ' · Purchased Titan ready' : '');
+        host.setAttribute('aria-label', purchasedReady ? 'Purchased Titan Pack ready to open; timer stock unchanged' : types[0].name + ': ' + (ready ? ready + ' ready' : 'regenerating'));
+        openLabel.textContent = purchasedReady ? 'Open purchased Titan' : 'Open pack';
+        action.setAttribute('aria-label', purchasedReady ? 'Hold to open purchased Titan Pack' : 'Hold to open pack');
+        action.disabled = ready <= 0 && !purchasedReady; action.hidden = ready <= 0 && !purchasedReady;
         timer.dataset.label = ready >= C.config.packs.maxStored ? 'Pack storage' : ready > 0 ? 'Next pack' : 'Regenerating';
         vials.forEach(function (vial, i) {
           var target = i < ready ? 1 : 0;
@@ -174,7 +177,7 @@
           else {
           var fade = C.motion.reduced || C.settings.policy.animation < 2;
           var swapP = Math.min(1, (now - previewSwap.at) / (fade ? C.config.packSwap.reducedMs : C.config.packSwap.previewMs));
-          if (swapP >= .5 && !previewSwap.adopted) { adopt(previewSwap.pack); previewSwap.adopted = true; C.packSkins.apply(front.el, pack, ready ? 'idle' : 'waiting'); }
+          if (swapP >= .5 && !previewSwap.adopted) { adopt(previewSwap.pack); previewSwap.adopted = true; C.packSkins.apply(front.el, pack, ready || purchasedReady ? 'idle' : 'waiting'); }
           var turn = swapP * swapP * (3 - 2 * swapP);
           front.el.style.transform = fade ? 'none' : 'rotateY(' + turn * 360 + 'deg)';
           front.el.style.opacity = fade ? Math.abs(1 - 2 * swapP) : 1;
@@ -195,7 +198,7 @@
         var ambient = C.settings.policy.ambient && !C.menu.idle && !reduced;
         var rx = pose.rx, ry = pose.ry;
         C.packView.progress = progress;
-        var fill = ready > 0 ? 1 : progress;
+        var fill = ready > 0 || purchasedReady ? 1 : progress;
         if (arrivalStart !== null && now - arrivalStart >= cfg.readyMomentMs) { arrivalStart = null; host.classList.remove('is-arriving'); }
         var arrivalP = arrivalStart === null ? 1 : Math.min(1, (now - arrivalStart) / cfg.readyMomentMs);
         cachedStyle(host, '--arrival-sweep', (reduced ? 0 : -cfg.sweepTravelPercent + (1 - Math.pow(1 - arrivalP, 3)) * cfg.sweepTravelPercent * 2) + '%');

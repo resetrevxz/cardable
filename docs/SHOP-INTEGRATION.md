@@ -1,40 +1,25 @@
 # Daily Shop integration contract
 
-Stage 2 owns the local rotation and quote snapshot. Stage 3 will own spending and delivery. This document describes the boundary exposed by `C.shopState` without adding a Market dependency.
+The Shop is an offline NPC sale against the existing Credits balance and local collection. Stage 2 freezes four daily quotes; Stage 3 spends and delivers them. It has no Market, listing, trade-fee, top-up or network dependency.
 
-## Source and saved shape
+## Saved shape and quote boundary
 
-`src/data/shop.js` contains the featured Titan Pack ID/quote, offer count, retention limits and local Credits pricing policy. `src/core/shop-state.js` exposes `dayKey`, `eligible`, `pools`, `odds`, `quote`, `generate`, `normalize`, `ensure` and `setValuationAdapter`. UI calls `ensure()` and reads its returned **copy** of the saved daily snapshot. It never edits an offer in place.
+`src/data/shop.js` owns the local quote policy and permanent featured Titan Pack ID/price. `C.shopState.ensure()` persists a daily snapshot before it is shown. Its four card IDs, variants and safe integer prices are immutable until the next local day. `C.shopState.setValuationAdapter()` may provide a finite local baseline for **future** snapshots only; it never rewrites a saved quote and does not read `marketValueUsd`.
 
-The optional `save.shop` field has no schema bump:
+The optional `save.shop` field remains version 1 and requires no save-schema bump. It contains a 32-character seed, up to 32 daily snapshots, up to 64 typed receipts, and either one pending purchased-pack entitlement or `null`. A card receipt identifies its offer and minted instance. A pack receipt identifies the entitlement. Historical card IDs remain in frozen snapshots; an unavailable catalog card disables that offer rather than substituting another.
 
-```json
-{
-  "version": 1,
-  "seed": "32 hexadecimal digits",
-  "days": [{
-    "dayKey": "YYYY-MM-DD", "version": 1, "status": "ready",
-    "offers": [{ "offerId": "YYYY-MM-DD:01:card-id", "cardId": "card-id",
-      "variantId": null, "cardSkinId": null, "price": 1150, "purchased": false }]
-  }],
-  "receipts": []
-}
-```
+## Card purchase
 
-`days` retains at most 32 snapshots; `receipts` reserves at most 64 minimal entries `{offerId, at, price}` for Stage 3. The exact four IDs, variants and integer quotes are frozen when the new day is committed. A purchase may only change a slot's `purchased` value and add a receipt in the **same durable candidate transaction** that debits Credits and grants the card. This stage never performs that transaction. Historical card IDs remain in snapshots even if a later catalog removes them; the UI shows an unavailable slot and does not substitute another card.
+`C.shopPurchase.buyCard(expected)` checks the live local day, exact saved offer identity, card/variant/skin and integer quote, purchased flag, wallet, save readiness, opening state and serial capacity. The candidate applies one `C.currency.applyInto` debit, allocates one serial and instance ID, records `source:'shop'` with `packId:null`, marks the slot purchased, and appends a receipt. The journal and inventory focus key are prepared on that same candidate. `C.state.commit` makes the complete candidate durable before any wallet or Shop event is emitted. A failed write leaves the live save untouched. Repeated calls find the purchased slot or receipt and cannot grant a second card.
 
-## Pricing and future valuation
+## Titan purchase and redemption
 
-`C.data.shop.baseByRarity` is the local baseline. `C.shopState.quote(card, variantId, policy)` calculates the quote from that baseline, an optional positive `card.shopPriceMultiplier`, the convenience multiplier and the actual variant premium, rounded up to the configured step. The Shop never reads `marketValueUsd`. All inputs and output must be finite safe Credits integers inside policy bounds.
+`C.shopPurchase.buyTitan()` debits the permanent 7,600-Credit quote and persists one entitlement plus receipt in a single candidate. The UI offers `Open Titan Pack` while that entitlement exists; a second purchase waits until the first pack is opened. This policy is visible in the showroom.
 
-A future local valuation provider may call `C.shopState.setValuationAdapter({ localBaseline(card, defaultBase) { ... } })`. It must synchronously return a finite positive **local** baseline or `null` to use the default. Registration affects only subsequently generated days. Existing saved quotes remain authoritative and cannot be recalculated by the adapter. No adapter object, market series, online field or live quote is written into `save.shop`. Pass `null` to remove the adapter. Market code may read this local policy, but Shop does not call or import Market code.
+The entitlement is ahead of the natural queue only for preview and opening selection. It is not timer stock. `src/ui/opening.js` enters the existing charge, registered `shroudDial` cut, cinematic and reveal for the real `titan` pack. At the random-outcome commit, it clears the entitlement and writes `pendingReveal.source:'shop'` with the entitlement ID and reserved card in one durable save. Keep then moves that exact reserved instance into inventory. A failed reservation write retains the entitlement; a reload after reservation resumes the same card. Purchased opening neither consumes natural stock nor increments natural pack counters, and it does not award `packOpenReward` Credits. Natural openings retain their current reward behavior on this branch; a separate Market change may later alter that global rule.
 
-## Stage 3 transaction handoff
+## Recovery and compatibility
 
-Before charging, compare the transaction's `offerId` and `dayKey` with a fresh local day key and the **committed** snapshot. If midnight occurred during a hold, reject the stale intent with an expired notice, then advance the rotation separately. Use a cloned save candidate; check exact `offerId`, `purchased === false`, supported `cardId`/`variantId`, safe quote and available Credits. In one `C.state.commit(candidate)` write, apply the debit through `C.currency.applyInto(candidate, -offer.price, 'shop')`, mint one instance with the saved variant and Shop provenance, mark the slot purchased, and append a bounded receipt. No serial is allocated in Stage 2. If the commit fails, leave the live save and UI unchanged. Repeated confirmation or reload must find `purchased === true` and cannot mint a second copy.
+`C.state.validate` normalizes optional Shop state and rejects malformed entitlements, receipts or overlapping entitlement/reveal states. Imports use the existing strict save path; restore uses the normal local backup path. Older saves create `shop` when the Shop first opens. New daily snapshots save before they appear. If storage cannot write, purchase controls disable and the previous durable state remains available for recovery. Clock changes are a local convenience boundary, not anti-tamper protection.
 
-Featured Titan Pack is a separate, permanent offer. Stage 3 must use the registered `titan` pack and its opening/entitlement pipeline without consuming ordinary stock or the scheduled Rare cadence. It must not grant the ordinary pack-open Credits reward. This document does not reserve or grant a pack.
-
-## Recovery boundaries
-
-`C.state.validate` normalizes optional `shop` on load/import. Malformed Shop state fails closed into the existing save recovery flow; it is not silently wiped or rerolled. Older saves without `shop` create it on first Shop entry. `ensure()` commits before showing a new lineup. If storage is unavailable or the commit fails, the UI shows a retryable error and retains the previous durable state. Clock reversal finds a retained day by key; older days regenerate deterministically from the persisted seed, subject to later catalog/pricing policy updates. This is local convenience behavior, not clock tamper protection.
+There is no local quick-sell payout in this branch, so the Shop cannot form a buy/resell Credits loop. Shop instances are local collection records; any future transfer policy belongs to Market. See [Stage 3 evidence](SHOP-STAGE-3.md) for interruption and UI checks.

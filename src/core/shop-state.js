@@ -85,6 +85,12 @@
         typeof value.seed !== 'string' || !/^[a-f0-9]{32}$/.test(value.seed) || !Array.isArray(value.days) ||
         value.days.length > cfg.retainedDays || !Array.isArray(value.receipts) || value.receipts.length > cfg.retainedReceipts)
       throw new Error('Invalid Shop state');
+    var entitlement = value.entitlement == null ? null : value.entitlement;
+    if (entitlement && (!entitlement || typeof entitlement !== 'object' || Array.isArray(entitlement) ||
+        !/^shop-pack-[a-f0-9]{32}$/.test(entitlement.entitlementId) || entitlement.packId !== cfg.featuredPackId ||
+        !Number.isSafeInteger(entitlement.price) || entitlement.price <= 0 ||
+        !Number.isSafeInteger(entitlement.purchasedAt) || entitlement.purchasedAt < 0))
+      throw new Error('Invalid Shop pack entitlement');
     var seenDays = new Set();
     value.days.forEach(function (day) {
       if (!day || !validDay(day.dayKey) || seenDays.has(day.dayKey) || day.version !== cfg.version ||
@@ -101,15 +107,33 @@
         ids.add(offer.cardId);
       });
     });
+    var receiptIds = new Set();
     value.receipts.forEach(function (receipt) {
-      if (!receipt || typeof receipt.offerId !== 'string' || !Number.isSafeInteger(receipt.at) || receipt.at < 0 ||
-          !Number.isSafeInteger(receipt.price) || receipt.price < 0) throw new Error('Invalid Shop receipt');
+      if (!receipt || typeof receipt.receiptId !== 'string' || !receipt.receiptId || receiptIds.has(receipt.receiptId) ||
+          typeof receipt.offerId !== 'string' || !receipt.offerId ||
+          !Number.isSafeInteger(receipt.at) || receipt.at < 0 ||
+          !Number.isSafeInteger(receipt.price) || receipt.price <= 0 ||
+          !['card', 'pack'].includes(receipt.kind) ||
+          receipt.kind === 'card' && (typeof receipt.cardId !== 'string' || !receipt.cardId ||
+            typeof receipt.instanceId !== 'string' || !receipt.instanceId) ||
+          receipt.kind === 'pack' && (receipt.packId !== cfg.featuredPackId ||
+            !/^shop-pack-[a-f0-9]{32}$/.test(receipt.entitlementId))) throw new Error('Invalid Shop receipt');
+      receiptIds.add(receipt.receiptId);
     });
+    if (entitlement && !value.receipts.some(function (receipt) { return receipt.kind === 'pack' && receipt.entitlementId === entitlement.entitlementId; })) throw new Error('Unreceipted Shop pack entitlement');
     return { version: cfg.version, seed: value.seed, days: value.days.map(function (day) { return {
       dayKey: day.dayKey, version: day.version, status: day.status,
       offers: day.offers.map(function (offer) { return { offerId: offer.offerId, cardId: offer.cardId,
         variantId: offer.variantId, cardSkinId: null, price: offer.price, purchased: offer.purchased }; })
-    }; }), receipts: value.receipts.map(function (receipt) { return { offerId: receipt.offerId, at: receipt.at, price: receipt.price }; }) };
+    }; }), receipts: value.receipts.map(function (receipt) { return {
+      receiptId: receipt.receiptId, offerId: receipt.offerId, kind: receipt.kind,
+      at: receipt.at, price: receipt.price,
+      cardId: receipt.kind === 'card' ? receipt.cardId : undefined,
+      instanceId: receipt.kind === 'card' ? receipt.instanceId : undefined,
+      packId: receipt.kind === 'pack' ? receipt.packId : undefined,
+      entitlementId: receipt.kind === 'pack' ? receipt.entitlementId : undefined
+    }; }), entitlement: entitlement ? { entitlementId: entitlement.entitlementId, packId: entitlement.packId,
+      price: entitlement.price, purchasedAt: entitlement.purchasedAt } : null };
   }
   function ensure(now) {
     var save = C.state.current, key = dayKey(now), shop;

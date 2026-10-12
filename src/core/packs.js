@@ -42,7 +42,12 @@
   function upcoming(count) {
     if (!Number.isSafeInteger(count) || count < 0) throw new Error('Queue size must be a non-negative safe integer');
     var opened = C.state.current ? C.state.current.packs.openedCount : 0;
-    return Array.from({length: count}, function(_, i) { return C.state.current && !C.state.current.tutorial.done ? C.pack('standard') : i === 0 && forced ? C.pack(forced) : typeAt(opened + i + 1); });
+    var entitlement = C.shopPurchase && C.state.current && C.shopPurchase.entitlement(C.state.current);
+    return Array.from({length: count}, function(_, i) {
+      if (entitlement && i === 0) return C.pack(entitlement.packId);
+      var naturalIndex = i - (entitlement ? 1 : 0);
+      return C.state.current && !C.state.current.tutorial.done ? C.pack('standard') : naturalIndex === 0 && forced ? C.pack(forced) : typeAt(opened + naturalIndex + 1);
+    });
   }
   function refresh(reason) {
     if (!C.state.current) return;

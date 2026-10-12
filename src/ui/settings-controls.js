@@ -78,14 +78,33 @@
     // Reusable click-again and hold controls for settings and Data actions.
     confirmation: function (button, action, options) {
       options = options || {}; var text = button.textContent, armedAt = null, held = false, heldAt = 0, fill = 0, fired = false, milestone = 0, bindings = [];
+      var pointerId = null, heldKey = null;
       var hold = options.mode === 'hold', announce = options.announce || function () {};
       function listen(target, name, fn) { if(name==='keydown'||name==='keyup'){bindings.push(C.keys.listen(target,name,'settings.confirmation',fn));return;}target.addEventListener(name,fn);bindings.push(function(){target.removeEventListener(name,fn);}); }
-      function cancel() { armedAt = null; held = false; fired = false; fill = 0; button.style.setProperty('--confirm-progress', 0); button.textContent = text; button.classList.remove('is-confirming', 'is-confirmed'); C.fx.wake(); }
-      function start(event) { if (button.disabled || event && (event.repeat || event.button !== undefined && event.button !== 0) || held) return; if (event && event.preventDefault) event.preventDefault(); held = true; heldAt = root.performance.now(); fired = false; fill = 0; milestone = 0; button.classList.add('is-confirming'); button.textContent = options.holdLabel || 'Hold to confirm'; C.fx.wake(); }
-      function release() { held = false; if (!fired) button.textContent = text; C.fx.wake(); }
+      function cancel() { armedAt = null; held = false; pointerId = null; heldKey = null; fired = false; fill = 0; button.style.setProperty('--confirm-progress', 0); button.textContent = text; button.classList.remove('is-confirming', 'is-confirmed'); C.fx.wake(); }
+      function start(event) {
+        if (button.disabled || event && (event.repeat || event.button !== undefined && event.button !== 0) || held || fired) return;
+        if (event && event.preventDefault) event.preventDefault();
+        if (event && event.pointerId !== undefined) pointerId = event.pointerId;
+        else if (event && event.key) heldKey = event.key;
+        held = true; heldAt = root.performance.now(); fill = 0; milestone = 0;
+        button.classList.add('is-confirming'); button.textContent = options.holdLabel || 'Hold to confirm'; C.fx.wake();
+      }
+      function release(event) {
+        if (event && event.pointerId !== undefined && pointerId !== event.pointerId) return;
+        if (event && event.key && heldKey !== event.key) return;
+        cancel();
+      }
       if (hold) {
         button.classList.add('is-hold-confirm');
-        listen(button, 'pointerdown', start); listen(root.document, 'pointerup', release); listen(root.document, 'pointercancel', release);
+        listen(button, 'pointerdown', start); listen(root.document, 'pointerup', release); listen(root.document, 'pointercancel', cancel);
+        listen(button, 'pointerleave', function () { if (pointerId !== null) cancel(); });
+        listen(button, 'lostpointercapture', function () { if (pointerId !== null) cancel(); });
+        listen(root.document, 'pointermove', function (e) {
+          if (pointerId !== e.pointerId) return;
+          var rect = button.getBoundingClientRect(), margin = 12;
+          if (e.clientX < rect.left - margin || e.clientX > rect.right + margin || e.clientY < rect.top - margin || e.clientY > rect.bottom + margin) cancel();
+        });
         listen(button, 'keydown', function (e) { if (e.key === ' ' || e.key === 'Enter') start(e); });
         listen(button, 'keyup', function (e) { if (e.key === ' ' || e.key === 'Enter') release(); }); listen(button, 'blur', cancel); listen(root, 'blur', cancel);
         listen(root.document, 'keydown', function (e) { if (e.key === 'Escape' && (held || fill)) { e.preventDefault(); e.settingsHandled = true; cancel(); } });
@@ -103,7 +122,7 @@
             fill = Math.max(0, Math.min(1, held ? (now - heldAt) / (options.holdMs || 3000) : fill - dt / 700)); button.style.setProperty('--confirm-progress', fill);
             button.style.setProperty('--confirm-wave', C.motion.reduced ? '0px' : Math.sin(now / 140) * fill + 'px');
             if (held && Math.floor(fill * 4) > milestone) { milestone = Math.floor(fill * 4); if (milestone < 4) announce(milestone * 25 + ' percent.'); }
-            if (fill >= 1 - 1e-9 && !fired && held) { fired = true; held = false; button.classList.add('is-confirmed'); action(); if (C.ui) C.ui.emit('confirm', {component:'hold'}); announce('Confirmed.'); }
+            if (fill >= 1 - 1e-9 && !fired && held) { fired = true; held = false; button.classList.add('is-confirmed'); var accepted = action(); if (accepted !== false) { if (C.ui) C.ui.emit('confirm', {component:'hold'}); announce('Confirmed.'); } }
             if (!held && fill === 0) { button.classList.remove('is-confirming', 'is-confirmed'); button.textContent = text; } return held || fill > 0;
           }
           if (armedAt === null) return false;

@@ -5,13 +5,15 @@
     new:'m12 2 2.7 6.3L21 11l-6.3 2.7L12 20l-2.7-6.3L3 11l6.3-2.7Z',
     favorite:'m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z',
     rarity:'M4 4h16v16H4ZM8 8h8v8H8Z', date:'M4 5h16v16H4ZM4 10h16M8 2v6m8-6v6',
-    age:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 7v5l4 2', print:'M6 3h12v5H6ZM4 8h16v10h-3M7 18H4M7 14h10v7H7Z', era:'M3 4h18v13H3ZM7 20h10M12 17v3M6 7h12v7H6Z'
+    age:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 7v5l4 2', print:'M6 3h12v5H6ZM4 8h16v10h-3M7 18H4M7 14h10v7H7Z', era:'M3 4h18v13H3ZM7 20h10M12 17v3M6 7h12v7H6Z',
+    shop:'M3 9h18l-2-5H5L3 9Zm2 2h14v10H5V11Zm3 3h4v7H8v-7Z'
   };
   var unpackedDateFormat;
-  function dateLabel(timestamp, now) {
+  function dateLabel(timestamp, now, action) {
     var date=new Date(timestamp),today=new Date(now);today.setHours(0,0,0,0);var yesterday=new Date(today);yesterday.setDate(yesterday.getDate()-1);
-    if(Number.isNaN(date.getTime()))return 'Unpacked Invalid Date';
-    return timestamp>=today.getTime()&&timestamp<new Date(today.getFullYear(),today.getMonth(),today.getDate()+1).getTime()?'Unpacked Today':timestamp>=yesterday.getTime()&&timestamp<today.getTime()?'Unpacked Yesterday':'Unpacked '+(unpackedDateFormat||(unpackedDateFormat=new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric'}))).format(date);
+    action=action||'Unpacked';
+    if(Number.isNaN(date.getTime()))return action+' Invalid Date';
+    return timestamp>=today.getTime()&&timestamp<new Date(today.getFullYear(),today.getMonth(),today.getDate()+1).getTime()?action+' Today':timestamp>=yesterday.getTime()&&timestamp<today.getTime()?action+' Yesterday':action+' '+(unpackedDateFormat||(unpackedDateFormat=new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric'}))).format(date);
   }
   function derive(entry, instance, mode, now) {
     now=now==null?C.clock.now():now;var tags=[],variant=C.variant(entry.variantId),favorite=C.inventoryModel.current.favorites.indexOf(entry.sourceStackKey||entry.stackKey)>=0;
@@ -22,15 +24,17 @@
     if(mode!=='compact') {
       tags.push({kind:'rarity',text:entry.rarity.name,label:'Card rarity: '+entry.rarity.name});
       if(entry.owned&&instance) {
-        tags.push({kind:'date',text:dateLabel(instance.pulledAt,now),label:'Unpacked '+C.formats.date(instance.pulledAt,true)});
+        var acquisition = instance.source === 'shop' ? 'Acquired' : 'Unpacked';
+        tags.push({kind:'date',text:dateLabel(instance.pulledAt,now,acquisition),label:acquisition+' '+C.formats.date(instance.pulledAt,true)});
         if(mode==='detail') {
           var days=Math.max(0,Math.floor((now-instance.pulledAt)/86400000));
-          tags.push({kind:'age',text:days?days+' '+(days===1?'day':'days')+' old':'Less than a day old',label:'Time since unpacking'});
+          tags.push({kind:'age',text:days?days+' '+(days===1?'day':'days')+' old':'Less than a day old',label:'Time since '+(instance.source==='shop'?'purchase':'unpacking')});
           tags.push({kind:'print',text:instance.serial,label:'Recorded print serial: '+instance.serial});
           if(entry.card.retired)tags.push({kind:'print',text:'Retired design',label:'Retired catalog design'});
         }
       }
     }
+    if (entry.owned && instance && instance.source === 'shop') tags.push({kind:'shop',text:mode==='compact'?'':'SHOP',label:'Purchased from the local Shop'});
     if (entry.owned && instance && instance.packId) {
       var pack = C.pack(instance.packId);
       if (pack) {
