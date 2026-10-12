@@ -1,0 +1,335 @@
+{
+  "when": "2026-10-12T14:59:19.447Z",
+  "viewports": [
+    {
+      "size": "desktop-1920x1080",
+      "opened": {
+        "tiles": 24,
+        "hero": true,
+        "header": 65
+      },
+      "overflow": {
+        "scrollWidth": 1920,
+        "clientWidth": 1920,
+        "offenders": []
+      },
+      "navs": {
+        "top": "flex",
+        "bottom": "none"
+      }
+    },
+    {
+      "size": "desktop-1440x900",
+      "opened": {
+        "tiles": 24,
+        "hero": true,
+        "header": 65
+      },
+      "overflow": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "offenders": []
+      },
+      "navs": {
+        "top": "flex",
+        "bottom": "none"
+      }
+    },
+    {
+      "size": "laptop-1366x768",
+      "opened": {
+        "tiles": 24,
+        "hero": true,
+        "header": 65
+      },
+      "overflow": {
+        "scrollWidth": 1366,
+        "clientWidth": 1366,
+        "offenders": []
+      },
+      "navs": {
+        "top": "flex",
+        "bottom": "none"
+      }
+    },
+    {
+      "size": "tablet-768x1024",
+      "opened": {
+        "tiles": 24,
+        "hero": true,
+        "header": 115
+      },
+      "overflow": {
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "offenders": []
+      },
+      "navs": {
+        "top": "none",
+        "bottom": "grid"
+      }
+    },
+    {
+      "size": "phone-390x844",
+      "opened": {
+        "tiles": 24,
+        "hero": true,
+        "header": 115
+      },
+      "overflow": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "offenders": []
+      },
+      "navs": {
+        "top": "none",
+        "bottom": "grid"
+      }
+    },
+    {
+      "size": "phone-360x800",
+      "opened": {
+        "tiles": 24,
+        "hero": true,
+        "header": 115
+      },
+      "overflow": {
+        "scrollWidth": 360,
+        "clientWidth": 360,
+        "offenders": []
+      },
+      "navs": {
+        "top": "none",
+        "bottom": "grid"
+      }
+    },
+    {
+      "size": "desktop-1440x900-2x",
+      "opened": {
+        "tiles": 24,
+        "hero": true,
+        "header": 65
+      },
+      "overflow": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "offenders": []
+      },
+      "navs": {
+        "top": "flex",
+        "bottom": "none"
+      }
+    }
+  ],
+  "tiers": [
+    {
+      "tier": "very-low",
+      "q": "very-low",
+      "tiles": 24,
+      "header": "none",
+      "anims": 0
+    },
+    {
+      "tier": "low",
+      "q": "low",
+      "tiles": 24,
+      "header": "none",
+      "anims": 25
+    },
+    {
+      "tier": "medium",
+      "q": "medium",
+      "tiles": 24,
+      "header": "none",
+      "anims": 25
+    },
+    {
+      "tier": "high",
+      "q": "high",
+      "tiles": 24,
+      "header": "none",
+      "anims": 25
+    }
+  ],
+  "themes": [
+    {
+      "mode": "mono",
+      "accent": "#F5F5F7"
+    }
+  ],
+  "motion": {
+    "reduced": true,
+    "running": 0
+  },
+  "interactions": [
+    {
+      "name": "initial",
+      "value": "168 listings"
+    },
+    {
+      "name": "rarity filter",
+      "value": "15 of 168 listings"
+    },
+    {
+      "name": "format filter",
+      "value": "7 of 168 listings"
+    },
+    {
+      "name": "sort price-desc",
+      "value": [
+        82,
+        59,
+        50,
+        43,
+        39,
+        38
+      ]
+    },
+    {
+      "name": "recovery",
+      "value": "7 of 168 listings"
+    },
+    {
+      "name": "back context",
+      "value": {
+        "before": 900,
+        "after": {
+          "top": 900,
+          "page": "discover",
+          "focus": "mk-tile-open cb-control"
+        }
+      }
+    },
+    {
+      "name": "composer summary",
+      "value": "Asking price 798 Credits 2% market fee ? − 16 Estimated net proceeds 782 Credits Against Average Value 0% near Average Value"
+    },
+    {
+      "name": "tiles after scrolling to the end",
+      "value": 25
+    },
+    {
+      "name": "number key",
+      "value": "buy-now"
+    }
+  ],
+  "performance": {
+    "openSyncMs": 26.4,
+    "domNodes": 1523,
+    "tiles": 24,
+    "liveThumbnails": 12,
+    "thumbnailPlaceholders": 28,
+    "liveAfterScroll": 16,
+    "stocksSwitchMs": 22.9,
+    "canvases": 0,
+    "rafSubscribersNote": "market adds no scheduler subscriber"
+  },
+  "console": [],
+  "pageErrors": [],
+  "network": [],
+  "contrastDiscover": {
+    "worst": 6.64,
+    "results": [
+      {
+        "q": ".mk-muted",
+        "ratio": 7.78,
+        "size": "12px"
+      },
+      {
+        "q": ".mk-eyebrow",
+        "ratio": 6.64,
+        "size": "11px"
+      },
+      {
+        "q": ".mk-tile-meta",
+        "ratio": 7.49,
+        "size": "11px"
+      },
+      {
+        "q": ".mk-tile-foot",
+        "ratio": 7.49,
+        "size": "11px"
+      },
+      {
+        "q": ".mk-notice p",
+        "ratio": 7.28,
+        "size": "12px"
+      },
+      {
+        "q": ".mk-pill",
+        "ratio": 17.2,
+        "size": "16px"
+      },
+      {
+        "q": ".mk-segment",
+        "ratio": 14.28,
+        "size": "16px"
+      },
+      {
+        "q": ".mk-tab",
+        "ratio": 18.38,
+        "size": "16px"
+      },
+      {
+        "q": ".mk-resultcount",
+        "ratio": 7.78,
+        "size": "12px"
+      },
+      {
+        "q": ".mk-tile-reason",
+        "ratio": 7.49,
+        "size": "12px"
+      },
+      {
+        "q": ".mk-value-tag",
+        "ratio": 12.74,
+        "size": "12px"
+      },
+      {
+        "q": ".mk-delta",
+        "ratio": 12.27,
+        "size": "12px"
+      }
+    ]
+  },
+  "contrast": {
+    "worst": 6.4,
+    "results": [
+      {
+        "q": ".mk-muted",
+        "ratio": 7.78,
+        "size": "12px"
+      },
+      {
+        "q": ".mk-eyebrow",
+        "ratio": 6.4,
+        "size": "11px"
+      },
+      {
+        "q": ".mk-stat dt",
+        "ratio": 6.4,
+        "size": "11px"
+      },
+      {
+        "q": ".mk-notice p",
+        "ratio": 7.28,
+        "size": "12px"
+      },
+      {
+        "q": ".mk-segment",
+        "ratio": 14.28,
+        "size": "16px"
+      },
+      {
+        "q": ".mk-tab",
+        "ratio": 18.38,
+        "size": "16px"
+      },
+      {
+        "q": ".mk-delta",
+        "ratio": 12.27,
+        "size": "12px"
+      }
+    ]
+  }
+}

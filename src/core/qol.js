@@ -18,7 +18,7 @@
   function batteryPolicy() { var active=battery&&C.settings.get('batterySaver')==='auto',before=C.settings.batterySaving;C.settings.setBatterySaver(active);if(active&&!before)toast('Battery saver · effects reduced temporarily'); }
   function syncPack() {
     if(!C.native||!booted)return; var next=C.packs.upcoming(1)[0]; if(!next)return;
-    var value={packId:next.id,ready:C.state.current.packs.ready,progress:C.timers.progress(),countdown:C.timers.format(C.timers.remaining()),quality:C.settings.get('quality'),reduced:C.motion.reduced,canMini:C.opening.phase==='idle'&&!C.inventory.active&&!C.preferences.open&&!C.tutorial.active&&!studioActive&&!C.studioAlbumUI?.active&&!C.dev?.immersive&&!C.commands?.active&&!C.friendly?.active&&!C.contextMenu.open&&!C.patchNotes?.open&&!C.ui?.modal};
+    var value={packId:next.id,ready:C.state.current.packs.ready,progress:C.timers.progress(),countdown:C.timers.format(C.timers.remaining()),quality:C.settings.get('quality'),reduced:C.motion.reduced,canMini:C.opening.phase==='idle'&&!C.inventory.active&&!C.preferences.open&&!C.tutorial.active&&!studioActive&&!C.studioAlbumUI?.active&&!C.dev?.immersive&&!C.commands?.active&&!C.friendly?.active&&!C.contextMenu.open&&!C.patchNotes?.open&&!C.market?.isOpen&&!C.ui?.modal};
     value.keyBindings={};['menu.mini','opening.hold','global.settings'].forEach(function(id){value.keyBindings[id]=C.keys.bindings(id);});value.rarityColor=C.settings.get('rarityColor');value.graphics={};C.settingsSchema.graphicsKeys.forEach(function(key){value.graphics[key]=C.settings.get(key);});
     value.keyBindings['opening.keep']=C.keys.bindings('opening.keep');
     var reserved=C.state.current.pendingReveal;

@@ -15,7 +15,7 @@ The latest direct user instruction controls scope. Historical plans, patches, de
 
 - Preserve offline `file://` play, classic script ordering and `window.Cardable`. No ES module conversion, runtime CDN or renderer network dependency. Bundle fonts, art and libraries locally.
 - Installed Windows builds may use the approved native updater to check/download configured public releases and install on normal quit after a successful save flush. Development, browser and local previews stay offline. Follow [UPDATES](docs/UPDATES.md); never bundle credentials.
-- No market, selling, accounts, cloud saves or audio. Keep market/audio disabled. Do not read `marketValueUsd` or introduce market UI; the reserved empty slot is allowed.
+- The owner's Cardable Market Beta brief (`market.md`, eight stages) supersedes the older "no market" rule on the `feature/market-beta` branch only, and only to the extent each stage needs. Stage 1 is interface and sample data: no network, no selling, no accounts, no changed Credits and no save writes. Cloud saves and audio stay disabled. Never read `marketValueUsd`; market values live in `src/data/market-config.js`. Market settings are `market*` keys in the shared schema; other Market preview records use their own storage key and never the save.
 - Cards, rarities, generations, variants and packs belong in `src/data/` and their registries. UI consumes data rather than hard-coding game rules.
 - Preserve stock/refill behavior, immutable serials, rolled variants and pack provenance. Reserve atomically before presentation; recovery and Keep/Delete must remain exact-once. A cinematic never rolls or pays again.
 - Picker offers may have an empty `cards` array until confirmation. Do not mint unchosen offers or assume `pendingReveal.cards[0]` exists.
@@ -56,6 +56,8 @@ At the end of every completed implementation or approved documentation prompt, r
 Local delivery does not install, launch, elevate or force-close Cardable. Preserve the last good delivery if replacement fails or is locked. Do not add watchers/cron. The owner separately authorized public GitHub publication and a release after every completed update, as described below.
 
 ## Release every completed update
+
+- **Market Beta exception.** The eight-stage Market project on `feature/market-beta` does not release, merge to main, deliver or touch the live site until stage 8. Stage reports live in `docs/market-beta/`.
 
 - This is a completion workflow, not a scheduled automation. After each completed code/content/design/documentation update, release it to the existing public repository unless the user explicitly says to skip publishing, keep it local, or stop at a draft. Read-only questions and internal steps do not release.
 - Start with **v1.0.0** for this reset. For later completed updates, advance PATCH for fixes/polish/docs, MINOR for features, and MAJOR only for an explicitly approved breaking release. Synchronize package.json, both package-lock metadata versions, src/config.js, current README/PLAY version references and both changelog consumers. Never bump the save schema merely to match the app version. Historical release notes remain historical.

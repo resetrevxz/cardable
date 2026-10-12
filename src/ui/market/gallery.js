@@ -1,0 +1,81 @@
+/* Cardable Market — UI gallery section (?dev=1&gallery=ui).
+ * Every Market primitive appears here in each state, from the same builders the shell uses, so a pattern is
+ * reviewed once and reused. Specimens are sample data and perform no action. */
+(function (C, root) {
+  'use strict';
+  var ui = C.market.ui, h = ui.h, K = function () { return C.market.core; };
+
+  function specimens(section, held) {
+    var scope = ui.createScope();
+    held.push({ destroy: function () { scope.destroy(); }, update: function () { return false; } });
+    var host = h('div.mk-specimens');
+    section.appendChild(host);
+    var env = (function () { var d = C.market.api.data(), ctx = C.market.api.context('simulation'); return { cards: ctx.cards, owned: ctx.owned, variants: ctx.variants, thumbs: ui.thumbs(null, scope), index: 0, data: d, ctx: ctx }; })();
+    function group(title, note) { var g = h('section.mk-spec-group', h('h3', { text: title }), note ? h('p.mk-hint', { text: note }) : null); host.appendChild(g); return g; }
+    function row(parent) { var r = h('div.mk-spec-row'); parent.appendChild(r); return r; }
+    var d = env.data, sim = d.listings.simulation.filter(function (l) { return l.status === 'active' || l.status === 'ending'; });
+
+    // tiles
+    var tiles = group('Listing tiles', 'Real card art leads. Format, time, price, value against Average Value, reason, seller and serial.');
+    var grid = h('div.mk-grid.is-compact'); tiles.appendChild(grid);
+    ['buy-now', 'auction', 'swap'].forEach(function (f) {
+      var l = sim.find(function (x) { return x.format === f; });
+      if (l) grid.appendChild(ui.listingTile({ listing: l, rank: K().recommend(l, env.ctx) }, env));
+    });
+    var variant = sim.find(function (x) { return x.card.variantId; });
+    if (variant) grid.appendChild(ui.listingTile({ listing: variant, rank: K().recommend(variant, env.ctx) }, env));
+
+    // atoms
+    var atoms = group('Price, change and value', 'Direction is a shape and a word as well as a colour.');
+    var r1 = row(atoms);
+    r1.append(ui.credits(1240, { big: true }), ui.credits(86));
+    [0.082, -0.134, 0, null].forEach(function (v) { r1.appendChild(ui.delta(v, { label: '24 h' })); });
+    var avg = { average: 100, confidence: 'high', samples: 30 };
+    var r2 = row(atoms);
+    [80, 100, 130].forEach(function (p) { r2.appendChild(ui.valueTag(p, avg)); });
+    r2.appendChild(ui.valueTag(80, { average: 100, confidence: 'low', samples: 3 }));
+    r2.appendChild(ui.valueTag(80, { average: 100, confidence: 'none', samples: 0 }));
+    var r3 = row(atoms);
+    cfgFormats().forEach(function (f) { r3.appendChild(h('span.mk-format', { data: { format: f.id } }, ui.icon(f.icon), h('span', { text: f.short }))); });
+    ['simulation', 'global'].forEach(function (r) { r3.appendChild(ui.realmBadge(r)); });
+    r3.append(ui.chip('Illustrative', { tone: 'soft', icon: 'info' }), ui.chip('Higher risk', { tone: 'warn' }), ui.chip('Collection gap'));
+    var r4 = row(atoms);
+    r4.appendChild(ui.segmented({ label: 'Segmented specimen', value: 'a', options: [{ value: 'a', label: 'For You' }, { value: 'b', label: 'New' }, { value: 'c', label: 'Ending soon' }] }));
+    ['Rare', 'Auction', 'Holo'].forEach(function (t, i) { var b = h('button.mk-pill', { type: 'button', 'aria-pressed': String(i === 0) }, h('span', { text: t }), h('span.mk-pill-count', { text: String(12 - i * 3) })); r4.appendChild(b); });
+    r4.appendChild(h('button.mk-watch.is-inline', { type: 'button', 'aria-pressed': 'true', 'aria-label': 'Watching' }, ui.icon('bookmark')));
+    r4.appendChild(ui.helpTip('average-value'));
+
+    // meter + chart
+    var meterGroup = group('Value meter and chart', 'Where a price sits against bid, targets and Average Value.');
+    var v = sim.find(function (x) { return x.valuation.confidence === 'high'; });
+    if (v) meterGroup.appendChild(ui.valueMeter(v.valuation, Math.round(v.valuation.average * 0.88), { priceLabel: 'Asking price' }));
+    var chart = ui.chart.create({ id: 'gallery', height: 220 });
+    scope.add(function () { chart.destroy(); });
+    meterGroup.appendChild(chart);
+    var card = d.cards.find(function (c) { return c.rarity === 'rare'; });
+    var series = d.seriesFor(card.id, null, '30d');
+    chart.update({ candles: series.candles, type: 'line', window: '30d', unit: 'Credits', label: card.name + ' price' });
+
+    // states
+    var states = group('States', 'Loading, empty, offline, error, closed and draft states share one family.');
+    states.appendChild(ui.skeletonGrid(3));
+    states.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: 'Global Market is not connected', body: 'It will list real players’ cards once it is connected.', actions: [{ label: 'Open Simulation', variant: 'primary' }] }));
+    states.appendChild(ui.emptyState({ kind: 'no-results', icon: 'search', title: 'No listings match', body: 'Loosen one filter, or clear everything.', actions: [{ label: 'Clear all filters', variant: 'secondary' }] }));
+    states.appendChild(ui.emptyState({ kind: 'error', icon: 'warn', role: 'alert', title: 'This listing is not available', body: 'It may have sold, expired or been withdrawn.' }));
+    var banners = row(states); banners.classList.add('is-stack');
+    [['danger', 'down', 'You were outbid. Your maximum is below the current bid.'], ['success', 'up', 'You are leading with a maximum of 120 Credits.'], ['warn', 'check', 'This listing sold 6 h ago for 214 Credits.'], ['warn', 'clock', 'This listing expired without a sale.'], ['info', 'save', 'You have a draft from 4 min ago.']].forEach(function (b) {
+      banners.appendChild(h('div.mk-banner', { data: { tone: b[0] } }, ui.icon(b[1]), h('span', { text: b[2] })));
+    });
+    var forms = row(states);
+    forms.appendChild(h('span.mk-draft-status', { text: 'Unsaved changes', 'data-state': 'dirty' }));
+    forms.appendChild(h('span.mk-draft-status', { text: 'Draft saved on this device', 'data-state': 'saved' }));
+    forms.appendChild(ui.button('Preview this listing', { variant: 'primary', disabled: true, reason: 'Enter a whole price of at least 1 Credit.' }));
+    forms.appendChild(h('small.mk-field-error.is-inline', { text: 'Enter a whole price of at least 1 Credit.' }));
+    var open = ui.button('Open a review dialog', { variant: 'secondary', onClick: function () {
+      ui.review({ title: 'Review purchase', rows: [{ label: 'Item', value: 'Specimen card' }, { label: 'Price', value: '120 Credits' }, { label: 'Your Credits now', value: '460' }, { label: 'Would be after', value: '340', strong: true }] });
+    } });
+    forms.appendChild(open);
+  }
+  function cfgFormats() { return C.data.market.formats; }
+  ui.gallerySection = function (section, held) { try { specimens(section, held); } catch (e) { console.error('Market gallery failed', e); } };
+})(window.Cardable = window.Cardable || {}, window);

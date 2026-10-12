@@ -149,6 +149,11 @@
       { title: 'Notices', keys: ['achievementToasts', 'toastPosition', 'notifyPackReady'].filter(function (key) { return !(s[key] && s[key].retired); }) },
       { title: 'Collection', keys: ['defaultSort', 'defaultView', 'defaultTagMode', 'startupScreen'] },
       { title: 'Formats', keys: ['timeFormat', 'dateFormat', 'numberFormat'] } ] },
+    { id: 'Market', icon: 'mk-market', blurb: 'The trading preview: layout, charts and confirmations.', sections: [
+      { title: 'Browsing', keys: ['marketMode', 'marketRealm', 'marketView', 'marketDensity', 'marketReducedData', 'marketCompactNumbers'] },
+      { title: 'Stocks', keys: ['marketChartType', 'marketWindow'] },
+      { title: 'Trading', keys: ['marketConfirm', 'marketListingDuration'] },
+      { title: 'Notices', keys: ['marketNotifyBids', 'marketNotifyTrades', 'marketNotifyWatch'] } ] },
     { id: 'Controls', icon: 'keyboard', advanced: true, blurb: 'Two keys for every action.', sections: [{ title: 'Keyboard', slot: 'bindings', keys: [] }] },
     { id: 'Accessibility', icon: 'access', blurb: 'Clearer, calmer, easier to read.', sections: [
       { title: 'Vision', keys: ['highContrast', 'largerText', 'reduceTransparency', 'focusEmphasis'] },

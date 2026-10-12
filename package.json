@@ -33,7 +33,9 @@
     "check:data": "node scripts/check-data.js",
     "release:github": "node tools/release-github.cjs",
     "test:mini": "node tools/test-mini-mode.cjs",
-    "test:merged-collections": "node tools/check-merged-collections.cjs"
+    "test:merged-collections": "node tools/check-merged-collections.cjs",
+    "test:market": "node --test tests/market-core.test.cjs",
+    "check:market": "node tools/check-market-browser.cjs"
   },
   "dependencies": {
     "discord-rpc": "^4.0.1",

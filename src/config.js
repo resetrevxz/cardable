@@ -203,7 +203,7 @@
     },
 
     flags: {
-      market: false,     // future: the owner builds this later. Do not implement.
+      market: true,      // Cardable Market beta (preview): sample data only until the simulator and online realm arrive
       variants: true,
       achievements: false, // paused for now: the feature stays in the code and is switched off here
       audio: false       // no music or sound yet

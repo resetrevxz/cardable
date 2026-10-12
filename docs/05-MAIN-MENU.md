@@ -16,7 +16,7 @@ wordmark (TL, small)                                   currency (TR)
 
                               ˄   <- inventory arrow (BC)
 ```
-Nothing else. A hidden `#market-slot` container exists for the future market and is empty and hidden.
+Nothing else. A hidden `#market-slot` container is kept empty and hidden. On the Market branch the Market opens from a round HUD button left of Credits, the M key, the command palette and the card detail More menu; it is an overlay, not part of the main menu layout.
 
 ## 2. Idle fade
 

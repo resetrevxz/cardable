@@ -1,0 +1,524 @@
+/* Cardable Market — the listing composer.
+ * Picks exact card instances, previews the listing as a feed tile, shows the 2% fee and net proceeds and keeps a
+ * local draft. It never publishes: the final step is a review that says so. Cover images stay in this window
+ * (object URLs and a read-only look at the Director album); nothing is uploaded. */
+(function (C, root) {
+  'use strict';
+  var ui = C.market.ui, h = ui.h, icon = ui.icon, store = C.market.store, K = function () { return C.market.core; };
+  var cfg = function () { return C.data.market; };
+  var RATIOS = [{ id: 'card', label: 'Card 5:7', css: '5 / 7' }, { id: '4:5', label: '4:5', css: '4 / 5' }, { id: '1:1', label: '1:1', css: '1 / 1' }, { id: '16:9', label: '16:9', css: '16 / 9' }];
+
+  function stackKey(i) { return (i.cardId || '') + '|' + (i.variantId || '') + '|' + (i.cardSkinId || ''); }
+
+  function mount(ctx) {
+    var host = ctx.host, scope = ctx.scope, realm = ctx.realm, env = ctx.env();
+    var advanced = C.settings.get('marketMode') === 'advanced';
+    var inv = ctx.api.inventorySync(realm);
+    var byId = {}; inv.items.forEach(function (i) { byId[i.instanceId] = i; });
+    var draftKey = 'compose:' + realm;
+    var draft = {
+      format: 'buy-now', items: [], price: '', startBid: '', reserve: '', buyout: '', preset: C.settings.get('marketListingDuration') || cfg().auction.defaultPreset,
+      durationMode: 'preset', customHours: 48, wanted: [{ type: 'card', cardId: '', rarity: '', variant: '', minValuePct: '' }], creditTopUp: '', topUpDirection: 'asks',
+      minRelativePct: '', wantLowSerial: false, title: '', description: '', cover: { kind: 'card', ratio: 'card', name: '', alt: '', zoom: 1, x: 50, y: 50 }, touchedPrice: false
+    };
+    var saved = store.getDraft(draftKey), resumed = false, dirty = false, status = 'idle';
+    var carry = store.session.composeCarry;
+    store.session.composeCarry = null;
+    var coverUrl = null;
+    scope.add(function () { if (coverUrl) { try { root.URL.revokeObjectURL(coverUrl); } catch (_) { /* gone */ } coverUrl = null; } });
+
+    // preselect from route
+    var wantCard = ctx.params.cardId, wantInstance = ctx.params.instanceId;
+    var first = inv.items.find(function (i) { return wantInstance ? i.instanceId === wantInstance : wantCard ? i.cardId === wantCard : false; });
+    if (first) draft.items = [first.instanceId];
+    if (ctx.params.relist && ctx.params.relist.id) {
+      var src = ctx.api.listingSync(realm, ctx.params.relist.id);
+      if (src) { draft.format = src.listing.format; draft.title = src.listing.title || ''; }
+    }
+
+    function valuationOf(instance) { return env.data.valuation({ cardId: instance.cardId, variantId: instance.variantId || null, cardSkinId: instance.cardSkinId || null }); }
+    function selected() { return draft.items.map(function (id) { return byId[id]; }).filter(Boolean); }
+    function bundleValuation() {
+      var sel = selected();
+      if (!sel.length) return null;
+      var vs = sel.map(valuationOf).filter(Boolean);
+      if (!vs.length) return null;
+      var sum = function (k) { return vs.reduce(function (n, v) { return n + (v[k] || 0); }, 0); };
+      var worst = vs.reduce(function (a, v) { var order = { none: 0, low: 1, medium: 2, high: 3 }; return order[v.confidence] < order[a] ? v.confidence : a; }, 'high');
+      return { average: sum('average'), targetBuy: sum('targetBuy'), targetSell: sum('targetSell'), bestBid: sum('bestBid'), lowestAsk: sum('lowestAsk'),
+        spread: vs[0].spread, liquidity: Math.min.apply(null, vs.map(function (v) { return v.liquidity; })), volatility: Math.max.apply(null, vs.map(function (v) { return v.volatility; })),
+        confidence: worst, samples: Math.min.apply(null, vs.map(function (v) { return v.samples; })), basis: vs.every(function (v) { return v.basis === 'sales'; }) ? 'sales' : 'baseline',
+        volume24h: 0, volume7d: 0, windowHours: Math.max.apply(null, vs.map(function (v) { return v.windowHours; })) };
+    }
+    function hours() { return K().durationHours({ durationMode: draft.durationMode, customHours: draft.customHours, preset: draft.preset }); }
+    function toDraft() {
+      return { mode: advanced ? 'advanced' : 'simple', format: draft.format, items: selected().map(function (i) { return { instanceId: i.instanceId }; }),
+        price: draft.price, startBid: draft.startBid, reserve: advanced ? draft.reserve : '', buyout: advanced ? draft.buyout : '', preset: draft.preset,
+        durationMode: advanced ? draft.durationMode : 'preset', customHours: draft.customHours,
+        wanted: draft.wanted.map(function (w) { return { cardId: w.type === 'card' ? w.cardId : '', rarity: w.type === 'rarity' ? w.rarity : '', variant: w.type === 'finish' ? w.variant : '', minValuePct: w.minValuePct }; }),
+        creditTopUp: advanced ? draft.creditTopUp : '', minRelativePct: advanced ? draft.minRelativePct : '', wantLowSerial: advanced && draft.wantLowSerial,
+        title: draft.title, description: draft.description };
+    }
+
+    // ---- layout ----
+    var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
+    host.appendChild(h('div.mk-pagehead.is-detail', back));
+    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'List a card' }), h('p', { text: 'Choose the exact card, set terms, and see what the listing and your proceeds would look like. Nothing is published.' }))));
+    var banner = h('div.mk-banner-host');
+    host.appendChild(banner);
+    var layout = h('div.mk-composer');
+    var form = h('div.mk-composer-form'), side = h('aside.mk-composer-side', { 'aria-label': 'Listing preview' });
+    layout.append(form, side);
+    host.appendChild(layout);
+
+    function resumeBanner() {
+      ui.clear(banner);
+      if (!saved || resumed) return;
+      var d = saved.draft;
+      var age = Math.max(1, Math.round((Date.now() - saved.savedAt) / 60000));
+      var box = h('div.mk-banner', { role: 'status', data: { tone: 'info' } }, icon('save'), h('span', { text: 'You have a draft from ' + (age < 60 ? age + ' min' : Math.round(age / 60) + ' h') + ' ago.' }),
+        ui.button('Resume draft', { variant: 'secondary', size: 'sm', onClick: function () { applyDraft(d); resumed = true; resumeBanner(); renderAll(); } }),
+        ui.button('Discard', { variant: 'ghost', size: 'sm', onClick: function () { store.clearDraft(draftKey); saved = null; resumeBanner(); } }));
+      banner.appendChild(box);
+    }
+    function applyDraft(d) {
+      if (!d) return;
+      var ids = (d.items || []).map(function (i) { return i.instanceId; }).filter(function (id) { return byId[id]; });
+      draft.items = ids; draft.format = d.format || draft.format; draft.price = d.price || ''; draft.startBid = d.startBid || ''; draft.reserve = d.reserve || ''; draft.buyout = d.buyout || '';
+      draft.preset = d.preset || draft.preset; draft.durationMode = d.durationMode || 'preset'; draft.customHours = d.customHours || 48;
+      draft.creditTopUp = d.creditTopUp || ''; draft.minRelativePct = d.minRelativePct || ''; draft.wantLowSerial = !!d.wantLowSerial; draft.title = d.title || ''; draft.description = d.description || '';
+      if (Array.isArray(d.wanted) && d.wanted.length) draft.wanted = d.wanted.map(function (w) { return { type: w.cardId ? 'card' : w.rarity ? 'rarity' : w.variant ? 'finish' : 'card', cardId: w.cardId || '', rarity: w.rarity || '', variant: w.variant || '', minValuePct: w.minValuePct || '' }; });
+    }
+
+    // ---- autosave ----
+    var saveTimer = 0, statusEl = h('span.mk-draft-status', { role: 'status', 'aria-live': 'polite' });
+    function setStatus(s) {
+      status = s;
+      var text = { idle: '', dirty: 'Unsaved changes', saved: store.persistent ? 'Draft saved on this device' : 'Draft kept for this session only', error: 'This draft cannot be kept. Browser storage is unavailable.' }[s] || '';
+      statusEl.textContent = text; statusEl.dataset.state = s;
+    }
+    function touch() {
+      dirty = true; setStatus('dirty');
+      root.clearTimeout(saveTimer);
+      saveTimer = root.setTimeout(function () {
+        if (scope.dead) return;
+        if (!draft.items.length && !draft.title && !draft.price && !draft.startBid) { store.clearDraft(draftKey); setStatus('idle'); return; }
+        store.saveDraft(draftKey, toDraft());
+        setStatus(store.persistent ? 'saved' : 'error');
+      }, 500);
+    }
+    scope.add(function () {
+      root.clearTimeout(saveTimer);
+      // Leaving the page keeps the draft: flush it, and hand it straight to a remount (a settings change).
+      if (dirty && (draft.items.length || draft.title || draft.price || draft.startBid)) {
+        store.saveDraft(draftKey, toDraft());
+        store.session.composeCarry = { key: draftKey, draft: toDraft(), at: Date.now() };
+      }
+    });
+
+    // ---- 1. choose the card ----
+    var pickerHost = h('section.mk-step', { 'aria-label': 'Choose a card' });
+    function buildPicker() {
+      ui.releaseArt(pickerHost, ctx.thumbs);
+      ui.clear(pickerHost);
+      pickerHost.appendChild(h('div.mk-step-head', h('span.mk-step-no', { text: '1' }), h('div', h('h2', { text: 'Choose the exact card' }),
+        h('p', { text: advanced ? 'Pick one card, or build a bundle of up to ' + cfg().listing.maxBundle + '. Each copy is chosen by its serial, never the whole stack.' : 'Pick one card. When you own several copies you choose which serial to list.' }))));
+      if (inv.demo) pickerHost.appendChild(h('div.mk-banner', { data: { tone: 'info' } }, icon('info'), h('span', { text: 'You have no cards yet, so these are sample cards. Open a pack and your own collection appears here.' })));
+      var search = h('input.mk-input', { type: 'search', placeholder: 'Search your cards', 'aria-label': 'Search your cards' });
+      pickerHost.appendChild(h('div.mk-picker-bar', search, h('span.mk-muted', { text: inv.items.length + ' cards' })));
+      var listEl = h('div.mk-picker', { role: 'group', 'aria-label': 'Your cards' });
+      pickerHost.appendChild(listEl);
+      var groups = {};
+      inv.items.forEach(function (i) { (groups[stackKey(i)] = groups[stackKey(i)] || []).push(i); });
+      var stacks = Object.keys(groups).map(function (k) { return groups[k]; }).sort(function (a, b) {
+        var ta = (env.data.index[a[0].cardId] || { tier: 0 }).tier, tb = (env.data.index[b[0].cardId] || { tier: 0 }).tier;
+        return tb - ta || (a[0].cardId < b[0].cardId ? -1 : 1);
+      });
+      function paint() {
+        var q = search.value.trim().toLowerCase();
+        ui.releaseArt(listEl, ctx.thumbs);
+        ui.clear(listEl);
+        var shown = 0;
+        stacks.forEach(function (stack) {
+          var head = stack[0], card = env.cards[head.cardId]; if (!card) return;
+          var idn = ui.identity(card, true);
+          if (q && (idn.name + ' ' + idn.rarityName).toLowerCase().indexOf(q) < 0) return;
+          shown++;
+          var row = h('div.mk-pick', { data: { stack: stackKey(head) } });
+          var art = h('div.mk-pick-art'); art.appendChild(ctx.thumbs.mount(card, { instanceId: 'mk-pick-' + head.instanceId, cardId: card.id, serial: head.serial, variantId: head.variantId, cardSkinId: head.cardSkinId, seen: true }, { owned: true }));
+          var v = valuationOf(head);
+          var copy = h('div.mk-pick-copy', h('strong', { text: idn.name }),
+            h('span', { text: idn.rarityName + ' · ' + (head.variantId ? (env.variants[head.variantId] || {}).name : 'Normal finish') + (stack.length > 1 ? ' · ' + stack.length + ' copies' : '') }),
+            h('span.mk-muted', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' }));
+          var chips = h('div.mk-pick-chips', { role: advanced ? 'group' : 'radiogroup', 'aria-label': 'Copies of ' + idn.name });
+          stack.forEach(function (i) {
+            var on = draft.items.indexOf(i.instanceId) >= 0;
+            var b = h('button.mk-pill.is-serial', { type: 'button', role: advanced ? 'checkbox' : 'radio', 'aria-checked': String(on), 'aria-pressed': advanced ? String(on) : null, data: { instance: i.instanceId } },
+              icon(on ? 'check' : 'plus'), h('span.mk-mono', { text: i.serial.replace('CBL-', '') }));
+            b.addEventListener('click', function () { choose(i.instanceId); });
+            chips.appendChild(b);
+          });
+          row.append(art, copy, chips); listEl.appendChild(row);
+        });
+        if (!shown) listEl.appendChild(h('p.mk-hint', { text: 'No card matches that search.' }));
+      }
+      search.addEventListener('input', paint);
+      paint();
+    }
+    function choose(id) {
+      var at = draft.items.indexOf(id);
+      if (advanced) { if (at >= 0) draft.items.splice(at, 1); else if (draft.items.length < cfg().listing.maxBundle) draft.items.push(id); else C.ui.toast('A listing holds at most ' + cfg().listing.maxBundle + ' cards.'); }
+      else draft.items = at >= 0 ? [] : [id];
+      draft.touchedPrice = false;
+      suggestIfBlank();
+      touch(); buildPicker(); buildTerms(); renderSide();
+    }
+    function suggestIfBlank() {
+      var v = bundleValuation(); if (!v) return;
+      if (draft.format === 'buy-now' && (!draft.price || !draft.touchedPrice)) draft.price = String(K().suggestedAsk(v, 'balanced').price);
+      if (draft.format === 'auction' && (!draft.startBid || !draft.touchedPrice)) draft.startBid = String(K().suggestedStart(v));
+    }
+
+    // ---- 2 + 3. type and terms ----
+    var termsHost = h('section.mk-step', { 'aria-label': 'Listing type and terms' });
+    var errorEls = {};
+    function field(label, input, options) {
+      options = options || {};
+      var id = 'mk-f-' + Math.floor(Math.random() * 1e9).toString(36);
+      input.id = id;
+      var err = h('small.mk-field-error', { id: id + '-err', role: 'alert', hidden: true });
+      input.setAttribute('aria-describedby', id + '-err' + (options.hint ? ' ' + id + '-hint' : ''));
+      if (options.name) errorEls[options.name] = { input: input, err: err };
+      var wrap = h('div.mk-field', h('label.mk-field-label', { for: id }, options.help ? ui.labelWithHelp(label, options.help) : label), input,
+        options.hint ? h('small.mk-hint', { id: id + '-hint', text: options.hint }) : null, err);
+      return wrap;
+    }
+    function numberInput(value, onInput, attrs) {
+      var el = h('input.mk-input', Object.assign({ type: 'number', min: '0', step: '1', inputmode: 'numeric', value: value == null ? '' : String(value) }, attrs || {}));
+      el.addEventListener('input', function () { onInput(el.value); touch(); renderSide(); });
+      return el;
+    }
+    function buildTerms() {
+      ui.clear(termsHost); errorEls = {};
+      var v = bundleValuation();
+      termsHost.appendChild(h('div.mk-step-head', h('span.mk-step-no', { text: '2' }), h('div', h('h2', { text: 'Type and terms' }), h('p', { text: 'How it sells, and for how much.' }))));
+      var typeSwitch = ui.segmented({ label: 'Listing type', value: draft.format, onChange: function (f) { draft.format = f; draft.touchedPrice = false; suggestIfBlank(); touch(); buildTerms(); renderSide(); },
+        options: cfg().formats.map(function (f) { return { value: f.id, label: f.label, icon: f.icon, title: f.blurb }; }) });
+      typeSwitch.classList.add('mk-type-switch');
+      termsHost.appendChild(typeSwitch);
+      termsHost.appendChild(h('p.mk-hint', { text: ui.formatDef(draft.format).blurb }));
+      var body = h('div.mk-terms');
+      if (v) body.appendChild(h('p.mk-guidance', icon('trend'), h('span', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' + (v.basis === 'baseline' ? ' (baseline estimate, no sales yet)' : '') + ' · Target Sell ' + ui.fmt.exact(v.targetSell) + ' · about ' + v.windowHours + ' h to sell near it.' })));
+      if (draft.format === 'buy-now') {
+        var price = numberInput(draft.price, function (val) { draft.price = val; draft.touchedPrice = true; }, { min: '1' });
+        body.appendChild(field('Asking price (Credits)', price, { name: 'price', help: 'average-value', hint: 'Buyers pay exactly this. You receive it minus the ' + cfg().fee.label.toLowerCase() + '.' }));
+        if (v) {
+          var quick = h('div.mk-quick', { role: 'group', 'aria-label': 'Suggested prices' });
+          [['fast', 'Sell fast'], ['balanced', 'Fair'], ['patient', 'Patient']].forEach(function (u) {
+            var s = K().suggestedAsk(v, u[0]);
+            var b = h('button.mk-pill', { type: 'button' }, h('span', { text: u[1] }), h('span.mk-pill-count', { text: ui.fmt.exact(s.price) }));
+            b.addEventListener('click', function () { draft.price = String(s.price); draft.touchedPrice = true; price.value = draft.price; touch(); renderSide(); });
+            quick.appendChild(b);
+          });
+          body.appendChild(quick);
+        }
+        if (advanced) {
+          var rel = numberInput(draft.minRelativePct, function (val) { draft.minRelativePct = val; }, { min: String(cfg().relativeValue.min), max: String(cfg().relativeValue.max), step: String(cfg().relativeValue.step), placeholder: 'e.g. ' + cfg().relativeValue.default });
+          body.appendChild(field('Accept offers down to (% of Average Value)', rel, { name: 'minRelativePct', hint: 'Offers below this are declined for you. Leave empty to see every offer.' }));
+        }
+      } else if (draft.format === 'auction') {
+        var start = numberInput(draft.startBid, function (val) { draft.startBid = val; draft.touchedPrice = true; }, { min: '1' });
+        body.appendChild(field('Starting bid (Credits)', start, { name: 'startBid', hint: 'Bidders go up in steps of at least 5% or 1 Credit.' }));
+        var presets = h('div.mk-presets-inline', { role: 'radiogroup', 'aria-label': 'Auction length' });
+        cfg().auction.presets.forEach(function (p) {
+          var on = draft.durationMode === 'preset' && draft.preset === p.id;
+          var b = h('button.mk-pill', { type: 'button', role: 'radio', 'aria-checked': String(on), data: { preset: p.id } }, h('span', { text: p.label }));
+          b.addEventListener('click', function () { draft.preset = p.id; draft.durationMode = 'preset'; touch(); buildTerms(); renderSide(); });
+          presets.appendChild(b);
+        });
+        if (advanced) {
+          var custom = h('button.mk-pill', { type: 'button', role: 'radio', 'aria-checked': String(draft.durationMode === 'custom') }, h('span', { text: 'Custom' }));
+          custom.addEventListener('click', function () { draft.durationMode = 'custom'; touch(); buildTerms(); renderSide(); });
+          presets.appendChild(custom);
+        }
+        body.appendChild(h('div.mk-field', h('span.mk-field-label', { text: 'Length' }), presets));
+        if (advanced && draft.durationMode === 'custom') {
+          var dur = numberInput(draft.customHours, function (val) { draft.customHours = val; }, { min: String(cfg().auction.customMinHours), max: String(cfg().auction.customMaxHours) });
+          body.appendChild(field('Custom length (hours)', dur, { name: 'duration', hint: 'Between 1 hour and 14 days. Only available in Advanced.' }));
+        } else if (!advanced) {
+          body.appendChild(h('p.mk-hint', { text: 'Want a different length? Custom durations are part of Advanced.' }));
+        }
+        if (advanced) {
+          var reserve = numberInput(draft.reserve, function (val) { draft.reserve = val; }, { min: '0', placeholder: 'None' });
+          body.appendChild(field('Reserve (Credits)', reserve, { name: 'reserve', help: 'reserve', hint: 'The auction only sells if the winning bid reaches this. Bidders see whether it has been met, not the amount.' }));
+          var buyout = numberInput(draft.buyout, function (val) { draft.buyout = val; }, { min: '0', placeholder: 'None' });
+          body.appendChild(field('Buyout (Credits)', buyout, { name: 'buyout', hint: 'Lets a buyer end the auction at once at this price.' }));
+        }
+      } else {
+        body.appendChild(buildWanted(v));
+        if (advanced) {
+          var top = numberInput(draft.creditTopUp, function (val) { draft.creditTopUp = val; }, { min: '0', placeholder: 'None' });
+          body.appendChild(field('Credits top-up', top, { name: 'creditTopUp', hint: 'Credits to even a trade of unequal value. The ' + cfg().fee.label.toLowerCase() + ' applies to this part only.' }));
+          var dir = ui.segmented({ label: 'Top-up direction', value: draft.topUpDirection, onChange: function (d) { draft.topUpDirection = d; touch(); renderSide(); }, options: [{ value: 'asks', label: 'I ask for Credits' }, { value: 'adds', label: 'I add Credits' }] });
+          body.appendChild(dir);
+          var rel2 = numberInput(draft.minRelativePct, function (val) { draft.minRelativePct = val; }, { min: String(cfg().relativeValue.min), max: String(cfg().relativeValue.max), step: String(cfg().relativeValue.step), placeholder: 'e.g. ' + cfg().relativeValue.default });
+          body.appendChild(field('Minimum value of what I receive (% of my card)', rel2, { name: 'minRelativePct', hint: 'Offers worth less than this share of your card’s Average Value are declined for you.' }));
+          var low = h('input', { type: 'checkbox', props: { checked: !!draft.wantLowSerial } });
+          low.addEventListener('change', function () { draft.wantLowSerial = low.checked; touch(); renderSide(); });
+          body.appendChild(h('label.mk-toggle', low, h('span.mk-toggle-track', { 'aria-hidden': 'true' }, h('i')), h('span.mk-toggle-copy', h('span', { text: 'Only serials ' + cfg().serial.lowCounter + ' or lower' }), h('small', { text: 'Offered cards must have a low serial in their owner’s sequence.' }))));
+        }
+      }
+      termsHost.appendChild(body);
+      applyErrors();
+    }
+    function buildWanted(v) {
+      var wrap = h('div.mk-wanted');
+      wrap.appendChild(h('span.mk-field-label', { text: 'What would you accept?' }));
+      draft.wanted.forEach(function (w, idx) {
+        var row = h('div.mk-wanted-row');
+        var type = h('select.mk-select', { 'aria-label': 'Rule ' + (idx + 1) + ' type' },
+          h('option', { value: 'card', text: 'A specific card', props: { selected: w.type === 'card' } }), h('option', { value: 'rarity', text: 'A rarity or better', props: { selected: w.type === 'rarity' } }),
+          h('option', { value: 'finish', text: 'A particular finish', props: { selected: w.type === 'finish' } }));
+        type.addEventListener('change', function () { w.type = type.value; touch(); buildTerms(); renderSide(); });
+        var value;
+        if (w.type === 'card') {
+          value = h('select.mk-select', { 'aria-label': 'Wanted card' }, h('option', { value: '', text: 'Choose a card…' }));
+          C.data.rarities.slice().sort(function (a, b) { return a.tier - b.tier; }).forEach(function (r) {
+            var cards = env.data.cards.filter(function (c) { return c.rarity === r.id; }); if (!cards.length) return;
+            var og = h('optgroup', { label: r.name });
+            cards.forEach(function (c) { og.appendChild(h('option', { value: c.id, text: ui.identity(c, false).name === 'Unfound Secret' ? 'Unfound Secret' : c.name, props: { selected: w.cardId === c.id } })); });
+            value.appendChild(og);
+          });
+          value.addEventListener('change', function () { w.cardId = value.value; touch(); renderSide(); applyErrors(); });
+        } else if (w.type === 'rarity') {
+          value = h('select.mk-select', { 'aria-label': 'Wanted rarity' }, h('option', { value: '', text: 'Choose a rarity…' }));
+          C.data.rarities.slice().sort(function (a, b) { return a.tier - b.tier; }).forEach(function (r) { value.appendChild(h('option', { value: r.id, text: r.name + ' or better', props: { selected: w.rarity === r.id } })); });
+          value.addEventListener('change', function () { w.rarity = value.value; touch(); renderSide(); applyErrors(); });
+        } else {
+          value = h('select.mk-select', { 'aria-label': 'Wanted finish' }, h('option', { value: '', text: 'Choose a finish…' }));
+          C.data.variants.filter(function (x) { return x.kind !== 'frame'; }).forEach(function (x) { value.appendChild(h('option', { value: x.id, text: x.name, props: { selected: w.variant === x.id } })); });
+          value.addEventListener('change', function () { w.variant = value.value; touch(); renderSide(); applyErrors(); });
+        }
+        row.append(type, value);
+        if (advanced) {
+          var pct = h('input.mk-input.is-narrow', { type: 'number', min: '0', placeholder: 'Min %', 'aria-label': 'Minimum value percent', value: w.minValuePct || '' });
+          pct.addEventListener('input', function () { w.minValuePct = pct.value; touch(); renderSide(); });
+          row.appendChild(pct);
+          if (draft.wanted.length > 1) row.appendChild(ui.iconButton('trash', 'Remove this rule', function () { draft.wanted.splice(idx, 1); touch(); buildTerms(); renderSide(); }));
+        }
+        wrap.appendChild(row);
+      });
+      if (advanced && draft.wanted.length < 3) wrap.appendChild(ui.button('Add another acceptable card', { icon: 'plus', variant: 'ghost', size: 'sm', onClick: function () { draft.wanted.push({ type: 'card', cardId: '', rarity: '', variant: '', minValuePct: '' }); touch(); buildTerms(); } }));
+      var errSlot = h('small.mk-field-error', { role: 'alert', hidden: true }); errorEls.wanted = { input: wrap, err: errSlot };
+      wrap.appendChild(errSlot);
+      return wrap;
+    }
+
+    // ---- 4. presentation ----
+    var presentHost = h('details.mk-step.mk-present', { 'aria-label': 'Title, note and cover image' });
+    presentHost.open = advanced || !!(draft.title || draft.description);
+    var coverFrame, coverImg, coverEmpty;
+    function buildPresent() {
+      ui.clear(presentHost);
+      presentHost.appendChild(h('summary', h('span.mk-step-no', { text: '3' }), h('div', h('h2', { text: 'Title, note and cover' }), h('p', { text: 'Optional. Your card art always leads in the feed.' })), icon('chevron')));
+      var body = h('div.mk-present-body');
+      var title = h('input.mk-input', { type: 'text', maxlength: String(cfg().listing.titleMax), placeholder: 'A short headline (optional)', value: draft.title });
+      title.addEventListener('input', function () { draft.title = title.value; touch(); renderSide(); counter.textContent = title.value.length + '/' + cfg().listing.titleMax; });
+      var counter = h('small.mk-hint', { text: draft.title.length + '/' + cfg().listing.titleMax });
+      body.appendChild(field('Title', title, { name: 'title', hint: 'Shown above the card name. It never changes what the card is.' }));
+      body.lastChild.appendChild(counter);
+      var note = h('textarea.mk-input', { rows: '3', maxlength: String(cfg().listing.descriptionMax), placeholder: 'Anything a buyer should know (optional)' }); note.value = draft.description;
+      note.addEventListener('input', function () { draft.description = note.value; touch(); });
+      body.appendChild(field('Note', note, { name: 'description' }));
+
+      // cover uploader (local only)
+      var cover = h('div.mk-cover');
+      cover.appendChild(h('span.mk-field-label', { text: 'Cover image' }));
+      var chooser = h('div.mk-cover-actions');
+      var fileInput = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp', hidden: true, 'aria-label': 'Choose a cover image' });
+      var choose = ui.button('Choose an image', { icon: 'upload', variant: 'secondary', onClick: function () { fileInput.click(); } });
+      var album = ui.button('From Director album', { icon: 'image', variant: 'secondary', onClick: function () { openAlbum(album); } });
+      var remove = ui.button('Remove', { icon: 'trash', variant: 'ghost', disabled: draft.cover.kind === 'card', onClick: function () { setCover(null); } });
+      chooser.append(choose, album, remove, fileInput);
+      cover.appendChild(chooser);
+      fileInput.addEventListener('change', function () {
+        var file = fileInput.files && fileInput.files[0]; if (!file) return;
+        if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { showCoverError('Use a PNG, JPEG or WebP image.'); return; }
+        if (file.size > 6 * 1024 * 1024) { showCoverError('That image is over 6 MB. Choose a smaller one.'); return; }
+        setCover({ url: root.URL.createObjectURL(file), name: file.name, kind: 'file' });
+        fileInput.value = '';
+      });
+      var coverError = h('small.mk-field-error', { role: 'alert', hidden: true });
+      function showCoverError(msg) { coverError.textContent = msg; coverError.hidden = false; }
+      cover.appendChild(coverError);
+      var ratioSwitch = ui.segmented({ label: 'Cover shape', value: draft.cover.ratio, onChange: function (r) { draft.cover.ratio = r; touch(); paintCover(); },
+        options: RATIOS.map(function (r) { return { value: r.id, label: r.label }; }) });
+      cover.appendChild(ratioSwitch);
+      coverFrame = h('div.mk-cover-frame', { data: { ratio: draft.cover.ratio } });
+      coverImg = h('img.mk-cover-img', { alt: '', draggable: 'false', hidden: true });
+      coverEmpty = h('div.mk-cover-empty', icon('image'), h('span', { text: 'No cover image. The standard card cover is used.' }));
+      coverFrame.append(coverImg, coverEmpty);
+      cover.appendChild(coverFrame);
+      var alt = h('input.mk-input', { type: 'text', maxlength: '120', placeholder: 'Describe the image for people using a screen reader', value: draft.cover.alt || '' });
+      alt.addEventListener('input', function () { draft.cover.alt = alt.value; touch(); });
+      cover.appendChild(field('Image description', alt, { hint: 'Used as alternative text. Required when you add an image.' }));
+      cover.appendChild(h('p.mk-hint', icon('shield'), h('span', { text: 'A cover is decoration. It can never hide the card’s rarity, finish or serial, and it is not proof of ownership. Images stay in this window: nothing is uploaded.' })));
+      body.appendChild(cover);
+      presentHost.appendChild(body);
+      // drag to reposition
+      var drag = null;
+      coverFrame.addEventListener('pointerdown', function (e) { if (coverImg.hidden) return; drag = { x: e.clientX, y: e.clientY, ox: draft.cover.x, oy: draft.cover.y }; coverFrame.setPointerCapture(e.pointerId); });
+      coverFrame.addEventListener('pointermove', function (e) {
+        if (!drag) return;
+        var r = coverFrame.getBoundingClientRect();
+        draft.cover.x = Math.max(0, Math.min(100, drag.ox - (e.clientX - drag.x) / r.width * 100));
+        draft.cover.y = Math.max(0, Math.min(100, drag.oy - (e.clientY - drag.y) / r.height * 100));
+        coverImg.style.objectPosition = draft.cover.x + '% ' + draft.cover.y + '%';
+      });
+      coverFrame.addEventListener('pointerup', function () { if (drag) { drag = null; touch(); } });
+      paintCover();
+    }
+    function paintCover() {
+      if (!coverFrame) return;
+      var r = RATIOS.find(function (x) { return x.id === draft.cover.ratio; }) || RATIOS[0];
+      coverFrame.style.aspectRatio = r.css; coverFrame.dataset.ratio = r.id;
+      var has = draft.cover.kind !== 'card' && coverUrl;
+      coverImg.hidden = !has; coverEmpty.hidden = !!has;
+      if (has) { coverImg.src = coverUrl; coverImg.style.objectPosition = draft.cover.x + '% ' + draft.cover.y + '%'; }
+      renderSide();
+    }
+    function setCover(c) {
+      if (coverUrl) { try { root.URL.revokeObjectURL(coverUrl); } catch (_) { /* gone */ } coverUrl = null; }
+      if (!c) { draft.cover = { kind: 'card', ratio: draft.cover.ratio, name: '', alt: '', zoom: 1, x: 50, y: 50 }; }
+      else { coverUrl = c.url; draft.cover.kind = c.kind; draft.cover.name = c.name; draft.cover.x = 50; draft.cover.y = 50; }
+      touch(); buildPresent();
+    }
+    function openAlbum(anchor) {
+      var surface = h('section.mk-modal.mk-album', { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Director album' });
+      var grid = h('div.mk-album-grid', { role: 'list' });
+      var made = [];
+      surface.append(h('h2', { text: 'Director album' }), h('p', { text: 'Photos you made in Inspect and Director. They are only read here, never changed or uploaded.' }), grid,
+        h('div.mk-modal-actions', ui.button('Close', { variant: 'primary', onClick: function () { handle.close(); } })));
+      var handle = C.ui.present(surface, { anchor: anchor, onClose: function () { made.forEach(function (u) { try { root.URL.revokeObjectURL(u); } catch (_) { /* gone */ } }); } });
+      if (!C.studioAlbum || !C.studioAlbum.list) { grid.appendChild(ui.emptyState({ kind: 'empty', icon: 'image', title: 'The album is not available here', body: 'Director photos can be chosen once the album is available.' })); return; }
+      grid.appendChild(h('p.mk-hint', { text: 'Looking through the album…' }));
+      C.studioAlbum.list().then(function (photos) {
+        ui.clear(grid);
+        if (!photos.length) { grid.appendChild(ui.emptyState({ kind: 'empty', icon: 'image', title: 'No Director photos yet', body: 'Take a photo in Inspect or Director and it appears here.' })); return; }
+        photos.slice(0, 24).forEach(function (p) {
+          if (!p.thumb) return;
+          var url = root.URL.createObjectURL(p.thumb); made.push(url);
+          var b = h('button.mk-album-item', { type: 'button', role: 'listitem', 'aria-label': p.name || 'Photo' }, h('img', { src: url, alt: '' }), h('span', { text: p.name || 'Photo' }));
+          b.addEventListener('click', function () {
+            C.studioAlbum.get(p.id).then(function (full) {
+              if (!full || !full.blob) return;
+              setCover({ url: root.URL.createObjectURL(full.blob), name: p.name || 'Director photo', kind: 'album' });
+              handle.close();
+            });
+          });
+          grid.appendChild(b);
+        });
+      }, function () { ui.clear(grid); grid.appendChild(ui.emptyState({ kind: 'error', icon: 'warn', role: 'alert', title: 'The album could not be opened', body: 'Your photos are safe. Try again in a moment.' })); });
+    }
+
+    // ---- preview side ----
+    function syntheticListing(v) {
+      var sel = selected()[0];
+      if (!sel) return null;
+      var base = { id: 'draft', realm: realm, format: draft.format, status: 'active', card: { cardId: sel.cardId, variantId: sel.variantId || null, cardSkinId: sel.cardSkinId || null, serial: sel.serial, count: draft.items.length, packId: sel.packId },
+        title: draft.title, description: draft.description, cover: { kind: 'card' }, seller: { alias: 'You', isBot: false, sales: 0, rating: 1, tenureDays: 0 }, valuation: v || valuationOf(sel), listedMin: 0, watchers: 0, source: 'draft', ask: Number(draft.price) || 0 };
+      if (draft.format === 'auction') { var s = Number(draft.startBid) || 0; base.ask = s; base.auction = { start: s, current: s, bids: 0, reserve: draft.reserve ? Number(draft.reserve) : null, reserveMet: !draft.reserve, increment: K().minIncrement(s), buyout: draft.buyout ? Number(draft.buyout) : null }; base.endsMin = (hours() || 24) * 60; }
+      if (draft.format === 'swap') {
+        var rule = draft.wanted[0] || {};
+        var label = rule.type === 'card' && rule.cardId ? (env.cards[rule.cardId] || {}).name : rule.type === 'rarity' && rule.rarity ? (env.rarities[rule.rarity] || {}).name + ' or better' : rule.type === 'finish' && rule.variant ? (env.variants[rule.variant] || {}).name + ' finish' : 'Your offers';
+        base.swap = { wanted: [{ label: label || 'Your offers' }], topUp: Number(draft.creditTopUp) || 0, direction: draft.topUpDirection, openToCounter: true };
+        base.ask = base.valuation.average;
+      }
+      return base;
+    }
+    var sideTimer = 0;
+    function renderSide() {
+      root.clearTimeout(sideTimer);
+      sideTimer = root.setTimeout(drawSide, 30);
+    }
+    scope.add(function () { root.clearTimeout(sideTimer); });
+    var sideThumbs = null;
+    function drawSide() {
+      if (scope.dead) return;
+      ui.releaseArt(side, ctx.thumbs);
+      ui.clear(side);
+      var v = bundleValuation(), result = K().validateDraft(toDraft(), { config: cfg() });
+      var listing = syntheticListing(v);
+      side.appendChild(h('div.mk-side-head', ui.eyebrow('Preview'), statusEl));
+      if (listing) {
+        var tileEnv = { cards: env.cards, owned: env.owned, variants: env.variants, thumbs: ctx.thumbs, index: 0 };
+        var tile = ui.listingTile({ listing: listing, rank: null }, tileEnv);
+        tile.classList.add('is-draft');
+        tile.querySelectorAll('button').forEach(function (b) { b.disabled = true; b.tabIndex = -1; });
+        side.appendChild(h('div.mk-draft-tile', tile));
+        if (draft.items.length > 1) side.appendChild(h('p.mk-hint', { text: 'Bundle of ' + draft.items.length + ' cards. The first card leads the tile.' }));
+      } else side.appendChild(h('div.mk-draft-tile.is-empty', icon('cards'), h('span', { text: 'Choose a card to see your listing.' })));
+      var rows = [];
+      if (draft.format === 'swap') rows.push({ label: 'Credits top-up', value: Number(draft.creditTopUp) ? ui.fmt.exact(Number(draft.creditTopUp)) + ' (' + (draft.topUpDirection === 'asks' ? 'you ask' : 'you add') + ')' : 'None' });
+      else rows.push({ label: draft.format === 'auction' ? 'Starting bid' : 'Asking price', value: (draft.format === 'auction' ? Number(draft.startBid) : Number(draft.price)) ? ui.fmt.exact(draft.format === 'auction' ? Number(draft.startBid) : Number(draft.price)) + ' Credits' : '—' });
+      rows.push({ label: cfg().fee.label, value: result.fee ? '− ' + ui.fmt.exact(result.fee) : (draft.format === 'swap' ? 'None on a pure swap' : '—'), help: 'settlement' });
+      rows.push({ label: draft.format === 'auction' ? 'Estimated net at the starting bid' : 'Estimated net proceeds', value: result.net ? ui.fmt.exact(result.net) + ' Credits' : '—', strong: true });
+      if (v && listing && draft.format !== 'swap') {
+        var verdict = K().priceVerdict(toDraft(), v);
+        if (verdict) rows.push({ label: 'Against Average Value', node: ui.valueTag(draft.format === 'auction' ? Number(draft.startBid) : Number(draft.price), v) });
+      }
+      if (draft.format === 'auction') rows.push({ label: 'Closes', value: result.hours ? (result.hours >= 48 ? Math.round(result.hours / 24) + ' days' : result.hours + ' hours') + ' after listing' : '—' });
+      var dl = h('dl.mk-sumrows');
+      rows.forEach(function (r) { dl.appendChild(h('div', { data: { strong: r.strong ? 'true' : '' } }, h('dt', r.help ? ui.labelWithHelp(r.label, r.help) : r.label), h('dd', r.node ? r.node : { text: r.value }))); });
+      side.appendChild(dl);
+      side.appendChild(h('p.mk-hint', icon('lock'), h('span', { text: 'While listed, the exact card is held in escrow and cannot be traded elsewhere. You could withdraw it at any time before a bid or sale.' })));
+      var reason = result.ok ? '' : result.disabledReason;
+      var publish = ui.button('Preview this listing', { variant: 'primary', icon: 'check', disabled: !result.ok, reason: reason, onClick: function () { reviewListing(result, v, listing); } });
+      var wrap = h('div.mk-side-actions', publish);
+      if (!result.ok && draft.items.length) wrap.appendChild(h('p.mk-field-error.is-inline', { role: 'status', text: reason }));
+      else if (!draft.items.length) wrap.appendChild(h('p.mk-hint', { text: 'Choose a card to continue.' }));
+      side.appendChild(wrap);
+      side.appendChild(h('div.mk-side-foot', ui.button('Discard draft', { variant: 'ghost', size: 'sm', onClick: function () { store.clearDraft(draftKey); saved = null; draft.items = []; draft.price = ''; draft.startBid = ''; draft.title = ''; draft.description = ''; setStatus('idle'); renderAll(); } })));
+      applyErrors(result);
+    }
+    function applyErrors(result) {
+      result = result || K().validateDraft(toDraft(), { config: cfg() });
+      Object.keys(errorEls).forEach(function (k) {
+        var e = errorEls[k], msg = result.errors[k];
+        // Only talk about a field once the person has touched the draft.
+        var show = !!msg && dirty && (k !== 'items');
+        e.err.hidden = !show; e.err.textContent = show ? msg : '';
+        if (e.input && e.input.setAttribute) e.input.setAttribute('aria-invalid', String(show));
+      });
+    }
+    function reviewListing(result, v, listing) {
+      var sel = selected();
+      var rows = [];
+      sel.forEach(function (i) { var c = env.cards[i.cardId]; var idn = ui.identity(c, true); rows.push({ label: idn.name, node: h('span', h('span', { text: idn.rarityName + ' · ' + (i.variantId ? env.variants[i.variantId].name : 'Normal') + ' · ' }), h('span.mk-mono', { text: i.serial })) }); });
+      rows.push({ label: 'Type', value: ui.formatDef(draft.format).label });
+      if (draft.format === 'buy-now') rows.push({ label: 'Asking price', node: ui.credits(Number(draft.price)) });
+      if (draft.format === 'auction') { rows.push({ label: 'Starting bid', node: ui.credits(Number(draft.startBid)) }); rows.push({ label: 'Length', value: result.hours + ' hours' }); if (draft.reserve) rows.push({ label: 'Reserve', value: ui.fmt.exact(Number(draft.reserve)) + ' Credits' }); if (draft.buyout) rows.push({ label: 'Buyout', value: ui.fmt.exact(Number(draft.buyout)) + ' Credits' }); }
+      if (draft.format === 'swap' && draft.wantLowSerial && advanced) rows.push({ label: 'Serial', value: cfg().serial.lowCounter + ' or lower' });
+      if (draft.format === 'swap') rows.push({ label: 'You would accept', value: draft.wanted.map(function (w) { return w.type === 'card' ? (env.cards[w.cardId] || {}).name : w.type === 'rarity' ? (env.rarities[w.rarity] || {}).name + ' or better' : (env.variants[w.variant] || {}).name; }).filter(Boolean).join(', ') });
+      rows.push({ label: cfg().fee.label, value: result.fee ? '− ' + ui.fmt.exact(result.fee) + ' Credits' : 'None' });
+      rows.push({ label: 'Estimated net proceeds', value: ui.fmt.exact(result.net) + ' Credits', strong: true });
+      rows.push({ label: 'Realm', value: ui.realmDef(realm).label + (realm === 'global' ? ' (not connected)' : ' (preview)') });
+      rows.push({ label: 'Held in escrow', value: sel.length === 1 ? '1 card' : sel.length + ' cards' });
+      if (draft.title) rows.push({ label: 'Title', value: draft.title });
+      if (draft.cover.kind !== 'card') rows.push({ label: 'Cover', value: draft.cover.name || 'Image' });
+      ui.review({ title: 'Review listing', rows: rows, note: realm === 'global' ? 'Global Market is not connected, so this listing could not be published. Nothing was sent or saved to your collection.' : 'Nothing was listed and no card was locked. Publishing opens with the simulator in a later update. Your draft stays on this device.' });
+    }
+
+    // ---- assemble ----
+    function renderAll() { buildPicker(); buildTerms(); buildPresent(); renderSide(); }
+    form.append(pickerHost, termsHost, presentHost);
+    if (carry && carry.key === draftKey && Date.now() - carry.at < 4000) { applyDraft(carry.draft); resumed = true; dirty = true; }
+    resumeBanner();
+    suggestIfBlank();
+    renderAll();
+    setStatus('idle');
+    ctx.restoreScroll();
+  }
+
+  ui.pages.register('compose', { nav: function () { return 'portfolio'; }, title: function () { return 'List a card'; }, mount: mount });
+})(window.Cardable = window.Cardable || {}, window);

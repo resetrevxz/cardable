@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.6.3**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.6.3** (Market Beta 1.0.0 Stage 1 preview on `feature/market-beta`). The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -105,6 +105,31 @@ New chrome uses the kit and shared tokens; new patterns appear here and in the g
 Exceptions: authored card/variant/pack/cinematic materials retain their recipes and timings; Studio viewport/gizmos retain scene colors and axis tints; Classic VT323, Ascendant Bodoni and Mythical vector title remain artwork-only; developer tools allow denser layouts. Layout compatibility selectors carry existing geometry into the kit without changing game actions. Archived histories are evidence, not new scope.
 
 Design references: [Vercel interface guidelines](https://vercel.com/design/guidelines), [Apple color](https://developer.apple.com/design/human-interface-guidelines/color), [Apple motion](https://developer.apple.com/design/human-interface-guidelines/motion), [Apple accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility). Cardable adopts their focus, semantic controls, redundant color, restraint and meaningful-motion guidance within its offline runtime.
+
+## 12. Market (Cardable Market Beta)
+
+The Market is a destination of the same game, not a second product. It uses the kit tokens, Inter and JetBrains Mono, the HUD glass for its entry button and one near-black surface. The real card is the hero everywhere: feed tiles show real GPU art, detail pages mount one focused full card, and a seller's cover image never replaces it.
+
+**Structure.** A full-window overlay (`src/ui/market/shell.js`) holds a header (brand, search with suggestions, realm switch, wallet, guide, close), a section row (Discover, Auctions, Buy Now, Trades, Stocks, Portfolio, Activity, and Watchlist, Alerts, My listings, Market settings), a realm notice and a scrolling page. Below 840 px of its own width it folds to a bottom bar of four sections and More. Layout follows the Market's container width (container queries on `.mk-frame`), not the window's. One router owns Back, Escape and scroll and focus restoration.
+
+**Realms.** Simulation and Global Market are always labelled: a realm badge with its state (Preview, Not connected, Sample layout) sits in the header, the notice row and every detail page. Balances, histories and valuations are never mixed. An unconnected Global Market is empty and says so. Sample listings can be switched on and are always labelled; they are never counted as volume.
+
+| Pattern | Rule |
+|---|---|
+| Listing tile | Art first (static art-only thumbnail), format and time, name, rarity and finish in mono, price, value against Average Value in words, one reason, seller and serial. The whole tile is one button; the watch control sits above it. Hover lifts 4 px and a pointer edge light follows. |
+| Delta and value tag | Always a word, a direction mark and a sign. Colour is redundant. Mono removes the hue and keeps all three. |
+| Value meter | One track: best bid, Target Buy, Average Value, Target Sell, lowest ask and this price, with a legend of exact numbers. |
+| Chart | One SVG per page, drawn on data or size change; crosshair on a single group; keyboard arrows read each point; a table alternative is a native disclosure. Candles differ by shape (hollow up, filled down). Labelled Illustrative while the data is sample data. |
+| Filters | A rail on wide windows, a full panel on narrow ones. Multi-select pills with live counts that ignore their own facet, ranges, chips with remove, Clear all, presets, saved views and a no-results recovery that names single removals. Simple shows the essentials; Advanced adds finish, generation, brand, original pack, value ratio, fair value, serial, age and seller rating. |
+| Composer | Three steps: exact card (by serial, never a stack), type and terms, optional title and cover. A sticky preview shows the same tile, the fee and net proceeds. Custom duration exists only in Advanced. A draft saves locally and says so. |
+| Review | Every action that would trade opens a review that shows exact terms and states that nothing changed. The only primary action is Close preview. |
+| States | Skeleton, empty, no-results with recovery, offline realm, error with a way back, closed (sold, expired), outbid, leading, draft saved, unsaved changes, field error and disabled with a reason. All are in the UI gallery under Market. |
+
+**Motion and cost.** Pages rise 10 px over the slow duration; tiles stagger up to eight. Everything stops for reduced motion, Hover animations off and Very Low. Feeds are cursor-paginated; thumbnails are created within a screen of the viewport and released beyond it; no tile owns a clock or a chart; the Market adds no scheduler subscriber and no idle loop.
+
+**Copy.** Sentence case. Terms follow the glossary in `src/data/market-config.js` (Average Value, Target Buy, Target Sell, Volume, Spread, Reserve, Proxy bid, Settlement, Escrow, Quick Sell, Realm), each reachable from a help control beside its first use. Never imply that a preview trade happened.
+
+**Settings.** Thirteen `market*` keys live in the shared schema under a Market page: detail level, starting realm, Discover layout, density, chart style, default window, Reduced data, Compact Credits, confirmation level, default auction length and three notice groups. Each changes something that exists in the build.
 
 ## Appendix: retained gameplay, artwork and delivery contracts
 

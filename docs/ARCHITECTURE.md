@@ -93,7 +93,7 @@ The catalog currently supports one `variantId` per instance, finish-stack favori
 **Add a rarity:** see `docs/02-RARITIES.md` section 6.
 **Add a finish or prop:** new file in `src/finishes/`, register it, add the script tag.
 **Add a spec type on cards:** add a row to the formatter table in `src/ui/card-specs.js`.
-**Add the market later:** register a screen, flip `config.flags.market`, and use the empty `#market-slot`. No core file needs to change; inventory instances already carry unique serials.
+**Market (Beta, Stage 1):** `config.flags.market` is on in the Market branch. `src/market/` holds the pure core (`core.js`), deterministic sample data (`fixtures.js`), the session and preview store (`store.js`) and the provider interface (`api.js`); `src/ui/market/` holds the shell, router and pages; `src/data/market-config.js` and `market-settings.js` hold every number, fee and label. The UI talks only to `C.market.api`; Stage 2 registers the offline simulator and Stage 4 the online client behind it. See `docs/market-beta/stage-1.md`.
 **Add sound later:** add `src/core/audio.js` behind `config.flags.audio` and subscribe to the events in section 4.
 
 **Add an achievement producer:** extend the data/compact metric projection, publish its stable event/receipt and preserve optional state. Read ACHIEVEMENTS; do not mutate another consumer directly.
