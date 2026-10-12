@@ -1,3 +1,11 @@
+# Cardable v1.6.2 — Blue and gold
+
+Double Super Rare now blends its blue and gold across the whole cinematic. Flowing color bands, crossing translucent ribbons, a turning faceted prism, moving reflections and brighter bevel highlights replace the fixed blue-left/gold-right presentation. The accelerating light passes resolve into an overlapping pearl, blue and gold wash before the existing card handoff.
+
+The 7.4-second story, 140 ms material lock, saved graphics choices and reduced-motion alternatives are retained. Local procedural materials and bounded caches use the existing cinematic scheduler. No new network dependency, audio, save schema or reward behavior is added.
+
+Source browser checks covered High color, Medium monochrome, 1280 × 720 and 390 × 844, Short/Fast/reduced motion, and a normal opening through the card reveal and exact-once Keep. Both colors appeared on both halves; monochrome was grayscale. A sampled Unusual frame matched the prior renderer exactly. The opening had no page errors or network requests. Installer execution, live updater upgrades and hardware performance remain unverified. This release is unsigned.
+
 # Cardable v1.6.1 — Star collapse
 
 Super Rare begins with the small four-point star from Rare. It slowly develops into a broken blue ring around moving clouds, a tall central star and six curved satellites. The seal enlarges and brightens, folds into overlapping refractive glass forms, and explodes into one white flash. The cinematic ends on white and hands directly to the card reveal.

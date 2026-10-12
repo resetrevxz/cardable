@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.6.2',codename:'Blue and gold',date:'October 12, 2026',tag:'Update',tagline:'Double Super Rare flows through both colors.',
+    hero:{badge:'CARDABLE / 1.6.2',title:'Blue and gold.',subtitle:'Blended glass, crossing ribbons and a turning prism give Double Super Rare a new look.',media:[]},
+    sections:{fixes:['Blue and gold now mix throughout Double Super Rare, with no hard center seam.'],visuals:['Crossing glass ribbons, moving reflections, a turning faceted prism and brighter bevels refresh the cutscene.'],qol:[]},
+    entries:['Blue and gold flow through the whole cutscene.','Double Super Rare has new depth, reflections and glass lighting.']
+  },
+  {
     version:'1.6.1',codename:'Star collapse',date:'October 12, 2026',tag:'Update',tagline:'Super Rare grows, intensifies and collapses into light.',
     hero:{badge:'CARDABLE / 1.6.1',title:'Star collapse.',subtitle:'A small Rare star forms a blue cloud seal, brightens, folds inward through glass, and ends in one white flash.',media:[]},
     sections:{fixes:[],visuals:['Super Rare grows from a small star into a luminous cloud seal, intensifies, collapses through glass, and ends in one white flash.'],qol:['Full is 10.4 seconds; Short keeps every stage in 6.4 seconds. Reduced motion and Off keep a calm reveal.']},

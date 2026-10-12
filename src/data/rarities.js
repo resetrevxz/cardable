@@ -90,7 +90,7 @@
       designSpec: 'A dark blue checkerbox pattern moving to a gold color with animated sparkles and the gold shifting colors with the dark blue following too slowly',
       propSpec: null,
       finish: 'double-super-rare', frontDesign: 'full-art',
-      openingIntro: { kind: 'refraction', split: true, color: [58, 126, 245], orbitColor: [120, 200, 255], starColor: [225, 243, 255], background: [5, 15, 35],
+      openingIntro: { kind: 'refraction', blend: true, color: [58, 126, 245], orbitColor: [120, 200, 255], starColor: [225, 243, 255], background: [5, 15, 35],
         secondColor: [237, 157, 25], secondAccent: [255, 208, 92], secondLight: [255, 245, 213], secondaryBackground: [34, 18, 4],
         handoff: { flipMs: 400, fadeMs: 160 }, sections: [
           { id: 'material', ms: 1600 }, { id: 'ignition', ms: 1200 }, { id: 'accelerate', ms: 2400 },

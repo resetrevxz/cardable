@@ -6,6 +6,7 @@ Give one authorized milestone per prompt. Read AGENTS.md, Designs.MD, the releva
 
 | Work | Implementation / commit | Packaging / runtime evidence | Remaining scope |
 |---|---|---|---|
+| 1.6.2 Blue and gold / stage 116 | Double Super Rare flowing color blend, crossing glass ribbons, turning prism and refreshed lighting | Source opening/Keep, two-size color/mono review, route checks and Unusual frame comparison; desktop delivery | Clean installer execution, live updater and hardware performance |
 | 1.6.1 Star collapse / stage 115 | Super Rare small star → cloud seal → intensified glow → glass collapse → white climax; authored Short | Source opening/Keep and color/mono frame review at two sizes; route checks; desktop delivery | Clean installer execution, live updater and hardware performance |
 | 1.6.0 Blue hour / stage 114 | Rare side-light/cloud timelapse and star-break reveal; reduced motion Off by default with installer opt-in | Source runtime and installer build checks | Clean installer execution and hardware cinematic review |
 | 1.5.6 Very Low gets a little / stage 113 | Panel and toast entrance fades and the lit card edge on Very Low | Headless main-thread run | Hardware |
