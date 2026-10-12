@@ -1,5 +1,10 @@
 ; Small hooks for electron-builder's stock offline NSIS installer/uninstaller.
 ; Keep the stock identity, registry, extraction, shortcuts and upgrade machinery.
+!include nsDialogs.nsh
+
+Var /GLOBAL cardableMotionCheckbox
+Var /GLOBAL cardableReducedMotion
+Var /GLOBAL cardableHadInstall
 
 !macro customWelcomePage
   !define MUI_WELCOMEPAGE_TITLE "Install Cardable"
@@ -15,8 +20,38 @@
 ; Assisted setup allows a new location on FIRST installation only. Check again
 ; after the folder page and before the old app is uninstalled or files extracted.
 !macro customPageAfterChangeDir
+  Page custom cardableMotionPage cardableMotionLeave
   !define MUI_PAGE_HEADER_TEXT "Cardable is installing"
   !define MUI_PAGE_HEADER_SUBTEXT "Copying the game and creating your shortcuts."
+!macroend
+
+Function cardableMotionPage
+  ${If} ${isUpdated}
+    Abort
+  ${EndIf}
+  nsDialogs::Create 1018
+  Pop $0
+  ${If} $0 == error
+    Abort
+  ${EndIf}
+  ${NSD_CreateLabel} 0 0 100% 30u "Motion for a new collection"
+  Pop $0
+  ${NSD_CreateCheckbox} 0 38u 100% 18u "Turn on reduced motion"
+  Pop $cardableMotionCheckbox
+  ${NSD_CreateLabel} 0 66u 100% 48u "Reduced motion replaces camera travel and moving effects with calmer fades. It is off by default. You can change it any time in Cardable Settings. Existing saved settings stay as chosen."
+  Pop $0
+  nsDialogs::Show
+FunctionEnd
+
+Function cardableMotionLeave
+  ${NSD_GetState} $cardableMotionCheckbox $cardableReducedMotion
+FunctionEnd
+
+!macro customInstall
+  ; The installer choice seeds only a new collection. Updating cannot reset it.
+  ${If} $cardableHadInstall == ""
+    WriteRegDWORD HKCU "Software\Cardable\Installer" "ReducedMotion" $cardableReducedMotion
+  ${EndIf}
 !macroend
 
 !macro cardableStop MESSAGE
@@ -59,11 +94,13 @@
 !macroend
 
 !macro customInit
+  StrCpy $cardableReducedMotion 0
   !insertmacro cardableKeepAppData
   ; Stock assisted init reuses the current 64-bit HKCU InstallLocation.
   ; Audit both views before extraction or executing any older uninstaller.
   !insertmacro cardableAuditRegistryView 32
   !insertmacro cardableAuditRegistryView 64
+  ReadRegStr $cardableHadInstall HKCU "${INSTALL_REGISTRY_KEY}" "InstallLocation"
   ; Do not allow the stock /D override to move an existing file:// origin.
   !insertmacro GetDParameter $R0
   ${If} $R0 != ""

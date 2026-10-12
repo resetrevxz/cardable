@@ -17,7 +17,7 @@
   function quickSettings() {
     var items=[choice('quality','Effects quality','quality',[['high','High'],['medium','Medium'],['low','Low'],['very-low','Very Low']]),
       choice('dots','Dot grid','dots',[['on','On'],['subtle','Subtle'],['off','Off']]),toggle('cursorGlow','Cursor glow','cursor'),
-      choice('motion','Reduced motion','motion',[['auto','Auto'],['on','On'],['off','Off']]),
+      choice('motion','Reduced motion','motion',[['off','Off'],['on','On']]),
       choice('idleFade','Idle fade','timer',[['2.5','2.5 s'],['5','5 s'],['never','Never']]),
       choice('rarityColor','Rarity color','color',[['color','Color'],['mono','Mono']])];
     if(C.config.flags.audio)items.push(toggle('muted','Mute','volume'));return items;

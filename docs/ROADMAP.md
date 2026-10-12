@@ -6,6 +6,7 @@ Give one authorized milestone per prompt. Read AGENTS.md, Designs.MD, the releva
 
 | Work | Implementation / commit | Packaging / runtime evidence | Remaining scope |
 |---|---|---|---|
+| 1.6.0 Blue hour / stage 114 | Rare side-light/cloud timelapse and star-break reveal; reduced motion Off by default with installer opt-in | Source runtime and installer build checks | Clean installer execution and hardware cinematic review |
 | 1.5.6 Very Low gets a little / stage 113 | Panel and toast entrance fades and the lit card edge on Very Low | Headless main-thread run | Hardware |
 | 1.5.5 Low gets more / stage 112 | Event-only animations and lit card edge lifted to Low | Headless main-thread run: Low idle 0.1%, shelf 0.5% | Hardware |
 | 1.5.4 Medium gets more / stage 111 | Event-only animations and two-gradient glare lifted from High to Medium | Headless main-thread comparison, no regression; hardware not measured | Installer run, hardware |

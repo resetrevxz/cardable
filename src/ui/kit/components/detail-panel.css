@@ -60,4 +60,3 @@
 .inventory-detail.is-stacked .detail-card-mount { position: absolute; }
 .reduced-motion .detail-tab-pane, [data-animation-quality="low"] .detail-tab-pane, [data-animation-quality="very-low"] .detail-tab-pane { transform: none; }
 [data-glass-quality="low"] .inventory-detail, [data-glass-quality="very-low"] .inventory-detail { backdrop-filter: none; -webkit-backdrop-filter: none; }
-@media (prefers-reduced-motion: reduce) { .detail-tab-pane { transform: none; } }

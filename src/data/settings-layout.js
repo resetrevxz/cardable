@@ -81,7 +81,7 @@
   // Friendlier copy and control types.
   function tune(key, patch) { if (s[key]) Object.assign(s[key], patch); }
   tune('quality', { label: 'Graphics preset', helper: 'One choice sets every effect below. Frame rate stays separate.', control: 'tiers' });
-  tune('motion', { label: 'Reduced motion', helper: 'Swaps travel, sway and parallax for calm fades. Auto follows your system.' });
+  tune('motion', { label: 'Reduced motion', helper: 'Swaps travel, sway and parallax for calm fades. Off by default; also offered during Windows setup.' });
   tune('dots', { helper: 'A quiet field of dots that answers your pointer.' });
   tune('cursorGlow', { helper: 'A soft light that follows the pointer. Your normal cursor stays.' });
   tune('idleFade', { helper: 'How long before the menu fades back to the pack and wordmark.' });

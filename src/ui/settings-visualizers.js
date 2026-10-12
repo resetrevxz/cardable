@@ -97,7 +97,7 @@
     motion: { kind: 'pair', sides: function () { return ['off', 'on']; }, labels: ['Full motion', 'Reduced'],
       draw: function (g, v) { var loop = g.t % 4 / 4, cy = g.h / 2; if (v === 'on') { card(g, g.w / 2, cy, g.h * .7, { alpha: loop < .12 ? smooth(loop / .12) : loop > .88 ? smooth((1 - loop) / .12) : 1, glare: .5 }); return; }
         var enter = out(loop / .22), leave = loop > .85 ? smooth((loop - .85) / .15) : 0; card(g, g.w / 2 + (1 - enter) * -g.w * .5 + leave * g.w * .6, cy + Math.sin(g.t * 2) * 4, g.h * .7, { rotate: (1 - enter) * -.5 + Math.sin(g.t * 1.4) * .07 + leave * .4, glare: .5 + Math.sin(g.t * 1.4) * .5 }); },
-      stat: function () { var v = C.settings.get('motion'); return v === 'auto' ? 'Auto · your system asks for ' + (C.motion.reduced ? 'reduced' : 'full') + ' motion' : v === 'on' ? 'Calm fades everywhere' : 'Full motion, ignoring the system'; } },
+      stat: function () { return C.settings.get('motion') === 'on' ? 'Calm fades everywhere' : 'Full motion'; } },
     fpsLimit: { kind: 'single', draw: function (g, v) {
         var c = g.ctx, hz = C.fx.stats.refreshHz || 60, cap = v === 'display' || v === 'unlimited' ? hz : Math.min(Number(v), hz), lanes = [[hz, 'Your display · ' + hz + ' Hz', .42], [cap, v === 'display' ? 'Following the display' : v === 'unlimited' ? 'Unlimited' : v + ' FPS cap', .95]], x0 = 18, x1 = g.w - 18, span = x1 - x0, slice = .12;
         lanes.forEach(function (lane, i) { var y = g.h * (i ? .7 : .3), frames = Math.max(1, Math.round(lane[0] * slice)), head = (g.still ? .62 : g.t * .45 % 1.25) * span;

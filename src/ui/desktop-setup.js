@@ -2,11 +2,10 @@
   'use strict';
   var stage = root.document.getElementById('cardable-startup'), ready = false, loading = !!stage, fill = stage && stage.querySelector('.cb-startup-fill');
   var waiting = [], stageCaps = [0.2, 0.46, 0.72, 0.94], stageAt = 0, calls = 0, shown = 0, finishing = false, last = 0, visibleAt = 0, started = root.performance.now(), capAt = started, frame = 0, blockedAt = -9999;
-  var reduce = !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
   // A bare bar: the shown value eases toward a goal that rises with each stage and drifts forward inside it, so it never looks stuck.
   function paint(now) {
     frame = 0;
-    var dt = Math.min(64, now - (last || now)); last = now;
+    var dt = Math.min(64, now - (last || now)), reduce = !!(C.motion && C.motion.reduced); last = now;
     if (!stage) return;
     if (!visibleAt && now - started > 140) { visibleAt = now; stage.classList.add('is-visible'); }
     var lo = stageCaps[stageAt], hi = stageCaps[stageAt + 1], goal = finishing ? 1 : lo + (hi - lo) * 0.86 * (1 - Math.exp(-(now - capAt) / 2200)),

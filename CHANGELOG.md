@@ -1,3 +1,9 @@
+# Cardable v1.6.0 — Blue hour
+
+Rare opens with pale-blue light fading in from both sides. Its original four-point cloud star appears, clouds cross it faster and faster, and the star breaks into a growing blue wash before the card handoff. The Full route is 5.43 seconds; Short keeps the shared shortened clock, while Off/reduced motion/Very Low keep a calm still reveal.
+
+Reduced motion is Off by default, including older Auto defaults. A Windows installer checkbox can turn it on for a new collection, and Settings can change it later. Existing On choices are retained. Saves, serials, pack rewards and the save schema are unchanged. This release is unsigned.
+
 # Cardable v1.5.6 — Very Low gets a little
 
 Very Low stays static for everything that loops, but two short event-only touches now run there too: panels and toasts fade and rise in once, and the card's lit edge is drawn. Each ends by itself and uses only opacity and transform. Saves and the save schema are unchanged.

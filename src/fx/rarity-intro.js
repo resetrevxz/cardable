@@ -183,16 +183,25 @@
       }
       g.restore();
     }
-    function cloudStar(radius, opacity, t) {
+    function cloudStar(radius, opacity, t, travel) {
       var c = color(spec.color), light = color(spec.starColor), atlas = cloudTexture();
       glow(w / 2, h / 2, radius * 1.65, c, opacity * .4);
       g.save(); g.translate(w / 2, h / 2); g.globalAlpha = opacity; starPath(g, radius, true); g.clip();
       var gradient = g.createLinearGradient(-radius, -radius, radius, radius);
       gradient.addColorStop(0, rgba(light, 1)); gradient.addColorStop(.48, rgba(c, 1)); gradient.addColorStop(1, rgba(tint(c, .45), 1));
       g.fillStyle = gradient; g.fillRect(-radius, -radius, radius * 2, radius * 2);
-      g.save(); g.translate(Math.sin(t * .55) * radius * .14, Math.cos(t * .3) * radius * .1); g.rotate(t * .055);
-      g.drawImage(atlas, -radius * 1.3, -radius * 1.3, radius * 2.6, radius * 2.6); g.restore();
-      g.globalAlpha = opacity * .32; g.rotate(-t * .08); g.drawImage(atlas, -radius * .94, -radius * 1.2, radius * 2, radius * 2.5); g.restore();
+      if (travel === undefined) {
+        g.save(); g.translate(Math.sin(t * .55) * radius * .14, Math.cos(t * .3) * radius * .1); g.rotate(t * .055);
+        g.drawImage(atlas, -radius * 1.3, -radius * 1.3, radius * 2.6, radius * 2.6); g.restore();
+        g.globalAlpha = opacity * .32; g.rotate(-t * .08); g.drawImage(atlas, -radius * .94, -radius * 1.2, radius * 2, radius * 2.5);
+      } else {
+        // Tiled motion stays continuous as the timelapse accelerates; the star remains fixed.
+        var tile = radius * 2.25, offset = (travel * radius * 2.2) % tile;
+        for (var layer = -1; layer < 3; layer++) g.drawImage(atlas, -radius * 1.3 + layer * tile - offset, -radius * 1.3, radius * 2.6, radius * 2.6);
+        g.globalAlpha = opacity * .38;
+        for (var upper = -1; upper < 3; upper++) g.drawImage(atlas, -radius * 1.3 + upper * tile - (offset * .55) % tile, -radius * 1.1, radius * 2.6, radius * 2.2);
+      }
+      g.restore();
       g.save(); g.translate(w / 2, h / 2); starPath(g, radius, true); g.strokeStyle = rgba(light, opacity * .85); g.lineWidth = 1.5; g.stroke();
       g.beginPath(); g.moveTo(0, -radius); g.lineTo(0, radius); g.moveTo(-radius, 0); g.lineTo(radius, 0);
       g.strokeStyle = rgba(light, opacity * .22); g.lineWidth = .8; g.stroke(); g.restore();
@@ -211,6 +220,57 @@
         g.drawImage(atlas, -radius * 1.3 + Math.sin(t * .55) * radius * .14, -radius * 1.3, radius * 2.6, radius * 2.6); g.restore();
         g.strokeStyle = rgba(light, .8); g.lineWidth = 1; g.stroke(); g.restore();
       });
+    }
+    function rareSideLight(level, wash) {
+      var c = color(spec.orbitColor), pale = color(spec.starColor), reach = w * .47;
+      g.save();
+      [-1, 1].forEach(function (side) {
+        var edge = side < 0 ? 0 : w, inner = edge - side * reach;
+        var beam = g.createLinearGradient(edge, 0, inner, 0);
+        beam.addColorStop(0, rgba(pale, .26 * level));
+        beam.addColorStop(.2, rgba(c, .18 * level));
+        beam.addColorStop(1, rgba(c, 0));
+        g.fillStyle = beam; g.fillRect(Math.min(edge, inner), 0, reach, h);
+        glow(edge, h * .5, Math.max(h * .7, reach), pale, .19 * level);
+      });
+      if (wash > 0) {
+        g.fillStyle = rgba(c, wash * .48); g.fillRect(0, 0, w, h);
+        g.fillStyle = rgba(pale, wash * .76); g.fillRect(0, 0, w, h);
+      }
+      g.restore();
+    }
+    function rareCloudBank(progress, opacity) {
+      if (opacity <= 0) return;
+      var atlas = cloudTexture(), sweep = out(progress) * (w * 1.5), width = Math.max(w * .76, h * .8);
+      g.save(); g.globalAlpha = opacity * .26;
+      g.drawImage(atlas, w * .88 - sweep, h * .27, width, h * .5);
+      g.globalAlpha = opacity * .14;
+      g.drawImage(atlas, w * 1.22 - sweep * .73, h * .39, width * .8, h * .35);
+      g.restore();
+    }
+    function rareFrame(s, t) {
+      var p = s.p, r = Math.min(w, h) * .42, pale = color(spec.starColor), blue = color(spec.color);
+      var light = s.id === 'sideLight' ? smooth(p) * .75 : s.id === 'starRise' ? mix(.75, 1, smooth(p)) : 1;
+      var wash = s.id === 'fracture' ? smooth(p) * .38 : s.id === 'wash' ? mix(.38, .96, smooth(p)) : 0;
+      rareSideLight(light, wash);
+      if (s.id === 'sideLight') return;
+      if (s.id === 'starRise') {
+        var arrive = smooth(p);
+        cloudStar(r * mix(.38, 1, arrive), arrive, t, .08 * p);
+        glow(w / 2, h / 2, r * 1.6, pale, .12 * arrive);
+      } else if (s.id === 'timelapse') {
+        // Distance is cubic: visible motion starts gently and becomes a fast cloud timelapse.
+        var travel = .08 + p * .45 + p * p * p * 5.5;
+        rareCloudBank(p, smooth(p / .2));
+        cloudStar(r, 1, t, travel);
+        glow(w / 2, h / 2, r * 1.9, pale, .12 + .18 * p);
+      } else if (s.id === 'fracture') {
+        rareCloudBank(1, 1 - smooth(p));
+        crystalShards(p, t, r);
+        glow(w / 2, h / 2, r * mix(.9, 2.6, out(p)), pale, .22 * (1 - p));
+      } else if (s.id === 'wash') {
+        glow(w / 2, h / 2, Math.hypot(w, h) * .75, blue, .18 + .18 * p);
+      }
     }
     function pulseFrame(s, t) {
       var p = s.p, c = color(spec.color), isCrystal = spec.kind === 'crystal', retreat = s.id === 'retreat' || s.id === 'release';
@@ -449,7 +509,7 @@
       else if (spec.kind === 'cosmic') {
         exotic.paint(g, w, h, section, elapsed / 1000, still() ? clamp(elapsed / total) : null);
       }
-      else if (still()) staticFrame(clamp(elapsed / total)); else if (spec.kind === 'portal') portalFrame(section, elapsed / 1000); else if (lineKind()) lineFrame(section, elapsed / 1000); else pulseFrame(section, elapsed / 1000);
+      else if (still()) staticFrame(clamp(elapsed / total)); else if (spec.kind === 'crystal') rareFrame(section, elapsed / 1000); else if (spec.kind === 'portal') portalFrame(section, elapsed / 1000); else if (lineKind()) lineFrame(section, elapsed / 1000); else pulseFrame(section, elapsed / 1000);
       if (spec.kind === 'prismatic' && !still()) runtime.letterbox(g, w, h, elapsed / total * spec.sections.reduce(function(n,s){return n+s.ms;},0));
       if(spec.kind!=='system')runtime.meter(canvas,runtime.presentationMs);
       stats.paints++; stats.lastDrawMs = root.performance.now() - begin; stats.maxDrawMs = Math.max(stats.maxDrawMs, stats.lastDrawMs);

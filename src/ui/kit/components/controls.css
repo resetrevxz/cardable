@@ -63,12 +63,11 @@
 
 :is(:root[data-quality="low"],:root[data-quality="very-low"],:root[data-glass-quality="low"],:root[data-glass-quality="very-low"]) [data-hover="glow-edge"]:hover { background-image:none; }
 :is(:root[data-shadow-quality="low"],:root[data-shadow-quality="very-low"]) :is(.cb-panel,.cb-sheet,.cb-dialog,.cb-drawer,.cb-popover,.cb-toast,.cb-performance-panel) { box-shadow:none; }
-@media(prefers-reduced-motion:reduce) { .cb-loader-outline,.cb-loader-outline::after { animation:none; } .cb-ui [data-hover] { transform:none !important; } }
+.reduced-motion .cb-ui [data-hover] { transform:none !important; }
 
 .cb-skeleton { position:relative; overflow:hidden; }
 .cb-skeleton::after { content:""; position:absolute; inset:0; background:linear-gradient(100deg,transparent,var(--glass-3),transparent); transform:translateX(-100%); animation:cb-loader-sweep var(--duration-loader-sweep) linear infinite; }
 .reduced-motion .cb-skeleton::after,:root[data-quality="low"] .cb-skeleton::after,:root[data-quality="very-low"] .cb-skeleton::after { animation:none; }
-@media(prefers-reduced-motion:reduce) { .cb-skeleton::after { animation:none; } }
 
 /* A segmented item's surface belongs to the group, never a nested button box. */
 .cb-segments > .cb-button,.cb-tabs > .cb-button { min-width:0; border:0; background:transparent; border-radius:var(--radius-tiny); padding:var(--s-2) var(--s-3); color:var(--text-dim); }

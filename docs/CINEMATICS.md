@@ -9,7 +9,7 @@ Presentation begins after the wrapper opening and reads the already reserved ins
 | Basic | 1,200 ms | 400 ms; no retained field |
 | Common | 1,350 ms | 400 ms; no retained field |
 | Uncommon | 1,800 ms | 400 ms; no retained field |
-| Rare | 3,800 ms | 400 ms; no retained field |
+| Rare | 5,430 ms | 400 ms; no retained field |
 | Super Rare | 6,600 ms | 400 ms; no retained field |
 | Unusual | 6,800 ms | 400 ms; no retained field |
 | Double Super Rare | 7,400 ms | 400 ms; no retained field |
@@ -37,7 +37,7 @@ The shared skip hint appears after two seconds; the existing 500 ms black fade a
 
 ## Painter narratives and resource bounds
 
-Basic/Common draw a thin horizontal line that extends from the centre while seeded particles drift off it and then retreats; Uncommon is lime with a second green and a slight wave (`lineFrame` in `rarity-intro.js`; reduced motion and Off draw a still line). Exotic and Secret's fake-out still borrow Basic's earlier corner fronts. Earlier descriptions of corner fronts and lime circles for these three tiers are historical. Rare stays blue: two drifting cloud layers inside a four-point star, approach/snap, then sixteen triangles cut from its own silhouette. Super Rare retains a procedural blue cloud material, faceted cyan star, segmented bevel rings, orbiting star, portal hold, continuous dive and pale-blue release. Descriptors own section timing; no hard-coded rarity selection belongs in UI.
+Basic/Common draw a thin horizontal line that extends from the centre while seeded particles drift off it and then retreats; Uncommon is lime with a second green and a slight wave (`lineFrame` in `rarity-intro.js`; reduced motion and Off draw a still line). Exotic and Secret's fake-out still borrow Basic's earlier corner fronts. Earlier descriptions of corner fronts and lime circles for these three tiers are historical. Rare begins with light-blue light slowly fading in from both sides; its original four-point cloud star appears, clouds cross it in an accelerating timelapse, then sixteen triangles break from its silhouette as a pale-blue wash grows into the card handoff. Super Rare retains a procedural blue cloud material, faceted cyan star, segmented bevel rings, orbiting star, portal hold, continuous dive and pale-blue release. Descriptors own section timing; no hard-coded rarity selection belongs in UI.
 
 Unusual/Double Super Rare use irregular refractive gel facets, warped seams, caustic pockets, separately advected highlights and accelerating beams. The latter preserves blue left/gold right through saturation. A 140 ms frozen lock leads straight into the flip. `refraction-intro.js` bakes 512 px body/highlight atlases, caches at most seven palettes and updates slow material fields at 30 Hz/640 px long edge. High/Medium visible surfaces are bounded to 1.5/1.3 million pixels. Very Low omits the atlas; static paths keep identity without traveling rays or flashes.
 

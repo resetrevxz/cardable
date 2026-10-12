@@ -7,7 +7,7 @@
   }
   var schema = {
     settingsMode: entry('', '', null, 'simple', ['simple','advanced']),
-    motion: entry('Reduced motion', 'Auto follows your system.', 'Motion and effects', 'auto', ['auto', 'on', 'off']),
+    motion: entry('Reduced motion', 'Off by default. Turn on for calm fades.', 'Motion and effects', 'off', ['off', 'on']),
     quality: entry('Graphics preset', 'A complete graphics profile. FPS stays independent.', 'Graphics', 'medium', ['very-low', 'low', 'medium', 'high', 'very-high']),
     fpsLimit: entry('FPS limit', 'Lower caps save power. Display refresh follows your screen.', 'Performance', 'display', ['display', '20', '30', '45', '60', '90', '120', '144', '165', '240'], 'select'),
     backgroundMode: entry('Hidden tab', 'Packs refill by real time in either mode.', 'Performance', 'sleep', ['sleep', 'timer'], 'select'),
@@ -62,7 +62,7 @@
       if (input && input.performanceMode === undefined && input.showFps) input = Object.assign({}, input, {performanceMode:'simple',showFps:false});
       input = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
       var source = Object.assign({}, input), result = { settingsVersion: 2 };
-      if (source.motion === undefined) source.motion = source.reducedMotion === true ? 'on' : source.reducedMotion === false ? 'off' : 'auto';
+      if (source.motion === undefined) source.motion = source.reducedMotion === true ? 'on' : 'off';
       if (source.rarityColor === undefined) source.rarityColor = source.rarityColorMode;
       Object.keys(graphics).forEach(function (key) { if (source[key] === undefined) source[key] = valid('quality', source.quality); });
       Object.keys(schema).forEach(function (key) { result[key] = valid(key, source[key]); });

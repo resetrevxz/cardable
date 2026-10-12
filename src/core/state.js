@@ -12,7 +12,7 @@
       packs: { ready: C.config.packs.startingPacks, timerStartedAt: null, openedCount: 0, introSeen: {} },
       serialCounter: 0, inventory: [], pendingReveal: null, currency: 0,
       tutorial: { step: 'welcome', done: false },
-      settings: C.settingsSchema.normalize(), stats: { packsOpened: 0 },
+      settings: C.settingsSchema.normalize({ motion: C.desktop && C.desktop.info && C.desktop.info.installerReducedMotion ? 'on' : 'off' }), stats: { packsOpened: 0 },
       inventoryUi: C.inventoryModel ? C.inventoryModel.defaults() : {}
     };
   }

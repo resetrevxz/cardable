@@ -53,7 +53,7 @@
 body.studio-active > :not(.studio-shell),body.studio-active > :not(.studio-shell) * { animation-play-state:paused!important; }
 @media (max-width:1100px) { .studio-layout { grid-template-columns:130px minmax(0,1fr) 230px; }.studio-topbar-actions .studio-button:disabled { display:none; } }
 @media (max-width:780px) { .studio-shell { padding:12px; gap:12px; }.studio-topbar h1 { font-size:14px; }.studio-topbar-actions .studio-button:disabled,.studio-topbar-actions .studio-button:nth-of-type(4) { display:none; }.studio-quality { padding:7px; font-size:8px; }.studio-layout { grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(180px,1fr) auto; gap:8px; }.studio-outliner { display:none; }.studio-viewport { grid-row:1; }.studio-inspector { max-height:180px; padding:12px; }.studio-panel-title { font-size:15px; margin:6px 0 12px; }.studio-identity { grid-template-columns:auto 1fr; gap:8px; margin:0 0 12px; }.studio-identity dd { margin:0; }.studio-copy { margin:10px 0; }.studio-tools { width:100%; justify-content:center; gap:3px; padding:5px; }.studio-tools .studio-button { padding:8px 9px; min-height:44px; font-size:11px; }.studio-hint { display:none; }.studio-limited { margin:10px 0; padding:8px; }.studio-field { margin:10px 0; } }
-@media (prefers-reduced-motion:reduce) { .studio-button,.studio-inspect-action { transition:none; } }
+.reduced-motion .studio-inspect-action { transition:none; }
 @media (max-width:780px) { .studio-topbar-actions { gap:4px; flex-wrap:wrap; justify-content:flex-end; }.studio-topbar-actions .studio-button { min-height:36px; padding:6px 8px; font-size:10px; }.studio-topbar-actions .studio-button:nth-of-type(4) { display:initial; }.studio-inspector { max-height:225px; }.studio-object-row > .studio-button { min-height:44px; }.studio-section-title { margin-top:16px; } }
 
 .studio-scene-name,.studio-json{box-sizing:border-box;width:100%;padding:10px;border:1px solid var(--stroke,var(--ui-color-87));border-radius:var(--ui-radius-11);background:var(--ui-color-88);color:inherit;font:12px "JetBrains Mono",monospace}
@@ -74,7 +74,7 @@ body.studio-active > :not(.studio-shell),body.studio-active > :not(.studio-shell
 .studio-shutter-sweep { position:absolute; inset:0; background:linear-gradient(110deg,transparent 48%,var(--ui-color-93) 49.9%,transparent 50.2%); transform:translateX(calc(-90% + var(--shutter,0)*180%)); }
 .studio-photo-flight { position:fixed; width:160px; height:100px; object-fit:contain; left:calc(50% - 80px); top:calc(50% - 50px); z-index:var(--z-panel); pointer-events:none; border-radius:var(--ui-radius-4); border:1px solid var(--ui-color-94); box-shadow:var(--shadow-2); }
 @media(max-width:800px) { .studio-album-layout { display:flex; flex-direction:column; overflow:auto; } .studio-album-grid { overflow:visible; } .studio-album-preview { overflow:visible; flex-shrink:0; } .studio-filmstrip { flex-wrap:wrap; } .studio-filmstrip-items { max-width:calc(100% - 80px); } .studio-filmstrip .studio-album-usage { flex-basis:100%; text-align:left; } }
-@media(prefers-reduced-motion:reduce) { .studio-shutter-sweep { display:none; } .studio-shutter-finder { transform:none; } .studio-photo-flight { transform:none!important; } }
+.reduced-motion .studio-photo-flight { transform:none!important; }
 
 .studio-field input[type="number"] { width:100%; min-height:44px; padding:10px; background:var(--surface-2); border:1px solid var(--hairline); border-radius:var(--r-button); color:var(--text); font:12px var(--font-mono); }
 .reduced-motion .studio-shutter-sweep { display:none; }.reduced-motion .studio-shutter-finder { transform:none; }
@@ -276,11 +276,6 @@ body.studio-active > :not(.studio-shell),body.studio-active > :not(.studio-shell
   .is-director .studio-inspector { max-height:112px; }
   .director-lanes { max-height:44px; }
   .studio-stage-caption > span:last-child { display:none; }
-}
-@media(prefers-reduced-motion:reduce) {
-  .studio-panel-title { animation:none; }
-  .studio-button,.director-diamond { transition:none; }
-  .studio-button:hover:not(:disabled),.studio-button:active:not(:disabled) { transform:none; }
 }
 .reduced-motion .studio-button,.reduced-motion .director-diamond { transition:none; }
 .reduced-motion .studio-button:hover:not(:disabled),.reduced-motion .studio-button:active:not(:disabled) { transform:none; }

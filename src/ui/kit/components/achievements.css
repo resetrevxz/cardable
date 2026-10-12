@@ -194,7 +194,6 @@
 [data-quality="very-low"] .achievement-art { background:var(--glass-1); }
 [data-shadow-quality="very-low"] .achievement-surface { box-shadow:inset 0 0 0 1px var(--stroke); }
 [data-quality="very-low"] .achievements-panel *, [data-animation-quality="very-low"] .achievements-panel *, .reduced-motion .achievements-panel * { transition:none !important; animation:none !important; }
-@media (prefers-reduced-motion:reduce) { .achievements-panel * { transition:none; animation:none; } }
 @media (forced-colors:active) {
   .achievement-row.is-selected { outline:2px solid Highlight; }
   .achievement-bar > i { background:Highlight; forced-color-adjust:none; }

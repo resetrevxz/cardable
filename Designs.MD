@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.5.6**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.6.0**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -200,7 +200,7 @@ Pack contracts and art recipes are in [04-PACK-OPENING](docs/04-PACK-OPENING.md)
 
 Scenes read an already reserved instance. Conceal its face until the real handoff; a fake-out may never expose the reserved Secret front. The actual card back mounts at the authored handoff, flips through the shared controller and keeps the ordinary readiness/Keep/Delete gates. Skip, reload and quality changes do not reroll or pay again.
 
-The current stories include sapphire star/cloud, refractive gel, gilded prism, Mythical Crimson Clock, Exotic galaxy, Ascendant Prismatic Dawn and Secret Fatal Exception. Their current complete descriptors supersede early A/B design fragments. Full/Short/Off is independent of cinematic quality; Very Low/reduced motion/Off retain understandable calm routes. [CINEMATICS](docs/CINEMATICS.md) is authoritative for durations, handoff, resources and unresolved acceptance.
+The current stories include Rare's blue side light, accelerating cloud star and pale-blue fracture wash, refractive gel, gilded prism, Mythical Crimson Clock, Exotic galaxy, Ascendant Prismatic Dawn and Secret Fatal Exception. Their current complete descriptors supersede early A/B design fragments. Full/Short/Off is independent of cinematic quality; Very Low/reduced motion/Off retain understandable calm routes. [CINEMATICS](docs/CINEMATICS.md) is authoritative for durations, handoff, resources and unresolved acceptance.
 
 Safe is the default strobing profile. Full requires the existing three-second confirmation; Full Secret has a pre-roll choice with an eight-second Safe fallback. Final-output luminance limits and the emergency brake remain authoritative over authored beats, Fast and scrubbing. No new flashes are authorized by a graphics preset.
 

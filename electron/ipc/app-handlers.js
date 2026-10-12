@@ -30,6 +30,7 @@ function registerAppHandlers() {
       safeMode: process.argv.includes('--safe-mode'),
       updated: process.argv.includes('--updated'),
       installed: require('../updater/auto-updater').updaterService.isInstalled,
+      installerReducedMotion: app.isPackaged && require('../updater/auto-updater').updaterService.isInstalled && require('../config/installer-options').reducedMotion(),
       installDirectory: require('path').dirname(process.execPath)
     };
   });

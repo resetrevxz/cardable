@@ -44,7 +44,7 @@
 @keyframes cb-slosh { 0% { transform:rotate(-8deg); } 40% { transform:rotate(5deg); } 70% { transform:rotate(-2deg); } 100% { transform:rotate(0); } }
 .reduced-motion :is(.settings-row,.studio-layer-row,.detail-panel,.inventory-toolbar,.studio-panel,.stock-card__meniscus) { animation:none !important; }
 .reduced-motion .cb-loader-outline i { transition:none; }
-@media(prefers-reduced-motion:reduce) { .cb-loader-outline i { transition:none; } }
+.reduced-motion .cb-loader-outline i { transition:none; }
 .visual-pack-gallery { width:min(1100px,94vw); max-height:92vh; overflow:auto; padding:var(--s-6); }
 .visual-pack-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:var(--s-5); margin:var(--s-5) 0; }
 .visual-pack-grid h3 { font:500 13px var(--font-ui); margin:0 0 18px; }

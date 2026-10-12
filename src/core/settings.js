@@ -3,7 +3,6 @@
   var schema = C.settingsSchema, values = schema.normalize(), applying = false, initialized = false;
   var overrides = Object.create(null), batterySaving = false;
   function effective(key) { var value = Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : values[key]; if(batterySaving && (key === 'quality' || schema.graphicsKeys.includes(key))) value=schema.tiers[Math.max(0,schema.tiers.indexOf(value)-1)];return C.quality&&(key==='quality'||schema.graphicsKeys.includes(key))?C.quality.effective(value):value; }
-  var media = root.matchMedia('(prefers-reduced-motion: reduce)');
   function rank(key) { return schema.tiers.indexOf(effective(key)); }
   function budget(key){return C.quality.resolve(schema.tiers[rank(key)]);}
   function resolvePolicy() {
@@ -19,7 +18,7 @@
   var policy = resolvePolicy();
   function attribute(key, value) { root.document.documentElement.setAttribute('data-' + key.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); }), String(value)); }
   function resolveMotion() {
-    var reduced = effective('motion') === 'on' || effective('motion') === 'auto' && media.matches;
+    var reduced = effective('motion') === 'on';
     if (!C.motion) return;
     var changed = C.motion.reduced !== reduced;
     C.motion.reduced = reduced; root.document.documentElement.classList.toggle('reduced-motion', reduced);
@@ -118,5 +117,4 @@
   C.events.on('save:written', function () { if (initialized) reread(false); });
   C.events.on('save:replaced', function () { if (initialized) reread(true); });
   C.events.on('settings:rarityColorMode', function (value) { if (!applying && initialized) C.settings.set('rarityColor', value); });
-  if (media.addEventListener) media.addEventListener('change', resolveMotion); else media.addListener(resolveMotion);
 })(window.Cardable, window);

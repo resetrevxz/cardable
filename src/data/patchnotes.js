@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.6.0',codename:'Blue hour',date:'October 12, 2026',tag:'Update',tagline:'Rare has a new cloud and starlight reveal.',
+    hero:{badge:'CARDABLE / 1.6.0',title:'Blue hour.',subtitle:'Blue light gathers at the edges, clouds race through the Rare star, and the card emerges from a pale-blue wash.',media:[]},
+    sections:{fixes:['Reduced motion starts Off for new players and old Auto defaults.'],visuals:['Rare now builds from side light to an accelerating cloud timelapse, star fracture and blue card reveal.'],qol:['Windows setup offers an opt-in reduced-motion checkbox; the in-game setting remains available.']},
+    entries:['Rare has a reworked opening cinematic.','Reduced motion is opt-in during setup and in Settings.']
+  },
+  {
     version:'1.5.6',codename:'Very Low gets a little',date:'October 11, 2026',tag:'Update',tagline:'Two short event touches reach Very Low.',
     hero:{badge:'CARDABLE / 1.5.6',title:'Very Low gets a little.',subtitle:'Panels and toasts fade in once and the card edge is lit, with nothing looping.',media:[]},
     sections:{fixes:[],visuals:['Panels and toasts fade and rise in once on Very Low.','The lit card edge shows on Very Low.'],qol:['Nothing loops on Very Low.']},

@@ -25,7 +25,7 @@
     var el = node('button', className || 'patch-button', host); el.type = 'button';
     if (glyph) icon(glyph, el); node('span', '', el, label); if (action) el.addEventListener('click', action); return el;
   }
-  function calm() { return !!(C.motion.reduced || C.settings.policy.animation < 2 || root.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  function calm() { return !!(C.motion.reduced || C.settings.policy.animation < 2); }
   function applyPolicy() {
     if (!modal) return;
     modal.classList.toggle('patch-calm', calm());

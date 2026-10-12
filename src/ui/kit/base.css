@@ -28,4 +28,4 @@ html { color-scheme:dark; }
 .cb-empty { display:grid; justify-items:center; gap:var(--s-3); text-align:center; padding:var(--s-6); }
 .cb-stat { display:grid; gap:var(--s-1); padding:var(--s-4); background:var(--glass-1); border:1px solid var(--stroke); border-radius:var(--radius-panel); }
 @media(pointer:coarse) { .cb-ui :is(button,summary,input,select) { min-height:44px; } .cb-ui :is(input,select,textarea) { font-size:16px; } }
-@media(prefers-reduced-motion:reduce) { .cb-ui *, .cb-ui *::before,.cb-ui *::after { animation-duration:var(--duration-instant) !important; transition-property:opacity !important; } }
+.reduced-motion .cb-ui *, .reduced-motion .cb-ui *::before,.reduced-motion .cb-ui *::after { animation-duration:var(--duration-instant) !important; transition-property:opacity !important; }

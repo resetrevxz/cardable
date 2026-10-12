@@ -126,7 +126,7 @@
   C.settings.onChange('fpsLimit', function () { last = nextDue = rawLast = null; C.fx.wake(); });
   root.document.documentElement.classList.toggle('is-hidden', root.document.hidden);
 
-  C.motion = { reduced: root.matchMedia('(prefers-reduced-motion: reduce)').matches };
-  C.motion.setPreference = function (value) { C.settings.set('motion', value === true ? 'on' : value === false ? 'off' : 'auto'); };
+  C.motion = { reduced: false };
+  C.motion.setPreference = function (value) { C.settings.set('motion', value === true ? 'on' : 'off'); };
   C.settings.applyMotion();
 })(window.Cardable, window);
