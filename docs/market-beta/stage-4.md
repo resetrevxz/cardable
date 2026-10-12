@@ -83,6 +83,19 @@ Figures were read from Cloudflare's documentation on 2026-10-13 and are tabulate
 | Workers request-limit figure | not re-fetched | docs check |
 | Recovery-code rotation | not built | later |
 
+## 8a. Security review follow-up
+
+An automated review of the Stage 4 commit raised four findings. They were addressed in the commit `stage 4: harden rate limits, request bounds and import claims`, with regression tests:
+
+| Finding | Fix |
+|---|---|
+| Rate-limit bypass in the Durable Object: a request in a short-window bucket (`api`, 60 s) deleted the counters of long-window buckets (`import-commit`, 1 h) in the same object, so hourly limits never held under normal traffic | stale windows are deleted per bucket only |
+| Request bodies were buffered whole when the declared length was absent or wrong | bodies are read as a stream and cut off at the limit (413) |
+| Import plausibility trusted the self-reported opening count, and any account could import serials under another save's player code | the check is documented as a damage guard only; one import per origin code (`UNIQUE`), idempotency key unique per account (migration 0002) |
+| Recovery could create unlimited sessions | at most 10 live sessions per account; recovery ends the oldest |
+
+The review's exact wording was not available to me; these four are what I found in the files it named and the categories it listed, so a fourth item of the review may differ from my reading.
+
 ## 9. For Stage 5
 
 The server already has wallets with `held ≤ balance`, instances with `escrow` state, a ledger with `UNIQUE(account_id, idem)`, and `listings`/`listing_items` with a one-listing-per-instance constraint. Stage 5 adds the mutations on top, each one `batch()`, each idempotent through the `idempotency` table.

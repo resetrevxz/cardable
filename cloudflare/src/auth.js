@@ -6,6 +6,7 @@ import { ADJECTIVES, NOUNS } from './words.js';
 import { ApiError, b64url, fromB64url, hmac, randomBytes, randomId, randomInt, recoveryCode, secretOrThrow, sha256, timingSafeEqual } from './util.js';
 
 const POOL = ADJECTIVES.length * NOUNS.length;
+const MAX_SESSIONS = 10;
 
 export async function gateCall(env, name, path, body) {
   const stub = env.GATE.get(env.GATE.idFromName(name));
@@ -107,6 +108,10 @@ export async function recover(env, request, body) {
   const s = await issueSession(env, row.id, body.label);
   await env.DB.prepare('INSERT INTO sessions (id, account_id, refresh_hash, created_at, expires_at, last_used_at, label) VALUES (?, ?, ?, ?, ?, ?, ?)')
     .bind(s.sessionId, row.id, s.refreshHash, s.createdAt, s.expiresAt, s.createdAt, s.label).run();
+  // An account keeps at most MAX_SESSIONS live sessions; the oldest are ended, so recovery cannot grow storage without bound.
+  await env.DB.prepare('UPDATE sessions SET revoked_at = ? WHERE account_id = ? AND revoked_at IS NULL AND id NOT IN ' +
+    '(SELECT id FROM sessions WHERE account_id = ? AND revoked_at IS NULL ORDER BY created_at DESC, id DESC LIMIT ?)')
+    .bind(Date.now(), row.id, row.id, MAX_SESSIONS).run();
   const at = await accessToken(env, row.id, s.sessionId);
   return { alias: row.alias, accessToken: at.token, accessExpiresAt: at.exp * 1000, refreshToken: s.refresh };
 }

@@ -69,11 +69,28 @@ export function json(status, body, headers) {
     'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff',
     'content-security-policy': "default-src 'none'; frame-ancestors 'none'", 'referrer-policy': 'no-referrer', 'cross-origin-resource-policy': 'cross-origin' }, headers || {}) });
 }
+// Reads at most `maxBytes` of body. The declared length is checked first, and the stream itself is counted, so a
+// chunked or lying request is cut off at the limit instead of being buffered whole.
+async function readBounded(request, maxBytes) {
+  const declared = Number(request.headers.get('content-length') || 0);
+  if (declared > maxBytes) throw new ApiError(413, 'too-large', 'That request is too large.');
+  if (!request.body) return '';
+  const reader = request.body.getReader(), parts = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) { try { await reader.cancel(); } catch (_) { /* already closed */ } throw new ApiError(413, 'too-large', 'That request is too large.'); }
+    parts.push(value);
+  }
+  const all = new Uint8Array(total);
+  let at = 0;
+  for (const p of parts) { all.set(p, at); at += p.byteLength; }
+  return new TextDecoder().decode(all);
+}
 export async function readJson(request, maxBytes = 1_500_000) {
-  const len = Number(request.headers.get('content-length') || 0);
-  if (len > maxBytes) throw new ApiError(413, 'too-large', 'That request is too large.');
-  const text = await request.text();
-  if (text.length > maxBytes) throw new ApiError(413, 'too-large', 'That request is too large.');
+  const text = await readBounded(request, maxBytes);
   if (!text) return {};
   try { const v = JSON.parse(text); if (v === null || typeof v !== 'object' || Array.isArray(v)) throw new Error('shape'); return v; }
   catch (_) { throw new ApiError(400, 'bad-json', 'The request body is not valid JSON.'); }

@@ -54,7 +54,7 @@ There are no email addresses, passwords, IPs or account ids in anything a player
 | Access token | HMAC-SHA-256 signed, 15 minutes, carries the session id; the session is re-checked in D1 on every request, so logout and revocation are immediate. Bearer header only, never a cookie, never a URL. |
 | Refresh token | 32 random bytes, stored hashed, rotated on every use. Presenting an already-rotated token is treated as theft: the session is revoked. 30 days. |
 | Recovery code | 20 characters, shown once at registration, stored only as a hash. It stays valid (it is the account's long-term key, like a password: whoever holds it can sign in), 10 attempts / hour per address. Opens a new session on another device. Lost code + lost device = a new account (deliberate: there is no email to reset from). Rotating it is not built. |
-| Sessions | list and revoke from Settings; each is scoped to one account. Every query is `WHERE account_id = <token's account>`; ids from the client are never trusted for ownership. |
+| Sessions | list and revoke from Settings; at most 10 live sessions per account (recovery ends the oldest); each is scoped to one account. Every query is `WHERE account_id = <token's account>`; ids from the client are never trusted for ownership. |
 | Rate limits | per address: register, refresh, recover; per account: 600 requests / minute, 12 import previews / hour, 6 import commits / hour. Enforced by the `Gate` Durable Object so they hold across Worker instances. |
 | Turnstile on `file://` | The widget cannot run from a `file://` page (it needs a real origin and its own script). The server side is built and verified; the browser side needs a small hosted challenge page, which is **not built**. With no `TURNSTILE_SECRET` the registration rate limit is the only abuse control. Say so before opening the beta widely. |
 | Token storage | `localStorage` on the device (the offline app is a browser game; no OS keychain is available to it). A stolen profile folder is a stolen session until revoked. |
@@ -81,16 +81,16 @@ All responses are `{ "ok": true, "data": … , "trace": "<id>" }` or `{ "ok": fa
 | POST `/v1/import/commit` | bearer + `Idempotency-Key` | one-time claim; returns the signed receipt |
 | GET `/v1/import/receipt` | bearer | the permanent receipt |
 
-## 6. Schema (`migrations/0001_init.sql`, schema 1)
+## 6. Schema (`migrations/0001_init.sql` + `0002_import_hardening.sql`, schema 2)
 
-`schema_info` · `accounts` (alias UNIQUE NOCASE, recovery hash UNIQUE) · `sessions` (refresh hash UNIQUE, previous hash kept for reuse detection) · `wallets` (`CHECK balance ≥ 0`, `0 ≤ held ≤ balance`, version) · `ledger` (append-only by convention: no code path updates or deletes a row; `delta ≠ 0`, `balance_after ≥ 0`, `UNIQUE(account_id, idem)`) · `instances` (server-issued id, **`serial` UNIQUE globally**, `source`, `state ∈ owned|escrow|redeemed`) · `imports` (**one per account, one per package hash**, receipt signature, idempotency key UNIQUE) · `import_previews` · `idempotency` (`PRIMARY KEY(account_id, key)`, request hash; reserved for Stage 5) · `listings`, `listing_items` (`instance_id` UNIQUE: a card can be in one listing), `price_observations`, `notifications`, `settings`.
+`schema_info` · `accounts` (alias UNIQUE NOCASE, recovery hash UNIQUE) · `sessions` (refresh hash UNIQUE, previous hash kept for reuse detection) · `wallets` (`CHECK balance ≥ 0`, `0 ≤ held ≤ balance`, version) · `ledger` (append-only by convention: no code path updates or deletes a row; `delta ≠ 0`, `balance_after ≥ 0`, `UNIQUE(account_id, idem)`) · `instances` (server-issued id, **`serial` UNIQUE globally**, `source`, `state ∈ owned|escrow|redeemed`) · `imports` (**one per account, one per package hash, one per origin code**, receipt signature, idempotency key unique per account) · `import_previews` · `idempotency` (`PRIMARY KEY(account_id, key)`, request hash; reserved for Stage 5) · `listings`, `listing_items` (`instance_id` UNIQUE: a card can be in one listing), `price_observations`, `notifications`, `settings`.
 
 Indexes: ledger by account (id desc), instances by owner/state/card, listings by status/ends_at, price by card/at, notifications by account, sessions by account. Foreign keys cascade only from account-owned convenience rows; money and card rows never cascade.
 
 ### Migration contract
 
 1. A migration is a new `NNNN_name.sql`; applied files are immutable.
-2. Forward only. Destructive changes ship as add-new → backfill → switch → (later migration) drop.
+2. Forward only (`0001_init.sql`, `0002_import_hardening.sql`). Destructive changes ship as add-new → backfill → switch → (later migration) drop.
 3. Local rehearsal first: `wrangler d1 migrations apply cardable-market-beta-db --local`, then the test suite, then `--remote`.
 4. `schema_info.schema` and `/v1/status.schema` move together; the client treats a higher schema than it knows as read-only.
 

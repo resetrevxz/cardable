@@ -22,8 +22,9 @@ export async function normalizePackage(env, pkg) {
   if (typeof pkg.originCode !== 'string' || !CODE.test(pkg.originCode)) throw new ApiError(400, 'bad-package', 'The collection has no valid player code.');
   const opened = Number(pkg.packsOpened);
   if (!Number.isSafeInteger(opened) || opened < 0 || opened > 5_000_000) throw new ApiError(400, 'bad-package', 'The opening count is not valid.');
-  // A collection cannot hold many more cards than packs were opened (every opening yields one card); a little slack
-  // covers gifts and migrations. A package beyond it is refused whole.
+  // The opening count is self-reported by the package, so this is a consistency check against honest damage and typos,
+  // not protection against a forged file. The real limits are the beta cap, one import per account, per package and per
+  // origin code, one owner per serial, and the Quick Sell quotas that apply to imported cards.
   if (pkg.items.length > opened + 25) throw new ApiError(422, 'implausible-count', 'The collection holds far more cards than packs opened, so it cannot be imported.');
   const now = Date.now(), seenSerial = new Set(), seenId = new Set(), accepted = [], rejected = [];
   for (const raw of pkg.items) {
@@ -69,6 +70,9 @@ export async function preview(env, who, body) {
   const pkg = await normalizePackage(env, body.package);
   const claimedPackage = await env.DB.prepare('SELECT account_id FROM imports WHERE package_hash = ?').bind(pkg.hash).first();
   if (claimedPackage) throw new ApiError(409, 'package-claimed', 'This collection has already been imported by an account.');
+  // One account per origin code: a save has one player code, so a second account cannot import cards claiming it.
+  const claimedOrigin = await env.DB.prepare('SELECT account_id FROM imports WHERE origin_code = ?').bind(pkg.originCode).first();
+  if (claimedOrigin) throw new ApiError(409, 'origin-claimed', 'Another account has already imported cards from this save.');
   const taken = await claimedSerials(env, pkg.accepted.map((i) => i.serial));
   const accepted = [], rejected = pkg.rejected.slice();
   for (const it of pkg.accepted) { if (taken.has(it.serial)) rejected.push({ serial: it.serial, reason: 'serial-already-claimed' }); else accepted.push(it); }
@@ -120,8 +124,14 @@ export async function commit(env, who, body, idemKey) {
     try { await env.DB.batch(statements); }
     catch (error) {
       const text = String(error && error.message);
-      if (/imports\.account_id/.test(text)) throw new ApiError(409, 'already-imported', 'This account has already imported its collection.');
+      if (/imports\.account_id/.test(text)) {
+        // The same request raced with itself: the first one won, so answer with its receipt.
+        const first = await env.DB.prepare('SELECT id, package_hash, item_count, rejected, created_at, receipt_sig FROM imports WHERE account_id = ? AND idem = ?').bind(who.accountId, key).first();
+        if (first) return receiptOf(env, who, first, true);
+        throw new ApiError(409, 'already-imported', 'This account has already imported its collection.');
+      }
       if (/imports\.package_hash/.test(text)) throw new ApiError(409, 'package-claimed', 'This collection has already been imported by an account.');
+      if (/imports\.origin_code/.test(text)) throw new ApiError(409, 'origin-claimed', 'Another account has already imported cards from this save.');
       if (/instances\.serial/.test(text)) throw new ApiError(409, 'serial-already-claimed', 'Some of these cards were claimed in the meantime. Preview again.');
       if (/imports\.idem/.test(text)) { const again = await env.DB.prepare('SELECT id, package_hash, item_count, rejected, created_at, receipt_sig FROM imports WHERE account_id = ? AND idem = ?').bind(who.accountId, key).first(); if (again) return receiptOf(env, who, again, true); }
       throw new ApiError(500, 'import-failed', 'The import did not complete. Nothing was changed; try again.');

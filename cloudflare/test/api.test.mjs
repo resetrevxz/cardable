@@ -67,7 +67,7 @@ const idem = () => 'k-' + randomBytes(10).toString('hex');
 
 test('status is public, versioned and carries no secret; unknown paths answer with a trace id', async () => {
   const r = await call(main, 'GET', '/v1/status');
-  assert.equal(r.json.ok, true); assert.equal(r.json.data.service, 'cardable-market-beta'); assert.equal(r.json.data.schema, 1);
+  assert.equal(r.json.ok, true); assert.equal(r.json.data.service, 'cardable-market-beta'); assert.ok(r.json.data.schema >= 2);
   assert.equal(r.json.data.features.trading, false); assert.ok(r.headers.get('x-trace-id'));
   assert.ok(!JSON.stringify(r.json).includes(SECRET));
   const nf = await call(main, 'GET', '/v1/nope');
@@ -178,10 +178,33 @@ test('import: a package another account already claimed, and serials already own
   const edited = JSON.parse(JSON.stringify(pkg));
   edited.items.push({ instanceId: 'extra-1', cardId: Object.keys(CATALOG.cards)[0], variantId: null, cardSkinId: null, serial: 'CBL-' + pkg.originCode + '-000999', packId: 'standard', pulledAt: Date.UTC(2026, 5, 2) });
   edited.packsOpened = 40;
+  // a save has one player code: a second account cannot import cards claiming it, edited or not
   const ed = await call(main, 'POST', '/v1/import/preview', { package: edited }, b.accessToken);
-  assert.equal(ed.status, 200);
-  assert.equal(ed.json.data.summary.accepted, 1);
-  assert.equal(ed.json.data.rejected.filter((r) => r.reason === 'serial-already-claimed').length, 10);
+  assert.equal(ed.status, 409); assert.equal(ed.json.error.code, 'origin-claimed');
+});
+
+test('security review: steady traffic in one bucket cannot reset another bucket counter (hourly limits hold)', async () => {
+  const a = await account();
+  const statuses = [];
+  for (let i = 0; i < 8; i++) {
+    const c = await call(main, 'POST', '/v1/import/commit', { previewId: 'prv_missing' }, a.accessToken, { 'idempotency-key': idem() });
+    statuses.push(c.status);
+    assert.equal((await call(main, 'GET', '/v1/me', null, a.accessToken)).status, 200); // a different bucket with a shorter window, in between
+  }
+  assert.deepEqual(statuses.slice(0, 6), [404, 404, 404, 404, 404, 404]);
+  assert.deepEqual(statuses.slice(6), [429, 429], 'the seventh and eighth commit in the hour are limited');
+});
+
+test('security review: recovery cannot pile up sessions; the oldest are ended', async () => {
+  const a = await account();
+  let last;
+  for (let i = 0; i < 13; i++) {
+    last = await call(main, 'POST', '/v1/auth/recover', { recoveryCode: a.recoveryCode, label: 'Device ' + i }, null, { 'cf-connecting-ip': '10.20.30.' + (i % 2) });
+    assert.equal(last.status, 200, last.text);
+  }
+  const sessions = await call(main, 'GET', '/v1/auth/sessions', null, last.json.data.accessToken);
+  assert.equal(sessions.json.data.sessions.filter((s) => s.active).length, 10);
+  assert.equal((await call(main, 'GET', '/v1/me', null, a.accessToken)).status, 401, 'the oldest session was ended');
 });
 
 test('import: implausible, malformed and damaged packages are refused with a reason', async () => {
@@ -279,4 +302,13 @@ test('errors carry a code and a trace id and never a stack', async () => {
   const body = await bad.json();
   assert.equal(bad.status, 400); assert.equal(body.error.code, 'bad-json'); assert.ok(body.trace);
   assert.ok(!/at .*\.js/.test(JSON.stringify(body)));
+});
+
+// Last on purpose: the local dev proxy drops the next request after an aborted upload (a dev-proxy artifact, not the Worker).
+test('security review: a request body is cut off at its limit even when it is chunked and has no length', async () => {
+  const big = new TextEncoder().encode('{"label":"' + 'x'.repeat(9000) + '"}');
+  const stream = new ReadableStream({ start(controller) { for (let i = 0; i < big.length; i += 1000) controller.enqueue(big.slice(i, i + 1000)); controller.close(); } });
+  const res = await fetch(main.base + '/v1/auth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: stream, duplex: 'half' });
+  assert.equal(res.status, 413);
+  assert.equal((await res.json()).error.code, 'too-large');
 });

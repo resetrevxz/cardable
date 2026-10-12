@@ -15,7 +15,8 @@ export class Gate {
       // Fixed window counter: `limit` hits per `windowSec`, per named bucket.
       const windowSec = Math.max(1, Math.min(86400, Number(body.windowSec) || 60)), limit = Math.max(1, Number(body.limit) || 10);
       const window = Math.floor(now / (windowSec * 1000)), bucket = String(body.bucket || 'default');
-      this.sql.exec('DELETE FROM hits WHERE window < ?', window - 2);
+      // Only this bucket's own stale windows: buckets use different window lengths, so their window numbers are not comparable.
+      this.sql.exec('DELETE FROM hits WHERE bucket = ? AND window < ?', bucket, window - 2);
       const row = this.sql.exec('SELECT n FROM hits WHERE bucket = ? AND window = ?', bucket, window).toArray()[0];
       const used = row ? row.n : 0;
       if (used >= limit) return Response.json({ ok: false, retryAfter: Math.ceil(((window + 1) * windowSec * 1000 - now) / 1000) });
