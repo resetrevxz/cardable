@@ -20,6 +20,7 @@
   C.menu.init();
   C.packView.init();
   C.currencyView.init();
+  C.shop.init();
   C.inventoryHint.init();
   C.opening.init();
   C.inventory.init();
