@@ -13,12 +13,13 @@
   function mount(ctx) {
     var host = ctx.host, scope = ctx.scope, realm = ctx.realm, env = ctx.env();
     var advanced = C.settings.get('marketMode') === 'advanced';
+    var live = ui.sim.live(realm), DAY = 86400000;
     var inv = ctx.api.inventorySync(realm);
     var byId = {}; inv.items.forEach(function (i) { byId[i.instanceId] = i; });
     var draftKey = 'compose:' + realm;
     var draft = {
       format: 'buy-now', items: [], price: '', startBid: '', reserve: '', buyout: '', preset: C.settings.get('marketListingDuration') || cfg().auction.defaultPreset,
-      durationMode: 'preset', customHours: 48, wanted: [{ type: 'card', cardId: '', rarity: '', variant: '', minValuePct: '' }], creditTopUp: '', topUpDirection: 'asks',
+      durationMode: 'preset', customHours: 48, fixedDays: 7, wanted: [{ type: 'card', cardId: '', rarity: '', variant: '', minValuePct: '' }], creditTopUp: '', topUpDirection: 'asks',
       minRelativePct: '', wantLowSerial: false, title: '', description: '', cover: { kind: 'card', ratio: 'card', name: '', alt: '', zoom: 1, x: 50, y: 50 }, touchedPrice: false
     };
     var saved = store.getDraft(draftKey), resumed = false, dirty = false, status = 'idle';
@@ -36,7 +37,10 @@
       if (src) { draft.format = src.listing.format; draft.title = src.listing.title || ''; }
     }
 
-    function valuationOf(instance) { return env.data.valuation({ cardId: instance.cardId, variantId: instance.variantId || null, cardSkinId: instance.cardSkinId || null }); }
+    function valuationOf(instance) {
+      if (live) return ctx.api.valuationSync(realm, { cardId: instance.cardId, variantId: instance.variantId || null, cardSkinId: instance.cardSkinId || null, serial: instance.serial });
+      return env.data.valuation({ cardId: instance.cardId, variantId: instance.variantId || null, cardSkinId: instance.cardSkinId || null });
+    }
     function selected() { return draft.items.map(function (id) { return byId[id]; }).filter(Boolean); }
     function bundleValuation() {
       var sel = selected();
@@ -46,15 +50,15 @@
       var sum = function (k) { return vs.reduce(function (n, v) { return n + (v[k] || 0); }, 0); };
       var worst = vs.reduce(function (a, v) { var order = { none: 0, low: 1, medium: 2, high: 3 }; return order[v.confidence] < order[a] ? v.confidence : a; }, 'high');
       return { average: sum('average'), targetBuy: sum('targetBuy'), targetSell: sum('targetSell'), bestBid: sum('bestBid'), lowestAsk: sum('lowestAsk'),
-        spread: vs[0].spread, liquidity: Math.min.apply(null, vs.map(function (v) { return v.liquidity; })), volatility: Math.max.apply(null, vs.map(function (v) { return v.volatility; })),
+        spread: vs[0].spread, liquidity: Math.min.apply(null, vs.map(function (v) { return v.liquidity; })), volatility: Math.max.apply(null, vs.map(function (v) { return v.volatility || 0; })),
         confidence: worst, samples: Math.min.apply(null, vs.map(function (v) { return v.samples; })), basis: vs.every(function (v) { return v.basis === 'sales'; }) ? 'sales' : 'baseline',
-        volume24h: 0, volume7d: 0, windowHours: Math.max.apply(null, vs.map(function (v) { return v.windowHours; })) };
+        volume24h: 0, volume7d: 0, windowHours: Math.max.apply(null, vs.map(function (v) { return v.windowHours || 0; })) };
     }
     function hours() { return K().durationHours({ durationMode: draft.durationMode, customHours: draft.customHours, preset: draft.preset }); }
     function toDraft() {
       return { mode: advanced ? 'advanced' : 'simple', format: draft.format, items: selected().map(function (i) { return { instanceId: i.instanceId }; }),
         price: draft.price, startBid: draft.startBid, reserve: advanced ? draft.reserve : '', buyout: advanced ? draft.buyout : '', preset: draft.preset,
-        durationMode: advanced ? draft.durationMode : 'preset', customHours: draft.customHours,
+        durationMode: advanced ? draft.durationMode : 'preset', customHours: draft.customHours, fixedDays: draft.fixedDays,
         wanted: draft.wanted.map(function (w) { return { cardId: w.type === 'card' ? w.cardId : '', rarity: w.type === 'rarity' ? w.rarity : '', variant: w.type === 'finish' ? w.variant : '', minValuePct: w.minValuePct }; }),
         creditTopUp: advanced ? draft.creditTopUp : '', minRelativePct: advanced ? draft.minRelativePct : '', wantLowSerial: advanced && draft.wantLowSerial,
         title: draft.title, description: draft.description };
@@ -63,7 +67,9 @@
     // ---- layout ----
     var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
     host.appendChild(h('div.mk-pagehead.is-detail', back));
-    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'List a card' }), h('p', { text: 'Choose the exact card, set terms, and see what the listing and your proceeds would look like. Nothing is published.' }))));
+    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'List a card' }), h('p', { text: live
+      ? 'Choose the exact card, set terms, and see what you would receive. A listed card stays in your collection, locked, until it sells or you withdraw it.'
+      : 'Choose the exact card, set terms, and see what the listing and your proceeds would look like. Nothing is published.' }))));
     var banner = h('div.mk-banner-host');
     host.appendChild(banner);
     var layout = h('div.mk-composer');
@@ -123,7 +129,7 @@
       ui.clear(pickerHost);
       pickerHost.appendChild(h('div.mk-step-head', h('span.mk-step-no', { text: '1' }), h('div', h('h2', { text: 'Choose the exact card' }),
         h('p', { text: advanced ? 'Pick one card, or build a bundle of up to ' + cfg().listing.maxBundle + '. Each copy is chosen by its serial, never the whole stack.' : 'Pick one card. When you own several copies you choose which serial to list.' }))));
-      if (inv.demo) pickerHost.appendChild(h('div.mk-banner', { data: { tone: 'info' } }, icon('info'), h('span', { text: 'You have no cards yet, so these are sample cards. Open a pack and your own collection appears here.' })));
+      if (inv.demo && !live) pickerHost.appendChild(h('div.mk-banner', { data: { tone: 'info' } }, icon('info'), h('span', { text: 'You have no cards yet, so these are sample cards. Open a pack and your own collection appears here.' })));
       var search = h('input.mk-input', { type: 'search', placeholder: 'Search your cards', 'aria-label': 'Search your cards' });
       pickerHost.appendChild(h('div.mk-picker-bar', search, h('span.mk-muted', { text: inv.items.length + ' cards' })));
       var listEl = h('div.mk-picker', { role: 'group', 'aria-label': 'Your cards' });
@@ -149,12 +155,13 @@
           var v = valuationOf(head);
           var copy = h('div.mk-pick-copy', h('strong', { text: idn.name }),
             h('span', { text: idn.rarityName + ' · ' + (head.variantId ? (env.variants[head.variantId] || {}).name : 'Normal finish') + (stack.length > 1 ? ' · ' + stack.length + ' copies' : '') }),
-            h('span.mk-muted', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' }));
+            h('span.mk-muted', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' + (live && v.basis === 'baseline' ? ' · baseline' : '') }));
           var chips = h('div.mk-pick-chips', { role: advanced ? 'group' : 'radiogroup', 'aria-label': 'Copies of ' + idn.name });
           stack.forEach(function (i) {
             var on = draft.items.indexOf(i.instanceId) >= 0;
-            var b = h('button.mk-pill.is-serial', { type: 'button', role: advanced ? 'checkbox' : 'radio', 'aria-checked': String(on), 'aria-pressed': advanced ? String(on) : null, data: { instance: i.instanceId } },
-              icon(on ? 'check' : 'plus'), h('span.mk-mono', { text: i.serial.replace('CBL-', '') }));
+            var blocked = live ? (i._listed ? 'Already in a listing or offer' : i.locked ? 'Locked cards cannot be listed. Unlock it first.' : '') : '';
+            var b = h('button.mk-pill.is-serial', { type: 'button', role: advanced ? 'checkbox' : 'radio', 'aria-checked': String(on), 'aria-pressed': advanced ? String(on) : null, data: { instance: i.instanceId }, disabled: !!blocked, title: blocked },
+              icon(blocked ? 'lock' : on ? 'check' : 'plus'), h('span.mk-mono', { text: i.serial.replace('CBL-', '') }));
             b.addEventListener('click', function () { choose(i.instanceId); });
             chips.appendChild(b);
           });
@@ -166,6 +173,7 @@
       paint();
     }
     function choose(id) {
+      if (live && byId[id] && (byId[id]._listed || byId[id].locked)) return;
       var at = draft.items.indexOf(id);
       if (advanced) { if (at >= 0) draft.items.splice(at, 1); else if (draft.items.length < cfg().listing.maxBundle) draft.items.push(id); else C.ui.toast('A listing holds at most ' + cfg().listing.maxBundle + ' cards.'); }
       else draft.items = at >= 0 ? [] : [id];
@@ -208,7 +216,7 @@
       termsHost.appendChild(typeSwitch);
       termsHost.appendChild(h('p.mk-hint', { text: ui.formatDef(draft.format).blurb }));
       var body = h('div.mk-terms');
-      if (v) body.appendChild(h('p.mk-guidance', icon('trend'), h('span', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' + (v.basis === 'baseline' ? ' (baseline estimate, no sales yet)' : '') + ' · Target Sell ' + ui.fmt.exact(v.targetSell) + ' · about ' + v.windowHours + ' h to sell near it.' })));
+      if (v) body.appendChild(h('p.mk-guidance', icon('trend'), h('span', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' + (v.basis === 'baseline' ? ' (baseline estimate, no sales yet)' : ' from ' + v.samples + ' recent trades') + ' · Target Sell ' + ui.fmt.exact(v.targetSell) + (live ? '' : ' · about ' + v.windowHours + ' h to sell near it.') })));
       if (draft.format === 'buy-now') {
         var price = numberInput(draft.price, function (val) { draft.price = val; draft.touchedPrice = true; }, { min: '1' });
         body.appendChild(field('Asking price (Credits)', price, { name: 'price', help: 'average-value', hint: 'Buyers pay exactly this. You receive it minus the ' + cfg().fee.label.toLowerCase() + '.' }));
@@ -222,7 +230,11 @@
           });
           body.appendChild(quick);
         }
-        if (advanced) {
+        if (live) {
+          var days = ui.segmented({ label: 'How long it stays up', value: String(draft.fixedDays), onChange: function (d) { draft.fixedDays = Number(d); touch(); renderSide(); },
+            options: [{ value: '1', label: '1 day' }, { value: '3', label: '3 days' }, { value: '7', label: '7 days' }, { value: '14', label: '14 days' }] });
+          body.appendChild(h('div.mk-field', h('span.mk-field-label', { text: 'Stays up for' }), days, h('small.mk-hint', { text: 'If nobody buys it in that time, it comes back to you unlocked. No fee is charged.' })));
+        } else if (advanced) {
           var rel = numberInput(draft.minRelativePct, function (val) { draft.minRelativePct = val; }, { min: String(cfg().relativeValue.min), max: String(cfg().relativeValue.max), step: String(cfg().relativeValue.step), placeholder: 'e.g. ' + cfg().relativeValue.default });
           body.appendChild(field('Accept offers down to (% of Average Value)', rel, { name: 'minRelativePct', hint: 'Offers below this are declined for you. Leave empty to see every offer.' }));
         }
@@ -256,7 +268,8 @@
         }
       } else {
         body.appendChild(buildWanted(v));
-        if (advanced) {
+        if (live) body.appendChild(h('p.mk-hint', { text: 'Traders will offer cards worth at least the share of this card’s value that you set. You can accept, decline or let it lapse. If the listing ends, nothing is charged.' }));
+        if (advanced && !live) {
           var top = numberInput(draft.creditTopUp, function (val) { draft.creditTopUp = val; }, { min: '0', placeholder: 'None' });
           body.appendChild(field('Credits top-up', top, { name: 'creditTopUp', hint: 'Credits to even a trade of unequal value. The ' + cfg().fee.label.toLowerCase() + ' applies to this part only.' }));
           var dir = ui.segmented({ label: 'Top-up direction', value: draft.topUpDirection, onChange: function (d) { draft.topUpDirection = d; touch(); renderSide(); }, options: [{ value: 'asks', label: 'I ask for Credits' }, { value: 'adds', label: 'I add Credits' }] });
@@ -274,11 +287,11 @@
     function buildWanted(v) {
       var wrap = h('div.mk-wanted');
       wrap.appendChild(h('span.mk-field-label', { text: 'What would you accept?' }));
-      draft.wanted.forEach(function (w, idx) {
+      (live ? draft.wanted.slice(0, 1) : draft.wanted).forEach(function (w, idx) {
         var row = h('div.mk-wanted-row');
         var type = h('select.mk-select', { 'aria-label': 'Rule ' + (idx + 1) + ' type' },
           h('option', { value: 'card', text: 'A specific card', props: { selected: w.type === 'card' } }), h('option', { value: 'rarity', text: 'A rarity or better', props: { selected: w.type === 'rarity' } }),
-          h('option', { value: 'finish', text: 'A particular finish', props: { selected: w.type === 'finish' } }));
+          live ? null : h('option', { value: 'finish', text: 'A particular finish', props: { selected: w.type === 'finish' } }));
         type.addEventListener('change', function () { w.type = type.value; touch(); buildTerms(); renderSide(); });
         var value;
         if (w.type === 'card') {
@@ -300,15 +313,15 @@
           value.addEventListener('change', function () { w.variant = value.value; touch(); renderSide(); applyErrors(); });
         }
         row.append(type, value);
-        if (advanced) {
+        if (advanced || live) {
           var pct = h('input.mk-input.is-narrow', { type: 'number', min: '0', placeholder: 'Min %', 'aria-label': 'Minimum value percent', value: w.minValuePct || '' });
           pct.addEventListener('input', function () { w.minValuePct = pct.value; touch(); renderSide(); });
           row.appendChild(pct);
-          if (draft.wanted.length > 1) row.appendChild(ui.iconButton('trash', 'Remove this rule', function () { draft.wanted.splice(idx, 1); touch(); buildTerms(); renderSide(); }));
+          if (draft.wanted.length > 1 && !live) row.appendChild(ui.iconButton('trash', 'Remove this rule', function () { draft.wanted.splice(idx, 1); touch(); buildTerms(); renderSide(); }));
         }
         wrap.appendChild(row);
       });
-      if (advanced && draft.wanted.length < 3) wrap.appendChild(ui.button('Add another acceptable card', { icon: 'plus', variant: 'ghost', size: 'sm', onClick: function () { draft.wanted.push({ type: 'card', cardId: '', rarity: '', variant: '', minValuePct: '' }); touch(); buildTerms(); } }));
+      if (advanced && !live && draft.wanted.length < 3) wrap.appendChild(ui.button('Add another acceptable card', { icon: 'plus', variant: 'ghost', size: 'sm', onClick: function () { draft.wanted.push({ type: 'card', cardId: '', rarity: '', variant: '', minValuePct: '' }); touch(); buildTerms(); } }));
       var errSlot = h('small.mk-field-error', { role: 'alert', hidden: true }); errorEls.wanted = { input: wrap, err: errSlot };
       wrap.appendChild(errSlot);
       return wrap;
@@ -331,6 +344,11 @@
       note.addEventListener('input', function () { draft.description = note.value; touch(); });
       body.appendChild(field('Note', note, { name: 'description' }));
 
+      if (live) {
+        body.appendChild(h('p.mk-hint', icon('image'), h('span', { text: 'Listings in the Simulation use the card’s own art. Custom cover images arrive with the online Market.' })));
+        presentHost.appendChild(body);
+        return;
+      }
       // cover uploader (local only)
       var cover = h('div.mk-cover');
       cover.appendChild(h('span.mk-field-label', { text: 'Cover image' }));
@@ -471,9 +489,12 @@
       var dl = h('dl.mk-sumrows');
       rows.forEach(function (r) { dl.appendChild(h('div', { data: { strong: r.strong ? 'true' : '' } }, h('dt', r.help ? ui.labelWithHelp(r.label, r.help) : r.label), h('dd', r.node ? r.node : { text: r.value }))); });
       side.appendChild(dl);
-      side.appendChild(h('p.mk-hint', icon('lock'), h('span', { text: 'While listed, the exact card is held in escrow and cannot be traded elsewhere. You could withdraw it at any time before a bid or sale.' })));
+      side.appendChild(h('p.mk-hint', icon('lock'), h('span', { text: live
+        ? 'While listed, the exact card stays in your collection but is locked: it cannot be deleted, listed again or offered. Withdraw it any time before a sale' + (draft.format === 'auction' ? ' (an auction with bids cannot be withdrawn).' : '.')
+        : 'While listed, the exact card is held in escrow and cannot be traded elsewhere. You could withdraw it at any time before a bid or sale.' })));
       var reason = result.ok ? '' : result.disabledReason;
-      var publish = ui.button('Preview this listing', { variant: 'primary', icon: 'check', disabled: !result.ok, reason: reason, onClick: function () { reviewListing(result, v, listing); } });
+      var blocked = live && selected().some(function (i) { return i._listed || i.locked; });
+      var publish = ui.button(live ? 'List this card' : 'Preview this listing', { variant: 'primary', icon: 'check', disabled: !result.ok || blocked, reason: blocked ? 'One of these cards is already listed or locked.' : reason, onClick: function () { if (live) publishLive(result); else reviewListing(result, v, listing); } });
       var wrap = h('div.mk-side-actions', publish);
       if (!result.ok && draft.items.length) wrap.appendChild(h('p.mk-field-error.is-inline', { role: 'status', text: reason }));
       else if (!draft.items.length) wrap.appendChild(h('p.mk-hint', { text: 'Choose a card to continue.' }));
@@ -489,6 +510,55 @@
         var show = !!msg && dirty && (k !== 'items');
         e.err.hidden = !show; e.err.textContent = show ? msg : '';
         if (e.input && e.input.setAttribute) e.input.setAttribute('aria-invalid', String(show));
+      });
+    }
+    function wantsSpec() {
+      var rule = draft.wanted[0] || {}, pct = Number(rule.minValuePct);
+      var wants = { minFrac: pct > 0 ? Math.min(1.5, pct / 100) : C.data.marketSim.listing.swapMinFrac };
+      if (rule.type === 'card' && rule.cardId) wants.cardId = rule.cardId;
+      else if (rule.type === 'rarity' && rule.rarity) wants.rarity = rule.rarity;
+      return wants;
+    }
+    function listingSpec(requestId) {
+      var ids = selected().map(function (i) { return i.instanceId; });
+      var base = { instanceIds: ids, title: draft.title.trim(), note: draft.description.trim(), requestId: requestId };
+      if (draft.format === 'buy-now') return Object.assign(base, { kind: 'fixed', ask: Math.floor(Number(draft.price)), durationMs: draft.fixedDays * DAY });
+      if (draft.format === 'auction') {
+        return Object.assign(base, { kind: 'auction', start: Math.floor(Number(draft.startBid)), durationMs: (hours() || 24) * 3600000,
+          reserve: advanced && draft.reserve !== '' ? Math.floor(Number(draft.reserve)) : null, buyout: advanced && draft.buyout !== '' ? Math.floor(Number(draft.buyout)) : null });
+      }
+      return Object.assign(base, { kind: 'swap', durationMs: 5 * DAY, wants: wantsSpec() });
+    }
+    function publishLive(result) {
+      var sel = selected(), rows = [];
+      sel.forEach(function (i) { var c = env.cards[i.cardId]; var idn = ui.identity(c, true); rows.push({ label: idn.name, node: h('span', h('span', { text: idn.rarityName + ' · ' + (i.variantId ? env.variants[i.variantId].name : 'Normal') + ' · ' }), h('span.mk-mono', { text: i.serial })) }); });
+      rows.push({ label: 'Type', value: ui.formatDef(draft.format).label });
+      if (draft.format === 'buy-now') { rows.push({ label: 'Asking price', node: ui.credits(Number(draft.price)) }); rows.push({ label: 'Stays up for', value: draft.fixedDays + (draft.fixedDays === 1 ? ' day' : ' days') }); }
+      if (draft.format === 'auction') {
+        rows.push({ label: 'Starting bid', node: ui.credits(Number(draft.startBid)) }); rows.push({ label: 'Length', value: result.hours >= 48 ? Math.round(result.hours / 24) + ' days' : result.hours + ' hours' });
+        if (advanced && draft.reserve) rows.push({ label: 'Reserve', value: ui.fmt.exact(Number(draft.reserve)) + ' Credits' });
+        if (advanced && draft.buyout) rows.push({ label: 'Buyout', value: ui.fmt.exact(Number(draft.buyout)) + ' Credits' });
+      }
+      if (draft.format === 'swap') {
+        var w = wantsSpec();
+        rows.push({ label: 'You would accept', value: (w.cardId ? (env.cards[w.cardId] || {}).name : w.rarity ? (env.rarities[w.rarity] || {}).name + ' or better' : 'Cards of similar value') + ', worth at least ' + Math.round(w.minFrac * 100) + '% of yours' });
+      } else {
+        rows.push({ label: cfg().fee.label, value: '− ' + ui.fmt.exact(result.fee) + ' Credits' });
+        rows.push({ label: draft.format === 'auction' ? 'You receive at the starting bid' : 'You receive', value: ui.fmt.exact(result.net) + ' Credits', strong: true });
+      }
+      if (draft.title) rows.push({ label: 'Title', value: draft.title });
+      ui.sim.confirm({
+        title: 'List ' + (sel.length === 1 ? 'this card' : sel.length + ' cards'), eyebrow: 'Review', rows: rows, anchor: root.document.activeElement,
+        note: 'The card stays in your collection but is locked while listed. A sale adds your Credits once, after the fee, and the card leaves your collection at that moment.',
+        confirmLabel: 'List ' + (sel.length === 1 ? 'card' : sel.length + ' cards'), icon: 'check',
+        run: function (req) { return ctx.api.publishListing(realm, listingSpec(req)); },
+        success: function (res) {
+          var id = res.listing && res.listing.id;
+          store.clearDraft(draftKey); dirty = false; saved = null;
+          draft.items = []; draft.price = ''; draft.startBid = ''; draft.title = ''; draft.description = '';
+          C.ui.toast('Listed. It is now open to the market.');
+          if (id) ui.go('listing', { id: id }, { replace: true }); else ui.go('my-listings', {}, { replace: true });
+        }
       });
     }
     function reviewListing(result, v, listing) {

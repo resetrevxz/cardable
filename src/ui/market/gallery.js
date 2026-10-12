@@ -38,7 +38,7 @@
     var r3 = row(atoms);
     cfgFormats().forEach(function (f) { r3.appendChild(h('span.mk-format', { data: { format: f.id } }, ui.icon(f.icon), h('span', { text: f.short }))); });
     ['simulation', 'global'].forEach(function (r) { r3.appendChild(ui.realmBadge(r)); });
-    r3.append(ui.chip('Illustrative', { tone: 'soft', icon: 'info' }), ui.chip('Higher risk', { tone: 'warn' }), ui.chip('Collection gap'));
+    r3.append(ui.chip('Illustrative', { tone: 'soft', icon: 'info' }), ui.chip('Simulated trades', { tone: 'soft', icon: 'info' }), ui.chip('Higher risk', { tone: 'warn' }), ui.chip('Collection gap'));
     var r4 = row(atoms);
     r4.appendChild(ui.segmented({ label: 'Segmented specimen', value: 'a', options: [{ value: 'a', label: 'For You' }, { value: 'b', label: 'New' }, { value: 'c', label: 'Ending soon' }] }));
     ['Rare', 'Auction', 'Holo'].forEach(function (t, i) { var b = h('button.mk-pill', { type: 'button', 'aria-pressed': String(i === 0) }, h('span', { text: t }), h('span.mk-pill-count', { text: String(12 - i * 3) })); r4.appendChild(b); });
@@ -55,6 +55,27 @@
     var card = d.cards.find(function (c) { return c.rarity === 'rare'; });
     var series = d.seriesFor(card.id, null, '30d');
     chart.update({ candles: series.candles, type: 'line', window: '30d', unit: 'Credits', label: card.name + ' price' });
+
+    // simulation clock, live updates and offers
+    var simGroup = group('Simulation clock, live updates and offers', 'The clock is a button. Prices change in place and anything new waits behind a pill. A real action asks once and says what moves.');
+    var clocks = row(simGroup);
+    [['running', 'play', 'Day 4 · 06:12', 'Running'], ['paused', 'pause', 'Day 4 · 06:12', 'Paused'], ['frozen', 'pause', 'Day 4 · 06:12', 'Frozen']].forEach(function (c) {
+      clocks.appendChild(h('span.mk-sim-chip', { data: { state: c[0] } }, ui.icon(c[1]), h('span.mk-sim-clock.mk-num', { text: c[2] }), h('span.mk-sim-word', { text: c[3] })));
+    });
+    var live = row(simGroup);
+    live.appendChild(h('span.mk-updates', { text: '3 new listings · Show' }));
+    live.appendChild(h('span.mk-gone-note', { text: 'No longer open' }));
+    live.appendChild(h('span.mk-num.mk-countdown.is-urgent', { text: '42m' }));
+    var offers = h('ul.mk-offers');
+    offers.appendChild(h('li.mk-offer', h('div.mk-offer-copy', h('strong', { text: 'Calm Otter offered: Radeon RX 6800 XT (444) + 20 Credits' }), h('span.mk-muted', { text: 'Waiting · 12 min ago · 1d 23h left' })),
+      h('div.mk-offer-actions', ui.button('Accept', { variant: 'primary', size: 'sm' }), ui.button('Decline', { variant: 'ghost', size: 'sm' }))));
+    offers.appendChild(h('li.mk-offer', { data: { status: 'declined' } }, h('div.mk-offer-copy', h('strong', { text: 'You offered: GeForce GTX 1080 Ti (730)' }), h('span.mk-muted', { text: 'Declined · 2 h ago' }))));
+    simGroup.appendChild(offers);
+    var trade = row(simGroup);
+    trade.appendChild(ui.button('Open a confirmation', { variant: 'secondary', onClick: function () {
+      ui.sim.confirm({ title: 'Confirm purchase', rows: [{ label: 'Item', value: 'Specimen card' }, { label: 'Price', value: '120 Credits' }, { label: 'Available after', value: '340', strong: true }],
+        note: 'The card joins your collection straight away and the Credits leave your balance once.', confirmLabel: 'Buy for 120', icon: 'tag', run: function () { return { ok: true }; } });
+    } }));
 
     // states
     var states = group('States', 'Loading, empty, offline, error, closed and draft states share one family.');

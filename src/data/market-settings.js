@@ -23,11 +23,12 @@
   add('marketCompactNumbers', 'Compact Credits', 'Show 12,500 as 12.5K in dense places. Exact values stay in tooltips and receipts.', false);
   add('marketConfirm', 'Confirm before trades', 'Always shows the review step. Large trades only skips it for small amounts.', 'always', ['always', 'large']).format = fmt({ always: 'Always', large: 'Large trades only' });
   add('marketListingDuration', 'Default auction length', 'The preset the listing composer starts with. Custom lengths are in Advanced.', '24h', ['6h', '24h', '3d']).format = fmt({ '6h': '6 hours', '24h': '24 hours', '3d': '3 days' });
+  add('marketSimSpeed', 'Simulation speed', 'How fast simulated time runs while the game is open. It never runs while the game is closed, hidden or paused.', 'standard', ['calm', 'standard', 'fast']).format = fmt({ calm: 'Calm', standard: 'Standard', fast: 'Fast' });
   add('marketNotifyBids', 'Bid and auction notices', 'Outbid, leading and ending-soon notices in Activity.', true);
   add('marketNotifyTrades', 'Sale and offer notices', 'Sold, won, expired and offer notices in Activity.', true);
   add('marketNotifyWatch', 'Watchlist and price notices', 'Watchlist and price-alert notices in Activity.', true);
 
-  ['marketMode', 'marketRealm', 'marketView', 'marketDensity', 'marketChartType', 'marketWindow', 'marketReducedData', 'marketCompactNumbers',
+  ['marketSimSpeed', 'marketMode', 'marketRealm', 'marketView', 'marketDensity', 'marketChartType', 'marketWindow', 'marketReducedData', 'marketCompactNumbers',
     'marketConfirm', 'marketListingDuration', 'marketNotifyBids', 'marketNotifyTrades', 'marketNotifyWatch'].forEach(function (key) {
     // Defaults for new keys must also pass the shared validator.
     s[key].key = key;

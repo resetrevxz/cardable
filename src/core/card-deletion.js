@@ -3,7 +3,8 @@
   var undo=null;
   function rules(save,instance,typed){
     var card=instance&&C.card(instance.cardId),rarity=card&&C.rarity(card.rarity),favorite=instance&&save.inventoryUi.favorites.includes(C.stacks.of(instance));
-    return {blocked:!card||!!instance.locked||!!favorite,locked:!!(instance&&instance.locked),favorite:!!favorite,
+    var listed=!!(instance&&C.marketSim&&C.marketSim.lockOf&&C.marketSim.lockOf(instance.instanceId));
+    return {blocked:!card||!!instance.locked||!!favorite||listed,locked:!!(instance&&instance.locked),favorite:!!favorite,listed:listed,
       typed:!!rarity&&rarity.tier>=7,holdMs:rarity&&rarity.tier>=7?2500:C.settings.get('confirmLowDelete')?1500:0,
       nameMatches:!!card&&String(typed||'').trim().toLocaleLowerCase()===card.name.trim().toLocaleLowerCase(),refund:0};
   }

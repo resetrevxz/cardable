@@ -70,6 +70,11 @@
     base.wallet = C.currency.normalize(value.wallet);
     base.unlocks = C.cutsceneUnlocks.normalize(value.unlocks);
     if (value.studio !== undefined && C.studioScenes) base.studio = C.studioScenes.normalize(value.studio);
+    // Market receipts (Market Beta): ids of simulated trades already applied here, so a replay can never apply one twice.
+    if (value.market !== undefined) {
+      var market = value.market && typeof value.market === 'object' && !Array.isArray(value.market) ? value.market : {};
+      base.market = { receipts: (Array.isArray(market.receipts) ? market.receipts : []).filter(function (id) { return typeof id === 'string' && id.length > 0 && id.length <= 96; }).slice(-600) };
+    }
     if (value.achievements !== undefined) base.achievements = C.achievements ? C.achievements.normalize(value.achievements) : value.achievements;
     return base;
   }

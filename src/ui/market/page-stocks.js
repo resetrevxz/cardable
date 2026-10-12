@@ -7,7 +7,7 @@
   var WINDOWS = ['24h', '7d', '30d', '90d', 'all'];
 
   function mount(ctx) {
-    var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope;
+    var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope, live = ui.sim.live(realm);
     var session = store.session;
     var st = session.stocks = session.stocks || { scope: 'index', id: '', variantId: null };
     // The chart style is a saved preference; the window starts at the saved default until you pick another.
@@ -17,7 +17,9 @@
 
     host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Stocks' }),
       h('p', { text: 'Prices, trends and depth for collectible cards. This is market intelligence only: cards are not shares and nothing here can be traded.' })),
-      h('div.mk-pagehead-actions', ui.chip('Illustrative', { tone: 'soft', icon: 'info', title: 'All figures are sample data for the preview' }))));
+      h('div.mk-pagehead-actions', live
+        ? ui.chip('Simulated trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from trades completed in this simulation. Where there are none, nothing is drawn.' })
+        : ui.chip('Illustrative', { tone: 'soft', icon: 'info', title: 'All figures are sample data for the preview' }))));
 
     // controls
     var controls = h('div.mk-stocks-controls');
@@ -78,22 +80,24 @@
           { label: 'Average Value', value: ui.fmt.exact(v.average), help: 'average-value', note: v.basis === 'baseline' ? 'Baseline, no sales yet' : v.samples + ' recent sales' },
           { label: 'Last sale', value: v.lastSale ? ui.fmt.exact(v.lastSale) : 'No sales yet' },
           { label: '24 h change', node: ui.delta(v.change24h, { empty: 'No sales yet' }) }, { label: '7 d change', node: ui.delta(v.change7d, { empty: 'No sales yet' }) },
-          { label: 'Best bid', value: ui.fmt.exact(v.bestBid), note: 'Hypothetical' }, { label: 'Lowest ask', value: ui.fmt.exact(v.lowestAsk), note: 'Hypothetical' },
-          { label: 'Spread', value: ui.fmt.pct(v.spread, false, 1), help: 'spread' },
+          { label: 'Best bid', value: ui.fmt.exact(v.bestBid), note: live ? (v.bidReal ? 'Open buy order' : 'Estimate: no buy order') : 'Hypothetical' },
+          { label: 'Lowest ask', value: ui.fmt.exact(v.lowestAsk), note: live ? (v.askReal ? 'Open listing' : 'Estimate: none listed') : 'Hypothetical' },
+          { label: 'Spread', value: ui.fmt.pct(v.spread, false, 1), help: 'spread', note: live && !v.spreadReal ? 'Estimate: no open order on one side' : null },
           { label: 'Target Buy', value: ui.fmt.exact(v.targetBuy), help: 'target-buy' }, { label: 'Target Sell', value: ui.fmt.exact(v.targetSell), help: 'target-sell' },
           { label: 'Volume, 24 h', value: v.samples ? v.volume24h + ' sold' : 'No sales yet', help: 'volume' }, { label: 'Volume, 7 d', value: v.samples ? v.volume7d + ' sold' : 'No sales yet' },
-          { label: 'Volatility', value: ui.fmt.pct(v.volatility, false, 1) + ' a day', help: 'volatility' }, { label: 'Liquidity', value: Math.round(v.liquidity * 100) + ' of 100', help: 'liquidity' },
+          { label: 'Volatility', value: v.volatility == null ? 'Not enough trades' : ui.fmt.pct(v.volatility, false, 1) + ' a trade', help: 'volatility' },
+          { label: 'Liquidity', value: v.liquidity == null ? 'No trades yet' : Math.round(v.liquidity * 100) + ' of 100', help: 'liquidity' },
           { label: 'Confidence', value: { high: 'High', medium: 'Medium', low: 'Low', none: 'Not enough data' }[v.confidence], help: 'confidence' },
-          { label: 'Estimated sale time', value: '~' + v.windowHours + ' h' }
+          live ? { label: 'Open now', value: (v.openAsks || 0) + ' listed · ' + (v.openBids || 0) + ' wanted' } : { label: 'Estimated sale time', value: '~' + v.windowHours + ' h' }
         ];
       }
       return [
-        { label: 'Index level', value: res.closes[res.closes.length - 1].toFixed(1), note: 'Starts at 100 for the window' },
+        { label: 'Index level', value: res.closes.length ? res.closes[res.closes.length - 1].toFixed(1) : 'No trades yet', note: live ? 'Trade price against each card’s baseline, as 100' : 'Starts at 100 for the window' },
         { label: '24 h change', node: ui.delta(a.change24h) }, { label: '7 d change', node: ui.delta(a.change7d) },
         { label: 'Volume, 24 h', value: a.volume24h + ' sold', help: 'volume' }, { label: 'Volume, 7 d', value: a.volume7d + ' sold' },
         { label: 'Credits traded, 24 h', value: ui.fmt.exact(a.credits24h) },
-        { label: 'Average spread', value: ui.fmt.pct(a.spread, false, 1), help: 'spread' }, { label: 'Volatility', value: ui.fmt.pct(a.volatility, false, 1) + ' a day', help: 'volatility' },
-        { label: 'Liquidity', value: Math.round(a.liquidity * 100) + ' of 100', help: 'liquidity' },
+        { label: 'Average spread', value: ui.fmt.pct(a.spread, false, 1), help: 'spread' }, { label: 'Volatility', value: a.volatility == null ? 'Not enough trades' : ui.fmt.pct(a.volatility, false, 1), help: 'volatility' },
+        { label: 'Liquidity', value: a.liquidity == null ? 'No trades yet' : Math.round(a.liquidity * 100) + ' of 100', help: 'liquidity' },
         { label: 'Cards in scope', value: String(res.members) }, { label: 'Recent sales behind it', value: String(a.samples), help: 'confidence' }
       ];
     }
@@ -112,11 +116,18 @@
       chart.hidden = false; title.hidden = false;
       var res = ctx.api.stocksSync(realm, { scope: st.scope, id: st.id, variantId: st.variantId, window: st.window });
       if (res.empty) { ui.clear(rail); rail.appendChild(ui.emptyState({ title: 'Nothing in this scope', body: 'Choose another scope.' })); return; }
-      var last = res.closes[res.closes.length - 1], first = res.closes[0], change = (last - first) / first;
+      var has = res.closes.length > 0;
+      var last = has ? res.closes[res.closes.length - 1] : null, first = has ? res.candles[0].open : null, change = has && res.closes.length > 1 && first ? (last - first) / first : null;
       var heading = res.scope === 'card' ? ui.identity(env.cards[res.id], !!env.owned[res.id]).name : res.title;
+      var nowText = !has ? (res.scope === 'card' && res.valuation ? ui.fmt.exact(res.valuation.average) : '—') : res.scope === 'card' ? ui.fmt.exact(last) : last.toFixed(1);
       title.append(h('div', ui.eyebrow(res.scope === 'index' ? 'Market index' : res.scope === 'card' ? 'Single GPU' : 'Group index'), h('h2', { text: heading })),
-        h('div.mk-chart-now', h('span.mk-num.is-big', { text: res.scope === 'card' ? ui.fmt.exact(last) : last.toFixed(1) }), h('span.mk-muted', { text: res.unit }), ui.delta(change, { label: 'over ' + K().WINDOWS[st.window].label })));
-      chart.update({ candles: res.candles, type: st.type, window: st.window, unit: res.unit, label: heading });
+        h('div.mk-chart-now', h('span.mk-num.is-big', { text: nowText }), h('span.mk-muted', { text: !has && res.scope === 'card' ? 'Credits · baseline, no trades in this window' : res.unit }),
+          ui.delta(change, { label: 'over ' + K().WINDOWS[st.window].label, empty: has ? 'One trade so far' : 'No trades' })));
+      chart.update({ candles: res.candles, type: st.type, window: st.window, unit: res.unit, label: heading, live: live, now: res.now || 0, badge: live ? 'Simulated trades' : 'Illustrative' });
+      if (live) {
+        var cover = res.coverage ? 'The ' + res.tradesCounted + ' trades of this scope kept go back ' + ui.fmt.age((res.now - res.coverage.from) / 60000).replace(/ ago$/, '') + '.' : 'No trades have happened yet.';
+        title.appendChild(h('p.mk-hint', { text: cover + ' Each point is a time-bucket of real completed trades; quiet periods are gaps, not guesses.' }));
+      }
       rail.appendChild(h('div.mk-panel-head', h('h3', { text: 'The numbers' })));
       rail.appendChild(ui.statGrid(statItems(res), { cols: 2 }));
       if (res.scope === 'card') rail.appendChild(ui.button('Open this card’s market', { icon: 'forward', variant: 'secondary', onClick: function () { ui.go('card', { id: res.id, variant: st.variantId || '' }); } }));
@@ -149,6 +160,18 @@
       paint();
     }
     draw();
+    // New trades redraw the chart in place; nothing else about the page moves.
+    if (live) {
+      var lastDrawn = -1;
+      scope.add(store.subscribe(function (what) {
+        if (what !== 'sim') return;
+        var rev = ctx.api.statusSync(realm).revision;
+        if (rev === lastDrawn) return;
+        lastDrawn = rev;
+        var next = ctx.api.stocksSync(realm, { scope: st.scope, id: st.id, variantId: st.variantId, window: st.window });
+        if (next && !next.empty && String(next.tradesCounted) !== String(chart.dataset.count)) { chart.dataset.count = String(next.tradesCounted); draw(); }
+      }));
+    }
     ctx.restoreScroll();
   }
   ui.pages.register('stocks', { nav: 'stocks', title: function () { return 'Stocks'; }, mount: mount });

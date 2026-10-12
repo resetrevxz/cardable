@@ -15,7 +15,7 @@
 
     // The two environments never share balances, histories, inventory claims or valuations.
     realms: [
-      { id: 'simulation', label: 'Simulation', shortLabel: 'Simulation', state: 'preview', stateLabel: 'Preview',
+      { id: 'simulation', label: 'Simulation', shortLabel: 'Simulation', state: 'local', stateLabel: 'Offline · local',
         blurb: 'Bots on this device. Works offline and never involves other people.',
         counterparties: 'Simulation bots', sourceLabel: 'Simulation bot' },
       { id: 'global', label: 'Global Market', shortLabel: 'Global', state: 'offline', stateLabel: 'Not connected',
@@ -100,12 +100,12 @@
       { id: 'variants', label: 'Popular variants', sort: 'popular', filters: { variantOnly: true } }
     ],
     notices: {
-      simulation: 'Preview. The Simulation market is not running yet. These listings are fixed sample data and nothing here can be bought, bid on or sold.',
+      simulation: 'Simulation is a local market of software traders on this device. It works offline, runs only while Cardable is open, and is separate from Global Market.',
       global: 'Global Market is not connected in this build. When it is, only real player listings appear here.',
       globalSample: 'Sample layout. These listings are invented to show the design. They are not real players and never count as market volume.'
     },
     noticesShort: {
-      simulation: 'Sample data only. Not tradable yet.',
+      simulation: 'Local bots, offline. Runs only while Cardable is open.',
       global: 'Not connected. Real players only.',
       globalSample: 'Invented sample listings. Not real players.'
     },

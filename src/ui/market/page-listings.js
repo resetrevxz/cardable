@@ -132,12 +132,19 @@
 
     // ---- intro for first visit ----
     if (!store.prefs.guideSeen && id === 'discover') {
-      var intro = h('aside.mk-intro', { role: 'note' },
-        h('div', h('strong', { text: 'This is a preview of the Market.' }),
-          h('p', { text: 'Cardable has two realms: Simulation, with bots on this device, and Global Market, with real players. Everything you see now is invented sample data, so you can look around freely. Nothing is bought, sold or saved.' })),
-        ui.button('Got it', { variant: 'secondary', onClick: function () { store.markGuideSeen(); intro.remove(); } }));
-      host.appendChild(intro);
+      if (ui.sim.live(realm)) host.appendChild(ui.sim.introCard());
+      else {
+        var intro = h('aside.mk-intro', { role: 'note' },
+          h('div', h('strong', { text: 'This is a preview of the Market.' }),
+            h('p', { text: 'Cardable has two realms: Simulation, with bots on this device, and Global Market, with real players. Everything you see now is invented sample data, so you can look around freely. Nothing is bought, sold or saved.' })),
+          ui.button('Got it', { variant: 'secondary', onClick: function () { store.markGuideSeen(); intro.remove(); } }));
+        host.appendChild(intro);
+      }
     }
+    // Simulation realm: a quiet pill when the market changed under the page, so rows never jump while you read.
+    var pill = h('button.mk-updates', { type: 'button', hidden: true, 'aria-live': 'polite' });
+    pill.addEventListener('click', function () { pill.hidden = true; refresh(false); });
+    host.appendChild(h('div.mk-updates-row', pill));
 
     var heroHost = id === 'discover' ? h('div.mk-hero-host') : null;
     if (heroHost) host.appendChild(heroHost);
@@ -389,7 +396,10 @@
             { label: 'Preview the layout with sample listings', variant: 'ghost', icon: 'eye', run: function () { store.session.showGlobalSample = true; store.emit('realm'); } }] }));
         return;
       }
-      var hints = K().relaxSuggestions(env.data.listings[realm === 'global' && !store.session.showGlobalSample ? 'simulation' : realm].filter(function (l) { return l.status === 'active' || l.status === 'ending'; }), state.filters, env.ctx);
+      var pool = ui.sim.live(realm)
+        ? ctx.api.listingsSync(realm, { tab: 'for-you', filters: K().emptyFilters(), limit: 400, facets: false, lockFormats: def.formats || null }).items.map(function (e) { return e.listing; })
+        : env.data.listings[realm === 'global' && !store.session.showGlobalSample ? 'simulation' : realm].filter(function (l) { return l.status === 'active' || l.status === 'ending'; });
+      var hints = K().relaxSuggestions(pool, state.filters, env.ctx);
       var extra = h('div.mk-hints');
       hints.forEach(function (hint) {
         var b = h('button.mk-hintbutton', { type: 'button' }, h('span', { text: hint.label }), h('small', { text: hint.count + ' listings' }));
@@ -397,7 +407,7 @@
         extra.appendChild(b);
       });
       results.appendChild(ui.emptyState({ kind: 'no-results', icon: 'search', title: 'No listings match',
-        body: 'Nothing fits every filter at once. Loosen one of these, or clear everything and start again.', extra: hints.length ? extra : null,
+        body: ui.sim.live(realm) && !pool.length ? 'No one in the Simulation is selling this right now. Traders list new cards through the day while the game is open.' : 'Nothing fits every filter at once. Loosen one of these, or clear everything and start again.', extra: hints.length ? extra : null,
         actions: [{ label: 'Clear all filters', variant: 'secondary', run: clearAll }] }));
     }
     function renderResults(res, append) {
@@ -482,7 +492,7 @@
       var copy = h('div.mk-hero-copy');
       copy.appendChild(ui.eyebrow('Featured · ' + ui.formatDef(l.format).label));
       copy.appendChild(h('h2', { text: idn.name }));
-      var why = main.rank.discount >= 0.05 && v.average ? 'Priced ' + ui.fmt.pct(main.rank.discount, false) + ' under an Average Value of ' + ui.fmt.exact(v.average) + '.' : 'A strong fit for your collection and budget.';
+      var why = main.rank.discount >= 0.05 && v.average ? (l.format === 'auction' && !(l.auction && l.auction.bids) ? 'Starts ' : 'Priced ') + ui.fmt.pct(main.rank.discount, false) + ' under an Average Value of ' + ui.fmt.exact(v.average) + '.' : 'A strong fit for your collection and budget.';
       copy.appendChild(h('p.mk-hero-why', { text: why }));
       var meta = h('div.mk-hero-meta', ui.chip(idn.rarityName, { tone: 'rarity' }));
       if (l.card.variantId) meta.appendChild(ui.chip(env.variants[l.card.variantId].name));
@@ -508,10 +518,40 @@
       heroHost.appendChild(shelf);
     }
 
+    // ---- live simulation updates ----
+    // Prices change in place, listings that closed are marked, and anything new waits behind the pill.
+    function liveUpdate() {
+      if (!ui.sim.live(realm) || !grid) return;
+      ui.sim.countdowns(results);
+      var res = ctx.api.listingsSync(realm, { tab: state.tab, filters: state.filters, limit: Math.max(pageSize, shown + 24), cursor: null, sort: state.sort || undefined, lockFormats: def.formats || null, facets: false });
+      var now = {}; res.items.forEach(function (e) { now[e.listing.id] = e.listing; });
+      var present = {}, changed = 0;
+      Array.prototype.forEach.call(grid.querySelectorAll('[data-id]'), function (node) {
+        var lid = node.dataset.id; present[lid] = true;
+        var l = now[lid];
+        if (!l) {
+          if (node.dataset.state !== 'gone') {
+            node.dataset.state = 'gone';
+            var top = node.querySelector('.mk-tile-top') || node.querySelector('.mk-tcell');
+            if (top) top.appendChild(h('span.mk-gone-note', { text: 'No longer open' }));
+          }
+          return;
+        }
+        var amount = node.querySelector('.mk-credits .mk-num'), p = K().currentPrice(l);
+        if (amount && l.format !== 'swap') {
+          var text = ui.fmt.credits(p);
+          if (amount.textContent !== text) { amount.textContent = text; var wrap = amount.parentNode; wrap.title = ui.fmt.exact(p) + ' Credits'; wrap.setAttribute('aria-label', ui.fmt.exact(p) + ' Credits'); }
+        }
+      });
+      res.items.forEach(function (e) { if (!present[e.listing.id]) changed++; });
+      if (changed) { pill.textContent = changed === 1 ? '1 new listing · Show' : changed + ' new listings · Show'; pill.hidden = false; } else pill.hidden = true;
+    }
+
     // ---- store-driven updates ----
     scope.add(store.subscribe(function (what) {
       if (what === 'filters' && id === 'discover') { state.filters = store.session.filters; state.pages = 1; buildRail(); refresh(true); }
       if (what === 'watch') { /* tile controls reflect themselves */ }
+      if (what === 'sim') liveUpdate();
     }));
     buildRail();
     refresh(false);
@@ -519,7 +559,7 @@
 
   // ---- Recent trades ----
   function mountRecentTrades(ctx, state) {
-    var host = ctx.host, realm = ctx.realm, env = ctx.env();
+    var host = ctx.host, realm = ctx.realm, env = ctx.env(), live = ui.sim.live(realm);
     var head = h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Discover' }), h('p', { text: 'Completed trades only. Listings, bids and Quick Sell never appear here.' })));
     host.appendChild(head);
     var tabs = ui.segmented({ label: 'Discover feeds', role: 'tablist', value: 'trades', options: cfg().tabs.map(function (t) { return { value: t.id, label: t.label }; }),
@@ -532,14 +572,14 @@
       if (ctx.scope.dead) return;
       if (!res.items.length) {
         listHost.appendChild(ui.emptyState({ kind: 'offline', icon: 'swap', title: realm === 'global' ? 'No real trades yet' : 'No trades yet',
-          body: realm === 'global' ? 'Global Market is not connected. When it is, every completed player trade appears here, and nothing else.' : 'Completed Simulation trades will appear here once the simulator is running.',
+          body: realm === 'global' ? 'Global Market is not connected. When it is, every completed player trade appears here, and nothing else.' : 'Completed Simulation trades appear here as traders buy and sell while the game is open.',
           actions: [{ label: 'Back to For You', variant: 'secondary', run: function () { state.tab = 'for-you'; ui.shell.remount(); } }] }));
         ctx.restoreScroll();
         return;
       }
       var table = h('div.mk-table.is-trades', { role: 'table', 'aria-label': 'Recent trades' });
       var head = h('div.mk-trow.mk-trow-head', { role: 'row' });
-      ['Card', 'Finish', 'Type', 'Price', 'vs Average', 'When'].forEach(function (t) { head.appendChild(h('div.mk-tcell', { role: 'columnheader', text: t })); });
+      (live ? ['Card', 'Finish', 'Type', 'Price', 'vs Average', 'Seller to buyer', 'When'] : ['Card', 'Finish', 'Type', 'Price', 'vs Average', 'When']).forEach(function (t) { head.appendChild(h('div.mk-tcell', { role: 'columnheader', text: t })); });
       table.appendChild(head);
       res.items.forEach(function (t) {
         var card = env.cards[t.cardId], idn = ui.identity(card, !!env.owned[t.cardId]);
@@ -548,12 +588,13 @@
         open.addEventListener('click', function () { ui.go('card', { id: t.cardId, variant: t.variantId || '' }); });
         row.append(h('div.mk-tcell', { role: 'cell' }, open), h('div.mk-tcell', { role: 'cell', text: t.variantId ? (env.variants[t.variantId] || {}).name : 'Normal' }),
           h('div.mk-tcell', { role: 'cell' }, h('span.mk-format', { data: { format: t.format } }, icon(ui.formatDef(t.format).icon), h('span', { text: ui.formatDef(t.format).short }))),
-          h('div.mk-tcell', { role: 'cell' }, ui.credits(t.price)), h('div.mk-tcell', { role: 'cell' }, ui.delta(t.vs, { label: 'vs Average' })),
+          h('div.mk-tcell', { role: 'cell' }, ui.credits(t.price)), h('div.mk-tcell', { role: 'cell' }, ui.delta(t.vs, { label: 'vs Average', empty: 'No reference' })),
+          live ? h('div.mk-tcell', { role: 'cell', title: [t.sellerWhy, t.buyerWhy].filter(Boolean).join(' · ') }, h('span', { text: t.seller + ' → ' + t.buyer }), t.you ? h('small.mk-you', { text: ' you' }) : null) : null,
           h('div.mk-tcell', { role: 'cell', text: ui.fmt.age(t.minutesAgo) }));
         table.appendChild(row);
       });
       listHost.appendChild(table);
-      listHost.appendChild(h('p.mk-hint', { text: 'Sample trades. Total shown: ' + ui.fmt.exact(res.volume) + ' Credits across ' + res.items.length + ' trades. These are invented and are not market volume.' }));
+      listHost.appendChild(h('p.mk-hint', { text: live ? 'The ' + res.items.length + ' most recent of ' + res.total + ' trades kept, ' + ui.fmt.exact(res.volume) + ' Credits in all. Every row was a completed sale between two traders; the fee is not included in the price.' : 'Sample trades. Total shown: ' + ui.fmt.exact(res.volume) + ' Credits across ' + res.items.length + ' trades. These are invented and are not market volume.' }));
       ctx.restoreScroll();
     });
   }

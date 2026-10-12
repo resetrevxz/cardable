@@ -93,6 +93,8 @@ The catalog currently supports one `variantId` per instance, finish-stack favori
 **Add a rarity:** see `docs/02-RARITIES.md` section 6.
 **Add a finish or prop:** new file in `src/finishes/`, register it, add the script tag.
 **Add a spec type on cards:** add a row to the formatter table in `src/ui/card-specs.js`.
+**Market (Beta, Stage 2):** `src/market/sim/` is the offline simulator behind the `simulation` realm: `engine.js` (ids, RNG, valuation, settlement), `world.js` (bots, personalities, the event queue), `player.js` (the player's actions, serialization, reconciliation), `runtime.js` (clock, freeze rules, persistence, injected dependencies), `game.js` (the only file that touches `C.state`, the document and localStorage) and `provider.js` (the read and write interface the UI uses). `src/data/market-sim.js` holds every tuning value. `src/ui/market/sim-controls.js` is the clock, onboarding, settings panel and confirmation dialog. The sections below describe Stage 1, which remains the sample-data provider for Global.
+
 **Market (Beta, Stage 1):** `config.flags.market` is on in the Market branch. `src/market/` holds the pure core (`core.js`), deterministic sample data (`fixtures.js`), the session and preview store (`store.js`) and the provider interface (`api.js`); `src/ui/market/` holds the shell, router and pages; `src/data/market-config.js` and `market-settings.js` hold every number, fee and label. The UI talks only to `C.market.api`; Stage 2 registers the offline simulator and Stage 4 the online client behind it. See `docs/market-beta/stage-1.md`.
 **Add sound later:** add `src/core/audio.js` behind `config.flags.audio` and subscribe to the events in section 4.
 

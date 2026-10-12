@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.6.3** (Market Beta 1.0.0 Stage 1 preview on `feature/market-beta`). The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.6.3** (Market Beta 1.0.0 Stage 2, offline simulation, on `feature/market-beta`). The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -122,14 +122,20 @@ The Market is a destination of the same game, not a second product. It uses the 
 | Chart | One SVG per page, drawn on data or size change; crosshair on a single group; keyboard arrows read each point; a table alternative is a native disclosure. Candles differ by shape (hollow up, filled down). Labelled Illustrative while the data is sample data. |
 | Filters | A rail on wide windows, a full panel on narrow ones. Multi-select pills with live counts that ignore their own facet, ranges, chips with remove, Clear all, presets, saved views and a no-results recovery that names single removals. Simple shows the essentials; Advanced adds finish, generation, brand, original pack, value ratio, fair value, serial, age and seller rating. |
 | Composer | Three steps: exact card (by serial, never a stack), type and terms, optional title and cover. A sticky preview shows the same tile, the fee and net proceeds. Custom duration exists only in Advanced. A draft saves locally and says so. |
-| Review | Every action that would trade opens a review that shows exact terms and states that nothing changed. The only primary action is Close preview. |
+| Review | In the sample realm every action that would trade opens a review that states nothing changed; the only primary action is Close preview. In the Simulation the same slot is a confirmation: exact card, exact terms, Credits now and after, one line saying what moves, and a primary action named for the act (Buy for 120, Place bid, List card). A refusal keeps the dialog open and says why. |
+| Simulation clock | A button in the header that always says the simulated day and time and whether it is running, paused or frozen. It opens one panel: Pause or Resume, Calm, Standard or Fast, a plain statement that time stops when the game is closed, hidden or paused, and a few world counts. On narrow windows it shortens to "D4 06:12". |
+| Live updates | Prices and countdowns change in place on the page you are reading; listings that closed are dimmed and say so; new listings wait behind a pill. Rows never jump. Detail pages rebuild their action area when the listing changes and keep what you typed. |
+| Offers and orders | A swap offer or buy order is a row with a plain status and one or two actions. Offered cards are locked and say so; a buy order's price is shown as held in the header wallet. |
+| Charts (Simulation) | Points sit where their trades happened in time, with start, middle and now labelled. A window with no trades draws nothing and says so. Dots mark real trades on the line. The badge reads Simulated trades. |
 | States | Skeleton, empty, no-results with recovery, offline realm, error with a way back, closed (sold, expired), outbid, leading, draft saved, unsaved changes, field error and disabled with a reason. All are in the UI gallery under Market. |
+
+**Simulation (Stage 2).** The Simulation realm is a real, offline market: software traders with their own Credits, cards and habits buy, sell, bid, swap and place buy orders on a seeded clock that runs only while Cardable is open and visible. Prices, valuations and charts come only from trades it executed. Your cards and Credits change exactly once per trade, in one save commit with a receipt. See [docs/market-beta/stage-2.md](docs/market-beta/stage-2.md).
 
 **Motion and cost.** Pages rise 10 px over the slow duration; tiles stagger up to eight. Everything stops for reduced motion, Hover animations off and Very Low. Feeds are cursor-paginated; thumbnails are created within a screen of the viewport and released beyond it; no tile owns a clock or a chart; the Market adds no scheduler subscriber and no idle loop.
 
 **Copy.** Sentence case. Terms follow the glossary in `src/data/market-config.js` (Average Value, Target Buy, Target Sell, Volume, Spread, Reserve, Proxy bid, Settlement, Escrow, Quick Sell, Realm), each reachable from a help control beside its first use. Never imply that a preview trade happened.
 
-**Settings.** Thirteen `market*` keys live in the shared schema under a Market page: detail level, starting realm, Discover layout, density, chart style, default window, Reduced data, Compact Credits, confirmation level, default auction length and three notice groups. Each changes something that exists in the build.
+**Settings.** Fourteen `market*` keys live in the shared schema under a Market page: detail level, starting realm, Discover layout, density, chart style, default window, Reduced data, Compact Credits, confirmation level, default auction length, simulation speed and three notice groups. Each changes something that exists in the build. A Simulation panel in Market settings holds pause, export, restore and reset.
 
 ## Appendix: retained gameplay, artwork and delivery contracts
 

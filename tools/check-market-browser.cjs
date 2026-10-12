@@ -1,5 +1,5 @@
 'use strict';
-// Cardable Market Beta, Stage 1: headless browser acceptance check.
+// Cardable Market Beta, Stage 1: headless browser acceptance check of the sample-data interface.
 // Loads the real index.html from disk, opens the Market and drives its sample-data flows at every target
 // size, graphics tier, theme and motion setting. Writes screenshots and a JSON evidence file.
 //   node tools/check-market-browser.cjs [--out qa-output/market-beta/screenshots] [--quick]
@@ -41,6 +41,8 @@ async function boot(browser, size, options) {
   await page.reload();
   await page.waitForFunction(() => window.Cardable && Cardable.state && Cardable.state.current && Cardable.state.current.tutorial && Cardable.state.current.tutorial.done);
   await page.waitForTimeout(1200);
+  // Stage 1 checks the sample-data interface; the live simulator is covered by check-market-sim-browser.cjs.
+  await page.evaluate(() => Cardable.market.api.useSample(true));
   if (options.settings) await page.evaluate((s) => Object.keys(s).forEach((k) => Cardable.settings.set(k, s[k])), options.settings);
   return { context, page };
 }

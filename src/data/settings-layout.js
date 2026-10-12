@@ -151,6 +151,7 @@
       { title: 'Formats', keys: ['timeFormat', 'dateFormat', 'numberFormat'] } ] },
     { id: 'Market', icon: 'mk-market', blurb: 'The trading preview: layout, charts and confirmations.', sections: [
       { title: 'Browsing', keys: ['marketMode', 'marketRealm', 'marketView', 'marketDensity', 'marketReducedData', 'marketCompactNumbers'] },
+      { title: 'Simulation', keys: ['marketSimSpeed'] },
       { title: 'Stocks', keys: ['marketChartType', 'marketWindow'] },
       { title: 'Trading', keys: ['marketConfirm', 'marketListingDuration'] },
       { title: 'Notices', keys: ['marketNotifyBids', 'marketNotifyTrades', 'marketNotifyWatch'] } ] },

@@ -1,0 +1,18 @@
+Seeds 5 days 30 (with arbitrageur)
+trades/day 26.2  volume/day 1557  fees burnt/day 45.0  allowance/day 58.5  packs/day 3.9
+bot credits start->end 51601 -> 54276  cards 501 -> 608
+poor bots 0.0  gini 0.51  max 9542  median 925
+price/baseline p10/p50/p90 0.89 / 0.96 / 1.04  sell-through 0.78  open listings 88  state KB 649
+mean trade price / fair at the time 0.966
+max trades of one card 7  repeat trades inside a day 2.8  audit problems 0
+edge 0.12 arbitrageur profit per seed 27, 74, 741, 757, 302  realized (cash, held stock at cost) 15, 39, 6, 79, 2  buys 13, 14, 34, 32, 12
+by persona (per bot): bought / sold / credits
+  collector      27.7 / 6.8 / 669
+  investor       1.8 / 12.1 / 2427
+  hunter         1.4 / 13.9 / 1131
+  flipper        42.5 / 49.3 / 1060
+  completionist  27.8 / 9.8 / 2869
+  specialist     14.8 / 22.8 / 2257
+  cautious       10.3 / 15.3 / 951
+  risk           5.5 / 13.3 / 1046
+  hype           76.9 / 68.7 / 1157

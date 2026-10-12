@@ -20,7 +20,7 @@
   ui.pages = { register: function (name, def) { pages[name] = def; }, get: function (name) { return pages[name]; } };
   ui.TABS = TABS;
 
-  var el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, noticeHost;
+  var el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, noticeHost, simChip;
   var opened = false, stack = [], current = null, pageScope = null, savedFocus = null, inertRecords = [], mounting = false, suggestPop = null;
   var returnFocusKey = null;
 
@@ -159,8 +159,11 @@
     walletEl.appendChild(icon('coin', 'mk-coin'));
     if (wallet.balance == null) walletEl.appendChild(h('span.mk-wallet-off', { text: 'Not connected' }));
     else walletEl.appendChild(h('span.mk-num', { text: ui.fmt.credits(wallet.balance, true) }));
-    walletEl.title = wallet.balance == null ? wallet.note : ui.fmt.exact(wallet.balance) + ' Credits. ' + wallet.note;
-    walletEl.setAttribute('aria-label', (wallet.balance == null ? 'Global Market wallet: not connected' : 'Simulation balance: ' + ui.fmt.exact(wallet.balance) + ' Credits') + '. Open Portfolio');
+    var held = wallet.held || 0;
+    walletEl.title = wallet.balance == null ? wallet.note : ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held by open bids and orders' : '') + '. ' + wallet.note;
+    walletEl.setAttribute('aria-label', (wallet.balance == null ? 'Global Market wallet: not connected' : 'Your balance: ' + ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held' : '')) + '. Open Portfolio');
+    if (held) walletEl.appendChild(h('span.mk-wallet-held', { text: '−' + ui.fmt.credits(held, true) + ' held', 'aria-hidden': 'true' }));
+    if (simChip) simChip.hidden = frameRealm() !== 'simulation';
     realmSwitch.set(frameRealm());
     ui.clear(noticeHost);
     noticeHost.appendChild(ui.noticeBar(frameRealm()));
@@ -265,7 +268,8 @@
     var guideBtn = ui.iconButton('info', 'Market guide and glossary', function () { openGuide(guideBtn); }, { variant: 'ghost' });
     var closeBtn = ui.iconButton('close', 'Close Market', function () { close(); }, { variant: 'ghost' });
     closeBtn.classList.add('mk-close');
-    end.append(walletEl, guideBtn, closeBtn);
+    simChip = ui.sim.statusChip();
+    end.append(simChip, walletEl, guideBtn, closeBtn);
     var realmHost = h('div.mk-realm-host', realmSwitch);
     headerEl.append(brand, search, realmHost, end);
     ui.shell.searchField = search;
@@ -309,9 +313,13 @@
   function openMore(anchor) {
     ui.popover(anchor, function (close) {
       var box = h('div.mk-more', { role: 'menu' });
-      [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell'], ['my-listings', 'My listings', 'layers'], ['settings', 'Market settings', 'sliders']].forEach(function (r) {
+      [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell'], ['my-listings', 'My listings', 'layers'], ['settings', 'Market settings', 'sliders'], ['guide', 'Market guide', 'info']].forEach(function (r) {
         var b = h('button.mk-more-item', { type: 'button', role: 'menuitem' }, icon(r[2]), h('span', { text: r[1] }));
-        b.addEventListener('click', function () { close(); if (TABS.some(function (t) { return t.id === r[0]; })) goTab(r[0]); else go(r[0], {}); });
+        b.addEventListener('click', function () {
+          close();
+          if (r[0] === 'guide') { openGuide(moreButton); return; }
+          if (TABS.some(function (t) { return t.id === r[0]; })) goTab(r[0]); else go(r[0], {});
+        });
         box.appendChild(b);
       });
       return box;
@@ -330,7 +338,9 @@
       realms.appendChild(h('div.mk-guide-realm', { data: { realm: r.id } }, ui.realmBadge(r.id), h('p', { text: r.blurb })));
     });
     intro.appendChild(realms);
-    intro.appendChild(h('p.mk-guide-note', { text: 'In this build every listing, price and trade is invented sample data. You can browse, filter, watch and draft, but nothing is bought, sold or saved to your collection.' }));
+    intro.appendChild(h('p.mk-guide-note', { text: C.market.api.simulationLive
+      ? 'The Simulation is a working market on this device. Its traders are bots, its prices come only from trades they and you complete, and its clock stops whenever Cardable is closed, hidden or paused. Global Market is not connected in this build, so it has no listings.'
+      : 'In this build every listing, price and trade is invented sample data. You can browse, filter, watch and draft, but nothing is bought, sold or saved to your collection.' }));
     intro.appendChild(h('h3', { text: 'Glossary' }));
     var dl = h('dl.mk-glossary');
     cfg().glossary.forEach(function (g) { dl.appendChild(h('div', h('dt', { text: g.term }), h('dd', { text: g.body }))); });
@@ -347,6 +357,7 @@
     if (C.commands && C.commands.active) C.commands.close();
     if (C.preferences && C.preferences.open) C.preferences.close();
     if (C.contextMenu && C.contextMenu.open) C.contextMenu.close();
+    if (store.session.realm === 'simulation' && C.marketSim) { try { C.marketSim.ensure(true); } catch (error) { console.error('Market simulation could not start', error); } }
     build();
     opened = true; savedFocus = doc.activeElement;
     el.hidden = false;
@@ -461,7 +472,23 @@
     });
     var sync = function () { if (opened) updateChrome(); };
     ['currency:changed', 'save:written'].forEach(function (name) { C.events.on(name, sync); });
-    if (C.data.market) doc.documentElement.dataset.market = 'preview';
+    // The simulator's clock and trades reach the open Market through one throttled path.
+    var simTimer = 0, simQueued = '';
+    function flushSim(kind) {
+      if (!opened) return;
+      ui.sim.refresh(); updateChrome();
+      if (kind === 'reset') { mount(current, { forward: false, focus: false }); return; }
+      store.emit('sim');
+    }
+    function onSim(kind) {
+      if (!opened) return;
+      if (kind === 'reset') { flushSim('reset'); return; }
+      if (simTimer) { simQueued = kind; return; }
+      flushSim(kind);
+      simTimer = root.setTimeout(function () { simTimer = 0; if (simQueued) { var k = simQueued; simQueued = ''; flushSim(k); } }, 500);
+    }
+    if (C.marketSim && C.marketSim.runtime) C.marketSim.runtime.subscribe(onSim);
+    C.events.on('market:settled', function () { if (opened) { updateChrome(); store.emit('sim'); } });
   }
   C.market.init = function () {
     if (C.market.initialized) return; C.market.initialized = true;

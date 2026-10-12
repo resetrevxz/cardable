@@ -1,6 +1,6 @@
 (function (C) {
   'use strict';
-  var reasons = ['pack opening','reveal duplicate','shop','delete refund','cutscene unlock','dev','achievement reward'];
+  var reasons = ['pack opening','reveal duplicate','shop','delete refund','cutscene unlock','dev','achievement reward','market sale','market purchase','market swap'];
   function normalize(value) {
     var daily=value&&value.daily&&typeof value.daily==='object'&&!Array.isArray(value.daily)?value.daily:{};
     var days={};Object.keys(daily).slice(-32).forEach(function(day){var d=daily[day];if(/^\d{4}-\d{2}-\d{2}$/.test(day)&&d&&Number.isSafeInteger(d.earned)&&d.earned>=0&&Number.isSafeInteger(d.spent)&&d.spent>=0)days[day]={earned:d.earned,spent:d.spent};});
@@ -28,14 +28,15 @@
   }
   function transact(amount, direction, reason) {
     if(!Number.isSafeInteger(amount)||amount<0)throw new TypeError('Invalid currency amount');
-    var before=C.state.current.currency;
-    if(direction<0&&amount>before){C.events.emit('currency:insufficient',{requested:amount,available:before});return false;}
+    var before=C.state.current.currency, held=C.marketSim&&C.marketSim.heldCredits?C.marketSim.heldCredits():0;
+    // Credits held for an open bid or buy order are not free to spend.
+    if(direction<0&&amount>before-held){C.events.emit('currency:insufficient',{requested:amount,available:Math.max(0,before-held)});return false;}
     var candidate=JSON.parse(C.state.encode(C.state.current)); applyInto(candidate,amount*direction,reason||'dev');
     if(!C.state.commit(candidate))return false; notify(before,reason||'dev'); return candidate.currency;
   }
   C.currency={normalize:normalize,applyInto:applyInto,notify:notify,reasons:reasons,
     add:function(amount,reason){return transact(amount,1,reason);},spend:function(amount,reason){return transact(amount,-1,reason);},
-    canAfford:function(amount){if(!Number.isSafeInteger(amount)||amount<0)throw new TypeError('Invalid currency amount');return C.state.current.currency>=amount;},
+    canAfford:function(amount){if(!Number.isSafeInteger(amount)||amount<0)throw new TypeError('Invalid currency amount');return C.state.current.currency-(C.marketSim&&C.marketSim.heldCredits?C.marketSim.heldCredits():0)>=amount;},
     today:function(save,now){var date=new Date(now==null?C.clock.now():now);var day=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0'),wallet=normalize(save.wallet);if(wallet.daily[day])return wallet.daily[day];date.setHours(0,0,0,0);var earned=0,spent=0;normalize(save.wallet).log.forEach(function(e){if(e.at>=date.getTime()){if(e.delta>0)earned+=e.delta;else spent-=e.delta;}});return {earned:earned,spent:spent};}
   };
 })(window.Cardable);

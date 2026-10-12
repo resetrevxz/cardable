@@ -34,8 +34,10 @@
     "release:github": "node tools/release-github.cjs",
     "test:mini": "node tools/test-mini-mode.cjs",
     "test:merged-collections": "node tools/check-merged-collections.cjs",
-    "test:market": "node --test tests/market-core.test.cjs",
-    "check:market": "node tools/check-market-browser.cjs"
+    "test:market": "node --test tests/market-core.test.cjs tests/market-sim.test.cjs tests/market-sim-provider.test.cjs",
+    "check:market": "node tools/check-market-browser.cjs",
+    "check:market-sim": "node tools/check-market-sim-browser.cjs",
+    "sim:experiment": "node tools/sim-experiment.cjs"
   },
   "dependencies": {
     "discord-rpc": "^4.0.1",

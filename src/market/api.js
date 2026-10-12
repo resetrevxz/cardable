@@ -11,12 +11,12 @@
 
   var CONTRACT = {
     version: 1,
-    reads: ['status', 'wallet', 'listings', 'listing', 'cardMarket', 'trades', 'stocks', 'portfolio', 'activity', 'inventory', 'suggest'],
-    writes: ['purchase', 'placeBid', 'publishListing', 'cancelListing', 'makeOffer', 'respondToOffer', 'quickSell'],
+    reads: ['status', 'wallet', 'listings', 'listing', 'cardMarket', 'trades', 'stocks', 'portfolio', 'activity', 'inventory', 'suggest', 'valuation'],
+    writes: ['purchase', 'placeBid', 'buyout', 'publishListing', 'cancelListing', 'placeOrder', 'cancelOrder', 'makeOffer', 'respondToOffer', 'withdrawOffer', 'quickSell'],
     errors: { 'not-connected': 'This realm is not connected in this build.', 'preview-only': 'This is a preview. Nothing was changed.' }
   };
 
-  var providers = {}, dataset = null, datasetKey = '';
+  var providers = {}, dataset = null, datasetKey = '', simulationLive = false, simProvider = null;
 
   function catalogKey() { return C.data.cards.length + ':' + C.data.rarities.length + ':' + C.data.variants.length; }
   function data() {
@@ -57,8 +57,9 @@
       var r = base.rarities[base.cards[id].rarity];
       if (r && r.finish === 'secret' && !p.owned[id]) concealed[id] = true;
     });
+    var held = realm === 'simulation' && C.marketSim && C.marketSim.heldCredits ? C.marketSim.heldCredits() : 0;
     return Object.assign({}, base, {
-      budget: realm === 'simulation' ? p.currency : null,
+      budget: realm === 'simulation' ? Math.max(0, p.currency - held) : null,
       owned: p.owned, wishlist: p.wishlist, watch: watch, concealed: concealed
     });
   }
@@ -202,6 +203,10 @@
       if (p.inventory.length) return { items: p.inventory, demo: false };
       return { items: data().sampleInventory(), demo: true };
     },
+    valuation: function (realm, spec) {
+      var v = data().valuation({ cardId: spec.cardId, variantId: spec.variantId || null, cardSkinId: spec.cardSkinId || null });
+      return v ? Object.assign({}, v, { sample: true }) : null;
+    },
     suggest: function (realm, text) {
       var d = data(), k = K(), q = String(text || '').trim().toLowerCase();
       if (!q) return { cards: [], listings: [], sellers: [] };
@@ -229,9 +234,18 @@
     playerState: playerState,
     registerProvider: function (realm, provider) {
       CONTRACT.reads.concat(CONTRACT.writes).forEach(function (m) { if (typeof provider[m] !== 'function') throw new Error('Market provider is missing ' + m); });
+      if (realm === 'simulation') { simulationLive = true; simProvider = provider; }
       providers[realm] = provider;
     },
-    providerFor: resolve
+    // Developer and test hook: show the Simulation realm from the Stage 1 sample data instead of the live simulator.
+    useSample: function (on) {
+      if (!simProvider) return false;
+      providers.simulation = on ? sampleProvider : simProvider;
+      simulationLive = !on;
+      return true;
+    },
+    providerFor: resolve,
+    get simulationLive() { return simulationLive; }
   };
   CONTRACT.reads.forEach(function (name) {
     api[name] = function () {
@@ -241,6 +255,12 @@
     // A synchronous twin for rendering paths that already hold the provider's sample data in memory.
     api[name + 'Sync'] = function () { var args = Array.prototype.slice.call(arguments); return resolve(args[0] || C.market.store.session.realm)[name].apply(null, args); };
   });
-  CONTRACT.writes.forEach(function (name) { api[name] = function () { var args = Array.prototype.slice.call(arguments); return resolve(args[0] || C.market.store.session.realm)[name].apply(null, args); }; });
+  CONTRACT.writes.forEach(function (name) {
+    api[name] = function () {
+      var args = Array.prototype.slice.call(arguments), realm = args[0] || C.market.store.session.realm;
+      return Promise.resolve().then(function () { return resolve(realm)[name].apply(null, args); });
+    };
+    api[name + 'Sync'] = function () { var args = Array.prototype.slice.call(arguments); return resolve(args[0] || C.market.store.session.realm)[name].apply(null, args); };
+  });
   C.market.api = api;
 })(window.Cardable = window.Cardable || {});

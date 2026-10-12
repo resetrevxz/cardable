@@ -259,7 +259,7 @@
     var el = h('span.mk-seller');
     el.appendChild(icon(seller.isBot ? 'layers' : 'user'));
     el.appendChild(h('span.mk-seller-alias', { text: seller.alias }));
-    if (!options.compact) el.appendChild(h('span.mk-seller-meta', { text: seller.isBot ? (seller.personaLabel || 'Simulation bot') : seller.sales + ' sales' }));
+    if (!options.compact) el.appendChild(h('span.mk-seller-meta', { text: seller.isYou ? 'Your listing' : seller.isBot ? (seller.personaLabel || 'Simulation bot') : seller.sales + ' sales' }));
     return el;
   }
   ui.sellerLine = sellerLine;
@@ -278,7 +278,7 @@
     var top = h('div.mk-tile-top');
     var f = h('span.mk-format', { data: { format: l.format } }, icon(fmtDef.icon), h('span', { text: fmtDef.short }));
     top.appendChild(f);
-    if (l.format === 'auction' && l.endsMin != null) top.appendChild(h('span.mk-time' + (l.endsMin <= 60 ? '.is-urgent' : ''), { title: 'Time left in this auction' }, icon('clock'), h('span.mk-num', { text: fmt.duration(l.endsMin) })));
+    if (l.format === 'auction' && l.endsMin != null) top.appendChild(h('span.mk-time' + (l.endsMin <= 60 ? '.is-urgent' : ''), { title: 'Time left in this auction', data: l.endsAt ? { end: String(l.endsAt) } : {} }, icon('clock'), h('span.mk-num', { text: fmt.duration(l.endsMin) })));
     art.appendChild(top);
     var watch = h('button.mk-watch', { type: 'button', 'aria-pressed': String(watching), 'aria-label': (watching ? 'Remove from watchlist: ' : 'Add to watchlist: ') + id.name, title: watching ? 'Watching' : 'Watch' }, icon('bookmark'));
     watch.addEventListener('click', function (e) {
@@ -320,7 +320,7 @@
     if (reason) body.appendChild(h('p.mk-tile-reason', { data: { reason: reason.id } }, h('span', { text: reason.label })));
     var foot = h('div.mk-tile-foot');
     foot.appendChild(sellerLine(l.seller, { compact: true }));
-    foot.appendChild(h('span.mk-mono.mk-serial', { text: l.card.serial.replace('CBL-', ''), title: 'Sample serial ' + l.card.serial }));
+    foot.appendChild(h('span.mk-mono.mk-serial', { text: l.card.serial.replace('CBL-', ''), title: 'Serial ' + l.card.serial }));
     body.appendChild(foot);
     tile.appendChild(body);
     var name = [l.title || id.name, id.rarityName, variant ? variant.name : 'normal finish', fmtDef.label, l.format === 'swap' ? 'wants ' + l.swap.wanted[0].label : fmt.exact(price) + ' Credits'];
@@ -361,7 +361,7 @@
     cell('price', l.format === 'swap' ? h('span.mk-muted', { text: l.swap.topUp ? '±' + fmt.credits(l.swap.topUp) : 'Even' }) : credits(price));
     cell('vs', l.format === 'swap' ? '—' : valueTag(price, l.valuation, true));
     cell('change', l.format === 'swap' ? '—' : delta(l.valuation.change24h, { empty: '—' }));
-    cell('ends', l.format === 'auction' ? h('span.mk-num', { text: fmt.duration(l.endsMin) }) : '—');
+    cell('ends', l.format === 'auction' ? h('span.mk-num.mk-countdown', { data: l.endsAt ? { end: String(l.endsAt) } : {}, text: fmt.duration(l.endsMin) }) : '—');
     cell('seller', sellerLine(l.seller, { compact: true }));
     cell('serial', h('span.mk-mono', { text: l.card.serial.replace('CBL-', '') }));
     var watching = C.market.store.isWatching(l.id);
@@ -375,7 +375,13 @@
   // ---- activity glyphs ----
   ui.activityMeta = {
     outbid: { icon: 'down', label: 'Outbid', group: 'bids' }, ending: { icon: 'clock', label: 'Ending soon', group: 'bids' }, leading: { icon: 'up', label: 'Leading', group: 'bids' },
-    sold: { icon: 'coin', label: 'Sold', group: 'trades' }, won: { icon: 'check', label: 'Won', group: 'trades' }, expired: { icon: 'clock', label: 'Expired', group: 'trades' },
+    bid: { icon: 'gavel', label: 'New bid', group: 'bids' }, lost: { icon: 'clock', label: 'Auction ended', group: 'bids' },
+    sold: { icon: 'coin', label: 'Sold', group: 'trades' }, bought: { icon: 'check', label: 'Bought', group: 'trades' }, won: { icon: 'check', label: 'Won', group: 'trades' },
+    expired: { icon: 'clock', label: 'Expired', group: 'trades' }, order: { icon: 'tag', label: 'Buy order filled', group: 'trades' }, 'order-expired': { icon: 'clock', label: 'Buy order ended', group: 'trades' },
+    swapped: { icon: 'swap', label: 'Swap complete', group: 'trades' }, offer: { icon: 'swap', label: 'Swap offer', group: 'trades' }, counter: { icon: 'swap', label: 'Counter-offer', group: 'trades' },
+    declined: { icon: 'close', label: 'Declined', group: 'trades' }, 'offer-expired': { icon: 'clock', label: 'Offer expired', group: 'trades' },
+    cancelled: { icon: 'info', label: 'Withdrawn', group: 'trades' }, withdrawn: { icon: 'info', label: 'Listing removed', group: 'trades' }, failed: { icon: 'warn', label: 'Could not complete', group: 'trades' },
+    void: { icon: 'warn', label: 'Cancelled', group: 'trades' }, conflict: { icon: 'warn', label: 'Needs a look', group: 'trades' },
     price: { icon: 'bell', label: 'Price alert', group: 'watch' }, watch: { icon: 'bookmark', label: 'Watchlist', group: 'watch' }
   };
 })(window.Cardable = window.Cardable || {}, window);

@@ -252,5 +252,5 @@
     };
   }
 
-  C.market.fixtures = { build: build, SAMPLE_PLAYER_CODE: SAMPLE_PLAYER_CODE, PERSONAS: PERSONAS, demoSerial: demoSerial };
+  C.market.fixtures = { build: build, SAMPLE_PLAYER_CODE: SAMPLE_PLAYER_CODE, PERSONAS: PERSONAS, demoSerial: demoSerial, ADJECTIVES: ADJECTIVES, NOUNS: NOUNS };
 })(window.Cardable = window.Cardable || {});

@@ -1,0 +1,219 @@
+{
+  "when": "2026-10-12T20:45:34.869Z",
+  "steps": [
+    {
+      "name": "provider is registered and the world has traders, listings and history",
+      "ok": true,
+      "ms": 89,
+      "detail": {
+        "live": true,
+        "bots": 36,
+        "trades": 72,
+        "open": 35,
+        "kinds": [
+          "auction",
+          "fixed",
+          "swap"
+        ]
+      }
+    },
+    {
+      "name": "the clock chip shows a running simulated day and opens its controls",
+      "ok": true,
+      "ms": 566,
+      "detail": null
+    },
+    {
+      "name": "buying a fixed-price listing through the interface moves the card and the Credits exactly once",
+      "ok": true,
+      "ms": 897,
+      "detail": {
+        "price": 440,
+        "before": 3000,
+        "after": 2560
+      }
+    },
+    {
+      "name": "a proxy bid holds Credits, shows leading, and the hold is released when the auction ends",
+      "ok": true,
+      "ms": 1402,
+      "detail": {
+        "won": true,
+        "price": 22,
+        "max": 60
+      }
+    },
+    {
+      "name": "listing a card locks it, a sale pays the net once, and a locked card cannot be deleted",
+      "ok": true,
+      "ms": 997,
+      "detail": {
+        "listing": "Lbz",
+        "price": 118,
+        "deletionRule": {
+          "blocked": true,
+          "listed": true
+        }
+      }
+    },
+    {
+      "name": "a listed card sells at most once and its net lands in the save",
+      "ok": true,
+      "ms": 446,
+      "detail": {
+        "sales": 1,
+        "net": 116
+      }
+    },
+    {
+      "name": "withdrawing a listing returns the card unlocked",
+      "ok": true,
+      "ms": 787,
+      "detail": null
+    },
+    {
+      "name": "a swap offer locks the offered card and withdrawing releases it",
+      "ok": true,
+      "ms": 4373,
+      "detail": null
+    },
+    {
+      "name": "a buy order reserves its price and can be cancelled",
+      "ok": true,
+      "ms": 975,
+      "detail": null
+    },
+    {
+      "name": "pausing stops simulated time and resuming does not jump it",
+      "ok": true,
+      "ms": 7259,
+      "detail": null
+    },
+    {
+      "name": "a hidden document freezes the clock and returning does not catch up",
+      "ok": true,
+      "ms": 4739,
+      "detail": null
+    },
+    {
+      "name": "a reload keeps the world, an open bid and its hold",
+      "ok": true,
+      "ms": 517,
+      "detail": null
+    },
+    {
+      "name": "exporting, resetting and restoring brings the world back; cards and Credits are untouched by a reset",
+      "ok": true,
+      "ms": 1454,
+      "detail": null
+    },
+    {
+      "name": "speed settings change the rate and Calm is slower than Fast",
+      "ok": true,
+      "ms": 6084,
+      "detail": null
+    },
+    {
+      "name": "every target size keeps the clock chip, wallet and pages inside the frame (no horizontal scroll)",
+      "ok": true,
+      "ms": 26633,
+      "detail": [
+        {
+          "size": "desktop-1920x1080",
+          "label": "discover",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        },
+        {
+          "size": "desktop-1920x1080",
+          "label": "listing",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        },
+        {
+          "size": "laptop-1366x768",
+          "label": "discover",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        },
+        {
+          "size": "laptop-1366x768",
+          "label": "listing",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        },
+        {
+          "size": "tablet-768x1024",
+          "label": "discover",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        },
+        {
+          "size": "tablet-768x1024",
+          "label": "listing",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        },
+        {
+          "size": "phone-390x844",
+          "label": "discover",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        },
+        {
+          "size": "phone-390x844",
+          "label": "listing",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        },
+        {
+          "size": "phone-360x800",
+          "label": "discover",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        },
+        {
+          "size": "phone-360x800",
+          "label": "listing",
+          "scroll": 0,
+          "chipInside": true,
+          "overlap": false,
+          "offenders": []
+        }
+      ]
+    },
+    {
+      "name": "saved monochrome and reduced motion keep the simulation readable",
+      "ok": true,
+      "ms": 2742,
+      "detail": null
+    },
+    {
+      "name": "no console errors, page errors or network requests were made",
+      "ok": true,
+      "ms": 0,
+      "detail": null
+    }
+  ],
+  "console": [],
+  "pageErrors": [],
+  "network": []
+}
