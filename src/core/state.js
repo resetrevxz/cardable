@@ -71,6 +71,7 @@
     base.unlocks = C.cutsceneUnlocks.normalize(value.unlocks);
     if (value.studio !== undefined && C.studioScenes) base.studio = C.studioScenes.normalize(value.studio);
     if (value.achievements !== undefined) base.achievements = C.achievements ? C.achievements.normalize(value.achievements) : value.achievements;
+    if (value.shop !== undefined) base.shop = C.shopState.normalize(value.shop);
     return base;
   }
   function validate(value, strict) {
