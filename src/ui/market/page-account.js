@@ -358,6 +358,7 @@
     var advanced = C.settings.get('marketMode') === 'advanced';
     var layout = h('div.mk-settings');
     host.appendChild(layout);
+    layout.appendChild(ui.online.settingsPanel(ctx));
     if (ui.sim.live('simulation')) layout.appendChild(ui.sim.settingsPanel(ctx));
     page.sections.forEach(function (section) {
       var visible = section.keys.filter(function (key) { return advanced || !C.settingsSchema.entries[key].advanced; });

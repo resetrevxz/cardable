@@ -459,6 +459,7 @@
       if (!opened) return;
       if (what === 'realm') { updateChrome(); mount(current, { forward: false, focus: false }); }
       else if (what === 'watch' || what === 'alerts' || what === 'notifications' || what === 'cleared') updateChrome();
+      else if (what === 'online') { updateChrome(); if (frameRealm() === 'global' && current && current.name !== 'settings') mount(current, { forward: false, focus: false }); }
     });
     C.settings.onChange('*', function (_, key) {
       if (!opened || typeof key !== 'string' || key.indexOf('market') !== 0) return;

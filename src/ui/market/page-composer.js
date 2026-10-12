@@ -598,11 +598,11 @@
       if (draft.format === 'swap') rows.push({ label: 'You would accept', value: draft.wanted.map(function (w) { return w.type === 'card' ? (env.cards[w.cardId] || {}).name : w.type === 'rarity' ? (env.rarities[w.rarity] || {}).name + ' or better' : (env.variants[w.variant] || {}).name; }).filter(Boolean).join(', ') });
       rows.push({ label: cfg().fee.label, value: result.fee ? '− ' + ui.fmt.exact(result.fee) + ' Credits' : 'None' });
       rows.push({ label: 'Estimated net proceeds', value: ui.fmt.exact(result.net) + ' Credits', strong: true });
-      rows.push({ label: 'Realm', value: ui.realmDef(realm).label + (realm === 'global' ? ' (not connected)' : ' (preview)') });
+      rows.push({ label: 'Realm', value: ui.realmDef(realm).label + (realm === 'global' ? (C.market.online && C.market.online.state.status === 'online' ? ' (beta, trading opens later)' : ' (not connected)') : ' (preview)') });
       rows.push({ label: 'Held in escrow', value: sel.length === 1 ? '1 card' : sel.length + ' cards' });
       if (draft.title) rows.push({ label: 'Title', value: draft.title });
       if (draft.cover.kind !== 'card') rows.push({ label: 'Cover', value: draft.cover.name || 'Image' });
-      ui.review({ title: 'Review listing', rows: rows, note: realm === 'global' ? 'Global Market is not connected, so this listing could not be published. Nothing was sent or saved to your collection.' : 'Nothing was listed and no card was locked. Publishing opens with the simulator in a later update. Your draft stays on this device.' });
+      ui.review({ title: 'Review listing', rows: rows, note: realm === 'global' ? (C.market.online && C.market.online.state.status === 'online' ? 'Global Market is connected, but players cannot list yet: trading opens in a later beta stage. Nothing was sent, held or changed. Your draft stays on this device.' : 'Global Market is not connected, so this listing could not be published. Nothing was sent or saved to your collection.') : 'Nothing was listed and no card was locked. Publishing opens with the simulator in a later update. Your draft stays on this device.' });
     }
 
     // ---- assemble ----

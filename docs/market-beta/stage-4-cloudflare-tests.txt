@@ -1,0 +1,25 @@
+✔ status is public, versioned and carries no secret; unknown paths answer with a trace id (6371.2354ms)
+✔ registering gives a private account, a two word alias, tokens and a one-time recovery code (114.1416ms)
+✔ public names are unique across many accounts (932.566ms)
+✔ a tampered, missing or logged-out token is refused at once (105.2813ms)
+✔ refresh rotates the token and a copied old token ends the session (94.9105ms)
+✔ the recovery code opens a new session on another device and a wrong one does not (95.183ms)
+✔ registration is rate limited per network address (73.595ms)
+✔ import: preview then commit once, with a signed receipt, and the cards appear in the online inventory (160.3276ms)
+✔ import: a package another account already claimed, and serials already owned, are refused (144.7254ms)
+✔ import: implausible, malformed and damaged packages are refused with a reason (164.7261ms)
+✔ simultaneous imports of one collection by two accounts: exactly one wins and no card is duplicated (194.9ms)
+✔ simultaneous commits by one account import once (126.0643ms)
+✔ an interrupted import leaves nothing behind and the account can still import (1181.3267ms)
+✔ accounts cannot see or use each other's data (258.7293ms)
+✔ the database enforces its own rules: negative balances, duplicate serials, bad formats, orphan rows (9104.4384ms)
+✔ errors carry a code and a trace id and never a stack (16.193ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20837.1106
+exit 0

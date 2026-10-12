@@ -16,7 +16,7 @@
     errors: { 'not-connected': 'This realm is not connected in this build.', 'preview-only': 'This is a preview. Nothing was changed.' }
   };
 
-  var providers = {}, dataset = null, datasetKey = '', simulationLive = false, simProvider = null;
+  var providers = {}, dataset = null, datasetKey = '', simulationLive = false, simProvider = null, globalProvider = null;
 
   function catalogKey() { return C.data.cards.length + ':' + C.data.rarities.length + ':' + C.data.variants.length; }
   function data() {
@@ -226,7 +226,11 @@
   providers.simulation = sampleProvider;
   providers.global = sampleProvider;
 
-  function resolve(realm) { return providers[realm] || sampleProvider; }
+  // The developer's sample layout for Global (?dev=1) always reads the Stage 1 sample data, never the online client.
+  function resolve(realm) {
+    if (realm === 'global' && C.market.store && C.market.store.session.showGlobalSample) return sampleProvider;
+    return providers[realm] || sampleProvider;
+  }
   var api = {
     contract: CONTRACT,
     data: data,
@@ -235,13 +239,14 @@
     registerProvider: function (realm, provider) {
       CONTRACT.reads.concat(CONTRACT.writes).forEach(function (m) { if (typeof provider[m] !== 'function') throw new Error('Market provider is missing ' + m); });
       if (realm === 'simulation') { simulationLive = true; simProvider = provider; }
+      if (realm === 'global') globalProvider = provider;
       providers[realm] = provider;
     },
     // Developer and test hook: show the Simulation realm from the Stage 1 sample data instead of the live simulator.
     useSample: function (on) {
-      if (!simProvider) return false;
-      providers.simulation = on ? sampleProvider : simProvider;
-      simulationLive = !on;
+      if (!simProvider && !globalProvider) return false;
+      if (simProvider) { providers.simulation = on ? sampleProvider : simProvider; simulationLive = !on; }
+      if (globalProvider) providers.global = on ? sampleProvider : globalProvider;
       return true;
     },
     providerFor: resolve,

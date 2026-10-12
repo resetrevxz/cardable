@@ -1,0 +1,16 @@
+{
+  "name": "cardable-market-beta-api",
+  "private": true,
+  "version": "0.4.0",
+  "type": "module",
+  "description": "Cardable Market Beta online API (beta/staging only). Not part of the shipped game.",
+  "scripts": {
+    "catalog": "node scripts/build-catalog.cjs",
+    "dev": "wrangler dev --local",
+    "test": "node --test test/api.test.mjs",
+    "deploy:check": "node scripts/deploy.cjs --check"
+  },
+  "devDependencies": {
+    "wrangler": "^4.149.0"
+  }
+}

@@ -766,6 +766,11 @@ textarea.mk-input { padding: 10px 12px; resize: vertical; min-height: 84px; line
 .mk-chart-dot { fill: var(--accent); stroke: var(--ink-0); stroke-width: 1; }
 .mk-chart-axis text { fill: var(--text-faint); font: 500 10px var(--font-mono); }
 .mk-field-error.is-inline { margin: 0; }
+.mk-online-body { display: flex; flex-direction: column; gap: var(--s-3); }
+.mk-recovery { margin: 0; padding: 12px 14px; border: 1px dashed var(--hairline-strong); border-radius: var(--radius-control); font-size: 18px; letter-spacing: .08em; text-align: center; user-select: all; }
+.mk-importlist { display: flex; flex-direction: column; max-height: 240px; overflow: auto; border: 1px solid var(--hairline); border-radius: var(--radius-control); }
+.mk-importlist li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; padding: 7px 12px; font-size: 13px; border-bottom: 1px solid var(--hairline); }
+.mk-realm-badge[data-state="online"] .mk-realm-dot, .mk-notice[data-state="online"] .mk-realm-dot { background: var(--success); }
 .mk-analysis { border: 1px solid var(--hairline); border-radius: var(--radius-control); background: var(--glass-1); padding: 10px 12px; }
 .mk-analysis > summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; font: 600 13px/18px var(--font-ui); }
 .mk-analysis[open] > summary .mk-icon { transform: rotate(180deg); }

@@ -1,0 +1,155 @@
+{
+  "when": "2026-10-12T23:18:46.286Z",
+  "steps": [
+    {
+      "name": "Global Market is not connected until you choose it, and says so",
+      "ok": true,
+      "ms": 109,
+      "detail": null
+    },
+    {
+      "name": "connecting creates a private account, shows the two word name and the recovery code once",
+      "ok": true,
+      "ms": 849,
+      "detail": {
+        "alias": "Radiant Summit"
+      }
+    },
+    {
+      "name": "the connected Global Market is empty on purpose and has a wallet of zero",
+      "ok": true,
+      "ms": 63,
+      "detail": null
+    },
+    {
+      "name": "the offline Simulation still works alongside it",
+      "ok": true,
+      "ms": 84,
+      "detail": null
+    },
+    {
+      "name": "converting the collection: export, preview, convert once, receipt; the offline cards are unchanged",
+      "ok": true,
+      "ms": 1223,
+      "detail": null
+    },
+    {
+      "name": "what went over the wire: no Credits, no tokens in URLs, only the allowed origin",
+      "ok": true,
+      "ms": 1,
+      "detail": null
+    },
+    {
+      "name": "a reload keeps the private session without asking again",
+      "ok": true,
+      "ms": 520,
+      "detail": null
+    },
+    {
+      "name": "an unreachable service is a quiet offline state, and the offline game carries on",
+      "ok": true,
+      "ms": 1011,
+      "detail": null
+    },
+    {
+      "name": "no page errors; the only console messages are the expected network failure",
+      "ok": true,
+      "ms": 0,
+      "detail": null
+    }
+  ],
+  "console": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+    }
+  ],
+  "pageErrors": [],
+  "requests": [
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8795/v1/auth/register",
+      "body": "{\"label\":\"This device\"}"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/status",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/me",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/wallet",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/inventory",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8795/v1/import/preview",
+      "body": "[2806 bytes]"
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8795/v1/import/commit",
+      "body": "{\"previewId\":\"prv_caZAQerM3VWznRYv\"}"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/status",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/me",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/wallet",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/inventory",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/status",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:8795/v1/auth/refresh",
+      "body": "{\"refreshToken\":\"rpGnjD045cAy683H6tkvnCprkljKvcZlnrcjlGKSQZ8\"}"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/me",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/wallet",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/inventory",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:8795/v1/status",
+      "body": null
+    }
+  ]
+}

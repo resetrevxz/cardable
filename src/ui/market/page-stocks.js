@@ -104,12 +104,13 @@
 
     function draw() {
       var empty = realm === 'global' && !store.session.showGlobalSample;
+      var gstate = empty ? ctx.api.statusSync('global') : null;
       st.window = st.window || '7d';
       winSwitch.set(st.window); typeSwitch.set(st.type); scopeSwitch.set(st.scope);
       ui.clear(rail); ui.clear(leadersHost); ui.clear(title);
       if (empty) {
         chart.hidden = true; title.hidden = true;
-        rail.appendChild(ui.emptyState({ kind: 'offline', icon: 'trend', title: 'No Global Market data', body: 'Global Market is not connected. Its prices will be built only from real completed player sales, so there is nothing to chart yet. The Simulation has its own numbers.',
+        rail.appendChild(ui.emptyState({ kind: 'offline', icon: 'trend', title: 'No Global Market data', body: (gstate && gstate.connected ? 'Global Market is live but no player has completed a sale yet. ' : 'Global Market is not connected. ') + 'Its prices are built only from real completed player sales, so there is nothing to chart yet. The Simulation has its own numbers.',
           actions: [{ label: 'Open Simulation', variant: 'primary', run: function () { store.setRealm('simulation'); } }] }));
         return;
       }

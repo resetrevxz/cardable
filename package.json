@@ -38,6 +38,9 @@
     "check:market": "node tools/check-market-browser.cjs",
     "check:market-sim": "node tools/check-market-sim-browser.cjs",
     "check:market-economy": "node tools/check-market-economy-browser.cjs",
+    "check:market-online": "node tools/check-market-online-browser.cjs",
+    "test:cloudflare": "node --test cloudflare/test/api.test.mjs",
+    "cloudflare:check": "node cloudflare/scripts/deploy.cjs --check",
     "economy:experiment": "node tools/economy-experiment.cjs",
     "sim:experiment": "node tools/sim-experiment.cjs"
   },

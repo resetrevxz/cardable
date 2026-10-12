@@ -1,0 +1,39 @@
+# Cardable Market Beta: the online beta API. Beta/staging resources only; nothing here is production.
+# Resource names are namespaced `cardable-market-beta*` so they can never collide with, or be mistaken for, anything else
+# in the account. Secrets are never written in this file: set them with `wrangler secret put` (see docs/market-beta/cloudflare.md).
+name = "cardable-market-beta"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+account_id = ""            # filled by deploy.cjs from the authenticated account; not a secret
+
+[observability]
+enabled = true
+
+[vars]
+ENVIRONMENT = "beta"
+API_VERSION = "1"
+# Origins that may call the API from a browser. Bearer tokens only: there are no cookies, so CORS is not an auth boundary.
+CORS_ALLOW = "null,file://,http://localhost,http://127.0.0.1,https://resetrevxz.github.io"
+TURNSTILE_SITEKEY = ""     # public; empty means "not required"
+BETA_IMPORT_CAP = "3000"
+SESSION_TTL_SECONDS = "900"
+REFRESH_TTL_DAYS = "30"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cardable-market-beta-db"
+database_id = "00000000-0000-0000-0000-000000000000"   # replaced with the real id after `wrangler d1 create`; local dev ignores it
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "cardable-market-beta-media"           # private listing media (Stage 7); no public access, no custom domain
+
+[[durable_objects.bindings]]
+name = "GATE"
+class_name = "Gate"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Gate"]

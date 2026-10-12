@@ -389,6 +389,19 @@
     function renderEmpty(res) {
       ui.releaseArt(results, ctx.thumbs);
       ui.clear(results); grid = null;
+      if (realm === 'global' && ['signed-out', 'offline', 'no-listings'].indexOf(res.emptyReason) >= 0 && !store.session.showGlobalSample) {
+        var gs = C.market.api.statusSync('global');
+        var actions = [];
+        if (res.emptyReason === 'signed-out') actions.push({ label: 'Connect to Global Market', variant: 'primary', icon: 'user', run: function () { if (ui.online) ui.online.connectDialog(); } });
+        if (res.emptyReason === 'offline') actions.push({ label: 'Try again', variant: 'primary', icon: 'forward', run: function () { C.market.online.refresh(true); } });
+        actions.push({ label: 'Open Simulation', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
+        if (res.emptyReason === 'no-listings') actions.unshift({ label: 'List a card', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } });
+        results.appendChild(ui.emptyState({ kind: res.emptyReason === 'no-listings' ? 'empty' : 'offline', icon: res.emptyReason === 'no-listings' ? 'market' : 'lock',
+          title: res.emptyReason === 'no-listings' ? 'No one is selling yet' : res.emptyReason === 'offline' ? 'Global Market is unreachable' : 'Connect to see Global Market',
+          body: res.emptyReason === 'no-listings' ? 'Everything here comes from real players, and the beta is new. When a player lists a card it appears here. Trading opens in a later beta stage; until then this stays empty on purpose.'
+            : gs.message, actions: actions }));
+        return;
+      }
       if (res.emptyReason === 'not-connected') {
         results.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: 'Global Market is not connected',
           body: 'It will list real players’ cards once it is connected. Until then nothing here is real, so there is nothing to show. You can browse the Simulation, draft a listing, or preview what a populated Global Market would look like.',

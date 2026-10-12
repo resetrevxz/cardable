@@ -91,20 +91,22 @@
     var def = realmDef(realmId), session = C.market.store.session;
     var sample = realmId === 'global' && session.showGlobalSample;
     var label = options.short ? def.shortLabel : def.label;
-    var el = h('span.mk-realm-badge', { data: { realm: realmId, state: sample ? 'sample' : def.state } });
+    var st = realmId === 'global' && !sample && C.market.api ? C.market.api.statusSync('global') : null;
+    var el = h('span.mk-realm-badge', { data: { realm: realmId, state: sample ? 'sample' : st && st.state ? st.state : def.state } });
     el.appendChild(h('span.mk-realm-dot', { 'aria-hidden': 'true' }));
     el.appendChild(h('span', { text: label }));
-    el.appendChild(h('span.mk-realm-state', { text: sample ? 'Sample layout' : def.stateLabel }));
+    el.appendChild(h('span.mk-realm-state', { text: sample ? 'Sample layout' : st && st.label ? st.label : def.stateLabel }));
     return el;
   }
   function noticeBar(realmId) {
     var session = C.market.store.session, def = realmDef(realmId);
     var sample = realmId === 'global' && session.showGlobalSample;
-    var text = cfg().notices[sample ? 'globalSample' : realmId];
-    var bar = h('div.mk-notice', { role: 'note', data: { realm: realmId, state: sample ? 'sample' : def.state } });
+    var st = realmId === 'global' && !sample && C.market.api ? C.market.api.statusSync('global') : null;
+    var text = st && st.message ? st.message : cfg().notices[sample ? 'globalSample' : realmId];
+    var bar = h('div.mk-notice', { role: 'note', data: { realm: realmId, state: sample ? 'sample' : st && st.state ? st.state : def.state } });
     bar.appendChild(realmBadge(realmId, { short: true }));
     bar.appendChild(h('p.mk-notice-long', { text: text }));
-    bar.appendChild(h('p.mk-notice-short', { text: cfg().noticesShort[sample ? 'globalSample' : realmId], 'aria-hidden': 'true' }));
+    bar.appendChild(h('p.mk-notice-short', { text: st && st.state === 'online' ? 'Players only, beta. May be empty.' : cfg().noticesShort[sample ? 'globalSample' : realmId], 'aria-hidden': 'true' }));
     return bar;
   }
   ui.realmBadge = realmBadge; ui.noticeBar = noticeBar;
