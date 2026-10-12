@@ -4,9 +4,9 @@
 
 !ifndef BUILD_UNINSTALLER
 Var /GLOBAL cardableMotionCheckbox
-!endif
 Var /GLOBAL cardableReducedMotion
 Var /GLOBAL cardableHadInstall
+!endif
 
 !macro customWelcomePage
   !define MUI_WELCOMEPAGE_TITLE "Install Cardable"
