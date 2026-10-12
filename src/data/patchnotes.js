@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.6.4',codename:'Celestial seal',date:'October 12, 2026',tag:'Update',tagline:'Super Rare becomes a ceremony of light.',
+    hero:{badge:'CARDABLE / 1.6.4',title:'Celestial seal.',subtitle:'A suspended seal, luminous cloud star and inward-folding glass end in one white explosion.',media:[]},
+    sections:{fixes:['The white endpoint remains held after backward seeking.'],visuals:['Super Rare has a new formation shot, layered clouds, broken arcs, constellation marks and curved glass with moving refraction.'],qol:['Full lasts 12 seconds; Short keeps all six stages in 7.3 seconds. Calm settings retain a three-second seal.']},
+    entries:['Super Rare is completely remade from the supplied references.','The star compresses through overlapping glass into one white climax.']
+  },
+  {
     version:'1.6.3',codename:'Cloudbreak',date:'October 12, 2026',tag:'Update',tagline:'Rare moves through a sky of light.',
     hero:{badge:'CARDABLE / 1.6.3',title:'Cloudbreak.',subtitle:'A glass star, accelerating clouds and a pale-blue break into the card reveal.',media:[]},
     sections:{fixes:['Saving warnings clear after recovery and offer Retry saving. Preparation errors no longer report that primary storage is unavailable.'],visuals:['Rare has layered clouds, a curved glass star, luminous lighting and sixteen fragments that retain the original material.'],qol:['Rare Full lasts 8 seconds; Short keeps all five stages in 5.2 seconds.']},

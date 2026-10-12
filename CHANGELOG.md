@@ -1,3 +1,11 @@
+# Cardable v1.6.4 — Celestial seal
+
+Super Rare is completely rebuilt around the supplied references. A small cloud star forms a suspended blue seal above a luminous ground circle. The camera pushes into layered clouds, four curved constellation marks and broken glass arcs around a bright central star. Eight curved glass forms fold inward, refract the clouds and catch changing highlights as the star compresses into a brilliant point. One white explosion ends the cinematic and hands to the existing card reveal.
+
+Full lasts 12 seconds; authored Short retains all six stages in 7.3 seconds. Off/reduced motion/lowest graphics use a calm three-second seal without the cloud atlases or glass shader. Cloud composition and texture uploads are capped at 30 Hz; geometry follows the shared cinematic clock. The 640 px High / 448 px Medium glass target has a Canvas fallback, handles context loss and releases resources after handoff. Materials and the first shader draw warm during the committed wrapper phase.
+
+Verification covered color/monochrome, 1280 × 720 and 390 × 844, Full/Short/Fast/Off/reduced motion, a complete recorded High sequence, the native Medium opening through Keep and reload, and failed Keep followed by exact-once reload recovery. White remains held after backward seeking; monochrome pixels are neutral; context loss falls back and the next run restores the glass renderer. A sampled Rare frame matches 1.6.3 exactly. The real player profile was untouched. Installer execution, live updater and a hardware performance matrix remain unverified. Kept local for review; this build is unsigned.
+
 # Cardable v1.6.3 — Cloudbreak
 
 Rare has a new atmospheric cloud material, a curved glass star, directional bevels and a luminous core. Pale-blue side light introduces the scene; layered clouds cross the star faster and faster, the star fractures into sixteen pieces carrying its last cloud image, and a growing pale-blue wash hands directly to the card. Full lasts 8 seconds; authored Short retains all five stages in 5.2 seconds. Off and reduced motion retain the calm route. Materials warm during the committed wrapper opening and are released after the reveal.

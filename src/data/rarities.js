@@ -64,8 +64,8 @@
       propSpec: null,
       finish: 'super-rare', frontDesign: 'full-art',
       openingIntro: { kind: 'portal', color: [71,142,255], orbitColor: [106,192,255], starColor: [200,246,255], background: [7,14,34], intensity: .68, handoff: { flipMs:400, fadeMs:160 },
-        sections: [{ id:'seed', ms:1000 }, { id:'evolve', ms:3000 }, { id:'intensify', ms:3000 }, { id:'collapse', ms:2400 }, { id:'explosion', ms:600 }, { id:'whiteout', ms:400 }],
-        shortRoute: [{ from:0, to:1000, ms:650 }, { from:1000, to:4000, ms:1700 }, { from:4000, to:7000, ms:1500 }, { from:7000, to:9400, ms:1700 }, { from:9400, to:10000, ms:600 }, { from:10000, to:10400, ms:250 }] },
+        sections: [{ id:'seed', ms:1200 }, { id:'evolve', ms:3800 }, { id:'intensify', ms:3100 }, { id:'collapse', ms:2800 }, { id:'explosion', ms:700 }, { id:'whiteout', ms:400 }],
+        shortRoute: [{ from:0, to:1200, ms:650 }, { from:1200, to:5000, ms:2100 }, { from:5000, to:8100, ms:1900 }, { from:8100, to:10900, ms:1700 }, { from:10900, to:11600, ms:600 }, { from:11600, to:12000, ms:350 }] },
       reveal: { riseMs: 1050, preFlipPauseMs: 350, flipMs: 1000, bloom: 0.3, gridDim: 0.75, shiftPx: 0 },
       marketValueUsd: 6.3
     },
