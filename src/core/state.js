@@ -72,6 +72,14 @@
     if (value.studio !== undefined && C.studioScenes) base.studio = C.studioScenes.normalize(value.studio);
     if (value.achievements !== undefined) base.achievements = C.achievements ? C.achievements.normalize(value.achievements) : value.achievements;
     if (value.shop !== undefined) base.shop = C.shopState.normalize(value.shop);
+    // Stage 3 reservations predate per-card Shop-pack provenance. Recover it
+    // from the durable pending entitlement before Keep transfers the card.
+    if (base.pendingReveal && base.pendingReveal.source === 'shop' && Array.isArray(base.pendingReveal.cards))
+      base.pendingReveal.cards.forEach(function (item) {
+        if (item && item.source === undefined && item.shopEntitlementId === undefined) {
+          item.source = 'shop-pack'; item.shopEntitlementId = base.pendingReveal.entitlementId;
+        }
+      });
     return base;
   }
   function validate(value, strict) {
@@ -118,6 +126,8 @@
       if (item.cardSkinId === undefined) item.cardSkinId = null;
       require(item.cardSkinId === null || typeof item.cardSkinId === 'string' && !!C.cardSkin(item.cardSkinId), 'Unsupported card skin');
       require(item.source === 'shop' ? item.packId === null && typeof item.shopOfferId === 'string' && !!item.shopOfferId :
+        item.source === 'shop-pack' ? item.packId === C.data.shop.featuredPackId &&
+          typeof item.shopEntitlementId === 'string' && /^shop-pack-[a-f0-9]{32}$/.test(item.shopEntitlementId) :
         typeof item.packId === 'string' && !!C.pack(item.packId), 'Unsupported card provenance');
       require(item.variantId === null || typeof item.variantId === 'string' && !!C.variant(item.variantId), 'Unsupported card variant');
       require(number(item.pulledAt) && typeof item.seen === 'boolean', 'Invalid card progress');
@@ -157,6 +167,9 @@
       require(!candidate.shop.entitlement || candidate.pendingReveal === null, 'Pack entitlement overlaps a reveal');
       if (candidate.pendingReveal && candidate.pendingReveal.source === 'shop') {
         require(candidate.pendingReveal.packId === C.data.shop.featuredPackId &&
+          candidate.pendingReveal.cards.every(function (item) {
+            return item.source === 'shop-pack' && item.shopEntitlementId === candidate.pendingReveal.entitlementId;
+          }) &&
           candidate.shop.receipts.some(function (receipt) { return receipt.kind === 'pack' && receipt.entitlementId === candidate.pendingReveal.entitlementId; }),
           'Purchased pack reveal lacks its receipt');
       }

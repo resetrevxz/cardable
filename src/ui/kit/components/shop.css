@@ -31,10 +31,12 @@
 .shop-overline,.shop-kicker,.shop-feature-plaque,.shop-offer-index,.shop-footer { font:500 10px/1.5 var(--font-mono); letter-spacing:.14em; text-transform:uppercase; color:var(--text-tertiary); }
 .shop-header-actions { display:flex; align-items:center; flex-wrap:wrap; justify-content:end; gap:8px; }
 .shop-balance { min-height:40px; display:flex; align-items:center; padding:0 16px; border:1px solid var(--stroke); border-radius:var(--radius-control); color:var(--text-primary); background:var(--ink-2); font:500 12px/1 var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap; }
-.shop-header-actions .cb-button { min-width:40px; min-height:40px; padding:8px; }
+.shop-header-actions :is(.cb-button,.cb-icon-button) { min-width:44px; min-height:44px; padding:8px; }
 .shop-help { margin:-8px 0 20px !important; padding:16px 20px; max-width:700px; border:1px solid var(--stroke); border-radius:var(--radius-panel); background:var(--ink-2); color:var(--text-secondary); font:400 13px/1.55 var(--font-ui); }
 .shop-help[hidden] { display:none; }
 .shop-feature { display:grid; grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr); min-height:328px; overflow:hidden; border:1px solid var(--stroke-strong); border-radius:var(--radius-card); background:linear-gradient(115deg,#15191d 0%,#101114 48%,var(--ink-1) 100%); box-shadow:inset 0 1px 0 rgba(255,255,255,.13),var(--shadow-md); }
+.shop-feature--enter { animation:shop-showroom-arrive .28s var(--ease-out) both; }
+@keyframes shop-showroom-arrive { from { opacity:.7; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .shop-feature-stage { position:relative; min-height:328px; display:grid; place-items:center; isolation:isolate; overflow:hidden; background:radial-gradient(ellipse at 37% 20%,rgba(205,221,235,.11),transparent 48%),linear-gradient(132deg,#1b2025,#0b0d10 67%); border-right:1px solid var(--stroke); }
 .shop-feature-stage::before { content:''; position:absolute; inset:16px; border:1px solid rgba(255,255,255,.08); border-radius:12px; pointer-events:none; }
 .shop-feature-stage::after { content:''; position:absolute; left:14%; right:14%; bottom:13%; height:22px; border-radius:50%; background:rgba(0,0,0,.68); filter:blur(15px); z-index:-1; }
@@ -76,6 +78,11 @@
 .shop-fixture-note { margin:8px 0 20px !important; color:var(--text-tertiary); font-size:11px; }
 .shop-offer-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
 .shop-offer { min-width:0; padding:14px; display:flex; flex-direction:column; border:1px solid var(--stroke); border-radius:var(--radius-card); background:var(--ink-1); box-shadow:inset 0 1px 0 rgba(255,255,255,.07),var(--shadow-sm); transition:transform var(--duration-base) var(--ease-out),border-color var(--duration-fast) var(--ease-out); }
+.shop-offers[data-new-rotation="true"] .shop-offer { animation:shop-daily-turn .24s var(--ease-out) backwards; }
+.shop-offers[data-new-rotation="true"] .shop-offer:nth-child(2) { animation-delay:40ms; }
+.shop-offers[data-new-rotation="true"] .shop-offer:nth-child(3) { animation-delay:80ms; }
+.shop-offers[data-new-rotation="true"] .shop-offer:nth-child(4) { animation-delay:120ms; }
+@keyframes shop-daily-turn { from { opacity:.55; transform:translateY(6px) rotateY(-4deg); } to { opacity:1; transform:translateY(0) rotateY(0); } }
 .shop-offer:hover,.shop-offer:focus-within { border-color:var(--stroke-hover); transform:translateY(-2px); }
 .shop-offer-art { width:min(100%,185px); aspect-ratio:5/7; margin:0 auto 14px; overflow:hidden; border-radius:var(--radius-panel); background:var(--ink-2); box-shadow:0 10px 18px rgba(0,0,0,.28); }
 .shop-offer-art .collectible-card { width:100%; height:100%; border-radius:inherit; cursor:default; }
@@ -111,6 +118,7 @@
 :root[data-quality="very-low"] :is(.shop-feature,.shop-feature-stage,.shop-offer,.shop-balance) { background:var(--ink-2); box-shadow:none; }
 :root[data-quality="very-low"] :is(.shop-pack-exhibit,.shop-detail-pack) { filter:none; }
 .reduced-motion :is(.shop-entry,.shop-offer),:root[data-quality="very-low"] :is(.shop-entry,.shop-offer) { transition:none; }
+.reduced-motion :is(.shop-feature,.shop-offer),:root[data-quality="very-low"] :is(.shop-feature,.shop-offer) { animation:none !important; }
 .reduced-motion .shop-offer:hover,:root[data-quality="very-low"] .shop-offer:hover { transform:none; }
 .reduced-motion :is(.shop-receipt-object,.shop-receipt .shop-detail-copy),:root[data-quality="very-low"] :is(.shop-receipt-object,.shop-receipt .shop-detail-copy) { animation:none; }
 @media (max-width:1050px) {

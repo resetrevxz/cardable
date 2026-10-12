@@ -39,7 +39,7 @@
     C.packView.setVisible(false);
     var surface = C.ui.create('sheet', { label: 'Cardable Shop', className: 'shop-screen' });
     surface.dataset.toolSurface = 'shop';
-    var session = { surface: surface, views: [], holds: [], controls: [], locked: false, selected: null, presentation: null, ticker: null, status: null, balance: null, countdown: null, offSave: null, previewState: previewState,
+    var session = { surface: surface, views: [], holds: [], controls: [], locked: false, entered: false, selected: null, presentation: null, ticker: null, status: null, balance: null, countdown: null, offSave: null, previewState: previewState,
       result: C.shopState.ensure(), offReplace: null };
     active = session;
     function clearContent() {
@@ -169,11 +169,12 @@
     function hero(section) {
       var pack = C.pack('titan');
       var feature = node('section', 'shop-feature', section);
+      if (!session.entered) { feature.classList.add('shop-feature--enter'); session.entered = true; }
       feature.setAttribute('aria-labelledby', 'shop-feature-title');
       var stage = node('div', 'shop-feature-stage', feature);
       var exhibit = node('div', 'shop-pack-exhibit', stage);
       exhibit.dataset.skin = 'titan'; exhibit.dataset.packQuality = C.settings.get('quality');
-      exhibit.style.setProperty('--pack-width', 'min(31vw, 220px)');
+      exhibit.style.setProperty('--pack-width', 'min(18vw, 220px)');
       exhibit.style.setProperty('--pack-height', 'calc(var(--pack-width) * 1.48)');
       C.packMarkup.unit(exhibit, false, pack);
       var plaque = node('div', 'shop-feature-plaque', stage);
@@ -195,6 +196,7 @@
     }
     function offers(section) {
       var area = node('section', 'shop-offers', section); area.setAttribute('aria-labelledby', 'shop-offers-title');
+      area.dataset.newRotation = session.result.isNew ? 'true' : 'false';
       var heading = node('div', 'shop-offers-heading', area);
       var titles = node('div', '', heading);
       node('span', 'shop-kicker', titles, 'THE DAILY SELECTION');
@@ -245,6 +247,7 @@
       var scroll = node('div', 'shop-scroll', surface);
       var refreshBalance = chrome(scroll, 'The Shop');
       hero(scroll); offers(scroll); footer(scroll);
+      session.result.isNew = false;
       session.refreshBalance = refreshBalance;
       if (focus) (focus.isConnected ? focus : surface.querySelector('.shop-close')).focus({ preventScroll: true });
     }
@@ -367,7 +370,7 @@
   }
   C.shop = {
     get daily() { return C.shopState.ensure(); },
-    get open() { return !!active; },
+    get isOpen() { return !!active; },
     open: open,
     close: function () { if (active) active.presentation.close(); },
     previewState: function (state) {

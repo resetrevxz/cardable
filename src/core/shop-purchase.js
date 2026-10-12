@@ -17,10 +17,17 @@
   function addReceipt(shop, receipt) {
     if (shop.receipts.some(function (row) { return row.receiptId === receipt.receiptId; })) throw new Error('Repeated Shop receipt');
     shop.receipts.unshift(receipt);
-    shop.receipts.length = Math.min(shop.receipts.length, C.data.shop.retainedReceipts);
+    while (shop.receipts.length > C.data.shop.retainedReceipts) {
+      var last = shop.receipts.length - 1;
+      if (shop.entitlement && shop.receipts[last].entitlementId === shop.entitlement.entitlementId) last--;
+      shop.receipts.splice(last, 1);
+    }
   }
   function commit(candidate, before, event, expectedDay) {
-    try { candidate = C.state.validate(candidate, true); }
+    // Match normal loaded-save validation: historical inventory may contain a
+    // catalog ID that is no longer published, while the new offer is checked
+    // against the current catalog in buyCard.
+    try { candidate = C.state.validate(candidate, false); }
     catch (error) { return fail('invalid', 'Save or item data is inconsistent: ' + error.message); }
     if (expectedDay && C.shopState.dayKey(C.clock.now()) !== expectedDay)
       return fail('expired', 'This offer expired before it could be saved. Return to today’s offers.');

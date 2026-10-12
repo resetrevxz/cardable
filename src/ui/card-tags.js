@@ -34,7 +34,8 @@
         }
       }
     }
-    if (entry.owned && instance && instance.source === 'shop') tags.push({kind:'shop',text:mode==='compact'?'':'SHOP',label:'Purchased from the local Shop'});
+    if (entry.owned && instance && (instance.source === 'shop' || instance.source === 'shop-pack'))
+      tags.push({kind:'shop',text:mode==='compact'?'':'SHOP',label:instance.source === 'shop-pack' ? 'Opened from a Titan Pack purchased in the local Shop' : 'Purchased from the local Shop'});
     if (entry.owned && instance && instance.packId) {
       var pack = C.pack(instance.packId);
       if (pack) {

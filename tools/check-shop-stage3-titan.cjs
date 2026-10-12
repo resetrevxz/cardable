@@ -88,6 +88,16 @@ let browser;
   assert.equal(reserved.entitlement, null);
   assert.equal(reserved.pending.entitlementId, bought.result.entitlementId);
   assert.equal(reserved.pending.cards.length, 1);
+  assert.equal(reserved.pending.cards[0].source, 'shop-pack');
+  assert.equal(reserved.pending.cards[0].shopEntitlementId, bought.result.entitlementId);
+  const migratedPending = await page.evaluate(() => {
+    const candidate = JSON.parse(Cardable.state.encode(Cardable.state.current));
+    delete candidate.pendingReveal.cards[0].source;
+    delete candidate.pendingReveal.cards[0].shopEntitlementId;
+    return Cardable.state.validate(candidate, false).pendingReveal.cards[0];
+  });
+  assert.equal(migratedPending.source, 'shop-pack');
+  assert.equal(migratedPending.shopEntitlementId, bought.result.entitlementId);
   assert.equal(reserved.wallet, interrupted.wallet);
   assert.equal(reserved.stock, 0);
   assert.equal(reserved.opened, bought.before.opened);
@@ -116,9 +126,13 @@ let browser;
   await page.evaluate(() => Cardable.opening.keepCurrent());
   await page.waitForFunction(() => Cardable.state.current.pendingReveal === null, { timeout: 10000 });
   const kept = await page.evaluate(id => ({ count: Cardable.state.current.inventory.filter(i => i.instanceId === id).length,
+    source: Cardable.state.current.inventory.find(i => i.instanceId === id)?.source,
+    entitlementId: Cardable.state.current.inventory.find(i => i.instanceId === id)?.shopEntitlementId,
     wallet: Cardable.state.current.currency, stock: Cardable.state.current.packs.ready,
     opened: Cardable.state.current.packs.openedCount }), reserved.pending.cards[0].instanceId);
   assert.equal(kept.count, 1);
+  assert.equal(kept.source, 'shop-pack');
+  assert.equal(kept.entitlementId, bought.result.entitlementId);
   assert.equal(kept.wallet, reserved.wallet);
   assert.equal(kept.stock, 0);
   assert.equal(kept.opened, bought.before.opened);

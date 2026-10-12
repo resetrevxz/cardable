@@ -1,6 +1,6 @@
 # CARDABLE SHOP — Master Specification
 ## Codex parallel worktree feature: `D:/CardableV2/Shop`
-**Status:** Owner-approved product direction; implementation is in four sequential milestones. **Product:** A premium, entirely local Daily Shop for Cardable. **Reference date:** October 12, 2026. **Source of truth:** The actual current local repo and its latest `AGENTS.md` / `Designs.MD` take precedence over stale code examples here. No cloud dependency.
+**Status:** Four Shop milestones implemented on the isolated `feature/daily-shop` branch; Stage 4 acceptance and delivery limits are recorded in [SHOP-ACCEPTANCE](SHOP-ACCEPTANCE.md). Owner-approved integration remains separate. **Product:** A premium, entirely local Daily Shop for Cardable. **Reference date:** October 12, 2026. **Source of truth:** The actual current local repo and its latest `AGENTS.md` / `Designs.MD` take precedence over stale code examples here. No cloud dependency.
 
 ### 0. Non-negotiable owner decisions
 1. Work in a **separate Git worktree at `D:/CardableV2/Shop`**, derived from the real checkout presently documented as `D:/CardableV2/cardable-spec/cardable`. Inspect `git worktree list --porcelain`, current branch/status and destination existence first; create a unique feature branch. Never reset, clean, delete, overwrite or merge another worktree. Keep Claude's concurrent Market work isolated.
@@ -123,3 +123,6 @@ Use exactly these headings, compatible with current AGENTS.md:
 
 ### 10. Definition of excellent
 If the UI resembles a generic subscription storefront, contains 4 empty gradient blocks, consumes Credits twice, fabricates discounts, forgets a purchase after restart, permits click-to-buy bypass, steals pack stock, or breaks offline play, the milestone is **not finished**. A visually gorgeous front end is not enough without correct states and safe transactions; robust code is not enough without excellent Cardable-native design.
+
+### Stage 4 disposition
+The Shop's local browser acceptance, unresolved desktop packaging boundary, and exact Market merge decisions are in [SHOP-STAGE-4](SHOP-STAGE-4.md), [SHOP-ACCEPTANCE](SHOP-ACCEPTANCE.md), and [SHOP-MARKET-INTEGRATION](SHOP-MARKET-INTEGRATION.md). The provisional price policy stays in `src/data/shop.js`; no Market estimate or future resale value is claimed. A packaged Electron launch and owner-approved economy reconciliation remain integration gates.

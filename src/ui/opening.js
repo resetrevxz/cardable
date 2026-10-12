@@ -193,6 +193,10 @@
       if (purchased) {
         candidate.pendingReveal.source = 'shop';
         candidate.pendingReveal.entitlementId = entitlement.entitlementId;
+        candidate.pendingReveal.cards.forEach(function (item) {
+          item.source = 'shop-pack';
+          item.shopEntitlementId = entitlement.entitlementId;
+        });
         candidate.shop.entitlement = null;
       }
       C.events.emit('opening:prepareCommit', candidate);

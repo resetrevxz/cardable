@@ -1,4 +1,4 @@
-/* Runtime smoke and visual captures for the non-spending Shop prototype. */
+/* Shop showroom layout and non-purchasing interaction smoke. */
 const path = require('node:path');
 const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
@@ -13,11 +13,12 @@ const sizes = [
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.goto(file, { waitUntil: 'load' });
-  await page.waitForFunction(() => window.Cardable && Cardable.shop && Cardable.shop.fixtures && Cardable.setup && !Cardable.setup.loading, { timeout: 30000 });
+  await page.waitForFunction(() => window.Cardable && Cardable.shopState && Cardable.setup && !Cardable.setup.loading, { timeout: 30000 });
+  await page.evaluate(() => Cardable.currency.add(100000, 'dev'));
   await page.locator('#shop-entry').click();
   await page.locator('.shop-offer').first().waitFor();
   if (await page.evaluate(() => Cardable.packView.visible)) throw new Error('Hidden menu pack still animates');
-  if (await page.locator('.shop-offer').count() !== 4) throw new Error('Expected four real card fixtures');
+  if (await page.locator('.shop-offer').count() !== 4) throw new Error('Expected four saved card offers');
   const initialCredits = await page.evaluate(() => Cardable.state.current.currency);
   const initialCards = await page.evaluate(() => Cardable.state.current.inventory.length);
   const initialPackPhase = await page.evaluate(() => Cardable.opening.phase);
@@ -43,18 +44,14 @@ const sizes = [
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.locator('.shop-scroll').evaluate(el => { el.scrollTop = 0; });
   await page.locator('.shop-feature .shop-hold').click();
-  if ((await page.locator('.shop-status').textContent()).includes('Preview complete')) throw new Error('Single click bypassed hold');
+  if (await page.evaluate(() => Cardable.state.current.shop.receipts.length)) throw new Error('Single click bypassed hold');
   const hold = page.locator('.shop-feature .shop-hold');
   await hold.hover();
   await page.mouse.down(); await page.waitForTimeout(200); await page.mouse.up();
-  if ((await page.locator('.shop-status').textContent()).includes('Preview complete')) throw new Error('Early release bypassed hold');
-  await page.mouse.down();
-  await page.waitForTimeout(2200);
-  await page.mouse.up();
-  if (!(await page.locator('.shop-status').textContent()).includes('No Credits spent')) throw new Error('Hold preview did not complete');
+  if (await page.evaluate(() => Cardable.state.current.shop.receipts.length)) throw new Error('Early release bypassed hold');
   await hold.focus();
-  await page.keyboard.down('Space'); await page.waitForTimeout(2200); await page.keyboard.up('Space');
-  if (!(await page.locator('.shop-status').textContent()).includes('No Credits spent')) throw new Error('Keyboard hold did not complete');
+  await page.keyboard.down('Space'); await page.waitForTimeout(200); await page.keyboard.up('Space');
+  if (await page.evaluate(() => Cardable.state.current.shop.receipts.length)) throw new Error('Short keyboard hold bypassed hold');
   await page.keyboard.press('Space');
   if (await page.evaluate(() => Cardable.opening.phase) !== initialPackPhase) throw new Error('Pack input leaked through Shop');
   await page.locator('.shop-offer .shop-inspect').first().click();
@@ -69,7 +66,7 @@ const sizes = [
   await page.emulateMedia({ reducedMotion: 'reduce' });
   if (await page.locator('.shop-offer').count() !== 4) throw new Error('Offers lost in reduced motion');
   await page.keyboard.press('Escape');
-  if (await page.evaluate(() => Cardable.shop.open)) throw new Error('Escape did not close Shop');
+  if (await page.evaluate(() => Cardable.shop.isOpen)) throw new Error('Escape did not close Shop');
   if (!(await page.evaluate(() => Cardable.packView.visible))) throw new Error('Menu pack visibility was not restored');
   if (await page.evaluate(() => document.activeElement.id) !== 'shop-entry') throw new Error('Shop did not return focus to entry');
   if (await page.evaluate(() => Cardable.state.current.currency) !== initialCredits ||
@@ -87,7 +84,7 @@ const sizes = [
   }
   await dev.evaluate(() => Cardable.shop.close());
   await dev.close();
-  console.log('PASS shop stage 1 runtime; four fixtures, eight viewports, pointer/keyboard holds, inspect/back, Escape/focus, preview states, no save mutation');
+  console.log('PASS shop showroom runtime; four saved offers, eight viewports, interrupted holds, inspect/back, Escape/focus, preview states, no purchase');
   captures.forEach(file => console.log('CAPTURE ' + file));
   await browser.close();
 })().catch(error => { console.error(error); process.exitCode = 1; });

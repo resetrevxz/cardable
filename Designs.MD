@@ -68,9 +68,11 @@ Every family has a purpose, anatomy, variants, states, keyboard/accessible namin
 
 ## 6. Patterns
 
-### Shop showroom and acquisition (Stages 1–3)
+### Shop showroom and acquisition (Stages 1–4)
 
 `C.shop.open()` presents one kit sheet over the menu, and `C.shop.close()` releases it. The menu Shop button is the discoverable entry. The sheet uses `Cardable.ui.present` for the modal input shield, keyboard trap, Escape and focus return. The shop owns one contained scroll surface; its top row separates navigation, wallet readout and help from the physical object stage. The featured Titan exhibit uses the actual `titan` pack renderer. Four static, art-only `C.cardView` thumbnails form the daily selection; focused inspection alone mounts a full card. The UI gallery has a Shop showroom entry.
+
+The command palette also opens the Shop. Header controls have 44 px hit targets, including on narrow screens. A short entry rise and first-day offer turn use transform and opacity only; Very Low and saved reduced motion use the static pose. The first-day turn never gates buying. Hold progress belongs to the existing kit control. A purchased Titan card keeps `shop-pack` provenance after Keep, so collection tags can distinguish it from a natural Titan pull. Shop receipts, saved quotes and errors use words as well as restrained surface accents.
 
 `shop-offer` has idle, hover, focus and pressed controls. The price is tabular and always paired with Credits. Stage 3 uses the kit confirmation button for every paid action, with the exact item and price visible before its 1.4-second hold. The rim/fill advances under pointer, touch or focused keyboard pressure; release, exit, blur, Escape and close cancel immediately. The saved card or purchased Titan entitlement appears only after a successful durable write. The receipt presents the real card/pack, new balance and inventory/opening handoff; the bought slot remains marked Purchased and its copy count updates. Ready, unaffordable, purchased, loading, expired, empty and save-error contracts remain in `docs/SHOP-SPEC.md`. Low and Very Low use solid ink and static previews; monochrome keeps labels, borders and focus, while reduced motion removes decorative lift. Closing destroys previews and stops the Shop's single countdown timer.
 
