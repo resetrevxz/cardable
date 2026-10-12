@@ -39,10 +39,72 @@
     C.packView.setVisible(false);
     var surface = C.ui.create('sheet', { label: 'Cardable Shop', className: 'shop-screen' });
     surface.dataset.toolSurface = 'shop';
-    var session = { surface: surface, views: [], holds: [], controls: [], locked: false, entered: false, selected: null, presentation: null, ticker: null, status: null, balance: null, countdown: null, offSave: null, previewState: previewState,
+    var session = { surface: surface, views: [], holds: [], controls: [], cleanups: [], animations: [], locked: false, entered: false, selected: null, presentation: null, ticker: null, status: null, balance: null, countdown: null, offSave: null, previewState: previewState,
       result: C.shopState.ensure(), offReplace: null };
     active = session;
+    function motionPolicy() {
+      var level = C.settings.policy.animation;
+      surface.dataset.shopMotion = C.motion.reduced || level === 0 ? 'static' : level === 1 ? 'calm' : 'full';
+      surface.dataset.shopHover = C.settings.get('hoverAnimations') ? 'true' : 'false';
+      if (surface.dataset.shopMotion !== 'full') {
+        session.animations.forEach(function (animation) { animation.cancel(); });
+      }
+      if (surface.dataset.shopMotion !== 'full' || surface.dataset.shopHover === 'false') {
+        surface.querySelectorAll('[data-shop-reactive]').forEach(function (el) {
+          el.style.removeProperty('--object-x'); el.style.removeProperty('--object-y');
+        });
+      }
+    }
+    motionPolicy();
+    function animate(el, frames, options) {
+      session.animations = session.animations.filter(function (animation) { return animation.playState === 'running' || animation.playState === 'paused'; });
+      session.animations.push(el.animate(frames, options));
+    }
+    function arrive(el, index) {
+      if (!root.IntersectionObserver) return;
+      var observer = new root.IntersectionObserver(function (entries) {
+        if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+        observer.disconnect();
+        if (surface.dataset.shopMotion !== 'full' || !el.isConnected) return;
+        animate(el, [
+          { opacity: 0, transform: 'translateY(22px) rotateX(3deg)' },
+          { opacity: 1, transform: 'translateY(0) rotateX(0)' }
+        ], { duration: 560 / C.settings.get('uiAnimationSpeed'), delay: (index || 0) * 55 / C.settings.get('uiAnimationSpeed'), easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+      }, { threshold: .08 });
+      observer.observe(el); session.cleanups.push(function () { observer.disconnect(); });
+    }
+    function reactive(el) {
+      el.dataset.shopReactive = 'true';
+      el.addEventListener('pointermove', function (event) {
+        if (surface.dataset.shopMotion !== 'full' || surface.dataset.shopHover === 'false' || event.pointerType !== 'mouse') return;
+        if (el.tagName !== 'BUTTON' && event.target.closest('input,button')) {
+          el.style.removeProperty('--object-x'); el.style.removeProperty('--object-y'); return;
+        }
+        var rect = C.fx.rect(el), x = (event.clientX - rect.left) / rect.width, y = (event.clientY - rect.top) / rect.height;
+        el.style.setProperty('--light-x', x * 100 + '%'); el.style.setProperty('--light-y', y * 100 + '%');
+        el.style.setProperty('--object-x', (x - .5) * 8 + 'deg'); el.style.setProperty('--object-y', (.5 - y) * 5 + 'deg');
+      });
+      el.addEventListener('pointerleave', function () {
+        el.style.removeProperty('--object-x'); el.style.removeProperty('--object-y');
+      });
+    }
+    function turntable(parent, exhibit) {
+      var controls = node('div', 'shop-turntable', parent);
+      node('span', 'shop-turntable-label', controls, 'Rotate exhibit');
+      var range = node('input', 'shop-turntable-range', controls);
+      range.type = 'range'; range.min = -24; range.max = 24; range.step = 1; range.value = 0;
+      range.setAttribute('aria-label', 'Rotate Titan exhibit');
+      function pose() {
+        parent.style.removeProperty('--object-x'); parent.style.removeProperty('--object-y');
+        exhibit.style.setProperty('--pack-yaw', range.value + 'deg');
+        range.setAttribute('aria-valuetext', range.value + ' degrees');
+      }
+      range.addEventListener('input', pose); pose();
+      button(controls, 'Reset exhibit', function () { range.value = 0; pose(); }, 'shop-turntable-reset', 'reset');
+    }
     function clearContent() {
+      session.cleanups.forEach(function (cleanup) { cleanup(); }); session.cleanups = [];
+      session.animations.forEach(function (animation) { animation.cancel(); }); session.animations = [];
       session.views.forEach(function (view) { view.destroy(); }); session.views = [];
       session.holds.forEach(function (hold) { if (hold.destroy) hold.destroy(); }); session.holds = [];
       session.controls = []; session.actionNote = null; session.expired = null;
@@ -119,7 +181,7 @@
       primary.focus({ preventScroll: true });
     }
     function hold(parent, name, amount, kind, offer, tile, copies) {
-      var label = 'Hold to purchase · ' + format(amount);
+      var label = 'Hold to purchase';
       var note = node('p', 'shop-purchase-note', parent);
       var control = C.ui.create('button', {
         label: label, holdLabel: label, variant: 'hold-confirm', holdMs: 1400,
@@ -147,7 +209,7 @@
     function chrome(section, label) {
       var header = node('header', 'shop-header', section);
       var brand = node('div', 'shop-brand', header);
-      node('span', 'shop-overline', brand, 'CARDABLE / LOCAL SHOWROOM');
+      node('span', 'shop-overline', brand, 'CARDABLE / THE COLLECTION ROOM');
       node('h1', '', brand, label);
       var actions = node('div', 'shop-header-actions', header);
       session.balance = node('div', 'shop-balance', actions);
@@ -172,19 +234,22 @@
       if (!session.entered) { feature.classList.add('shop-feature--enter'); session.entered = true; }
       feature.setAttribute('aria-labelledby', 'shop-feature-title');
       var stage = node('div', 'shop-feature-stage', feature);
+      node('span', 'shop-stage-coordinate', stage, 'EXHIBIT / 001');
       var exhibit = node('div', 'shop-pack-exhibit', stage);
+      reactive(stage);
       exhibit.dataset.skin = 'titan'; exhibit.dataset.packQuality = C.settings.get('quality');
-      exhibit.style.setProperty('--pack-width', 'min(18vw, 220px)');
+      exhibit.style.setProperty('--pack-width', 'min(18vw, 200px)');
       exhibit.style.setProperty('--pack-height', 'calc(var(--pack-width) * 1.48)');
       C.packMarkup.unit(exhibit, false, pack);
+      turntable(stage, exhibit);
       var plaque = node('div', 'shop-feature-plaque', stage);
-      node('span', '', plaque, '01 / PERMANENT FEATURE');
-      node('span', '', plaque, 'CBL · TITAN VAULT');
+      node('span', '', plaque, 'BRUSHED TITANIUM');
+      node('span', '', plaque, 'CBL / SERIES 01');
       var copy = node('div', 'shop-feature-copy', feature);
-      node('span', 'shop-kicker', copy, 'FEATURED COLLECTION  /  HALO SERIES');
-      node('h2', '', copy, 'TITAN: FIRST CONTACT').id = 'shop-feature-title';
-      node('p', 'shop-feature-description', copy, 'Seventeen halo designs behind the authentic machined Titan shroud. One pack. One rare encounter.');
-      node('p', 'shop-feature-until', copy, 'Featured until next update');
+      node('span', 'shop-kicker', copy, 'THE PERMANENT COLLECTION / HALO HARDWARE');
+      var title = node('h2', '', copy); title.id = 'shop-feature-title'; title.setAttribute('aria-label', 'TITAN: FIRST CONTACT');
+      node('span', 'shop-feature-name', title, 'TITAN'); node('span', 'shop-feature-subtitle', title, 'FIRST CONTACT');
+      node('p', 'shop-feature-description', copy, 'Halo hardware. Sealed in metal. Seventeen catalog designs, one card behind the shroud.');
       var purchase = node('div', 'shop-feature-purchase', copy);
       price(purchase, FEATURED_PRICE);
       node('span', 'shop-price-note', purchase, 'Local Shop quote');
@@ -192,7 +257,11 @@
       button(actions, 'Inspect pack', function () { inspectPack(); }, 'shop-inspect');
       if (entitlement()) button(actions, 'Open Titan Pack', openPurchasedPack, 'shop-open-owned');
       else hold(actions, 'Titan Pack', FEATURED_PRICE, 'pack');
-      node('p', 'shop-disabled-note', copy, entitlement() ? 'Purchased pack ready · timer stock stays separate.' : 'One purchased Titan Pack may be waiting to open at a time.');
+      node('p', 'shop-disabled-note', copy, entitlement() ? 'Purchased pack ready · timer stock stays separate.' : 'One sealed pack at a time. Featured until a future update.');
+      button(copy, 'Daily selection', function () {
+        var heading = surface.querySelector('#shop-offers-title');
+        if (heading) { heading.scrollIntoView({ behavior: surface.dataset.shopMotion === 'full' ? 'smooth' : 'instant', block: 'start' }); heading.focus({ preventScroll: true }); }
+      }, 'shop-jump');
     }
     function offers(section) {
       var area = node('section', 'shop-offers', section); area.setAttribute('aria-labelledby', 'shop-offers-title');
@@ -200,7 +269,7 @@
       var heading = node('div', 'shop-offers-heading', area);
       var titles = node('div', '', heading);
       node('span', 'shop-kicker', titles, 'THE DAILY SELECTION');
-      node('h2', '', titles, 'Your daily offers').id = 'shop-offers-title';
+      var offersTitle = node('h2', '', titles, 'Your daily offers'); offersTitle.id = 'shop-offers-title'; offersTitle.tabIndex = -1;
       var clock = node('div', 'shop-reset', heading);
       node('span', '', clock, 'Resets in');
       session.countdown = node('strong', '', clock, countdown());
@@ -218,12 +287,17 @@
           return;
         }
         var tile = node('article', 'shop-offer', grid);
+        arrive(tile, index);
         tile.dataset.rarity = card.rarity;
         var state = index === 0 && previewLabels[session.previewState] ? session.previewState : offer.purchased ? 'purchased' : 'normal';
         tile.dataset.state = state;
         if (state === 'loading') tile.setAttribute('aria-busy', 'true');
-        var thumb = node('div', 'shop-offer-art', tile);
-        var view = C.cardView.create(card, previewInstance(card, offer), { thumbnail: true, owned: false });
+        var thumb = node('button', 'shop-offer-art', tile); thumb.type = 'button';
+        thumb.setAttribute('aria-label', 'Inspect ' + card.name + ', ' + C.rarity(card.rarity).name);
+        thumb.addEventListener('click', function () { inspectCard(card, offer); });
+        reactive(thumb);
+        var view = C.cardView.create(card, previewInstance(card, offer), { thumbnail: true, owned: false, keyboardFlip: false, autoFocus: false });
+        view.el.inert = true;
         thumb.appendChild(view.el); session.views.push(view);
         var meta = node('div', 'shop-offer-meta', tile);
         node('span', 'shop-offer-index', meta, String(index + 1).padStart(2, '0') + ' / 04');
@@ -233,7 +307,8 @@
         var copiesLabel = node('p', 'shop-offer-variant', tile, (offer.variantId ? C.variant(offer.variantId).name : 'Standard finish') + ' · ' + copies + ' owned');
         price(tile, offer.price);
         var actions = node('div', 'shop-offer-actions', tile);
-        button(actions, 'Inspect ' + card.name, function () { inspectCard(card, offer); }, 'shop-inspect');
+        var inspect = button(actions, 'Inspect', function () { inspectCard(card, offer); }, 'shop-inspect');
+        inspect.setAttribute('aria-label', 'Inspect ' + card.name);
         var control = hold(actions, card.name, offer.price, 'card', offer, tile, copiesLabel);
         if (state !== 'normal' && session.previewState !== 'normal') { control.disabled = true; control.title = previewLabels[state] + ' · UI state preview'; }
       });
@@ -271,6 +346,36 @@
       button(actions, 'Back to shop', function () { renderShop(true); }, 'shop-back');
       if (entitlement()) button(actions, 'Open Titan Pack', openPurchasedPack, 'shop-open-owned');
       else hold(actions, 'Titan Pack', FEATURED_PRICE, 'pack');
+      var vault = node('details', 'shop-vault', scroll); vault.open = true;
+      node('summary', '', vault, 'Inside the vault · 17 designs');
+      var browse = node('div', 'shop-vault-browse', vault);
+      var preview = node('div', 'shop-vault-card', browse);
+      var catalog = node('div', 'shop-vault-copy', browse);
+      node('span', 'shop-kicker', catalog, 'THE TITAN POOL');
+      var name = node('h3', '', catalog), rarity = node('p', 'shop-vault-rarity', catalog);
+      var chooser = node('select', 'shop-vault-select', catalog); chooser.setAttribute('aria-label', 'Preview a Titan design');
+      var pool = C.pack('titan').pool.cardIds.map(C.card).filter(Boolean), current = 0, previewView = null;
+      pool.forEach(function (card, index) { var option = node('option', '', chooser, card.name); option.value = index; });
+      var nav = node('div', 'shop-vault-nav', catalog);
+      button(nav, 'Previous Titan design', function () { showDesign((current + pool.length - 1) % pool.length); }, 'shop-vault-prev', 'chevron');
+      var count = node('span', 'shop-vault-count', nav);
+      button(nav, 'Next Titan design', function () { showDesign((current + 1) % pool.length); }, 'shop-vault-next', 'chevron');
+      node('p', 'shop-vault-note', catalog, 'Preview the Titan catalog. Your card and finish are rolled when you open the pack.');
+      function showDesign(index) {
+        current = index; chooser.value = index;
+        if (previewView) { previewView.destroy(); session.views = session.views.filter(function (view) { return view !== previewView; }); }
+        var card = pool[index]; if (!card) return;
+        previewView = C.cardView.create(card, previewInstance(card, { variantId: null, cardSkinId: null }), { thumbnail: true, owned: false, keyboardFlip: false });
+        preview.appendChild(previewView.el); session.views.push(previewView);
+        name.textContent = card.name; rarity.textContent = C.rarity(card.rarity).name + ' · Standard finish preview';
+        count.textContent = String(index + 1).padStart(2, '0') + ' / ' + pool.length;
+        preview.getAnimations().forEach(function (animation) { animation.cancel(); });
+        if (surface.dataset.shopMotion === 'full') animate(preview, [
+          { opacity: .25, transform: 'translateX(16px) rotateY(-8deg)' }, { opacity: 1, transform: 'translateX(0) rotateY(0)' }
+        ], { duration: 360 / C.settings.get('uiAnimationSpeed'), easing: 'cubic-bezier(.22,1,.36,1)' });
+      }
+      chooser.addEventListener('change', function () { showDesign(Number(chooser.value)); });
+      showDesign(0);
       footer(scroll); actions.querySelector('button').focus({ preventScroll: true });
     }
     function inspectCard(card, offer) {
@@ -279,8 +384,18 @@
       var refreshBalance = chrome(scroll, 'Card inspection'); session.refreshBalance = refreshBalance;
       var detail = node('section', 'shop-detail', scroll);
       var stage = node('div', 'shop-detail-card', detail);
-      var view = C.cardView.create(card, previewInstance(card, offer), { owned: false, independent: true, autoFocus: false });
+      var view = C.cardView.create(card, previewInstance(card, offer), { owned: false, independent: true, autoFocus: false, canFlip: true });
       stage.appendChild(view.el); session.views.push(view); view.applyMode('full');
+      var turn = button(stage, 'Turn card', function () {
+        view.flip();
+      }, 'shop-turn-card');
+      turn.setAttribute('aria-label', 'Turn card to see its reverse or front');
+      turn.setAttribute('aria-keyshortcuts', 'R'); turn.title = 'Turn card · R';
+      session.cleanups.push(C.keys.listen(surface, 'keydown', 'shop.card-turn', function (event) {
+        if (event.key.toLowerCase() !== 'r' || event.repeat || event.ctrlKey || event.metaKey || event.altKey ||
+            event.target.closest('input,select,textarea,[contenteditable]')) return;
+        event.preventDefault(); event.stopPropagation(); view.flip();
+      }));
       var copy = node('div', 'shop-detail-copy', detail);
       node('span', 'shop-kicker', copy, C.rarity(card.rarity).name.toUpperCase() + ' / ' + card.generation.toUpperCase());
       node('h2', '', copy, card.name);
@@ -308,6 +423,8 @@
       root.clearInterval(session.ticker); if (session.offSave) session.offSave();
       if (session.offReplace) session.offReplace();
       if (session.offFrame) session.offFrame();
+      if (session.offMotion) session.offMotion();
+      if (session.offSettings) session.offSettings();
       root.document.removeEventListener('visibilitychange', sync);
       root.removeEventListener('focus', sync);
       clearContent(); active = null;
@@ -315,6 +432,10 @@
     }});
     refreshControls();
     function sync() {
+      surface.dataset.shopHidden = root.document.hidden ? 'true' : 'false';
+      session.animations.forEach(function (animation) {
+        if (root.document.hidden) animation.pause(); else if (animation.playState === 'paused') animation.play();
+      });
       if (!active || active !== session || root.document.hidden || session.syncing) return;
       session.syncing = true;
       try {
@@ -349,6 +470,8 @@
     root.document.addEventListener('visibilitychange', sync);
     root.addEventListener('focus', sync);
     session.offSave = C.events.on('save:written', sync);
+    session.offMotion = C.events.on('motion:changed', motionPolicy);
+    session.offSettings = C.events.on('settings:changed', motionPolicy);
     session.offReplace = C.events.on('save:replaced', function () {
       session.result = C.shopState.ensure();
       if (!session.selected) session.renderShop();
@@ -365,8 +488,12 @@
       if (active !== session) return false;
       var moving = false;
       session.holds.forEach(function (control) { moving = control.update(now, dt) || moving; });
+      session.views.forEach(function (view) {
+        if (view.mode === 'full' && view.visible && !view.destroyed && view.update)
+          moving = view.update(now, dt) || moving;
+      });
       return moving;
-    }, 'shop-hold-preview');
+    }, 'shop-showroom');
   }
   C.shop = {
     get daily() { return C.shopState.ensure(); },
