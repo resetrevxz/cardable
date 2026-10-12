@@ -2,7 +2,9 @@
 ; Keep the stock identity, registry, extraction, shortcuts and upgrade machinery.
 !include nsDialogs.nsh
 
+!ifndef BUILD_UNINSTALLER
 Var /GLOBAL cardableMotionCheckbox
+!endif
 Var /GLOBAL cardableReducedMotion
 Var /GLOBAL cardableHadInstall
 
