@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.6.1',codename:'Star collapse',date:'October 12, 2026',tag:'Update',tagline:'Super Rare grows, intensifies and collapses into light.',
+    hero:{badge:'CARDABLE / 1.6.1',title:'Star collapse.',subtitle:'A small Rare star forms a blue cloud seal, brightens, folds inward through glass, and ends in one white flash.',media:[]},
+    sections:{fixes:[],visuals:['Super Rare grows from a small star into a luminous cloud seal, intensifies, collapses through glass, and ends in one white flash.'],qol:['Full is 10.4 seconds; Short keeps every stage in 6.4 seconds. Reduced motion and Off keep a calm reveal.']},
+    entries:['Super Rare has a new cloud and star cutscene.','One white climax hands directly into the card reveal.']
+  },
+  {
     version:'1.6.0',codename:'Blue hour',date:'October 12, 2026',tag:'Update',tagline:'Rare has a new cloud and starlight reveal.',
     hero:{badge:'CARDABLE / 1.6.0',title:'Blue hour.',subtitle:'Blue light gathers at the edges, clouds race through the Rare star, and the card emerges from a pale-blue wash.',media:[]},
     sections:{fixes:['Reduced motion starts Off for new players and old Auto defaults.'],visuals:['Rare now builds from side light to an accelerating cloud timelapse, star fracture and blue card reveal.'],qol:['Windows setup offers an opt-in reduced-motion checkbox; the in-game setting remains available.']},

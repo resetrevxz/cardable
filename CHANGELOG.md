@@ -1,3 +1,11 @@
+# Cardable v1.6.1 — Star collapse
+
+Super Rare begins with the small four-point star from Rare. It slowly develops into a broken blue ring around moving clouds, a tall central star and six curved satellites. The seal enlarges and brightens, folds into overlapping refractive glass forms, and explodes into one white flash. The cinematic ends on white and hands directly to the card reveal.
+
+Full lasts 10.4 seconds; the authored Short route retains every stage in 6.4 seconds. Safe uses a slower white rise, and reduced motion, Off and the lowest graphics tiers retain the calm still route. Cloud materials stay local and bounded, with no new animation loop, network dependency or audio.
+
+Source browser review covered color and monochrome, 1280 × 720 and 390 × 844, Medium/High, Full/Short/Fast/Off, and a normal opening through the card handoff and exact-once Keep. The opening had no page errors or network requests. Installer execution, live updater upgrades and hardware performance remain unverified. This release is unsigned.
+
 # Cardable v1.6.0 — Blue hour
 
 Rare opens with pale-blue light fading in from both sides. Its original four-point cloud star appears, clouds cross it faster and faster, and the star breaks into a growing blue wash before the card handoff. The Full route is 5.43 seconds; Short keeps the shared shortened clock, while Off/reduced motion/Very Low keep a calm still reveal.
