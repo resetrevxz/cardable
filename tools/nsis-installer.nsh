@@ -29,7 +29,7 @@ Var /GLOBAL cardableHadInstall
 
 !ifndef BUILD_UNINSTALLER
 Function cardableMotionPage
-  ${If} ${isUpdated}
+  ${If} $cardableHadInstall != ""
     Abort
   ${EndIf}
   nsDialogs::Create 1018
