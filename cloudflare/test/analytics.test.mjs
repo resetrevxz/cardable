@@ -115,7 +115,7 @@ test('quantiles and medians are what they say', () => {
 
 // ---- the endpoints, on a database with labeled fixtures ------------------------------------------------------------------
 let server, cached;
-before(async () => { server = await start(8831, {}); cached = await start(8832, { ANALYTICS_CACHE: 'on' }); });
+before(async () => { server = await start(8831, { ALERT_GAP_MS: 0 }); cached = await start(8832, { ANALYTICS_CACHE: 'on' }); });
 after(() => stopAll());
 
 // A labeled fixture: n sales of one exact card, ending `endAgo` ms ago, on a given interval, from a price function.
@@ -258,6 +258,12 @@ test('alerts: a crowd of alerts that match nothing cannot starve a real one, the
   assert.equal(burst.filter((r) => r.status === 200).length, 20);
   const watcher = await player(server, {}), seller = await player(server, { cards: 1 });
   const card = seller.cards[0].cardId, now = Date.now() + 5 * HOUR;
+  // a flood that DOES match the card: 8 accounts x 20 price alerts, more than any shared window would hold
+  for (let i = 0; i < 8; i++) {
+    const flooder = await player(server, {});
+    const made = await Promise.all(Array.from({ length: 20 }, () => call(server, 'POST', '/v1/alerts', { kind: 'price', cardId: card, maxPrice: 900 }, flooder.token)));
+    assert.ok(made.every((r) => r.status === 200));
+  }
   assert.equal((await call(server, 'POST', '/v1/alerts', { kind: 'price', cardId: card, maxPrice: 500 }, watcher.token)).status, 200);
   assert.equal((await call(server, 'POST', '/v1/alerts', { kind: 'price', cardId: card, maxPrice: 500, variantId: 'not-a-finish' }, watcher.token)).status, 422);
   const made = await call(server, 'POST', '/v1/listings', { kind: 'fixed', instanceIds: [seller.cards[0].id], ask: 100 }, seller.token, { at: now });
@@ -270,6 +276,13 @@ test('alerts: a crowd of alerts that match nothing cannot starve a real one, the
   const a1 = await call(server, 'GET', '/v1/analytics/stocks?scope=index&id=one&window=7d', null, watcher.token, { at: now });
   const a2 = await call(server, 'GET', '/v1/analytics/stocks?scope=index&id=two&window=7d', null, watcher.token, { at: now });
   assert.deepEqual(a1.data.title, a2.data.title); assert.equal(a1.data.id, ''); assert.equal(a2.data.id, '');
+  // names that exist on every object are not windows, sorts or cards
+  const proto = await call(server, 'GET', '/v1/analytics/card?cardId=' + CARD + '&window=constructor', null, watcher.token, { at: now });
+  assert.equal(proto.status, 200); assert.equal(proto.data.window, '7d');
+  assert.equal((await call(server, 'GET', '/v1/analytics/stocks?scope=index&window=__proto__', null, watcher.token, { at: now })).data.window, '7d');
+  assert.equal((await call(server, 'GET', '/v1/analytics/card?cardId=constructor&window=7d', null, watcher.token, { at: now })).status, 404);
+  assert.equal((await call(server, 'GET', '/v1/cards/constructor/market', null, watcher.token, { at: now })).status, 404);
+  assert.equal((await call(server, 'GET', '/v1/listings?sort=constructor', null, watcher.token, { at: now })).status, 200);
 });
 
 test('search: filters narrow on indexes, pages never repeat or skip, and the plan does not scan the table', async () => {

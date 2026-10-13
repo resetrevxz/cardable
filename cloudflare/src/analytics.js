@@ -10,6 +10,8 @@ import { DAY, HOUR, baselineOf, clamp, feeFor, keyOf, metaOf, nameOf, rarityOf, 
 
 const E = CATALOG.economy;
 const MIN_FOR = E.valuation;                    // priorWeight, window, halfLifeDays, minForMedium, minForHigh
+// A window named by a caller is looked up by its own keys only: `constructor` and `__proto__` are not windows.
+export const windowOf = (id) => (typeof id === 'string' && Object.prototype.hasOwnProperty.call(WINDOWS, id) ? id : '7d');
 export const WINDOWS = {
   '24h': { span: DAY, bucket: HOUR }, '7d': { span: 7 * DAY, bucket: 6 * HOUR }, '30d': { span: 30 * DAY, bucket: DAY },
   '90d': { span: 90 * DAY, bucket: DAY }, all: { span: Infinity, bucket: DAY }
@@ -142,7 +144,7 @@ function depthOf(prices) {
 // rows: [{ at, card_key, price }] oldest first; for a card scope the series is in Credits, for a group in index points
 // (price against the card's own baseline, as 100), so cards of different value can share one line.
 export function buildCandles(rows, windowId, now, mode) {
-  const w = WINDOWS[windowId] || WINDOWS['7d'];
+  const w = WINDOWS[windowOf(windowId)];
   const start = isFinite(w.span) ? now - w.span : -Infinity, buckets = new Map();
   for (const r of rows) {
     if (r.at < start) continue;

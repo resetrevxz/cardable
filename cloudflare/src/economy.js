@@ -39,12 +39,14 @@ export function feeFor(price) {
   return Math.min(price, Math.max(RULES.fee.minFee, roundHalfUp(price * RULES.fee.bps / 10000)));
 }
 export const keyOf = (cardId, variantId, skinId) => [cardId, variantId || '', skinId || ''].join('|');
-export const isCard = (id) => Object.prototype.hasOwnProperty.call(CATALOG.cards, id);
-export const nameOf = (id) => CATALOG.names[id] || id;
-export const metaOf = (id) => CATALOG.meta[id] || { b: null, g: null };
+// Ids come from callers, so every catalog lookup is by own key: `constructor` and `__proto__` are not cards.
+const own = (o, k) => typeof k === 'string' && Object.prototype.hasOwnProperty.call(o, k);
+export const isCard = (id) => own(CATALOG.cards, id);
+export const nameOf = (id) => (own(CATALOG.names, id) ? CATALOG.names[id] : id);
+export const metaOf = (id) => (own(CATALOG.meta, id) ? CATALOG.meta[id] : { b: null, g: null });
 export const serialNumber = (serial) => { const m = /-(\d{1,9})$/.exec(String(serial || '')); return m ? Number(m[1]) : null; };
-export const rarityOf = (id) => CATALOG.cards[id] || null;
-export const tierOf = (id) => (E.tier[id] == null ? 0 : E.tier[id]);
+export const rarityOf = (id) => (own(CATALOG.cards, id) ? CATALOG.cards[id] : null);
+export const tierOf = (id) => (own(E.tier, id) && E.tier[id] != null ? E.tier[id] : 0);
 
 // ---- value -------------------------------------------------------------------------------------------------------------
 export function serialFactor(serial) {
@@ -58,9 +60,9 @@ export function serialFactor(serial) {
 }
 // The value of the card and finish and skin before anyone traded it (no serial factor).
 export function baselineOf(cardId, variantId, skinId) {
-  const base = E.base[cardId];
+  const base = own(E.base, cardId) ? E.base[cardId] : null;
   if (base == null) return 1;
-  const cls = variantId ? E.variantClass[variantId] : null, v = cls && E.variantClassFactor[cls] ? E.variantClassFactor[cls] : 1, k = skinId ? E.skinFactor : 1;
+  const cls = variantId && own(E.variantClass, variantId) ? E.variantClass[variantId] : null, v = cls && E.variantClassFactor[cls] ? E.variantClassFactor[cls] : 1, k = skinId ? E.skinFactor : 1;
   return Math.max(1, roundHalfUp(base * v * k));
 }
 // Weighted, outlier-clamped mean of executed player trades, pulled toward the baseline while data is thin.

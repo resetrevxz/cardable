@@ -4,7 +4,7 @@
 import { ApiError } from './util.js';
 import { CATALOG } from './catalog.js';
 import { DAY, baselineOf, isCard, keyOf, metaOf, nameOf, rarityOf, tierOf } from './economy.js';
-import { WINDOWS, analyzeCard, buildCandles, candleChange, perCard } from './analytics.js';
+import { WINDOWS, analyzeCard, buildCandles, candleChange, perCard, windowOf } from './analytics.js';
 
 const SERIES_CAP = 20000;
 const memory = new Map();
@@ -71,7 +71,7 @@ export async function cardAnalytics(env, spec, windowId, now) {
   // (and of queries a caller can cause) is bounded by the catalog and not by what a caller types.
   if (spec.variantId && !CATALOG.variants.includes(spec.variantId)) throw new ApiError(404, 'not-found', 'That finish is not in the catalog.');
   if (spec.skinId && !CATALOG.skins.includes(spec.skinId)) throw new ApiError(404, 'not-found', 'That skin is not in the catalog.');
-  const win = WINDOWS[windowId] ? windowId : '7d';
+  const win = windowOf(windowId);
   // the cache key is the exact card and window, in a time bucket the length of its lifetime
   const name = 'card|' + keyOf(spec.cardId, spec.variantId, spec.skinId) + '|' + win + '|' + bucket(now, TTL[win] || 45);
   return cached(env, name, TTL[win] || 45, async () => {
@@ -97,7 +97,7 @@ const leaderRow = (p) => ({ cardId: p.cardId, name: p.name, valuation: { average
   samples: p.samples14, confidence: p.samples14 >= 12 ? 'high' : p.samples14 >= 4 ? 'medium' : p.samples14 > 0 ? 'low' : 'none', lastAt: p.lastAt } });
 
 export async function stocks(env, q, now) {
-  const scope = ['index', 'rarity', 'brand', 'generation', 'card'].includes(q.scope) ? q.scope : 'index', win = WINDOWS[q.window] ? q.window : '7d';
+  const scope = ['index', 'rarity', 'brand', 'generation', 'card'].includes(q.scope) ? q.scope : 'index', win = windowOf(q.window);
   // The whole market has no id. Anything else must name a real group (an unknown one is empty and never cached).
   const id = scope === 'index' ? '' : String(q.id || '').slice(0, 60);
   if (scope === 'card') {

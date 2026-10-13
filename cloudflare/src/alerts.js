@@ -3,7 +3,7 @@
 // alert is checked when the listing appears (or is repriced) and waits in the inbox until the player opens the game.
 import { ApiError, cleanText } from './util.js';
 import { CATALOG } from './catalog.js';
-import { isCard, nameOf, rarityOf } from './economy.js';
+import { isCard, nameOf } from './economy.js';
 import { newId } from './ops.js';
 
 const MAX_ALERTS = 20;
@@ -54,55 +54,55 @@ export async function deleteAlert(env, who, id) {
   return { ok: true };
 }
 
-function matches(alert, L) {
-  if (alert.account_id === L.seller_id || L.kind === 'swap' && alert.kind === 'price') return false;
-  if (alert.kind === 'price') {
-    if (alert.card_id !== L.card_id) return false;
-    if (alert.variant_id && alert.variant_id !== L.variant_id) return false;
-    return L.price <= alert.max_price;
+// Delivery. An alert is evaluated by its OWNER's own requests, against the listings that appeared or got cheaper since
+// the alert was last looked at. Nothing is shared between players: one player's alerts can neither crowd out another's
+// nor cost the market a write per listing, and what one player does costs only that player's own reads. A match is one
+// notification per alert per listing, ever. The inbox holds it until the game is opened; there is no push channel.
+const PER_CALL = 8;        // alerts looked at per request, longest-unchecked first, so all of a player's alerts get a turn
+const PER_ALERT = 5;       // notifications one alert can make in one look (the rest are still in the market)
+
+function conditions(a, now, me, since) {
+  const where = ["l.status = 'active'", 'l.ends_at > ?', 'l.touched_at > ?', 'l.seller_id <> ?'], binds = [now, since, me];
+  if (a.kind === 'price') {
+    where.push('l.card_id = ?', "l.kind <> 'swap'", 'l.price <= ?'); binds.push(a.card_id, a.max_price);
+    if (a.variant_id) { where.push('l.variant_id = ?'); binds.push(a.variant_id); }
+    return { where, binds };
   }
-  const q = alert.query ? JSON.parse(alert.query) : {};
-  if (q.q && nameOf(L.card_id).toLowerCase().indexOf(q.q.toLowerCase()) < 0) return false;
-  if (q.rarity && !q.rarity.includes(rarityOf(L.card_id))) return false;
-  if (q.kind && !q.kind.includes(L.kind)) return false;
-  if (q.maxPrice != null && L.kind !== 'swap' && L.price > q.maxPrice) return false;
-  if (q.brand && L.brand !== q.brand) return false;
-  if (q.generation && L.generation !== q.generation) return false;
-  if (q.variantId && L.variant_id !== q.variantId) return false;
-  return true;
+  const q = a.query ? JSON.parse(a.query) : {};
+  if (q.q) {
+    const needle = String(q.q).toLowerCase();
+    const ids = Object.keys(CATALOG.names).filter((id) => CATALOG.names[id].toLowerCase().indexOf(needle) >= 0).slice(0, 50);
+    if (!ids.length) where.push('0'); else { where.push('l.card_id IN (' + ids.map(() => '?').join(',') + ')'); binds.push(...ids); }
+  }
+  if (q.rarity && q.rarity.length) { where.push('l.rarity IN (' + q.rarity.map(() => '?').join(',') + ')'); binds.push(...q.rarity); }
+  if (q.kind && q.kind.length) { where.push('l.kind IN (' + q.kind.map(() => '?').join(',') + ')'); binds.push(...q.kind); }
+  if (q.maxPrice != null) { where.push("(l.kind = 'swap' OR l.price <= ?)"); binds.push(q.maxPrice); }
+  if (q.brand) { where.push('l.brand = ?'); binds.push(q.brand); }
+  if (q.generation) { where.push('l.generation = ?'); binds.push(q.generation); }
+  if (q.variantId) { where.push('l.variant_id = ?'); binds.push(q.variantId); }
+  return { where, binds };
 }
 
-// Called after a listing appears or gets cheaper. One notification per alert per listing, ever.
-export async function evaluateAlerts(env, listingId, now) {
-  const L = await env.DB.prepare("SELECT * FROM listings WHERE id = ? AND status = 'active'").bind(listingId).first();
-  if (!L) return 0;
-  // Only alerts that really match are selected, and only then is the fan-out bounded. (Bounding first would let a
-  // crowd of alerts that match nothing push everyone else's out of the window.) Alerts that have waited longest since
-  // their last hit go first, so a flood that matches everything cannot starve the rest either.
-  const alerts = (await env.DB.prepare(
-    "SELECT * FROM alerts WHERE active = 1 AND account_id <> ?1 AND (" +
-      "(kind = 'price' AND card_id = ?2 AND ?3 = 0 AND max_price >= ?4 AND (variant_id IS NULL OR variant_id IS ?5)) OR " +
-      "(kind = 'search' AND query IS NOT NULL" +
-        " AND (json_extract(query, '$.q') IS NULL OR instr(?6, lower(json_extract(query, '$.q'))) > 0)" +
-        " AND (json_extract(query, '$.rarity') IS NULL OR EXISTS (SELECT 1 FROM json_each(alerts.query, '$.rarity') WHERE value = ?7))" +
-        " AND (json_extract(query, '$.kind') IS NULL OR EXISTS (SELECT 1 FROM json_each(alerts.query, '$.kind') WHERE value = ?8))" +
-        " AND (json_extract(query, '$.maxPrice') IS NULL OR ?3 = 1 OR json_extract(query, '$.maxPrice') >= ?4)" +
-        " AND (json_extract(query, '$.brand') IS NULL OR json_extract(query, '$.brand') = ?9)" +
-        " AND (json_extract(query, '$.generation') IS NULL OR json_extract(query, '$.generation') = ?10)" +
-        " AND (json_extract(query, '$.variantId') IS NULL OR json_extract(query, '$.variantId') IS ?5))) " +
-    "ORDER BY COALESCE(last_hit_at, 0), id LIMIT 50")
-    .bind(L.seller_id, L.card_id, L.kind === 'swap' ? 1 : 0, L.price, L.variant_id || null, nameOf(L.card_id).toLowerCase(), rarityOf(L.card_id), L.kind, L.brand || null, L.generation || null).all()).results;
-  const hits = alerts.filter((a) => matches(a, L));
-  if (!hits.length) return 0;
-  const statements = [];
-  hits.forEach((a) => {
-    statements.push(env.DB.prepare('INSERT OR IGNORE INTO alert_hits (alert_id, listing_id, at) VALUES (?, ?, ?)').bind(a.id, L.id, now));
-    // the notification is written only when this was the first hit, by selecting on the row that was just inserted
-    statements.push(env.DB.prepare("INSERT INTO notifications (account_id, at, kind, body, ref) SELECT ?, ?, 'price', ?, ? WHERE (SELECT changes()) = 1").bind(a.account_id, now,
-      (a.kind === 'price' ? 'Price alert: ' : 'Saved search: ') + nameOf(L.card_id) + ' is listed at ' + L.price + ' Credits' + (a.label ? ' (' + a.label + ')' : '') + '.', L.id));
-    statements.push(env.DB.prepare('UPDATE alerts SET last_hit_at = ? WHERE id = ?').bind(now, a.id));
-  });
-  await env.DB.batch(statements);
-  return hits.length;
+export async function evaluateOwnAlerts(env, who, now) {
+  const gap = env.ENVIRONMENT === 'test' && env.ALERT_GAP_MS != null ? Number(env.ALERT_GAP_MS) : 15_000;
+  const due = (await env.DB.prepare('SELECT * FROM alerts WHERE account_id = ? AND active = 1 AND COALESCE(checked_at, created_at) <= ? ORDER BY COALESCE(checked_at, created_at) LIMIT ?')
+    .bind(who.accountId, now - gap, PER_CALL).all()).results;
+  let fired = 0;
+  for (const a of due) {
+    const since = a.checked_at == null ? a.created_at : a.checked_at;
+    const c = conditions(a, now, who.accountId, since);
+    const rows = (await env.DB.prepare('SELECT l.id, l.card_id, l.price, l.touched_at FROM listings l WHERE ' + c.where.join(' AND ') + ' ORDER BY l.touched_at DESC LIMIT ' + PER_ALERT).bind(...c.binds).all()).results;
+    const statements = [];
+    rows.forEach((L) => {
+      statements.push(env.DB.prepare('INSERT OR IGNORE INTO alert_hits (alert_id, listing_id, at) VALUES (?, ?, ?)').bind(a.id, L.id, L.touched_at));
+      // written only when this is the first hit of this alert on this listing, by selecting on the row just inserted
+      statements.push(env.DB.prepare("INSERT INTO notifications (account_id, at, kind, body, ref) SELECT ?, ?, 'price', ?, ? WHERE (SELECT changes()) = 1").bind(a.account_id, L.touched_at,
+        (a.kind === 'price' ? 'Price alert: ' : 'Saved search: ') + nameOf(L.card_id) + ' is listed at ' + L.price + ' Credits' + (a.label ? ' (' + a.label + ')' : '') + '.', L.id));
+    });
+    statements.push(env.DB.prepare('UPDATE alerts SET checked_at = ?, last_hit_at = CASE WHEN ? > 0 THEN ? ELSE last_hit_at END WHERE id = ?').bind(now, rows.length, now, a.id));
+    await env.DB.batch(statements);
+    fired += rows.length;
+  }
+  return fired;
 }
 export { QUERY_KEYS };

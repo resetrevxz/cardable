@@ -5,6 +5,7 @@ import { DAY, RULES, TIERS, feeFor, nameOf, resolveAuction } from './economy.js'
 import { CATALOG } from './catalog.js';
 import { valuations } from './valuation.js';
 import { settleListing } from './listings.js';
+import { evaluateOwnAlerts } from './alerts.js';
 
 const placeholders = (n) => new Array(n).fill('?').join(',');
 const FORMAT = { fixed: 'buy-now', auction: 'auction', swap: 'swap' };
@@ -107,7 +108,7 @@ export function searchPlan(p, who, now) {
 }
 
 export async function browse(env, who, url, now) {
-  const p = url.searchParams, limit = clampLimit(p.get('limit'), 50, 100), sort = SORTS[p.get('sort')] ? p.get('sort') : 'newest';
+  const p = url.searchParams, limit = clampLimit(p.get('limit'), 50, 100), sort = Object.prototype.hasOwnProperty.call(SORTS, p.get('sort')) ? p.get('sort') : 'newest';
   const cur = parseCursor(p.get('cursor')), plan = searchPlan(p, who, now), order = SORTS[sort];
   const where = plan.where.slice(), binds = plan.binds.slice();
   if (cur) { where.push('(' + order[0] + ' ' + (order[1] === 'DESC' ? '<' : '>') + ' ? OR (' + order[0] + ' = ? AND l.id ' + (order[1] === 'DESC' ? '<' : '>') + ' ?))'); binds.push(cur[0], cur[0], cur[1]); }
@@ -199,6 +200,8 @@ export function orderView(o) {
 // ---- the player's own activity ----------------------------------------------------------------------------------------------------
 export async function activity(env, who, now) {
   const me = who.accountId;
+  // The player's own alerts are looked at now, by this request; a failure here never costs them their activity page.
+  try { await evaluateOwnAlerts(env, who, now); } catch (_) { /* looked at again on the next request */ }
   const mineRows = (await env.DB.prepare(LISTING_SQL + 'WHERE l.seller_id = ?1 ORDER BY (l.status = \'active\') DESC, l.created_at DESC LIMIT 60').bind(me).all()).results;
   const bidRows = (await env.DB.prepare(LISTING_SQL + "WHERE l.status = 'active' AND l.id IN (SELECT listing_id FROM bids WHERE bidder_id = ?1) ORDER BY l.ends_at LIMIT 40").bind(me).all()).results;
   const orders = (await env.DB.prepare('SELECT * FROM orders WHERE account_id = ? ORDER BY (status = \'open\') DESC, created_at DESC LIMIT 40').bind(me).all()).results;
