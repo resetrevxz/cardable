@@ -9,7 +9,7 @@
       sy*scale[2],-sx*cy*scale[2],cx*cy*scale[2],0,position[0],position[1],position[2],1]);
   }
   function mesh(type, tier) {
-    var out=[], segments=tier==='low'?12:24;
+    var out=[], segments=type==='halo'?(tier==='low'?32:96):type==='plinth-round'||type==='turntable'?(tier==='very-high'?96:tier==='high'?64:tier==='medium'?32:16):tier==='low'?12:24;
     function vertex(p,n,uv,face) { out.push(p[0],p[1],p[2],n[0],n[1],n[2],uv[0],uv[1],face||0); }
     function tri(a,b,c,face,normal,uvs) { var n=normal || C.studioCamera.unit([(b[1]-a[1])*(c[2]-a[2])-(b[2]-a[2])*(c[1]-a[1]),(b[2]-a[2])*(c[0]-a[0])-(b[0]-a[0])*(c[2]-a[2]),(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])]); [a,b,c].forEach(function(p,i){vertex(p,n,uvs?uvs[i]:[[0,0],[1,0],[1,1]][i],face);}); }
     function quad(a,b,c,d,face) { tri(a,b,c,face,null,[[0,0],[1,0],[1,1]]);tri(a,c,d,face,null,[[0,0],[1,1],[0,1]]); }
@@ -31,6 +31,7 @@
     else if(type==='shard'){var a=[-.35,-.5,0],b=[.4,-.25,.08],c=[.12,.55,0],d=[-.15,.05,.24];tri(a,b,c,4);tri(a,d,b,4);tri(b,d,c,4);tri(c,d,a,4);}
     else if(type==='glass-case') {box(0,-.57,0,1.3,.08,.65,1);box(0,0,0,1.25,1.15,.6,4);}
     else if(type==='softbox') {box(0,.15,0,.8,.55,.18);box(0,.15,.095,.74,.49,.015,2);bar([0,-.1,0],[0,-.65,0],.018,1);cylinder(0,-.65,0,.22,.04,1);}
+    else if(type==='halo') ring(0,0,0,.33,.004,2,true);
     else if(type==='ring-light') {ring(0,.12,0,.33,.045,2,true);bar([0,-.25,0],[0,-.65,0],.02,1);cylinder(0,-.65,0,.2,.04,1);}
     else if(type==='neon-tube') {box(0,0,0,1.25,.31,.04,1);quad([-.6,-.13,.025],[.6,-.13,.025],[.6,.13,.025],[-.6,.13,.025],3);}
     else if(type==='spotlight-can') {cylinder(0,-.18,0,.24,.48,1);ring(0,.08,0,.22,.035,1);cylinder(0,.065,0,.2,.01,2);bar([-.29,0,0],[-.29,-.42,0],.025,1);bar([.29,0,0],[.29,-.42,0],.025,1);bar([-.29,-.42,0],[.29,-.42,0],.025,1);}

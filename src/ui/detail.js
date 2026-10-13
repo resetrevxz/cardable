@@ -161,7 +161,9 @@
     C.accessibility.release(overlay);
   }
   function update(now, dt) {
-    if (phase === 'closed' || C.studio && (C.studio.active || C.studio.pending)) return false;
+    // Album reopening waits for this return/lift transition before entering
+    // Studio. Pending blocks input, but must not suspend its own handoff.
+    if (phase === 'closed' || C.studio && C.studio.active) return false;
     if (phase === 'detail' && spring.value === 1 && !drag && dragSpring.settled() && !swapping && shineAge >= cfg.detailShineMs) return false;
     if (C.motion.reduced) { spring.target = 1; spring.velocity = 0; if (1 - spring.value <= dt / fadeMs) spring.reset(1); else spring.value += dt / fadeMs; }
     else spring.step(dt, 1);
