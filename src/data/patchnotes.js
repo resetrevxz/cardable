@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.7.1',codename:'Cinematic by default',date:'October 13, 2026',tag:'Fix',tagline:'Start with the whole ceremony.',
+    hero:{badge:'CARDABLE / 1.7.1',title:'Cinematic by default.',subtitle:'High detail, full-length cutscenes and full motion from the first launch.',media:[]},
+    sections:{fixes:['Cinematic setup now clears reduced motion and saved cutscene skips, including individual rarity routes.'],visuals:['New players start with High graphics and Full strobing.'],qol:['Existing saves can restore the full presentation through Settings → Quick setups → Cinematic. Existing preferences stay as chosen on load.']},
+    entries:['New-player settings show the full presentation.','Cinematic setup restores every cutscene route.']
+  },
+  {
     version:'1.7.0',codename:'Shop',date:'October 13, 2026',tag:'Feature',tagline:'Four daily cards. One featured Titan pack.',
     hero:{badge:'CARDABLE / 1.7.0',title:'Shop.',subtitle:'Inspect, compare, mark your targets and hold to add a card to your collection.',media:[]},
     sections:{fixes:['Rejected purchases retain your Credits and collection. Failed Shop preference writes retain the saved setting.'],visuals:['A cinematic showroom, interactive card backs, pack rotation and sequential inspection.'],qol:['Four daily offers with fixed prices, purchased Titan packs, wishlists, purchase history and direct save export.','Saved layouts, sorting and quiet motion; save status with explicit retry actions.']},

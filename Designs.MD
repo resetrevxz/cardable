@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.7.0**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.7.1**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -161,7 +161,7 @@ Prefer solid shaded surfaces for browsing and Settings over blurring the whole g
 
 ## Four graphics tiers
 
-Every tier retains the collectible's identity, readable information and all gameplay actions. Quality scales decoration and work, never rewards or timing rules. Medium is the default. Settings can customize each effect without losing other preferences.
+Every tier retains the collectible's identity, readable information and all gameplay actions. Quality scales decoration and work, never rewards or timing rules. High is the new-player default. Settings can customize each effect without losing other preferences.
 
 | Preset | Presentation and resource intent |
 |---|---|
@@ -226,7 +226,7 @@ Scenes read an already reserved instance. Conceal its face until the real handof
 
 The current stories include Rare's blue side light, layered sky, curved glass star, accelerating cloud timelapse and continuous pale-blue fracture wash, Super Rare's suspended light pillar, layered cloud seal, star constellation, refractive glass collapse and single white climax, purple refractive gel, Double Super Rare's blended blue/gold glass and turning prism, gilded prism, Mythical Crimson Clock, Exotic galaxy, Ascendant Prismatic Dawn and Secret Fatal Exception. Their current complete descriptors supersede early A/B design fragments. Full/Short/Off is independent of cinematic quality; Very Low/reduced motion/Off retain understandable calm routes. [CINEMATICS](docs/CINEMATICS.md) is authoritative for durations, handoff, resources and unresolved acceptance.
 
-Safe is the default strobing profile. Full requires the existing three-second confirmation; Full Secret has a pre-roll choice with an eight-second Safe fallback. Final-output luminance limits and the emergency brake remain authoritative over authored beats, Fast and scrubbing. No new flashes are authorized by a graphics preset.
+Full is the new-player strobing profile by the owner's explicit instruction. Switching from Safe to Full in its direct setting retains the three-second confirmation; Full Secret has a pre-roll choice with an eight-second Safe fallback. Final-output luminance limits and the emergency brake remain authoritative over authored beats, Fast and scrubbing. No new flashes are authorized by a graphics preset.
 
 Retained fields leave a readable center and bounded quiet motion: static Legendary crystals, Mythical rim smoke/embers, the same Exotic stars, Ascendant's serial-seeded pastel field and Secret's Found field. Reuse the session seed/clock at handoff; recovery uses the quiet deterministic endpoint. Never attach a live reveal field to shelf thumbnails. Dispose foreground resources and stop retained updates when hidden/inactive.
 

@@ -111,7 +111,7 @@
   }
 
   // Graphics tiers: five tiles, the effect of each in a sentence, and a way back from a customized mix.
-  var tierCopy = { 'very-low': ['Very Low', 'Still materials and solid panels. For basic devices.'], low: ['Low', 'Clean materials with light motion.'], medium: ['Medium', 'Balanced detail and cost. The default.'], high: ['High', 'Full materials, lighting and focused effects.'], 'very-high': ['Very High', 'Extra reflections and cinematic optics for capable hardware.'] };
+  var tierCopy = { 'very-low': ['Very Low', 'Still materials and solid panels. For basic devices.'], low: ['Low', 'Clean materials with light motion.'], medium: ['Medium', 'Balanced detail and cost.'], high: ['High', 'The default. Full materials, lighting and focused effects.'], 'very-high': ['Very High', 'Extra reflections and cinematic optics for capable hardware.'] };
   function tiers(d, parent, binding) {
     binding = bind(binding); var f = frame(d, parent, true), group = node('div', 'cbs-tiers', f.host); group.setAttribute('role', 'radiogroup'); group.setAttribute('aria-labelledby', f.label.id);
     var buttons = d.choices.map(function (tier, i) { var b = node('button', 'cbs-tier', group); b.type = 'button'; b.value = tier; b.setAttribute('role', 'radio'); var bars = node('span', 'cbs-tier-bars', b); bars.setAttribute('aria-hidden', 'true'); for (var n = 0; n < 5; n++) node('i', n <= i ? 'is-on' : '', bars); node('span', 'cbs-tier-name', b, tierCopy[tier][0]); b.addEventListener('click', function () { binding.set(d.key, tier); }); return b; });

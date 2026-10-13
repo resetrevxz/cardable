@@ -1,6 +1,6 @@
 # AGENTS.md — current Cardable working guide
 
-Cardable's current public version is **1.7.0**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
+Cardable's current public version is **1.7.1**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
 
 ## Read only what the task needs
 
@@ -26,7 +26,7 @@ The latest direct user instruction controls scope. Historical plans, patches, de
 ## Visual and performance rules
 
 - Follow Designs and the actual CSS tokens. The owner now permits purposeful color accents in the default theme; monochrome is the optional saved theme, not a blanket chrome restriction. Keep readable shaded surfaces and obey the existing color/mono setting. Rarity, pack and artwork recipes remain listed in Designs. Inter and JetBrains Mono are the UI fonts; VT323 and Bodoni Moda have narrowly scoped artwork exceptions.
-- Keep Very Low, Low, Medium and High, plus opt-in hardware-gated Very High, with Medium as the new-player default. The ten graphics controls are independent. Presets preserve FPS, reduced motion and other preferences.
+- Keep Very Low, Low, Medium and High, plus opt-in hardware-gated Very High, with High as the new-player default. The ten graphics controls are independent. Presets preserve FPS, reduced motion and other preferences.
 - Use shared scheduling, focused full-card effects, bounded static inventory thumbnails and quality-aware canvas/resource budgets. Release hidden/offscreen work and temporary GL/material resources. Do not create a clock per card or an always-running idle loop.
 - Respect reduced motion, keyboard access, focus restoration, touch controls and the existing Safe/Full cinematic gates. Saved preferences must not be changed by temporary battery/Safe Mode/adaptive overrides.
 - Do not promise universal frame rates or claim accessibility, photosensitivity or physical-device performance beyond what was actually measured.

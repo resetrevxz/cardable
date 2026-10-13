@@ -100,8 +100,6 @@
   tune('holdDuration', { label: 'Hold time', helper: 'How long you hold to open a pack.' });
   tune('cutAssist', { helper: 'Easy finishes the cut after a shorter swipe.' });
   tune('keyHints', { helper: 'Small key reminders near the pack. Tutorial hints always stay.' });
-  tune('cutscenes', { helper: 'The full ceremony, a short route, or a calm reveal for high rarities.' });
-  tune('strobing', { helper: 'Full adds rapid flashing that can trigger seizures in people with photosensitive epilepsy. Hold to enable.' });
   tune('performanceMode', { helper: 'A frame-rate readout in a corner. F3 cycles it.' });
   tune('backgroundMode', { label: 'When the tab is hidden', helper: 'Packs refill by real time either way.' });
   tune('unfocusedMode', { label: 'When another window is in front', helper: 'For a visible window you are not using.' });
@@ -179,17 +177,18 @@
   C.data.settingsAliases = { 'Advanced graphics': 'Graphics', 'Motion and effects': 'Motion', Cards: 'Gameplay', 'Interface visibility': 'Appearance',
     Display: 'Appearance', 'Animation and effects': 'Motion', 'Cutscene skip': 'Motion', 'Gameplay behavior': 'Gameplay', Formats: 'Gameplay',
     Notifications: 'Gameplay', Sound: 'Appearance' };
+  var cinematicProfile = C.data.settingsProfiles.Cinematic;
   C.data.settingsProfiles = {
     Balanced: {},
     Performance: { quality: 'low', fpsLimit: '60', resolutionScale: .75, dots: 'off', reduceTransparency: true },
-    Cinematic: { quality: 'high', cutscenes: 'full', skipAllCutscenes: false, revealSpeed: 'normal' },
+    Cinematic: cinematicProfile,
     Minimal: { visibleWordmark: false, visibleCredits: false, visibleHelp: false, visibleTooltips: false, visibleTags: false, dots: 'off', cursorGlow: false },
     Comfort: { motion: 'on', reduceTransparency: true, highContrast: true, largerText: true, focusEmphasis: true, toggleHold: true, holdDuration: 'short' }
   };
   C.data.settingsProfileInfo = {
     Balanced: ['sparkle', 'Every option back to its default.'],
     Performance: ['gauge', 'Lighter effects and a 60 FPS cap for a smooth, cool machine.'],
-    Cinematic: ['play', 'High detail with every cutscene in full.'],
+    Cinematic: ['play', 'High detail, full motion and every cutscene. Includes flashing and strobing.'],
     Minimal: ['eye', 'Just the pack. Hides most of the menu furniture.'],
     Comfort: ['access', 'Reduced motion, solid surfaces, larger text and an easier hold.']
   };
