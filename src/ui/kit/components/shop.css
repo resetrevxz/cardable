@@ -152,6 +152,18 @@
 .shop-specs dt { color:var(--text-secondary); }
 .shop-specs dd { margin:0; color:var(--text-primary); font-family:var(--font-mono); text-align:right; }
 .shop-turn-card { display:flex; min-height:44px; margin:16px auto 0; background:transparent; }
+.shop-inspection-tools { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:12px; margin-top:16px; }
+.shop-inspection-nav { display:flex; align-items:center; gap:4px; }
+.shop-inspection-nav button { width:44px; height:44px; border-radius:50%; background:transparent; }
+.shop-inspection-nav .cb-icon { width:16px; height:16px; }
+.shop-inspection-prev .cb-icon { transform:rotate(180deg); }
+.shop-inspection-position { width:60px; text-align:center; color:var(--text-secondary); font:500 11px/1.4 var(--font-mono); font-variant-numeric:tabular-nums; }
+.shop-inspection-tools .shop-turn-card { margin:0; padding:8px 12px; font-size:12px; }
+.shop-inspection-specs { margin-top:20px; border-top:1px solid var(--stroke); }
+.shop-inspection-specs summary { display:flex; align-items:center; justify-content:space-between; min-height:44px; cursor:pointer; list-style:none; color:var(--text-secondary); font:400 12px/1.4 var(--font-ui); }
+.shop-inspection-specs summary::after { content:'+'; font:400 20px/1 var(--font-mono); }
+.shop-inspection-specs[open] summary::after { content:'−'; }
+.shop-inspection-specs .shop-specs { margin:0; padding-top:8px; border-top:0; }
 .shop-receipt-balance { font:500 20px/1.4 var(--font-mono) !important; color:var(--text-primary) !important; }
 .shop-receipt-data { margin-top:8px; color:var(--text-secondary); font-size:12px; }
 .shop-receipt-data summary { min-height:44px; display:flex; align-items:center; cursor:pointer; }

@@ -33,6 +33,13 @@ async function launch() {
   });
   assert.equal(before.saved, true);
   await page.locator('#shop-entry').click();
+  const offers=await page.locator('.shop-offer h3').allTextContents();
+  await page.locator('.shop-offer .shop-inspect').first().click();
+  await page.locator('.shop-inspection-next').click();
+  assert.equal(await page.locator('.shop-detail-copy h2').innerText(),offers[1]);
+  await page.locator('.shop-inspection-prev').click();
+  assert.equal(await page.locator('.shop-detail-copy h2').innerText(),offers[0]);
+  await page.locator('.shop-back').click();
   const price = await page.evaluate(() => Cardable.shopState.ensure().snapshot.offers[0].price);
   const buy = page.locator('.shop-offer .shop-hold').first();
   await buy.focus(); await page.keyboard.down('Space'); await page.waitForTimeout(1650); await page.keyboard.up('Space');

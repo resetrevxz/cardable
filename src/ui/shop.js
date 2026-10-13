@@ -131,12 +131,14 @@
       button(controls, 'Reset exhibit', function () { range.value = 0; pose(); }, 'shop-turntable-reset', 'reset');
     }
     function clearContent() {
+      var specifications=surface.querySelector('.shop-inspection-specs');
+      if(specifications)session.inspectionSpecsOpen=specifications.open;
       session.cleanups.forEach(function (cleanup) { cleanup(); }); session.cleanups = [];
       session.animations.forEach(function (animation) { animation.cancel(); }); session.animations = [];
       session.views.forEach(function (view) { view.destroy(); }); session.views = [];
       session.holds.forEach(function (hold) { if (hold.destroy) hold.destroy(); }); session.holds = [];
       session.controls = []; session.actionNote = null; session.expired = null; session.saveNotice = null; session.refreshHistory = null; session.refreshComparison = null;
-      session.wishlists = []; session.refreshSaveDetails = null;
+      session.wishlists = []; session.refreshSaveDetails = null; session.refreshInspection = null;
       surface.replaceChildren();
     }
     function announce(message) { if (session.status) session.status.textContent = message; }
@@ -149,6 +151,8 @@
       if (C.state.current.pendingReveal || C.opening.phase !== 'idle') return { state: 'disabled', message: 'Finish the current pack reveal first.' };
       if (kind === 'pack' && entitlement()) return { state: 'purchased', message: 'Purchased Titan Pack ready to open.' };
       if (kind === 'card') {
+        if(session.selected&&session.selected.offerId===offer.offerId&&session.expired&&!session.expired.hidden)
+          return {state:'expired',message:'Offer expired · return to today’s offers.'};
         var key = C.shopState.dayKey(), day = C.state.current.shop && C.state.current.shop.days.find(function (row) { return row.dayKey === key; });
         var current = day && day.offers.find(function (row) { return row.offerId === offer.offerId; });
         if (!current || session.result.snapshot && session.result.snapshot.dayKey !== key) return { state: 'expired', message: 'Offer expired · return to today’s offers.' };
@@ -161,6 +165,7 @@
       if (session.refreshSaveNotice) session.refreshSaveNotice();
       refreshWishlists();
       if (session.refreshSaveDetails) session.refreshSaveDetails();
+      if (session.refreshInspection) session.refreshInspection();
       session.controls.forEach(function (item) {
         if (!item.control.isConnected) return;
         var state = availability(item.kind, item.offer, item.amount);
@@ -411,16 +416,21 @@
       button(area, 'Back to shop', function () { renderShop(); var target = surface.querySelector('.shop-compare-open'); if (target) target.focus(); }, 'shop-back');
       footer(scroll); heading.focus({ preventScroll: true });
     }
+    function orderedOffers() {
+      var snapshot=session.result.snapshot, order=C.settings.get('shopSort');
+      if(!snapshot)return [];
+      return snapshot.offers.map(function(offer,index){var card=C.card(offer.cardId);return {offer:offer,index:index,card:card,
+        rank:card?C.data.rarities.findIndex(function(rarity){return rarity.id===card.rarity;}):-1};}).filter(function(item){return !!item.card&&C.shopState.eligible(item.card,C.rarity(item.card.rarity));}).sort(function(a,b){
+        var difference=order==='price-asc'?a.offer.price-b.offer.price:order==='price-desc'?b.offer.price-a.offer.price:
+          order==='rarity-desc'?b.rank-a.rank:order==='wanted-first'?Number(C.shopWishlist.wanted(b.card.id))-Number(C.shopWishlist.wanted(a.card.id)):0;
+        return difference||a.index-b.index;
+      }).map(function(item){return item.offer;});
+    }
     function arrangeOffers() {
       var grid = surface.querySelector('.shop-offer-grid'); if (!grid) return;
-      var order = C.settings.get('shopSort'), tiles = Array.from(grid.querySelectorAll('.shop-offer'));
-      tiles.sort(function (a, b) {
-        var difference = order === 'price-asc' ? Number(a.dataset.price) - Number(b.dataset.price) :
-          order === 'price-desc' ? Number(b.dataset.price) - Number(a.dataset.price) :
-          order === 'rarity-desc' ? Number(b.dataset.rarityRank) - Number(a.dataset.rarityRank) :
-          order === 'wanted-first' ? Number(C.shopWishlist.wanted(b.dataset.cardId)) - Number(C.shopWishlist.wanted(a.dataset.cardId)) : 0;
-        return difference || Number(a.dataset.slot) - Number(b.dataset.slot);
-      });
+      var positions=new Map(orderedOffers().map(function(offer,index){return [offer.offerId,index];}));
+      var tiles=Array.from(grid.querySelectorAll('.shop-offer'));
+      tiles.sort(function(a,b){return (positions.get(a.dataset.offerId)??Number(a.dataset.slot))-(positions.get(b.dataset.offerId)??Number(b.dataset.slot));});
       tiles.forEach(function (tile) { grid.appendChild(tile); });
     }
     function refreshWishlists() { session.wishlists.forEach(function (control) { control.refresh(); }); }
@@ -617,7 +627,7 @@
         var tile = node('article', 'shop-offer', grid);
         arrive(tile, index);
         tile.dataset.rarity = card.rarity; tile.dataset.cardId=card.id;
-        tile.dataset.slot = index; tile.dataset.price = offer.price;
+        tile.dataset.slot = index; tile.dataset.price = offer.price; tile.dataset.offerId=offer.offerId;
         tile.dataset.rarityRank = C.data.rarities.findIndex(function (rarity) { return rarity.id === card.rarity; });
         var state = index === 0 && previewLabels[session.previewState] ? session.previewState : offer.purchased ? 'purchased' : 'normal';
         tile.dataset.state = state;
@@ -711,17 +721,53 @@
       showDesign(0);
       footer(scroll); actions.querySelector('button').focus({ preventScroll: true });
     }
-    function inspectCard(card, offer) {
-      var returnToCompare = session.selected === 'compare';
-      clearContent(); session.selected = { offerId: offer.offerId, dayKey: session.result.snapshot.dayKey };
+    function inspectCard(card, offer, context) {
+      context=context||{};
+      var returnToCompare = context.returnToCompare==null?session.selected === 'compare':context.returnToCompare;
+      var inspectionDay=context.dayKey||session.result.snapshot.dayKey;
+      clearContent(); session.selected = { offerId: offer.offerId, dayKey: inspectionDay, returnToCompare:returnToCompare };
       var scroll = node('div', 'shop-scroll shop-scroll--detail', surface);
-      var refreshBalance = chrome(scroll, 'Card inspection'); session.refreshBalance = refreshBalance;
+      var refreshBalance = chrome(scroll, 'Shop'); session.refreshBalance = refreshBalance;
       var detail = node('section', 'shop-detail', scroll);
       var stage = node('div', 'shop-detail-card', detail);
       var view = C.cardView.create(card, previewInstance(card, offer), { owned: false, independent: true, autoFocus: false, canFlip: true });
       stage.appendChild(view.el); session.views.push(view); view.applyMode('full');
       matchObject(view.el, 'card', card.id);
-      var turn = button(stage, 'Turn card', function () {
+      var tools=node('div','shop-inspection-tools',stage);
+      var nav=node('nav','shop-inspection-nav',tools);nav.setAttribute('aria-label','Browse daily offers');
+      var previous=button(nav,'Previous daily offer',function(){step(-1,'previous');},'shop-inspection-prev','chevron');
+      var position=node('span','shop-inspection-position',nav);
+      var next=button(nav,'Next daily offer',function(){step(1,'next');},'shop-inspection-next','chevron');
+      previous.setAttribute('aria-keyshortcuts','ArrowLeft');next.setAttribute('aria-keyshortcuts','ArrowRight');
+      previous.title='Previous daily offer · Left arrow';next.title='Next daily offer · Right arrow';
+      function entries() {
+        return inspectionDay===C.shopState.dayKey()&&session.result.snapshot&&session.result.snapshot.dayKey===inspectionDay&&
+          !(session.expired&&!session.expired.hidden)?orderedOffers():[];
+      }
+      function refreshInspection() {
+        if(!nav.isConnected)return;
+        var offers=entries(), index=offers.findIndex(function(item){return item.offerId===offer.offerId;});
+        var unavailable=index<0||offers.length<2||session.locked||session.retrying;
+        previous.disabled=next.disabled=unavailable;
+        position.textContent=index<0?'— / —':String(index+1).padStart(2,'0')+' / '+String(offers.length).padStart(2,'0');
+      }
+      function step(direction,focus) {
+        if(active!==session||!nav.isConnected||session.locked||session.retrying)return;
+        var offers=entries(),index=offers.findIndex(function(item){return item.offerId===offer.offerId;});
+        if(index<0||offers.length<2)return;
+        var destination=offers[(index+direction+offers.length)%offers.length], target=C.card(destination.cardId);
+        if(!target)return;
+        // Cancel now, before a snapshot transition defers destruction of the old view.
+        session.holds.forEach(function(control){if(control.confirmation)control.confirmation.cancel();});
+        navigate(function(){inspectCard(target,destination,{dayKey:inspectionDay,returnToCompare:returnToCompare,focus:focus});},view.el,{kind:'card',id:target.id});
+      }
+      session.cleanups.push(C.keys.listen(surface,'keydown','shop.offer-step',function(event){
+        if(event.defaultPrevented||event.repeat||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey||
+          event.target.closest('input,select,textarea,[contenteditable],[role="slider"],[role="tablist"],[role="listbox"]'))return;
+        if(event.key!=='ArrowLeft'&&event.key!=='ArrowRight')return;
+        event.preventDefault();event.stopPropagation();step(event.key==='ArrowLeft'?-1:1,event.key==='ArrowLeft'?'previous':'next');
+      }));
+      var turn = button(tools, 'Turn card', function () {
         view.flip();
       }, 'shop-turn-card');
       turn.setAttribute('aria-label', 'Turn card to see its reverse or front');
@@ -735,10 +781,6 @@
       node('span', 'shop-kicker', copy, C.rarity(card.rarity).name.toUpperCase() + ' / ' + card.generation.toUpperCase());
       node('h2', '', copy, card.name);
       node('p', '', copy, offer.variantId ? C.variant(offer.variantId).name : 'Standard');
-      var specs = node('dl', 'shop-specs', copy);
-      C.cardSpecs.frontRows(card).forEach(function (row) {
-        var line = node('div', '', specs); node('dt', '', line, row.label); node('dd', '', line, row.value);
-      });
       var copies = C.state.current.inventory.filter(function (item) { return item.cardId === card.id; }).length;
       if (copies) node('p', 'shop-detail-owned', copy, copies + ' owned');
       price(copy, offer.price);
@@ -756,7 +798,17 @@
       }, view.el, { kind: 'card', id: card.id }); }, 'shop-back');
       var control = hold(actions, card.name, offer.price, 'card', offer);
       if (!session.expired.hidden) { control.disabled = true; control.title = 'Offer expired'; }
-      footer(scroll); actions.querySelector('button').focus({ preventScroll: true });
+      var specifications=node('details','shop-inspection-specs',copy);specifications.open=!!session.inspectionSpecsOpen;
+      node('summary','',specifications,'Specifications');
+      var specs=node('dl','shop-specs',specifications);
+      C.cardSpecs.frontRows(card).forEach(function(row){
+        var line=node('div','',specs);node('dt','',line,row.label);node('dd','',line,row.value);
+      });
+      specifications.addEventListener('toggle',function(){if(specifications.isConnected)session.inspectionSpecsOpen=specifications.open;});
+      session.refreshInspection=refreshInspection;refreshInspection();
+      footer(scroll);
+      (context.focus?(context.focus==='previous'?previous:next):actions.querySelector('button')).focus({preventScroll:true});
+      if(context.focus)announce(card.name+'. Offer '+position.textContent.replace(' / ',' of ')+'.');
     }
     session.renderShop = renderShop;
     renderShop();
@@ -859,6 +911,7 @@
         session.expired.hidden = false;
         var selectedHold = surface.querySelector('.shop-detail .shop-hold');
         if (selectedHold) selectedHold.disabled = true;
+        if(session.refreshInspection)session.refreshInspection();
       }
     });
     session.ticker = root.setInterval(sync, 30000);
