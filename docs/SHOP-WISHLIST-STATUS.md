@@ -12,7 +12,7 @@ Save status is reached from Shop settings. It shows primary-write status, native
 
 Review [desktop wishlist](../artifacts/shop-wishlist-desktop.png), [mobile mono](../artifacts/shop-wishlist-mobile-mono.png), [browser status](../artifacts/shop-save-status-browser.png), [mobile status](../artifacts/shop-save-status-mobile.png), and [native status](../artifacts/shop-save-status-native.png).
 
-The earlier [QA profile incident](SHOP-COMPARE-NATIVE.md) and pending test-snapshot cleanup remain recorded. This pass uses asserted diagnostic profiles. No player profile is used as a test fixture, and no backup cleanup was performed.
+The earlier [QA profile incident and cleanup disposition](SHOP-COMPARE-NATIVE.md) remain recorded. This pass uses asserted diagnostic profiles. No player profile is used as a test fixture, and no backup cleanup was performed during this wishlist pass.
 
 Final review caught a rejected-priority field retaining an unsaved selection. It now restores the persisted priority, and the browser check covers that rejection. The cinematic check also passed after its settings hit-target assertion was scoped to the settings panel rather than hidden wishlist fields.
 

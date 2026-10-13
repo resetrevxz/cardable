@@ -138,6 +138,8 @@
 .shop-save-facts dt { color:var(--text-secondary); font:400 12px/1.5 var(--font-ui); }
 .shop-save-facts dd { margin:0; color:var(--text-primary); font:400 12px/1.5 var(--font-mono); overflow-wrap:anywhere; }
 .shop-save-guidance { margin-top:24px !important; color:var(--text-secondary); font:400 12px/1.5 var(--font-ui); }
+.shop-save-export-note { margin-top:16px !important; color:var(--text-secondary); font:400 12px/1.5 var(--font-ui); }
+.shop-save-export-note[data-state="error"] { color:var(--danger); }
 
 .shop-detail { min-height:min(530px,calc(94vh - 160px)); max-width:1120px; margin:0 auto; display:grid; grid-template-columns:minmax(260px,1fr) minmax(0,1fr); align-items:center; gap:clamp(32px,5vw,88px); background:radial-gradient(ellipse at 20% 40%,rgba(191,212,229,.065),transparent 48%); }
 .shop-detail-card { width:min(100%,320px); margin:0 auto; }

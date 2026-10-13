@@ -473,6 +473,8 @@
         values['Shop receipts'].textContent=(C.state.current.shop?C.state.current.shop.receipts.length:0).toLocaleString();
         values['Local error'].textContent=C.state.lastError?C.state.lastError.reason+(C.state.lastError.operation?' · '+C.state.lastError.operation:''):'None';
         check.disabled=checking;check.textContent=checking?'Checking…':'Check now';
+        exporter.disabled=!!recovery||!!C.bootFailure;
+        exporter.title=exporter.disabled?'Resolve recovery in Data settings before exporting the collection.':'';
       }
       var actions=node('div','shop-actions',area);
       var check=button(actions,'Check now',function(){
@@ -489,9 +491,22 @@
           refresh();announce('Save status checked.');
         });
       },'shop-save-check');
+      var exportNote=node('p','shop-save-export-note',area);exportNote.hidden=true;exportNote.setAttribute('role','status');
+      var exporter=button(actions,'Export save',function(){
+        if(active!==session||!area.isConnected||exporter.disabled)return;
+        if(C.bootFailure||C.state.recovery&&C.state.recovery.pending){refresh();return;}
+        try{
+          var text=C.saveTools.exportText(), date=new Date();
+          var stamp=[date.getFullYear(),date.getMonth()+1,date.getDate(),date.getHours(),date.getMinutes(),date.getSeconds()]
+            .map(function(value){return String(value).padStart(2,'0');}).join('-');
+          C.saveFiles.download(text,'cardable-save-'+stamp+'.json');
+          exportNote.textContent='Download started.';exportNote.dataset.state='success';
+        }catch(_){exportNote.textContent='Export could not start. Try again or use Data settings.';exportNote.dataset.state='error';}
+        exportNote.hidden=false;announce(exportNote.textContent);
+      },'shop-save-export');
       button(actions,'Data settings',function(){session.presentation.close();root.queueMicrotask(function(){C.openSettings('Data');});},'shop-save-data-open');
       button(actions,'Back to shop',function(){renderShop(true);},'shop-back');
-      node('p','shop-save-guidance',area,'Export your save from Data settings. Studio photos have a separate export in the Album.');
+      node('p','shop-save-guidance',area,'Studio photos are exported separately from the Album.');
       session.refreshSaveDetails=refresh;refresh();footer(scroll);title.focus({preventScroll:true});
     }
     function history() {

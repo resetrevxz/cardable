@@ -111,13 +111,29 @@ async function launch() {
   },profile);
   const status=await page.locator('.shop-save-facts').innerText();
   assert.match(status,/Present · 1 card/);
-  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   const windowHandle=await app.browserWindow(page);
+  const exportPath=path.resolve(profile,'shop-export.json');assert.ok(exportPath.startsWith(profile+path.sep));
+  await windowHandle.evaluate((window,destination)=>{
+    window.shopExportFinished=new Promise(resolve=>{
+      const deadline=setTimeout(()=>resolve('timed out'),15000);
+      window.webContents.session.once('will-download',function(event,item){
+        item.setSavePath(destination);item.once('done',function(event,state){clearTimeout(deadline);resolve(state);});
+      });
+    });
+  },exportPath);
+  await page.locator('.shop-save-export').click();
+  assert.equal(await windowHandle.evaluate(window=>window.shopExportFinished),'completed');
+  const exported=fs.readFileSync(exportPath,'utf8');
+  const exportedState=await page.evaluate(text=>Cardable.saveTools.parse(text).save,exported);
+  assert.equal(exportedState.currency,purchase.currency);assert.equal(exportedState.shop.receipts.length,1);
+  assert.ok(exportedState.inventory.some(item=>item.instanceId===purchase.card));
+  assert.equal(exportedState.settings.shopLayout,'compact');
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   const nativeCapture=await windowHandle.evaluate(async window=>(await window.webContents.capturePage()).toPNG().toString('base64'));
   fs.writeFileSync(path.join(root,'artifacts/shop-save-status-native.png'),Buffer.from(nativeCapture,'base64'));
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ pass:true, nativePurchase:true, mirrorRejected:true, retryRecovered:true,
-    primaryStayedValid:true, noPurchaseReplay:true, restart:true, mirrorRestored:true, packaged:!!process.env.CARDABLE_QA_BINARY }));
+    primaryStayedValid:true, noPurchaseReplay:true, restart:true, mirrorRestored:true, nativeExport:true, packaged:!!process.env.CARDABLE_QA_BINARY }));
   await app.close(); app = null;
 })().catch(async error => {
   console.error(error); process.exitCode = 1;

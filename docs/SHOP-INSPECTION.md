@@ -18,4 +18,4 @@ The final `npm run dist` completed with publishing disabled. The rebuilt package
 
 The required `npm run deliver:desktop` attempt stopped at unresolved preview origin. No Shop promotion, Latest Build shortcut replacement, cleanup, merge, push or publication occurred. The existing delivery remains in place. A different preview origin still requires an owner decision and save/separate-photo export guidance.
 
-The previously reported save failure remains unidentified; these isolated checks do not establish its cause. The earlier QA incident and pending test-snapshot cleanup stay in [SHOP-COMPARE-NATIVE](SHOP-COMPARE-NATIVE.md). No player profile or backup-history cleanup is used by this pass.
+The previously reported save failure remains unidentified; these isolated checks do not establish its cause. The earlier QA incident and cleanup disposition stay in [SHOP-COMPARE-NATIVE](SHOP-COMPARE-NATIVE.md). No player profile or backup-history cleanup was used by this inspection pass.
