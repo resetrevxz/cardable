@@ -1,7 +1,9 @@
 // Listings: creating, withdrawing, repricing, buying, bidding, buying out and settling. Fixed price, timed auction
 // (proxy bidding, anti-sniping, reserve, buyout) and swap listings share one ownership model: a listed card is in
 // escrow (instances.state = 'escrow', escrow_ref = listing id) until the listing closes, and then it moves exactly once.
-import { ApiError, cleanText, num } from './util.js';
+import { ApiError, num } from './util.js';
+import { cleanPublicText } from './textrules.js';
+import { attachStatements, imagesJson, mediaLimits, parseMedia, resolveImages } from './uploads.js';
 import { RULES, applyBid, baselineOf, closeAuction, feeFor, isCard, keyOf, metaOf, nameOf, normalizeWants, rarityOf, resolveAuction, serialNumber, tierOf } from './economy.js';
 import { Tx, mutate, newId, system } from './ops.js';
 import { valuations } from './valuation.js';
@@ -108,7 +110,8 @@ export async function createListing(env, who, key, body, now, options) {
   if (!['fixed', 'auction', 'swap'].includes(kind)) throw new ApiError(422, 'invalid', 'Choose a listing type.');
   const ids = Array.isArray(body.instanceIds) ? body.instanceIds.filter((x) => typeof x === 'string') : [];
   if (!ids.length || ids.length > RULES.bundle.max || new Set(ids).size !== ids.length) throw new ApiError(422, 'bundle', 'A listing holds between 1 and ' + RULES.bundle.max + ' different cards.');
-  const title = cleanText(body.title, RULES.limits.titleLength, 'title'), note = cleanText(body.note, RULES.limits.noteLength, 'description');
+  const title = cleanPublicText(body.title, RULES.limits.titleLength, 'title'), note = cleanPublicText(body.note, RULES.limits.noteLength, 'description');
+  const media = parseMedia(body);
   let params = {};
   if (kind === 'fixed') {
     params = { ask: intIn(body.ask, RULES.price.min, RULES.price.max, 'the price'), ends: durationMs(env, 'fixed', body.durationMs) };
@@ -122,7 +125,7 @@ export async function createListing(env, who, key, body, now, options) {
     const minTopUp = intIn(body.minTopUp, 0, RULES.price.max, 'the minimum top-up', true) || 0;
     params = { wants: normalizeWants(body.wants), minTopUp, ends: durationMs(env, 'swap', body.durationMs) };
   }
-  return mutate(env, who, key, { op: 'list', kind, ids, title, note, params }, now, async () => {
+  return mutate(env, who, key, { op: 'list', kind, ids, title, note, params, media }, now, async () => {
     const rows = (await env.DB.prepare('SELECT id, card_id, variant_id, skin_id, serial, pack_id, pulled_at, state, owner_id FROM instances WHERE id IN (' + placeholders(ids.length) + ')').bind(...ids).all()).results;
     if (rows.length !== ids.length || rows.some((r) => r.owner_id !== who.accountId)) throw new ApiError(409, 'not-owned', 'One of those cards is not in your collection.');
     if (rows.some((r) => r.state !== 'owned')) throw new ApiError(409, 'locked', 'One of those cards is already listed, in an offer or sold.');
@@ -131,6 +134,7 @@ export async function createListing(env, who, key, body, now, options) {
     if (lately >= RULES.limits.listingsPerHour) throw new ApiError(429, 'quota', 'That is a lot of listings for one hour. Try again a little later.', { limit: RULES.limits.listingsPerHour });
     const open = (await env.DB.prepare("SELECT COUNT(*) AS n FROM listings WHERE seller_id = ? AND status = 'active'").bind(who.accountId).first()).n;
     if (open >= RULES.limits.activeListings) throw new ApiError(409, 'limit', 'You can have ' + RULES.limits.activeListings + ' open listings at once.');
+    const images = media.images && media.images.length ? await resolveImages(env, who, media.images) : [];
     const ordered = ids.map((id) => rows.find((r) => r.id === id));
     const first = ordered[0], items = ordered.map((r) => ({ i: r.id, c: r.card_id, v: r.variant_id, k: r.skin_id, s: r.serial, p: r.pack_id }));
     const id = newId('lst');
@@ -141,6 +145,8 @@ export async function createListing(env, who, key, body, now, options) {
     const tx = new Tx(env, now);
     tx.guard('not_owned', "(SELECT COUNT(*) FROM instances WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned') = ?", ...ids, who.accountId, ids.length);
     tx.guard('limit_hit', "(SELECT COUNT(*) FROM listings WHERE seller_id = ? AND status = 'active') < ?", who.accountId, RULES.limits.activeListings);
+    // the hourly cap is enforced in the transaction too: two requests at once cannot both slip under it
+    tx.guard('quota', '(SELECT COUNT(*) FROM listings WHERE seller_id = ? AND created_at > ?) < ?', who.accountId, now - 3600000, RULES.limits.listingsPerHour);
     const meta = metaOf(first.card_id);
     tx.add('INSERT INTO listings (id, seller_id, kind, status, ask, start_price, reserve, buyout, step, price, title, note, wants, min_topup, card_id, variant_id, skin_id, rarity, item_count, items, created_at, ends_at, first_ends_at, relist_of, serial_n, brand, generation, tier, feed_at) ' +
       "VALUES (?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -150,12 +156,20 @@ export async function createListing(env, who, key, body, now, options) {
       serialNumber(first.serial), meta.b, meta.g, tierOf(first.card_id), now);
     tx.add("INSERT INTO listing_events (listing_id, at, kind) VALUES (?, ?, 'listed')", id, now);
     tx.add('UPDATE listings SET event_seq = (SELECT MAX(seq) FROM listing_events WHERE listing_id = ?1) WHERE id = ?1', id);
+    if (images.length || media.treatment) {
+      // The pictures are a presentation of the listing and nothing else: what is for sale is the escrowed cards above.
+      const cover = images.length ? JSON.stringify(media.cover || { layout: 'banner', zoom: 1, x: 50, y: 50 }) : null;
+      tx.add('UPDATE listings SET images = ?, cover = ?, treatment = ? WHERE id = ?', imagesJson(images), cover, media.treatment || 'none', id);
+      attachStatements(tx, id, who, images, now, mediaLimits(env));
+    }
     tx.add("UPDATE instances SET state = 'escrow', escrow_ref = ? WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned'", id, ...ids, who.accountId);
     ids.forEach((iid) => tx.add('INSERT INTO listing_items (listing_id, instance_id) VALUES (?, ?)', id, iid));
     return { tx, result: { ok: true, listingId: id, kind, price, endsAt: now + params.ends, items: ids.length } };
   }).then(async (res) => {
     if (!res.replayed) {
       await scheduleClose(env, res.listingId, res.endsAt);
+      // the people who follow this seller or this card hear about it (one statement; best effort)
+      try { const { notifyFollowers } = await import('./social.js'); await notifyFollowers(env, res.listingId, now); } catch (_) { /* followers see it in the feed regardless */ }
       // A new single-card fixed listing may satisfy a standing buy order, in price-then-time order. Best effort: the
       // sweep repeats it, so an interruption here leaves the order open, never a half trade.
       if (kind === 'fixed' && ids.length === 1) { try { const { matchListing } = await import('./orders.js'); await matchListing(env, res.listingId, now); } catch (_) { /* the sweep will match it */ } }
@@ -184,9 +198,15 @@ export async function repriceListing(env, who, key, listingId, body, now) {
     if (!L || L.seller_id !== who.accountId) throw new ApiError(404, 'not-found', 'That listing could not be found.');
     if (L.status !== 'active' || now >= L.ends_at) throw new ApiError(409, 'closed', 'This listing is already closed.');
     if (L.kind !== 'fixed') throw new ApiError(409, 'not-fixed', 'Only a fixed price can be changed. Withdraw an auction or swap and list it again.');
+    // a price drop is an event every watcher reads, so how often one listing may drop is bounded, here and in the transaction
+    if (ask < L.ask) {
+      const drops = (await env.DB.prepare("SELECT COUNT(*) AS n FROM listing_events WHERE listing_id = ? AND kind = 'repriced' AND at > ?").bind(L.id, now - 3600000).first()).n;
+      if (drops >= RULES.limits.repricesPerHour) throw new ApiError(429, 'quota', 'This listing has been lowered ' + drops + ' times in the last hour. Try again a little later.', { limit: RULES.limits.repricesPerHour });
+    }
     if (Number.isSafeInteger(num(body.expectedVersion)) && num(body.expectedVersion) !== L.version) throw new ApiError(409, 'conflict', 'The listing changed. Review it and try again.');
     const tx = new Tx(env, now);
     guardOpen(tx, L, now);
+    if (ask < L.ask) tx.guard('quota', "(SELECT COUNT(*) FROM listing_events WHERE listing_id = ? AND kind = 'repriced' AND at > ?) < ?", L.id, now - 3600000, RULES.limits.repricesPerHour);
     tx.add("UPDATE listings SET ask = ?, price = ?, version = version + 1 WHERE id = ? AND status = 'active'", ask, ask, L.id);
     if (ask < L.ask) {
       tx.add("INSERT INTO listing_events (listing_id, at, kind) VALUES (?, ?, 'repriced')", L.id, now);
@@ -206,11 +226,72 @@ export async function relistListing(env, who, key, listingId, now) {
   if (L.status === 'active' || L.status === 'sold') throw new ApiError(409, 'not-closed', 'Only an ended or withdrawn listing can be listed again.');
   const items = JSON.parse(L.items);
   const body = { kind: L.kind, instanceIds: items.map((i) => i.i), title: L.title, note: L.note };
+  let kept = [];
+  try { kept = JSON.parse(L.images || '[]'); } catch (_) { kept = []; }
+  if (kept.length) {
+    const live = new Set((await env.DB.prepare("SELECT id FROM uploads WHERE account_id = ? AND status = 'attached' AND id IN (" + placeholders(kept.length) + ')').bind(who.accountId, ...kept.map((i) => i.u)).all()).results.map((r) => r.id));
+    body.images = kept.filter((i) => live.has(i.u)).map((i) => ({ uploadId: i.u, alt: i.alt || '' }));
+    if (body.images.length && L.cover) { try { body.cover = JSON.parse(L.cover); } catch (_) { /* default cover */ } }
+    body.treatment = L.treatment || 'none';
+  }
   if (L.kind === 'fixed') body.ask = L.ask;
   if (L.kind === 'auction') Object.assign(body, { start: L.start_price, reserve: L.reserve, buyout: L.buyout, step: L.step });
   if (L.kind === 'swap') Object.assign(body, { wants: L.wants ? JSON.parse(L.wants) : null, minTopUp: L.min_topup });
   body.durationMs = Math.max(RULES.fixed.minDurationMs, L.first_ends_at - L.created_at);
   return createListing(env, who, key, body, now, { relistOf: L.id });
+}
+
+// ---- presentation -----------------------------------------------------------------------------------------------------------
+// The seller may change how an open listing is shown (title, note, pictures, cover, look) but never what is for sale:
+// the cards, the price and the terms are not on this route.
+export async function updatePresentation(env, who, key, listingId, body, now) {
+  const media = parseMedia(body);
+  const title = body.title === undefined ? undefined : cleanPublicText(body.title, RULES.limits.titleLength, 'title');
+  const note = body.note === undefined ? undefined : cleanPublicText(body.note, RULES.limits.noteLength, 'description');
+  return mutate(env, who, key, { op: 'present', listingId, title, note, media, v: num(body.expectedVersion) || null }, now, async () => {
+    const L = await getListing(env, listingId);
+    if (!L || L.seller_id !== who.accountId) throw new ApiError(404, 'not-found', 'That listing could not be found.');
+    if (L.status !== 'active' || now >= L.ends_at) throw new ApiError(409, 'closed', 'This listing is already closed.');
+    if (Number.isSafeInteger(num(body.expectedVersion)) && num(body.expectedVersion) !== L.version) throw new ApiError(409, 'conflict', 'The listing changed. Review it and try again.');
+    const limits = mediaLimits(env);
+    let current = [];
+    try { current = JSON.parse(L.images || '[]'); } catch (_) { current = []; }
+    const images = media.images ? await resolveImages(env, who, media.images) : current.map((i, p) => Object.assign({}, i, { p }));
+    const cover = media.cover === undefined ? (L.cover ? JSON.parse(L.cover) : null) : media.cover;
+    const tx = new Tx(env, now);
+    guardOpen(tx, L, now);
+    if (media.images) {
+      // pictures taken off the listing go back to being the player's own, unattached
+      const keep = images.map((i) => i.u);
+      tx.add("UPDATE uploads SET status = 'ready', listing_id = NULL, position = NULL, expires_at = ? WHERE listing_id = ? AND status = 'attached'" + (keep.length ? ' AND id NOT IN (' + placeholders(keep.length) + ')' : ''), now + limits.readyTtlMs, L.id, ...keep);
+      attachStatements(tx, L.id, who, images, now, limits);
+    }
+    const finalCover = images.length ? JSON.stringify(cover || { layout: 'banner', zoom: 1, x: 50, y: 50 }) : null;
+    tx.add("UPDATE listings SET title = ?, note = ?, images = ?, cover = ?, treatment = ?, version = version + 1 WHERE id = ? AND status = 'active'",
+      title === undefined ? L.title : title, note === undefined ? L.note : note, imagesJson(images), finalCover, media.treatment === undefined ? (L.treatment || 'none') : media.treatment, L.id);
+    return { tx, result: { ok: true, listingId: L.id, images: images.length } };
+  });
+}
+
+// The operator takes a listing down. An open one is closed as withdrawn (the cards go home, every hold is released,
+// waiting offers close); a closed one only loses its pictures. Returns the uploads that were taken out of view.
+export async function revokeListing(env, listingId, reason, now) {
+  const attached = (await env.DB.prepare("SELECT id FROM uploads WHERE listing_id = ? AND status = 'attached'").bind(listingId).all()).results.map((r) => r.id);
+  const out = await system(env, async () => {
+    const L = await getListing(env, listingId);
+    if (!L) return { noop: true, missing: true };
+    const tx = new Tx(env, now);
+    if (L.status === 'active') {
+      const proxies = L.kind === 'auction' ? await getProxies(env, L.id) : [];
+      await planClose(env, tx, L, 'cancelled', 'Removed by the operator', proxies, now);
+      tx.notify(L.seller_id, 'moderation', 'Your listing of ' + label(L) + ' was removed by the operator. The card is back in your collection.', L.id);
+      proxies.filter((p) => p.active).forEach((p) => tx.notify(p.id, 'lost', 'The listing for ' + label(L) + ' was removed by the operator. Your hold was released.', L.id));
+    }
+    tx.add("UPDATE uploads SET status = 'removed', removed_at = ?, removed_by = 'operator', removed_note = ? WHERE listing_id = ? AND status = 'attached'", now, String(reason || '').slice(0, 140), L.id);
+    tx.add("UPDATE listings SET images = '[]', cover = NULL WHERE id = ?", L.id);
+    return { tx, result: { ok: true, previous: L.status } };
+  });
+  return Object.assign({ uploads: attached }, out);
 }
 
 // ---- buying ---------------------------------------------------------------------------------------------------------------

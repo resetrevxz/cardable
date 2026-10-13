@@ -18,7 +18,7 @@ import { CATALOG } from './catalog.js';
 import { ApiError, corsHeaders, json, randomId, readJson } from './util.js';
 import { RULES, isCard, quickSellLimits } from './economy.js';
 import { nowOf } from './ops.js';
-import { buyListing, buyoutListing, cancelListing, createListing, placeBid, relistListing, repriceListing } from './listings.js';
+import { buyListing, buyoutListing, cancelListing, createListing, placeBid, relistListing, repriceListing, updatePresentation } from './listings.js';
 import { cancelOrder, editOrder, placeOrder } from './orders.js';
 import { makeOffer, respondToOffer } from './offers.js';
 import { quote as quickSellQuote, quickSellUsage, redeem } from './quicksell.js';
@@ -28,11 +28,21 @@ import { reconcile, repair, requireAdmin, revokeImport, sweep } from './admin.js
 import { cardAnalytics, movers, stocks } from './stats.js';
 import { exportData, portfolio } from './portfolio.js';
 import { createAlert, deleteAlert, evaluateOwnAlerts, listAlerts } from './alerts.js';
+import { createUpload, deleteUpload, listUploads, putVariant, serveMedia } from './uploads.js';
+import { editComment, editReview, feed, follow, hideComment, listComments, listFollows, pendingReviews, postComment, postReview, profile, profileReviews, removeComment, report } from './social.js';
+import { actorOf, listReports, moderate, moderationLog } from './moderation.js';
+import { mediaUsage } from './uploads.js';
 export { Gate } from './gate.js';
 
 const VERSION = '0.5.0-beta';
 const LISTING_PATH = /^\/v1\/listings\/(lst_[A-Za-z0-9_-]{6,40})(?:\/(cancel|buy|bid|buyout|relist))?$/;
 const ORDER_PATH = /^\/v1\/orders\/(ord_[A-Za-z0-9_-]{6,40})(?:\/(cancel))?$/;
+const UPLOAD_PATH = /^\/v1\/uploads\/(upl_[A-Za-z0-9_-]{6,40})(?:\/([a-z]{3,8}))?$/;
+const MEDIA_PATH = /^\/v1\/media\/(upl_[A-Za-z0-9_-]{6,40})\/([a-z]{3,8})$/;
+const LISTING_SOCIAL = /^\/v1\/listings\/(lst_[A-Za-z0-9_-]{6,40})\/(presentation|comments)$/;
+const COMMENT_PATH = /^\/v1\/comments\/(cmt_[A-Za-z0-9_-]{6,40})(?:\/(hide))?$/;
+const REVIEW_PATH = /^\/v1\/reviews\/(rev_[A-Za-z0-9_-]{6,40})$/;
+const PROFILE_PATH = /^\/v1\/profiles\/([^/]{3,80})(?:\/(reviews))?$/;
 const OFFER_PATH = /^\/v1\/offers\/(ofr_[A-Za-z0-9_-]{6,40})\/(accept|decline|counter|withdraw)$/;
 
 function publicRules(env) {
@@ -50,7 +60,7 @@ async function route(request, env, url, trace) {
   if (pathname === '/v1/status' && method === 'GET') {
     const schema = await env.DB.prepare("SELECT value FROM schema_info WHERE key = 'schema'").first();
     return { service: 'cardable-market-beta', version: VERSION, apiVersion: env.API_VERSION || '1', environment: env.ENVIRONMENT || 'beta', schema: Number(schema && schema.value),
-      catalog: CATALOG.hash, time: now, features: { listings: true, trading: true, auctions: true, orders: true, swaps: true, quickSell: true, imports: true, turnstile: !!env.TURNSTILE_SITEKEY },
+      catalog: CATALOG.hash, time: now, features: { listings: true, trading: true, auctions: true, orders: true, swaps: true, quickSell: true, imports: true, uploads: !!env.MEDIA, social: true, turnstile: !!env.TURNSTILE_SITEKEY },
       turnstileSitekey: env.TURNSTILE_SITEKEY || null, rules: publicRules(env) };
   }
   if (pathname === '/v1/auth/register' && method === 'POST') return register(env, request, await readJson(request, 8_000));
@@ -64,6 +74,10 @@ async function route(request, env, url, trace) {
     if (pathname === '/v1/admin/repair' && method === 'POST') return repair(env, now);
     if (pathname === '/v1/admin/sweep' && method === 'POST') { const b = await readJson(request, 2_000); return sweep(env, now, b.limit); }
     if (pathname === '/v1/admin/import/revoke' && method === 'POST') return revokeImport(env, await readJson(request, 2_000), now);
+    if (pathname === '/v1/admin/reports' && method === 'GET') return listReports(env, url, now);
+    if (pathname === '/v1/admin/moderate' && method === 'POST') return moderate(env, await readJson(request, 4_000), actorOf(request), now);
+    if (pathname === '/v1/admin/log' && method === 'GET') return moderationLog(env, url);
+    if (pathname === '/v1/admin/usage' && method === 'GET') return mediaUsage(env);
     throw new ApiError(404, 'not-found', 'There is no such endpoint.');
   }
 
@@ -137,10 +151,46 @@ async function route(request, env, url, trace) {
     if (typeof body.notifyBids === 'boolean') value.notifyBids = body.notifyBids;
     if (typeof body.notifyTrades === 'boolean') value.notifyTrades = body.notifyTrades;
     if (typeof body.notifyWatch === 'boolean') value.notifyWatch = body.notifyWatch;
+    // social: notifications from comments, replies and reviews; from followed sellers and cards; hiding comments; muted players
+    if (typeof body.notifySocial === 'boolean') value.notifySocial = body.notifySocial;
+    if (typeof body.notifyFollows === 'boolean') value.notifyFollows = body.notifyFollows;
+    if (typeof body.hideComments === 'boolean') value.hideComments = body.hideComments;
+    if (Array.isArray(body.mutedAliases)) value.mutedAliases = Array.from(new Set(body.mutedAliases.filter((x) => typeof x === 'string' && /^[A-Za-z][A-Za-z' -]{2,38}[A-Za-z]$/.test(x)))).slice(0, 50);
     await env.DB.prepare('INSERT INTO settings (account_id, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(account_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
       .bind(who.accountId, JSON.stringify(value), Date.now()).run();
     return { value };
   }
+
+  // ---- pictures, comments, reviews, follows and the community feed ----
+  if (pathname === '/v1/uploads' && method === 'POST') return createUpload(env, who, key, await readJson(request, 2_000), now);
+  if (pathname === '/v1/uploads' && method === 'GET') return listUploads(env, who, now);
+  const up = UPLOAD_PATH.exec(pathname);
+  if (up && up[2] && method === 'PUT') return putVariant(env, who, up[1], up[2], request, now);
+  if (up && !up[2] && method === 'DELETE') return deleteUpload(env, who, key, up[1], now);
+  const md = MEDIA_PATH.exec(pathname);
+  if (md && method === 'GET') return serveMedia(env, who, md[1], md[2], request);
+  const ls = LISTING_SOCIAL.exec(pathname);
+  if (ls && ls[2] === 'presentation' && method === 'POST') return updatePresentation(env, who, key, ls[1], await readJson(request, 6_000), now);
+  if (ls && ls[2] === 'comments' && method === 'GET') return listComments(env, who, ls[1], url, now);
+  if (ls && ls[2] === 'comments' && method === 'POST') return postComment(env, who, key, ls[1], await readJson(request, 3_000), now);
+  const cm = COMMENT_PATH.exec(pathname);
+  if (cm && !cm[2] && method === 'PUT') return editComment(env, who, key, cm[1], await readJson(request, 3_000), now);
+  if (cm && !cm[2] && method === 'DELETE') return removeComment(env, who, key, cm[1], now);
+  if (cm && cm[2] === 'hide' && method === 'POST') return hideComment(env, who, key, cm[1], await readJson(request, 1_000), now);
+  if (pathname === '/v1/reports' && method === 'POST') return report(env, who, key, await readJson(request, 2_000), now);
+  if (pathname === '/v1/reviews/pending' && method === 'GET') return pendingReviews(env, who, now);
+  if (pathname === '/v1/reviews' && method === 'POST') return postReview(env, who, key, await readJson(request, 2_000), now);
+  const rv = REVIEW_PATH.exec(pathname);
+  if (rv && method === 'PUT') return editReview(env, who, key, rv[1], await readJson(request, 2_000), now);
+  const pf = PROFILE_PATH.exec(pathname);
+  if (pf && method === 'GET') {
+    let alias; try { alias = decodeURIComponent(pf[1]); } catch (_) { throw new ApiError(404, 'not-found', 'No player has that name.'); }
+    return pf[2] === 'reviews' ? profileReviews(env, who, alias, url, now) : profile(env, who, alias, now);
+  }
+  if (pathname === '/v1/follows' && method === 'GET') return listFollows(env, who);
+  if (pathname === '/v1/follows' && method === 'POST') return follow(env, who, await readJson(request, 1_000), now, true);
+  if (pathname === '/v1/follows' && method === 'DELETE') return follow(env, who, { kind: url.searchParams.get('kind'), alias: url.searchParams.get('alias'), cardId: url.searchParams.get('cardId') }, now, false);
+  if (pathname === '/v1/feed' && method === 'GET') return feed(env, who, url, now);
 
   // ---- the market, write ----
   if (pathname === '/v1/listings' && method === 'POST') return createListing(env, who, key, await readJson(request, 8_000), now);
@@ -190,6 +240,12 @@ export default {
     try {
       if (!url.pathname.startsWith('/v1/')) throw new ApiError(404, 'not-found', 'There is no such endpoint.');
       const data = await route(request, env, url, trace);
+      if (data instanceof Response) {
+        // a picture: the route chose its headers; the CORS and trace headers are added here
+        const headers = new Headers(data.headers);
+        Object.keys(baseHeaders).forEach((k) => headers.set(k, baseHeaders[k]));
+        return new Response(data.body, { status: data.status, headers });
+      }
       if (data && data.raw !== undefined && data.contentType) {
         return new Response(data.raw, { status: 200, headers: Object.assign({ 'content-type': data.contentType, 'content-disposition': 'attachment; filename="' + data.filename + '"', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }, baseHeaders) });
       }

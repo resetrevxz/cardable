@@ -74,10 +74,10 @@ export function json(status, body, headers) {
 }
 // Reads at most `maxBytes` of body. The declared length is checked first, and the stream itself is counted, so a
 // chunked or lying request is cut off at the limit instead of being buffered whole.
-async function readBounded(request, maxBytes) {
+export async function readBytes(request, maxBytes) {
   const declared = Number(request.headers.get('content-length') || 0);
   if (declared > maxBytes) throw new ApiError(413, 'too-large', 'That request is too large.');
-  if (!request.body) return '';
+  if (!request.body) return new Uint8Array(0);
   const reader = request.body.getReader(), parts = [];
   let total = 0;
   for (;;) {
@@ -90,8 +90,9 @@ async function readBounded(request, maxBytes) {
   const all = new Uint8Array(total);
   let at = 0;
   for (const p of parts) { all.set(p, at); at += p.byteLength; }
-  return new TextDecoder().decode(all);
+  return all;
 }
+async function readBounded(request, maxBytes) { return new TextDecoder().decode(await readBytes(request, maxBytes)); }
 export async function readJson(request, maxBytes = 1_500_000) {
   const text = await readBounded(request, maxBytes);
   if (!text) return {};

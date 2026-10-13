@@ -6,6 +6,7 @@ import { RULES } from './economy.js';
 import { settleListing } from './listings.js';
 import { expireOffer } from './offers.js';
 import { expireOrder, matchOrder } from './orders.js';
+import { sweepMedia } from './uploads.js';
 
 export function requireAdmin(env, request) {
   const given = request.headers.get('x-admin-token') || '';
@@ -102,6 +103,7 @@ export async function sweep(env, now, limit) {
   out.cleaned += hits.meta ? hits.meta.changes : 0;
   const events = await env.DB.prepare('DELETE FROM listing_events WHERE seq IN (SELECT seq FROM listing_events WHERE at < ? ORDER BY seq LIMIT 500)').bind(now - 30 * 86400000).run();
   out.cleaned += events.meta ? events.meta.changes : 0;
+  out.media = await safe(() => sweepMedia(env, now, Math.min(cap, 25)));
   return out;
 }
 

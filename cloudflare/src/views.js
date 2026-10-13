@@ -18,6 +18,14 @@ function parseCursor(text) {
 }
 const clampLimit = (v, def, max) => Math.max(1, Math.min(max, Number(v) || def));
 
+// The pictures a seller put on a listing, as the game asks for them: ids to read through /v1/media, never addresses.
+function imagesOf(r) {
+  try { return JSON.parse(r.images || '[]').map((i) => ({ id: i.u, alt: i.alt || '', width: i.w || null, height: i.h || null })); } catch (_) { return []; }
+}
+function coverOf(r) {
+  try { return r.cover ? JSON.parse(r.cover) : null; } catch (_) { return null; }
+}
+
 // The public listing, as the market shows it. `me` is the viewer's account id (or null).
 function listingRow(r, me, val, now) {
   const items = JSON.parse(r.items), first = items[0], mine = r.seller_id === me;
@@ -25,7 +33,9 @@ function listingRow(r, me, val, now) {
     id: r.id, format: FORMAT[r.kind], kind: r.kind, status: r.status, ask: r.price, title: r.title, description: r.note,
     card: { cardId: first.c, variantId: first.v || null, cardSkinId: first.k || null, serial: first.s, count: r.item_count, packId: first.p || null },
     items: items.map((i) => Object.assign({ cardId: i.c, variantId: i.v || null, cardSkinId: i.k || null, serial: i.s, packId: i.p || null }, mine ? { instanceId: i.i } : {})),
-    seller: { alias: r.seller_alias, isYou: mine, sales: r.seller_sales || 0, tenureDays: Math.max(0, Math.floor((now - (r.seller_since || now)) / DAY)) },
+    seller: { alias: r.seller_alias, isYou: mine, sales: r.seller_sales || 0, tenureDays: Math.max(0, Math.floor((now - (r.seller_since || now)) / DAY)),
+      rating: r.seller_reviews ? { average: Math.round(r.seller_rating * 10) / 10, count: r.seller_reviews } : null },
+    images: imagesOf(r), cover: coverOf(r), treatment: r.treatment || 'none', commentCount: r.comment_count || 0,
     valuation: val, createdAt: r.created_at, endsAt: r.ends_at, closedAt: r.closed_at, soldFor: r.sold_price, endNote: r.end_note || '', snipeNote: r.snipe_note || '',
     isMine: mine, version: r.version, source: 'players', reservedCard: false
   };
@@ -42,14 +52,17 @@ function listingRow(r, me, val, now) {
   return view;
 }
 
-const LISTING_SQL = 'SELECT l.*, s.alias AS seller_alias, s.created_at AS seller_since, ld.alias AS leader_alias, ' +
+export const LISTING_SQL = 'SELECT l.*, s.alias AS seller_alias, s.created_at AS seller_since, ld.alias AS leader_alias, ' +
   '(SELECT COUNT(*) FROM trades t WHERE t.seller_id = l.seller_id) AS seller_sales, ' +
+  "(SELECT COUNT(*) FROM reviews rv WHERE rv.seller_id = l.seller_id AND rv.status = 'visible') AS seller_reviews, " +
+  "(SELECT AVG(rv.rating) FROM reviews rv WHERE rv.seller_id = l.seller_id AND rv.status = 'visible') AS seller_rating, " +
+  "(SELECT COUNT(*) FROM comments cm WHERE cm.listing_id = l.id AND cm.status IN ('visible', 'seller_hidden', 'held')) AS comment_count, " +
   '(SELECT max_amount FROM bids b WHERE b.listing_id = l.id AND b.bidder_id = ?1) AS my_max, ' +
   '(SELECT active FROM bids b WHERE b.listing_id = l.id AND b.bidder_id = ?1) AS my_active, ' +
   "(SELECT max_amount FROM bids b WHERE b.listing_id = l.id AND b.bidder_id = l.leader_id AND l.seller_id = ?1) AS leader_max " +
   'FROM listings l JOIN accounts s ON s.id = l.seller_id LEFT JOIN accounts ld ON ld.id = l.leader_id ';
 
-async function withValuations(env, rows, me, now) {
+export async function withValuations(env, rows, me, now) {
   const specs = rows.map((r) => { const f = JSON.parse(r.items)[0]; return { cardId: f.c, variantId: f.v || null, skinId: f.k || null, serial: f.s }; });
   const vals = specs.length ? await valuations(env, specs, now) : [];
   return rows.map((r, n) => listingRow(r, me, vals[n], now));

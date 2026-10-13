@@ -16,7 +16,10 @@ const GUARD_ERRORS = {
   limit_hit: [409, 'limit', 'You have reached a limit.'],
   own: [403, 'own', 'You cannot trade with your own listing.'],
   quota: [429, 'quota', 'A daily limit has been reached.'],
-  conflict: [409, 'conflict', 'Something changed while you were acting, so nothing was done. Try again.']
+  conflict: [409, 'conflict', 'Something changed while you were acting, so nothing was done. Try again.'],
+  media: [409, 'media-unavailable', 'One of the pictures cannot be used any more. Upload it again.'],
+  duplicate: [409, 'duplicate', 'That has already been done.'],
+  edit_closed: [409, 'edit-closed', 'That can no longer be changed.']
 };
 const MAX_ATTEMPTS = 5;
 
