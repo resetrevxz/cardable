@@ -301,13 +301,17 @@
         var select = node('select', 'shop-option-select', field); select.dataset.setting = key;
         definition.choices.forEach(function (value) { var option = node('option', '', select, definition.format(value)); option.value = value; });
         select.value = C.settings.getRequested(key);
-        select.addEventListener('change', function () { C.settings.set(key, select.value); });
+        select.addEventListener('change', function () { savePreference(key,select.value);select.value=C.settings.getRequested(key); });
       });
       button(options, 'Close Shop settings', function () { options.hidden = true; optionsButton.setAttribute('aria-expanded', 'false'); optionsButton.focus({ preventScroll: true }); }, 'shop-options-close', 'close');
       var markerLabel=node('label','shop-option shop-option--check',options);
       var markers=node('input','shop-marker-toggle',markerLabel); markers.type='checkbox'; markers.checked=C.settings.get('shopWishlistMarkers');
-      node('span','',markerLabel,'Wishlist marks'); markers.addEventListener('change',function(){C.settings.set('shopWishlistMarkers',markers.checked);});
+      node('span','',markerLabel,'Wishlist marks'); markers.addEventListener('change',function(){savePreference('shopWishlistMarkers',markers.checked);markers.checked=C.settings.get('shopWishlistMarkers');});
       button(options,'Save status',saveStatus,'shop-save-status-open');
+      button(options,'Reset Shop settings',function(){
+        session.holds.forEach(function(control){if(control.confirmation)control.confirmation.cancel();});
+        var saved=C.settings.resetShop();refreshControls();announce(saved?'Shop settings reset.':'Shop settings could not be saved. Previous settings retained.');
+      },'shop-options-reset');
       var saveNotice = node('div', 'shop-save-notice', section); saveNotice.hidden = true;
       var message = node('p', '', saveNotice); message.setAttribute('role', 'status');
       var retry = button(saveNotice, 'Retry save', function () {
@@ -350,6 +354,12 @@
     function desktopBackupFailed() {
       return C.desktop && C.desktop.isAvailable && C.config.storage.key === 'cardable.save' && C.desktop.storageIssue;
     }
+    function savePreference(key,value){
+      session.holds.forEach(function(control){if(control.confirmation)control.confirmation.cancel();});
+      var saved=C.settings.set(key,value);refreshControls();
+      if(!saved)announce('Shop settings could not be saved. Previous settings retained.');
+      return saved;
+    }
     function comparison() {
       clearContent(); session.selected = 'compare'; session.locked = false;
       var scroll = node('div', 'shop-scroll shop-scroll--compare', surface);
@@ -358,7 +368,7 @@
       var top = node('div', 'shop-compare-heading', area);
       var heading = node('h2', '', top, 'Compare offers'); heading.id = 'shop-compare-title'; heading.tabIndex = -1;
       var differences = C.ui.create('button', { label:'Differences only',
-        onClick:function () { C.settings.set('shopCompareDifferences', !C.settings.get('shopCompareDifferences')); } });
+        onClick:function () { savePreference('shopCompareDifferences', !C.settings.get('shopCompareDifferences')); } });
       differences.setAttribute('role', 'switch'); differences.setAttribute('aria-checked', String(C.settings.get('shopCompareDifferences')));
       differences.classList.add('shop-compare-differences'); top.appendChild(differences);
       var entries = (session.result.snapshot ? session.result.snapshot.offers : []).map(function (offer) {

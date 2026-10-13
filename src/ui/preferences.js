@@ -29,7 +29,7 @@
     previewBase = { card: card, instance: instance || { instanceId: 'settings-preview', cardId: card.id, serial: C.serial.format(C.state.current.playerCode, 0), pulledAt: 0, seen: true } };
     tierIndex = Math.max(0, C.data.rarities.findIndex(function (r) { return r.id === card.rarity; }));
     overlay.hidden = false; overlay.inert = false; buildPreview(); C.accessibility.trap(panel); C.preferences.shell.opened(); C.preferences.closeButton.focus({ preventScroll: true });
-    if (!C.settings.saved) message('Settings could not be saved. They apply for this session; retry saving or export before closing.');
+    if (!C.settings.saved) message('Saving is unavailable. Retry saving or export your save before closing.');
     spring.target = 1; if (settingId) C.preferences.shell.focus(settingId); C.fx.wake(); return true;
   }
   function close() {
@@ -146,7 +146,7 @@
       });
       C.events.on('preferences:open', open); C.events.on('opening:context', enabled); C.events.on('fx:visibility', enabled); C.events.on('save:willReset', close); C.events.on('save:willReplace', function () { undo = null; undoButton.hidden = true; close(); }); C.events.on('save:reset', close);
       C.events.on('save:imported', function () { if (C.preferences.notice) C.preferences.notice.remove(); C.preferences.notice = null; C.state.recovery = null; C.events.emit('menu:visibilityHold', { reason: 'save-notice', active: false }); });
-      C.events.on('settings:persisted', function (event) { saved = event.saved; saveAge = 0; feedback.style.opacity = 1; message(saved ? '' : 'Your browser is blocking saving. Settings last for this session only.'); C.fx.wake(); });
+      C.events.on('settings:persisted', function (event) { saved = event.saved; saveAge = 0; feedback.style.opacity = 1; message(saved ? '' : event.retained ? 'The change could not be saved. Previous Shop settings are retained.' : 'Your browser is blocking saving. Settings last for this session only.'); C.fx.wake(); });
       C.events.on('fx:frame', function (event) {
         if (nudgeShown || C.settings.get('nudgeDismissed') || C.settings.get('quality') === 'very-low' || root.document.hidden || C.fx.stats.paused) { slowMs = slowFrames = 0; return; }
         if (event.realDt <= 0 || event.realDt > 250) { slowMs = slowFrames = 0; return; }

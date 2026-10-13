@@ -35,7 +35,7 @@
 .shop-options-close { position:absolute; top:12px; right:8px; min-width:44px; min-height:44px; background:transparent; }
 .shop-option--check { display:flex; align-items:center; gap:12px; min-height:44px; cursor:pointer; }
 .shop-marker-toggle { width:18px; height:18px; accent-color:var(--accent); }
-.shop-save-status-open { min-height:44px; align-self:end; justify-self:start; }
+.shop-save-status-open,.shop-options-reset { min-height:44px; align-self:end; justify-self:start; }
 .shop-save-notice { position:sticky; top:0; z-index:4; display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:16px 0 24px; padding:16px; border:1px solid var(--danger); border-radius:var(--radius-panel); background:var(--ink-2); box-shadow:var(--shadow-md); }
 .shop-save-notice p { flex:1 1 260px; color:var(--text-secondary); font:400 12px/1.5 var(--font-ui); }
 .shop-save-notice button { min-height:44px; }

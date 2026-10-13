@@ -33,6 +33,13 @@ async function launch() {
   });
   assert.equal(before.saved, true);
   await page.locator('#shop-entry').click();
+  await page.locator('.shop-options-control').click();
+  await page.evaluate(()=>{Cardable.state.beforeWrite=()=>{throw Error('Native Shop preference fixture');};});
+  await page.locator('.shop-options [data-setting="shopLayout"]').selectOption('compact');
+  assert.equal(await page.locator('.shop-options [data-setting="shopLayout"]').inputValue(),'showroom');
+  await page.evaluate(()=>{Cardable.state.beforeWrite=null;});await page.locator('.shop-save-retry').click();
+  await page.locator('.shop-options [data-setting="shopLayout"]').selectOption('compact');
+  await page.locator('.shop-options-close').click();
   const offers=await page.locator('.shop-offer h3').allTextContents();
   await page.locator('.shop-offer .shop-inspect').first().click();
   await page.locator('.shop-inspection-next').click();
@@ -95,6 +102,7 @@ async function launch() {
     receipts: Cardable.state.current.shop.receipts.length, saved: Cardable.state.lastWriteSucceeded }), purchase.card);
   assert.deepEqual(recovered, { copy:true, currency:purchase.currency, serial:purchase.serial, receipts:1, saved:true });
   assert.equal(await page.evaluate(id=>Cardable.inventoryModel.current.collections.some(item=>item.id===id&&item.kind==='wishlist'),wanted.id),true);
+  assert.equal(await page.evaluate(()=>Cardable.settings.getRequested('shopLayout')),'compact');
   await page.locator('#shop-entry').click(); await page.locator('.shop-options-control').click();
   await page.locator('.shop-save-status-open').click(); await page.locator('.shop-save-check').click();
   await page.waitForFunction(expected=>{
