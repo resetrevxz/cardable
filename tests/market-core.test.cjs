@@ -284,3 +284,49 @@ test('config: the tuning table is marked and no field reads the reserved market 
   assert.ok(C.data.market.auction.presets.length >= 3);
   assert.equal(C.data.market.realms.length, 2);
 });
+
+// ---- Stage 6: the ranking weighs eleven things, explains them, and never reads unverifiable activity ----
+function listing(over) {
+  const base = { id: 'L1', format: 'buy-now', status: 'active', ask: 100, listedMin: 30, endsMin: null, watchers: 0,
+    card: { cardId: C.data.cards[0].id, variantId: null, serial: 'CBL-AAAA-000500' }, seller: { alias: 'Calm Otter', sales: 12, rating: null, isBot: false },
+    valuation: { average: 140, confidence: 'high', samples: 30, liquidity: 0.8, targetSell: 150, volume7d: 9, volatility: 0.03 } };
+  return Object.assign({}, base, over || {}, { valuation: Object.assign({}, base.valuation, (over && over.valuation) || {}) });
+}
+test('the ranking has eleven weighted factors that sum to one, and cheapest-first is not among them', () => {
+  const w = K.DEFAULT_WEIGHTS, keys = Object.keys(w);
+  assert.equal(keys.length, 11);
+  assert.ok(Math.abs(keys.reduce((n, k) => n + w[k], 0) - 1) < 1e-9);
+  assert.ok(!('price' in w) && !('cheap' in w));
+  const ctx = context(C.market.fixtures.build(env), { budget: 300 });
+  const cheapButThin = listing({ id: 'A', ask: 20, valuation: { average: 22, confidence: 'none', samples: 0, liquidity: 0.1, targetSell: 22 } });
+  const fairAndLiquid = listing({ id: 'B', ask: 110, valuation: { average: 140 } });
+  assert.ok(K.recommend(fairAndLiquid, ctx).score > K.recommend(cheapButThin, ctx).score, 'a well-supported discount beats a cheap card nobody has traded');
+});
+test('margin is read against what the card actually sells for, after the fee', () => {
+  const ctx = context(C.market.fixtures.build(env), { budget: 500 });
+  const room = K.recommend(listing({ ask: 100, valuation: { targetSell: 160 } }), ctx), none = K.recommend(listing({ ask: 100, valuation: { targetSell: 101 } }), ctx);
+  assert.ok(room.components.margin > none.components.margin);
+  assert.ok(room.reasons.some((r) => r.id === 'margin'));
+});
+test('preferences come only from the cards in the realm\'s own collection, and a missing collection is neutral', () => {
+  const data = C.market.fixtures.build(env), cardsById = {};
+  data.cards.forEach((c) => { cardsById[c.id] = c; });
+  assert.equal(K.preferences([], cardsById), null);
+  const rare = data.cards.find((c) => c.rarity === 'rare'), basic = data.cards.find((c) => c.rarity === 'basic');
+  const p = K.preferences([{ cardId: rare.id, variantId: null }, { cardId: rare.id, variantId: 'matte' }, { cardId: basic.id, variantId: null }], cardsById);
+  assert.equal(p.rarity.rare, 1); assert.ok(p.rarity.basic < 1); assert.equal(p.variant.normal, 1);
+  const ctx = context(data, { budget: 300 });
+  const neutral = K.recommend(listing({ card: { cardId: rare.id, variantId: null, serial: 'CBL-AAAA-000500' } }), ctx);
+  const liked = K.recommend(listing({ card: { cardId: rare.id, variantId: null, serial: 'CBL-AAAA-000500' } }), Object.assign({}, ctx, { prefs: p }));
+  assert.equal(neutral.components.pref, 0.5);
+  assert.ok(liked.components.pref > 0.9);
+});
+test('an auction is ranked by whether your balance can follow it, and a swap by whether you hold what it accepts', () => {
+  const data = C.market.fixtures.build(env), ctx = context(data, { budget: 120 });
+  const auction = (ask) => listing({ format: 'auction', ask, auction: { bids: 2, current: ask }, endsMin: 600 });
+  assert.ok(K.recommend(auction(40), ctx).components.fill > K.recommend(auction(115), ctx).components.fill);
+  const wantedId = data.cards[3].id;
+  const swap = listing({ format: 'swap', swap: { wants: { cardIds: [wantedId] } } });
+  assert.equal(K.recommend(swap, Object.assign({}, ctx, { owned: {} })).components.fill, 0.2);
+  assert.equal(K.recommend(swap, Object.assign({}, ctx, { owned: { [wantedId]: 1 } })).components.fill, 1);
+});

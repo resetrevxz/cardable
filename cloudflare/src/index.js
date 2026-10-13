@@ -25,6 +25,9 @@ import { quote as quickSellQuote, quickSellUsage, redeem } from './quicksell.js'
 import { activity, browse, cardMarket, detail, history, inventory, markRead, trades } from './views.js';
 import { valuationOf } from './valuation.js';
 import { reconcile, repair, requireAdmin, revokeImport, sweep } from './admin.js';
+import { cardAnalytics, movers, stocks } from './stats.js';
+import { exportData, portfolio } from './portfolio.js';
+import { createAlert, deleteAlert, listAlerts } from './alerts.js';
 export { Gate } from './gate.js';
 
 const VERSION = '0.5.0-beta';
@@ -106,6 +109,23 @@ async function route(request, env, url, trace) {
     return { items: rows.results.map((r) => ({ id: r.id, at: r.at, kind: r.kind, body: r.body, ref: r.ref, read: !!r.read_at })) };
   }
   if (pathname === '/v1/notifications/read' && method === 'POST') return markRead(env, who, await readJson(request, 1_000), now);
+
+  // ---- analytics, portfolio and alerts ----
+  if (pathname === '/v1/analytics/card' && method === 'GET') {
+    const p = url.searchParams;
+    return cardAnalytics(env, { cardId: p.get('cardId'), variantId: p.get('variantId') || null, skinId: p.get('skinId') || null }, p.get('window') || '7d', now);
+  }
+  if (pathname === '/v1/analytics/stocks' && method === 'GET') {
+    const p = url.searchParams;
+    return stocks(env, { scope: p.get('scope'), id: p.get('id'), window: p.get('window'), variantId: p.get('variantId') || null }, now);
+  }
+  if (pathname === '/v1/analytics/movers' && method === 'GET') return movers(env, now);
+  if (pathname === '/v1/portfolio' && method === 'GET') return portfolio(env, who, now);
+  if (pathname === '/v1/export' && method === 'GET') return exportData(env, who, url, now);
+  if (pathname === '/v1/alerts' && method === 'GET') return listAlerts(env, who);
+  if (pathname === '/v1/alerts' && method === 'POST') return createAlert(env, who, await readJson(request, 4_000), now);
+  const am = /^\/v1\/alerts\/(alt_[A-Za-z0-9_-]{6,40})$/.exec(pathname);
+  if (am && method === 'DELETE') return deleteAlert(env, who, am[1]);
   if (pathname === '/v1/settings' && method === 'GET') {
     const r = await env.DB.prepare('SELECT value, updated_at FROM settings WHERE account_id = ?').bind(who.accountId).first();
     return { value: r ? JSON.parse(r.value) : {}, updatedAt: r ? r.updated_at : null };
@@ -169,6 +189,9 @@ export default {
     try {
       if (!url.pathname.startsWith('/v1/')) throw new ApiError(404, 'not-found', 'There is no such endpoint.');
       const data = await route(request, env, url, trace);
+      if (data && data.raw !== undefined && data.contentType) {
+        return new Response(data.raw, { status: 200, headers: Object.assign({ 'content-type': data.contentType, 'content-disposition': 'attachment; filename="' + data.filename + '"', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }, baseHeaders) });
+      }
       return json(200, { ok: true, data, trace }, baseHeaders);
     } catch (error) {
       if (error instanceof ApiError) {

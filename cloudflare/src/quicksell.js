@@ -24,7 +24,7 @@ async function usage(env, accountId, now) {
 }
 
 async function quoteRows(env, accountId, ids, now) {
-  const rows = (await env.DB.prepare('SELECT id, card_id, variant_id, skin_id, serial, state, owner_id FROM instances WHERE id IN (' + placeholders(ids.length) + ')').bind(...ids).all()).results;
+  const rows = (await env.DB.prepare('SELECT id, card_id, variant_id, skin_id, serial, state, owner_id, basis FROM instances WHERE id IN (' + placeholders(ids.length) + ')').bind(...ids).all()).results;
   if (rows.length !== ids.length || rows.some((r) => r.owner_id !== accountId)) throw new ApiError(409, 'not-owned', 'One of those cards is not in your collection.');
   const bad = rows.find((r) => r.state !== 'owned');
   if (bad) throw new ApiError(409, bad.state === 'escrow' ? 'locked' : 'sold', bad.state === 'escrow' ? 'A card in a listing or an offer cannot be sold to the system. Withdraw it first.' : 'That card was already sold.');
@@ -32,7 +32,7 @@ async function quoteRows(env, accountId, ids, now) {
   const byId = new Map(rows.map((r, n) => [r.id, { r, f: fair[n] }]));
   return ids.map((id) => {
     const { r, f } = byId.get(id), q = quickSellQuote({ cardId: r.card_id, serial: r.serial }, f);
-    return { instanceId: r.id, cardId: r.card_id, name: nameOf(r.card_id), variantId: r.variant_id, cardSkinId: r.skin_id, serial: r.serial, quote: q.quote, fair: q.fair, baseline: q.baseline, basis: q.basis, confidence: q.confidence, samples: q.samples, factor: q.factor };
+    return { instanceId: r.id, cardId: r.card_id, name: nameOf(r.card_id), variantId: r.variant_id, cardSkinId: r.skin_id, serial: r.serial, costBasis: r.basis, quote: q.quote, fair: q.fair, baseline: q.baseline, basis: q.basis, confidence: q.confidence, samples: q.samples, factor: q.factor };
   });
 }
 
@@ -66,8 +66,8 @@ export async function redeem(env, who, key, body, now) {
     tx.guard('quota', 'COALESCE((SELECT COUNT(*) FROM redemptions WHERE account_id = ? AND at >= ?), 0) + ? <= ?', who.accountId, day, ids.length, lim.perAccountCardsPerDay);
     tx.guard('quota', 'COALESCE((SELECT SUM(quote) FROM redemptions WHERE at >= ?), 0) + ? <= ?', day, total, lim.globalCreditsPerDay);
     tx.add("UPDATE instances SET state = 'redeemed', escrow_ref = NULL WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned'", ...ids, who.accountId);
-    items.forEach((i) => tx.add('INSERT INTO redemptions (id, account_id, at, instance_id, card_id, variant_id, skin_id, serial, quote, fair, baseline, op_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      newId('rd'), who.accountId, now, i.instanceId, i.cardId, i.variantId, i.cardSkinId, i.serial, i.quote, i.fair, i.baseline, opId));
+    items.forEach((i) => tx.add('INSERT INTO redemptions (id, account_id, at, instance_id, card_id, variant_id, skin_id, serial, quote, fair, baseline, op_id, basis) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      newId('rd'), who.accountId, now, i.instanceId, i.cardId, i.variantId, i.cardSkinId, i.serial, i.quote, i.fair, i.baseline, opId, i.costBasis == null ? null : i.costBasis));
     tx.credit(who.accountId, total, 'quick sell', opId);
     return { tx, result: { ok: true, receiptId: opId, total, count: items.length, at: now, items: items.map((i) => ({ instanceId: i.instanceId, cardId: i.cardId, serial: i.serial, quote: i.quote, fair: i.fair })),
       disclosure: 'Sold to the system at a fixed lower price. This is not a player sale and does not affect market prices.' } };

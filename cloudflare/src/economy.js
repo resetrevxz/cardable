@@ -41,6 +41,8 @@ export function feeFor(price) {
 export const keyOf = (cardId, variantId, skinId) => [cardId, variantId || '', skinId || ''].join('|');
 export const isCard = (id) => Object.prototype.hasOwnProperty.call(CATALOG.cards, id);
 export const nameOf = (id) => CATALOG.names[id] || id;
+export const metaOf = (id) => CATALOG.meta[id] || { b: null, g: null };
+export const serialNumber = (serial) => { const m = /-(\d{1,9})$/.exec(String(serial || '')); return m ? Number(m[1]) : null; };
 export const rarityOf = (id) => CATALOG.cards[id] || null;
 export const tierOf = (id) => (E.tier[id] == null ? 0 : E.tier[id]);
 

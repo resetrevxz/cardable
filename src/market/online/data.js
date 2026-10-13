@@ -16,7 +16,8 @@
   var S = { skew: 0, skewAt: 0, revision: 0, usedAt: 0, timer: 0, emitTimer: 0,
     listings: { items: null, total: 0, at: 0, loading: null, error: null },
     details: {}, cards: {}, vals: {}, tradesBy: {},
-    activity: { data: null, at: 0, loading: null }, inventory: { items: null, total: 0, at: 0, loading: null }, rules: null };
+    activity: { data: null, at: 0, loading: null }, inventory: { items: null, total: 0, at: 0, loading: null }, rules: null,
+    analytics: {}, stocksBy: {}, movers: { data: null, at: 0, loading: null }, portfolio: { data: null, at: 0, loading: null }, alerts: { data: null, at: 0, loading: null } };
 
   // ---- time ----------------------------------------------------------------------------------------------------------
   function learn(serverNow) { if (Number.isFinite(serverNow) && serverNow > 0) { S.skew = serverNow - Date.now(); S.skewAt = Date.now(); } }
@@ -249,6 +250,52 @@
     return S.rules;
   }
 
+  // ---- analytics: only what completed player sales say -------------------------------------------------------------------
+  function slot(map, key) { return map[key] || (map[key] = { data: null, at: 0, loading: null }); }
+  function loadAnalytics(cardId, variantId, windowId, force) {
+    var key = cardId + '|' + (variantId || '') + '|' + (windowId || '7d'), E = slot(S.analytics, key);
+    if (!live()) return Promise.resolve(E);
+    if (E.loading) return E.loading;
+    if (!force && E.data && fresh(E.at, TTL.card)) return Promise.resolve(E);
+    var q = '/v1/analytics/card?cardId=' + encodeURIComponent(cardId) + '&window=' + (windowId || '7d') + (variantId ? '&variantId=' + encodeURIComponent(variantId) : '');
+    E.loading = get(q).then(function (d) { learn(d.serverNow); E.data = d; E.at = Date.now(); E.loading = null; changed(); return E; }, function () { E.loading = null; E.at = Date.now(); return E; });
+    return E.loading;
+  }
+  function stocksKey(q) { return [q.scope || 'index', q.id || '', q.variantId || '', q.window || '7d'].join('|'); }
+  function loadStocks(q, force) {
+    var key = stocksKey(q), E = slot(S.stocksBy, key);
+    if (!live()) return Promise.resolve(E);
+    if (E.loading) return E.loading;
+    if (!force && E.data && fresh(E.at, TTL.card)) return Promise.resolve(E);
+    var path = '/v1/analytics/stocks?scope=' + encodeURIComponent(q.scope || 'index') + '&id=' + encodeURIComponent(q.id || '') + '&window=' + (q.window || '7d') + (q.variantId ? '&variantId=' + encodeURIComponent(q.variantId) : '');
+    E.loading = get(path).then(function (d) { learn(d.serverNow); E.data = d; E.at = Date.now(); E.loading = null; changed(); return E; }, function () { E.loading = null; E.at = Date.now(); return E; });
+    return E.loading;
+  }
+  function loadMovers(force) {
+    var E = S.movers;
+    if (!live()) return Promise.resolve(E);
+    if (E.loading) return E.loading;
+    if (!force && E.data && fresh(E.at, TTL.trades)) return Promise.resolve(E);
+    E.loading = get('/v1/analytics/movers').then(function (d) { learn(d.serverNow); E.data = d; E.at = Date.now(); E.loading = null; changed(); return E; }, function () { E.loading = null; E.at = Date.now(); return E; });
+    return E.loading;
+  }
+  function loadPortfolio(force) {
+    var E = S.portfolio;
+    if (!live()) return Promise.resolve(E);
+    if (E.loading) return E.loading;
+    if (!force && E.data && fresh(E.at, TTL.activity)) return Promise.resolve(E);
+    E.loading = get('/v1/portfolio').then(function (d) { learn(d.serverNow); E.data = d; E.at = Date.now(); E.loading = null; changed(); return E; }, function () { E.loading = null; E.at = Date.now(); return E; });
+    return E.loading;
+  }
+  function loadAlerts(force) {
+    var E = S.alerts;
+    if (!live()) return Promise.resolve(E);
+    if (E.loading) return E.loading;
+    if (!force && E.data && fresh(E.at, TTL.activity)) return Promise.resolve(E);
+    E.loading = get('/v1/alerts').then(function (d) { E.data = d; E.at = Date.now(); E.loading = null; changed(); return E; }, function () { E.loading = null; E.at = Date.now(); return E; });
+    return E.loading;
+  }
+
   // ---- background refresh while the Market is in use -------------------------------------------------------------------------------
   function used() {
     S.usedAt = Date.now();
@@ -270,16 +317,21 @@
     Object.keys(S.details).forEach(function (k) { S.details[k].at = 0; });
     Object.keys(S.cards).forEach(function (k) { S.cards[k].at = 0; });
     Object.keys(S.tradesBy).forEach(function (k) { S.tradesBy[k].at = 0; });
+    Object.keys(S.analytics).forEach(function (k) { S.analytics[k].at = 0; });
+    Object.keys(S.stocksBy).forEach(function (k) { S.stocksBy[k].at = 0; });
+    S.movers.at = 0; S.portfolio.at = 0; S.alerts.at = 0;
     return Promise.all([loadListings(true), loadActivity(true), loadInventory(true)]);
   }
   function reset() {
     S.listings = { items: null, total: 0, at: 0, loading: null, error: null }; S.details = {}; S.cards = {}; S.vals = {}; S.tradesBy = {};
     S.activity = { data: null, at: 0, loading: null }; S.inventory = { items: null, total: 0, at: 0, loading: null };
+    S.analytics = {}; S.stocksBy = {}; S.movers = { data: null, at: 0, loading: null }; S.portfolio = { data: null, at: 0, loading: null }; S.alerts = { data: null, at: 0, loading: null };
     changed();
   }
 
   C.market.onlineData = {
     state: S, now: now, learn: learn, minutesUntil: minutesUntil, used: used, changed: changed, invalidate: invalidate, reset: reset, rules: loadRules,
+    loadAnalytics: loadAnalytics, loadStocks: loadStocks, loadMovers: loadMovers, loadPortfolio: loadPortfolio, loadAlerts: loadAlerts, stocksKey: stocksKey,
     loadListings: loadListings, loadDetail: loadDetail, loadCard: loadCard, loadActivity: loadActivity, loadInventory: loadInventory, loadTrades: loadTrades, wantValuation: wantValuation,
     valuationFor: valuationFor, fullValuation: fullValuation, toListing: toListing, toOrder: toOrder, toOffer: toOffer, toTrade: toTrade, wantedLabels: wantedLabels,
     get revision() { return S.revision; }

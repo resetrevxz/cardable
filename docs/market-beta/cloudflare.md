@@ -21,7 +21,7 @@ Recorded after deployment (non-sensitive identifiers only): `account_id`, D1 `da
 
 ## 2. Configuration (`cloudflare/wrangler.toml`)
 
-Plain variables (public, safe to commit): `ENVIRONMENT=beta`, `API_VERSION=1`, `CORS_ALLOW`, `TURNSTILE_SITEKEY` (empty = no challenge), `BETA_IMPORT_CAP=3000`, `SESSION_TTL_SECONDS=900`, `REFRESH_TTL_DAYS=30`. Optional tuning, none set by default: `REGISTER_PER_HOUR` (8), `API_RATE_LIMIT` (600 requests a minute per account), `QS_CARDS_PER_DAY` (40), `QS_CREDITS_PER_DAY` (4000), `QS_REALM_CREDITS_PER_DAY` (250000), `SWEEP_LIMIT` (5 listings per cron run). `ENVIRONMENT=test` and the `TEST_*` variables exist only for the local test suite: with `ENVIRONMENT=beta` the Worker ignores `x-test-now` and every `TEST_*` value.
+Plain variables (public, safe to commit): `ENVIRONMENT=beta`, `API_VERSION=1`, `CORS_ALLOW`, `TURNSTILE_SITEKEY` (empty = no challenge), `BETA_IMPORT_CAP=3000`, `SESSION_TTL_SECONDS=900`, `REFRESH_TTL_DAYS=30`. Optional tuning, none set by default: `REGISTER_PER_HOUR` (8), `API_RATE_LIMIT` (600 requests a minute per account), `QS_CARDS_PER_DAY` (40), `QS_CREDITS_PER_DAY` (4000), `QS_REALM_CREDITS_PER_DAY` (250000), `SWEEP_LIMIT` (5 listings per cron run), `ANALYTICS_CACHE` (`on` makes the analytics answers cacheable outside `beta`, where they always are; tests leave it off so figures are never stale). `ENVIRONMENT=test` and the `TEST_*` variables exist only for the local test suite: with `ENVIRONMENT=beta` the Worker ignores `x-test-now` and every `TEST_*` value.
 
 Secrets are **never** in this file, in the client, in markdown, in logs or in screenshots. `deploy.cjs --check` scans the folder for private keys, token-shaped strings and secret assignments and fails if it finds any. Local development passes a throw-away secret with `--var`; tests generate a random one per run.
 
@@ -79,6 +79,10 @@ All responses are `{ "ok": true, "data": … , "trace": "<id>" }` or `{ "ok": fa
 | POST `/v1/offers` · POST `/v1/offers/:id/accept` · `decline` · `counter` · `withdraw` | bearer + `Idempotency-Key` | swap offers |
 | GET `/v1/sell/quote` · POST `/v1/sell` | bearer (+ key on the sale) | the system redemption |
 | GET `/v1/activity` · `/v1/history` · `/v1/trades` · `/v1/prices` · `/v1/cards/:id/market` · `/v1/valuation` | bearer | reads |
+| GET `/v1/analytics/card?cardId=&variantId=&skinId=&window=` | bearer | one card's Average Value, fair value, changes, volume, spread, depth, targets and candles; each answer carries its `cost` |
+| GET `/v1/analytics/stocks?scope=&id=&window=` · `/v1/analytics/movers` | bearer | index series and the Explore lists, from completed player sales only |
+| GET `/v1/portfolio` · `/v1/export?kind=&format=` | bearer | the player's books; CSV or JSON of holdings, trades and ledger |
+| GET/POST `/v1/alerts` · DELETE `/v1/alerts/:id` | bearer | in-app price and saved-search alerts |
 | POST `/v1/notifications/read` | bearer | mark notifications read up to an id |
 | POST `/v1/import/preview` | bearer | validate a package, return accepted items and reasoned rejections, 15 minute preview id |
 | POST `/v1/import/commit` | bearer + `Idempotency-Key` | one-time claim; returns the signed receipt |
@@ -87,16 +91,18 @@ All responses are `{ "ok": true, "data": … , "trace": "<id>" }` or `{ "ok": fa
 
 The trading fields, rules and receipts are specified in [stage-5.md](stage-5.md).
 
-## 6. Schema (`migrations/0001_init.sql` + `0002_import_hardening.sql` + `0003_trading.sql`, schema 3)
+## 6. Schema (`migrations/0001_init.sql` … `0004_analytics.sql`, schema 4)
 
 `schema_info` · `accounts` (alias UNIQUE NOCASE, recovery hash UNIQUE) · `sessions` (refresh hash UNIQUE, previous hash kept for reuse detection) · `wallets` (`CHECK balance ≥ 0`, `0 ≤ held ≤ balance`, version) · `ledger` (append-only by convention: no code path updates or deletes a row; `delta ≠ 0`, `balance_after ≥ 0`, `UNIQUE(account_id, idem)`) · `instances` (server-issued id, **`serial` UNIQUE globally**, `source`, `state ∈ owned|escrow|redeemed`) · `imports` (**one per account, one per package hash, one per origin code**, receipt signature, idempotency key unique per account) · `import_previews` · `idempotency` (`PRIMARY KEY(account_id, key)`, request hash; reserved for Stage 5) · `listings`, `listing_items` (`instance_id` UNIQUE: a card can be in one listing), `price_observations`, `notifications`, `settings`.
 
-Indexes: ledger by account (id desc), instances by owner/state/card, listings by status/ends_at, price by card/at, notifications by account, sessions by account. Foreign keys cascade only from account-owned convenience rows; money and card rows never cascade.
+Indexes: ledger by account (id desc), instances by owner/state/card, listings by status/ends_at, price by card/at, notifications by account, sessions by account. Schema 4 adds the analytics read model (`price_observations` gains `card_id`, indexed by card and time), cost basis columns (`instances.basis`, `trades.seller_basis`, `redemptions.basis`), listing search facets (rarity, brand, generation with composite indexes) and `alerts` / `alert_hits` (a unique hit per alert and listing). See [stage-6.md](stage-6.md).
+
+Foreign keys cascade only from account-owned convenience rows; money and card rows never cascade.
 
 ### Migration contract
 
 1. A migration is a new `NNNN_name.sql`; applied files are immutable.
-2. Forward only (`0001_init.sql`, `0002_import_hardening.sql`, `0003_trading.sql`). Destructive changes ship as add-new → backfill → switch → (later migration) drop.
+2. Forward only (`0001_init.sql`, `0002_import_hardening.sql`, `0003_trading.sql`, `0004_analytics.sql`). Destructive changes ship as add-new → backfill → switch → (later migration) drop.
 3. Local rehearsal first: `wrangler d1 migrations apply cardable-market-beta-db --local`, then the test suite, then `--remote`.
 4. `schema_info.schema` and `/v1/status.schema` move together; the client treats a higher schema than it knows as read-only.
 
@@ -132,7 +138,7 @@ How the beta is shaped by them:
 |---|---|
 | `wrangler --version` | 4.149.0 (installed from `cloudflare/package.json`) |
 | `wrangler whoami` | **not authenticated** (2026-10-13) |
-| Local integration tests (`npm run test:cloudflare`: api, economy, trading, races) on the real Workers runtime (`wrangler dev --local`, local D1 and DO) | 54 / 54 pass |
+| Local integration tests (`npm run test:cloudflare`: api, analytics, economy, trading, races) on the real Workers runtime (`wrangler dev --local`, local D1 and DO) | 72 / 72 pass (Stage 6, 2026-10-13); 54 / 54 at Stage 4 |
 | `deploy.cjs --verify` against a local origin | 10 / 10 pass |
 | `deploy.cjs --check` | names ok · secret scan ok · wrangler ok · **authentication FAIL** |
 

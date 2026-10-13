@@ -1,0 +1,77 @@
+{
+  "when": "2026-10-13T05:01:02.516Z",
+  "steps": [
+    {
+      "name": "Stocks (Global, whole market): a real series from completed sales, with totals that match the database",
+      "ok": true,
+      "ms": 887,
+      "detail": null
+    },
+    {
+      "name": "a busy card: Average Value and fair value are distinct, volume is units and Credits, targets are ranges, time to sell is inferred",
+      "ok": true,
+      "ms": 809,
+      "detail": null
+    },
+    {
+      "name": "a card with one old sale and a card with nothing: honest empty states, no invented line",
+      "ok": true,
+      "ms": 1633,
+      "detail": null
+    },
+    {
+      "name": "an outlier sale does not move the Average Value of a card that trades rarely",
+      "ok": true,
+      "ms": 21,
+      "detail": null
+    },
+    {
+      "name": "Portfolio: cost basis from what was paid, imports say No cost basis, books, groups and a CSV export without private ids",
+      "ok": true,
+      "ms": 1813,
+      "detail": null
+    },
+    {
+      "name": "Compare holds two to four exact cards with the same numbers, and says when a number is missing",
+      "ok": true,
+      "ms": 1947,
+      "detail": null
+    },
+    {
+      "name": "Discover: what is moving comes from real sales; presets, saved views per realm and a search alert",
+      "ok": true,
+      "ms": 1077,
+      "detail": null
+    },
+    {
+      "name": "an alert reaches the inbox once, from the server, when a real listing matches",
+      "ok": true,
+      "ms": 2601,
+      "detail": null
+    },
+    {
+      "name": "the same pages fit 360, 390, 768, 1366 and 1920 wide, in saved monochrome and at Very Low and High quality",
+      "ok": true,
+      "ms": 6857,
+      "detail": null
+    },
+    {
+      "name": "cost: one chart on Stocks, none per listing; the page draws quickly and the Worker reports its query cost",
+      "ok": true,
+      "ms": 79,
+      "detail": null
+    },
+    {
+      "name": "no page errors and no unexpected console messages",
+      "ok": true,
+      "ms": 0,
+      "detail": null
+    }
+  ],
+  "console": [],
+  "pageErrors": [],
+  "timings": {
+    "stocksMountMs": 13,
+    "listingQueryRowsRead": 7
+  }
+}

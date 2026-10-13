@@ -27,10 +27,14 @@ const economy = {
   variantClass: Object.fromEntries(C.data.variants.map((v) => [v.id, v.class || null])),
   variantClassFactor: M.variantClassFactor, skinFactor: M.skinFactor, serial: M.serial, fee: { bps: M.fee.bps, minFee: M.fee.minFee },
   quickSell: { factor: M.quickSell.factor, tierFactor: M.quickSell.tierFactor, ceilingOverBaseline: M.quickSell.ceilingOverBaseline, floorUnderBaseline: M.quickSell.floorUnderBaseline, minPrice: M.quickSell.minPrice },
-  valuation: SIM.valuation, outlierBand: SIM.economy.outlierBand
+  valuation: SIM.valuation, outlierBand: SIM.economy.outlierBand,
+  // How a tier widens the spread and the volatility, and the targets' own margins (the game's own numbers).
+  spread: M.spread, volatility: M.volatility, liquidity: M.liquidity, targets: M.targets
 };
 const catalog = {
   names: Object.fromEntries(C.data.cards.map((c) => [c.id, c.name])),
+  meta: Object.fromEntries(C.data.cards.map((c) => [c.id, { b: c.brand || null, g: c.generation || null }])),
+  generations: Object.fromEntries((C.data.generations || []).map((g) => [g.id, g.name])),
   economy,
   cards: Object.fromEntries(C.data.cards.map((c) => [c.id, c.rarity])),
   rarities: Object.fromEntries(C.data.rarities.map((r) => [r.id, r.tier])),

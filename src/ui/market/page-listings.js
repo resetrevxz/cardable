@@ -144,6 +144,41 @@
         host.appendChild(intro);
       }
     }
+    // Global Discover: what is moving, what is busy and what just sold, from completed player sales only. The Simulation
+    // appears as one separate line, never as listings or prices.
+    if (realm === 'global' && ui.sim.live(realm) && id === 'discover' && C.market.onlineProvider) {
+      var strip = h('section.mk-explore', { 'aria-label': 'Moving now' });
+      host.appendChild(strip);
+      var paintStrip = function () {
+        var M = C.market.onlineProvider.movers();
+        ui.clear(strip);
+        strip.appendChild(h('div.mk-panel-head', h('h3', { text: 'Moving now' }), ui.chip('Completed player sales', { tone: 'soft', title: 'Quick Sell, swaps, offers and bundles never count here.' })));
+        if (!M || !M.cardsTraded) {
+          strip.appendChild(h('p.mk-hint', { text: M ? 'No two players have completed a sale of a single card in the last two weeks, so nothing is moving yet.' : 'Reading the latest sales.' }));
+        } else {
+          var cols = h('div.mk-explore-cols');
+          [['Greatest change', M.rising.concat(M.falling).sort(function (a, b) { return Math.abs(b.change7d || 0) - Math.abs(a.change7d || 0); }).slice(0, 4), function (x) { return ui.delta(x.change7d, { label: '7 d' }); }],
+            ['Trending', M.trending.slice(0, 4), function (x) { return h('span.mk-muted', { text: x.units7 + ' sold in 7 d' }); }],
+            ['Highly liquid', M.liquid.slice(0, 4), function (x) { return h('span.mk-muted', { text: x.units7 + ' sold in 7 d' }); }],
+            ['Recently sold', M.recentlySold.filter(function (x) { return !x.bundle; }).slice(0, 4), function (x) { return h('span.mk-muted', { text: ui.fmt.exact(x.price) + ' · ' + ui.fmt.age(x.minutesAgo) }); }]
+          ].forEach(function (col) {
+            var box = h('div.mk-explore-col', h('h4', { text: col[0] }));
+            if (!col[1].length) box.appendChild(h('p.mk-hint', { text: 'Not enough sales yet.' }));
+            col[1].forEach(function (x) {
+              var idn = ui.identity(x.card, !!env.owned[x.card.id]);
+              var b = h('button.mk-minirow', { type: 'button' }, h('span.mk-minirow-main', { text: idn.name }), col[2](x));
+              b.addEventListener('click', function () { ui.go('card', { id: x.card.id, variant: '' }); });
+              box.appendChild(b);
+            });
+            cols.appendChild(box);
+          });
+          strip.appendChild(cols);
+        }
+        strip.appendChild(h('p.mk-hint', { text: 'Want to practise? The Simulation is a separate, offline market of software traders. Its listings and prices never appear here.' }));
+      };
+      paintStrip();
+      scope.add(store.subscribe(function (what) { if (what === 'sim') paintStrip(); }));
+    }
     // Simulation realm: a quiet pill when the market changed under the page, so rows never jump while you read.
     var pill = h('button.mk-updates', { type: 'button', hidden: true, 'aria-live': 'polite' });
     pill.addEventListener('click', function () { pill.hidden = true; refresh(false); });
@@ -310,11 +345,26 @@
       if (id === 'discover') store.session.filters = state.filters;
       buildRail(); refresh(true);
     }
+    // A few presets are about you: the finishes you keep, the brand you hold most of.
+    function dynamicFilters(p) {
+      var f = JSON.parse(JSON.stringify(p.filters || {}));
+      if (p.dynamic === 'variants' && env.ctx && env.ctx.prefs) {
+        var wanted = Object.keys(env.ctx.prefs.variant).filter(function (k) { return k !== 'normal' && env.ctx.prefs.variant[k] >= 0.5; });
+        if (wanted.length) f.variants = wanted.slice(0, 6);
+      }
+      if (p.dynamic === 'brands') {
+        var count = {};
+        Object.keys(env.owned || {}).forEach(function (id) { var c = env.cards[id]; if (c && c.brand) count[c.brand] = (count[c.brand] || 0) + env.owned[id]; });
+        var top = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; })[0];
+        if (top) f.brands = [top];
+      }
+      return f;
+    }
     function applyPreset(p) {
       var base = K().emptyFilters();
       if (def.formats) base.formats = def.formats.slice();
       base.q = state.filters.q;
-      state.filters = K().normalizeFilters(Object.assign(base, JSON.parse(JSON.stringify(p.filters))));
+      state.filters = K().normalizeFilters(Object.assign(base, dynamicFilters(p)));
       if (def.formats && !state.filters.formats.length) state.filters.formats = def.formats.slice();
       if (p.filters.formats && def.formats) state.filters.formats = def.formats.slice();
       state.sort = p.sort; state.pages = 1; fillSort(); buildRail(); refresh(true);
@@ -323,7 +373,7 @@
       var surface = h('section.mk-modal', { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Save this view' });
       var input = h('input.mk-input', { type: 'text', maxlength: '40', placeholder: 'Name this view', 'aria-label': 'View name', value: '' });
       var h2 = h('h2', { text: 'Save this view' });
-      var saveB = ui.button('Save view', { variant: 'primary', onClick: function () { store.saveView(input.value, { q: state.filters.q, sort: state.sort, tab: state.tab, filters: state.filters }); C.ui.toast('View saved'); handle.close(); } });
+      var saveB = ui.button('Save view', { variant: 'primary', onClick: function () { store.saveView(input.value, { q: state.filters.q, sort: state.sort, tab: state.tab, filters: state.filters, realm: realm }); C.ui.toast('View saved'); handle.close(); } });
       surface.append(h2, h('p', { text: 'Saved views remember your search, filters and sort on this device.' }), input, h('div.mk-modal-actions', ui.button('Cancel', { variant: 'ghost', onClick: function () { handle.close(); } }), saveB));
       input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); saveB.click(); } });
       var handle = C.ui.present(surface, { anchor: doc_active() });
@@ -333,8 +383,8 @@
       ui.popover(viewsBtn, function (close) {
         var box = h('div.mk-menu', { role: 'menu' });
         box.appendChild(h('div.mk-menu-title', { text: 'Saved views' }));
-        var saved = store.prefs.saved;
-        if (!saved.length) box.appendChild(h('p.mk-hint', { text: 'None yet. Set up a search and use “Save this view”.' }));
+        var saved = store.prefs.saved.filter(function (v) { return !v.realm || v.realm === realm; });
+        if (!saved.length) box.appendChild(h('p.mk-hint', { text: 'None yet for ' + ui.realmDef(realm).label + '. Set up a search and use “Save this view”. Views are kept per realm on this device.' }));
         saved.forEach(function (v) {
           var row = h('div.mk-menu-row');
           var apply = h('button.mk-menu-item', { type: 'button', role: 'menuitem' }, h('span', { text: v.name }), h('small', { text: (v.q ? '“' + v.q + '” · ' : '') + K().activeFilterCount(K().normalizeFilters(v.filters)) + ' filters' }));
@@ -349,6 +399,29 @@
           row.append(apply, del); box.appendChild(row);
         });
         box.appendChild(ui.button('Save current view…', { icon: 'save', variant: 'secondary', onClick: function () { close(false); saveViewDialog(); } }));
+        // named sort presets, and an alert for this search (Global: delivered to the in-app inbox)
+        box.appendChild(ui.button('Save this sort as a preset', { icon: 'sliders', variant: 'ghost', onClick: function () {
+          var name = (cfg().sorts.find(function (s) { return s.id === (state.sort || 'recommended'); }) || { label: 'Sort' }).label;
+          store.addSortPreset(realm, name, state.sort || 'recommended', state.tab); close(false); C.ui.toast('Sort preset saved'); } }));
+        store.prefs.sortPresets.filter(function (p) { return p.realm === realm; }).forEach(function (p) {
+          box.appendChild(h('button.mk-menu-item', { type: 'button', role: 'menuitem', on: { click: function () { state.sort = p.sort; state.tab = p.tab || state.tab; state.pages = 1; close(false); fillSort(); refresh(true); if (tabsEl) tabsEl.set(state.tab); } } }, h('span', { text: 'Sort: ' + p.name }), h('small', { text: 'preset' })));
+        });
+        if (realm === 'global' && ui.sim.live(realm) && C.market.onlineProvider) {
+          box.appendChild(ui.button('Alert me when something matches', { icon: 'bell', variant: 'secondary', onClick: function () {
+            var f = state.filters, q = {};
+            if (f.q) q.q = f.q; if (f.rarities.length) q.rarity = f.rarities.slice(0, 8);
+            if (f.formats.length) q.kind = f.formats.map(function (x) { return x === 'buy-now' ? 'fixed' : x; });
+            if (f.price.max != null) q.maxPrice = f.price.max;
+            if (f.brands.length === 1) q.brand = f.brands[0];
+            if (f.generations.length === 1) q.generation = f.generations[0];
+            if (f.variants.length === 1 && f.variants[0] !== 'normal') q.variantId = f.variants[0];
+            close(false);
+            if (!Object.keys(q).length) { C.ui.toast('Set a search or a filter first.', null, 'error'); return; }
+            C.market.onlineProvider.createAlert({ kind: 'search', query: q, label: f.q || 'Saved search' }).then(function (r) {
+              C.ui.toast(r.ok ? 'Alert saved. Matches reach your Activity inbox, even while the game is closed they wait for you.' : r.message, null, r.ok ? 'info' : 'error');
+            });
+          } }));
+        }
         return box;
       }, { label: 'Saved views', align: 'end' });
     });

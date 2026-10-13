@@ -64,7 +64,7 @@
     var gp = realm === 'global' && providers.global && providers.global.owned ? providers.global : null;
     var budget = realm === 'simulation' ? Math.max(0, p.currency - held) : gp && providers.global.budget ? providers.global.budget() : null;
     return Object.assign({}, base, {
-      budget: budget,
+      budget: budget, prefs: gp ? (gp.preferences ? gp.preferences() : null) : (realm === 'simulation' ? K().preferences(p.inventory, base.cards) : null),
       owned: gp ? gp.owned() : p.owned, wishlist: p.wishlist, watch: watch, concealed: concealed
     });
   }

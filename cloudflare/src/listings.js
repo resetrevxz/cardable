@@ -2,7 +2,8 @@
 // (proxy bidding, anti-sniping, reserve, buyout) and swap listings share one ownership model: a listed card is in
 // escrow (instances.state = 'escrow', escrow_ref = listing id) until the listing closes, and then it moves exactly once.
 import { ApiError, cleanText, num } from './util.js';
-import { RULES, applyBid, closeAuction, feeFor, isCard, keyOf, nameOf, normalizeWants, rarityOf, resolveAuction } from './economy.js';
+import { RULES, applyBid, baselineOf, closeAuction, feeFor, isCard, keyOf, metaOf, nameOf, normalizeWants, rarityOf, resolveAuction, serialNumber, tierOf } from './economy.js';
+import { evaluateAlerts } from './alerts.js';
 import { Tx, mutate, newId, system } from './ops.js';
 import { valuations } from './valuation.js';
 import { closeOfferStatements, pendingOffersOf } from './offers.js';
@@ -56,16 +57,28 @@ async function planClose(env, tx, L, status, note, proxies, now) {
 function planSale(tx, L, buyerId, price, kind, heldRelease) {
   const fee = feeFor(price), net = price - fee, tradeId = newId('trd'), items = JSON.parse(L.items);
   guardOpen(tx, L, null);
+  const first = items[0];
+  // The trade is written before the cards move so the seller's cost basis can be read from them: the sum when every
+  // card has one, otherwise unknown (never assumed zero).
+  tx.add('INSERT INTO trades (id, at, kind, listing_id, seller_id, buyer_id, price, fee, item_count, card_id, variant_id, skin_id, items, attributed, seller_basis) ' +
+    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT CASE WHEN COUNT(*) = COUNT(basis) THEN SUM(basis) END FROM instances WHERE escrow_ref = ? AND state = 'escrow'))",
+    tradeId, tx.now, kind, L.id, L.seller_id, buyerId, price, fee, L.item_count, first.c, first.v || null, first.k || null, L.items, L.item_count === 1 ? 1 : 0, L.id);
   moveItems(tx, L, buyerId);
+  // The buyer's basis is what was paid. A bundle's price is split by the cards' baseline values (deterministic; the
+  // rounding remainder goes to the first card), so the shares add up exactly.
+  const weights = items.map((i) => baselineOf(i.c, i.v, i.k)), total = weights.reduce((n, x) => n + x, 0);
+  let given = 0;
+  items.forEach((i, n) => {
+    const share = n === items.length - 1 ? price - given : Math.floor(price * weights[n] / total);
+    given += share;
+    tx.add('UPDATE instances SET basis = ?, acquired_via = ?, acquired_at = ? WHERE id = ?', share, kind === 'order' ? 'order' : kind, tx.now, i.i);
+  });
   tx.guard('funds', 'EXISTS (SELECT 1 FROM wallets WHERE account_id = ? AND balance - (held - ?) >= ?)', buyerId, heldRelease || 0, price);
   tx.debit(buyerId, price, heldRelease || 0, kind === 'auction' || kind === 'buyout' ? 'auction purchase' : 'purchase', tradeId);
   tx.credit(L.seller_id, net, 'sale', tradeId);
   tx.add("UPDATE listings SET status = 'sold', closed_at = ?, sold_price = ?, fee = ?, buyer_id = ?, price = ?, version = version + 1 WHERE id = ?", tx.now, price, fee, buyerId, price, L.id);
-  const first = items[0];
-  tx.add('INSERT INTO trades (id, at, kind, listing_id, seller_id, buyer_id, price, fee, item_count, card_id, variant_id, skin_id, items, attributed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    tradeId, tx.now, kind, L.id, L.seller_id, buyerId, price, fee, L.item_count, first.c, first.v || null, first.k || null, L.items, L.item_count === 1 ? 1 : 0);
   // One card sold for Credits is a price observation. A bundle is not attributed to any card, so it never moves a price.
-  if (L.item_count === 1) tx.add('INSERT INTO price_observations (at, card_key, price, kind, trade_id) VALUES (?, ?, ?, ?, ?)', tx.now, keyOf(first.c, first.v, first.k), price, kind === 'order' ? 'fixed' : kind, tradeId);
+  if (L.item_count === 1) tx.add('INSERT INTO price_observations (at, card_key, price, kind, trade_id, card_id) VALUES (?, ?, ?, ?, ?, ?)', tx.now, keyOf(first.c, first.v, first.k), price, kind === 'order' ? 'fixed' : kind, tradeId, first.c);
   tx.notify(L.seller_id, 'sold', label(L) + ' sold for ' + price + ' Credits. You receive ' + net + ' after the ' + fee + ' Credit fee.', L.id);
   tx.notify(buyerId, kind === 'auction' ? 'won' : 'bought', (kind === 'auction' ? 'You won ' : 'You bought ') + label(L) + ' for ' + price + ' Credits.', L.id);
   return { tradeId, fee, net };
@@ -126,17 +139,20 @@ export async function createListing(env, who, key, body, now, options) {
     const tx = new Tx(env, now);
     tx.guard('not_owned', "(SELECT COUNT(*) FROM instances WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned') = ?", ...ids, who.accountId, ids.length);
     tx.guard('limit_hit', "(SELECT COUNT(*) FROM listings WHERE seller_id = ? AND status = 'active') < ?", who.accountId, RULES.limits.activeListings);
-    tx.add('INSERT INTO listings (id, seller_id, kind, status, ask, start_price, reserve, buyout, step, price, title, note, wants, min_topup, card_id, variant_id, skin_id, rarity, item_count, items, created_at, ends_at, first_ends_at, relist_of) ' +
-      "VALUES (?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    const meta = metaOf(first.card_id);
+    tx.add('INSERT INTO listings (id, seller_id, kind, status, ask, start_price, reserve, buyout, step, price, title, note, wants, min_topup, card_id, variant_id, skin_id, rarity, item_count, items, created_at, ends_at, first_ends_at, relist_of, serial_n, brand, generation, tier) ' +
+      "VALUES (?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       id, who.accountId, kind, kind === 'fixed' ? params.ask : null, kind === 'auction' ? params.start : null, kind === 'auction' ? params.reserve : null, kind === 'auction' ? params.buyout : null,
       kind === 'auction' ? params.step : null, price, title, note, kind === 'swap' && params.wants ? JSON.stringify(params.wants) : null, kind === 'swap' ? params.minTopUp : 0,
-      first.card_id, first.variant_id, first.skin_id, rarityOf(first.card_id), ids.length, JSON.stringify(items), now, now + params.ends, now + params.ends, options.relistOf || null);
+      first.card_id, first.variant_id, first.skin_id, rarityOf(first.card_id), ids.length, JSON.stringify(items), now, now + params.ends, now + params.ends, options.relistOf || null,
+      serialNumber(first.serial), meta.b, meta.g, tierOf(first.card_id));
     tx.add("UPDATE instances SET state = 'escrow', escrow_ref = ? WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned'", id, ...ids, who.accountId);
     ids.forEach((iid) => tx.add('INSERT INTO listing_items (listing_id, instance_id) VALUES (?, ?)', id, iid));
     return { tx, result: { ok: true, listingId: id, kind, price, endsAt: now + params.ends, items: ids.length } };
   }).then(async (res) => {
     if (!res.replayed) {
       await scheduleClose(env, res.listingId, res.endsAt);
+      try { await evaluateAlerts(env, res.listingId, now); } catch (_) { /* an alert that could not be checked is checked on the next listing */ }
       // A new single-card fixed listing may satisfy a standing buy order, in price-then-time order. Best effort: the
       // sweep repeats it, so an interruption here leaves the order open, never a half trade.
       if (kind === 'fixed' && ids.length === 1) { try { const { matchListing } = await import('./orders.js'); await matchListing(env, res.listingId, now); } catch (_) { /* the sweep will match it */ } }
@@ -171,7 +187,10 @@ export async function repriceListing(env, who, key, listingId, body, now) {
     tx.add("UPDATE listings SET ask = ?, price = ?, version = version + 1 WHERE id = ? AND status = 'active'", ask, ask, L.id);
     return { tx, result: { ok: true, listingId: L.id, price: ask, previous: L.ask } };
   }).then(async (res) => {
-    if (!res.replayed && res.price < res.previous) { try { const { matchListing } = await import('./orders.js'); await matchListing(env, res.listingId, now); } catch (_) { /* the sweep will match it */ } }
+    if (!res.replayed && res.price < res.previous) {
+      try { const { matchListing } = await import('./orders.js'); await matchListing(env, res.listingId, now); } catch (_) { /* the sweep will match it */ }
+      try { await evaluateAlerts(env, res.listingId, now); } catch (_) { /* checked on the next listing */ }
+    }
     return res;
   });
 }

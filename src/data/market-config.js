@@ -89,7 +89,8 @@
       { id: 'popular', label: 'Most watched' },
       { id: 'rarity', label: 'Rarity' },
       { id: 'serial', label: 'Lowest serial' },
-      { id: 'variant', label: 'Variant' }
+      { id: 'variant', label: 'Variant' },
+      { id: 'change', label: 'Greatest change', help: 'The biggest move in either direction over the last 7 days, from completed sales only.' }
     ],
     presets: [
       { id: 'good-value', label: 'Good value', sort: 'value', filters: { minConfidence: 'medium', valueRatio: { max: 95 } } },
@@ -97,7 +98,14 @@
       { id: 'budget', label: 'Around your budget', sort: 'recommended', filters: { withinBudget: true } },
       { id: 'rare', label: 'Rare finds', sort: 'rarity', filters: { rarityTierMin: 5 } },
       { id: 'ending', label: 'Ending soon', sort: 'ending', filters: { formats: ['auction'], auctionStatus: 'ending' } },
-      { id: 'variants', label: 'Popular variants', sort: 'popular', filters: { variantOnly: true } }
+      { id: 'variants', label: 'Popular variants', sort: 'popular', filters: { variantOnly: true } },
+      // Explore areas driven by what has actually sold (volume, liquidity, change) and by what you collect.
+      { id: 'trending-sales', label: 'Trending', sort: 'volume', filters: {} },
+      { id: 'liquid', label: 'Highly liquid', sort: 'liquid', filters: { minConfidence: 'medium' } },
+      { id: 'movers', label: 'Greatest change', sort: 'change', filters: {} },
+      { id: 'watch-matches', label: 'Watchlist matches', sort: 'recommended', filters: { ownership: 'watching' } },
+      { id: 'desired-variants', label: 'Desired variants', sort: 'recommended', filters: { variantOnly: true }, dynamic: 'variants' },
+      { id: 'series', label: 'Series and brand', sort: 'recommended', filters: {}, dynamic: 'brands' }
     ],
     notices: {
       simulation: 'Simulation is a local market of software traders on this device. It works offline, runs only while Cardable is open, and is separate from Global Market.',

@@ -18,7 +18,9 @@
     host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Stocks' }),
       h('p', { text: 'Prices, trends and depth for collectible cards. This is market intelligence only: cards are not shares and nothing here can be traded.' })),
       h('div.mk-pagehead-actions', live
-        ? ui.chip('Simulated trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from trades completed in this simulation. Where there are none, nothing is drawn.' })
+        ? (realm === 'global'
+          ? ui.chip('Player trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from completed sales between players on Global Market. Quick Sell, swaps, offers and bundles are never counted. Where there are none, nothing is drawn.' })
+          : ui.chip('Simulated trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from trades completed in this simulation. Where there are none, nothing is drawn.' }))
         : ui.chip('Illustrative', { tone: 'soft', icon: 'info', title: 'All figures are sample data for the preview' }))));
 
     // controls
@@ -96,14 +98,14 @@
         { label: '24 h change', node: ui.delta(a.change24h) }, { label: '7 d change', node: ui.delta(a.change7d) },
         { label: 'Volume, 24 h', value: a.volume24h + ' sold', help: 'volume' }, { label: 'Volume, 7 d', value: a.volume7d + ' sold' },
         { label: 'Credits traded, 24 h', value: ui.fmt.exact(a.credits24h) },
-        { label: 'Average spread', value: ui.fmt.pct(a.spread, false, 1), help: 'spread' }, { label: 'Volatility', value: a.volatility == null ? 'Not enough trades' : ui.fmt.pct(a.volatility, false, 1), help: 'volatility' },
+        { label: 'Average spread', value: a.spread == null ? 'Needs open orders' : ui.fmt.pct(a.spread, false, 1), help: 'spread' }, { label: 'Volatility', value: a.volatility == null ? 'Not enough trades' : ui.fmt.pct(a.volatility, false, 1), help: 'volatility' },
         { label: 'Liquidity', value: a.liquidity == null ? 'No trades yet' : Math.round(a.liquidity * 100) + ' of 100', help: 'liquidity' },
         { label: 'Cards in scope', value: String(res.members) }, { label: 'Recent sales behind it', value: String(a.samples), help: 'confidence' }
       ];
     }
 
     function draw() {
-      var empty = realm === 'global' && !store.session.showGlobalSample;
+      var empty = realm === 'global' && !live && !store.session.showGlobalSample;
       var gstate = empty ? ctx.api.statusSync('global') : null;
       st.window = st.window || '7d';
       winSwitch.set(st.window); typeSwitch.set(st.type); scopeSwitch.set(st.scope);
@@ -117,6 +119,7 @@
       chart.hidden = false; title.hidden = false;
       var res = ctx.api.stocksSync(realm, { scope: st.scope, id: st.id, variantId: st.variantId, window: st.window });
       if (res.empty) { ui.clear(rail); rail.appendChild(ui.emptyState({ title: 'Nothing in this scope', body: 'Choose another scope.' })); return; }
+      if (res.loading) { chart.hidden = true; title.hidden = true; rail.appendChild(ui.skeletonGrid(2)); return; }
       var has = res.closes.length > 0;
       var last = has ? res.closes[res.closes.length - 1] : null, first = has ? res.candles[0].open : null, change = has && res.closes.length > 1 && first ? (last - first) / first : null;
       var heading = res.scope === 'card' ? ui.identity(env.cards[res.id], !!env.owned[res.id]).name : res.title;
@@ -124,13 +127,15 @@
       title.append(h('div', ui.eyebrow(res.scope === 'index' ? 'Market index' : res.scope === 'card' ? 'Single GPU' : 'Group index'), h('h2', { text: heading })),
         h('div.mk-chart-now', h('span.mk-num.is-big', { text: nowText }), h('span.mk-muted', { text: !has && res.scope === 'card' ? 'Credits · baseline, no trades in this window' : res.unit }),
           ui.delta(change, { label: 'over ' + K().WINDOWS[st.window].label, empty: has ? 'One trade so far' : 'No trades' })));
-      chart.update({ candles: res.candles, type: st.type, window: st.window, unit: res.unit, label: heading, live: live, now: res.now || 0, badge: live ? 'Simulated trades' : 'Illustrative' });
+      chart.update({ candles: res.candles, type: st.type, window: st.window, unit: res.unit, label: heading, live: live, now: res.now || 0, badge: live ? (realm === 'global' ? 'Player trades' : 'Simulated trades') : 'Illustrative' });
       if (live) {
-        var cover = res.coverage ? 'The ' + res.tradesCounted + ' trades of this scope kept go back ' + ui.fmt.age((res.now - res.coverage.from) / 60000).replace(/ ago$/, '') + '.' : 'No trades have happened yet.';
+        var cover = res.coverage ? 'The ' + res.tradesCounted + ' trades of this scope go back ' + ui.fmt.age((res.now - res.coverage.from) / 60000).replace(/ ago$/, '') + '.' + (res.truncated ? ' The series shows the most recent ' + (res.coverage.retained || '') + '; the totals count every trade.' : '') : (realm === 'global' ? 'No two players have completed a sale in this scope yet.' : 'No trades have happened yet.');
         title.appendChild(h('p.mk-hint', { text: cover + ' Each point is a time-bucket of real completed trades; quiet periods are gaps, not guesses.' }));
       }
       rail.appendChild(h('div.mk-panel-head', h('h3', { text: 'The numbers' })));
       rail.appendChild(ui.statGrid(statItems(res), { cols: 2 }));
+      if (res.scope === 'card' && res.valuation && res.valuation.analytics && ui.analytics) rail.appendChild(ui.analytics.panel(res.valuation));
+      if (res.scope === 'card' && ui.compare) rail.appendChild(ui.button(ui.compare.has(realm, res.id, st.variantId) ? 'Remove from Compare' : 'Add to Compare', { icon: 'cards', variant: 'ghost', onClick: function () { ui.compare.toggle(realm, res.id, st.variantId); draw(); ui.shell.refresh(); } }));
       if (res.scope === 'card') rail.appendChild(ui.button('Open this card’s market', { icon: 'forward', variant: 'secondary', onClick: function () { ui.go('card', { id: res.id, variant: st.variantId || '' }); } }));
       if (reduced) { leadersHost.appendChild(h('p.mk-hint', { text: 'Leader tables are hidden while Reduced data is on.' })); return; }
       // leaders

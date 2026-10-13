@@ -751,6 +751,13 @@
       var acts = h('div.mk-detail-actions');
       acts.appendChild(ui.button('Set a price alert', { icon: 'bell', variant: 'secondary', onClick: function () { ui.go('alerts', { cardId: card.id }); } }));
       acts.appendChild(ui.button('Open in Stocks', { icon: 'trend', variant: 'secondary', onClick: function () { var s = store.session; s.stocks = { scope: 'card', id: card.id, variantId: variantId }; ui.shell.goTab('stocks'); } }));
+      if (ui.compare) {
+        var inCompare = ui.compare.has(realm, card.id, variantId);
+        acts.appendChild(ui.button(inCompare ? 'In Compare' : 'Compare', { icon: 'cards', variant: 'secondary', pressed: inCompare, onClick: function (e) {
+          var now = ui.compare.toggle(realm, card.id, variantId);
+          if (e && e.currentTarget && now !== false) { e.currentTarget.setAttribute('aria-pressed', String(!!now)); e.currentTarget.querySelector('span').textContent = now ? 'In Compare' : 'Compare'; }
+        } }));
+      }
       if (live) acts.appendChild(ui.button('Place a buy order', { icon: 'tag', variant: 'secondary', onClick: function () { buyOrder(r); } }));
       if (owned) acts.appendChild(ui.button('List a copy', { icon: 'plus', variant: 'primary', onClick: function () { ui.go('compose', { cardId: card.id }); } }));
       headBox.appendChild(acts);
@@ -769,7 +776,9 @@
         { label: 'Volatility', value: v.volatility == null ? 'Not enough trades' : ui.fmt.pct(v.volatility, false, 1) + ' a trade', help: 'volatility' },
         { label: 'Liquidity', value: v.liquidity == null ? 'No trades yet' : Math.round(v.liquidity * 100) + ' of 100', help: 'liquidity' }, { label: 'Confidence', value: CONFIDENCE[v.confidence], help: 'confidence' }
       ], { cols: 2 }));
-      right.appendChild(vp);
+      // With the server's analytics the full header replaces the short one: fair value apart from Average Value,
+      // volumes in units and Credits, targets as ranges, depth, time to sell only when it can be inferred.
+      if (v.analytics && ui.analytics) right.appendChild(ui.analytics.panel(v)); else right.appendChild(vp);
 
       var chartPanel = h('section.mk-box', { 'aria-label': 'Price history' });
       var chartHead = h('div.mk-panel-head', h('h3', { text: 'Price history' }));
@@ -778,12 +787,15 @@
       chartHead.appendChild(winSwitch);
       chartPanel.appendChild(chartHead);
       var chart = ui.chart.create({ id: 'card', height: 280 });
+      var chartLoading = false;
+      scope.add(store.subscribe(function (what) { if (what === 'sim' && chartLoading) drawChart(); }));
       charts.push(chart);
       chartPanel.appendChild(chart);
       var note = h('p.mk-hint');
       chartPanel.appendChild(note);
       function drawChart() {
         var s = ctx.api.stocksSync(realm, { scope: 'card', id: card.id, variantId: variantId, window: windowId });
+        chartLoading = !!s.loading;
         chart.update({ candles: s.candles, type: type, window: windowId, unit: 'Credits', label: idn.name + ' price', live: live, now: s.now || 0, badge: live ? (realm === 'global' ? 'Player trades' : 'Simulated trades') : 'Illustrative' });
         note.textContent = live ? (s.candles.length ? s.tradesCounted + ' completed trades of this card are kept. A bar appears only where a trade happened.' : 'No trades of this card in this window yet. Nothing is drawn until one happens.') : '';
         note.hidden = !live;

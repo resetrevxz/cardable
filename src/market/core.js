@@ -166,7 +166,11 @@
 
   // ---- ranking -----------------------------------------------------------------------------------------------
   var CONFIDENCE_WEIGHT = { high: 1, medium: 0.8, low: 0.55, none: 0.35 };
-  var DEFAULT_WEIGHTS = { value: 0.30, budget: 0.18, gap: 0.14, wish: 0.08, liquidity: 0.10, fresh: 0.07, trust: 0.07, margin: 0.06 };
+  // Eleven factors, none of them "cheapest": value against a confidence-weighted fair price, the margin left after the
+  // fee against the target sell, budget fit, collection gap, wishlist, what you keep (rarity and finish), how easily it
+  // trades, how little of your balance it ties up, how recently it was listed, the seller's record and how likely the
+  // purchase is to actually go through for you.
+  var DEFAULT_WEIGHTS = { value: 0.24, margin: 0.10, budget: 0.14, gap: 0.10, wish: 0.08, pref: 0.06, liquidity: 0.08, opportunity: 0.06, fresh: 0.05, trust: 0.04, fill: 0.05 };
   // The Recommended order. Affordability is a bell around a comfortable share of the balance, never "cheapest first".
   function recommend(listing, ctx) {
     ctx = ctx || {};
@@ -186,9 +190,23 @@
     c.wish = ctx.wishlist && ctx.wishlist[cardId] ? 1 : 0;
     c.liquidity = clamp(v.liquidity == null ? 0.5 : v.liquidity, 0, 1);
     c.fresh = clamp(1 - (listing.listedMin || 0) / 4320, 0, 1);
-    c.trust = clamp((listing.seller.rating || 0.6), 0, 1) * clamp(0.5 + Math.min(listing.seller.sales || 0, 60) / 120, 0.5, 1);
-    var netAvg = avg ? netProceeds(avg) : 0;
-    c.margin = listing.ask ? clamp((netAvg - listing.ask) / listing.ask + 0.15, 0, 0.5) / 0.5 : 0;
+    // A seller's record counts for what it is: completed sales; a rating only when one exists (never invented).
+    c.trust = (listing.seller.rating == null ? 0.6 : clamp(listing.seller.rating, 0, 1)) * clamp(0.5 + Math.min(listing.seller.sales || 0, 60) / 120, 0.5, 1);
+    // After-fee margin against what the card has actually been selling for, not against the asking price of others.
+    var sellRef = v.targetSell || avg, netSell = sellRef ? netProceeds(sellRef) : 0;
+    c.margin = listing.ask ? clamp((netSell - listing.ask) / listing.ask + 0.15, 0, 0.5) / 0.5 : 0;
+    // Preference: the rarities and finishes the player keeps, from their own collection in this realm.
+    var prefs = ctx.prefs, cardObj = ctx.cards && ctx.cards[cardId];
+    if (!prefs || !cardObj) c.pref = 0.5;
+    else c.pref = clamp(0.5 * (prefs.rarity[cardObj.rarity] || 0) + 0.5 * (prefs.variant[listing.card.variantId || 'normal'] || 0), 0, 1);
+    // Opportunity cost: the share of the balance it ties up, for as long as it usually takes to resell.
+    var lockHours = v.timeToSellHours || 72;
+    c.opportunity = budget == null ? 0.5 : clamp(1 - (listing.ask / Math.max(1, budget)) * Math.min(1, lockHours / 168) * 1.5, 0, 1);
+    // Fill likelihood: a fixed price fills when you click; an auction needs headroom over the current price; a swap
+    // needs something you hold that its conditions accept.
+    if (listing.format === 'auction') c.fill = budget == null ? 0.5 : clamp((budget - listing.ask) / Math.max(1, listing.ask * 0.5), 0, 1);
+    else if (listing.format === 'swap') c.fill = swapFit(listing, ctx);
+    else c.fill = budget == null ? 0.5 : (listing.ask <= budget ? 1 : 0);
     var score = 0, keys = Object.keys(w);
     keys.forEach(function (k) { score += (w[k] || 0) * (c[k] || 0); });
     if (listing.status !== 'active' && listing.status !== 'ending') score *= 0.2;
@@ -202,11 +220,40 @@
     if (v.confidence === 'high' && v.samples >= 20) add('sales', 'Recent sales support value', 0.04);
     if (listing.format === 'auction' && listing.endsMin != null && listing.endsMin <= 90) add('ending', 'Ends soon', 0.05);
     if (c.trust > 0.8) add('trust', 'Well-rated seller', c.trust * w.trust * 0.5);
+    if (c.margin > 0.6 && v.confidence !== 'none') add('margin', 'Leaves room after the fee', c.margin * w.margin);
+    if (ctx.prefs && c.pref > 0.7) add('pref', 'Matches what you collect', c.pref * w.pref);
+    if (budget != null && c.opportunity > 0.85 && affordable) add('light', 'Light on your balance', c.opportunity * w.opportunity * 0.5);
+    if (listing.format === 'auction' && budget != null && c.fill > 0.8) add('fill', 'Your balance can follow the bidding', c.fill * w.fill);
+    if (listing.format === 'swap' && c.fill >= 0.8) add('swapfit', 'You hold a card it would accept', c.fill * w.fill);
     if (c.fresh > 0.9) add('fresh', 'Just listed', c.fresh * w.fresh * 0.4);
     var risk = (v.confidence === 'low' || v.confidence === 'none' || (v.volatility || 0) > 0.08) ? 'higher' : (v.volatility || 0) > 0.04 ? 'moderate' : 'low';
     if (risk === 'higher') add('risk', 'Higher risk', 0.01);
     reasons.sort(function (a, b) { return b.strength - a.strength; });
     return { score: score, reasons: reasons, risk: risk, affordable: affordable, discount: discount, components: c };
+  }
+
+  // Does the player hold something a swap listing's conditions would accept? 1 yes, 0.2 no, 0.5 unknown.
+  function swapFit(listing, ctx) {
+    var w = listing.swap && listing.swap.wants;
+    if (!ctx.owned) return 0.5;
+    if (!w) return Object.keys(ctx.owned).length ? 0.8 : 0.2;
+    if (w.cardIds && w.cardIds.some(function (id) { return ctx.owned[id]; })) return 1;
+    if (w.minTier != null && ctx.cards && ctx.rarities) {
+      var ok = Object.keys(ctx.owned).some(function (id) { var c = ctx.cards[id], r = c && ctx.rarities[c.rarity]; return r && r.tier >= w.minTier; });
+      return ok ? 0.8 : 0.2;
+    }
+    return Object.keys(ctx.owned).length ? 0.6 : 0.2;
+  }
+  // The shares of each rarity and finish in a collection, scaled so the most kept is 1. Built only from the realm's own,
+  // verified holdings: never from a trade that cannot be verified.
+  function preferences(instances, cardsById) {
+    var r = {}, v = {}, n = 0;
+    (instances || []).forEach(function (i) {
+      var c = cardsById[i.cardId]; if (!c) return;
+      r[c.rarity] = (r[c.rarity] || 0) + 1; var k = i.variantId || 'normal'; v[k] = (v[k] || 0) + 1; n++;
+    });
+    function scale(m) { var top = 0; Object.keys(m).forEach(function (k) { top = Math.max(top, m[k]); }); Object.keys(m).forEach(function (k) { m[k] = top ? m[k] / top : 0; }); return m; }
+    return n ? { rarity: scale(r), variant: scale(v), count: n } : null;
   }
 
   // ---- search ------------------------------------------------------------------------------------------------
@@ -370,7 +417,7 @@
 
   // ---- sorting -----------------------------------------------------------------------------------------------
   function currentPrice(l) { return l.format === 'auction' ? l.auction.current : l.ask; }
-  var SORT_IDS = { recommended: 1, newest: 1, ending: 1, bids: 1, value: 1, 'price-asc': 1, 'price-desc': 1, liquid: 1, discount: 1, profit: 1, volume: 1, popular: 1, rarity: 1, serial: 1, variant: 1 };
+  var SORT_IDS = { recommended: 1, newest: 1, ending: 1, bids: 1, value: 1, 'price-asc': 1, 'price-desc': 1, liquid: 1, discount: 1, profit: 1, volume: 1, popular: 1, rarity: 1, serial: 1, variant: 1, change: 1 };
   function sortListings(listings, sortId, ctx, options) {
     options = options || {};
     ctx = ctx || {};
@@ -395,7 +442,8 @@
       popular: function (a, b) { return b.l.watchers - a.l.watchers; },
       rarity: function (a, b) { return tierOf(b.l) - tierOf(a.l); },
       serial: function (a, b) { return (serialCounter(a.l.card.serial) || 1e9) - (serialCounter(b.l.card.serial) || 1e9); },
-      variant: function (a, b) { return variantOrder(b.l) - variantOrder(a.l); }
+      variant: function (a, b) { return variantOrder(b.l) - variantOrder(a.l); },
+      change: function (a, b) { return Math.abs(b.l.valuation.change7d || 0) - Math.abs(a.l.valuation.change7d || 0); }
     };
     var fn = cmp[sortId] || cmp.recommended;
     items.sort(function (a, b) { return fn(a, b) || (a.l.id < b.l.id ? -1 : a.l.id > b.l.id ? 1 : 0); });
@@ -598,7 +646,7 @@
     cardKey: cardKey, specScore: specScore, buildCardIndex: buildCardIndex, serialCounter: serialCounter, serialFactor: serialFactor,
     variantFactor: variantFactor, baselineValue: baselineValue, tierDerived: tierDerived, confidenceFor: confidenceFor,
     targets: targets, verdictFor: verdictFor, saleWindowHours: saleWindowHours,
-    recommend: recommend, DEFAULT_WEIGHTS: DEFAULT_WEIGHTS,
+    recommend: recommend, preferences: preferences, swapFit: swapFit, DEFAULT_WEIGHTS: DEFAULT_WEIGHTS,
     parseQuery: parseQuery, emptyFilters: emptyFilters, normalizeFilters: normalizeFilters, activeFilterCount: activeFilterCount,
     matches: matches, applyFilters: applyFilters, sortListings: sortListings, paginate: paginate,
     facetCounts: facetCounts, relaxSuggestions: relaxSuggestions, currentPrice: currentPrice,

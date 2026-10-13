@@ -38,6 +38,36 @@
       { label: 'Fees paid', value: '0', note: cfg().fee.label }
     ], { cols: 2 }));
     host.appendChild(summary);
+    // The Global books: what is held back, what is marked and how sure that mark is, volume and fees, and the convention.
+    if (live && p.server) {
+      var books = h('section.mk-box', { 'aria-label': 'Global accounts' }, h('div.mk-panel-head', h('h3', { text: 'Your Global books' }),
+        ui.chip(({ high: 'High', medium: 'Medium', low: 'Low', none: 'Estimate only' })[p.confidence] + ' confidence in the marks', { tone: 'soft', title: 'How much of the estimated value rests on recent player sales' })));
+      var rs = p.reserved || { bids: { amount: 0 }, orders: { amount: 0 }, offers: { amount: 0 } };
+      books.appendChild(ui.statGrid([
+        { label: 'Held by open bids', value: ui.fmt.exact(rs.bids.amount) + ' Credits', note: rs.bids.count + (rs.bids.count === 1 ? ' auction' : ' auctions') },
+        { label: 'Held by buy orders', value: ui.fmt.exact(rs.orders.amount) + ' Credits', note: rs.orders.count + (rs.orders.count === 1 ? ' order' : ' orders') },
+        { label: 'Held by offers', value: ui.fmt.exact(rs.offers.amount) + ' Credits', note: rs.offers.count + (rs.offers.count === 1 ? ' offer' : ' offers') },
+        { label: 'Cards in escrow', value: String(p.cardsInEscrow || 0), note: 'Listed or offered, locked until they resolve' },
+        { label: 'Sold on the market', value: ui.fmt.exact(p.volumeSold) + ' Credits', note: p.tradesSold + (p.tradesSold === 1 ? ' sale' : ' sales') + ' · fees ' + ui.fmt.exact(p.feesPaid) },
+        { label: 'Bought on the market', value: ui.fmt.exact(p.volumeBought) + ' Credits', note: p.tradesBought + (p.tradesBought === 1 ? ' purchase' : ' purchases') },
+        { label: 'Cards with no cost basis', value: String(p.noCostBasis || 0), note: 'From your import or a swap. Never counted as free.' },
+        { label: 'Quick Sell value', value: ui.fmt.exact(p.quickSellValue || 0), note: 'What the system would pay for all of it: a different number' }
+      ], { cols: 2 }));
+      books.appendChild(h('p.mk-hint', { text: p.convention }));
+      var exp = h('div.mk-sim-actions');
+      [['holdings', 'csv', 'Holdings (CSV)'], ['trades', 'csv', 'Trades (CSV)'], ['trades', 'json', 'Trades (JSON)']].forEach(function (x) {
+        exp.appendChild(ui.button(x[2], { variant: 'secondary', size: 'sm', icon: 'save', onClick: function () {
+          C.market.onlineProvider.downloadExport(x[0], x[1]).then(function (text) {
+            var blob = new root.Blob([text], { type: x[1] === 'csv' ? 'text/csv' : 'application/json' }), url = root.URL.createObjectURL(blob);
+            var a = h('a', { href: url, download: 'cardable-global-' + x[0] + '.' + x[1] }); root.document.body.appendChild(a); a.click(); a.remove();
+            root.setTimeout(function () { root.URL.revokeObjectURL(url); }, 1000);
+            C.ui.toast('Exported your own ' + x[0] + '. It contains no account details.');
+          }, function (e) { C.ui.toast(e.message || 'The export could not be made.', null, 'error'); });
+        } }));
+      });
+      books.appendChild(exp);
+      host.appendChild(books);
+    }
 
     // exposure by rarity: a static stacked bar with a legend, no chart library
     var entries = Object.keys(p.byRarity).map(function (k) { return { name: k, value: p.byRarity[k] }; }).sort(function (a, b) { return b.value - a.value; });
@@ -79,7 +109,8 @@
           ? ui.button('Listed', { variant: 'ghost', size: 'sm', icon: 'layers', onClick: function () { var id = String(hd.listing).replace(/^offer:/, ''); if (/^offer:/.test(hd.listing)) ui.go('activity', {}); else ui.go('listing', { id: id }); } })
           : ui.button('List', { variant: 'ghost', size: 'sm', icon: 'plus', onClick: function () { ui.go('compose', { instanceId: hd.instance.instanceId }); } });
         var worth = h('div.mk-tcell', { role: 'cell' }, ui.credits(hd.estimate));
-        if (live && hd.basis != null) worth.appendChild(h('small.mk-muted', { text: 'paid ' + ui.fmt.exact(hd.basis), title: 'What you paid for this exact card in the Simulation' }));
+        if (live && hd.basis != null) worth.appendChild(h('small.mk-muted', { text: 'paid ' + ui.fmt.exact(hd.basis), title: realm === 'global' ? 'What you paid for this exact card on Global Market' : 'What you paid for this exact card in the Simulation' }));
+        else if (live && p.server && hd.noBasis) worth.appendChild(h('small.mk-muted', { text: 'No cost basis', title: 'This card came from your collection import or a swap, so its cost is unknown. It is not counted as free.' }));
         row.append(h('div.mk-tcell', { role: 'cell' }, open), h('div.mk-tcell', { role: 'cell', text: hd.instance.variantId ? (env.variants[hd.instance.variantId] || {}).name : 'Normal' }),
           h('div.mk-tcell', { role: 'cell' }, h('span.mk-mono', { text: hd.instance.serial })), worth,
           h('div.mk-tcell', { role: 'cell' }, ui.delta(hd.valuation.change7d, { empty: 'No sales yet' })), h('div.mk-tcell', { role: 'cell' }, sell));
@@ -91,6 +122,38 @@
     paint();
     if (!p.holdings.length) sec.appendChild(ui.emptyState({ icon: 'cards', title: 'No cards to value yet', body: 'Open a pack, keep a card, and it appears here with an estimate.' }));
     host.appendChild(sec);
+
+    // saved groups: named sets of exact cards, kept on this device
+    var groupsBox = h('section.mk-section', { 'aria-label': 'Saved groups' }, h('div.mk-section-head', h('h2', { text: 'Groups' }),
+      ui.button('New group', { variant: 'secondary', size: 'sm', icon: 'plus', onClick: function () { groupDialog(); } })));
+    function paintGroups() {
+      Array.from(groupsBox.querySelectorAll('.mk-group')).forEach(function (n) { n.remove(); });
+      var list = store.groupsFor(realm);
+      if (!list.length) { groupsBox.appendChild(h('p.mk-hint.mk-group', { text: 'Group cards you think of together, such as a set you are completing. Groups are saved on this device only.' })); return; }
+      list.forEach(function (g) {
+        var mine = p.holdings.filter(function (hd) { return g.ids.indexOf(hd.instance.instanceId) >= 0; });
+        var total = mine.reduce(function (n, hd) { return n + hd.estimate; }, 0);
+        groupsBox.appendChild(h('div.mk-group.mk-linkcard', ui.eyebrow(g.name), h('strong.mk-num', { text: ui.fmt.exact(total) + ' Credits' }),
+          h('span', { text: mine.length + ' of ' + g.ids.length + ' cards still held' }),
+          ui.button('Remove group', { variant: 'ghost', size: 'sm', onClick: function () { store.removeGroup(g.id); paintGroups(); } })));
+      });
+    }
+    function groupDialog() {
+      var chosen = {}, name = h('input.mk-input', { type: 'text', maxlength: '40', placeholder: 'Group name', 'aria-label': 'Group name' });
+      var listEl = h('div.mk-picker.is-compact', { role: 'group', 'aria-label': 'Your cards' });
+      p.holdings.slice().sort(function (a, b) { return b.estimate - a.estimate; }).slice(0, 80).forEach(function (hd) {
+        var idn = ui.identity(hd.card, true), id = hd.instance.instanceId;
+        var b = h('button.mk-pick-row', { type: 'button', role: 'checkbox', 'aria-checked': 'false' }, icon('plus'), h('span.mk-pick-name', { text: idn.name }), h('span.mk-mono', { text: hd.instance.serial.replace('CBL-', '') }), h('span.mk-num', { text: ui.fmt.exact(hd.estimate) }));
+        b.addEventListener('click', function () { if (chosen[id]) delete chosen[id]; else chosen[id] = true; b.setAttribute('aria-checked', String(!!chosen[id])); });
+        listEl.appendChild(b);
+      });
+      ui.sim.confirm({ title: 'New group', eyebrow: 'Portfolio', anchor: root.document.activeElement, body: h('div.mk-swapper', name, listEl), rows: [], confirmLabel: 'Save group', icon: 'check',
+        note: 'A group is a label for you. It does not lock, list or change any card.',
+        run: function () { var ids = Object.keys(chosen); if (!ids.length) return { ok: false, message: 'Choose at least one card.' }; store.addGroup(realm, name.value, ids); return { ok: true }; },
+        success: function () { paintGroups(); } });
+    }
+    paintGroups();
+    host.appendChild(groupsBox);
 
     // active listings and bids (sample)
     var act = h('section.mk-section', { 'aria-label': 'Active listings and bids' }, h('div.mk-section-head', h('h2', { text: 'Listings and bids' }), live ? null : ui.chip('Sample', { tone: 'soft', title: 'Invented sample activity' })));
@@ -233,16 +296,35 @@
       if (!cardSel.value) { err.textContent = 'Choose a card first.'; err.hidden = false; cardSel.focus(); return; }
       if (!(n >= 1) || n !== Math.floor(n)) { err.textContent = 'Enter a whole price of at least 1 Credit.'; err.hidden = false; price.focus(); return; }
       err.hidden = true;
+      // On Global a "listing at or below" alert lives on the server, so it is checked when a player lists, not only when
+      // this page is open. The Average Value alert is evaluated here, from the market numbers.
+      if (realm === 'global' && live && kind.value === 'below' && C.market.onlineProvider) {
+        C.market.onlineProvider.createAlert({ kind: 'price', cardId: cardSel.value, maxPrice: n, label: '' }).then(function (r) {
+          C.ui.toast(r.ok ? 'Alert saved on Global Market. A match waits in your Activity inbox.' : r.message, null, r.ok ? 'info' : 'error');
+          price.value = ''; paint();
+        });
+        return;
+      }
       store.addAlert({ cardId: cardSel.value, kind: kind.value, value: n });
       C.ui.toast('Alert created'); price.value = '';
       paint();
     });
     var list = h('ul.mk-alerts', { 'aria-label': 'Your alerts' });
     host.appendChild(list);
+    var serverAlerts = function () { return realm === 'global' && live && C.market.onlineProvider ? C.market.onlineProvider.alerts().items : []; };
+    scope.add(store.subscribe(function (what) { if (what === 'sim' && serverAlerts().length !== list.querySelectorAll('[data-server="1"]').length) paint(); }));
     function paint() {
       ui.clear(list);
+      serverAlerts().forEach(function (a) {
+        var card = a.cardId ? env.cards[a.cardId] : null, idn = card ? ui.identity(card, !!env.owned[a.cardId]) : null;
+        var what = a.kind === 'price' ? 'Listing at or below ' + ui.fmt.exact(a.maxPrice) + ' Credits' : 'Saved search' + (a.label ? ': ' + a.label : '');
+        var row = h('li.mk-alert', { data: { state: 'waiting', server: '1' } }, h('span.mk-activity-mark', icon('bell')),
+          h('div.mk-activity-copy', h('strong', { text: idn ? idn.name : 'Any matching listing' }), h('span', { text: what + ' · Checked by Global Market when a player lists. A match waits in your inbox.' })));
+        row.appendChild(ui.iconButton('trash', 'Delete this alert', function () { C.market.onlineProvider.deleteAlert(a.id).then(function () { paint(); }); }));
+        list.appendChild(row);
+      });
       var items = store.prefs.alerts;
-      if (!items.length) { list.appendChild(h('li', ui.emptyState({ icon: 'bell', title: 'No alerts yet', body: live ? 'Pick a card and a price above. When an open listing meets it, the alert shows as triggered here.' : 'Pick a card and a price above. When a sample listing meets it, the alert shows as triggered here.' }))); return; }
+      if (!items.length && !serverAlerts().length) { list.appendChild(h('li', ui.emptyState({ icon: 'bell', title: 'No alerts yet', body: live ? 'Pick a card and a price above. When an open listing meets it, the alert shows as triggered here.' : 'Pick a card and a price above. When a sample listing meets it, the alert shows as triggered here.' }))); return; }
       items.forEach(function (a) {
         var card = env.cards[a.cardId]; if (!card) return;
         var idn = ui.identity(card, !!env.owned[a.cardId]);

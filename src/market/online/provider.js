@@ -83,6 +83,31 @@
     return { instanceId: instance.instanceId, quote: Math.max(q.minPrice, Math.floor(start * q.factor)), fair: v.average, basis: v.basis, confidence: v.confidence };
   }
 
+  // The interface's valuation, filled from the server's analytics: only what completed player sales say, with the
+  // targets from executions, demand and spread. Anything the server withheld stays null.
+  function fromAnalytics(spec, an) {
+    var base = data().valuationFor(spec) || C.valuation.baselineOnly(spec) || {};
+    var ch = function (k) { return an.change[k] ? an.change[k].pct : null; };
+    var bidsOpen = (an.depth.bids || []).reduce(function (n, x) { return n + x.count; }, 0), asksOpen = (an.depth.asks || []).reduce(function (n, x) { return n + x.count; }, 0);
+    return Object.assign({}, base, {
+      average: an.averageValue != null ? an.averageValue : an.fairValue, fairValue: an.fairValue, averageValue: an.averageValue, mechanic: an.mechanic,
+      samples: an.observed ? an.observed.units : 0, confidence: an.confidence, basis: an.observed ? 'sales' : 'baseline', observed: an.observed,
+      lastSale: an.last ? an.last.price : null, lastAt: an.last ? an.last.at : null,
+      change24h: ch('h24'), change7d: ch('d7'), change30d: ch('d30'), change90d: ch('d90'), changeAll: ch('all'),
+      bestBid: an.bestBid != null ? an.bestBid : base.bestBid, bidReal: an.bestBid != null, lowestAsk: an.lowestAsk != null ? an.lowestAsk : base.lowestAsk, askReal: an.lowestAsk != null,
+      spread: an.spread.pct, spreadReal: an.spread.real, spreadAbs: an.spread.abs,
+      targetBuy: an.target.buy.high, targetSell: an.target.sell.low, targetBuyLow: an.target.buy.low, targetSellHigh: an.target.sell.high, targetBasis: an.basis,
+      suggestedAsk: an.suggestedAsk, expectedProceeds: an.expectedProceeds, expectedFee: an.expectedFee,
+      volume24h: an.volume.h24.units, volume7d: an.volume.d7.units, volume30d: an.volume.d30.units, credits24h: an.volume.h24.credits, credits7d: an.volume.d7.credits, credits30d: an.volume.d30.credits,
+      range30: an.range30, volatility: an.volatility, liquidity: an.liquidity, turnover7d: an.turnover7d, supply: an.supply,
+      openAsks: asksOpen, openBids: bidsOpen, depth: an.depth, timeToSell: an.timeToSell, timeToSellHours: an.timeToSell ? an.timeToSell.medianHours : null,
+      inputs: an.inputs, windowHours: an.timeToSell ? an.timeToSell.medianHours : base.windowHours, source: 'players', analytics: an
+    });
+  }
+  function leaderList(list) {
+    return (list || []).map(function (x) { return { card: C.card(x.cardId), valuation: x.valuation }; }).filter(function (x) { return x.card; });
+  }
+
   var provider = {
     capabilities: { counter: true, reprice: true, relist: true, editOrder: true, quickSell: true, serverTime: true },
     owned: function () { return ownedMap(); },
@@ -149,8 +174,11 @@
       var E = data().state.cards[cardId + '|' + (variantId || '')];
       data().loadCard(cardId, variantId || null, false);
       var v = data().valuationFor({ cardId: cardId, variantId: variantId || null, cardSkinId: null }) || b.valuation;
-      if (!E || !E.data) return { card: b.card, valuation: v, listings: [], trades: [], variants: [], owned: owned, depth: { asks: [], bids: [] }, myOrders: [], loading: true };
-      return { card: b.card, valuation: v, listings: E.data.listings, trades: E.data.trades, variants: E.data.variants, owned: owned, depth: E.data.depth, myOrders: E.data.myOrders };
+      var A = data().state.analytics[cardId + '|' + (variantId || '') + '|7d'];
+      data().loadAnalytics(cardId, variantId || null, '7d', false);
+      if (A && A.data) v = fromAnalytics({ cardId: cardId, variantId: variantId || null, cardSkinId: null }, A.data.analytics);
+      if (!E || !E.data) return { card: b.card, valuation: v, listings: [], trades: [], variants: [], owned: owned, depth: { asks: [], bids: [] }, myOrders: [], loading: true, analytics: A && A.data ? A.data.analytics : null };
+      return { card: b.card, valuation: v, listings: E.data.listings, trades: E.data.trades, variants: E.data.variants, owned: owned, depth: E.data.depth, myOrders: E.data.myOrders, analytics: A && A.data ? A.data.analytics : null };
     },
     trades: function (realm, query) {
       query = query || {};
@@ -162,11 +190,70 @@
       var page = core().paginate(T.items, query.cursor, query.limit || 20);
       return { realm: realm, items: page.items, nextCursor: page.nextCursor, total: T.data.total, volume: T.data.volume };
     },
-    // Stage 6 builds trade analytics; until then Global shows exactly what exists: nothing derived, nothing invented.
+    // Charts and totals come only from completed, authenticated player-to-player sales on the server. Nothing here is
+    // drawn from a quote, a Quick Sell, a swap, a fixture or the Simulation.
     stocks: function (realm, query) {
       query = query || {};
-      return { realm: realm, empty: false, noData: true, scope: query.scope || 'index', id: query.id || '', window: query.window || '7d', title: 'Global Market', members: 0, candles: [], closes: [], unit: 'Credits',
-        source: 'players', leaders: { active: [], gainers: [], losers: [], values: [] }, now: data().now() };
+      var q = { scope: query.scope || 'index', id: query.id || '', variantId: query.variantId || null, window: query.window || '7d' };
+      var none = { realm: realm, empty: false, noData: true, scope: q.scope, id: q.id, window: q.window, title: 'Global Market', members: 0, candles: [], closes: [], unit: q.scope === 'card' ? 'Credits' : 'Index points',
+        source: 'players', leaders: { active: [], gainers: [], losers: [], values: [] }, now: data().now(), tradesCounted: 0, coverage: null,
+        aggregate: { volume24h: 0, volume7d: 0, credits24h: 0, change24h: null, change7d: null, volatility: null, liquidity: null, spread: null, samples: 0, cardsTraded: 0 } };
+      if (!isLive()) return none;
+      data().used();
+      var E = data().state.stocksBy[data().stocksKey(q)];
+      data().loadStocks(q, false);
+      if (!E || !E.data) return Object.assign(none, { loading: true });
+      var d = E.data;
+      if (d.empty) return { realm: realm, empty: true, title: d.title, scope: q.scope, id: q.id, window: q.window };
+      var out = { realm: realm, scope: d.scope, id: d.id, window: d.window, title: d.title, members: d.members, candles: d.candles, closes: d.candles.map(function (c) { return c.close; }), unit: d.unit,
+        source: 'players', now: data().now(), tradesCounted: d.tradesCounted, coverage: d.coverage, truncated: !!d.truncated, cache: d.cache };
+      if (d.scope === 'card') {
+        out.valuation = fromAnalytics({ cardId: d.id, variantId: q.variantId, cardSkinId: null }, d.analytics);
+        out.analytics = d.analytics;
+        out.leaders = { active: [], gainers: [], losers: [], values: [] };
+      } else {
+        out.aggregate = d.aggregate; out.leaders = { active: leaderList(d.leaders.active), gainers: leaderList(d.leaders.gainers), losers: leaderList(d.leaders.losers), values: leaderList(d.leaders.values) };
+      }
+      return out;
+    },
+    stocksAsync: function (realm, query) {
+      query = query || {};
+      var q = { scope: query.scope || 'index', id: query.id || '', variantId: query.variantId || null, window: query.window || '7d' };
+      return data().loadStocks(q, false).then(function () { return provider.stocks(realm, query); });
+    },
+    // Lists for the Explore shelves: who is moving, who is busy, what just sold. All from real sales.
+    movers: function () {
+      if (!isLive()) return null;
+      data().used(); data().loadMovers(false);
+      var M = data().state.movers.data;
+      if (!M) return null;
+      var wrap = function (list) { return (list || []).map(function (x) { return Object.assign({ card: C.card(x.cardId) }, x); }).filter(function (x) { return x.card; }); };
+      return { rising: wrap(M.rising), falling: wrap(M.falling), trending: wrap(M.trending), active: wrap(M.active), liquid: wrap(M.liquid),
+        recentlySold: (M.recentlySold || []).map(function (x) { return Object.assign({ card: C.card(x.cardId) }, x, { minutesAgo: Math.max(0, (data().now() - x.at) / 60000) }); }).filter(function (x) { return x.card; }), cardsTraded: M.cardsTraded };
+    },
+    preferences: function () {
+      var I = data().state.inventory;
+      return I.items && I.items.length ? core().preferences(I.items, C.market.api.data().cardById) : null;
+    },
+    alerts: function () {
+      if (!isLive()) return { items: [], limit: 20, loading: false };
+      data().loadAlerts(false);
+      var A = data().state.alerts;
+      return A.data ? A.data : { items: [], limit: 20, loading: true };
+    },
+    createAlert: function (spec) {
+      return online().authed('POST', '/v1/alerts', spec).then(function (r) { data().state.alerts.at = 0; return data().loadAlerts(true).then(function () { return Object.assign({ ok: true }, r); }); }, friendly);
+    },
+    deleteAlert: function (id) {
+      return online().authed('DELETE', '/v1/alerts/' + encodeURIComponent(id)).then(function (r) { return data().loadAlerts(true).then(function () { return Object.assign({ ok: true }, r); }); }, friendly);
+    },
+    exportUrl: function (what, format) { return online().base() + '/v1/export?what=' + what + '&format=' + format; },
+    downloadExport: function (what, format) {
+      // The file is fetched with the player's own token and saved from memory: the token never goes in a URL.
+      var b = online().base();
+      return online().ensureToken().then(function (token) {
+        return root.fetch(b + '/v1/export?what=' + what + '&format=' + format, { headers: { authorization: 'Bearer ' + token }, credentials: 'omit', cache: 'no-store' });
+      }).then(function (res) { if (!res.ok) throw new Error('The export could not be made.'); return res.text(); });
     },
     portfolio: function (realm) {
       var inv = provider.inventory(realm), A = data().state.activity.data, wallet = provider.wallet(realm), by = {}, quick = 0;
@@ -180,8 +267,18 @@
       var total = holdings.reduce(function (n, h) { return n + h.estimate; }, 0);
       holdings.forEach(function (h) { var r = rar[h.card.rarity], k = r ? r.name : h.card.rarity; by[k] = (by[k] || 0) + h.estimate; });
       var mine = A ? A.mine.filter(open) : [], bids = A ? A.bids : [], orders = A ? A.orders.filter(function (o) { return o.status === 'open'; }) : [];
-      return { realm: realm, demo: false, quickSellValue: quick, holdings: holdings, total: total, count: holdings.length, byRarity: by, wallet: wallet, realized: null, realizedCount: 0, unrealized: null, unrealizedCount: 0,
-        feesPaid: 0, sampleMine: mine, sampleBids: bids, listings: mine, bids: bids, orders: orders, online: true, revision: data().revision };
+      // The server keeps the books (cost basis, realized profit, fees); the interface only lays them out.
+      data().loadPortfolio(false);
+      var P = data().state.portfolio.data, byInst = {};
+      if (P) P.holdings.forEach(function (h) { byInst[h.instanceId] = h; });
+      holdings.forEach(function (h) { var s = byInst[h.instance.instanceId]; if (s) { h.basis = s.basis == null ? null : s.basis; h.noBasis = s.basis == null; h.acquiredVia = s.acquiredVia; } });
+      return { realm: realm, demo: false, quickSellValue: P ? P.quickSellValue : quick, holdings: holdings, total: total, count: holdings.length, byRarity: by, wallet: wallet,
+        realized: P ? P.realized.profit : null, realizedCount: P ? P.realized.sales.withBasis + P.realized.quickSell.withBasis : 0,
+        unrealized: P && P.unrealized ? P.unrealized.change : null, unrealizedCount: P && P.unrealized ? P.unrealized.cards : 0,
+        feesPaid: P ? P.realized.feesPaid : 0, tradesSold: P ? P.realized.sales.count : 0, tradesBought: P ? P.realized.bought.count : 0, volumeSold: P ? P.realized.sales.volume : 0, volumeBought: P ? P.realized.bought.volume : 0,
+        reserved: P ? P.reserved : null, cardsInEscrow: P ? P.cards.inEscrow : 0, noCostBasis: P ? P.cards.noCostBasis : null, confidence: P ? P.marks.confidence : null, confidenceShare: P ? P.marks.confidenceShare : null,
+        convention: P ? P.convention : null, server: !!P,
+        sampleMine: mine, sampleBids: bids, listings: mine, bids: bids, orders: orders, online: true, revision: data().revision };
     },
     activity: function (realm) {
       if (!isLive()) return { realm: realm, notifications: [], mine: [], bids: [], orders: [], offers: [], feed: [], sample: false, revision: data().revision };
@@ -220,12 +317,31 @@
       var d = data(), S = d.state, fresh = function (at, ttl) { return at && Date.now() - at < ttl; };
       params = params || {};
       if (name === 'listing') { var e = S.details[params.id]; if (e && e.data) return null; return d.loadDetail(params.id, false); }
-      if (name === 'card') { var c = S.cards[params.id + '|' + (params.variant || '')]; if (c && c.data) return null; return d.loadCard(params.id, params.variant || null, false); }
+      if (name === 'card') {
+        var c = S.cards[params.id + '|' + (params.variant || '')], an = S.analytics[params.id + '|' + (params.variant || '') + '|7d'];
+        var cw = [];
+        if (!(c && c.data)) cw.push(d.loadCard(params.id, params.variant || null, false));
+        if (!(an && an.data)) cw.push(d.loadAnalytics(params.id, params.variant || null, '7d', false));
+        return cw.length ? Promise.all(cw) : null;
+      }
+      if (name === 'stocks') {
+        var st = C.market.store.session.stocks || {}, q = { scope: st.scope || 'index', id: st.id || '', variantId: st.variantId || null, window: st.window || C.settings.get('marketWindow') || '7d' };
+        var se = S.stocksBy[d.stocksKey(q)];
+        return se && se.data ? null : d.loadStocks(q, false);
+      }
+      if (name === 'alerts') return S.alerts.data ? null : d.loadAlerts(false);
+      if (name === 'compare') {
+        var cmp = C.market.store.compareList().filter(function (x) { return x.realm === 'global'; });
+        var cws = cmp.filter(function (x) { var a = S.analytics[x.cardId + '|' + (x.variantId || '') + '|7d']; return !(a && a.data); }).map(function (x) { return d.loadAnalytics(x.cardId, x.variantId || null, '7d', false); });
+        return cws.length ? Promise.all(cws) : null;
+      }
+      if (['discover', 'auctions', 'buy-now', 'trades'].indexOf(name) >= 0) { d.loadMovers(false); return null; }
       if (name === 'compose') return S.inventory.items ? null : d.loadInventory(false);
       if (['portfolio', 'activity', 'my-listings', 'orders', 'offers'].indexOf(name) >= 0) {
         var waits = [];
         if (!S.activity.data) waits.push(d.loadActivity(false));
         if (!S.inventory.items) waits.push(d.loadInventory(false));
+        if (name === 'portfolio' && !S.portfolio.data) waits.push(d.loadPortfolio(false));
         return waits.length ? Promise.all(waits) : null;
       }
       void fresh;

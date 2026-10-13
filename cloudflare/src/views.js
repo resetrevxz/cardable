@@ -2,6 +2,7 @@
 // session, no private maximum bid. A player's own maximum, holds and orders are shown only to that player.
 import { ApiError } from './util.js';
 import { DAY, RULES, TIERS, feeFor, nameOf, resolveAuction } from './economy.js';
+import { CATALOG } from './catalog.js';
 import { valuations } from './valuation.js';
 import { settleListing } from './listings.js';
 
@@ -54,24 +55,72 @@ async function withValuations(env, rows, me, now) {
 }
 
 // ---- browse ------------------------------------------------------------------------------------------------------------
-export async function browse(env, who, url, now) {
-  const p = url.searchParams, limit = clampLimit(p.get('limit'), 50, 100), sort = ['newest', 'ending', 'price-asc', 'price-desc'].includes(p.get('sort')) ? p.get('sort') : 'newest';
-  const cur = parseCursor(p.get('cursor')), where = [], binds = [who.accountId];
-  const mineOnly = p.get('mine') === '1';
-  if (mineOnly) { where.push('l.seller_id = ?1'); }
+// Server-side search over the facets an index can serve (kind, card, rarity, brand, generation, finish, skin, price,
+// serial, bids, reserve, time left, tier, seller), keyset-paginated. Derived facets (value against Average Value,
+// liquidity, confidence, wishlist) are applied by the interface to the page it receives.
+const csv = (v, max = 8) => String(v || '').split(',').map((x) => x.trim()).filter(Boolean).slice(0, max);
+export const SORTS = { newest: ['l.created_at', 'DESC'], ending: ['l.ends_at', 'ASC'], 'price-asc': ['l.price', 'ASC'], 'price-desc': ['l.price', 'DESC'], bids: ['l.bid_count', 'DESC'] };
+export function searchPlan(p, who, now) {
+  const where = [], binds = [], mineOnly = p.get('mine') === '1';
+  if (mineOnly) { where.push('l.seller_id = ?'); binds.push(who.accountId); }
   else { where.push("l.status = 'active'"); where.push('l.ends_at > ?'); binds.push(now); }
-  if (p.get('kind') && ['fixed', 'auction', 'swap'].includes(p.get('kind'))) { where.push('l.kind = ?'); binds.push(p.get('kind')); }
-  if (p.get('cardId')) { where.push('l.card_id = ?'); binds.push(String(p.get('cardId'))); }
-  if (p.get('rarity')) { where.push('l.rarity = ?'); binds.push(String(p.get('rarity'))); }
-  const order = { newest: ['l.created_at', 'DESC'], ending: ['l.ends_at', 'ASC'], 'price-asc': ['l.price', 'ASC'], 'price-desc': ['l.price', 'DESC'] }[sort];
+  const inList = (col, list) => { where.push(col + ' IN (' + list.map(() => '?').join(',') + ')'); binds.push(...list); };
+  const kinds = csv(p.get('kind')).filter((k) => ['fixed', 'auction', 'swap'].includes(k)); if (kinds.length) inList('l.kind', kinds);
+  if (p.get('cardId')) { where.push('l.card_id = ?'); binds.push(String(p.get('cardId')).slice(0, 80)); }
+  const rar = csv(p.get('rarity')); if (rar.length) inList('l.rarity', rar);
+  if (p.get('brand')) { where.push('l.brand = ?'); binds.push(String(p.get('brand')).slice(0, 40)); }
+  if (p.get('generation')) { where.push('l.generation = ?'); binds.push(String(p.get('generation')).slice(0, 40)); }
+  const variants = csv(p.get('variant'));
+  if (variants.length) {
+    const named = variants.filter((v) => v !== 'none'), parts = [];
+    if (named.length) { parts.push('l.variant_id IN (' + named.map(() => '?').join(',') + ')'); binds.push(...named); }
+    if (variants.includes('none')) parts.push('l.variant_id IS NULL');
+    where.push('(' + parts.join(' OR ') + ')');
+  }
+  const skins = csv(p.get('skin'));
+  if (skins.length) {
+    const named = skins.filter((v) => v !== 'none'), parts = [];
+    if (named.length) { parts.push('l.skin_id IN (' + named.map(() => '?').join(',') + ')'); binds.push(...named); }
+    if (skins.includes('none')) parts.push('l.skin_id IS NULL');
+    where.push('(' + parts.join(' OR ') + ')');
+  }
+  const int = (name) => { const n = Number(p.get(name)); return p.get(name) != null && p.get(name) !== '' && Number.isSafeInteger(n) ? n : null; };
+  if (int('min') != null) { where.push('l.price >= ?'); binds.push(int('min')); }
+  if (int('max') != null) { where.push('l.price <= ?'); binds.push(int('max')); }
+  if (int('serialMax') != null) { where.push('l.serial_n IS NOT NULL AND l.serial_n <= ?'); binds.push(int('serialMax')); }
+  if (int('minBids') != null) { where.push('l.bid_count >= ?'); binds.push(int('minBids')); }
+  if (int('tierMin') != null) { where.push('l.tier >= ?'); binds.push(int('tierMin')); }
+  if (int('tierMax') != null) { where.push('l.tier <= ?'); binds.push(int('tierMax')); }
+  if (int('endsWithin') != null) { where.push("l.kind = 'auction' AND l.ends_at <= ?"); binds.push(now + int('endsWithin')); }
+  const reserve = p.get('reserve');
+  if (reserve === 'met') where.push('l.reserve IS NOT NULL AND l.price >= l.reserve');
+  else if (reserve === 'unmet') where.push('l.reserve IS NOT NULL AND l.price < l.reserve');
+  else if (reserve === 'none') where.push('l.reserve IS NULL');
+  if (p.get('seller')) { where.push('l.seller_id = (SELECT id FROM accounts WHERE alias = ? COLLATE NOCASE)'); binds.push(String(p.get('seller')).slice(0, 40)); }
+  const q = String(p.get('q') || '').trim().toLowerCase().slice(0, 60);
+  if (q) {
+    const ids = Object.keys(CATALOG.names).filter((id) => CATALOG.names[id].toLowerCase().indexOf(q) >= 0 || (CATALOG.meta[id].b || '').toLowerCase().indexOf(q) >= 0).slice(0, 50);
+    if (!ids.length) where.push('0');
+    else inList('l.card_id', ids);
+  }
+  return { where, binds, mineOnly };
+}
+
+export async function browse(env, who, url, now) {
+  const p = url.searchParams, limit = clampLimit(p.get('limit'), 50, 100), sort = SORTS[p.get('sort')] ? p.get('sort') : 'newest';
+  const cur = parseCursor(p.get('cursor')), plan = searchPlan(p, who, now), order = SORTS[sort];
+  const where = plan.where.slice(), binds = plan.binds.slice();
   if (cur) { where.push('(' + order[0] + ' ' + (order[1] === 'DESC' ? '<' : '>') + ' ? OR (' + order[0] + ' = ? AND l.id ' + (order[1] === 'DESC' ? '<' : '>') + ' ?))'); binds.push(cur[0], cur[0], cur[1]); }
   const sql = LISTING_SQL + 'WHERE ' + where.join(' AND ') + ' ORDER BY ' + order[0] + ' ' + order[1] + ', l.id ' + order[1] + ' LIMIT ' + (limit + 1);
-  const rows = (await env.DB.prepare(sql).bind(...binds).all()).results;
-  const page = rows.slice(0, limit), items = await withValuations(env, page, who.accountId, now);
-  const total = (await env.DB.prepare(mineOnly ? 'SELECT COUNT(*) AS n FROM listings WHERE seller_id = ?' : "SELECT COUNT(*) AS n FROM listings WHERE status = 'active' AND ends_at > ?").bind(mineOnly ? who.accountId : now).first()).n;
+  const [main, count] = await env.DB.batch([
+    env.DB.prepare(sql).bind(who.accountId, ...binds),
+    env.DB.prepare('SELECT COUNT(*) AS n FROM listings l WHERE ' + plan.where.join(' AND ')).bind(...plan.binds)
+  ]);
+  const rows = main.results, page = rows.slice(0, limit), items = await withValuations(env, page, who.accountId, now), total = count.results[0].n;
   const lastRow = page[page.length - 1];
-  const key = { newest: lastRow && lastRow.created_at, ending: lastRow && lastRow.ends_at, 'price-asc': lastRow && lastRow.price, 'price-desc': lastRow && lastRow.price }[sort];
-  return { items, nextCursor: rows.length > limit && lastRow ? cursorOf(key, lastRow.id) : null, total, serverNow: now, source: 'players', emptyReason: total ? null : 'no-listings' };
+  const key = { newest: lastRow && lastRow.created_at, ending: lastRow && lastRow.ends_at, 'price-asc': lastRow && lastRow.price, 'price-desc': lastRow && lastRow.price, bids: lastRow && lastRow.bid_count }[sort];
+  return { items, nextCursor: rows.length > limit && lastRow ? cursorOf(key, lastRow.id) : null, total, serverNow: now, source: 'players', emptyReason: total ? null : 'no-listings',
+    cost: { rowsRead: (main.meta.rows_read || 0) + (count.meta.rows_read || 0), statements: 2 } };
 }
 
 // ---- one listing ---------------------------------------------------------------------------------------------------------------

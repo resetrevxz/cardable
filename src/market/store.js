@@ -12,7 +12,7 @@
   var KEY = function () { return C.data.market.previewStorageKey; };
 
   function defaults() {
-    return { v: 1, watch: [], saved: [], alerts: [], drafts: {}, recentSearches: [], guideSeen: false, notificationsRead: [] };
+    return { v: 1, watch: [], saved: [], alerts: [], drafts: {}, recentSearches: [], guideSeen: false, notificationsRead: [], groups: [], sortPresets: [], compare: [] };
   }
   var prefs = defaults(), stored = true;
   function load() {
@@ -22,7 +22,7 @@
       var parsed = JSON.parse(raw);
       if (!parsed || parsed.v !== 1) return;
       var base = defaults();
-      ['watch', 'saved', 'alerts', 'recentSearches', 'notificationsRead'].forEach(function (k) { if (Array.isArray(parsed[k])) base[k] = parsed[k].slice(0, 200); });
+      ['watch', 'saved', 'alerts', 'recentSearches', 'notificationsRead', 'groups', 'sortPresets', 'compare'].forEach(function (k) { if (Array.isArray(parsed[k])) base[k] = parsed[k].slice(0, 200); });
       if (parsed.drafts && typeof parsed.drafts === 'object') base.drafts = parsed.drafts;
       base.guideSeen = parsed.guideSeen === true;
       prefs = base;
@@ -69,7 +69,7 @@
     // ---- saved views ----
     saveView: function (name, state) {
       name = String(name || '').trim().slice(0, 40) || 'Saved view';
-      var item = { id: 'v' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), name: name, q: state.q || '', sort: state.sort, tab: state.tab, filters: state.filters };
+      var item = { id: 'v' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), name: name, q: state.q || '', sort: state.sort, tab: state.tab, filters: state.filters, realm: state.realm || null };
       prefs.saved.unshift(item); prefs.saved = prefs.saved.slice(0, 24);
       persist(); emit('saved');
       return item;
@@ -83,6 +83,31 @@
       return item;
     },
     removeAlert: function (id) { prefs.alerts = prefs.alerts.filter(function (a) { return a.id !== id; }); persist(); emit('alerts'); },
+    // ---- saved portfolio groups, per realm ----
+    addGroup: function (realm, name, ids) {
+      var g = { id: 'g' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), realm: realm, name: String(name || '').trim().slice(0, 40) || 'Group', ids: ids.slice(0, 200), created: Date.now() };
+      prefs.groups.unshift(g); prefs.groups = prefs.groups.slice(0, 24); persist(); emit('groups');
+      return g;
+    },
+    removeGroup: function (id) { prefs.groups = prefs.groups.filter(function (g) { return g.id !== id; }); persist(); emit('groups'); },
+    groupsFor: function (realm) { return prefs.groups.filter(function (g) { return g.realm === realm; }); },
+    // ---- named sort presets (a sort and a tab, per realm) ----
+    addSortPreset: function (realm, name, sort, tab) {
+      var p = { id: 'p' + Date.now().toString(36), realm: realm, name: String(name || '').trim().slice(0, 30) || 'Preset', sort: sort, tab: tab };
+      prefs.sortPresets.unshift(p); prefs.sortPresets = prefs.sortPresets.slice(0, 12); persist(); emit('presets');
+      return p;
+    },
+    removeSortPreset: function (id) { prefs.sortPresets = prefs.sortPresets.filter(function (p) { return p.id !== id; }); persist(); emit('presets'); },
+    // ---- compare tray (two to four exact listings or cards) ----
+    compareList: function () { return prefs.compare.slice(); },
+    toggleCompare: function (item) {
+      var at = prefs.compare.findIndex(function (x) { return x.key === item.key; });
+      if (at >= 0) prefs.compare.splice(at, 1);
+      else { if (prefs.compare.length >= 4) return false; prefs.compare.push(item); }
+      persist(); emit('compare');
+      return at < 0;
+    },
+    clearCompare: function () { prefs.compare = []; persist(); emit('compare'); },
     // ---- drafts ----
     saveDraft: function (key, draft) { prefs.drafts[key] = { savedAt: Date.now(), draft: draft }; persist(); emit('drafts'); },
     getDraft: function (key) { return prefs.drafts[key] || null; },

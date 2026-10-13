@@ -14,7 +14,7 @@
   ];
   var UTILITIES = [
     { id: 'watchlist', label: 'Watchlist', icon: 'bookmark' }, { id: 'alerts', label: 'Alerts', icon: 'bell' },
-    { id: 'my-listings', label: 'My listings', icon: 'layers' }, { id: 'settings', label: 'Market settings', icon: 'sliders' }
+    { id: 'compare', label: 'Compare', icon: 'cards' }, { id: 'my-listings', label: 'My listings', icon: 'layers' }, { id: 'settings', label: 'Market settings', icon: 'sliders' }
   ];
   var pages = {};
   ui.pages = { register: function (name, def) { pages[name] = def; }, get: function (name) { return pages[name]; } };
@@ -154,7 +154,7 @@
       var b = utilButtons[id], on = current && current.name === id;
       b.setAttribute('aria-current', on ? 'page' : 'false'); b.dataset.active = String(!!on);
     });
-    var counts = { watchlist: store.prefs.watch.length, alerts: store.prefs.alerts.length };
+    var counts = { watchlist: store.prefs.watch.length, alerts: store.prefs.alerts.length, compare: store.compareList().length };
     Object.keys(counts).forEach(function (id) {
       var badge = utilButtons[id] && utilButtons[id].querySelector('.mk-count');
       if (badge) { badge.textContent = counts[id] ? String(counts[id]) : ''; badge.hidden = !counts[id]; }
@@ -325,7 +325,7 @@
   function openMore(anchor) {
     ui.popover(anchor, function (close) {
       var box = h('div.mk-more', { role: 'menu' });
-      [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell'], ['my-listings', 'My listings', 'layers'], ['settings', 'Market settings', 'sliders'], ['guide', 'Market guide', 'info']].forEach(function (r) {
+      [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell'], ['compare', 'Compare', 'cards'], ['my-listings', 'My listings', 'layers'], ['settings', 'Market settings', 'sliders'], ['guide', 'Market guide', 'info']].forEach(function (r) {
         var b = h('button.mk-more-item', { type: 'button', role: 'menuitem' }, icon(r[2]), h('span', { text: r[1] }));
         b.addEventListener('click', function () {
           close();
@@ -471,7 +471,7 @@
     store.subscribe(function (what) {
       if (!opened) return;
       if (what === 'realm') { updateChrome(); mount(current, { forward: false, focus: false }); }
-      else if (what === 'watch' || what === 'alerts' || what === 'notifications' || what === 'cleared') updateChrome();
+      else if (what === 'watch' || what === 'alerts' || what === 'notifications' || what === 'cleared' || what === 'compare') updateChrome();
       else if (what === 'online') { updateChrome(); if (frameRealm() === 'global' && current && current.name !== 'settings') mount(current, { forward: false, focus: false }); }
     });
     C.settings.onChange('*', function (_, key) {

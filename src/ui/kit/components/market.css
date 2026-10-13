@@ -795,3 +795,26 @@ textarea.mk-input { padding: 10px 12px; resize: vertical; min-height: 84px; line
   .mk-header-end .mk-icon-button:not(.mk-close) { display: none; }
   .mk-wallet { height: 36px; padding: 0 9px; }
 }
+
+/* ---- Analytics header (Stage 6) ---- */
+.mk-analytics .mk-stats + .mk-stats { margin-top: var(--s-3); }
+.mk-explain { margin-top: var(--s-3); border-top: 1px solid var(--hairline); padding-top: var(--s-3); }
+.mk-explain summary { cursor: pointer; color: var(--text); font-size: 13px; line-height: 18px; }
+.mk-explain h4 { margin: var(--s-3) 0 2px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
+.mk-explain p { max-width: 68ch; }
+
+/* ---- Compare (Stage 6) ---- */
+.mk-compare { display: grid; border: 1px solid var(--hairline); border-radius: var(--mk-r); overflow: hidden; background: var(--mk-surface); }
+.mk-crow { display: grid; grid-template-columns: minmax(120px, 1.1fr) repeat(var(--cols, 2), minmax(0, 1fr)); border-top: 1px solid var(--hairline); }
+.mk-crow:first-child { border-top: 0; }
+.mk-ccell { padding: 10px 12px; min-width: 0; overflow-wrap: anywhere; }
+.mk-ccell + .mk-ccell { border-left: 1px solid var(--hairline); }
+.mk-clabel { color: var(--text-dim); font-size: 13px; }
+.mk-crow-head .mk-ccell { display: flex; flex-direction: column; gap: 2px; }
+.mk-ccell-actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+@media (max-width: 560px) { .mk-crow { grid-template-columns: minmax(84px, 0.9fr) repeat(var(--cols, 2), minmax(0, 1fr)); } .mk-ccell { padding: 8px; font-size: 13px; } }
+
+/* ---- Moving now (Global Discover) ---- */
+.mk-explore { margin-bottom: var(--s-4); padding: 14px 16px; border-radius: var(--mk-r); border: 1px solid var(--hairline); background: var(--mk-surface); }
+.mk-explore-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--s-4); margin-top: var(--s-3); }
+.mk-explore-col h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
