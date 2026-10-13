@@ -32,3 +32,7 @@ Before integration or publication, run Shop and Market together with real depend
 Visual evidence: [1920 showroom](../artifacts/shop-stage4-1920x1080.png), [1366 showroom](../artifacts/shop-stage4-1366x768.png), [1024 exhibit](../artifacts/shop-stage4-1024x768.png), [390 mobile](../artifacts/shop-stage4-390x844.png), [mono/Very Low Shop](../artifacts/shop-stage3-390-mono-very-low.png), [mono receipt](../artifacts/shop-stage3-390-acquired.png), and [Titan vault](../artifacts/shop-stage3-titan-vault-medium.png).
 
 The [first UI refinement](SHOP-UI-CRAFT.md) added rotation, Titan catalog browsing, direct art inspection and card turning. The later [cinematic composition and save retry](SHOP-CINEMA.md) replaces its ornamental copy and display plates, adds object transitions and saved Shop preferences, and provides in-place save recovery. Earlier captures remain historical evidence.
+
+## Authorized 1.7.0 main integration
+
+The owner subsequently authorized the Shop merge and public release. See [the 1.7.0 integration record](SHOP-RELEASE-1.7.0.md) for merge scope and checks on main. Earlier stage handoff limits remain historical; Market stays excluded.

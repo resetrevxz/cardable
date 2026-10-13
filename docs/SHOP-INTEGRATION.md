@@ -33,3 +33,7 @@ The purchased Titan card now carries `source:'shop-pack'` and `shopEntitlementId
 There is no local quick-sell payout in this branch, so the Shop cannot form a buy/resell Credits loop. Shop instances are local collection records; any future transfer policy belongs to Market. See [Stage 3 evidence](SHOP-STAGE-3.md) for interruption and UI checks.
 
 The Shop purchase candidate uses normal loaded-save validation, allowing historic inventory whose catalog IDs were later retired while still checking the newly sold offer against the live catalog. Its single durable commit and exact-offer checks are unchanged. The menu entry, command palette action, Shop Help and `Cardable.ui.present` return focus form the navigation route. See [Stage 4 acceptance](SHOP-ACCEPTANCE.md) and the [Market merge map](SHOP-MARKET-INTEGRATION.md) before integration.
+
+## Authorized 1.7.0 main integration
+
+The owner subsequently authorized the Shop merge and public release. See [the 1.7.0 integration record](SHOP-RELEASE-1.7.0.md) for merge scope and checks on main. Earlier stage handoff limits remain historical; Market stays excluded.

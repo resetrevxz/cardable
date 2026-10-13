@@ -72,7 +72,7 @@ const root=path.resolve(__dirname,'..');let browser;
   const statusBefore=await business();
   assert.equal(await fact('Local save').textContent(),'Saved');
   assert.equal(await fact('Desktop backup').textContent(),'Browser only');
-  assert.match(await fact('Game file').textContent(),/Shop\/index.html/);
+  assert.ok((await fact('Game file').textContent()).endsWith(path.join(root,'index.html').replace(/\\/g,'/')));
   await page.locator('.shop-save-check').click();
   assert.deepEqual(await business(),statusBefore,'Status check changed saved data');
   await page.screenshot({path:path.join(root,'artifacts/shop-save-status-browser.png')});

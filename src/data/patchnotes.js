@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.7.0',codename:'Shop',date:'October 13, 2026',tag:'Feature',tagline:'Four daily cards. One featured Titan pack.',
+    hero:{badge:'CARDABLE / 1.7.0',title:'Shop.',subtitle:'Inspect, compare, mark your targets and hold to add a card to your collection.',media:[]},
+    sections:{fixes:['Rejected purchases retain your Credits and collection. Failed Shop preference writes retain the saved setting.'],visuals:['A cinematic showroom, interactive card backs, pack rotation and sequential inspection.'],qol:['Four daily offers with fixed prices, purchased Titan packs, wishlists, purchase history and direct save export.','Saved layouts, sorting and quiet motion; save status with explicit retry actions.']},
+    entries:['The Daily Shop is open.','Buy cards and a featured Titan pack with Credits.']
+  },
+  {
     version:'1.6.4',codename:'Celestial seal',date:'October 12, 2026',tag:'Update',tagline:'Super Rare becomes a ceremony of light.',
     hero:{badge:'CARDABLE / 1.6.4',title:'Celestial seal.',subtitle:'A suspended seal, luminous cloud star and inward-folding glass end in one white explosion.',media:[]},
     sections:{fixes:['The white endpoint remains held after backward seeking.'],visuals:['Super Rare has a new formation shot, layered clouds, broken arcs, constellation marks and curved glass with moving refraction.'],qol:['Full lasts 12 seconds; Short keeps all six stages in 7.3 seconds. Calm settings retain a three-second seal.']},
