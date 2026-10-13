@@ -37,3 +37,7 @@ class_name = "Gate"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Gate"]
+
+# Backstop for the per-listing Durable Object alarms: closes and expires what is due and matches waiting orders.
+[triggers]
+crons = ["*/5 * * * *"]

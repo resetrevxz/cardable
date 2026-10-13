@@ -49,6 +49,9 @@ export function recoveryCode() {
   return out.match(/.{5}/g).join('-');
 }
 
+// A number the client sent: only a real JSON number counts. A string such as "10" is not coerced into one.
+export const num = (v) => (typeof v === 'number' ? v : NaN);
+
 export class ApiError extends Error {
   constructor(status, code, message, extra) { super(message); this.status = status; this.code = code; this.extra = extra || null; }
 }
@@ -94,4 +97,25 @@ export async function readJson(request, maxBytes = 1_500_000) {
   if (!text) return {};
   try { const v = JSON.parse(text); if (v === null || typeof v !== 'object' || Array.isArray(v)) throw new Error('shape'); return v; }
   catch (_) { throw new ApiError(400, 'bad-json', 'The request body is not valid JSON.'); }
+}
+
+// Free text a player may attach to a listing or offer. It is shown to other players under an anonymous name, so it may
+// not carry a way to leave the market: links, contact handles, e-mail addresses, phone numbers or off-platform payment
+// talk. Control and direction-override characters are removed rather than refused.
+const CONTACT = [
+  /https?:|www\.|:\/\//i,
+  /\b[a-z0-9-]{2,}\.(com|net|org|io|gg|me|co|app|xyz|ly|tv|dev|info|link|click|shop|store|site|online|top|ru|cn|uk|de|us|to|cc|ws)\b/i,
+  /\S+@\S+/,
+  /(^|\s)@\w{3,}/,
+  /(\d[\s().+-]*){8,}/,
+  /\b(discord|telegram|whatsapp|paypal|venmo|cashapp|zelle|steam ?gift|gift ?card|bitcoin|crypto|western union)\b/i
+];
+export function cleanText(raw, max, what) {
+  if (raw == null || raw === '') return '';
+  if (typeof raw !== 'string') throw new ApiError(422, 'bad-text', 'The ' + what + ' must be text.');
+  // Control characters and the invisible direction and zero-width marks are replaced by spaces, then spaces are collapsed.
+  const text = raw.replace(/[\u0000-\u001f\u007f\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (text.length > max) throw new ApiError(422, 'too-long', 'The ' + what + ' can be at most ' + max + ' characters.');
+  if (CONTACT.some((re) => re.test(text))) throw new ApiError(422, 'unsafe-text', 'The ' + what + ' cannot contain links, contact details or payment talk. Everything happens inside the market.');
+  return text;
 }

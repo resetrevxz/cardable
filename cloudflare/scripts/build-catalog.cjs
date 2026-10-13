@@ -10,7 +10,7 @@ const sandbox = { console };
 sandbox.window = sandbox;
 sandbox.Cardable = { data: {} };
 vm.createContext(sandbox);
-['src/data/rarities.js', 'src/data/cards.js', 'src/data/variants.js'].forEach((f) => vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), sandbox, { filename: f }));
+['src/data/rarities.js', 'src/data/cards.js', 'src/data/variants.js', 'src/data/market-config.js', 'src/data/market-sim.js', 'src/market/core.js'].forEach((f) => vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), sandbox, { filename: f }));
 const C = sandbox.Cardable;
 const skins = new Set();
 fs.readdirSync(path.join(root, 'src', 'data')).filter((f) => f.endsWith('.js')).forEach((f) => {
@@ -18,7 +18,20 @@ fs.readdirSync(path.join(root, 'src', 'data')).filter((f) => f.endsWith('.js')).
   for (const m of text.matchAll(/cardSkinId\s*:\s*'([a-z0-9-]{1,40})'/g)) skins.add(m[1]);
   for (const m of text.matchAll(/cardSkins\s*=\s*\[([^\]]*)\]/g)) for (const id of m[1].matchAll(/id\s*:\s*'([a-z0-9-]{1,40})'/g)) skins.add(id[1]);
 });
+// The economy the server needs to price a card exactly as the game does: baseline per card, finish and skin factors,
+// the serial factor, the fee rule, the Quick Sell rule and the Average Value parameters. All from the game's own data.
+const M = C.data.market, SIM = C.data.marketSim, index = C.market.core.buildCardIndex(C.data.cards, C.data.rarities, M);
+const economy = {
+  base: Object.fromEntries(Object.keys(index).map((id) => [id, index[id].baseValue])),
+  tier: Object.fromEntries(Object.keys(index).map((id) => [id, index[id].tier])),
+  variantClass: Object.fromEntries(C.data.variants.map((v) => [v.id, v.class || null])),
+  variantClassFactor: M.variantClassFactor, skinFactor: M.skinFactor, serial: M.serial, fee: { bps: M.fee.bps, minFee: M.fee.minFee },
+  quickSell: { factor: M.quickSell.factor, tierFactor: M.quickSell.tierFactor, ceilingOverBaseline: M.quickSell.ceilingOverBaseline, floorUnderBaseline: M.quickSell.floorUnderBaseline, minPrice: M.quickSell.minPrice },
+  valuation: SIM.valuation, outlierBand: SIM.economy.outlierBand
+};
 const catalog = {
+  names: Object.fromEntries(C.data.cards.map((c) => [c.id, c.name])),
+  economy,
   cards: Object.fromEntries(C.data.cards.map((c) => [c.id, c.rarity])),
   rarities: Object.fromEntries(C.data.rarities.map((r) => [r.id, r.tier])),
   variants: C.data.variants.map((v) => v.id),

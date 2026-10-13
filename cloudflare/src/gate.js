@@ -3,9 +3,20 @@
 export class Gate {
   constructor(ctx, env) {
     this.ctx = ctx;
+    this.env = env;
     this.sql = ctx.storage.sql;
     this.sql.exec('CREATE TABLE IF NOT EXISTS hits (bucket TEXT NOT NULL, window INTEGER NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (bucket, window))');
     this.sql.exec('CREATE TABLE IF NOT EXISTS locks (name TEXT PRIMARY KEY, until INTEGER NOT NULL)');
+  }
+
+  // The alarm of a listing's own object: settle it if its time has come, or wait for the extended end.
+  async alarm() {
+    const id = await this.ctx.storage.get('listing');
+    if (!id) return;
+    const { settleListing, getListing } = await import('./listings.js');
+    try { await settleListing(this.env, id, Date.now()); } catch (error) { console.error(JSON.stringify({ alarm: id, error: String(error && error.message).slice(0, 200) })); }
+    const L = await getListing(this.env, id);
+    if (L && L.status === 'active') await this.ctx.storage.setAlarm(Math.max(L.ends_at, Date.now() + 1000));
   }
 
   async fetch(request) {
@@ -28,6 +39,13 @@ export class Gate {
       const row = this.sql.exec('SELECT until FROM locks WHERE name = ?', name).toArray()[0];
       if (row && row.until > now) return Response.json({ ok: false });
       this.sql.exec('INSERT INTO locks (name, until) VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET until = excluded.until', name, now + ttl);
+      return Response.json({ ok: true });
+    }
+    if (url.pathname === '/schedule') {
+      const at = Number(body.at), id = String(body.listingId || '');
+      if (!/^lst_[A-Za-z0-9_-]{6,40}$/.test(id) || !Number.isSafeInteger(at)) return Response.json({ ok: false }, { status: 400 });
+      await this.ctx.storage.put('listing', id);
+      await this.ctx.storage.setAlarm(Math.max(at, now + 50));
       return Response.json({ ok: true });
     }
     if (url.pathname === '/unlock') {

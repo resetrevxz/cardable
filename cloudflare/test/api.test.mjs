@@ -68,7 +68,7 @@ const idem = () => 'k-' + randomBytes(10).toString('hex');
 test('status is public, versioned and carries no secret; unknown paths answer with a trace id', async () => {
   const r = await call(main, 'GET', '/v1/status');
   assert.equal(r.json.ok, true); assert.equal(r.json.data.service, 'cardable-market-beta'); assert.ok(r.json.data.schema >= 2);
-  assert.equal(r.json.data.features.trading, false); assert.ok(r.headers.get('x-trace-id'));
+  assert.equal(r.json.data.features.trading, true); assert.ok(r.headers.get('x-trace-id'));
   assert.ok(!JSON.stringify(r.json).includes(SECRET));
   const nf = await call(main, 'GET', '/v1/nope');
   assert.equal(nf.status, 401, 'unknown authenticated paths do not reveal themselves');
@@ -287,7 +287,7 @@ test('the database enforces its own rules: negative balances, duplicate serials,
   const id = rows[0].results[0].id;
   assert.match(sql("UPDATE wallets SET balance = -1 WHERE account_id = '" + id + "'") || '', /CHECK|constraint/i);
   assert.match(sql("UPDATE wallets SET held = 5 WHERE account_id = '" + id + "'") || '', /CHECK|constraint/i);
-  assert.match(sql("INSERT INTO listings (id, seller_id, format, status, created_at) VALUES ('l1', '" + id + "', 'dutch', 'active', 1)") || '', /CHECK|constraint/i);
+  assert.match(sql("INSERT INTO listings (id, seller_id, kind, status, price, card_id, rarity, item_count, items, created_at, ends_at, first_ends_at) VALUES ('l1', '" + id + "', 'dutch', 'active', 1, 'x', 'basic', 1, '[]', 1, 2, 2)") || '', /CHECK|constraint/i);
   assert.match(sql("INSERT INTO instances (id, owner_id, card_id, serial, origin_code, source, created_at) VALUES ('i1', 'acct_missing', 'x', 'CBL-AAAA-000001', 'AAAA', 'legacy-import', 1)") || '', /FOREIGN|constraint/i);
   assert.equal(sql("INSERT INTO instances (id, owner_id, card_id, serial, origin_code, source, created_at) VALUES ('i2', '" + id + "', 'x', 'CBL-UNIQ-000001', 'UNIQ', 'online-pack', 1)"), null);
   assert.match(sql("INSERT INTO instances (id, owner_id, card_id, serial, origin_code, source, created_at) VALUES ('i3', '" + id + "', 'x', 'CBL-UNIQ-000001', 'UNIQ', 'online-pack', 1)") || '', /UNIQUE|constraint/i);
