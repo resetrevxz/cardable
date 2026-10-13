@@ -39,15 +39,18 @@
     C.packView.setVisible(false);
     var surface = C.ui.create('sheet', { label: 'Cardable Shop', className: 'shop-screen' });
     surface.dataset.toolSurface = 'shop';
+    surface.style.viewTransitionName = 'shop-page';
     var session = { surface: surface, views: [], holds: [], controls: [], cleanups: [], animations: [], locked: false, entered: false, selected: null, presentation: null, ticker: null, status: null, balance: null, countdown: null, offSave: null, previewState: previewState,
       result: C.shopState.ensure(), offReplace: null };
     active = session;
     function motionPolicy() {
       var level = C.settings.policy.animation;
-      surface.dataset.shopMotion = C.motion.reduced || level === 0 ? 'static' : level === 1 ? 'calm' : 'full';
+      surface.dataset.shopMotion = C.motion.reduced || level === 0 || C.settings.get('shopMotion') === 'quiet' ? 'static' : level === 1 ? 'calm' : 'full';
+      surface.dataset.shopLayout = C.settings.get('shopLayout') || 'showroom';
       surface.dataset.shopHover = C.settings.get('hoverAnimations') ? 'true' : 'false';
       if (surface.dataset.shopMotion !== 'full') {
         session.animations.forEach(function (animation) { animation.cancel(); });
+        if (session.transition) session.transition.skipTransition();
       }
       if (surface.dataset.shopMotion !== 'full' || surface.dataset.shopHover === 'false') {
         surface.querySelectorAll('[data-shop-reactive]').forEach(function (el) {
@@ -59,6 +62,31 @@
     function animate(el, frames, options) {
       session.animations = session.animations.filter(function (animation) { return animation.playState === 'running' || animation.playState === 'paused'; });
       session.animations.push(el.animate(frames, options));
+    }
+    function matchObject(el, kind, id) {
+      var target = session.transitionTarget;
+      if (target && target.kind === kind && (kind === 'pack' || target.id === id)) el.style.viewTransitionName = 'shop-object';
+    }
+    function navigate(render, source, target) {
+      if (active !== session) return;
+      var navigation = session.navigation = (session.navigation || 0) + 1;
+      if (session.transition) session.transition.skipTransition();
+      surface.querySelectorAll('[style]').forEach(function (el) { if (el.style.viewTransitionName === 'shop-object') el.style.removeProperty('view-transition-name'); });
+      session.transitionTarget = target;
+      if (!root.document.startViewTransition || surface.dataset.shopMotion !== 'full' || !source || !source.isConnected) {
+        session.transitionTarget = null; render(); return;
+      }
+      source.style.viewTransitionName = 'shop-object';
+      try {
+        var transition = root.document.startViewTransition(function () { if (active === session && session.navigation === navigation) render(); });
+        session.transition = transition;
+        if (transition.ready) transition.ready.catch(function (error) { if (error.name !== 'AbortError') root.console.warn('Shop transition skipped:', error); });
+        transition.finished.catch(function () {}).then(function () {
+          if (session.transition !== transition) return;
+          session.transition = null; session.transitionTarget = null;
+          surface.querySelectorAll('[style]').forEach(function (el) { if (el.style.viewTransitionName === 'shop-object') el.style.removeProperty('view-transition-name'); });
+        });
+      } catch (_) { source.style.removeProperty('view-transition-name'); session.transitionTarget = null; render(); }
     }
     function arrive(el, index) {
       if (!root.IntersectionObserver) return;
@@ -90,7 +118,7 @@
     }
     function turntable(parent, exhibit) {
       var controls = node('div', 'shop-turntable', parent);
-      node('span', 'shop-turntable-label', controls, 'Rotate exhibit');
+      node('span', 'shop-turntable-label', controls, 'Rotate');
       var range = node('input', 'shop-turntable-range', controls);
       range.type = 'range'; range.min = -24; range.max = 24; range.step = 1; range.value = 0;
       range.setAttribute('aria-label', 'Rotate Titan exhibit');
@@ -107,7 +135,7 @@
       session.animations.forEach(function (animation) { animation.cancel(); }); session.animations = [];
       session.views.forEach(function (view) { view.destroy(); }); session.views = [];
       session.holds.forEach(function (hold) { if (hold.destroy) hold.destroy(); }); session.holds = [];
-      session.controls = []; session.actionNote = null; session.expired = null;
+      session.controls = []; session.actionNote = null; session.expired = null; session.saveNotice = null;
       surface.replaceChildren();
     }
     function announce(message) { if (session.status) session.status.textContent = message; }
@@ -129,16 +157,24 @@
       return { state: 'normal', message: 'Balance after purchase: ' + format(C.state.current.currency - amount) };
     }
     function refreshControls() {
+      if (session.refreshSaveNotice) session.refreshSaveNotice();
       session.controls.forEach(function (item) {
         if (!item.control.isConnected) return;
         var state = availability(item.kind, item.offer, item.amount);
         item.control.disabled = session.locked || state.state !== 'normal';
         item.control.title = state.message;
-        if (item.note) item.note.textContent = state.message;
+        if (item.note && !item.control.classList.contains('is-confirming')) {
+          var sharedError = state.state === 'error' && session.saveNotice && !session.saveNotice.hidden;
+          item.note.textContent = item.control.dataset.purchaseError || (state.state === 'normal' || sharedError ? '' : state.message);
+          item.note.hidden = !item.note.textContent;
+        }
         if (item.tile) {
           item.tile.dataset.state = state.state;
           if (item.stateNote) { item.stateNote.hidden = state.state === 'normal'; item.stateNote.textContent = state.message; }
-          if (item.copies && item.offer) item.copies.textContent = (item.offer.variantId ? C.variant(item.offer.variantId).name : 'Standard finish') + ' · ' + C.state.current.inventory.filter(function (copy) { return copy.cardId === item.offer.cardId; }).length + ' owned';
+          if (item.copies && item.offer) {
+            var copies = C.state.current.inventory.filter(function (copy) { return copy.cardId === item.offer.cardId; }).length;
+            item.copies.textContent = (item.offer.variantId ? C.variant(item.offer.variantId).name : 'Standard') + (copies ? ' · ' + copies + ' owned' : '');
+          }
         }
       });
     }
@@ -153,30 +189,37 @@
     function showReceipt(result) {
       clearContent(); session.selected = 'receipt';
       var scroll = node('div', 'shop-scroll shop-scroll--detail', surface);
-      session.refreshBalance = chrome(scroll, 'Acquired');
+      session.refreshBalance = chrome(scroll, 'Shop');
       var detail = node('section', 'shop-detail shop-receipt', scroll);
       var stage = node('div', result.kind === 'pack' ? 'shop-detail-pack shop-receipt-object' : 'shop-detail-card shop-receipt-object', detail);
       if (result.kind === 'pack') {
         stage.dataset.skin = 'titan'; stage.dataset.packQuality = C.settings.get('quality');
         stage.style.setProperty('--pack-width', 'min(52vw, 260px)'); stage.style.setProperty('--pack-height', 'calc(var(--pack-width) * 1.48)');
         C.packMarkup.unit(stage, false, C.pack('titan'));
+        matchObject(stage, 'pack');
       } else {
         var card = C.card(result.instance.cardId);
         var view = C.cardView.create(card, result.instance, { owned: true, independent: true, autoFocus: false });
         stage.appendChild(view.el); session.views.push(view); view.applyMode('full');
+        matchObject(view.el, 'card', card.id);
       }
       var copy = node('div', 'shop-detail-copy', detail);
-      node('span', 'shop-kicker', copy, 'PURCHASE SAVED / LOCAL COLLECTION');
-      node('h2', '', copy, result.kind === 'pack' ? 'Titan Pack acquired' : C.card(result.instance.cardId).name + ' acquired');
-      node('p', 'shop-detail-fact', copy, result.kind === 'pack' ? 'Your sealed Titan Pack is ready. Opening it will not use timer stock.' : 'This exact card and finish are now in your collection.');
-      node('p', 'shop-receipt-balance', copy, 'New balance: ' + format(result.balance));
-      node('p', 'shop-receipt-id', copy, 'Receipt ' + result.receiptId);
+      node('span', 'shop-kicker', copy, 'Acquired');
+      node('h2', '', copy, result.kind === 'pack' ? 'Titan Pack' : C.card(result.instance.cardId).name);
+      node('p', 'shop-detail-fact', copy, result.kind === 'pack' ? 'Ready to open' : 'Added to inventory');
+      node('p', 'shop-receipt-balance', copy, format(result.balance));
+      var receipt = node('details', 'shop-receipt-data', copy);
+      node('summary', '', receipt, 'Receipt'); node('p', 'shop-receipt-id', receipt, result.receiptId);
       var actions = node('div', 'shop-actions', copy);
       var primary = button(actions, result.kind === 'pack' ? 'Open Titan Pack' : 'View in inventory', function () {
         if (result.kind === 'pack') openPurchasedPack();
         else { session.presentation.close(); root.queueMicrotask(function () { C.events.notify('inventory:showCard', { cardId: result.instance.cardId, instanceId: result.instance.instanceId }); }); }
       }, 'shop-inspect');
-      button(actions, 'Back to shop', function () { session.locked = false; session.result = C.shopState.ensure(); renderShop(true); }, 'shop-back');
+      button(actions, 'Back to shop', function () {
+        session.locked = false; session.result = C.shopState.ensure();
+        navigate(function () { renderShop(true); }, result.kind === 'pack' ? stage : stage.querySelector('.collectible-card'),
+          { kind: result.kind, id: result.kind === 'card' ? result.instance.cardId : null });
+      }, 'shop-back');
       footer(scroll); announce('Purchase saved. ' + format(result.balance) + ' remain.');
       primary.focus({ preventScroll: true });
     }
@@ -189,19 +232,35 @@
           if (active !== session || session.locked || !control.isConnected || control.disabled ||
               kind === 'card' && session.selected && (!session.selected.offerId || session.selected.offerId !== offer.offerId) ||
               kind === 'pack' && session.selected && session.selected !== 'pack') return false;
-          session.locked = true; control.disabled = true; note.textContent = 'Saving purchase…'; announce('Saving purchase…');
+          session.locked = true; control.disabled = true; note.hidden = false; note.textContent = 'Saving purchase…'; announce('Saving purchase…');
           var result = kind === 'pack' ? C.shopPurchase.buyTitan() : C.shopPurchase.buyCard(Object.assign({ dayKey: session.result.snapshot.dayKey }, offer));
-          if (result.ok) showReceipt(result);
-          else { session.locked = false; note.textContent = result.message; announce(result.message); refreshControls(); note.textContent = result.message; }
+          if (result.ok) {
+            var source = kind === 'card' ? (tile || surface.querySelector('.shop-detail-card')).querySelector('.collectible-card') : surface.querySelector('.shop-pack-exhibit,.shop-detail-pack');
+            navigate(function () { showReceipt(result); }, source, { kind: kind, id: kind === 'card' ? result.instance.cardId : null });
+          }
+          else {
+            session.locked = false; control.dataset.purchaseError = result.message;
+            if (control.confirmation) control.confirmation.cancel();
+            note.textContent = result.message; note.hidden = false;
+            announce(result.message); refreshControls();
+          }
           return false;
         },
-        announce: function (message) { if (/percent/.test(message)) { note.textContent = message + ' Hold to purchase ' + name + '.'; announce(note.textContent); } }
+        announce: function (message) { if (/percent/.test(message)) { note.hidden = false; note.textContent = message; announce('Purchase ' + name + ': ' + message); } }
       });
       control.classList.add('shop-hold');
       control.setAttribute('aria-label', 'Hold to purchase ' + name + ' for ' + format(amount));
       control.setAttribute('aria-description', 'Hold for 1.4 seconds. Releasing early cancels without spending Credits.');
       parent.insertBefore(control, note); session.holds.push(control);
-      var stateNote = tile && node('p', 'shop-offer-state', tile); if (stateNote) stateNote.hidden = true;
+      ['pointerdown','keydown'].forEach(function (event) { control.addEventListener(event, function () {
+        if (control.classList.contains('is-confirming')) { delete control.dataset.purchaseError; note.hidden = true; }
+      }); });
+      ['pointerup','pointerleave','pointercancel','keyup','blur'].forEach(function (event) {
+        control.addEventListener(event, function () { root.queueMicrotask(function () {
+          if (control.isConnected && !session.locked && !control.classList.contains('is-confirming')) refreshControls();
+        }); });
+      });
+      var stateNote = null;
       session.controls.push({ control: control, note: note, kind: kind, amount: amount, offer: offer, tile: tile, copies: copies, stateNote: stateNote });
       refreshControls();
       return control;
@@ -209,23 +268,71 @@
     function chrome(section, label) {
       var header = node('header', 'shop-header', section);
       var brand = node('div', 'shop-brand', header);
-      node('span', 'shop-overline', brand, 'CARDABLE / THE COLLECTION ROOM');
+      node('span', 'shop-overline', brand, 'CARDABLE');
       node('h1', '', brand, label);
       var actions = node('div', 'shop-header-actions', header);
       session.balance = node('div', 'shop-balance', actions);
       function refreshBalance() { session.balance.textContent = (C.state.current ? C.state.current.currency : 0).toLocaleString() + ' Credits'; }
       refreshBalance();
       button(actions, 'Shop help', function () { var help = surface.querySelector('.shop-help'); if (help) { help.hidden = !help.hidden; if (!help.hidden) help.focus(); } }, 'shop-help-control', 'help');
+      var optionsButton = button(actions, 'Shop settings', function () {
+        options.hidden = !options.hidden; optionsButton.setAttribute('aria-expanded', String(!options.hidden));
+        if (!options.hidden) options.querySelector('select').focus({ preventScroll: true });
+      }, 'shop-options-control', 'settings');
+      optionsButton.setAttribute('aria-expanded', 'false'); optionsButton.setAttribute('aria-controls', 'shop-options');
       button(actions, 'Close Shop', function () { session.presentation.close(); }, 'shop-close', 'close');
       var help = node('p', 'shop-help', section, 'Four catalog card offers refresh at local midnight. The Titan Pack remains featured until a game update. Hold the exact item’s purchase button for 1.4 seconds; releasing early spends nothing. Purchases save locally.');
       help.hidden = true; help.tabIndex = -1;
+      var options = node('section', 'shop-options', section); options.id = 'shop-options'; options.hidden = true; options.setAttribute('aria-label', 'Shop settings');
+      ['shopLayout', 'shopMotion', 'shopSort'].forEach(function (key) {
+        var definition = C.settingsSchema.entries[key], field = node('label', 'shop-option', options);
+        node('span', '', field, definition.label);
+        var select = node('select', 'shop-option-select', field); select.dataset.setting = key;
+        definition.choices.forEach(function (value) { var option = node('option', '', select, definition.format(value)); option.value = value; });
+        select.value = C.settings.getRequested(key);
+        select.addEventListener('change', function () { C.settings.set(key, select.value); });
+      });
+      button(options, 'Close Shop settings', function () { options.hidden = true; optionsButton.setAttribute('aria-expanded', 'false'); optionsButton.focus({ preventScroll: true }); }, 'shop-options-close', 'close');
+      var saveNotice = node('div', 'shop-save-notice', section); saveNotice.hidden = true;
+      var message = node('p', '', saveNotice); message.setAttribute('role', 'status');
+      var retry = button(saveNotice, 'Retry save', function () {
+        if (C.state.recovery && C.state.recovery.pending || C.bootFailure || session.locked) return;
+        C.state.save();
+        if (C.state.lastWriteSucceeded) {
+          session.result = C.shopState.ensure();
+          if (!session.selected && session.result.snapshot && !surface.querySelector('.shop-offer')) renderShop(true);
+          session.controls.forEach(function (item) { delete item.control.dataset.purchaseError; });
+          announce(C.state.lastWriteSucceeded ? 'Save restored. Hold to purchase again.' : 'Saving is still unavailable.');
+        }
+        refreshControls();
+      }, 'shop-save-retry');
+      button(saveNotice, 'Data settings', function () { session.presentation.close(); root.queueMicrotask(function () { C.openSettings('Data'); }); }, 'shop-save-data');
+      session.saveNotice = saveNotice;
+      session.refreshSaveNotice = function () {
+        if (!saveNotice.isConnected) return;
+        saveNotice.hidden = C.state.lastWriteSucceeded;
+        if (saveNotice.hidden) return;
+        var recovery = C.state.recovery && C.state.recovery.pending || C.bootFailure;
+        message.textContent = recovery ? 'Resolve save recovery in Data settings.' :
+          C.state.lastError && C.state.lastError.reason === 'quota' ? 'Save storage is full. Export your save in Data settings before freeing space.' : 'Saving failed. Retry or export your save in Data settings.';
+        retry.disabled = !!recovery || session.locked;
+      };
+      session.refreshSaveNotice();
       return refreshBalance;
     }
+    function arrangeOffers() {
+      var grid = surface.querySelector('.shop-offer-grid'); if (!grid) return;
+      var order = C.settings.get('shopSort'), tiles = Array.from(grid.querySelectorAll('.shop-offer'));
+      tiles.sort(function (a, b) {
+        var difference = order === 'price-asc' ? Number(a.dataset.price) - Number(b.dataset.price) :
+          order === 'price-desc' ? Number(b.dataset.price) - Number(a.dataset.price) :
+          order === 'rarity-desc' ? Number(b.dataset.rarityRank) - Number(a.dataset.rarityRank) : 0;
+        return difference || Number(a.dataset.slot) - Number(b.dataset.slot);
+      });
+      tiles.forEach(function (tile) { grid.appendChild(tile); });
+    }
     function footer(section) {
-      var foot = node('footer', 'shop-footer', section);
-      node('span', '', foot, 'LOCAL / OFFLINE');
-      node('span', '', foot, 'Daily offers · local ownership');
-      session.status = node('p', 'shop-status', foot, 'Inspect an item, then hold to purchase it with Credits.');
+      session.status = node('p', 'shop-status visually-hidden', section);
       session.status.setAttribute('role', 'status'); session.status.setAttribute('aria-live', 'polite');
     }
     function hero(section) {
@@ -234,30 +341,27 @@
       if (!session.entered) { feature.classList.add('shop-feature--enter'); session.entered = true; }
       feature.setAttribute('aria-labelledby', 'shop-feature-title');
       var stage = node('div', 'shop-feature-stage', feature);
-      node('span', 'shop-stage-coordinate', stage, 'EXHIBIT / 001');
+      var light = node('div', 'shop-stage-light', stage); light.setAttribute('aria-hidden', 'true');
       var exhibit = node('div', 'shop-pack-exhibit', stage);
       reactive(stage);
       exhibit.dataset.skin = 'titan'; exhibit.dataset.packQuality = C.settings.get('quality');
-      exhibit.style.setProperty('--pack-width', 'min(18vw, 200px)');
+      exhibit.style.setProperty('--pack-width', 'min(22vw, 240px)');
       exhibit.style.setProperty('--pack-height', 'calc(var(--pack-width) * 1.48)');
       C.packMarkup.unit(exhibit, false, pack);
+      matchObject(exhibit, 'pack');
       turntable(stage, exhibit);
-      var plaque = node('div', 'shop-feature-plaque', stage);
-      node('span', '', plaque, 'BRUSHED TITANIUM');
-      node('span', '', plaque, 'CBL / SERIES 01');
       var copy = node('div', 'shop-feature-copy', feature);
-      node('span', 'shop-kicker', copy, 'THE PERMANENT COLLECTION / HALO HARDWARE');
+      node('span', 'shop-kicker', copy, 'Titan Pack');
       var title = node('h2', '', copy); title.id = 'shop-feature-title'; title.setAttribute('aria-label', 'TITAN: FIRST CONTACT');
       node('span', 'shop-feature-name', title, 'TITAN'); node('span', 'shop-feature-subtitle', title, 'FIRST CONTACT');
-      node('p', 'shop-feature-description', copy, 'Halo hardware. Sealed in metal. Seventeen catalog designs, one card behind the shroud.');
+      node('p', 'shop-feature-description', copy, '17 designs · 1 card');
       var purchase = node('div', 'shop-feature-purchase', copy);
       price(purchase, FEATURED_PRICE);
-      node('span', 'shop-price-note', purchase, 'Local Shop quote');
       var actions = node('div', 'shop-actions', copy);
-      button(actions, 'Inspect pack', function () { inspectPack(); }, 'shop-inspect');
+      button(actions, 'Inspect pack', function () { navigate(inspectPack, exhibit, { kind: 'pack' }); }, 'shop-inspect');
       if (entitlement()) button(actions, 'Open Titan Pack', openPurchasedPack, 'shop-open-owned');
       else hold(actions, 'Titan Pack', FEATURED_PRICE, 'pack');
-      node('p', 'shop-disabled-note', copy, entitlement() ? 'Purchased pack ready · timer stock stays separate.' : 'One sealed pack at a time. Featured until a future update.');
+      if (entitlement()) node('p', 'shop-disabled-note', copy, 'Ready to open');
       button(copy, 'Daily selection', function () {
         var heading = surface.querySelector('#shop-offers-title');
         if (heading) { heading.scrollIntoView({ behavior: surface.dataset.shopMotion === 'full' ? 'smooth' : 'instant', block: 'start' }); heading.focus({ preventScroll: true }); }
@@ -268,12 +372,11 @@
       area.dataset.newRotation = session.result.isNew ? 'true' : 'false';
       var heading = node('div', 'shop-offers-heading', area);
       var titles = node('div', '', heading);
-      node('span', 'shop-kicker', titles, 'THE DAILY SELECTION');
-      var offersTitle = node('h2', '', titles, 'Your daily offers'); offersTitle.id = 'shop-offers-title'; offersTitle.tabIndex = -1;
+      var offersTitle = node('h2', '', titles, 'Daily offers'); offersTitle.id = 'shop-offers-title'; offersTitle.tabIndex = -1;
       var clock = node('div', 'shop-reset', heading);
       node('span', '', clock, 'Resets in');
       session.countdown = node('strong', '', clock, countdown());
-      node('p', 'shop-fixture-note', area, session.result.error || (session.result.isNew ? 'New offers · selected for today' : 'Today’s offers · saved locally'));
+      if (session.result.error) node('p', 'shop-fixture-note', area, session.result.error);
       var grid = node('div', 'shop-offer-grid', area);
       var daily = session.result.snapshot ? session.result.snapshot.offers : [];
       (session.previewState === 'empty' ? [] : session.previewState === 'underfilled' ? daily.slice(0, 2) : daily).forEach(function (offer, index) {
@@ -281,6 +384,7 @@
         if (!C.shopState.eligible(card, card && C.rarity(card.rarity))) {
           var unavailable = node('article', 'shop-offer', grid);
           unavailable.dataset.state = 'disabled';
+          unavailable.dataset.slot = index;
           node('span', 'shop-offer-index', unavailable, String(index + 1).padStart(2, '0') + ' / 04');
           node('h3', '', unavailable, 'Card unavailable');
           node('p', 'shop-offer-state', unavailable, 'This saved offer is no longer in the catalog. It will refresh at local midnight.');
@@ -289,25 +393,28 @@
         var tile = node('article', 'shop-offer', grid);
         arrive(tile, index);
         tile.dataset.rarity = card.rarity;
+        tile.dataset.slot = index; tile.dataset.price = offer.price;
+        tile.dataset.rarityRank = C.data.rarities.findIndex(function (rarity) { return rarity.id === card.rarity; });
         var state = index === 0 && previewLabels[session.previewState] ? session.previewState : offer.purchased ? 'purchased' : 'normal';
         tile.dataset.state = state;
         if (state === 'loading') tile.setAttribute('aria-busy', 'true');
         var thumb = node('button', 'shop-offer-art', tile); thumb.type = 'button';
         thumb.setAttribute('aria-label', 'Inspect ' + card.name + ', ' + C.rarity(card.rarity).name);
-        thumb.addEventListener('click', function () { inspectCard(card, offer); });
+        thumb.addEventListener('click', function () { navigate(function () { inspectCard(card, offer); }, view.el, { kind: 'card', id: card.id }); });
         reactive(thumb);
         var view = C.cardView.create(card, previewInstance(card, offer), { thumbnail: true, owned: false, keyboardFlip: false, autoFocus: false });
         view.el.inert = true;
+        matchObject(view.el, 'card', card.id);
         thumb.appendChild(view.el); session.views.push(view);
         var meta = node('div', 'shop-offer-meta', tile);
         node('span', 'shop-offer-index', meta, String(index + 1).padStart(2, '0') + ' / 04');
         node('span', 'shop-offer-rarity', meta, C.rarity(card.rarity).name);
         node('h3', '', tile, card.name);
         var copies = C.state.current.inventory.filter(function (item) { return item.cardId === card.id; }).length;
-        var copiesLabel = node('p', 'shop-offer-variant', tile, (offer.variantId ? C.variant(offer.variantId).name : 'Standard finish') + ' · ' + copies + ' owned');
+        var copiesLabel = node('p', 'shop-offer-variant', tile, (offer.variantId ? C.variant(offer.variantId).name : 'Standard') + (copies ? ' · ' + copies + ' owned' : ''));
         price(tile, offer.price);
         var actions = node('div', 'shop-offer-actions', tile);
-        var inspect = button(actions, 'Inspect', function () { inspectCard(card, offer); }, 'shop-inspect');
+        var inspect = button(actions, 'Inspect', function () { navigate(function () { inspectCard(card, offer); }, view.el, { kind: 'card', id: card.id }); }, 'shop-inspect');
         inspect.setAttribute('aria-label', 'Inspect ' + card.name);
         var control = hold(actions, card.name, offer.price, 'card', offer, tile, copiesLabel);
         if (state !== 'normal' && session.previewState !== 'normal') { control.disabled = true; control.title = previewLabels[state] + ' · UI state preview'; }
@@ -316,11 +423,12 @@
         var empty = C.ui.create('empty-state', { label: session.result.error || 'The catalog has fewer than four eligible cards. Daily offers are unavailable.' });
         grid.appendChild(empty);
       }
+      arrangeOffers();
     }
     function renderShop(focus) {
       clearContent(); session.selected = null;
       var scroll = node('div', 'shop-scroll', surface);
-      var refreshBalance = chrome(scroll, 'The Shop');
+      var refreshBalance = chrome(scroll, 'Shop');
       hero(scroll); offers(scroll); footer(scroll);
       session.result.isNew = false;
       session.refreshBalance = refreshBalance;
@@ -336,22 +444,21 @@
       stage.style.setProperty('--pack-width', 'min(52vw, 260px)');
       stage.style.setProperty('--pack-height', 'calc(var(--pack-width) * 1.48)');
       C.packMarkup.unit(stage, false, C.pack('titan'));
+      matchObject(stage, 'pack');
       var copy = node('div', 'shop-detail-copy', detail);
-      node('span', 'shop-kicker', copy, 'PACK / HALO SERIES');
+      node('span', 'shop-kicker', copy, 'Titan Pack');
       node('h2', '', copy, 'TITAN: FIRST CONTACT');
-      node('p', '', copy, C.pack('titan').introText);
-      node('p', 'shop-detail-fact', copy, 'Authentic Titan Pack · 17 curated GPU designs · serial assigned on opening');
-      price(copy, FEATURED_PRICE); node('small', 'shop-price-note', copy, 'Local Shop quote');
+      node('p', 'shop-detail-fact', copy, '17 designs · 1 card');
+      price(copy, FEATURED_PRICE);
       var actions = node('div', 'shop-actions', copy);
-      button(actions, 'Back to shop', function () { renderShop(true); }, 'shop-back');
+      button(actions, 'Back to shop', function () { navigate(function () { renderShop(true); }, stage, { kind: 'pack' }); }, 'shop-back');
       if (entitlement()) button(actions, 'Open Titan Pack', openPurchasedPack, 'shop-open-owned');
       else hold(actions, 'Titan Pack', FEATURED_PRICE, 'pack');
       var vault = node('details', 'shop-vault', scroll); vault.open = true;
-      node('summary', '', vault, 'Inside the vault · 17 designs');
+      node('summary', '', vault, '17 designs');
       var browse = node('div', 'shop-vault-browse', vault);
       var preview = node('div', 'shop-vault-card', browse);
       var catalog = node('div', 'shop-vault-copy', browse);
-      node('span', 'shop-kicker', catalog, 'THE TITAN POOL');
       var name = node('h3', '', catalog), rarity = node('p', 'shop-vault-rarity', catalog);
       var chooser = node('select', 'shop-vault-select', catalog); chooser.setAttribute('aria-label', 'Preview a Titan design');
       var pool = C.pack('titan').pool.cardIds.map(C.card).filter(Boolean), current = 0, previewView = null;
@@ -360,14 +467,14 @@
       button(nav, 'Previous Titan design', function () { showDesign((current + pool.length - 1) % pool.length); }, 'shop-vault-prev', 'chevron');
       var count = node('span', 'shop-vault-count', nav);
       button(nav, 'Next Titan design', function () { showDesign((current + 1) % pool.length); }, 'shop-vault-next', 'chevron');
-      node('p', 'shop-vault-note', catalog, 'Preview the Titan catalog. Your card and finish are rolled when you open the pack.');
+      node('p', 'shop-vault-note', catalog, 'Pool preview · opening rolls one card');
       function showDesign(index) {
         current = index; chooser.value = index;
         if (previewView) { previewView.destroy(); session.views = session.views.filter(function (view) { return view !== previewView; }); }
         var card = pool[index]; if (!card) return;
         previewView = C.cardView.create(card, previewInstance(card, { variantId: null, cardSkinId: null }), { thumbnail: true, owned: false, keyboardFlip: false });
         preview.appendChild(previewView.el); session.views.push(previewView);
-        name.textContent = card.name; rarity.textContent = C.rarity(card.rarity).name + ' · Standard finish preview';
+        name.textContent = card.name; rarity.textContent = C.rarity(card.rarity).name;
         count.textContent = String(index + 1).padStart(2, '0') + ' / ' + pool.length;
         preview.getAnimations().forEach(function (animation) { animation.cancel(); });
         if (surface.dataset.shopMotion === 'full') animate(preview, [
@@ -386,6 +493,7 @@
       var stage = node('div', 'shop-detail-card', detail);
       var view = C.cardView.create(card, previewInstance(card, offer), { owned: false, independent: true, autoFocus: false, canFlip: true });
       stage.appendChild(view.el); session.views.push(view); view.applyMode('full');
+      matchObject(view.el, 'card', card.id);
       var turn = button(stage, 'Turn card', function () {
         view.flip();
       }, 'shop-turn-card');
@@ -399,19 +507,21 @@
       var copy = node('div', 'shop-detail-copy', detail);
       node('span', 'shop-kicker', copy, C.rarity(card.rarity).name.toUpperCase() + ' / ' + card.generation.toUpperCase());
       node('h2', '', copy, card.name);
-      node('p', '', copy, (offer.variantId ? C.variant(offer.variantId).name : 'Standard finish') + ' · source card from the Cardable catalog.');
+      node('p', '', copy, offer.variantId ? C.variant(offer.variantId).name : 'Standard');
       var specs = node('dl', 'shop-specs', copy);
       C.cardSpecs.frontRows(card).forEach(function (row) {
         var line = node('div', '', specs); node('dt', '', line, row.label); node('dd', '', line, row.value);
       });
-      node('p', 'shop-detail-fact', copy, 'This exact finish is included. A unique serial is assigned when the purchase saves.');
       var copies = C.state.current.inventory.filter(function (item) { return item.cardId === card.id; }).length;
-      node('p', 'shop-detail-owned', copy, copies + ' currently owned');
-      price(copy, offer.price); node('small', 'shop-price-note', copy, 'Saved daily quote');
+      if (copies) node('p', 'shop-detail-owned', copy, copies + ' owned');
+      price(copy, offer.price);
       session.expired = node('p', 'shop-offer-state', copy, 'This offer is no longer current. Return to the Shop for today’s offers.');
       session.expired.hidden = C.shopState.dayKey() === session.selected.dayKey;
       var actions = node('div', 'shop-actions', copy);
-      button(actions, 'Back to shop', function () { renderShop(); var tile = Array.from(surface.querySelectorAll('.shop-offer')).find(function (el) { return el.querySelector('h3') && el.querySelector('h3').textContent === card.name; }); var target = tile && tile.querySelector('.shop-inspect'); if (target) target.focus({ preventScroll: true }); }, 'shop-back');
+      button(actions, 'Back to shop', function () { navigate(function () {
+        renderShop(); var tile = Array.from(surface.querySelectorAll('.shop-offer')).find(function (el) { return el.querySelector('h3') && el.querySelector('h3').textContent === card.name; });
+        var target = tile && tile.querySelector('.shop-inspect'); if (target) target.focus();
+      }, view.el, { kind: 'card', id: card.id }); }, 'shop-back');
       var control = hold(actions, card.name, offer.price, 'card', offer);
       if (!session.expired.hidden) { control.disabled = true; control.title = 'Offer expired'; }
       footer(scroll); actions.querySelector('button').focus({ preventScroll: true });
@@ -420,19 +530,25 @@
     renderShop();
     session.presentation = C.ui.present(surface, { anchor: origin, onClose: function () {
       if (active !== session) return;
+      if (session.transition) session.transition.skipTransition();
       root.clearInterval(session.ticker); if (session.offSave) session.offSave();
       if (session.offReplace) session.offReplace();
       if (session.offFrame) session.offFrame();
       if (session.offMotion) session.offMotion();
       if (session.offSettings) session.offSettings();
+      if (session.offSaveError) session.offSaveError();
       root.document.removeEventListener('visibilitychange', sync);
       root.removeEventListener('focus', sync);
+      root.removeEventListener('blur', cancelledHold);
+      root.document.removeEventListener('pointercancel', cancelledHold);
+      root.document.removeEventListener('pointerup', cancelledHold);
       clearContent(); active = null;
       C.packView.setVisible(packWasVisible);
     }});
     refreshControls();
     function sync() {
       surface.dataset.shopHidden = root.document.hidden ? 'true' : 'false';
+      if (root.document.hidden && session.transition) session.transition.skipTransition();
       session.animations.forEach(function (animation) {
         if (root.document.hidden) animation.pause(); else if (animation.playState === 'paused') animation.play();
       });
@@ -469,10 +585,26 @@
     }
     root.document.addEventListener('visibilitychange', sync);
     root.addEventListener('focus', sync);
+    function cancelledHold() {
+      root.queueMicrotask(function () { if (active === session && !session.locked) refreshControls(); });
+    }
+    root.addEventListener('blur', cancelledHold);
+    root.document.addEventListener('pointercancel', cancelledHold);
+    root.document.addEventListener('pointerup', cancelledHold);
     session.offSave = C.events.on('save:written', sync);
     session.offMotion = C.events.on('motion:changed', motionPolicy);
-    session.offSettings = C.events.on('settings:changed', motionPolicy);
+    session.offSettings = C.events.on('settings:changed', function (event) {
+      motionPolicy();
+      if (!/^shop(Layout|Motion|Sort)$/.test(event.key)) return;
+      session.holds.forEach(function (control) { if (control.confirmation) control.confirmation.cancel(); });
+      surface.querySelectorAll('.shop-option-select').forEach(function (select) { select.value = C.settings.getRequested(select.dataset.setting); });
+      arrangeOffers(); refreshControls();
+    });
+    session.offSaveError = C.events.on('save:error', refreshControls);
     session.offReplace = C.events.on('save:replaced', function () {
+      session.navigation = (session.navigation || 0) + 1;
+      if (session.transition) session.transition.skipTransition();
+      session.transitionTarget = null;
       session.result = C.shopState.ensure();
       if (!session.selected) session.renderShop();
       else if (session.selected === 'receipt') { session.locked = false; session.renderShop(true); }

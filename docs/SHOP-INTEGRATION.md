@@ -1,5 +1,7 @@
 # Daily Shop integration contract
 
+October 13 follow-up: `src/data/settings-layout.js` adds three namespaced Shop preferences on the Gameplay page (`shopLayout`, `shopMotion`, `shopSort`). Preserve them when reconciling Market settings changes; no save-schema bump is required. Shop retries only the existing `C.state.save()` route after an explicit Retry save action. A rejected purchase remains rejected; no debit, mint, receipt or entitlement is replayed. Scene transitions are UI-only, feature detected, interruptible and sequenced after the durable purchase result. Current evidence is in [SHOP-CINEMA](SHOP-CINEMA.md).
+
 The Shop is an offline NPC sale against the existing Credits balance and local collection. Stage 2 freezes four daily quotes; Stage 3 spends and delivers them. It has no Market, listing, trade-fee, top-up or network dependency.
 
 ## Saved shape and quote boundary

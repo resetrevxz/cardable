@@ -31,7 +31,7 @@ async function ready(page) {
     const item = await page.evaluate(() => {
       const sheet = document.querySelector('.shop-screen');
       const scroll = document.querySelector('.shop-scroll');
-      const buttons = [...sheet.querySelectorAll('button')].filter(button => !button.disabled);
+      const buttons = [...sheet.querySelectorAll('button')].filter(button => !button.disabled && button.getClientRects().length);
       return { sheetWidth: sheet.getBoundingClientRect().width,
         scrollWidth: scroll.scrollWidth, clientWidth: scroll.clientWidth,
         offers: sheet.querySelectorAll('.shop-offer').length,

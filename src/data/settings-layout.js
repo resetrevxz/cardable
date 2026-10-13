@@ -27,6 +27,9 @@
   add('shelfCaptions', 'Card captions', 'The name and tier under each card in the inventory shelf and grid.', true);
   add('settingsSide', 'Settings side', 'Dock this panel on the left or the right of the game.', 'left', ['left', 'right']);
   add('settingsPreviews', 'Setting previews', 'The live preview at the bottom of Settings. Its arrow folds it away too.', true);
+  add('shopLayout', 'Shop layout', 'Show the full Titan stage or leave more room for daily cards.', 'showroom', ['showroom', 'compact'], 'select');
+  add('shopMotion', 'Shop motion', 'Cinematic transitions follow your graphics and reduced-motion settings. Quiet keeps the stage still.', 'cinematic', ['cinematic', 'quiet'], 'select');
+  add('shopSort', 'Shop offer order', 'Arrange the same four saved offers. Prices and purchases stay with their original offer.', 'daily', ['daily', 'price-asc', 'price-desc', 'rarity-desc'], 'select');
   C.data.accentColors = { periwinkle: ['#ADC4FF', '173,196,255'], mint: ['#9ADCC0', '154,220,192'], amber: ['#F1CF99', '241,207,153'],
     rose: ['#F3ADB8', '243,173,184'], lavender: ['#C7A9FF', '199,169,255'], sky: ['#8FD3F4', '143,211,244'],
     lime: ['#C5E59A', '197,229,154'], pearl: ['#EDEDF2', '237,237,242'] };
@@ -75,6 +78,7 @@
   s.studioGizmoSize.format = function (value) { return Number(value) * 100 + '%'; };
   s.studioAutosave.format = function (value) { return String(value); };
   s.holdDuration.format = named({ normal: '3 s', 'short': '2 s', quick: '1 s' });
+  s.shopSort.format = named({ daily: 'Daily order', 'price-asc': 'Lowest price', 'price-desc': 'Highest price', 'rarity-desc': 'Rarest first' });
   s.timeFormat.format = named(); s.numberFormat.format = named({ current: 'Keep current', full: '12,345', abbreviated: '12.3K' });
   s.interfaceSize.unit = '%'; s.tiltStrength.unit = '%'; s.uiAnimationSpeed.unit = '×';
 
@@ -148,6 +152,7 @@
       { title: 'Cards', keys: ['serialOnFront', 'confirmLowDelete'] },
       { title: 'Notices', keys: ['achievementToasts', 'toastPosition', 'notifyPackReady'].filter(function (key) { return !(s[key] && s[key].retired); }) },
       { title: 'Collection', keys: ['defaultSort', 'defaultView', 'defaultTagMode', 'startupScreen'] },
+      { title: 'Shop', keys: ['shopLayout', 'shopMotion', 'shopSort'] },
       { title: 'Formats', keys: ['timeFormat', 'dateFormat', 'numberFormat'] } ] },
     { id: 'Controls', icon: 'keyboard', advanced: true, blurb: 'Two keys for every action.', sections: [{ title: 'Keyboard', slot: 'bindings', keys: [] }] },
     { id: 'Accessibility', icon: 'access', blurb: 'Clearer, calmer, easier to read.', sections: [

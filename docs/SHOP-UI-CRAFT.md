@@ -1,5 +1,7 @@
 # Shop collection room — UI refinement
 
+Historical first refinement. The later [composition and save-retry pass](SHOP-CINEMA.md) replaces its ornamental copy and display plates; its screenshots below retain the earlier design.
+
 2026-10-13 · `feature/daily-shop` · follow-up to Stage 4 commit `d193606`.
 
 The Shop now has a stronger Titan title lockup, a machined exhibit stage, and four card display plates with fine dividers. Artwork opens inspection directly. Prices stay beside the controls; compact purchase labels remove the repeated price from every button while their accessible names still state the exact item and cost.
