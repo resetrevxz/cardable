@@ -68,6 +68,20 @@ Every family has a purpose, anatomy, variants, states, keyboard/accessible namin
 
 ## 6. Patterns
 
+### Cardable Studio, Director reborn Stage 1
+
+The Studio uses the same ink, text, accent, focus, radii and spacing tokens as the game. The stage and collectible lead. A quiet header carries instance identity, Undo/Redo, Presets, Preview, Photo and Exit; Workspace discloses scenes, history, quality and panel controls. Set, Light, Camera, Animate, Look and Deliver form one predictable page strip. The viewport tool strip occupies its own row so it cannot obscure the card or its tags. Local Studio layout styles live in `src/ui/kit/components/studio-reborn.css`.
+
+Inspector controls have readable 12 px labels, finite typed values, bounded scrubbing, a native slider where appropriate and a named reset action. Drag a numeric label to scrub; Shift is fine and Ctrl/Cmd is coarse. Arrow keys nudge a focused label; Enter/Space or double-click resets. A scrub or slider gesture creates one history command. An empty number draft restores the last valid value. Native color pickers and hex fields remain synchronized with HSV controls; invalid hex text has adjacent feedback. Scene swatches represent actual light colors. They are distinct from the saved UI accent.
+
+Groups fold within a contained inspector and retain their state without resizing the stage. Panel widths use bounded pointer or arrow-key separators. The preset browser is a narrow sheet with real composition tiles, search, six named categories, explicit application semantics and a compact disclosure for saving, importing and seeded variations. Source validation and actual rendered validation are separate. Tiles render at the active tier, load their own bounded companion-card artwork and show sampled poses for motion. Preview errors are labelled instead of being disguised as another composition.
+
+Scene replacement, adding lights and applying a color look affect different domains. Each is one undoable action, with a named history readout and precise Undo/Redo hints. The application choice resets when the preset category changes. Original/grade comparison has a draggable divider and native keyboard slider. Immersive Preview hides tools and panels; Escape returns to the workspace. It never changes the saved scene or mode preference.
+
+All controls have meaningful names and strong focus. Studio tooltips use the kit styling and a scoped 400 ms hover/focus owner that releases on exit. Color and saved monochrome convey the same selected and disabled states. Low tiers keep solid surfaces; reduced motion removes decorative transitions. Thumbnail and capture work stay bounded and use the existing scheduler. The UI gallery’s **Studio precision controls** entry opens the live Studio numeric/slider/reset/history components on a local specimen, without editing a collected card or save.
+
+Backdrop position, local offset, rotation and scale belong to the backdrop, independently of camera and card transforms. Older scenes normalize to the identity transform and original stage. A solid background remains uniform when translated; stage, sweep and grid backgrounds visibly move in both WebGL and the Simple fallback. The detailed scene contract and actual acceptance evidence are recorded in [Director Stage 1](docs/DIRECTOR-STAGE-1.md). Later stages can add the full Simple/Advanced background workflow on this contract.
+
 ### Shop showroom and acquisition (Stages 1–4)
 
 `C.shop.open()` presents one kit sheet over the menu, and `C.shop.close()` releases it. The menu Shop button is the discoverable entry. The sheet uses `Cardable.ui.present` for the modal input shield, keyboard trap, Escape and focus return. The shop owns one contained scroll surface; its top row separates navigation, wallet readout and help from the physical object stage. The featured Titan exhibit uses the actual `titan` pack renderer. Four static, art-only `C.cardView` thumbnails form the daily selection; focused inspection alone mounts a full card. The UI gallery has a Shop showroom entry.

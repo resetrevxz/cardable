@@ -45,7 +45,7 @@
     }, { passive: false });
     s.cleanups.push(C.events.on('studio:albumContext',function(e){if(e.active&&s.recordJob)s.recordJob.stop(true);s.lastFrame=null;dirty();}));s.cleanups.push(C.events.on('fx:visibility', function (visible) { end();if(s.workspace)s.workspace.cancel(false); s.gizmos.cancel();if(!visible&&s.photoJob)s.photoJob.cancel();if(!visible&&s.recordJob)s.recordJob.stop(true); s.lastFrame = null; if (visible) dirty(); }));
     s.cleanups.push(C.events.on('motion:changed', function () { if(C.motion.reduced)s.director.pause();dirty(); if (s.selected) inspector(s.selected, s.selectedId); }));
-    s.cleanups.push(C.events.on('settings:changed', function (change) { if(change.key==='quality')quality();else if(change.key==='strobing'||change.key==='animationQuality')dirty(); }));
+    s.cleanups.push(C.events.on('settings:changed', function (change) { if(change.key==='quality')quality();else if(change.key==='rarityColor')repaint();else if(change.key==='strobing'||change.key==='animationQuality')dirty(); }));
     if (root.ResizeObserver) { s.observer = new root.ResizeObserver(resize); s.observer.observe(s.viewport); }
     s.cleanups.push(C.viewport.onResize(resize));
   }
