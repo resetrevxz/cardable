@@ -60,18 +60,19 @@ export async function deleteAlert(env, who, id) {
 // The inbox holds it until the game is opened; there is no push channel.
 //
 // The place an alert has reached is a position in the event log (`seq`, assigned in commit order), never a clock
-// reading, so it cannot move past a listing that committed late. It advances only over events that were actually
-// examined: a look covers at most WINDOW events and notifies at most PER_ALERT new matches, and when the notification
-// limit is reached the alert stops AT the last match it reported, so the rest are found on the next look.
+// reading, so it cannot move past a listing that committed late. A look reads ONE row per listing, in event order,
+// at most EXAMINE of them, and filters them in SQL; the alert's place advances only over listings it examined, or up to
+// the last match it reported when it reported the limit. Nothing is skipped to "catch up": whatever other players do to
+// the market can delay a look, never make it miss a listing.
 const PER_CALL = 8;       // alerts looked at per request, longest-unchecked first, so all of a player's alerts get a turn
 const PER_ALERT = 5;      // new matches one alert reports in one look
-const WINDOW = 250;       // events one look examines
-const BACKLOG = 2000;     // an alert that has been away longer than this many events starts from the newest of them
+const EXAMINE = 500;      // listings one look examines (smaller only in the test environment, to exercise the run)
+const examineOf = (env) => (env.ENVIRONMENT === 'test' && Number(env.ALERT_EXAMINE) > 0 ? Number(env.ALERT_EXAMINE) : EXAMINE);
 
 function conditions(a, me) {
-  const where = ["l.status = 'active'", 'l.seller_id <> ?'], binds = [me];
+  const where = ['l.seller_id <> ?'], binds = [me];
   if (a.kind === 'price') {
-    where.push('l.card_id = ?', "l.kind <> 'swap'", 'l.price <= ?'); binds.push(a.card_id, a.max_price);
+    where.push("l.kind <> 'swap'", 'l.price <= ?'); binds.push(a.max_price);
     if (a.variant_id) { where.push('l.variant_id = ?'); binds.push(a.variant_id); }
     return { where, binds };
   }
@@ -95,29 +96,36 @@ export async function evaluateOwnAlerts(env, who, now) {
   const due = (await env.DB.prepare('SELECT * FROM alerts WHERE account_id = ? AND active = 1 AND (last_look_at IS NULL OR last_look_at <= ?) ORDER BY COALESCE(last_look_at, 0) LIMIT ?')
     .bind(who.accountId, now - gap, PER_CALL).all()).results;
   if (!due.length) return 0;
-  // The end of what is visible now. A look never goes past it, so it never claims to have seen what it did not read.
+  // The end of what is visible now: a look that has examined everything up to here stands at here.
   const top = (await env.DB.prepare('SELECT COALESCE(MAX(seq), 0) AS n FROM listing_events').first()).n;
   let fired = 0;
+  const EXAMINE_N = examineOf(env);
   for (const a of due) {
-    const lo = Math.max(a.checked_seq, top - BACKLOG), hi = Math.min(top, lo + WINDOW);
-    let reached = hi, statements = [];
-    if (hi > lo) {
-      const c = conditions(a, who.accountId);
-      // already-reported listings are left out here, so the limit counts only matches that are new
-      const rows = (await env.DB.prepare('SELECT l.id, l.card_id, l.price, MAX(e.seq) AS seq, MAX(e.at) AS at FROM listing_events e JOIN listings l ON l.id = e.listing_id ' +
-        'WHERE e.seq > ? AND e.seq <= ? AND l.ends_at > ? AND ' + c.where.join(' AND ') + ' AND NOT EXISTS (SELECT 1 FROM alert_hits h WHERE h.alert_id = ? AND h.listing_id = l.id) ' +
-        'GROUP BY l.id ORDER BY MAX(e.seq) LIMIT ' + PER_ALERT).bind(lo, hi, now, ...c.binds, a.id).all()).results;
-      rows.forEach((L) => {
-        statements.push(env.DB.prepare('INSERT OR IGNORE INTO alert_hits (alert_id, listing_id, at) VALUES (?, ?, ?)').bind(a.id, L.id, L.at));
-        // written only when this is the first hit of this alert on this listing, by selecting on the row just inserted
-        statements.push(env.DB.prepare("INSERT INTO notifications (account_id, at, kind, body, ref) SELECT ?, ?, 'price', ?, ? WHERE (SELECT changes()) = 1").bind(a.account_id, L.at,
-          (a.kind === 'price' ? 'Price alert: ' : 'Saved search: ') + nameOf(L.card_id) + ' is listed at ' + L.price + ' Credits' + (a.label ? ' (' + a.label + ')' : '') + '.', L.id));
-      });
-      if (rows.length === PER_ALERT) reached = rows[rows.length - 1].seq;   // more may follow: continue from the last one reported
-      fired += rows.length;
-    }
-    statements.push(env.DB.prepare('UPDATE alerts SET checked_seq = ?, last_look_at = ?, last_hit_at = CASE WHEN ? > 0 THEN ? ELSE last_hit_at END WHERE id = ?').bind(Math.max(reached, a.checked_seq), now, statements.length ? 1 : 0, now, a.id));
+    const c = conditions(a, who.accountId), scope = a.kind === 'price' ? 'AND card_id = ?' : '', scopeBind = a.kind === 'price' ? [a.card_id] : [];
+    // the examined run: this alert's listings in event order, whatever they are; the filter and the limit come after it
+    const run = "(SELECT * FROM listings WHERE status = 'active' AND event_seq > ? " + scope + ' ORDER BY event_seq LIMIT ' + EXAMINE_N + ') l';
+    const [matched, span] = await env.DB.batch([
+      env.DB.prepare('SELECT l.id, l.card_id, l.price, l.event_seq AS seq FROM ' + run + ' WHERE l.ends_at > ? AND ' + c.where.join(' AND ') +
+        ' AND NOT EXISTS (SELECT 1 FROM alert_hits h WHERE h.alert_id = ? AND h.listing_id = l.id) ORDER BY l.event_seq LIMIT ' + PER_ALERT)
+        .bind(a.checked_seq, ...scopeBind, now, ...c.binds, a.id),
+      env.DB.prepare('SELECT COUNT(*) AS n, MAX(event_seq) AS last FROM (SELECT event_seq FROM listings WHERE status = \'active\' AND event_seq > ? ' + scope + ' ORDER BY event_seq LIMIT ' + EXAMINE_N + ')')
+        .bind(a.checked_seq, ...scopeBind)
+    ]);
+    const rows = matched.results, examined = span.results[0];
+    let reached;
+    if (rows.length === PER_ALERT) reached = rows[rows.length - 1].seq;          // more may follow: continue from the last one reported
+    else if (examined.n >= EXAMINE_N) reached = examined.last;                      // the run was full: continue after it
+    else reached = Math.max(top, a.checked_seq);                                 // everything visible was examined
+    const statements = [];
+    rows.forEach((L) => {
+      statements.push(env.DB.prepare('INSERT OR IGNORE INTO alert_hits (alert_id, listing_id, at) VALUES (?, ?, ?)').bind(a.id, L.id, now));
+      // written only when this is the first hit of this alert on this listing, by selecting on the row just inserted
+      statements.push(env.DB.prepare("INSERT INTO notifications (account_id, at, kind, body, ref) SELECT ?, ?, 'price', ?, ? WHERE (SELECT changes()) = 1").bind(a.account_id, now,
+        (a.kind === 'price' ? 'Price alert: ' : 'Saved search: ') + nameOf(L.card_id) + ' is listed at ' + L.price + ' Credits' + (a.label ? ' (' + a.label + ')' : '') + '.', L.id));
+    });
+    statements.push(env.DB.prepare('UPDATE alerts SET checked_seq = ?, last_look_at = ?, last_hit_at = CASE WHEN ? > 0 THEN ? ELSE last_hit_at END WHERE id = ?').bind(Math.max(reached, a.checked_seq), now, rows.length, now, a.id));
     await env.DB.batch(statements);
+    fired += rows.length;
   }
   return fired;
 }

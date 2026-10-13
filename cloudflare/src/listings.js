@@ -126,6 +126,9 @@ export async function createListing(env, who, key, body, now, options) {
     const rows = (await env.DB.prepare('SELECT id, card_id, variant_id, skin_id, serial, pack_id, pulled_at, state, owner_id FROM instances WHERE id IN (' + placeholders(ids.length) + ')').bind(...ids).all()).results;
     if (rows.length !== ids.length || rows.some((r) => r.owner_id !== who.accountId)) throw new ApiError(409, 'not-owned', 'One of those cards is not in your collection.');
     if (rows.some((r) => r.state !== 'owned')) throw new ApiError(409, 'locked', 'One of those cards is already listed, in an offer or sold.');
+    // a listing is an event every watcher reads, so how fast one player may make them is bounded
+    const lately = (await env.DB.prepare('SELECT COUNT(*) AS n FROM listings WHERE seller_id = ? AND created_at > ?').bind(who.accountId, now - 3600000).first()).n;
+    if (lately >= RULES.limits.listingsPerHour) throw new ApiError(429, 'quota', 'That is a lot of listings for one hour. Try again a little later.', { limit: RULES.limits.listingsPerHour });
     const open = (await env.DB.prepare("SELECT COUNT(*) AS n FROM listings WHERE seller_id = ? AND status = 'active'").bind(who.accountId).first()).n;
     if (open >= RULES.limits.activeListings) throw new ApiError(409, 'limit', 'You can have ' + RULES.limits.activeListings + ' open listings at once.');
     const ordered = ids.map((id) => rows.find((r) => r.id === id));
@@ -146,6 +149,7 @@ export async function createListing(env, who, key, body, now, options) {
       first.card_id, first.variant_id, first.skin_id, rarityOf(first.card_id), ids.length, JSON.stringify(items), now, now + params.ends, now + params.ends, options.relistOf || null,
       serialNumber(first.serial), meta.b, meta.g, tierOf(first.card_id), now);
     tx.add("INSERT INTO listing_events (listing_id, at, kind) VALUES (?, ?, 'listed')", id, now);
+    tx.add('UPDATE listings SET event_seq = (SELECT MAX(seq) FROM listing_events WHERE listing_id = ?1) WHERE id = ?1', id);
     tx.add("UPDATE instances SET state = 'escrow', escrow_ref = ? WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned'", id, ...ids, who.accountId);
     ids.forEach((iid) => tx.add('INSERT INTO listing_items (listing_id, instance_id) VALUES (?, ?)', id, iid));
     return { tx, result: { ok: true, listingId: id, kind, price, endsAt: now + params.ends, items: ids.length } };
@@ -184,7 +188,10 @@ export async function repriceListing(env, who, key, listingId, body, now) {
     const tx = new Tx(env, now);
     guardOpen(tx, L, now);
     tx.add("UPDATE listings SET ask = ?, price = ?, version = version + 1 WHERE id = ? AND status = 'active'", ask, ask, L.id);
-    if (ask < L.ask) tx.add("INSERT INTO listing_events (listing_id, at, kind) VALUES (?, ?, 'repriced')", L.id, now);
+    if (ask < L.ask) {
+      tx.add("INSERT INTO listing_events (listing_id, at, kind) VALUES (?, ?, 'repriced')", L.id, now);
+      tx.add('UPDATE listings SET event_seq = (SELECT MAX(seq) FROM listing_events WHERE listing_id = ?1) WHERE id = ?1', L.id);
+    }
     return { tx, result: { ok: true, listingId: L.id, price: ask, previous: L.ask } };
   }).then(async (res) => {
     if (!res.replayed && res.price < res.previous) {

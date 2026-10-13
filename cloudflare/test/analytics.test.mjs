@@ -114,8 +114,8 @@ test('quantiles and medians are what they say', () => {
 });
 
 // ---- the endpoints, on a database with labeled fixtures ------------------------------------------------------------------
-let server, cached;
-before(async () => { server = await start(8831, { ALERT_GAP_MS: 0 }); cached = await start(8832, { ANALYTICS_CACHE: 'on' }); });
+let server, cached, tiny;
+before(async () => { server = await start(8831, { ALERT_GAP_MS: 0 }); cached = await start(8832, { ANALYTICS_CACHE: 'on' }); tiny = await start(8833, { ALERT_GAP_MS: 0, ALERT_EXAMINE: 3 }); });
 after(() => stopAll());
 
 // A labeled fixture: n sales of one exact card, ending `endAgo` ms ago, on a given interval, from a price function.
@@ -311,6 +311,24 @@ test('alerts advance over what they examined: a burst is reported in turn, repea
   assert.equal(after.length, 9, 'repriced listings that were already reported do not use up the limit: ' + after.length);
   const seqs = sql(server, 'SELECT (SELECT MAX(seq) FROM listing_events) AS top, (SELECT checked_seq FROM alerts WHERE id = \'' + mk.data.alertId + '\') AS seen')[0];
   assert.ok(seqs.seen <= seqs.top && seqs.seen > 0, 'the watermark is a position in the log');
+});
+
+test('alerts: a flood of other listings only delays a look, it never makes it miss one (a look examines three listings here)', async () => {
+  const names = Object.keys(CATALOG.cards).filter((c) => CATALOG.cards[c] === 'basic' || CATALOG.cards[c] === 'common');
+  const watcher = await player(tiny, {}), noise = await player(tiny, { cards: 8, cardList: names.slice(0, 8) }), seller = await player(tiny, { cards: 1, cardList: [names[8]] });
+  const mk = await call(tiny, 'POST', '/v1/alerts', { kind: 'search', query: { maxPrice: 200 } }, watcher.token);
+  assert.equal(mk.status, 200, mk.text);
+  const now = Date.now() + 8 * HOUR;
+  // eight listings that do not match, then the one that does: the run of three never reaches it in one look
+  for (let i = 0; i < 8; i++) assert.equal((await call(tiny, 'POST', '/v1/listings', { kind: 'fixed', instanceIds: [noise.cards[i].id], ask: 900 + i }, noise.token, { at: now + i })).status, 200);
+  assert.equal((await call(tiny, 'POST', '/v1/listings', { kind: 'fixed', instanceIds: [seller.cards[0].id], ask: 150 }, seller.token, { at: now + 20 })).status, 200);
+  const seen = [];
+  for (let look = 0; look < 6; look++) {
+    const n = (await call(tiny, 'GET', '/v1/activity', null, watcher.token, { at: now + 100 + look })).data.notifications.filter((x) => x.kind === 'price').length;
+    seen.push(n);
+  }
+  assert.equal(seen[0], 0, 'the first look examined only the first three');
+  assert.equal(seen[seen.length - 1], 1, 'and it was found in the end: ' + seen.join(','));
 });
 
 test('search: filters narrow on indexes, pages never repeat or skip, and the plan does not scan the table', async () => {

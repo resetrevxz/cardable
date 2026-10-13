@@ -11,7 +11,7 @@ export const RULES = {
   fee: { bps: E.fee.bps, minFee: E.fee.minFee },
   price: { min: 1, max: 100_000_000 },
   bundle: { max: 6 },
-  limits: { activeListings: 40, openOrders: 12, orderQuantity: 10, pendingOffersPerListing: 20, pendingOffersPerAccount: 20, counterRounds: 6, titleLength: 60, noteLength: 280, messageLength: 140 },
+  limits: { activeListings: 40, listingsPerHour: 60, openOrders: 12, orderQuantity: 10, pendingOffersPerListing: 20, pendingOffersPerAccount: 20, counterRounds: 6, titleLength: 60, noteLength: 280, messageLength: 140 },
   auction: {
     minDurationMs: HOUR, maxDurationMs: 14 * DAY, presetsMs: [12 * HOUR, 24 * HOUR, 48 * HOUR, 72 * HOUR], defaultMs: 24 * HOUR,
     incrementPct: 5, incrementMin: 1, snipeWindowMs: 5 * 60_000, snipeExtendMs: 5 * 60_000, snipeMaxExtensions: 6

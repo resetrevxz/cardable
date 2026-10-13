@@ -66,6 +66,10 @@ CREATE TABLE listing_events (
   kind       TEXT NOT NULL CHECK (kind IN ('listed', 'repriced'))
 );
 CREATE INDEX listing_events_by_listing ON listing_events(listing_id);
+-- A listing's latest event, so an alert reads one row per listing (a burst of changes to one listing is one row).
+ALTER TABLE listings ADD COLUMN event_seq INTEGER NOT NULL DEFAULT 0;
+CREATE INDEX listings_by_event ON listings(status, event_seq);
+CREATE INDEX listings_by_card_event ON listings(card_id, status, event_seq);
 -- Each alert remembers how far along the log it has looked.
 ALTER TABLE alerts ADD COLUMN checked_seq INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE alerts ADD COLUMN last_look_at INTEGER;
