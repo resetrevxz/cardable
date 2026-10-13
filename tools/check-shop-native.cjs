@@ -45,6 +45,13 @@ async function launch() {
   });
   assert.equal(purchase.saved, true); assert.equal(purchase.currency, before.currency - price);
   assert.equal(purchase.receipts, 1);
+  const wanted = await page.evaluate(async cardId => {
+    const C=Cardable,copy=C.state.current.inventory.find(item=>item.instanceId===cardId);
+    const id=C.inventoryModel.create('Native targets',{kind:'wishlist',cardId:copy.cardId,durable:true,activate:false});
+    if(!id)throw Error('Native wishlist could not be saved');
+    const backup=await C.desktop.retryBackup();return {id,saved:backup.success};
+  },purchase.card);
+  assert.equal(wanted.saved,true);
   // Both paths are verified under the test profile above. No player directory is moved.
   fs.renameSync(saves, blocked); fs.writeFileSync(saves, 'temporary native-write rejection');
   const rejected = await page.evaluate(() => Cardable.desktop.retryBackup());
@@ -80,6 +87,19 @@ async function launch() {
     currency: Cardable.state.current.currency, serial: Cardable.state.current.serialCounter,
     receipts: Cardable.state.current.shop.receipts.length, saved: Cardable.state.lastWriteSucceeded }), purchase.card);
   assert.deepEqual(recovered, { copy:true, currency:purchase.currency, serial:purchase.serial, receipts:1, saved:true });
+  assert.equal(await page.evaluate(id=>Cardable.inventoryModel.current.collections.some(item=>item.id===id&&item.kind==='wishlist'),wanted.id),true);
+  await page.locator('#shop-entry').click(); await page.locator('.shop-options-control').click();
+  await page.locator('.shop-save-status-open').click(); await page.locator('.shop-save-check').click();
+  await page.waitForFunction(expected=>{
+    const fields=[...document.querySelectorAll('.shop-save-facts > div')];
+    return fields.some(row=>row.querySelector('dt').textContent==='Data location'&&row.querySelector('dd').textContent===expected);
+  },profile);
+  const status=await page.locator('.shop-save-facts').innerText();
+  assert.match(status,/Present · 1 card/);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const windowHandle=await app.browserWindow(page);
+  const nativeCapture=await windowHandle.evaluate(async window=>(await window.webContents.capturePage()).toPNG().toString('base64'));
+  fs.writeFileSync(path.join(root,'artifacts/shop-save-status-native.png'),Buffer.from(nativeCapture,'base64'));
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ pass:true, nativePurchase:true, mirrorRejected:true, retryRecovered:true,
     primaryStayedValid:true, noPurchaseReplay:true, restart:true, mirrorRestored:true, packaged:!!process.env.CARDABLE_QA_BINARY }));

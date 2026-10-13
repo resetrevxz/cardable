@@ -41,7 +41,7 @@ let browser;
     shop: Cardable.state.current.shop, inventory: Cardable.state.current.inventory, serial: Cardable.state.current.serialCounter }));
   await page.locator('.shop-options-control').click();
   assert.ok(await page.locator('.shop-options-close').evaluate(el => el.getBoundingClientRect().height >= 44));
-  assert.ok(await page.locator('.shop-option-select').evaluateAll(elements => elements.every(el => el.getBoundingClientRect().height >= 44)));
+  assert.ok(await page.locator('.shop-options .shop-option-select').evaluateAll(elements => elements.every(el => el.getBoundingClientRect().height >= 44)));
   await page.locator('.shop-options [data-setting="shopSort"]').selectOption('price-asc');
   const prices = await page.locator('.shop-offer').evaluateAll(tiles => tiles.map(tile => Number(tile.dataset.price)));
   assert.deepEqual(prices, [...prices].sort((a, b) => a - b));

@@ -41,7 +41,7 @@
     surface.dataset.toolSurface = 'shop';
     surface.style.viewTransitionName = 'shop-page';
     var session = { surface: surface, views: [], holds: [], controls: [], cleanups: [], animations: [], locked: false, entered: false, selected: null, presentation: null, ticker: null, status: null, balance: null, countdown: null, offSave: null, previewState: previewState,
-      result: C.shopState.ensure(), offReplace: null };
+      result: C.shopState.ensure(), offReplace: null, wishlists: [] };
     active = session;
     function motionPolicy() {
       var level = C.settings.policy.animation;
@@ -136,6 +136,7 @@
       session.views.forEach(function (view) { view.destroy(); }); session.views = [];
       session.holds.forEach(function (hold) { if (hold.destroy) hold.destroy(); }); session.holds = [];
       session.controls = []; session.actionNote = null; session.expired = null; session.saveNotice = null; session.refreshHistory = null; session.refreshComparison = null;
+      session.wishlists = []; session.refreshSaveDetails = null;
       surface.replaceChildren();
     }
     function announce(message) { if (session.status) session.status.textContent = message; }
@@ -158,6 +159,8 @@
     }
     function refreshControls() {
       if (session.refreshSaveNotice) session.refreshSaveNotice();
+      refreshWishlists();
+      if (session.refreshSaveDetails) session.refreshSaveDetails();
       session.controls.forEach(function (item) {
         if (!item.control.isConnected) return;
         var state = availability(item.kind, item.offer, item.amount);
@@ -296,6 +299,10 @@
         select.addEventListener('change', function () { C.settings.set(key, select.value); });
       });
       button(options, 'Close Shop settings', function () { options.hidden = true; optionsButton.setAttribute('aria-expanded', 'false'); optionsButton.focus({ preventScroll: true }); }, 'shop-options-close', 'close');
+      var markerLabel=node('label','shop-option shop-option--check',options);
+      var markers=node('input','shop-marker-toggle',markerLabel); markers.type='checkbox'; markers.checked=C.settings.get('shopWishlistMarkers');
+      node('span','',markerLabel,'Wishlist marks'); markers.addEventListener('change',function(){C.settings.set('shopWishlistMarkers',markers.checked);});
+      button(options,'Save status',saveStatus,'shop-save-status-open');
       var saveNotice = node('div', 'shop-save-notice', section); saveNotice.hidden = true;
       var message = node('p', '', saveNotice); message.setAttribute('role', 'status');
       var retry = button(saveNotice, 'Retry save', function () {
@@ -410,10 +417,62 @@
       tiles.sort(function (a, b) {
         var difference = order === 'price-asc' ? Number(a.dataset.price) - Number(b.dataset.price) :
           order === 'price-desc' ? Number(b.dataset.price) - Number(a.dataset.price) :
-          order === 'rarity-desc' ? Number(b.dataset.rarityRank) - Number(a.dataset.rarityRank) : 0;
+          order === 'rarity-desc' ? Number(b.dataset.rarityRank) - Number(a.dataset.rarityRank) :
+          order === 'wanted-first' ? Number(C.shopWishlist.wanted(b.dataset.cardId)) - Number(C.shopWishlist.wanted(a.dataset.cardId)) : 0;
         return difference || Number(a.dataset.slot) - Number(b.dataset.slot);
       });
       tiles.forEach(function (tile) { grid.appendChild(tile); });
+    }
+    function refreshWishlists() { session.wishlists.forEach(function (control) { control.refresh(); }); }
+    function wishlist(parent, cardId) {
+      session.wishlists.push(C.shopWishlist.create(parent,cardId,{
+        active:function(){return active===session;},busy:function(){return session.locked||session.retrying;},
+        target:function(){return session.wishlistTarget;},setTarget:function(id){session.wishlistTarget=id;},
+        changed:function(){refreshWishlists();arrangeOffers();},announce:announce
+      }));
+    }
+    function saveStatus() {
+      clearContent(); session.selected='save-status'; session.locked=false;
+      var scroll=node('div','shop-scroll shop-scroll--save',surface);session.refreshBalance=chrome(scroll,'Shop');
+      var area=node('section','shop-save-details',scroll);area.setAttribute('aria-labelledby','shop-save-title');
+      var title=node('h2','',area,'Save status');title.id='shop-save-title';title.tabIndex=-1;
+      var fields=node('dl','shop-save-facts',area), values={};
+      ['Local save','Desktop backup','Save slot','Game file','Data location','Cards','Shop receipts','Local error'].forEach(function(label){
+        var line=node('div','',fields);node('dt','',line,label);values[label]=node('dd','',line);
+      });
+      var nativeSummary=null, nativePath=null, checking=false, epoch=0;
+      function refresh() {
+        if(!area.isConnected)return;
+        var recovery=C.state.recovery&&C.state.recovery.pending;
+        values['Local save'].textContent=recovery?'Recovery pending':C.state.lastWriteSucceeded?'Saved':C.state.lastError&&C.state.lastError.reason==='quota'?'Storage full':'Unavailable';
+        values['Desktop backup'].textContent=!C.desktop.isAvailable?'Browser only':C.config.storage.key!=='cardable.save'?'Not used for this project':desktopBackupFailed()?'Last attempt failed':nativeSummary||'Not checked';
+        values['Save slot'].textContent=C.config.storage.key==='cardable.save'?'Main collection':'Developer project';
+        values['Game file'].textContent=root.location.href.split('?')[0].split('#')[0];
+        values['Data location'].textContent=C.desktop.isAvailable?(nativePath||'Check to show the Windows profile folder'):'This browser’s local storage';
+        values['Cards'].textContent=C.state.current.inventory.length.toLocaleString();
+        values['Shop receipts'].textContent=(C.state.current.shop?C.state.current.shop.receipts.length:0).toLocaleString();
+        values['Local error'].textContent=C.state.lastError?C.state.lastError.reason+(C.state.lastError.operation?' · '+C.state.lastError.operation:''):'None';
+        check.disabled=checking;check.textContent=checking?'Checking…':'Check now';
+      }
+      var actions=node('div','shop-actions',area);
+      var check=button(actions,'Check now',function(){
+        if(checking||active!==session||!area.isConnected)return;
+        if(!C.native){refresh();announce('Local save status checked.');return;}
+        checking=true;var ticket=++epoch;refresh();
+        Promise.allSettled([C.native.app.getPaths(),C.config.storage.key==='cardable.save'?C.native.storage.getBackup():Promise.resolve(null)]).then(function(results){
+          if(active!==session||!area.isConnected||ticket!==epoch)return;
+          checking=false;
+          if(results[0].status==='fulfilled')nativePath=results[0].value.userData;
+          var result=results[1].status==='fulfilled'?results[1].value:null;
+          nativeSummary=!result?'Unavailable':result.error?'Needs recovery':!result.exists?'No backup yet':'Present';
+          if(result&&result.exists&&result.data&&!result.error){try{var stored=JSON.parse(result.data);nativeSummary=Array.isArray(stored.inventory)?'Present · '+stored.inventory.length+(stored.inventory.length===1?' card':' cards'):'Needs recovery';}catch(_){nativeSummary='Needs recovery';}}
+          refresh();announce('Save status checked.');
+        });
+      },'shop-save-check');
+      button(actions,'Data settings',function(){session.presentation.close();root.queueMicrotask(function(){C.openSettings('Data');});},'shop-save-data-open');
+      button(actions,'Back to shop',function(){renderShop(true);},'shop-back');
+      node('p','shop-save-guidance',area,'Export your save from Data settings. Studio photos have a separate export in the Album.');
+      session.refreshSaveDetails=refresh;refresh();footer(scroll);title.focus({preventScroll:true});
     }
     function history() {
       clearContent(); session.selected = 'history'; session.locked = false;
@@ -557,7 +616,7 @@
         }
         var tile = node('article', 'shop-offer', grid);
         arrive(tile, index);
-        tile.dataset.rarity = card.rarity;
+        tile.dataset.rarity = card.rarity; tile.dataset.cardId=card.id;
         tile.dataset.slot = index; tile.dataset.price = offer.price;
         tile.dataset.rarityRank = C.data.rarities.findIndex(function (rarity) { return rarity.id === card.rarity; });
         var state = index === 0 && previewLabels[session.previewState] ? session.previewState : offer.purchased ? 'purchased' : 'normal';
@@ -582,6 +641,7 @@
         var inspect = button(actions, 'Inspect', function () { navigate(function () { inspectCard(card, offer); }, view.el, { kind: 'card', id: card.id }); }, 'shop-inspect');
         inspect.setAttribute('aria-label', 'Inspect ' + card.name);
         var control = hold(actions, card.name, offer.price, 'card', offer, tile, copiesLabel);
+        wishlist(tile,card.id);
         if (state !== 'normal' && session.previewState !== 'normal') { control.disabled = true; control.title = previewLabels[state] + ' · UI state preview'; }
       });
       if (!grid.children.length) {
@@ -598,6 +658,7 @@
       session.result.isNew = false;
       session.refreshBalance = refreshBalance;
       if (focus) (focus.isConnected ? focus : surface.querySelector('.shop-close')).focus({ preventScroll: true });
+      refreshWishlists();
     }
     function inspectPack() {
       clearContent(); session.selected = 'pack';
@@ -681,6 +742,7 @@
       var copies = C.state.current.inventory.filter(function (item) { return item.cardId === card.id; }).length;
       if (copies) node('p', 'shop-detail-owned', copy, copies + ' owned');
       price(copy, offer.price);
+      wishlist(copy,card.id);
       session.expired = node('p', 'shop-offer-state', copy, 'This offer is no longer current. Return to the Shop for today’s offers.');
       session.expired.hidden = C.shopState.dayKey() === session.selected.dayKey;
       var actions = node('div', 'shop-actions', copy);
@@ -709,6 +771,7 @@
       if (session.offSaveError) session.offSaveError();
       if (session.offBackupError) session.offBackupError();
       if (session.offBackupRecovered) session.offBackupRecovered();
+      if (session.offWishlists) session.offWishlists();
       root.document.removeEventListener('visibilitychange', sync);
       root.removeEventListener('focus', sync);
       root.removeEventListener('blur', cancelledHold);
@@ -771,14 +834,16 @@
     session.offSettings = C.events.on('settings:changed', function (event) {
       motionPolicy();
       if (event.key === 'shopCompareDifferences' && session.refreshComparison) session.refreshComparison();
+      if(event.key==='shopWishlistMarkers'){refreshWishlists();var markers=surface.querySelector('.shop-marker-toggle');if(markers)markers.checked=C.settings.get('shopWishlistMarkers');}
       if (!/^shop(Layout|Motion|Sort)$/.test(event.key)) return;
       session.holds.forEach(function (control) { if (control.confirmation) control.confirmation.cancel(); });
-      surface.querySelectorAll('.shop-option-select').forEach(function (select) { select.value = C.settings.getRequested(select.dataset.setting); });
+      surface.querySelectorAll('.shop-options .shop-option-select[data-setting]').forEach(function (select) { select.value = C.settings.getRequested(select.dataset.setting); });
       arrangeOffers(); refreshControls();
     });
     session.offSaveError = C.events.on('save:error', refreshControls);
     session.offBackupError = C.events.on('desktop:storageError', refreshControls);
     session.offBackupRecovered = C.events.on('desktop:storageRecovered', refreshControls);
+    session.offWishlists=C.events.on('inventory:collectionsChanged',function(){refreshWishlists();arrangeOffers();});
     session.offReplace = C.events.on('save:replaced', function () {
       session.navigation = (session.navigation || 0) + 1;
       if (session.transition) session.transition.skipTransition();
@@ -787,6 +852,7 @@
       if (!session.selected) session.renderShop();
       else if (session.selected === 'history') history();
       else if (session.selected === 'compare') comparison();
+      else if (session.selected === 'save-status') saveStatus();
       else if (session.selected === 'receipt') { session.locked = false; session.renderShop(true); }
       else if (session.selected === 'pack') inspectPack();
       else if (session.selected !== 'pack' && session.expired) {
