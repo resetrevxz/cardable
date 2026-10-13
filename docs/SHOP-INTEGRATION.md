@@ -12,6 +12,8 @@ The optional `save.shop` field remains version 1 and requires no save-schema bum
 
 When the 64-receipt cap is reached, trimming preserves the receipt for an active unopened Titan entitlement and evicts an older non-active receipt. This keeps a long-held pack redeemable while later daily cards are bought.
 
+History uses only that retained ledger; it is not an all-time transaction archive. Owned direct cards resolve by receipt `instanceId`, kept Titan results by saved `shopEntitlementId`, and ready/pending packs by the current entitlement or pending reveal. No outcome is inferred for an old kept Titan lacking provenance. The `inventory:showCard` bridge now forwards the requested instance into initial detail selection; missing explicit IDs do not fall back to another copy. Ordinary stack opening keeps its first-copy default. Reconcile the small `src/ui/inventory.js` and `src/ui/detail.js` changes at owner integration.
+
 ## Card purchase
 
 `C.shopPurchase.buyCard(expected)` checks the live local day, exact saved offer identity, card/variant/skin and integer quote, purchased flag, wallet, save readiness, opening state and serial capacity. The candidate applies one `C.currency.applyInto` debit, allocates one serial and instance ID, records `source:'shop'` with `packId:null`, marks the slot purchased, and appends a receipt. The journal and inventory focus key are prepared on that same candidate. `C.state.commit` makes the complete candidate durable before any wallet or Shop event is emitted. A failed write leaves the live save untouched. Repeated calls find the purchased slot or receipt and cannot grant a second card.

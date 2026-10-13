@@ -58,6 +58,14 @@
   function open(event) {
     if (phase !== 'closed') return;
     payload = event; if(payload.entry.owned)payload.entry.isNew=false; view = event.view; visual = event.visual; serialIndex = 0; side = 'front';
+    var requested = payload.entry.owned && event.instanceId ? payload.entry.instances.findIndex(function (item) { return item.instanceId === event.instanceId; }) : 0;
+    if (requested > 0 && view) {
+      serialIndex = requested; view.destroy();
+      view = C.cardView.create(payload.entry.card, payload.entry.instances[serialIndex], { owned: true, autoFocus: false, keyboardFlip: false, autoStamp: false, shine: true });
+      visual = view.el; visual.setAttribute('tabindex', '-1');
+      visual.dataset.detailRole = visual.getAttribute('role'); visual.setAttribute('role', 'img'); visual.setAttribute('aria-label', payload.entry.card.name);
+      payload.view = view; payload.visual = visual;
+    }
     overlay.hidden = false; overlay.inert = false; panelOpacity = 0; panel.style.opacity = 0;
     C.accessibility.trap(overlay);
     overlay.style.setProperty('--detail-dim', 0); root.document.body.style.setProperty('--detail-focus', 0);

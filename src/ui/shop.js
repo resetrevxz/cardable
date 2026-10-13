@@ -135,7 +135,7 @@
       session.animations.forEach(function (animation) { animation.cancel(); }); session.animations = [];
       session.views.forEach(function (view) { view.destroy(); }); session.views = [];
       session.holds.forEach(function (hold) { if (hold.destroy) hold.destroy(); }); session.holds = [];
-      session.controls = []; session.actionNote = null; session.expired = null; session.saveNotice = null;
+      session.controls = []; session.actionNote = null; session.expired = null; session.saveNotice = null; session.refreshHistory = null;
       surface.replaceChildren();
     }
     function announce(message) { if (session.status) session.status.textContent = message; }
@@ -274,6 +274,9 @@
       session.balance = node('div', 'shop-balance', actions);
       function refreshBalance() { session.balance.textContent = (C.state.current ? C.state.current.currency : 0).toLocaleString() + ' Credits'; }
       refreshBalance();
+      button(actions, session.selected === 'history' ? 'Back to Shop' : 'Purchase history', function () {
+        if (session.selected === 'history') renderShop(true); else history();
+      }, 'shop-history-control', 'notes');
       button(actions, 'Shop help', function () { var help = surface.querySelector('.shop-help'); if (help) { help.hidden = !help.hidden; if (!help.hidden) help.focus(); } }, 'shop-help-control', 'help');
       var optionsButton = button(actions, 'Shop settings', function () {
         options.hidden = !options.hidden; optionsButton.setAttribute('aria-expanded', String(!options.hidden));
@@ -330,6 +333,85 @@
         return difference || Number(a.dataset.slot) - Number(b.dataset.slot);
       });
       tiles.forEach(function (tile) { grid.appendChild(tile); });
+    }
+    function history() {
+      clearContent(); session.selected = 'history'; session.locked = false;
+      var scroll = node('div', 'shop-scroll shop-scroll--history', surface);
+      session.refreshBalance = chrome(scroll, 'Shop');
+      var area = node('section', 'shop-history', scroll); area.setAttribute('aria-labelledby', 'shop-history-title');
+      var head = node('div', 'shop-history-heading', area);
+      var title = node('h2', '', head, 'Purchase history'); title.id = 'shop-history-title'; title.tabIndex = -1;
+      var count = node('span', 'shop-history-total', head);
+      var tools = node('div', 'shop-history-tools', area);
+      var label = node('label', '', tools); node('span', '', label, 'Show');
+      var filter = node('select', 'shop-history-filter shop-option-select', label);
+      [['all','All purchases'],['card','Cards'],['pack','Packs']].forEach(function (choice) {
+        var option = node('option', '', filter, choice[1]); option.value = choice[0];
+      });
+      filter.value = session.historyFilter || 'all';
+      var list = node('div', 'shop-history-list', area); list.setAttribute('role', 'list');
+      var paging = node('nav', 'shop-history-paging', area); paging.setAttribute('aria-label', 'Purchase history pages');
+      var previous = button(paging, 'Previous purchases', function () { session.historyPage--; refresh(true); }, 'shop-history-prev', 'chevron');
+      var position = node('span', 'shop-history-position', paging); position.setAttribute('role', 'status');
+      var next = button(paging, 'Next purchases', function () { session.historyPage++; refresh(true); }, 'shop-history-next', 'chevron');
+      button(area, 'Back to shop', function () { renderShop(); surface.querySelector('.shop-history-control').focus({ preventScroll: true }); }, 'shop-back');
+      var signature = null;
+      function refresh(force) {
+        if (!list.isConnected) return;
+        var shop;
+        try { shop = C.shopState.normalize(C.state.current.shop); }
+        catch (_) { list.replaceChildren(C.ui.create('empty-state', { label: 'Purchase history is unavailable. Resolve save recovery in Data settings.' })); paging.hidden = true; return; }
+        var byId = new Map(), byEntitlement = new Map();
+        C.state.current.inventory.forEach(function (item) {
+          byId.set(item.instanceId, item);
+          if (item.source === 'shop-pack') byEntitlement.set(item.shopEntitlementId, item);
+        });
+        var records = (shop ? shop.receipts : []).slice().sort(function (a, b) { return b.at - a.at; });
+        var rows = records.filter(function (receipt) { return filter.value === 'all' || receipt.kind === filter.value; }).map(function (receipt) {
+          var copy = receipt.kind === 'card' ? byId.get(receipt.instanceId) : byEntitlement.get(receipt.entitlementId);
+          var card = C.card(receipt.cardId || copy && copy.cardId);
+          var ready = receipt.kind === 'pack' && shop.entitlement && shop.entitlement.entitlementId === receipt.entitlementId;
+          var pending = receipt.kind === 'pack' && C.state.current.pendingReveal && C.state.current.pendingReveal.entitlementId === receipt.entitlementId;
+          var validTime = Number.isFinite(new Date(receipt.at).getTime());
+          return { receipt: receipt, copy: copy, card: card, ready: ready,
+            state: ready ? 'Ready to open' : pending ? 'Opening in progress' : copy ? 'In inventory' : receipt.kind === 'pack' ? 'Opened' : 'Not in inventory',
+            name: receipt.kind === 'pack' ? 'Titan Pack' : card ? card.name : receipt.cardId,
+            date: validTime ? C.formats.date(receipt.at, true) : 'Date unavailable', validTime: validTime };
+        });
+        var nextSignature = JSON.stringify(rows.map(function (row) { return [row.receipt.receiptId, row.receipt.price, row.name, row.state, row.date,
+          row.copy && [row.copy.instanceId, row.copy.serial, row.copy.variantId]]; })) + filter.value;
+        var pages = Math.max(1, Math.ceil(rows.length / 8)); session.historyPage = Math.max(0, Math.min(pages - 1, session.historyPage || 0));
+        count.textContent = records.length + (records.length === C.data.shop.retainedReceipts ? ' recent purchases' : records.length === 1 ? ' purchase' : ' purchases');
+        previous.disabled = session.historyPage === 0; next.disabled = session.historyPage === pages - 1;
+        position.textContent = rows.length ? (session.historyPage * 8 + 1) + '–' + Math.min(rows.length, (session.historyPage + 1) * 8) + ' / ' + rows.length : '0';
+        paging.hidden = rows.length <= 8;
+        if (!force && nextSignature === signature) return;
+        signature = nextSignature; list.replaceChildren();
+        if (!rows.length) list.appendChild(C.ui.create('empty-state', { label: records.length ? 'No purchases in this category.' : 'No purchases yet.' }));
+        rows.slice(session.historyPage * 8, (session.historyPage + 1) * 8).forEach(function (row) {
+          var entry = node('article', 'shop-history-row', list); entry.setAttribute('role', 'listitem'); entry.dataset.receipt = row.receipt.receiptId;
+          var mark = node('span', 'shop-history-mark', entry); mark.appendChild(C.icons.create(row.receipt.kind));
+          var body = node('div', 'shop-history-copy', entry);
+          node('h3', '', body, row.name); var date = node('time', '', body, row.date); if (row.validTime) date.dateTime = new Date(row.receipt.at).toISOString();
+          var status = node('span', 'shop-history-state', body, row.state); status.dataset.owned = row.copy ? 'true' : 'false';
+          var details = node('details', 'shop-history-details', body); node('summary', '', details, 'Receipt');
+          node('p', '', details, row.receipt.receiptId);
+          if (row.copy) {
+            node('p', '', details, row.copy.serial);
+            node('p', '', details, row.copy.variantId ? C.variant(row.copy.variantId).name : 'Standard');
+          }
+          var actions = node('div', 'shop-history-actions', entry); price(actions, row.receipt.price);
+          if (row.ready) button(actions, 'Open Titan Pack', openPurchasedPack, 'shop-history-open');
+          else if (row.copy && row.card) button(actions, 'View card', function () {
+            var current = C.state.current.inventory.find(function (item) { return item.instanceId === row.copy.instanceId; });
+            if (!current) { refresh(true); announce('This copy is no longer in inventory.'); return; }
+            session.presentation.close(); root.queueMicrotask(function () { C.events.notify('inventory:showCard', { cardId: current.cardId, instanceId: current.instanceId }); });
+          }, 'shop-history-view');
+        });
+      }
+      filter.addEventListener('change', function () { session.historyFilter = filter.value; session.historyPage = 0; refresh(true); });
+      session.refreshHistory = refresh; refresh(true); footer(scroll);
+      title.focus({ preventScroll: true });
     }
     function footer(section) {
       session.status = node('p', 'shop-status visually-hidden', section);
@@ -580,6 +662,7 @@
         }
         if (session.countdown) session.countdown.textContent = countdown();
         if (session.refreshBalance) session.refreshBalance();
+        if (session.refreshHistory) session.refreshHistory();
         refreshControls();
       } finally { session.syncing = false; }
     }
@@ -607,6 +690,7 @@
       session.transitionTarget = null;
       session.result = C.shopState.ensure();
       if (!session.selected) session.renderShop();
+      else if (session.selected === 'history') history();
       else if (session.selected === 'receipt') { session.locked = false; session.renderShop(true); }
       else if (session.selected === 'pack') inspectPack();
       else if (session.selected !== 'pack' && session.expired) {
