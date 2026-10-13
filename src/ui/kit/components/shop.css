@@ -86,6 +86,8 @@
 .shop-offers { margin-top:28px; }
 .shop-offers-heading { display:flex; align-items:end; justify-content:space-between; gap:24px; margin-bottom:20px; }
 .shop-offers-heading h2 { font:600 24px/1.2 var(--font-ui); letter-spacing:-.035em; }
+.shop-offers-tools { display:flex; align-items:center; gap:24px; }
+.shop-compare-open.cb-button { min-height:44px; background:transparent; color:var(--text-secondary); font-size:12px; }
 #shop-offers-title { scroll-margin-top:28px; }
 .shop-reset { display:flex; align-items:baseline; gap:10px; color:var(--text-secondary); font:400 11px/1.4 var(--font-ui); }
 .shop-reset strong { color:var(--text-primary); font:500 12px/1 var(--font-mono); font-variant-numeric:tabular-nums; }
@@ -167,6 +169,25 @@
 .shop-history-paging button { min-width:44px; min-height:44px; }
 .shop-history-prev .cb-icon { transform:rotate(180deg); }
 .shop-history > .shop-back { margin:24px 0; background:transparent; }
+.shop-comparison { margin:32px auto 0; max-width:1280px; }
+.shop-compare-heading { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:28px; }
+.shop-compare-heading h2 { font:600 clamp(28px,3vw,40px)/1.1 var(--font-ui); letter-spacing:-.045em; }
+.shop-compare-differences { min-height:44px; }
+.shop-compare-differences[aria-checked="true"] { border-color:var(--accent); background:rgba(var(--accent-rgb),.12); }
+.shop-compare-scroll { max-width:100%; overflow:auto; overscroll-behavior:contain; scrollbar-color:var(--stroke-hover) transparent; }
+.shop-compare-table { width:100%; min-width:920px; table-layout:fixed; border-collapse:separate; border-spacing:0; font:400 12px/1.5 var(--font-ui); }
+.shop-compare-table th,.shop-compare-table td { padding:16px 20px; border-bottom:1px solid var(--stroke); vertical-align:top; text-align:left; color:var(--text-secondary); font-weight:400; }
+.shop-compare-table thead th { padding:0 20px 24px; }
+.shop-compare-table .shop-compare-label { position:sticky; left:0; width:140px; z-index:2; padding-left:0; background:var(--ink-1); font-weight:500; color:var(--text-primary); }
+.shop-compare-table thead .shop-compare-label { padding-top:24px; background:var(--ink-1); }
+.shop-compare-table td { font-family:var(--font-mono); color:var(--text-primary); }
+.shop-compare-art { display:grid; place-items:center; width:100%; min-height:218px; margin-bottom:16px; padding:12px 0; border:0; background:radial-gradient(ellipse,rgba(210,225,240,.06),transparent 65%); cursor:pointer; }
+.shop-compare-art .collectible-card { width:130px; height:auto; aspect-ratio:5/7; pointer-events:none; }
+.shop-compare-table h3 { min-height:48px; font:500 16px/1.3 var(--font-ui); letter-spacing:-.02em; overflow-wrap:anywhere; color:var(--text-primary); }
+.shop-compare-table .shop-price { margin:16px 0; }
+.shop-compare-table .shop-price strong { font-size:23px; }
+.shop-compare-table .shop-inspect,.shop-comparison > .shop-back { min-height:44px; }
+.shop-comparison > .shop-back { margin:24px 0; background:transparent; }
 
 /* Snapshot handoff carries the selected object while controls stay usable. */
 ::view-transition { pointer-events:none; }
@@ -250,6 +271,7 @@
   .shop-offers { margin-top:24px; }
   .shop-offers-heading h2 { font-size:22px; }
   .shop-reset { display:grid; gap:3px; justify-items:end; }
+  .shop-offers-tools { flex-direction:column; align-items:end; gap:8px; }
   .shop-offer-grid { grid-template-columns:1fr; }
   .shop-offer { display:grid; grid-template-columns:minmax(108px,40%) minmax(0,1fr); column-gap:16px; align-content:start; padding-bottom:24px; }
   .shop-offer-art { grid-row:1 / span 6; aspect-ratio:5/7; margin:0; padding:8px; }
@@ -272,4 +294,8 @@
   .shop-history-copy h3 { font-size:16px; }
   .shop-history-actions { grid-column:2; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding-top:0; }
   .shop-history-actions .shop-price strong { font-size:18px; }
+  .shop-compare-table { min-width:860px; }
+  .shop-compare-heading { display:block; }
+  .shop-compare-differences { margin-top:16px; }
+  .shop-compare-table .shop-compare-label { width:112px; padding-right:12px; }
 }

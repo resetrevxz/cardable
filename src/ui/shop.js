@@ -135,7 +135,7 @@
       session.animations.forEach(function (animation) { animation.cancel(); }); session.animations = [];
       session.views.forEach(function (view) { view.destroy(); }); session.views = [];
       session.holds.forEach(function (hold) { if (hold.destroy) hold.destroy(); }); session.holds = [];
-      session.controls = []; session.actionNote = null; session.expired = null; session.saveNotice = null; session.refreshHistory = null;
+      session.controls = []; session.actionNote = null; session.expired = null; session.saveNotice = null; session.refreshHistory = null; session.refreshComparison = null;
       surface.replaceChildren();
     }
     function announce(message) { if (session.status) session.status.textContent = message; }
@@ -161,7 +161,7 @@
       session.controls.forEach(function (item) {
         if (!item.control.isConnected) return;
         var state = availability(item.kind, item.offer, item.amount);
-        item.control.disabled = session.locked || state.state !== 'normal';
+        item.control.disabled = session.locked || session.retrying || state.state !== 'normal';
         item.control.title = state.message;
         if (item.note && !item.control.classList.contains('is-confirming')) {
           var sharedError = state.state === 'error' && session.saveNotice && !session.saveNotice.hidden;
@@ -187,7 +187,7 @@
       });
     }
     function showReceipt(result) {
-      clearContent(); session.selected = 'receipt';
+      clearContent(); session.selected = 'receipt'; session.locked = false;
       var scroll = node('div', 'shop-scroll shop-scroll--detail', surface);
       session.refreshBalance = chrome(scroll, 'Shop');
       var detail = node('section', 'shop-detail shop-receipt', scroll);
@@ -299,29 +299,110 @@
       var saveNotice = node('div', 'shop-save-notice', section); saveNotice.hidden = true;
       var message = node('p', '', saveNotice); message.setAttribute('role', 'status');
       var retry = button(saveNotice, 'Retry save', function () {
-        if (C.state.recovery && C.state.recovery.pending || C.bootFailure || session.locked) return;
+        if (C.state.recovery && C.state.recovery.pending || C.bootFailure || session.locked || session.retrying) return;
+        session.retrying = true;
+        session.holds.forEach(function (control) { if (control.confirmation) control.confirmation.cancel(); });
+        refreshControls();
         C.state.save();
         if (C.state.lastWriteSucceeded) {
           session.result = C.shopState.ensure();
           if (!session.selected && session.result.snapshot && !surface.querySelector('.shop-offer')) renderShop(true);
           session.controls.forEach(function (item) { delete item.control.dataset.purchaseError; });
-          announce(C.state.lastWriteSucceeded ? 'Save restored. Hold to purchase again.' : 'Saving is still unavailable.');
         }
-        refreshControls();
+        function finished() {
+          session.retrying = false;
+          if (active !== session) return;
+          refreshControls();
+          announce(C.state.lastWriteSucceeded && !desktopBackupFailed() ? 'Save restored. Hold to purchase again.' : 'Saving or backup is still unavailable.');
+        }
+        if (C.state.lastWriteSucceeded && desktopBackupFailed() && C.desktop.retryBackup)
+          C.desktop.retryBackup().catch(function () {}).then(finished);
+        else finished();
       }, 'shop-save-retry');
       button(saveNotice, 'Data settings', function () { session.presentation.close(); root.queueMicrotask(function () { C.openSettings('Data'); }); }, 'shop-save-data');
       session.saveNotice = saveNotice;
       session.refreshSaveNotice = function () {
         if (!saveNotice.isConnected) return;
-        saveNotice.hidden = C.state.lastWriteSucceeded;
+        saveNotice.hidden = C.state.lastWriteSucceeded && !desktopBackupFailed() && !session.retrying;
         if (saveNotice.hidden) return;
         var recovery = C.state.recovery && C.state.recovery.pending || C.bootFailure;
-        message.textContent = recovery ? 'Resolve save recovery in Data settings.' :
+        message.textContent = session.retrying ? 'Saving…' : recovery ? 'Resolve save recovery in Data settings.' :
           C.state.lastError && C.state.lastError.reason === 'quota' ? 'Save storage is full. Export your save in Data settings before freeing space.' : 'Saving failed. Retry or export your save in Data settings.';
-        retry.disabled = !!recovery || session.locked;
+        if (!session.retrying && C.state.lastWriteSucceeded && desktopBackupFailed()) message.textContent = 'Desktop backup failed. Local save is intact.';
+        retry.textContent = session.retrying ? 'Retrying…' : C.state.lastWriteSucceeded && desktopBackupFailed() ? 'Retry backup' : 'Retry save';
+        retry.disabled = !!recovery || session.locked || session.retrying;
       };
       session.refreshSaveNotice();
       return refreshBalance;
+    }
+    function desktopBackupFailed() {
+      return C.desktop && C.desktop.isAvailable && C.config.storage.key === 'cardable.save' && C.desktop.storageIssue;
+    }
+    function comparison() {
+      clearContent(); session.selected = 'compare'; session.locked = false;
+      var scroll = node('div', 'shop-scroll shop-scroll--compare', surface);
+      session.refreshBalance = chrome(scroll, 'Shop');
+      var area = node('section', 'shop-comparison', scroll); area.setAttribute('aria-labelledby', 'shop-compare-title');
+      var top = node('div', 'shop-compare-heading', area);
+      var heading = node('h2', '', top, 'Compare offers'); heading.id = 'shop-compare-title'; heading.tabIndex = -1;
+      var differences = C.ui.create('button', { label:'Differences only',
+        onClick:function () { C.settings.set('shopCompareDifferences', !C.settings.get('shopCompareDifferences')); } });
+      differences.setAttribute('role', 'switch'); differences.setAttribute('aria-checked', String(C.settings.get('shopCompareDifferences')));
+      differences.classList.add('shop-compare-differences'); top.appendChild(differences);
+      var entries = (session.result.snapshot ? session.result.snapshot.offers : []).map(function (offer) {
+        return { offer: offer, card: C.card(offer.cardId) };
+      }).filter(function (entry) { return entry.card && C.shopState.eligible(entry.card, C.rarity(entry.card.rarity)); });
+      if (!entries.length) area.appendChild(C.ui.create('empty-state', { label: session.result.error || 'No current offers to compare.' }));
+      else {
+        var region = node('div', 'shop-compare-scroll', area); region.tabIndex = 0;
+        region.setAttribute('role', 'region'); region.setAttribute('aria-label', 'Daily offer comparison');
+        var table = node('table', 'shop-compare-table', region); node('caption', 'visually-hidden', table, 'Today’s saved offers. Missing catalog specs are shown as a dash.');
+        var head = node('thead', '', table), headers = node('tr', '', head);
+        var corner = node('th', 'shop-compare-label', headers, 'Daily offers'); corner.scope = 'col';
+        entries.forEach(function (entry) {
+          var cell = node('th', '', headers); cell.scope = 'col';
+          var art = node('button', 'shop-compare-art', cell); art.type = 'button'; art.setAttribute('aria-label', 'Inspect ' + entry.card.name);
+          art.dataset.cardId = entry.card.id;
+          var view = C.cardView.create(entry.card, previewInstance(entry.card, entry.offer), { thumbnail: true, owned: false, keyboardFlip: false, autoFocus: false });
+          view.el.inert = true; art.appendChild(view.el); session.views.push(view); arrive(art);
+          matchObject(view.el, 'card', entry.card.id);
+          art.addEventListener('click', function () { navigate(function () { inspectCard(entry.card, entry.offer); }, view.el, { kind: 'card', id: entry.card.id }); });
+          node('h3', '', cell, entry.card.name);
+          price(cell, entry.offer.price);
+          button(cell, 'Inspect', function () { navigate(function () { inspectCard(entry.card, entry.offer); }, view.el, { kind: 'card', id: entry.card.id }); }, 'shop-inspect').setAttribute('aria-label', 'Inspect ' + entry.card.name);
+        });
+        var body = node('tbody', '', table);
+        function row(label, values) {
+          var line = node('tr', '', body), key = node('th', 'shop-compare-label', line, label); key.scope = 'row';
+          values.forEach(function (value) { node('td', '', line, value == null || value === '' ? '—' : value); });
+          return line;
+        }
+        row('Rarity', entries.map(function (entry) { return C.rarity(entry.card.rarity).name; }));
+        row('Finish', entries.map(function (entry) { return entry.offer.variantId ? C.variant(entry.offer.variantId).name : 'Standard'; }));
+        row('Memory', entries.map(function (entry) { return C.cardSpecs.vram(entry.card); }));
+        row('Memory type', entries.map(function (entry) { return C.cardSpecs.memoryType(entry.card); }));
+        var specs = entries.map(function (entry) { return C.cardSpecs.rows(entry.card); }), keys = new Map();
+        specs.forEach(function (rows) { rows.forEach(function (spec) { keys.set(spec.key, spec.label); }); });
+        keys.forEach(function (label, key) { row(label, specs.map(function (rows) { var spec = rows.find(function (item) { return item.key === key; }); return spec && spec.value; })); });
+        var owned = row('Owned', entries.map(function () { return 0; }));
+        var state = row('Offer', entries.map(function () { return ''; }));
+        session.refreshComparison = function () {
+          entries.forEach(function (entry, index) {
+            owned.children[index + 1].textContent = C.state.current.inventory.filter(function (item) { return item.cardId === entry.card.id; }).length;
+            var status = availability('card', entry.offer, entry.offer.price).state;
+            state.children[index + 1].textContent = { normal:'Available', purchased:'Purchased', unaffordable:'Not enough Credits', error:'Save unavailable', expired:'Offer expired', disabled:'Unavailable' }[status] || 'Unavailable';
+          });
+          var onlyDifferences = C.settings.get('shopCompareDifferences');
+          differences.setAttribute('aria-checked', String(onlyDifferences));
+          Array.from(body.rows).forEach(function (line) {
+            var values = Array.from(line.querySelectorAll('td')).map(function (cell) { return cell.textContent; });
+            line.hidden = onlyDifferences && values.every(function (value) { return value === values[0]; });
+          });
+        };
+        session.refreshComparison();
+      }
+      button(area, 'Back to shop', function () { renderShop(); var target = surface.querySelector('.shop-compare-open'); if (target) target.focus(); }, 'shop-back');
+      footer(scroll); heading.focus({ preventScroll: true });
     }
     function arrangeOffers() {
       var grid = surface.querySelector('.shop-offer-grid'); if (!grid) return;
@@ -455,7 +536,9 @@
       var heading = node('div', 'shop-offers-heading', area);
       var titles = node('div', '', heading);
       var offersTitle = node('h2', '', titles, 'Daily offers'); offersTitle.id = 'shop-offers-title'; offersTitle.tabIndex = -1;
-      var clock = node('div', 'shop-reset', heading);
+      var tools = node('div', 'shop-offers-tools', heading);
+      button(tools, 'Compare offers', comparison, 'shop-compare-open');
+      var clock = node('div', 'shop-reset', tools);
       node('span', '', clock, 'Resets in');
       session.countdown = node('strong', '', clock, countdown());
       if (session.result.error) node('p', 'shop-fixture-note', area, session.result.error);
@@ -568,6 +651,7 @@
       footer(scroll); actions.querySelector('button').focus({ preventScroll: true });
     }
     function inspectCard(card, offer) {
+      var returnToCompare = session.selected === 'compare';
       clearContent(); session.selected = { offerId: offer.offerId, dayKey: session.result.snapshot.dayKey };
       var scroll = node('div', 'shop-scroll shop-scroll--detail', surface);
       var refreshBalance = chrome(scroll, 'Card inspection'); session.refreshBalance = refreshBalance;
@@ -600,7 +684,11 @@
       session.expired = node('p', 'shop-offer-state', copy, 'This offer is no longer current. Return to the Shop for today’s offers.');
       session.expired.hidden = C.shopState.dayKey() === session.selected.dayKey;
       var actions = node('div', 'shop-actions', copy);
-      button(actions, 'Back to shop', function () { navigate(function () {
+      button(actions, returnToCompare ? 'Back to comparison' : 'Back to shop', function () { navigate(function () {
+        if (returnToCompare) {
+          comparison(); var art = Array.from(surface.querySelectorAll('.shop-compare-art')).find(function (el) { return el.dataset.cardId === card.id; });
+          if (art) art.focus(); return;
+        }
         renderShop(); var tile = Array.from(surface.querySelectorAll('.shop-offer')).find(function (el) { return el.querySelector('h3') && el.querySelector('h3').textContent === card.name; });
         var target = tile && tile.querySelector('.shop-inspect'); if (target) target.focus();
       }, view.el, { kind: 'card', id: card.id }); }, 'shop-back');
@@ -619,6 +707,8 @@
       if (session.offMotion) session.offMotion();
       if (session.offSettings) session.offSettings();
       if (session.offSaveError) session.offSaveError();
+      if (session.offBackupError) session.offBackupError();
+      if (session.offBackupRecovered) session.offBackupRecovered();
       root.document.removeEventListener('visibilitychange', sync);
       root.removeEventListener('focus', sync);
       root.removeEventListener('blur', cancelledHold);
@@ -653,7 +743,8 @@
                 var target = newTile && newTile.querySelector(action) || surface.querySelector('.shop-close');
                 if (target) target.focus({ preventScroll: true });
               }
-            } else if (session.selected !== 'pack' && session.expired) {
+            } else if (session.selected === 'compare') { comparison(); announce('Daily offers refreshed.'); }
+            else if (session.selected !== 'pack' && session.expired) {
               session.expired.hidden = key === session.selected.dayKey && !!(next.snapshot && next.snapshot.offers.some(function (offer) { return offer.offerId === session.selected.offerId; }));
               var selectedHold = surface.querySelector('.shop-detail .shop-hold');
               if (selectedHold) selectedHold.disabled = !session.expired.hidden;
@@ -663,6 +754,7 @@
         if (session.countdown) session.countdown.textContent = countdown();
         if (session.refreshBalance) session.refreshBalance();
         if (session.refreshHistory) session.refreshHistory();
+        if (session.refreshComparison) session.refreshComparison();
         refreshControls();
       } finally { session.syncing = false; }
     }
@@ -678,12 +770,15 @@
     session.offMotion = C.events.on('motion:changed', motionPolicy);
     session.offSettings = C.events.on('settings:changed', function (event) {
       motionPolicy();
+      if (event.key === 'shopCompareDifferences' && session.refreshComparison) session.refreshComparison();
       if (!/^shop(Layout|Motion|Sort)$/.test(event.key)) return;
       session.holds.forEach(function (control) { if (control.confirmation) control.confirmation.cancel(); });
       surface.querySelectorAll('.shop-option-select').forEach(function (select) { select.value = C.settings.getRequested(select.dataset.setting); });
       arrangeOffers(); refreshControls();
     });
     session.offSaveError = C.events.on('save:error', refreshControls);
+    session.offBackupError = C.events.on('desktop:storageError', refreshControls);
+    session.offBackupRecovered = C.events.on('desktop:storageRecovered', refreshControls);
     session.offReplace = C.events.on('save:replaced', function () {
       session.navigation = (session.navigation || 0) + 1;
       if (session.transition) session.transition.skipTransition();
@@ -691,6 +786,7 @@
       session.result = C.shopState.ensure();
       if (!session.selected) session.renderShop();
       else if (session.selected === 'history') history();
+      else if (session.selected === 'compare') comparison();
       else if (session.selected === 'receipt') { session.locked = false; session.renderShop(true); }
       else if (session.selected === 'pack') inspectPack();
       else if (session.selected !== 'pack' && session.expired) {
