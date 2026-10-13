@@ -14,7 +14,8 @@
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, live = ui.sim.live(realm);
     var p = ctx.api.portfolioSync(realm);
     host.appendChild(head('Portfolio', 'What you hold, valued at estimate. These are not guaranteed sale prices.',
-      [ui.button('List a card', { variant: 'primary', icon: 'plus', onClick: function () { ui.go('compose', {}); } })]));
+      [ui.button('List a card', { variant: 'primary', icon: 'plus', onClick: function () { ui.go('compose', {}); } }),
+        realm === 'global' && live && ui.online ? ui.button('Sell to the system', { variant: 'secondary', icon: 'coin', onClick: function () { ui.online.quickSellDialog(); } }) : null].filter(Boolean)));
     var sampleNote = null;
     if (p.demo) host.appendChild(h('div.mk-banner', { data: { tone: 'info' } }, icon('info'), h('span', { text: 'You have no cards yet, so this shows a sample collection. Open a pack and your own cards are valued here instead.' })));
     var w = p.wallet;

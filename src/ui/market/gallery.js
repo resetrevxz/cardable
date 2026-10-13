@@ -39,6 +39,9 @@
     cfgFormats().forEach(function (f) { r3.appendChild(h('span.mk-format', { data: { format: f.id } }, ui.icon(f.icon), h('span', { text: f.short }))); });
     ['simulation', 'global'].forEach(function (r) { r3.appendChild(ui.realmBadge(r)); });
     r3.append(ui.chip('Illustrative', { tone: 'soft', icon: 'info' }), ui.chip('Simulated trades', { tone: 'soft', icon: 'info' }), ui.chip('Higher risk', { tone: 'warn' }), ui.chip('Collection gap'));
+    // The state words of a real trade (Global trading).
+    var r3b = row(atoms);
+    [['Awaiting bids', 'soft'], ['Reserve not met', 'warn'], ['Reserved 240', 'good'], ['Outbid', 'warn'], ['Ending soon', 'soft'], ['Sold', 'warn'], ['Completed', 'good'], ['Processing', 'soft'], ['Retry safely', 'warn']].forEach(function (c) { r3b.appendChild(ui.chip(c[0], { tone: c[1] })); });
     var r4 = row(atoms);
     r4.appendChild(ui.segmented({ label: 'Segmented specimen', value: 'a', options: [{ value: 'a', label: 'For You' }, { value: 'b', label: 'New' }, { value: 'c', label: 'Ending soon' }] }));
     ['Rare', 'Auction', 'Holo'].forEach(function (t, i) { var b = h('button.mk-pill', { type: 'button', 'aria-pressed': String(i === 0) }, h('span', { text: t }), h('span.mk-pill-count', { text: String(12 - i * 3) })); r4.appendChild(b); });

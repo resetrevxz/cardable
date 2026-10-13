@@ -134,7 +134,8 @@
 
     // ---- intro for first visit ----
     if (!store.prefs.guideSeen && id === 'discover') {
-      if (ui.sim.live(realm)) host.appendChild(ui.sim.introCard());
+      if (realm === 'global' && ui.sim.live(realm) && ui.online && ui.online.introCard) host.appendChild(ui.online.introCard());
+      else if (ui.sim.live(realm)) host.appendChild(ui.sim.introCard());
       else {
         var intro = h('aside.mk-intro', { role: 'note' },
           h('div', h('strong', { text: 'This is a preview of the Market.' }),
@@ -398,7 +399,7 @@
         if (res.emptyReason === 'no-listings') actions.unshift({ label: 'List a card', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } });
         results.appendChild(ui.emptyState({ kind: res.emptyReason === 'no-listings' ? 'empty' : 'offline', icon: res.emptyReason === 'no-listings' ? 'market' : 'lock',
           title: res.emptyReason === 'no-listings' ? 'No one is selling yet' : res.emptyReason === 'offline' ? 'Global Market is unreachable' : 'Connect to see Global Market',
-          body: res.emptyReason === 'no-listings' ? 'Everything here comes from real players, and the beta is new. When a player lists a card it appears here. Trading opens in a later beta stage; until then this stays empty on purpose.'
+          body: res.emptyReason === 'no-listings' ? 'Everything here comes from real players, and the beta is new. When a player lists a card it appears here. Nothing is added to make it look busy: no bots, no samples. List a card of your own, or sell a few to the system to get your first Credits.'
             : gs.message, actions: actions }));
         return;
       }
@@ -422,7 +423,7 @@
         extra.appendChild(b);
       });
       results.appendChild(ui.emptyState({ kind: 'no-results', icon: 'search', title: 'No listings match',
-        body: ui.sim.live(realm) && !pool.length ? 'No one in the Simulation is selling this right now. Traders list new cards through the day while the game is open.' : 'Nothing fits every filter at once. Loosen one of these, or clear everything and start again.', extra: hints.length ? extra : null,
+        body: ui.sim.live(realm) && !pool.length ? (realm === 'global' ? 'No player is selling this right now. Global Market only lists what real players have put up.' : 'No one in the Simulation is selling this right now. Traders list new cards through the day while the game is open.') : 'Nothing fits every filter at once. Loosen one of these, or clear everything and start again.', extra: hints.length ? extra : null,
         actions: [{ label: 'Clear all filters', variant: 'secondary', run: clearAll }] }));
     }
     function renderResults(res, append) {
@@ -587,7 +588,7 @@
       if (ctx.scope.dead) return;
       if (!res.items.length) {
         listHost.appendChild(ui.emptyState({ kind: 'offline', icon: 'swap', title: realm === 'global' ? 'No real trades yet' : 'No trades yet',
-          body: realm === 'global' ? 'Global Market is not connected. When it is, every completed player trade appears here, and nothing else.' : 'Completed Simulation trades appear here as traders buy and sell while the game is open.',
+          body: realm === 'global' ? (live ? 'No two players have completed a trade yet. When they do, every completed player trade appears here, and nothing else: never a bot, a sample or a system sale.' : 'Global Market is not connected. When it is, every completed player trade appears here, and nothing else.') : 'Completed Simulation trades appear here as traders buy and sell while the game is open.',
           actions: [{ label: 'Back to For You', variant: 'secondary', run: function () { state.tab = 'for-you'; ui.shell.remount(); } }] }));
         ctx.restoreScroll();
         return;

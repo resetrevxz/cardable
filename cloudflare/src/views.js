@@ -194,7 +194,7 @@ export async function history(env, who, url) {
 }
 
 export async function inventory(env, who, url) {
-  const p = url.searchParams, limit = clampLimit(p.get('limit'), 100, 100), after = p.get('cursor') || '';
+  const p = url.searchParams, limit = clampLimit(p.get('limit'), 100, 500), after = p.get('cursor') || '';
   const rows = (await env.DB.prepare("SELECT id, card_id, variant_id, skin_id, serial, source, state, pulled_at, pack_id, escrow_ref FROM instances WHERE owner_id = ? AND state <> 'redeemed' AND id > ? ORDER BY id LIMIT ?").bind(who.accountId, after, limit + 1).all()).results;
   const page = rows.slice(0, limit);
   const total = (await env.DB.prepare("SELECT COUNT(*) AS n FROM instances WHERE owner_id = ? AND state <> 'redeemed'").bind(who.accountId).first()).n;

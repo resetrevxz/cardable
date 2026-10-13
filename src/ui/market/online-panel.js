@@ -145,6 +145,115 @@
     });
   }
 
+  // ---- Quick Sell: the system's disclosed redemption -------------------------------------------------------------------
+  // It is the only place Global Credits are created, so the dialog says what it is before it shows a number: not a
+  // player, not a market price, a fixed lower offer, limited per day. The server quotes and decides at the moment of sale.
+  function quickSellDialog(preselect) {
+    var P = C.market.onlineProvider, env = C.market.api.data(), selected = {}, picks = [];
+    var inv = P.inventory('global').items.filter(function (i) { return i.state === 'owned'; });
+    (preselect || []).forEach(function (id) { selected[id] = true; });
+    var intro = h('div.mk-qs-intro',
+      h('p.mk-prose', { text: 'The system buys cards at a fixed price, always below what another player would pay. It is not a player, it does not set market prices, and a sale to it never counts as a trade or a price.' }),
+      h('p.mk-hint', { text: 'It is the way to get your first Credits on Global Market. A card you sell is retired for good.' }));
+    var usage = h('p.mk-hint.mk-qs-usage', { role: 'status', text: '' });
+    var search = h('input.mk-input', { type: 'search', placeholder: 'Search your online cards', 'aria-label': 'Search your online cards' });
+    var list = h('div.mk-picker.is-compact', { role: 'group', 'aria-label': 'Your online cards' });
+    var summary = h('p.mk-swap-summary', { role: 'status', 'aria-live': 'polite' });
+    var rows = inv.map(function (i) {
+      var q = P.quoteLocal(i), c = C.card(i.cardId), n = c ? ui.identity(c, true) : { name: i.cardId, rarityName: '' };
+      return { inst: i, name: n.name, rarity: n.rarityName, finish: i.variantId ? ((env.variantById[i.variantId] || {}).name || '') : 'Normal', quote: q ? q.quote : 0, fair: q ? q.fair : 0 };
+    }).sort(function (a, b) { return b.quote - a.quote || (a.name < b.name ? -1 : 1); });
+    var handle, go, limit = { credits: Infinity, cards: 50 };
+    function chosen() { return rows.filter(function (r) { return selected[r.inst.instanceId]; }); }
+    function chosenTotal() { return chosen().reduce(function (n, r) { return n + r.quote; }, 0); }
+    function update() {
+      picks = chosen();
+      var total = picks.reduce(function (n, r) { return n + r.quote; }, 0);
+      summary.textContent = picks.length ? picks.length + (picks.length === 1 ? ' card' : ' cards') + ' for about ' + ui.fmt.exact(total) + ' Credits. The server confirms the exact total before anything is sold.' : (rows.length ? 'Choose the cards to sell.' : '');
+      if (go) { go.disabled = !picks.length; go.title = picks.length ? '' : 'Choose at least one card.'; }
+    }
+    function paint() {
+      ui.clear(list);
+      var q = search.value.trim().toLowerCase(), shown = rows.filter(function (r) { return !q || (r.name + ' ' + r.rarity + ' ' + r.finish).toLowerCase().indexOf(q) >= 0; }).slice(0, 120);
+      shown.forEach(function (r) {
+        var on = !!selected[r.inst.instanceId];
+        var over = !on && r.quote > limit.credits;
+        var b = h('button.mk-pick-row', { type: 'button', role: 'checkbox', 'aria-checked': String(on), 'aria-disabled': String(over), data: { instance: r.inst.instanceId, over: over ? 'true' : '' } }, icon(on ? 'check' : 'plus'),
+          h('span.mk-pick-name', { text: r.name }), h('span.mk-muted', { text: r.rarity + ' · ' + r.finish }), h('span.mk-mono', { text: r.inst.serial.replace('CBL-', '') }),
+          h('span.mk-num', { text: ui.fmt.exact(r.quote) + ' Credits', title: over ? 'More than the system will pay you today.' : 'Quote. Average Value of this card is ' + ui.fmt.exact(r.fair) }));
+        if (over) b.style.opacity = '0.55';
+        b.addEventListener('click', function () {
+          if (selected[r.inst.instanceId]) delete selected[r.inst.instanceId];
+          else if (Object.keys(selected).length >= Math.min(50, limit.cards)) C.ui.toast(limit.cards < 50 ? 'The system will buy ' + limit.cards + ' more cards from you today.' : 'One sale holds at most 50 cards.');
+          else if (chosenTotal() + r.quote > limit.credits) C.ui.toast('That is more than the system will pay you today. ' + ui.fmt.exact(Math.max(0, limit.credits - chosenTotal())) + ' Credits left; it resets at midnight UTC.');
+          else selected[r.inst.instanceId] = true;
+          paint(); update();
+        });
+        list.appendChild(b);
+      });
+      if (!shown.length) list.appendChild(h('p.mk-hint', { text: rows.length ? 'No card matches that search.' : '' }));
+    }
+    return modal('Sell to the system', function (surface, h2) {
+      handle = h2;
+      var body = h('div.mk-online-body.mk-qs');
+      surface.appendChild(body);
+      body.appendChild(intro);
+      if (!rows.length) {
+        body.appendChild(ui.emptyState({ kind: 'empty', icon: 'cards', title: 'You have no cards on Global Market', body: 'Credits here come only from selling cards. Convert your collection to bring copies of your cards online, once, and they can be sold or listed.',
+          actions: [{ label: 'Convert my collection', variant: 'primary', icon: 'upload', run: function () { handle.close(); importWizard(); } }] }));
+        body.appendChild(h('div.mk-modal-actions', ui.button('Close', { variant: 'ghost', onClick: function () { handle.close(); } })));
+        return;
+      }
+      var w = C.market.online.state;
+      online().authed('GET', '/v1/wallet').then(function (d) {
+        var u = d.usage;
+        if (u) {
+          usage.textContent = 'Today the system will still buy ' + u.cardsLeft + ' of ' + u.limits.cardsPerDay + ' cards and pay out ' + ui.fmt.exact(u.creditsLeft) + ' of ' + ui.fmt.exact(u.limits.creditsPerDay) + ' Credits for you. It resets at midnight UTC.';
+          limit.credits = u.creditsLeft; limit.cards = u.cardsLeft; paint(); update();
+        }
+      }, function () { /* the server states the limits again at the sale */ });
+      void w;
+      search.addEventListener('input', paint);
+      go = ui.button('Review the sale', { variant: 'primary', icon: 'coin', disabled: true, onClick: function () { review(); } });
+      body.append(usage, search, list, summary, h('div.mk-modal-actions', ui.button('Cancel', { variant: 'ghost', onClick: function () { handle.close(); } }), go));
+      paint(); update();
+    });
+    function review() {
+      var ids = picks.map(function (r) { return r.inst.instanceId; });
+      go.disabled = true;
+      P.quoteQuickSell(ids).then(function (q) {
+        go.disabled = false;
+        if (!q.ok) { C.ui.toast(q.message, null, 'error'); return; }
+        handle.close();
+        var names = picks.slice(0, 3).map(function (r) { return r.name; }).join(', ') + (picks.length > 3 ? ' and ' + (picks.length - 3) + ' more' : '');
+        ui.sim.confirm({
+          title: 'Sell to the system', eyebrow: 'Not a player sale', anchor: doc.activeElement,
+          rows: [{ label: 'Cards', value: names }, { label: 'The system pays', node: ui.credits(q.total), strong: true },
+            { label: 'Average Value of these cards', value: ui.fmt.exact(q.items.reduce(function (n, i) { return n + i.fair; }, 0)) + ' Credits' },
+            { label: 'Left of today\u2019s limit', value: ui.fmt.exact(q.usage.creditsLeft - q.total) + ' Credits, ' + (q.usage.cardsLeft - q.items.length) + ' cards' }],
+          note: q.disclosure + ' The cards are retired for good. This price is checked again at the moment of sale; if it changed you see the new total first.',
+          confirmLabel: 'Sell for ' + ui.fmt.exact(q.total), icon: 'coin',
+          disabledReason: q.quotaOk ? '' : 'Today\u2019s limit would be exceeded. Choose fewer cards, or come back after midnight UTC.',
+          run: function (req) { return P.quickSell('global', { instanceIds: ids, expectTotal: q.total, requestId: req }); },
+          success: function (res) { C.ui.toast('Sold ' + res.count + (res.count === 1 ? ' card' : ' cards') + ' for ' + ui.fmt.exact(res.total) + ' Credits'); }
+        });
+      });
+    }
+  }
+
+  // The first-visit note for a connected Global Market, in the place the Simulation's note sits.
+  function introCard() {
+    var card = h('aside.mk-intro.is-global', { role: 'note' },
+      h('div', h('strong', { text: 'Global Market is real players.' }),
+        h('p', { text: 'Everything here is listed, bid on and bought by other people under generated two-word names. It starts nearly empty, prices only appear after players trade, and there are no bots.' }),
+        h('ul.mk-bullets',
+          h('li', { text: 'Your online Credits are separate. The first ones come from selling cards to the system, which is disclosed and limited each day.' }),
+          h('li', { text: 'A listed card is held in escrow until it sells or you withdraw it. A sale takes a 2% fee from the seller, once.' }),
+          h('li', { text: 'Auctions close on the server\u2019s clock, even while you are away, and a late bid extends them by a few minutes.' }))),
+      ui.button('Got it', { variant: 'secondary', onClick: function () { C.market.store.markGuideSeen(); card.remove(); } }));
+    return card;
+  }
+
   // ---- the settings panel ---------------------------------------------------------------------------------------
   function settingsPanel(ctx) {
     var panel = h('section.mk-box.mk-onlinebox');
@@ -159,6 +268,7 @@
         panel.appendChild(ui.statGrid([{ label: 'Your public name', value: s.alias || '—' }, { label: 'Online Credits', value: ui.fmt.exact(s.balance || 0) }, { label: 'Online cards', value: String(s.inventoryTotal || 0) },
           { label: 'Collection', value: s.imported ? 'Converted' : 'Not converted' }], { cols: 2 }));
         actions.appendChild(ui.button(s.imported ? 'Conversion receipt' : 'Convert my collection', { variant: s.imported ? 'secondary' : 'primary', icon: 'upload', onClick: function () { importWizard(); } }));
+        actions.appendChild(ui.button('Sell to the system', { variant: 'secondary', icon: 'coin', onClick: function () { quickSellDialog(); } }));
         actions.appendChild(ui.button('Refresh', { variant: 'ghost', onClick: function () { online().refresh(true); } }));
         actions.appendChild(ui.button('Sign out', { variant: 'ghost', onClick: function () { online().signOut(); } }));
       } else if (s.status === 'signed-out') {
@@ -176,5 +286,5 @@
     return panel;
   }
 
-  ui.online = { settingsPanel: settingsPanel, connectDialog: connectDialog, recoverDialog: recoverDialog, importWizard: importWizard, receiptDialog: receiptDialog };
+  ui.online = { quickSellDialog: quickSellDialog, introCard: introCard, settingsPanel: settingsPanel, connectDialog: connectDialog, recoverDialog: recoverDialog, importWizard: importWizard, receiptDialog: receiptDialog };
 })(window.Cardable = window.Cardable || {}, window);

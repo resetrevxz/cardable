@@ -28,3 +28,6 @@ Thumbs.db
 .wrangler/
 .dev.vars
 .dev.vars.*
+
+# Operator admin token written by cloudflare/scripts/deploy.cjs
+cloudflare/.admin-token

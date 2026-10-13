@@ -7,7 +7,7 @@
 // issued once through the ledger, and a durable receipt is kept. Beta quotas bound how many Credits one account, and the
 // whole realm, can issue per day, because this is the only place Credits are created.
 import { ApiError, num } from './util.js';
-import { DAY, RULES, nameOf, quickSellQuote } from './economy.js';
+import { DAY, RULES, nameOf, quickSellLimits, quickSellQuote } from './economy.js';
 import { Tx, mutate, newId } from './ops.js';
 import { fairOf } from './valuation.js';
 
@@ -17,7 +17,7 @@ async function usage(env, accountId, now) {
   const day = Math.floor(now / DAY) * DAY;
   const mine = await env.DB.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(quote), 0) AS c FROM redemptions WHERE account_id = ? AND at >= ?').bind(accountId, day).first();
   const all = await env.DB.prepare('SELECT COALESCE(SUM(quote), 0) AS c FROM redemptions WHERE at >= ?').bind(day).first();
-  const q = RULES.quickSell;
+  const q = quickSellLimits(env);
   return { day, cards: mine.n, credits: mine.c, realmCredits: all.c,
     limits: { cardsPerDay: q.perAccountCardsPerDay, creditsPerDay: q.perAccountCreditsPerDay, realmCreditsPerDay: q.globalCreditsPerDay },
     cardsLeft: Math.max(0, q.perAccountCardsPerDay - mine.n), creditsLeft: Math.max(0, q.perAccountCreditsPerDay - mine.c), resetsAt: day + DAY };
@@ -47,7 +47,7 @@ function parseIds(raw) {
 export async function quote(env, who, rawIds, now) {
   const ids = parseIds(rawIds), items = await quoteRows(env, who.accountId, ids, now), u = await usage(env, who.accountId, now);
   const total = items.reduce((n, i) => n + i.quote, 0);
-  return { items, total, usage: u, expiresAt: now + RULES.quickSell.quoteTtlMs, quotaOk: items.length <= u.cardsLeft && total <= u.creditsLeft && u.realmCredits + total <= RULES.quickSell.globalCreditsPerDay,
+  return { items, total, usage: u, expiresAt: now + RULES.quickSell.quoteTtlMs, quotaOk: items.length <= u.cardsLeft && total <= u.creditsLeft && u.realmCredits + total <= u.limits.realmCreditsPerDay,
     disclosure: 'This is the system buying your card at a fixed, lower price. It is not another player, and it does not set market prices.' };
 }
 
@@ -58,12 +58,13 @@ export async function redeem(env, who, key, body, now) {
     if (expect != null && expect !== total) throw new ApiError(409, 'quote-changed', 'The quote changed. Review the new total.', { total, items });
     if (ids.length > u.cardsLeft) throw new ApiError(429, 'quota', 'The beta lets one account sell ' + u.limits.cardsPerDay + ' cards a day to the system. You can sell ' + u.cardsLeft + ' more today.', { usage: u });
     if (total > u.creditsLeft) throw new ApiError(429, 'quota', 'The beta limits Credits from the system to ' + u.limits.creditsPerDay + ' a day per account. ' + u.creditsLeft + ' left today.', { usage: u });
-    if (u.realmCredits + total > RULES.quickSell.globalCreditsPerDay) throw new ApiError(429, 'realm-quota', 'The system has paid out its daily total for the whole beta. It resets at midnight UTC.', { usage: u });
+    if (u.realmCredits + total > u.limits.realmCreditsPerDay) throw new ApiError(429, 'realm-quota', 'The system has paid out its daily total for the whole beta. It resets at midnight UTC.', { usage: u });
     const opId = newId('qs'), tx = new Tx(env, now), day = u.day;
     tx.guard('not_owned', "(SELECT COUNT(*) FROM instances WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned') = ?", ...ids, who.accountId, ids.length);
-    tx.guard('quota', 'COALESCE((SELECT SUM(quote) FROM redemptions WHERE account_id = ? AND at >= ?), 0) + ? <= ?', who.accountId, day, total, RULES.quickSell.perAccountCreditsPerDay);
-    tx.guard('quota', 'COALESCE((SELECT COUNT(*) FROM redemptions WHERE account_id = ? AND at >= ?), 0) + ? <= ?', who.accountId, day, ids.length, RULES.quickSell.perAccountCardsPerDay);
-    tx.guard('quota', 'COALESCE((SELECT SUM(quote) FROM redemptions WHERE at >= ?), 0) + ? <= ?', day, total, RULES.quickSell.globalCreditsPerDay);
+    const lim = quickSellLimits(env);
+    tx.guard('quota', 'COALESCE((SELECT SUM(quote) FROM redemptions WHERE account_id = ? AND at >= ?), 0) + ? <= ?', who.accountId, day, total, lim.perAccountCreditsPerDay);
+    tx.guard('quota', 'COALESCE((SELECT COUNT(*) FROM redemptions WHERE account_id = ? AND at >= ?), 0) + ? <= ?', who.accountId, day, ids.length, lim.perAccountCardsPerDay);
+    tx.guard('quota', 'COALESCE((SELECT SUM(quote) FROM redemptions WHERE at >= ?), 0) + ? <= ?', day, total, lim.globalCreditsPerDay);
     tx.add("UPDATE instances SET state = 'redeemed', escrow_ref = NULL WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned'", ...ids, who.accountId);
     items.forEach((i) => tx.add('INSERT INTO redemptions (id, account_id, at, instance_id, card_id, variant_id, skin_id, serial, quote, fair, baseline, op_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       newId('rd'), who.accountId, now, i.instanceId, i.cardId, i.variantId, i.cardSkinId, i.serial, i.quote, i.fair, i.baseline, opId));

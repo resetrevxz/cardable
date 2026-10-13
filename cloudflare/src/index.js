@@ -16,7 +16,7 @@ import { authenticate, listSessions, logout, recover, refresh, register, revokeS
 import { commit as commitImport, existingReceipt, preview as previewImport } from './importer.js';
 import { CATALOG } from './catalog.js';
 import { ApiError, corsHeaders, json, randomId, readJson } from './util.js';
-import { RULES, isCard } from './economy.js';
+import { RULES, isCard, quickSellLimits } from './economy.js';
 import { nowOf } from './ops.js';
 import { buyListing, buyoutListing, cancelListing, createListing, placeBid, relistListing, repriceListing } from './listings.js';
 import { cancelOrder, editOrder, placeOrder } from './orders.js';
@@ -32,13 +32,13 @@ const LISTING_PATH = /^\/v1\/listings\/(lst_[A-Za-z0-9_-]{6,40})(?:\/(cancel|buy
 const ORDER_PATH = /^\/v1\/orders\/(ord_[A-Za-z0-9_-]{6,40})(?:\/(cancel))?$/;
 const OFFER_PATH = /^\/v1\/offers\/(ofr_[A-Za-z0-9_-]{6,40})\/(accept|decline|counter|withdraw)$/;
 
-function publicRules() {
+function publicRules(env) {
   return { fee: { bps: RULES.fee.bps, minFee: RULES.fee.minFee, label: '2% market fee, taken once from the seller on a Credit sale' }, price: RULES.price, bundleMax: RULES.bundle.max,
     auction: { presetsMs: RULES.auction.presetsMs, minDurationMs: RULES.auction.minDurationMs, maxDurationMs: RULES.auction.maxDurationMs, incrementPct: RULES.auction.incrementPct, incrementMin: RULES.auction.incrementMin,
       snipeWindowMs: RULES.auction.snipeWindowMs, snipeExtendMs: RULES.auction.snipeExtendMs, snipeMaxExtensions: RULES.auction.snipeMaxExtensions, buyout: 'Offered until the price reaches it.' },
     fixed: { defaultMs: RULES.fixed.defaultMs, maxDurationMs: RULES.fixed.maxDurationMs }, swap: { defaultMs: RULES.swap.defaultMs, offerExpiryMs: RULES.swap.offerExpiryMs, counterRounds: RULES.limits.counterRounds },
     order: { defaultMs: RULES.order.defaultMs, maxQuantity: RULES.limits.orderQuantity, open: RULES.limits.openOrders }, limits: RULES.limits,
-    quickSell: { perAccountCardsPerDay: RULES.quickSell.perAccountCardsPerDay, perAccountCreditsPerDay: RULES.quickSell.perAccountCreditsPerDay, perRequestMax: RULES.quickSell.perRequestMax, quoteTtlMs: RULES.quickSell.quoteTtlMs },
+    quickSell: (() => { const q = quickSellLimits(env); return { perAccountCardsPerDay: q.perAccountCardsPerDay, perAccountCreditsPerDay: q.perAccountCreditsPerDay, perRequestMax: q.perRequestMax, quoteTtlMs: q.quoteTtlMs }; })(),
     swapFee: 'A card-for-card swap pays no fee. Credits that change hands pay the usual 2%, taken from the receiver.' };
 }
 
@@ -48,7 +48,7 @@ async function route(request, env, url, trace) {
     const schema = await env.DB.prepare("SELECT value FROM schema_info WHERE key = 'schema'").first();
     return { service: 'cardable-market-beta', version: VERSION, apiVersion: env.API_VERSION || '1', environment: env.ENVIRONMENT || 'beta', schema: Number(schema && schema.value),
       catalog: CATALOG.hash, time: now, features: { listings: true, trading: true, auctions: true, orders: true, swaps: true, quickSell: true, imports: true, turnstile: !!env.TURNSTILE_SITEKEY },
-      turnstileSitekey: env.TURNSTILE_SITEKEY || null, rules: publicRules() };
+      turnstileSitekey: env.TURNSTILE_SITEKEY || null, rules: publicRules(env) };
   }
   if (pathname === '/v1/auth/register' && method === 'POST') return register(env, request, await readJson(request, 8_000));
   if (pathname === '/v1/auth/refresh' && method === 'POST') return refresh(env, request, await readJson(request, 8_000));

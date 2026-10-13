@@ -10,16 +10,18 @@ Everything online for the Market beta lives in resources named `cardable-market-
 |---|---|---|---|
 | Worker | `cardable-market-beta` (`workers.dev` only, no routes) | the HTTPS API `/v1/*` | `deploy.cjs --apply` |
 | D1 database | `cardable-market-beta-db` · binding `DB` | the single source of truth (accounts, wallets, ledger, instances, imports, listings schema) | `deploy.cjs --apply` |
-| Durable Object class | `Gate` · binding `GATE` · SQLite-backed | per-key rate limiting and short locks; it owns **no** game data | Worker migration `v1` |
+| Durable Object class | `Gate` · binding `GATE` · SQLite-backed | per-key rate limiting and short locks, and one **alarm per listing** that closes it on time; it owns **no** game data | Worker migration `v1` |
 | R2 bucket | `cardable-market-beta-media` · binding `MEDIA` | private listing images (used from Stage 7; created now so the binding is stable) | `deploy.cjs --apply` |
 | Secret | `SESSION_SECRET` | HMAC key for access tokens and import receipts | `wrangler secret put` (stdin) |
+| Secret | `ADMIN_TOKEN` | the operator's reconcile, repair, sweep and import-revoke tools; without it those routes answer 404 | `deploy.cjs --apply` (also kept in `cloudflare/.admin-token`, git-ignored) |
+| Cron trigger | `*/5 * * * *` | backstop for the alarms: close and expire what is due, match waiting orders | `wrangler.toml` |
 | Secret (optional) | `TURNSTILE_SECRET` | bot challenge verification, when the owner enables it | `wrangler secret put` |
 
 Recorded after deployment (non-sensitive identifiers only): `account_id`, D1 `database_id`, the `workers.dev` origin, the deployed version id. Fill them in the table in section 9 when they exist.
 
 ## 2. Configuration (`cloudflare/wrangler.toml`)
 
-Plain variables (public, safe to commit): `ENVIRONMENT=beta`, `API_VERSION=1`, `CORS_ALLOW`, `TURNSTILE_SITEKEY` (empty = no challenge), `BETA_IMPORT_CAP=3000`, `SESSION_TTL_SECONDS=900`, `REFRESH_TTL_DAYS=30`. `REGISTER_PER_HOUR` defaults to 8 in code.
+Plain variables (public, safe to commit): `ENVIRONMENT=beta`, `API_VERSION=1`, `CORS_ALLOW`, `TURNSTILE_SITEKEY` (empty = no challenge), `BETA_IMPORT_CAP=3000`, `SESSION_TTL_SECONDS=900`, `REFRESH_TTL_DAYS=30`. Optional tuning, none set by default: `REGISTER_PER_HOUR` (8), `API_RATE_LIMIT` (600 requests a minute per account), `QS_CARDS_PER_DAY` (40), `QS_CREDITS_PER_DAY` (4000), `QS_REALM_CREDITS_PER_DAY` (250000), `SWEEP_LIMIT` (5 listings per cron run). `ENVIRONMENT=test` and the `TEST_*` variables exist only for the local test suite: with `ENVIRONMENT=beta` the Worker ignores `x-test-now` and every `TEST_*` value.
 
 Secrets are **never** in this file, in the client, in markdown, in logs or in screenshots. `deploy.cjs --check` scans the folder for private keys, token-shaped strings and secret assignments and fails if it finds any. Local development passes a throw-away secret with `--var`; tests generate a random one per run.
 
@@ -67,21 +69,25 @@ All responses are `{ "ok": true, "data": … , "trace": "<id>" }` or `{ "ok": fa
 
 | Method · path | Auth | Answer |
 |---|---|---|
-| GET `/v1/status` | none | service, version, schema, catalog hash, features (`trading:false`, `listings:false` in this stage), turnstile sitekey |
+| GET `/v1/status` | none | service, version, schema, catalog hash, features (listings, trading, auctions, orders, swaps, quickSell, imports), the public rules, turnstile sitekey |
 | POST `/v1/auth/register` · `/refresh` · `/recover` | none | tokens (+ alias, recovery code on register) |
 | POST `/v1/auth/logout` · GET `/v1/auth/sessions` · DELETE `/v1/auth/sessions/:id` | bearer | revoke / list / revoke one |
-| GET `/v1/me` | bearer | alias, createdAt, imported, realm |
-| GET `/v1/wallet` | bearer | balance, held, available, newest 30 ledger rows |
-| GET `/v1/inventory` | bearer | online-owned instances, cursor paged, total |
-| GET `/v1/listings` | bearer | always `items: []`, `emptyReason: "no-listings"` until Stage 5 writes them |
-| GET `/v1/prices` | bearer | `items: []`; only completed **player** sales ever appear here |
-| GET `/v1/notifications` | bearer | newest 50 |
-| GET/PUT `/v1/settings` | bearer | `notifyBids`, `notifyTrades`, `notifyWatch` |
+| GET `/v1/me` · `/v1/wallet` · `/v1/inventory` · `/v1/notifications` · `/v1/settings` · PUT `/v1/settings` | bearer | the player's own state; the wallet carries the Quick Sell limits used today |
+| GET `/v1/listings` · `/v1/listings/:id` | bearer | public listings; detail settles a due listing first |
+| POST `/v1/listings` · PUT `/v1/listings/:id` · POST `/v1/listings/:id/cancel` · `buy` · `bid` · `buyout` · `relist` | bearer + `Idempotency-Key` | fixed, auction and swap listings |
+| POST `/v1/orders` · PUT `/v1/orders/:id` · POST `/v1/orders/:id/cancel` | bearer + `Idempotency-Key` | buy orders |
+| POST `/v1/offers` · POST `/v1/offers/:id/accept` · `decline` · `counter` · `withdraw` | bearer + `Idempotency-Key` | swap offers |
+| GET `/v1/sell/quote` · POST `/v1/sell` | bearer (+ key on the sale) | the system redemption |
+| GET `/v1/activity` · `/v1/history` · `/v1/trades` · `/v1/prices` · `/v1/cards/:id/market` · `/v1/valuation` | bearer | reads |
+| POST `/v1/notifications/read` | bearer | mark notifications read up to an id |
 | POST `/v1/import/preview` | bearer | validate a package, return accepted items and reasoned rejections, 15 minute preview id |
 | POST `/v1/import/commit` | bearer + `Idempotency-Key` | one-time claim; returns the signed receipt |
 | GET `/v1/import/receipt` | bearer | the permanent receipt |
+| GET `/v1/admin/reconcile` · POST `/v1/admin/repair` · `sweep` · `import/revoke` | `x-admin-token` | operator tools; 404 for anyone else |
 
-## 6. Schema (`migrations/0001_init.sql` + `0002_import_hardening.sql`, schema 2)
+The trading fields, rules and receipts are specified in [stage-5.md](stage-5.md).
+
+## 6. Schema (`migrations/0001_init.sql` + `0002_import_hardening.sql` + `0003_trading.sql`, schema 3)
 
 `schema_info` · `accounts` (alias UNIQUE NOCASE, recovery hash UNIQUE) · `sessions` (refresh hash UNIQUE, previous hash kept for reuse detection) · `wallets` (`CHECK balance ≥ 0`, `0 ≤ held ≤ balance`, version) · `ledger` (append-only by convention: no code path updates or deletes a row; `delta ≠ 0`, `balance_after ≥ 0`, `UNIQUE(account_id, idem)`) · `instances` (server-issued id, **`serial` UNIQUE globally**, `source`, `state ∈ owned|escrow|redeemed`) · `imports` (**one per account, one per package hash, one per origin code**, receipt signature, idempotency key unique per account) · `import_previews` · `idempotency` (`PRIMARY KEY(account_id, key)`, request hash; reserved for Stage 5) · `listings`, `listing_items` (`instance_id` UNIQUE: a card can be in one listing), `price_observations`, `notifications`, `settings`.
 
@@ -90,13 +96,13 @@ Indexes: ledger by account (id desc), instances by owner/state/card, listings by
 ### Migration contract
 
 1. A migration is a new `NNNN_name.sql`; applied files are immutable.
-2. Forward only (`0001_init.sql`, `0002_import_hardening.sql`). Destructive changes ship as add-new → backfill → switch → (later migration) drop.
+2. Forward only (`0001_init.sql`, `0002_import_hardening.sql`, `0003_trading.sql`). Destructive changes ship as add-new → backfill → switch → (later migration) drop.
 3. Local rehearsal first: `wrangler d1 migrations apply cardable-market-beta-db --local`, then the test suite, then `--remote`.
 4. `schema_info.schema` and `/v1/status.schema` move together; the client treats a higher schema than it knows as read-only.
 
 ## 7. Consistency model
 
-D1 is the single source of truth. Every mutation is **one `db.batch([...])`**, which D1 runs as a single transaction; each statement carries its own guard (`WHERE`, `CHECK`, `UNIQUE`), so a race or a retry can only fail whole, never half-apply. The one-time import is idempotent through `imports.idem` (UNIQUE): replaying a commit with the same `Idempotency-Key` returns the first receipt, never a second import. The generic `idempotency` table (`account, key, request hash → response`) is in the schema for the trading mutations of Stage 5 and is not written yet. The Durable Object serializes an account's import (a short lock) and rate-limits; if it is unavailable the guard statements in D1 still hold, so it is an optimization and a politeness, not a correctness dependency. Escrow (`instances.state = 'escrow'`, `wallets.held`) and the `ledger` are in the schema now; Stage 5 adds the mutations that use them, under the same rules.
+D1 is the single source of truth. Every mutation is **one `db.batch([...])`**, which D1 runs as a single transaction; each statement carries its own guard (`WHERE`, `CHECK`, `UNIQUE`), so a race or a retry can only fail whole, never half-apply. The one-time import is idempotent through `imports.idem` (UNIQUE): replaying a commit with the same `Idempotency-Key` returns the first receipt, never a second import. The generic `idempotency` table (`account, key, request hash → response`) is in the schema for the trading mutations of Stage 5 and is not written yet. The Durable Object serializes an account's import (a short lock) and rate-limits; if it is unavailable the guard statements in D1 still hold, so it is an optimization and a politeness, not a correctness dependency. Escrow (`instances.state = 'escrow'`, `escrow_ref`, `wallets.held`, the `holds` table) and the `ledger` carry every trade: each is one batch with an idempotency record and guards that abort it whole (see [stage-5.md](stage-5.md) section 3 for the model and the reconciled invariants). A listing's end is closed by its own Durable Object alarm and, as a backstop, by the cron trigger and by whoever next looks at it; what is settled never depends on when the settlement runs.
 
 ## 8. Limits and cost (read from Cloudflare's documentation on 2026-10-13; re-check before relying on them)
 
@@ -116,6 +122,7 @@ How the beta is shaped by them:
 
 - **50 queries per invocation** (Free): the import inserts with `json_each` in chunks of 400 rows per statement, so a 3,000-card import is about 8 statements, not 3,000. The beta cap `BETA_IMPORT_CAP = 3000` keeps one import inside both this limit and the 2 MB row limit of a stored preview.
 - **Writes are the scarce resource**: an inserted instance writes its row plus two index entries (about 3 row writes). A full 3,000-card import is therefore roughly 9,000–10,000 row writes, so the Free plan supports about ten full imports a day; a typical collection (a few hundred cards) is about 1,000. Registration is roughly 8 row writes. Read-only browsing costs reads, which are 50× more plentiful.
+- **Query budget in a trade**: a bid, purchase or listing is about 15–25 statements in one batch plus 3–6 reads; a settlement about 25. Both sit under the Free plan's 50 per invocation, and every alarm is its own invocation. The cron sweep handles `SWEEP_LIMIT` listings per run to stay inside the same budget.
 - **Pagination**: cursors on the primary key (`id > ?`), bounded `limit ≤ 100`, so a page costs at most `limit + 1` row reads.
 - **Budget estimate for a beta of 200 players on Free**: 200 registrations (~1,600 writes) + 200 imports of 300 cards (~200,000 writes) over a week is ~30,000 writes/day, inside the 100,000/day limit; reads under 100,000/day. Not measured in production; it is arithmetic from the figures above.
 
@@ -125,7 +132,7 @@ How the beta is shaped by them:
 |---|---|
 | `wrangler --version` | 4.149.0 (installed from `cloudflare/package.json`) |
 | `wrangler whoami` | **not authenticated** (2026-10-13) |
-| Local integration tests `cloudflare/test/api.test.mjs` on the real Workers runtime (`wrangler dev --local`, local D1 and DO) | 16 / 16 pass |
+| Local integration tests (`npm run test:cloudflare`: api, economy, trading, races) on the real Workers runtime (`wrangler dev --local`, local D1 and DO) | 54 / 54 pass |
 | `deploy.cjs --verify` against a local origin | 10 / 10 pass |
 | `deploy.cjs --check` | names ok · secret scan ok · wrangler ok · **authentication FAIL** |
 

@@ -6,7 +6,12 @@
   var chips = new Set();
   var cfg = function () { return C.data.marketSim; };
 
-  function live(realm) { return realm === 'simulation' && !!C.market.api && C.market.api.simulationLive; }
+  // A realm is "live" when real trades can happen in it: the offline Simulation, or a connected Global Market.
+  function live(realm) {
+    if (realm === 'simulation') return !!C.market.api && C.market.api.simulationLive;
+    if (realm === 'global') return !!C.market.online && C.market.online.state.status === 'online' && !(C.market.store && C.market.store.session.showGlobalSample);
+    return false;
+  }
   function rt() { return C.marketSim && C.marketSim.runtime; }
   function status() { return C.market.api.statusSync('simulation'); }
   function stateWord(st) {
@@ -122,7 +127,11 @@
   // ---- shared helpers for real trades ---------------------------------------------------------------------------------
   var reqCounter = 0;
   function newRequestId() { reqCounter++; return 'r' + Date.now().toString(36) + reqCounter.toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
-  function simNow() { var r = rt(); return r && r.world ? r.world.now : 0; }
+  // The clock a countdown is read against: the Simulation's own time, or the server's time in Global.
+  function simNow() {
+    if (C.market.store && C.market.store.session.realm === 'global' && C.market.onlineData) return C.market.onlineData.now();
+    var r = rt(); return r && r.world ? r.world.now : 0;
+  }
   // Countdowns are plain text updated from the simulator's own clock; there is no timer of their own.
   function countdowns(container) {
     var now = simNow();
@@ -147,25 +156,30 @@
     surface.appendChild(dl);
     if (options.body) surface.appendChild(options.body);
     var message = h('p.mk-field-error.is-inline', { role: 'alert', hidden: true });
+    // The state of this request, always in words: Processing while it is out, Retry safely when it cannot have acted twice.
+    var stateChip = h('span.mk-review-state', { role: 'status', 'aria-live': 'polite', hidden: true });
+    function setState(text, tone) { stateChip.hidden = !text; ui.clear(stateChip); if (text) stateChip.appendChild(ui.chip(text, { tone: tone || 'soft', icon: tone === 'warn' ? 'warn' : 'clock' })); }
     surface.appendChild(message);
+    surface.appendChild(stateChip);
     if (options.note) surface.appendChild(h('p.mk-review-note', icon('info'), h('span', { text: options.note })));
     var requestId = newRequestId(), handle = null, busy = false;
     var cancel = ui.button(options.cancelLabel || 'Cancel', { variant: 'ghost', onClick: function () { handle.close(); } });
     var go = ui.button(options.confirmLabel || 'Confirm', { variant: 'primary', icon: options.icon, disabled: !!options.disabledReason, reason: options.disabledReason || '', onClick: function () { run(); } });
     function run() {
       if (busy) return;
-      busy = true; go.disabled = true; cancel.disabled = true; message.hidden = true;
+      busy = true; go.disabled = true; cancel.disabled = true; message.hidden = true; setState('Processing');
       var out;
       try { out = options.run(requestId); } catch (error) { out = { ok: false, message: 'Something went wrong. Nothing was changed.' }; }
       Promise.resolve(out).then(function (res) {
-        busy = false;
+        busy = false; setState('');
         if (res && res.ok !== false) { handle.close(); if (options.success) options.success(res); return; }
-        message.textContent = (res && res.message) || 'That did not work. Nothing was changed.';
-        message.hidden = false; requestId = newRequestId();
+        // An answer that never arrived may or may not have been acted on: keep the same request id so a retry cannot act twice.
+        message.textContent = ((res && res.message) || 'That did not work. Nothing was changed.');
+        message.hidden = false; if (!(res && res.retrySafe)) requestId = newRequestId(); else setState('Retry safely', 'warn');
         go.disabled = false; cancel.disabled = false; go.focus();
         if (options.failure) options.failure(res);
       }, function () {
-        busy = false; message.textContent = 'That did not work. Nothing was changed.'; message.hidden = false; requestId = newRequestId(); go.disabled = false; cancel.disabled = false;
+        busy = false; message.textContent = 'That did not work. If you try again it will not act twice.'; message.hidden = false; setState('Retry safely', 'warn'); go.disabled = false; cancel.disabled = false;
       });
     }
     surface.appendChild(h('div.mk-modal-actions', cancel, go));

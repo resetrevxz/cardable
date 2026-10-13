@@ -129,3 +129,12 @@ test('rules the client reads are consistent', () => {
 });
 
 function pick(v) { return { lead: v.lead ? v.lead.id : null, price: v.price, bidders: v.bidders, minNext: v.minNext }; }
+
+test('the operator can tune the system redemption\'s daily limits with plain variables, and bad values fall back', async () => {
+  const { quickSellLimits } = await import('../src/economy.js');
+  assert.deepEqual([quickSellLimits({}).perAccountCardsPerDay, quickSellLimits({}).perAccountCreditsPerDay, quickSellLimits({}).globalCreditsPerDay], [40, 4000, 250000]);
+  const tuned = quickSellLimits({ QS_CARDS_PER_DAY: '10', QS_CREDITS_PER_DAY: '500', QS_REALM_CREDITS_PER_DAY: '9000' });
+  assert.deepEqual([tuned.perAccountCardsPerDay, tuned.perAccountCreditsPerDay, tuned.globalCreditsPerDay], [10, 500, 9000]);
+  assert.equal(quickSellLimits({ QS_CARDS_PER_DAY: 'lots' }).perAccountCardsPerDay, 40);
+  assert.equal(quickSellLimits({ QS_CARDS_PER_DAY: '-3' }).perAccountCardsPerDay, 40);
+});

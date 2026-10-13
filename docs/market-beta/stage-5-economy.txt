@@ -1,0 +1,34 @@
+Cardable Global Market: Credit economy model (deterministic; card data and odds from the game)
+Rules: Quick Sell pays 0.55 x baseline, rounded down, min 1. Fee 2% half-up, min 1, taken from the seller once. Credits are created only by Quick Sell.
+Beta limits: 40 cards and 4000 Credits per account per UTC day; 250000 Credits per day for the whole realm.
+
+1. What a card is worth to the system (5000 simulated pack results)
+   baseline value   median 16 · mean 59 · p90 79 · p99 960
+   Quick Sell quote median 8 · mean 32 · p90 43 · p99 528
+   cards whose single quote exceeds one day's limit (4000): 0.00%
+
+2. A newcomer after converting a collection: Credits available through the system, and how long the daily limit takes
+    100 cards: total quote    1899 Credits, first day 208, all sold in 3 days
+    300 cards: total quote    7806 Credits, first day 168, all sold in 9 days
+   1000 cards: total quote   28098 Credits, first day 160, all sold in 28 days
+
+3. Playability of the 2% fee (half-up, at least 1 Credit): what a seller keeps
+   price     3 -> fee    1 ( 33.3%), seller keeps 2
+   price     5 -> fee    1 ( 20.0%), seller keeps 4
+   price    10 -> fee    1 ( 10.0%), seller keeps 9
+   price    25 -> fee    1 (  4.0%), seller keeps 24
+   price    50 -> fee    1 (  2.0%), seller keeps 49
+   price   100 -> fee    2 (  2.0%), seller keeps 98
+   price   500 -> fee   10 (  2.0%), seller keeps 490
+   price  2000 -> fee   40 (  2.0%), seller keeps 1960
+
+4. Inflation: can Credits grow without bound?
+   Not without more cards. Credits are created only by retiring a card at 0.55 x its value, a card can be redeemed once, and the beta creates no new cards online.
+   So everything ever issued is bounded by the value of the collections players convert, times 0.55. A typical 300 card collection is worth about 9605 Credits to the system.
+   Every Credit sale then destroys 2% (min 1). Total realm Credits can only fall after the last card is sold.
+   The rate is bounded too: 4000/day per account and 250000/day for the realm.
+   Steady state with each account issuing 600/day and each Credit changing hands 0.3 times a day: fees remove 4/day per account, so supply tracks issuance until the cards run out.
+
+5. Abuse bound: a forged import
+   An edited save can claim up to 3000 cards (beta cap). At the daily limit that is 4000 Credits/day per account; a farm of accounts is slowed by the per-address registration limit and bounded by the realm total of 250000/day.
+   It is a beta risk, not a solved problem: the operator can revoke a disputed import, and the realm total is the circuit breaker.

@@ -85,15 +85,19 @@ export async function sweep(env, now, limit) {
   const cap = Math.max(1, Math.min(200, Number(limit) || Number(env.SWEEP_LIMIT) || 5));
   const out = { settled: 0, ordersExpired: 0, offersExpired: 0, matched: 0, cleaned: 0 };
   const due = (await env.DB.prepare("SELECT id FROM listings WHERE status = 'active' AND ends_at <= ? ORDER BY ends_at LIMIT ?").bind(now, cap).all()).results;
-  for (const r of due) { const x = await settleListing(env, r.id, now); if (x && x.ok) out.settled++; }
+  // One bad item never stops the rest of the sweep; it is reported and left for the next run.
+  const safe = async (fn) => { try { return await fn(); } catch (error) { out.errors = (out.errors || 0) + 1; return null; } };
+  for (const r of due) { const x = await safe(() => settleListing(env, r.id, now)); if (x && x.ok) out.settled++; }
   const oo = (await env.DB.prepare("SELECT id FROM orders WHERE status = 'open' AND expires_at <= ? LIMIT ?").bind(now, cap).all()).results;
-  for (const r of oo) { const x = await expireOrder(env, r.id, now); if (x && x.ok) out.ordersExpired++; }
+  for (const r of oo) { const x = await safe(() => expireOrder(env, r.id, now)); if (x && x.ok) out.ordersExpired++; }
   const of = (await env.DB.prepare("SELECT id FROM offers WHERE status = 'pending' AND expires_at <= ? LIMIT ?").bind(now, cap).all()).results;
-  for (const r of of) { const x = await expireOffer(env, r.id, now); if (x && x.ok) out.offersExpired++; }
+  for (const r of of) { const x = await safe(() => expireOffer(env, r.id, now)); if (x && x.ok) out.offersExpired++; }
   const waiting = (await env.DB.prepare("SELECT o.id FROM orders o WHERE o.status = 'open' AND o.expires_at > ? AND EXISTS (SELECT 1 FROM listings l WHERE l.status = 'active' AND l.kind = 'fixed' AND l.item_count = 1 AND l.card_id = o.card_id AND l.ask <= o.max_price AND l.seller_id <> o.account_id AND l.ends_at > ?) LIMIT ?").bind(now, now, Math.min(cap, 5)).all()).results;
-  for (const r of waiting) out.matched += await matchOrder(env, r.id, now);
+  for (const r of waiting) out.matched += (await safe(() => matchOrder(env, r.id, now))) || 0;
   const old = await env.DB.prepare('DELETE FROM idempotency WHERE rowid IN (SELECT rowid FROM idempotency WHERE created_at < ? LIMIT 200)').bind(now - RULES.history.keepIdempotencyMs).run();
   out.cleaned = old.meta ? old.meta.changes : 0;
+  const notes = await env.DB.prepare('DELETE FROM notifications WHERE id IN (SELECT id FROM notifications WHERE at < ? LIMIT 200)').bind(now - RULES.history.keepNotificationsMs).run();
+  out.cleaned += notes.meta ? notes.meta.changes : 0;
   return out;
 }
 

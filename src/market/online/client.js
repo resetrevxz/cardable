@@ -148,6 +148,8 @@
   C.market.online = {
     init: init, refresh: refresh, connect: connect, recover: recover, signOut: signOut, authed: authed, request: request,
     packageFromSave: packageFromSave, previewImport: previewImport, commitImport: commitImport, receipt: storedReceipt,
+    applyInventory: function (total) { if (Number.isFinite(total) && total !== S.inventoryTotal) { S.inventoryTotal = total; emit(); } },
+    applyWallet: function (w) { if (!w) return; S.balance = w.balance; S.held = w.held; S.available = w.available; emit(); },
     get state() { return S; }, configured: function () { return !!base(); }, base: base,
     subscribe: function (fn) { listeners.add(fn); return function () { listeners.delete(fn); }; }
   };

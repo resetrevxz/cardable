@@ -77,6 +77,18 @@
     if (pageScope) { pageScope.destroy(); pageScope = null; }
     current = entry;
     ui.clear(scroller);
+    // A page that needs the server's answer first (Global) shows a designed loading state, then draws itself once.
+    if (!flags.prefetched && C.market.api.prefetch) {
+      var wait = null;
+      try { wait = C.market.api.prefetch(frameRealm(), entry.name, entry.params || {}); } catch (_) { wait = null; }
+      if (wait && typeof wait.then === 'function') {
+        var loading = h('div.mk-page', { data: { page: entry.name, enter: 'forward' } }, ui.emptyState({ kind: 'loading', icon: 'clock', title: 'Loading from Global Market', body: 'Reading the latest from the server.' }));
+        scroller.appendChild(loading);
+        var again = function () { if (current === entry && opened) mount(entry, Object.assign({}, flags, { prefetched: true })); };
+        wait.then(again, again);
+        return;
+      }
+    }
     var host = h('div.mk-page', { data: { page: entry.name, enter: flags.forward === false ? 'back' : 'forward' } });
     scroller.appendChild(host);
     pageScope = ui.createScope();
@@ -358,6 +370,7 @@
     if (C.preferences && C.preferences.open) C.preferences.close();
     if (C.contextMenu && C.contextMenu.open) C.contextMenu.close();
     if (store.session.realm === 'simulation' && C.marketSim) { try { C.marketSim.ensure(true); } catch (error) { console.error('Market simulation could not start', error); } }
+    if (store.session.realm === 'global' && C.market.onlineData) C.market.onlineData.used();
     build();
     opened = true; savedFocus = doc.activeElement;
     el.hidden = false;

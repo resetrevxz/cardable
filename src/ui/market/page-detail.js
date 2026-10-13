@@ -77,10 +77,13 @@
     box.appendChild(h('div.mk-panel-head', ui.eyebrow(seller.isYou ? 'Your listing' : seller.isBot ? 'Simulation trader' : 'Seller'), h('h3', { text: seller.alias })));
     if (live) {
       var rows = seller.isYou ? [{ label: 'Completed sales', value: String(seller.sales) }] : [
-        { label: 'Style', value: seller.personaLabel || 'Trader' }, { label: 'Completed sales', value: String(seller.sales) }
+        seller.personaLabel ? { label: 'Style', value: seller.personaLabel } : { label: 'Here for', value: seller.tenureDays + (seller.tenureDays === 1 ? ' day' : ' days') }, { label: 'Completed sales', value: String(seller.sales) }
       ];
       box.appendChild(ui.statGrid(rows, { cols: rows.length }));
-      box.appendChild(h('p.mk-hint', { text: seller.isYou ? 'Withdraw it while it has no bids or offers, or let it run.' : (seller.personaNote ? seller.personaNote + ' ' : '') + 'A simulated trader on this device, not a person. It decides with its own budget and habits.' }));
+      var player = !seller.isBot && !seller.isYou && C.market.store && C.market.store.session.realm === 'global';
+      box.appendChild(h('p.mk-hint', { text: seller.isYou ? 'Withdraw it while it has no bids or offers, or let it run.'
+        : player ? 'A real player, shown only by a generated two-word name. Their sales count is every completed player trade of theirs.'
+          : (seller.personaNote ? seller.personaNote + ' ' : '') + 'A simulated trader on this device, not a person. It decides with its own budget and habits.' }));
       return box;
     }
     var sample = [
@@ -132,7 +135,7 @@
     var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
     if (!res) {
       host.appendChild(h('div.mk-pagehead', back));
-      host.appendChild(ui.emptyState({ kind: 'error', icon: 'warn', title: 'This listing is not available', body: live ? 'It closed a while ago and is no longer kept, or this simulation was reset.' : 'It may have sold, expired or been withdrawn, or this sample set may have changed.',
+      host.appendChild(ui.emptyState({ kind: 'error', icon: 'warn', title: 'This listing is not available', body: live ? (realm === 'global' ? 'It may have been removed, or it could not be read from Global Market just now. Try again in a moment.' : 'It closed a while ago and is no longer kept, or this simulation was reset.') : 'It may have sold, expired or been withdrawn, or this sample set may have changed.',
         actions: [{ label: 'Back to Discover', variant: 'primary', run: function () { ui.shell.goTab('discover'); } }] }));
       return;
     }
@@ -188,6 +191,14 @@
       topLine.appendChild(ui.realmBadge(l.realm || realm, { short: true }));
       topLine.appendChild(ui.chip(STATUS[l.status] || l.status, { tone: l.status === 'sold' || l.status === 'expired' || l.status === 'cancelled' ? 'warn' : 'soft', icon: l.status === 'sold' ? 'check' : closed ? 'clock' : null }));
       if (mine) topLine.appendChild(ui.chip('Yours', { tone: 'soft' }));
+      // What is going on with this exact auction, in the words the market uses everywhere.
+      if (realm === 'global' && l.format === 'auction' && l.auction) {
+        var au = l.auction;
+        if (open && !au.bids) topLine.appendChild(ui.chip('Awaiting bids', { tone: 'soft' }));
+        if (open && au.bids && au.hasReserve && !au.reserveMet) topLine.appendChild(ui.chip('Reserve not met', { tone: 'warn', title: 'The seller set a minimum. If bidding stops below it the auction ends unsold.' }));
+        if (open && !mine && au.myMax) topLine.appendChild(au.youLead ? ui.chip('Reserved ' + ui.fmt.exact(au.myMax), { tone: 'good', icon: 'lock', title: 'Your maximum is held in escrow until the auction ends or you are outbid.' }) : ui.chip('Outbid', { tone: 'warn' }));
+      }
+      if (realm === 'global' && l.status === 'sold' && mine) topLine.appendChild(ui.chip('Completed', { tone: 'good', icon: 'check' }));
       headBox.appendChild(topLine);
       headBox.appendChild(h('h1', { text: l.title || idn.name }));
       var sub = [idn.rarityName, variant ? variant.name : 'Normal finish'];
@@ -226,8 +237,12 @@
           { label: mine ? 'You receive' : 'Seller receives', value: ui.fmt.exact(price - fee) + ' Credits', note: 'After the ' + cfg().fee.label.toLowerCase() + ' of ' + fee, help: 'settlement' }
         ], { cols: 2 }));
         if (live) {
-          if (mine) actions.appendChild(ui.button('Withdraw listing', Object.assign({ variant: 'secondary', icon: 'trash', onClick: function () { withdrawListing(l); } }, open ? {} : why('This listing is closed.'))));
-          else {
+          if (mine) {
+            var caps = ctx.api.capabilities(realm);
+            if (open && caps.reprice) actions.appendChild(ui.button('Change price', { variant: 'secondary', icon: 'tag', onClick: function () { repriceDialog(l, price); } }));
+            if (!open && caps.relist && l.status !== 'sold') actions.appendChild(ui.button('List again', { variant: 'primary', icon: 'plus', onClick: function () { relistDialog(l); } }));
+            actions.appendChild(ui.button('Withdraw listing', Object.assign({ variant: 'secondary', icon: 'trash', onClick: function () { withdrawListing(l); } }, open ? {} : why('This listing is closed.'))));
+          } else {
             var buyOpts = { variant: 'primary', icon: 'tag', onClick: function () { buyNow(l, price, available, wallet); } };
             if (closed) Object.assign(buyOpts, why('This listing is closed.'));
             else if (available < price) Object.assign(buyOpts, why('You have ' + ui.fmt.exact(available) + ' Credits available. This costs ' + ui.fmt.exact(price) + '.'));
@@ -318,7 +333,7 @@
       if (l.format !== 'swap') {
         var vp = h('section.mk-box', { 'aria-label': 'Value read' });
         vp.appendChild(h('div.mk-panel-head', h('h3', { text: 'How this price compares' }), live
-          ? ui.chip(v.basis === 'baseline' ? 'Baseline estimate' : v.samples + ' recent trades', { tone: 'soft', title: v.basis === 'baseline' ? 'No completed trades of this card yet, so the figure comes from its specs and rarity.' : 'Built only from completed trades in this simulation.' })
+          ? ui.chip(v.basis === 'baseline' ? 'Baseline estimate' : v.samples + ' recent trades', { tone: 'soft', title: v.basis === 'baseline' ? 'No completed trades of this card yet, so the figure comes from its specs and rarity.' : (realm === 'global' ? 'Built only from completed player trades. Quick Sell and swaps are never counted.' : 'Built only from completed trades in this simulation.') })
           : ui.chip('Illustrative', { tone: 'soft', title: 'Sample figures for the preview' })));
         vp.appendChild(ui.valueMeter(v, price, { priceLabel: l.format === 'auction' ? 'Current bid' : 'Asking price' }));
         var verdict = K().verdictFor(price, v), say = {
@@ -382,13 +397,13 @@
     // ---- simulation: swap offers panel ----
     function offerLine(o) {
       var give = o.give.map(function (g) { var c = env.cards[g.cardId]; return (c ? ui.identity(c, true).name : g.cardId) + ' (' + ui.fmt.exact(g.worth) + ')'; }).join(', ');
-      return give + (o.cash ? ' + ' + ui.fmt.exact(o.cash) + ' Credits' : '');
+      return give + (o.cash ? ' + ' + ui.fmt.exact(o.cash) + ' Credits' : '') + (o.refund ? ' and ' + ui.fmt.exact(o.refund) + ' Credits back' : '');
     }
     function offersPanel(r, l, mine, open, wallet) {
       var box = h('section.mk-box', { 'aria-label': mine ? 'Offers on your listing' : 'Your offers' });
       box.appendChild(h('div.mk-panel-head', h('h3', { text: mine ? 'Offers on your listing' : 'Your offers' })));
       var list = (mine ? r.offers : r.myOffers) || [];
-      if (!list.length) { box.appendChild(h('p.mk-hint', { text: mine ? 'No one has offered yet. Traders look at swaps as they wake through the day.' : 'You have not offered anything on this listing.' })); return box; }
+      if (!list.length) { box.appendChild(h('p.mk-hint', { text: mine ? (realm === 'global' ? 'No one has offered yet. An offer from another player appears here the moment it arrives.' : 'No one has offered yet. Traders look at swaps as they wake through the day.') : 'You have not offered anything on this listing.' })); return box; }
       var ul = h('ul.mk-offers');
       list.slice().sort(function (a, b) { return a.minutesAgo - b.minutesAgo; }).forEach(function (o) {
         var live1 = o.status === 'pending' || o.status === 'countered';
@@ -397,7 +412,14 @@
         li.appendChild(h('div.mk-offer-copy', h('strong', { text: (o.fromYou ? 'You offered' : o.from + ' offered') + ': ' + offerLine(o) }),
           h('span.mk-muted', { text: statusWord + ' · ' + ui.fmt.age(o.minutesAgo) + (live1 ? ' · ' + ui.fmt.duration(o.minutesLeft) + ' left' : '') + (o.note ? ' · ' + o.note : '') })));
         var acts = h('div.mk-offer-actions');
-        if (live1 && o.toYou && o.status === 'pending') {
+        var canCounter = realm === 'global' && ctx.api.capabilities(realm).counter && o.myTurn && (o.round || 0) < 6;
+        if (live1 && o.myTurn != null && realm === 'global') {
+          if (o.myTurn) {
+            acts.appendChild(ui.button(o.fromYou ? 'Accept counter' : 'Accept', { variant: 'primary', size: 'sm', onClick: function () { answerOffer(o, true); } }));
+            if (canCounter) acts.appendChild(ui.button('Counter', { variant: 'secondary', size: 'sm', onClick: function () { counterDialog(o); } }));
+            acts.appendChild(ui.button('Decline', { variant: 'ghost', size: 'sm', onClick: function () { answerOffer(o, false); } }));
+          } else if (o.fromYou) acts.appendChild(ui.button('Withdraw', { variant: 'ghost', size: 'sm', onClick: function () { dropOffer(o); } }));
+        } else if (live1 && o.toYou && o.status === 'pending') {
           acts.appendChild(ui.button('Accept', { variant: 'primary', size: 'sm', onClick: function () { answerOffer(o, true); } }));
           acts.appendChild(ui.button('Decline', { variant: 'ghost', size: 'sm', onClick: function () { answerOffer(o, false); } }));
         } else if (live1 && o.fromYou && o.status === 'countered') {
@@ -410,21 +432,61 @@
       box.appendChild(ul);
       return box;
     }
+    // In Global an offer carries only what the other side puts forward; what you receive or give up is the listing's own cards.
+    function offerGet(o) {
+      if (o.get && o.get.length) return o.get;
+      var cur = ctx.api.listingSync(realm, ctx.params.id);
+      return cur ? cur.listing.items.map(function (i) { return { cardId: i.cardId, variantId: i.variantId, serial: i.serial, worth: cur.listing.valuation ? Math.round(cur.listing.valuation.average / Math.max(1, cur.listing.items.length)) : 0 }; }) : [];
+    }
+    function counterDialog(o) {
+      var iAmSeller = !!o.toYou, mode = 'cash';
+      var amount = h('input.mk-input.is-large', { type: 'number', min: '0', step: '1', inputmode: 'numeric', value: String(o.cash || o.refund || 0), 'aria-label': 'Credits' });
+      var note = h('input.mk-input', { type: 'text', maxlength: '140', placeholder: 'A short note (optional, no links or contact details)', 'aria-label': 'Note to the other player' });
+      var opts = iAmSeller
+        ? [{ value: 'cash', label: 'They add Credits on top' }, { value: 'refund', label: 'I give Credits back' }]
+        : [{ value: 'cash', label: 'I add Credits on top' }, { value: 'refund', label: 'I ask for Credits back' }];
+      if (o.refund && !o.cash) mode = 'refund';
+      var seg = ui.segmented({ label: 'Direction of the Credits', value: mode, onChange: function (v) { mode = v; sync(); }, options: opts });
+      var summary = h('p.mk-swap-summary', { role: 'status', 'aria-live': 'polite' });
+      function sync() {
+        var n = Math.max(0, Math.floor(Number(amount.value) || 0)), fee = n ? K().feeFor(n) : 0;
+        summary.textContent = n ? ui.fmt.exact(n) + ' Credits ' + (mode === 'cash' ? 'move from the person who offered to the seller' : 'go back from the seller to the person who offered') + '. The ' + cfg().fee.label.toLowerCase() + ' of ' + ui.fmt.exact(fee) + ' is taken from the one who receives them.' : 'A card-for-card swap: no Credits move, so there is no fee.';
+      }
+      amount.addEventListener('input', sync); sync();
+      var body = h('div.mk-swapper', h('label.mk-field', h('span.mk-field-label', { text: 'Credits' }), amount), seg, h('label.mk-field', h('span.mk-field-label', { text: 'Note' }), note), summary);
+      ui.sim.confirm({
+        title: 'Counter this offer', eyebrow: iAmSeller ? 'Reply to ' + o.from : 'Reply to ' + o.to, anchor: root.document.activeElement, body: body, rows: [],
+        note: 'The cards stay as they are. Only the Credits change. The other player then accepts, counters again (up to six replies in all) or declines. Nothing moves until someone accepts.',
+        confirmLabel: 'Send counteroffer', icon: 'swap',
+        run: function (req) {
+          var n = Math.max(0, Math.floor(Number(amount.value) || 0));
+          return ctx.api.counterOffer(realm, o.id, { cash: mode === 'cash' ? n : 0, refund: mode === 'refund' ? n : 0, message: note.value.trim() }, req);
+        },
+        success: function () { C.ui.toast('Counteroffer sent'); repaintNow(); }, failure: repaintNow
+      });
+    }
     function answerOffer(o, accept) {
-      var worthIn = o.give.reduce(function (n, g) { return n + g.worth; }, 0), worthOut = o.get.reduce(function (n, g) { return n + g.worth; }, 0);
+      var got = offerGet(o);
+      var worthIn = o.give.reduce(function (n, g) { return n + g.worth; }, 0), worthOut = got.reduce(function (n, g) { return n + g.worth; }, 0);
       if (!accept) {
         ctx.api.respondToOffer(realm, o.id, false).then(function (res) { C.ui.toast(res.ok ? 'Offer declined' : res.message, null, res.ok ? 'info' : 'error'); repaintNow(); });
         return;
       }
       ui.sim.confirm({
         title: 'Accept this swap', eyebrow: 'Review', anchor: root.document.activeElement,
-        rows: [
-          { label: o.toYou ? 'You give' : 'You give', value: o.get.map(function (g) { var c = env.cards[g.cardId]; return c ? ui.identity(c, true).name : g.cardId; }).join(', ') },
-          { label: 'You receive', value: o.give.map(function (g) { var c = env.cards[g.cardId]; return c ? ui.identity(c, true).name : g.cardId; }).join(', ') },
-          o.cash ? { label: o.fromYou ? 'You add' : 'They add', value: ui.fmt.exact(o.cash) + ' Credits' } : null,
-          { label: 'Value in and out', value: ui.fmt.exact(o.fromYou ? worthOut : worthIn) + ' for ' + ui.fmt.exact(o.fromYou ? worthIn : worthOut) + ' Credits', strong: true }
-        ],
-        note: 'Both cards move at once. If your collection changed in the meantime, nothing happens.',
+        rows: (function () {
+          var name = function (g) { var c = env.cards[g.cardId]; return c ? ui.identity(c, true).name : g.cardId; };
+          var youGive = o.fromYou && realm === 'global' ? o.give : got, youGet = o.fromYou && realm === 'global' ? got : o.give;
+          var moves = o.cash ? { label: o.fromYou ? 'You add' : 'They add', value: ui.fmt.exact(o.cash) + ' Credits', fee: K().feeFor(o.cash) } : o.refund ? { label: o.fromYou ? 'You receive back' : 'You give back', value: ui.fmt.exact(o.refund) + ' Credits', fee: K().feeFor(o.refund) } : null;
+          return [
+            { label: 'You give', value: youGive.map(name).join(', ') },
+            { label: 'You receive', value: youGet.map(name).join(', ') },
+            moves ? { label: moves.label, value: moves.value } : null,
+            moves ? { label: 'Market fee', value: ui.fmt.exact(moves.fee) + ' Credits, taken once from whoever receives the Credits' } : { label: 'Market fee', value: 'None on a card-for-card swap' },
+            { label: 'Value in and out', value: ui.fmt.exact(worthOut) + ' for ' + ui.fmt.exact(worthIn) + ' Credits', strong: true }
+          ];
+        }()),
+        note: 'Both sides move at once. If anything changed in the meantime, nothing happens and nothing is held.',
         confirmLabel: 'Accept swap', icon: 'swap',
         run: function (req) { return ctx.api.respondToOffer(realm, o.id, true, req); },
         success: function () { C.ui.toast('Swap complete'); repaintNow(); }
@@ -494,6 +556,29 @@
         confirmLabel: 'Buy out for ' + ui.fmt.exact(a.buyout), icon: 'tag',
         run: function (req) { return ctx.api.buyout(realm, l.id, req); },
         success: function () { C.ui.toast('Bought ' + idn.name + ' for ' + ui.fmt.exact(a.buyout) + ' Credits'); repaintNow(); }, failure: repaintNow
+      });
+    }
+    function repriceDialog(l, price) {
+      var input = h('input.mk-input.is-large', { type: 'number', min: '1', step: '1', inputmode: 'numeric', value: String(price), 'aria-label': 'New price in Credits' });
+      var preview = h('p.mk-swap-summary', { role: 'status', 'aria-live': 'polite' });
+      function sync() { var n = Math.floor(Number(input.value) || 0); preview.textContent = n >= 1 ? 'Buyers pay ' + ui.fmt.exact(n) + ' Credits. You receive ' + ui.fmt.exact(n - K().feeFor(n)) + ' after the ' + cfg().fee.label.toLowerCase() + ' of ' + ui.fmt.exact(K().feeFor(n)) + '.' : 'Enter a whole price of at least 1 Credit.'; }
+      input.addEventListener('input', sync); sync();
+      ui.sim.confirm({
+        title: 'Change the price', card: cardChip(l), eyebrow: 'Your listing', anchor: root.document.activeElement, body: h('div.mk-swapper', h('label.mk-field', h('span.mk-field-label', { text: 'New price' }), input), preview), rows: [],
+        note: 'A buyer who was looking at the old price is told it changed and must review the new one: nobody pays a price they did not see.',
+        confirmLabel: 'Change price', icon: 'tag',
+        run: function (req) { var n = Math.floor(Number(input.value)); if (!(n >= 1)) return { ok: false, message: 'Enter a whole price of at least 1 Credit.' }; return ctx.api.repriceListing(realm, l.id, n, req); },
+        success: function () { C.ui.toast('Price changed'); repaintNow(); }, failure: repaintNow
+      });
+    }
+    function relistDialog(l) {
+      ui.sim.confirm({
+        title: 'List this card again', card: cardChip(l), eyebrow: 'Your listing', anchor: root.document.activeElement,
+        rows: [{ label: 'Type', value: ui.formatDef(l.format).label }, { label: l.format === 'auction' ? 'Starting bid' : 'Price', node: ui.credits(l.format === 'auction' ? l.auction.start : l.ask) }],
+        note: 'The same terms, a new listing. The card is held again until it sells or you withdraw it.',
+        confirmLabel: 'List again', icon: 'check',
+        run: function (req) { return ctx.api.relistListing(realm, l.id, req); },
+        success: function (res) { C.ui.toast('Listed again'); if (res.listing && res.listing.id) ui.go('listing', { id: res.listing.id }, { replace: true }); else repaintNow(); }, failure: repaintNow
       });
     }
     function withdrawListing(l) {
@@ -699,7 +784,7 @@
       chartPanel.appendChild(note);
       function drawChart() {
         var s = ctx.api.stocksSync(realm, { scope: 'card', id: card.id, variantId: variantId, window: windowId });
-        chart.update({ candles: s.candles, type: type, window: windowId, unit: 'Credits', label: idn.name + ' price', live: live, now: s.now || 0, badge: live ? 'Simulated trades' : 'Illustrative' });
+        chart.update({ candles: s.candles, type: type, window: windowId, unit: 'Credits', label: idn.name + ' price', live: live, now: s.now || 0, badge: live ? (realm === 'global' ? 'Player trades' : 'Simulated trades') : 'Illustrative' });
         note.textContent = live ? (s.candles.length ? s.tradesCounted + ' completed trades of this card are kept. A bar appears only where a trade happened.' : 'No trades of this card in this window yet. Nothing is drawn until one happens.') : '';
         note.hidden = !live;
       }

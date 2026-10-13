@@ -24,6 +24,14 @@ export const RULES = {
   history: { keepIdempotencyMs: 7 * DAY, keepNotificationsMs: 30 * DAY }
 };
 
+// The operator may tune the system redemption's limits with plain variables (QS_CARDS_PER_DAY, QS_CREDITS_PER_DAY,
+// QS_REALM_CREDITS_PER_DAY) without a code change; anything else falls back to the beta defaults above.
+export function quickSellLimits(env) {
+  const pos = (v, d) => { const n = Number(v); return Number.isSafeInteger(n) && n > 0 ? n : d; }, q = RULES.quickSell;
+  return { perAccountCardsPerDay: pos(env && env.QS_CARDS_PER_DAY, q.perAccountCardsPerDay), perAccountCreditsPerDay: pos(env && env.QS_CREDITS_PER_DAY, q.perAccountCreditsPerDay),
+    globalCreditsPerDay: pos(env && env.QS_REALM_CREDITS_PER_DAY, q.globalCreditsPerDay), perRequestMax: q.perRequestMax, quoteTtlMs: q.quoteTtlMs };
+}
+
 export const roundHalfUp = (x) => Math.floor(x + 0.5);
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export function feeFor(price) {

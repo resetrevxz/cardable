@@ -6,6 +6,7 @@
  *   node scripts/deploy.cjs --apply                 create D1 + R2 (cardable-market-beta*), migrate, set secrets, deploy
  *   node scripts/deploy.cjs --verify <origin>       real requests against a deployed origin; fails loudly
  *   node scripts/deploy.cjs --apply-origin <origin> write a verified origin into the client config and the page CSP
+ *   node scripts/deploy.cjs --admin <origin> reconcile|repair|sweep   operator tools, with the admin token kept beside this file
  *
  * Safety rules, enforced here:
  *  - it refuses to do anything remote unless `wrangler whoami` proves an authenticated account;
@@ -86,7 +87,8 @@ function plan() {
   console.log('  1. D1 database      ' + NAMES.d1 + '   (wrangler d1 create; id written into wrangler.toml)');
   console.log('  2. R2 bucket        ' + NAMES.r2 + '   (private; no public access, no custom domain; used from Stage 7)');
   console.log('  3. migrations       wrangler d1 migrations apply ' + NAMES.d1 + ' --remote   (migrations/0001_init.sql)');
-  console.log('  4. secrets          SESSION_SECRET (32 random bytes, generated locally, piped to wrangler, never printed)');
+  console.log('  4. secrets          SESSION_SECRET and ADMIN_TOKEN (32 and 24 random bytes, generated locally, piped to wrangler, never printed;');
+  console.log('                      the admin token is also kept in cloudflare/.admin-token, which git ignores, for the operator tools)');
   console.log('                      TURNSTILE_SECRET only if the owner supplies one with --turnstile-secret-stdin');
   console.log('  5. Worker           ' + NAMES.worker + '  (SQLite-backed Durable Object class Gate via migration v1)');
   console.log('  6. verify           node scripts/deploy.cjs --verify <origin>   (real requests: status, CORS, auth, headers)');
@@ -129,6 +131,10 @@ function apply() {
   const secret = crypto.randomBytes(32).toString('hex');
   const s = wrangler(['secret', 'put', 'SESSION_SECRET'], { input: secret + '\n' });
   out('SESSION_SECRET set', s.status === 0, s.status === 0 ? 'value not shown' : (s.stderr || '').trim().split('\n').pop());
+  const adminToken = crypto.randomBytes(24).toString('hex');
+  const a = wrangler(['secret', 'put', 'ADMIN_TOKEN'], { input: adminToken + '\n' });
+  if (a.status === 0) { fs.writeFileSync(path.join(ROOT, '.admin-token'), adminToken + '\n', { mode: 0o600 }); }
+  out('ADMIN_TOKEN set', a.status === 0, a.status === 0 ? 'value kept in cloudflare/.admin-token (git-ignored), not shown' : (a.stderr || '').trim().split('\n').pop());
   if (flag('--turnstile-secret-stdin')) {
     const v = fs.readFileSync(0, 'utf8').trim();
     const t = wrangler(['secret', 'put', 'TURNSTILE_SECRET'], { input: v + '\n' });
@@ -183,8 +189,21 @@ function applyOrigin(origin) {
   console.log('Wrote ' + origin + ' into src/data/market-online.js and the page CSP connect-src. Commit them together.');
 }
 
+async function adminCall(origin, what) {
+  if (!/^https:\/\/[a-z0-9.-]+\.workers\.dev$/.test(origin || '') && !/^http:\/\/127\.0\.0\.1:\d+$/.test(origin || '')) fail('give the deployed origin');
+  if (!['reconcile', 'repair', 'sweep'].includes(what)) fail('say reconcile, repair or sweep');
+  const file = path.join(ROOT, '.admin-token');
+  if (!fs.existsSync(file)) fail('there is no cloudflare/.admin-token: it is written when --apply sets the secret');
+  const token = fs.readFileSync(file, 'utf8').trim();
+  const res = await fetch(origin + '/v1/admin/' + what, { method: what === 'reconcile' ? 'GET' : 'POST', headers: { 'x-admin-token': token, 'content-type': 'application/json' }, body: what === 'reconcile' ? undefined : '{}' });
+  const body = await res.json();
+  console.log(JSON.stringify(body.data || body.error, null, 2));
+  process.exit(res.ok && (what !== 'reconcile' || body.data.ok) ? 0 : 1);
+}
+
 (async function main() {
   if (flag('--check')) process.exit(check() ? 0 : 1);
+  if (flag('--admin')) return adminCall(valueOf('--admin'), args[args.indexOf('--admin') + 2]);
   if (flag('--plan')) return plan();
   if (flag('--apply')) return apply();
   if (flag('--verify')) return verify(valueOf('--verify'));

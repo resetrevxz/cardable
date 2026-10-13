@@ -39,7 +39,9 @@
     "check:market-sim": "node tools/check-market-sim-browser.cjs",
     "check:market-economy": "node tools/check-market-economy-browser.cjs",
     "check:market-online": "node tools/check-market-online-browser.cjs",
-    "test:cloudflare": "node --test cloudflare/test/api.test.mjs",
+    "test:cloudflare": "node --test cloudflare/test/api.test.mjs cloudflare/test/economy.test.mjs cloudflare/test/trading.test.mjs cloudflare/test/races.test.mjs",
+    "check:market-trading": "node tools/check-market-trading-browser.cjs",
+    "economy:global": "node tools/global-economy-experiment.cjs",
     "cloudflare:check": "node cloudflare/scripts/deploy.cjs --check",
     "economy:experiment": "node tools/economy-experiment.cjs",
     "sim:experiment": "node tools/sim-experiment.cjs"

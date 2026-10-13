@@ -1,0 +1,80 @@
+{
+  "when": "2026-10-13T04:13:36.449Z",
+  "steps": [
+    {
+      "name": "three players come online, each with their own private name and no Credits",
+      "ok": true,
+      "ms": 2,
+      "detail": {
+        "names": 3
+      }
+    },
+    {
+      "name": "the first Credits come from selling cards to the system, which says what it is",
+      "ok": true,
+      "ms": 3055,
+      "detail": {
+        "balance": 31
+      }
+    },
+    {
+      "name": "a fixed price sale: list, find it, buy it, the fee is taken once and both sides see it",
+      "ok": true,
+      "ms": 3110,
+      "detail": null
+    },
+    {
+      "name": "an auction: a bid, an outbid, the banner, then it closes on the server clock with nobody touching it",
+      "ok": true,
+      "ms": 35723,
+      "detail": null
+    },
+    {
+      "name": "a swap: an offer, a counteroffer from the seller, acceptance, both card sets move at once",
+      "ok": true,
+      "ms": 16981,
+      "detail": null
+    },
+    {
+      "name": "a standing buy order reserves Credits and fills at the listing's price when the card appears",
+      "ok": true,
+      "ms": 2873,
+      "detail": null
+    },
+    {
+      "name": "listing from the composer: choose the exact card, see the price and fee, confirm, and it is live and escrowed",
+      "ok": true,
+      "ms": 1432,
+      "detail": null
+    },
+    {
+      "name": "the realm reconciles: cards in one place, Credits conserved, nothing left reserved",
+      "ok": true,
+      "ms": 13,
+      "detail": {
+        "accounts": 3,
+        "cards": 32,
+        "listings": 1,
+        "orders": 0,
+        "offers": 0,
+        "trades": 4,
+        "holds": 0
+      }
+    },
+    {
+      "name": "the same trading works at phone width and in saved monochrome",
+      "ok": true,
+      "ms": 1615,
+      "detail": null
+    },
+    {
+      "name": "no page errors; every request went to the one allowed origin",
+      "ok": true,
+      "ms": 0,
+      "detail": null
+    }
+  ],
+  "console": [],
+  "pageErrors": [],
+  "requests": 1862
+}

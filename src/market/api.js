@@ -13,7 +13,9 @@
     version: 1,
     reads: ['status', 'wallet', 'listings', 'listing', 'cardMarket', 'trades', 'stocks', 'portfolio', 'activity', 'inventory', 'suggest', 'valuation'],
     writes: ['purchase', 'placeBid', 'buyout', 'publishListing', 'cancelListing', 'placeOrder', 'cancelOrder', 'makeOffer', 'respondToOffer', 'withdrawOffer', 'quickSell'],
-    errors: { 'not-connected': 'This realm is not connected in this build.', 'preview-only': 'This is a preview. Nothing was changed.' }
+    // Providers may add these; a realm without one answers "not available" instead of failing.
+    optionalWrites: ['counterOffer', 'repriceListing', 'relistListing', 'editOrder'],
+    errors: { 'not-connected': 'This realm is not connected in this build.', 'preview-only': 'This is a preview. Nothing was changed.', 'not-available': 'That is not available here.' }
   };
 
   var providers = {}, dataset = null, datasetKey = '', simulationLive = false, simProvider = null, globalProvider = null;
@@ -58,9 +60,12 @@
       if (r && r.finish === 'secret' && !p.owned[id]) concealed[id] = true;
     });
     var held = realm === 'simulation' && C.marketSim && C.marketSim.heldCredits ? C.marketSim.heldCredits() : 0;
+    // Global has its own collection: the cards you hold there, and its own balance.
+    var gp = realm === 'global' && providers.global && providers.global.owned ? providers.global : null;
+    var budget = realm === 'simulation' ? Math.max(0, p.currency - held) : gp && providers.global.budget ? providers.global.budget() : null;
     return Object.assign({}, base, {
-      budget: realm === 'simulation' ? Math.max(0, p.currency - held) : null,
-      owned: p.owned, wishlist: p.wishlist, watch: watch, concealed: concealed
+      budget: budget,
+      owned: gp ? gp.owned() : p.owned, wishlist: p.wishlist, watch: watch, concealed: concealed
     });
   }
 
@@ -254,8 +259,9 @@
   };
   CONTRACT.reads.forEach(function (name) {
     api[name] = function () {
-      var args = Array.prototype.slice.call(arguments), realm = args[0] || C.market.store.session.realm;
-      try { return Promise.resolve(resolve(realm)[name].apply(null, args)); } catch (error) { return Promise.reject(error); }
+      var args = Array.prototype.slice.call(arguments), realm = args[0] || C.market.store.session.realm, p = resolve(realm);
+      // A provider that answers later (the online realm) offers an Async twin that resolves once its data has arrived.
+      try { return Promise.resolve(typeof p[name + 'Async'] === 'function' ? p[name + 'Async'].apply(null, args) : p[name].apply(null, args)); } catch (error) { return Promise.reject(error); }
     };
     // A synchronous twin for rendering paths that already hold the provider's sample data in memory.
     api[name + 'Sync'] = function () { var args = Array.prototype.slice.call(arguments); return resolve(args[0] || C.market.store.session.realm)[name].apply(null, args); };
@@ -267,5 +273,15 @@
     };
     api[name + 'Sync'] = function () { var args = Array.prototype.slice.call(arguments); return resolve(args[0] || C.market.store.session.realm)[name].apply(null, args); };
   });
+  CONTRACT.optionalWrites.forEach(function (name) {
+    api[name] = function () {
+      var args = Array.prototype.slice.call(arguments), realm = args[0] || C.market.store.session.realm, p = resolve(realm);
+      if (typeof p[name] !== 'function') return Promise.resolve({ ok: false, error: 'not-available', message: CONTRACT.errors['not-available'] });
+      return Promise.resolve().then(function () { return p[name].apply(null, args); });
+    };
+  });
+  api.capabilities = function (realm) { var p = resolve(realm || C.market.store.session.realm); return p && p.capabilities || {}; };
+  // A page that needs the server's answer asks first; null means it can be drawn at once.
+  api.prefetch = function (realm, name, params) { var p = resolve(realm || C.market.store.session.realm); return p && typeof p.prefetch === 'function' ? p.prefetch(name, params) : null; };
   C.market.api = api;
 })(window.Cardable = window.Cardable || {});
