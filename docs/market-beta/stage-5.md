@@ -25,6 +25,7 @@ Fixed sales, timed auctions with proxy bids and anti-sniping, buy orders, swaps 
 | Question | Decision |
 |---|---|
 | Who sets price, time, increment, reserve | The server only. The browser sends intent (`max`, `expectedPrice`); nothing the client says about its balance, ownership, fee, deadline or the other side is read. |
+| Price a buyer saw | A purchase and a buyout **must name the price that was on the screen** (`expectedPrice`); the server refuses a request without it (`price-required`) and one that no longer matches (`price-changed`). The client never reads that price from a cache: the confirm dialog passes the figure it showed. Found by the automated security review of this stage. |
 | Fee | 2%, half-up, **at least 1 Credit** (the same rule as the offline game), taken once from the seller's proceeds on a successful Credit sale. A 1 Credit sale pays a 1 Credit fee and the seller keeps 0. |
 | Fee on a swap | A **card-for-card swap has no fee**: no Credits move, nothing is recorded as a sale. If Credits move (a top-up or a refund) the fee applies to those Credits and is taken from whoever receives them. |
 | Price attribution | A price observation is written only for a Credit sale of **one** card between players. A bundle never sets a single card's price. A swap, a Quick Sell and a withdrawn listing never do. Swaps are stored as barters (`trades.kind = 'swap'`, `attributed = 0`) and are excluded from sale volume. |

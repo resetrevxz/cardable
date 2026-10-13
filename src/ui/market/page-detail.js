@@ -516,7 +516,7 @@
       });
     }
     function buyNow(l, price, available, wallet) {
-      var run = function (req) { return ctx.api.purchase(realm, l.id, req); };
+      var run = function (req) { return ctx.api.purchase(realm, l.id, req, price); };
       var done = function () { return 'Bought ' + idn.name + ' for ' + ui.fmt.exact(price) + ' Credits'; };
       if (!needsReview(price)) { direct(run, done); return; }
       ui.sim.confirm({
@@ -554,7 +554,7 @@
         rows: [{ label: 'Buyout price', node: ui.credits(a.buyout) }, { label: 'Ends the auction', value: 'Immediately' }].concat(balanceRows(a.buyout - (a.myMax || 0), ctx.api.walletSync(realm))),
         note: 'The card joins your collection straight away. Anyone currently bidding gets their hold back.',
         confirmLabel: 'Buy out for ' + ui.fmt.exact(a.buyout), icon: 'tag',
-        run: function (req) { return ctx.api.buyout(realm, l.id, req); },
+        run: function (req) { return ctx.api.buyout(realm, l.id, req, a.buyout); },
         success: function () { C.ui.toast('Bought ' + idn.name + ' for ' + ui.fmt.exact(a.buyout) + ' Credits'); repaintNow(); }, failure: repaintNow
       });
     }

@@ -244,12 +244,16 @@
     return out;
   }
   var actions = {
-    purchase: function (realm, id, requestId) {
-      var l = data().state.details[id] && data().state.details[id].data && data().state.details[id].data.listing || (data().state.listings.items || []).find(function (x) { return x.id === id; });
-      return write('POST', '/v1/listings/' + encodeURIComponent(id) + '/buy', { expectedPrice: l ? l.ask : undefined }, requestId, function (r) { return { listing: { id: id }, receiptId: r.receiptId }; });
+    // The caller passes the price that was on the screen when the player confirmed; it is never read from a cache.
+    purchase: function (realm, id, requestId, expectedPrice) {
+      if (!(Number.isSafeInteger(expectedPrice) && expectedPrice >= 1)) return Promise.resolve({ ok: false, error: 'price-required', message: 'Review the price and try again.' });
+      return write('POST', '/v1/listings/' + encodeURIComponent(id) + '/buy', { expectedPrice: expectedPrice }, requestId, function (r) { return { listing: { id: id }, receiptId: r.receiptId }; });
     },
     placeBid: function (realm, id, max, requestId) { return write('POST', '/v1/listings/' + encodeURIComponent(id) + '/bid', { max: Math.floor(Number(max)) }, requestId, function (r) { return { listing: { id: id }, leading: r.leading }; }); },
-    buyout: function (realm, id, requestId) { return write('POST', '/v1/listings/' + encodeURIComponent(id) + '/buyout', {}, requestId, function () { return { listing: { id: id } }; }); },
+    buyout: function (realm, id, requestId, expectedPrice) {
+      if (!(Number.isSafeInteger(expectedPrice) && expectedPrice >= 1)) return Promise.resolve({ ok: false, error: 'price-required', message: 'Review the price and try again.' });
+      return write('POST', '/v1/listings/' + encodeURIComponent(id) + '/buyout', { expectedPrice: expectedPrice }, requestId, function () { return { listing: { id: id } }; });
+    },
     publishListing: function (realm, spec) {
       var body = { kind: spec.kind, instanceIds: spec.instanceIds, title: spec.title || '', note: spec.note || '', durationMs: spec.durationMs };
       if (spec.kind === 'fixed') body.ask = spec.ask;

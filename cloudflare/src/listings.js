@@ -190,7 +190,10 @@ export async function relistListing(env, who, key, listingId, now) {
 
 // ---- buying ---------------------------------------------------------------------------------------------------------------
 export async function buyListing(env, who, key, listingId, body, now) {
-  const expected = body.expectedPrice == null ? null : num(body.expectedPrice);
+  // The price the buyer was shown is part of the request, never optional: a purchase is only ever made at a price that
+  // was on the screen. (A client that does not know the price cannot buy.)
+  const expected = num(body.expectedPrice);
+  if (!Number.isSafeInteger(expected) || expected < 1) throw new ApiError(422, 'price-required', 'A purchase must name the price you were shown.');
   return mutate(env, who, key, { op: 'buy', listingId, expected }, now, async () => {
     const L = await getListing(env, listingId);
     if (!L) throw new ApiError(404, 'not-found', 'That listing could not be found.');
@@ -198,7 +201,7 @@ export async function buyListing(env, who, key, listingId, body, now) {
     if (L.seller_id === who.accountId) throw new ApiError(403, 'own', 'You cannot buy your own listing.');
     if (L.status !== 'active') throw new ApiError(409, 'closed', 'This listing is ' + (L.status === 'sold' ? 'sold' : 'no longer open') + '.', { status: L.status });
     if (now >= L.ends_at) { await settleListing(env, L.id, now); throw new ApiError(409, 'closed', 'This listing has ended.', { status: 'expired' }); }
-    if (expected != null && expected !== L.ask) throw new ApiError(409, 'price-changed', 'The price changed to ' + L.ask + ' Credits. Review it before buying.', { price: L.ask });
+    if (expected !== L.ask) throw new ApiError(409, 'price-changed', 'The price changed to ' + L.ask + ' Credits. Review it before buying.', { price: L.ask });
     const w = await getWallet(env, who.accountId);
     if (w.balance - w.held < L.ask) throw new ApiError(409, 'funds', 'You need ' + L.ask + ' available Credits.', { available: w.balance - w.held, price: L.ask });
     const tx = new Tx(env, now);
@@ -254,8 +257,10 @@ export async function placeBid(env, who, key, listingId, body, now) {
   }).then(async (res) => { if (!res.replayed && res.extended) await scheduleClose(env, res.listingId, res.endsAt); return res; });
 }
 
-export async function buyoutListing(env, who, key, listingId, now) {
-  return mutate(env, who, key, { op: 'buyout', listingId }, now, async () => {
+export async function buyoutListing(env, who, key, listingId, body, now) {
+  const expected = num((body || {}).expectedPrice);
+  if (!Number.isSafeInteger(expected) || expected < 1) throw new ApiError(422, 'price-required', 'A buyout must name the price you were shown.');
+  return mutate(env, who, key, { op: 'buyout', listingId, expected }, now, async () => {
     const L = await getListing(env, listingId);
     if (!L || L.kind !== 'auction') throw new ApiError(404, 'not-found', 'That auction could not be found.');
     if (L.status === 'active' && now >= L.ends_at) { await settleListing(env, L.id, now); throw new ApiError(409, 'ended', 'This auction has ended.', { status: 'ended' }); }
@@ -264,6 +269,7 @@ export async function buyoutListing(env, who, key, listingId, now) {
     // Policy: the buyout is on offer until the price reaches it, whether or not there are bids.
     if (!L.buyout) throw new ApiError(409, 'no-buyout', 'This auction has no buyout.');
     if (L.price >= L.buyout) throw new ApiError(409, 'no-buyout', 'The price has reached the buyout, so it is no longer offered.');
+    if (expected !== L.buyout) throw new ApiError(409, 'price-changed', 'The buyout price changed to ' + L.buyout + ' Credits. Review it before buying.', { price: L.buyout });
     const proxies = await getProxies(env, L.id), mine = proxies.find((p) => p.id === who.accountId && p.active), ownHold = mine ? mine.max : 0;
     const w = await getWallet(env, who.accountId);
     if (w.balance - w.held + ownHold < L.buyout) throw new ApiError(409, 'funds', 'You need ' + L.buyout + ' available Credits.', { available: w.balance - w.held + ownHold, price: L.buyout });

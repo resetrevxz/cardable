@@ -43,7 +43,7 @@ async function fixedScenario(s) {
   const seller = pickOf(sellers), card = seller.take(), ask = between(30, 250), at = T + s * HOUR;
   const made = await listing(seller, { kind: 'fixed', instanceIds: [card], ask, durationMs: 2 * HOUR }, at);
   assert.equal(made.status, 200, made.text);
-  const id = made.data.listingId, ops = sample(buyers, between(2, 5)).map((b) => ({ name: 'buy', who: b, run: (t) => act(b, id, 'buy', {}, t) }));
+  const id = made.data.listingId, ops = sample(buyers, between(2, 5)).map((b) => ({ name: 'buy', who: b, run: (t) => act(b, id, 'buy', { expectedPrice: ask }, t) }));
   if (rand() < 0.5) ops.push({ name: 'cancel', run: (t) => act(seller, id, 'cancel', {}, t) });
   if (rand() < 0.4) ops.push({ name: 'reprice', run: (t) => call(server, 'PUT', '/v1/listings/' + id, { ask: ask + 10 }, seller.token, { at: t }) });
   const res = await together(ops, at + 1000);
@@ -55,7 +55,7 @@ async function fixedScenario(s) {
   if (bought.length) {
     assert.equal(final.status, 'sold');
     assert.equal(q("SELECT COUNT(*) AS n FROM trades WHERE listing_id = '" + id + "'")[0].n, 1);
-    res.filter((x) => x.name === 'buy' && x.r.status !== 200).forEach((x) => assert.equal(x.r.error.code, 'closed'));
+    res.filter((x) => x.name === 'buy' && x.r.status !== 200).forEach((x) => assert.ok(['closed', 'price-changed'].includes(x.r.error.code), x.r.text));
   } else if (cancelled) assert.equal(final.status, 'cancelled');
   else { assert.equal(final.status, 'active'); await act(seller, id, 'cancel', {}, at + 3000); }
   return 'fixed';
@@ -72,7 +72,7 @@ async function auctionScenario(s) {
   if (rand() < 0.6) all = all.concat(await together(bidOps(between(1, 3)), at + 57 * MIN));
   if (rand() < 0.5) {
     const ops = bidOps(between(1, 2));
-    if (buyout) ops.push({ name: 'buyout', run: (t) => act(pickOf(buyers), id, 'buyout', {}, t) });
+    if (buyout) ops.push({ name: 'buyout', run: (t) => act(pickOf(buyers), id, 'buyout', { expectedPrice: buyout }, t) });
     if (rand() < 0.5) ops.push({ name: 'cancel', run: (t) => act(seller, id, 'cancel', {}, t) });
     all = all.concat(await together(ops, at + 58 * MIN));
   }
@@ -103,7 +103,7 @@ async function orderScenario(s) {
   const id = made.data.listingId;
   const ops = [
     { name: 'order', run: (t) => call(server, 'POST', '/v1/orders', { cardId: row.card_id, maxPrice: max, quantity: 1, durationMs: HOUR }, b1.token, { at: t }) },
-    { name: 'buy', who: b2, run: (t) => act(b2, id, 'buy', {}, t) }
+    { name: 'buy', who: b2, run: (t) => act(b2, id, 'buy', { expectedPrice: ask }, t) }
   ];
   if (rand() < 0.4) ops.push({ name: 'cancel', run: (t) => act(seller, id, 'cancel', {}, t) });
   const res = await together(ops, at + 1000);

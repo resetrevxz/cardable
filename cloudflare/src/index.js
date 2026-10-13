@@ -132,7 +132,7 @@ async function route(request, env, url, trace) {
       if (action === 'cancel') return cancelListing(env, who, key, id, now);
       if (action === 'buy') return buyListing(env, who, key, id, await readJson(request, 2_000), now);
       if (action === 'bid') return placeBid(env, who, key, id, await readJson(request, 2_000), now);
-      if (action === 'buyout') return buyoutListing(env, who, key, id, now);
+      if (action === 'buyout') return buyoutListing(env, who, key, id, await readJson(request, 2_000), now);
       if (action === 'relist') return relistListing(env, who, key, id, now);
     }
   }

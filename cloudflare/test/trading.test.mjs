@@ -79,7 +79,10 @@ test('a retry or double click with the same key acts once, even all at once; the
   assert.equal((await wallet(buyer)).balance, 310);
   const other = await act(buyer, made.data.listingId, 'buy', { expectedPrice: 91 }, T0 + 6, key);
   assert.equal(other.status, 422); assert.equal(other.error.code, 'idempotency-mismatch');
-  const noKey = await call(main, 'POST', '/v1/listings/' + made.data.listingId + '/buy', {}, buyer.token, { at: T0 + 6, key: null });
+  // a purchase that does not name the price it saw is refused outright
+  const unpriced = await act(buyer, made.data.listingId, 'buy', {}, T0 + 6);
+  assert.equal(unpriced.status, 422); assert.equal(unpriced.error.code, 'price-required');
+  const noKey = await call(main, 'POST', '/v1/listings/' + made.data.listingId + '/buy', { expectedPrice: 90 }, buyer.token, { at: T0 + 6, key: null });
   assert.equal(noKey.status, 400); assert.equal(noKey.error.code, 'idempotency-key-required');
   await reconciled(main);
 });
@@ -93,7 +96,7 @@ test('forbidden and impossible operations are refused and change nothing', async
   assert.equal(poor.status, 409); assert.equal(poor.error.code, 'funds');
   assert.equal((await act(buyer, id, 'buy', { expectedPrice: 99 }, T0 + 1)).error.code, 'price-changed');
   assert.equal((await act(other, id, 'cancel', {}, T0 + 1)).status, 404, 'only the seller can withdraw');
-  assert.equal((await act(buyer, 'lst_doesnotexist1', 'buy', {}, T0 + 1)).status, 404);
+  assert.equal((await act(buyer, 'lst_doesnotexist1', 'buy', { expectedPrice: 5 }, T0 + 1)).status, 404);
   assert.equal((await act(buyer, id, 'bid', { max: 500 }, T0 + 1)).status, 404, 'a fixed listing is not an auction');
   // someone else's card cannot be listed, a listed card cannot be listed twice, and prices must be whole and in range
   assert.equal((await list(other, { kind: 'fixed', instanceIds: [seller.cards[1].id], ask: 10 })).error.code, 'not-owned');
@@ -269,7 +272,7 @@ test('auction: buy it now ends it at once, releases the leader, and a bid at the
   const id = made.data.listingId;
   await act(A, id, 'bid', { max: 400 }, T0 + 1);
   assert.equal((await wallet(A)).held, 400);
-  const [bidRes, buyRes] = await Promise.all([act(A, id, 'bid', { max: 600 }, T0 + 2), act(B, id, 'buyout', {}, T0 + 2)]);
+  const [bidRes, buyRes] = await Promise.all([act(A, id, 'bid', { max: 600 }, T0 + 2), act(B, id, 'buyout', { expectedPrice: 1000 }, T0 + 2)]);
   assert.equal(buyRes.status, 200, buyRes.text);
   assert.ok(bidRes.status === 200 || bidRes.status === 409);
   const view = await detail(A, id, T0 + 3);
@@ -277,7 +280,7 @@ test('auction: buy it now ends it at once, releases the leader, and a bid at the
   assert.deepEqual([(await wallet(A)).balance, (await wallet(A)).held], [1000, 0]);
   assert.equal((await wallet(B)).balance, 1000);
   assert.equal((await act(A, id, 'bid', { max: 5000 }, T0 + 4)).error.code, 'closed');
-  assert.equal((await act(A, id, 'buyout', {}, T0 + 4)).error.code, 'closed');
+  assert.equal((await act(A, id, 'buyout', { expectedPrice: 1000 }, T0 + 4)).error.code, 'closed');
   await reconciled(main);
 });
 
