@@ -139,12 +139,13 @@ export async function createListing(env, who, key, body, now, options) {
     tx.guard('not_owned', "(SELECT COUNT(*) FROM instances WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned') = ?", ...ids, who.accountId, ids.length);
     tx.guard('limit_hit', "(SELECT COUNT(*) FROM listings WHERE seller_id = ? AND status = 'active') < ?", who.accountId, RULES.limits.activeListings);
     const meta = metaOf(first.card_id);
-    tx.add('INSERT INTO listings (id, seller_id, kind, status, ask, start_price, reserve, buyout, step, price, title, note, wants, min_topup, card_id, variant_id, skin_id, rarity, item_count, items, created_at, ends_at, first_ends_at, relist_of, serial_n, brand, generation, tier, touched_at, feed_at) ' +
-      "VALUES (?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    tx.add('INSERT INTO listings (id, seller_id, kind, status, ask, start_price, reserve, buyout, step, price, title, note, wants, min_topup, card_id, variant_id, skin_id, rarity, item_count, items, created_at, ends_at, first_ends_at, relist_of, serial_n, brand, generation, tier, feed_at) ' +
+      "VALUES (?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       id, who.accountId, kind, kind === 'fixed' ? params.ask : null, kind === 'auction' ? params.start : null, kind === 'auction' ? params.reserve : null, kind === 'auction' ? params.buyout : null,
       kind === 'auction' ? params.step : null, price, title, note, kind === 'swap' && params.wants ? JSON.stringify(params.wants) : null, kind === 'swap' ? params.minTopUp : 0,
       first.card_id, first.variant_id, first.skin_id, rarityOf(first.card_id), ids.length, JSON.stringify(items), now, now + params.ends, now + params.ends, options.relistOf || null,
-      serialNumber(first.serial), meta.b, meta.g, tierOf(first.card_id), now, now);
+      serialNumber(first.serial), meta.b, meta.g, tierOf(first.card_id), now);
+    tx.add("INSERT INTO listing_events (listing_id, at, kind) VALUES (?, ?, 'listed')", id, now);
     tx.add("UPDATE instances SET state = 'escrow', escrow_ref = ? WHERE id IN (" + placeholders(ids.length) + ") AND owner_id = ? AND state = 'owned'", id, ...ids, who.accountId);
     ids.forEach((iid) => tx.add('INSERT INTO listing_items (listing_id, instance_id) VALUES (?, ?)', id, iid));
     return { tx, result: { ok: true, listingId: id, kind, price, endsAt: now + params.ends, items: ids.length } };
@@ -182,7 +183,8 @@ export async function repriceListing(env, who, key, listingId, body, now) {
     if (Number.isSafeInteger(num(body.expectedVersion)) && num(body.expectedVersion) !== L.version) throw new ApiError(409, 'conflict', 'The listing changed. Review it and try again.');
     const tx = new Tx(env, now);
     guardOpen(tx, L, now);
-    tx.add("UPDATE listings SET ask = ?, price = ?, touched_at = ?, version = version + 1 WHERE id = ? AND status = 'active'", ask, ask, now, L.id);
+    tx.add("UPDATE listings SET ask = ?, price = ?, version = version + 1 WHERE id = ? AND status = 'active'", ask, ask, L.id);
+    if (ask < L.ask) tx.add("INSERT INTO listing_events (listing_id, at, kind) VALUES (?, ?, 'repriced')", L.id, now);
     return { tx, result: { ok: true, listingId: L.id, price: ask, previous: L.ask } };
   }).then(async (res) => {
     if (!res.replayed && res.price < res.previous) {

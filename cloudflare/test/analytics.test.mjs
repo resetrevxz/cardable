@@ -285,6 +285,34 @@ test('alerts: a crowd of alerts that match nothing cannot starve a real one, the
   assert.equal((await call(server, 'GET', '/v1/listings?sort=constructor', null, watcher.token, { at: now })).status, 200);
 });
 
+test('alerts advance over what they examined: a burst is reported in turn, repeats do not use the limit, a late commit is not skipped', async () => {
+  const names = Object.keys(CATALOG.cards).filter((c) => CATALOG.cards[c] === 'basic' || CATALOG.cards[c] === 'common');
+  const seller = await player(server, { cards: 9, cardList: names.slice(0, 9) });
+  const watcher = await player(server, {});
+  const mk = await call(server, 'POST', '/v1/alerts', { kind: 'search', query: { maxPrice: 500 }, label: 'burst' }, watcher.token);
+  assert.equal(mk.status, 200, mk.text);
+  const now = Date.now() + 6 * HOUR;
+  const ids = [];
+  for (let i = 0; i < 8; i++) {
+    // the third listing is made with a clock reading from before the alert existed: the log, not the clock, orders it
+    const at = i === 2 ? Date.now() - 2 * DAY : now + i;
+    const r = await call(server, 'POST', '/v1/listings', { kind: 'fixed', instanceIds: [seller.cards[i].id], ask: 100 + i, durationMs: 3 * DAY }, seller.token, { at });
+    assert.equal(r.status, 200, r.text); ids.push(r.data.listingId);
+  }
+  const inbox = async (at) => (await call(server, 'GET', '/v1/activity', null, watcher.token, { at })).data.notifications.filter((n) => n.kind === 'price');
+  assert.equal((await inbox(now + 100)).length, 5, 'one look reports at most five');
+  assert.equal((await inbox(now + 101)).length, 8, 'the next look finds the other three, none lost, none repeated');
+  assert.equal((await inbox(now + 102)).length, 8);
+  // five already-reported listings are repriced (new events) and a ninth appears: the new one is still reported
+  for (let i = 0; i < 5; i++) await call(server, 'PUT', '/v1/listings/' + ids[i], { ask: 50 + i }, seller.token, { at: now + 200 + i });
+  const extra = await player(server, { cards: 1, cardList: [names[9]] });
+  assert.equal((await call(server, 'POST', '/v1/listings', { kind: 'fixed', instanceIds: [extra.cards[0].id], ask: 70 }, extra.token, { at: now + 300 })).status, 200);
+  const after = await inbox(now + 400);
+  assert.equal(after.length, 9, 'repriced listings that were already reported do not use up the limit: ' + after.length);
+  const seqs = sql(server, 'SELECT (SELECT MAX(seq) FROM listing_events) AS top, (SELECT checked_seq FROM alerts WHERE id = \'' + mk.data.alertId + '\') AS seen')[0];
+  assert.ok(seqs.seen <= seqs.top && seqs.seen > 0, 'the watermark is a position in the log');
+});
+
 test('search: filters narrow on indexes, pages never repeat or skip, and the plan does not scan the table', async () => {
   const s = await player(server, { cards: 14, cardList: Object.keys(CATALOG.cards).filter((c) => ['basic', 'common', 'uncommon', 'rare'].includes(CATALOG.cards[c])).slice(0, 14) });
   const now = Date.now() + 4 * HOUR;

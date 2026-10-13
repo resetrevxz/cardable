@@ -56,13 +56,19 @@ ALTER TABLE listings ADD COLUMN cover     TEXT;
 ALTER TABLE listings ADD COLUMN treatment TEXT NOT NULL DEFAULT 'none' CHECK (treatment IN ('none', 'frame', 'spotlight'));
 ALTER TABLE listings ADD COLUMN feed_at   INTEGER;
 UPDATE listings SET feed_at = COALESCE(closed_at, created_at) WHERE feed_at IS NULL;
--- touched_at moves when a listing appears or gets cheaper: it is what an alert is evaluated against.
-ALTER TABLE listings ADD COLUMN touched_at INTEGER;
-UPDATE listings SET touched_at = created_at WHERE touched_at IS NULL;
-CREATE INDEX listings_by_touched ON listings(status, touched_at);
--- Each alert remembers how far it has looked.
-ALTER TABLE alerts ADD COLUMN checked_at INTEGER;
-UPDATE alerts SET checked_at = COALESCE(last_hit_at, created_at) WHERE checked_at IS NULL;
+-- A listing appearing or getting cheaper is one row here, written in the same transaction as the change. `seq` is
+-- assigned in commit order (writers do not interleave), so a reader that has seen seq N has seen every event up to N:
+-- an alert's watermark is a position in this log, never a clock reading, and cannot jump past a commit.
+CREATE TABLE listing_events (
+  seq        INTEGER PRIMARY KEY AUTOINCREMENT,
+  listing_id TEXT NOT NULL REFERENCES listings(id),
+  at         INTEGER NOT NULL,
+  kind       TEXT NOT NULL CHECK (kind IN ('listed', 'repriced'))
+);
+CREATE INDEX listing_events_by_listing ON listing_events(listing_id);
+-- Each alert remembers how far along the log it has looked.
+ALTER TABLE alerts ADD COLUMN checked_seq INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE alerts ADD COLUMN last_look_at INTEGER;
 CREATE INDEX listings_by_feed ON listings(feed_at DESC, id) WHERE status IN ('active', 'sold');
 
 -- ---- comments -------------------------------------------------------------------------------------------------------

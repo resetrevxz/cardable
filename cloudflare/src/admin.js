@@ -100,6 +100,8 @@ export async function sweep(env, now, limit) {
   out.cleaned += notes.meta ? notes.meta.changes : 0;
   const hits = await env.DB.prepare('DELETE FROM alert_hits WHERE rowid IN (SELECT rowid FROM alert_hits WHERE at < ? LIMIT 200)').bind(now - 30 * 86400000).run();
   out.cleaned += hits.meta ? hits.meta.changes : 0;
+  const events = await env.DB.prepare('DELETE FROM listing_events WHERE seq IN (SELECT seq FROM listing_events WHERE at < ? ORDER BY seq LIMIT 500)').bind(now - 30 * 86400000).run();
+  out.cleaned += events.meta ? events.meta.changes : 0;
   return out;
 }
 
