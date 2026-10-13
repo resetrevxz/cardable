@@ -8,6 +8,10 @@ import { WINDOWS, analyzeCard, buildCandles, candleChange, perCard } from './ana
 
 const SERIES_CAP = 20000;
 const memory = new Map();
+// How long an answer is shared, by window. The long windows scan every sale in their span (their totals are exact), so
+// they are computed rarely; the short ones are cheap and are kept fresh.
+const TTL = { '24h': 30, '7d': 45, '30d': 180, '90d': 600, all: 600 };
+const bucket = (now, ttl) => Math.floor(now / (ttl * 1000));
 
 // Every query of an analytics answer goes through a meter, and the answer reports it: statements and rows read.
 function meter() {
@@ -63,10 +67,14 @@ async function cardInputs(env, spec, now, m) {
 
 export async function cardAnalytics(env, spec, windowId, now) {
   if (!isCard(spec.cardId)) throw new ApiError(404, 'not-found', 'That card is not in the catalog.');
+  // A finish or skin that is not in the catalog is refused before anything is read or cached, so the set of cache keys
+  // (and of queries a caller can cause) is bounded by the catalog and not by what a caller types.
+  if (spec.variantId && !CATALOG.variants.includes(spec.variantId)) throw new ApiError(404, 'not-found', 'That finish is not in the catalog.');
+  if (spec.skinId && !CATALOG.skins.includes(spec.skinId)) throw new ApiError(404, 'not-found', 'That skin is not in the catalog.');
   const win = WINDOWS[windowId] ? windowId : '7d';
-  // the cache key is the exact card and window, rounded to the minute so repeated opens share one answer
-  const name = 'card|' + keyOf(spec.cardId, spec.variantId, spec.skinId) + '|' + win + '|' + Math.floor(now / 60000);
-  return cached(env, name, 30, async () => {
+  // the cache key is the exact card and window, in a time bucket the length of its lifetime
+  const name = 'card|' + keyOf(spec.cardId, spec.variantId, spec.skinId) + '|' + win + '|' + bucket(now, TTL[win] || 45);
+  return cached(env, name, TTL[win] || 45, async () => {
     const m = meter();
     const inputs = await cardInputs(env, spec, now, m);
     const a = analyzeCard({ obs: inputs.obs, now, baseline: baselineOf(spec.cardId, spec.variantId, spec.skinId), tier: tierOf(spec.cardId), vol: inputs.vol, asks: inputs.asks, bids: inputs.bids, supply: inputs.supply });
@@ -89,7 +97,9 @@ const leaderRow = (p) => ({ cardId: p.cardId, name: p.name, valuation: { average
   samples: p.samples14, confidence: p.samples14 >= 12 ? 'high' : p.samples14 >= 4 ? 'medium' : p.samples14 > 0 ? 'low' : 'none', lastAt: p.lastAt } });
 
 export async function stocks(env, q, now) {
-  const scope = ['index', 'rarity', 'brand', 'generation', 'card'].includes(q.scope) ? q.scope : 'index', id = String(q.id || ''), win = WINDOWS[q.window] ? q.window : '7d';
+  const scope = ['index', 'rarity', 'brand', 'generation', 'card'].includes(q.scope) ? q.scope : 'index', win = WINDOWS[q.window] ? q.window : '7d';
+  // The whole market has no id. Anything else must name a real group (an unknown one is empty and never cached).
+  const id = scope === 'index' ? '' : String(q.id || '').slice(0, 60);
   if (scope === 'card') {
     if (!isCard(id)) return { scope, id, window: win, empty: true, title: id, serverNow: now, source: 'players' };
     const r = await cardAnalytics(env, { cardId: id, variantId: q.variantId || null, skinId: null }, win, now);
@@ -97,8 +107,8 @@ export async function stocks(env, q, now) {
   }
   const members = membersOf(scope, id);
   if (!members.length) return { scope, id, window: win, empty: true, title: id || 'Cardable Index', serverNow: now, source: 'players' };
-  const name = 'group|' + scope + '|' + id + '|' + win + '|' + Math.floor(now / 60000);
-  return cached(env, name, 45, async () => {
+  const name = 'group|' + scope + '|' + id + '|' + win + '|' + bucket(now, TTL[win] || 45);
+  return cached(env, name, TTL[win] || 45, async () => {
     const set = new Set(members), w = WINDOWS[win], start = isFinite(w.span) ? now - w.span : 0, m = meter();
     const totals = (await m.all(env.DB.prepare('SELECT card_id, COUNT(*) AS n, SUM(price) AS c, SUM(CASE WHEN at > ?1 THEN 1 ELSE 0 END) AS u24, SUM(CASE WHEN at > ?1 THEN price ELSE 0 END) AS c24, ' +
       'SUM(CASE WHEN at > ?2 THEN 1 ELSE 0 END) AS u7 FROM price_observations WHERE at >= ?3 GROUP BY card_id').bind(now - DAY, now - 7 * DAY, start))).results.filter((r) => set.has(r.card_id));

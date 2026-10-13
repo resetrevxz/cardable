@@ -14,7 +14,10 @@ import { fairOf } from './valuation.js';
 
 const CONF_ORDER = ['none', 'low', 'medium', 'high'];
 
-export async function portfolio(env, who, now) {
+// The books are exact over every card; the list of holdings sent to the screen is bounded (the export has them all).
+const HOLDINGS_SHOWN = 1000;
+
+export async function portfolio(env, who, now, options) {
   const me = who.accountId;
   const [wallet, holds, cards, sold, bought, redeemed, swaps] = await Promise.all([
     env.DB.prepare('SELECT balance, held FROM wallets WHERE account_id = ?').bind(me).first(),
@@ -56,7 +59,8 @@ export async function portfolio(env, who, now) {
       bought: { count: bought.n, volume: bought.volume, last: bought.last || null }, swaps: swaps.n, feesPaid: sold.fees
     },
     convention: 'Cost basis is the price paid here (a bundle split by baseline value). Imported and swapped-in cards have no cost basis. Realized profit counts only sales with a known basis, after the fee.',
-    holdings, limits: { quickSellPerDay: RULES.quickSell.perAccountCardsPerDay }
+    holdings: options && options.all ? holdings : holdings.slice(0, HOLDINGS_SHOWN), holdingsTruncated: !(options && options.all) && holdings.length > HOLDINGS_SHOWN,
+    limits: { quickSellPerDay: RULES.quickSell.perAccountCardsPerDay }
   };
 }
 
@@ -70,7 +74,7 @@ export async function exportData(env, who, url, now) {
   const me = who.accountId;
   let head, rows, records;
   if (what === 'holdings') {
-    const p = await portfolio(env, who, now);
+    const p = await portfolio(env, who, now, { all: true });
     head = ['serial', 'card', 'finish', 'skin', 'state', 'cost_basis', 'estimate', 'quick_sell', 'confidence', 'acquired_via', 'acquired_at'];
     records = p.holdings.map((h) => ({ serial: h.serial, card: h.name, finish: h.variantId || '', skin: h.cardSkinId || '', state: h.state, cost_basis: h.basis == null ? 'No cost basis' : h.basis, estimate: h.estimate, quick_sell: h.quickSell, confidence: h.confidence, acquired_via: h.acquiredVia || '', acquired_at: h.acquiredAt ? new Date(h.acquiredAt).toISOString() : '' }));
   } else if (what === 'trades') {

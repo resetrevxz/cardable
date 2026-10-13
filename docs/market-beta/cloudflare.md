@@ -138,7 +138,7 @@ How the beta is shaped by them:
 |---|---|
 | `wrangler --version` | 4.149.0 (installed from `cloudflare/package.json`) |
 | `wrangler whoami` | **not authenticated** (2026-10-13) |
-| Local integration tests (`npm run test:cloudflare`: api, analytics, economy, trading, races) on the real Workers runtime (`wrangler dev --local`, local D1 and DO) | 72 / 72 pass (Stage 6, 2026-10-13); 54 / 54 at Stage 4 |
+| Local integration tests (`npm run test:cloudflare`: api, analytics, economy, trading, races) on the real Workers runtime (`wrangler dev --local`, local D1 and DO) | 73 / 73 pass (Stage 6, 2026-10-13); 54 / 54 at Stage 4 |
 | `deploy.cjs --verify` against a local origin | 10 / 10 pass |
 | `deploy.cjs --check` | names ok · secret scan ok · wrangler ok · **authentication FAIL** |
 

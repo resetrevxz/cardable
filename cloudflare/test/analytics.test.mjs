@@ -242,6 +242,36 @@ test('alerts reach the in-app inbox once, only for real listings, never for your
   assert.equal((await call(server, 'DELETE', '/v1/alerts/' + price.data.alertId, null, watcher.token, { key: null })).status, 404);
 });
 
+test('alerts: a crowd of alerts that match nothing cannot starve a real one, the cap holds under a race, and bad finishes are refused', async () => {
+  const crowd = [];
+  for (let i = 0; i < 16; i++) crowd.push(await player(server, {}));
+  // 16 accounts x 20 saved searches that match nothing: more than the old fixed window of 300 alerts
+  for (const c of crowd) {
+    const made = await Promise.all(Array.from({ length: 20 }, (_, n) => call(server, 'POST', '/v1/alerts', { kind: 'search', query: { q: 'nomatch-' + n } }, c.token)));
+    assert.ok(made.every((r) => r.status === 200), made.map((r) => r.text).join(' '));
+  }
+  const over = await call(server, 'POST', '/v1/alerts', { kind: 'search', query: { q: 'one-too-many' } }, crowd[0].token);
+  assert.equal(over.status, 409, 'the 21st alert is refused');
+  // the cap is part of the insert: a burst of 8 from a fresh account makes at most 20 in all
+  const burster = await player(server, {});
+  const burst = await Promise.all(Array.from({ length: 24 }, (_, n) => call(server, 'POST', '/v1/alerts', { kind: 'search', query: { q: 'burst-' + n } }, burster.token)));
+  assert.equal(burst.filter((r) => r.status === 200).length, 20);
+  const watcher = await player(server, {}), seller = await player(server, { cards: 1 });
+  const card = seller.cards[0].cardId, now = Date.now() + 5 * HOUR;
+  assert.equal((await call(server, 'POST', '/v1/alerts', { kind: 'price', cardId: card, maxPrice: 500 }, watcher.token)).status, 200);
+  assert.equal((await call(server, 'POST', '/v1/alerts', { kind: 'price', cardId: card, maxPrice: 500, variantId: 'not-a-finish' }, watcher.token)).status, 422);
+  const made = await call(server, 'POST', '/v1/listings', { kind: 'fixed', instanceIds: [seller.cards[0].id], ask: 100 }, seller.token, { at: now });
+  assert.equal(made.status, 200, made.text);
+  const inbox = (await call(server, 'GET', '/v1/activity', null, watcher.token, { at: now + 1 })).data.notifications.filter((n) => n.kind === 'price');
+  assert.equal(inbox.length, 1, 'the alert that matched was delivered although 320 others were registered first');
+  // an unknown finish or skin is refused before anything is read, so a caller cannot mint cache keys
+  assert.equal((await call(server, 'GET', '/v1/analytics/card?cardId=' + CARD + '&variantId=made-up&window=7d', null, watcher.token, { at: now })).status, 404);
+  assert.equal((await call(server, 'GET', '/v1/analytics/stocks?scope=card&id=' + CARD + '&variantId=made-up', null, watcher.token, { at: now })).status, 404);
+  const a1 = await call(server, 'GET', '/v1/analytics/stocks?scope=index&id=one&window=7d', null, watcher.token, { at: now });
+  const a2 = await call(server, 'GET', '/v1/analytics/stocks?scope=index&id=two&window=7d', null, watcher.token, { at: now });
+  assert.deepEqual(a1.data.title, a2.data.title); assert.equal(a1.data.id, ''); assert.equal(a2.data.id, '');
+});
+
 test('search: filters narrow on indexes, pages never repeat or skip, and the plan does not scan the table', async () => {
   const s = await player(server, { cards: 14, cardList: Object.keys(CATALOG.cards).filter((c) => ['basic', 'common', 'uncommon', 'rare'].includes(CATALOG.cards[c])).slice(0, 14) });
   const now = Date.now() + 4 * HOUR;

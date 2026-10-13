@@ -69,7 +69,7 @@ Buckets are integer divisions of the **UTC** epoch, so a series never depends on
 ## 4. Source rules, caches and cost
 
 - **Read model**: `price_observations` (index `card_id, at`, `card_key, at`, `at`), `trades` (for recently sold; swaps excluded), `listings`/`orders` for depth and supply.
-- **Server caches**: the Cache API (data-centre local) with an in-isolate fallback, for **account-independent** answers only: a card's analytics 30 s, a group's stocks 45 s, movers 45 s, keyed by the exact card/scope/window and the minute. Off in the test environment unless `ANALYTICS_CACHE=on`; always on when `ENVIRONMENT=beta`. A cache hit returns the same figures a miss would (tested).
+- **Server caches**: the Cache API (data-centre local) with an in-isolate fallback, for **account-independent** answers only, keyed by the exact card/scope/window in a time bucket the length of the lifetime: 24 h windows 30 s, 7 d 45 s, 30 d 3 min, 90 d and All 10 min (their totals scan every sale in the span, so they are computed rarely), movers 45 s. The set of keys is bounded by the catalog: a finish or skin that is not in it is refused (404) before anything is read, and the whole-market series ignores any `id`. Off in the test environment unless `ANALYTICS_CACHE=on`; always on when `ENVIRONMENT=beta`. A cache hit returns the same figures a miss would (tested).
 - **Client caches** (data layer): card analytics 12 s, stocks 12 s, movers 20 s, portfolio and alerts 10 s; any write invalidates all of them; polling stops 90 s after the Market was last used.
 - **Bounds**: a card's series reads at most its newest 200 sales; a group's at most 20,000 rows. Totals are exact regardless; a bounded series says so ("shows the most recent N; the totals count every trade").
 - **Measured locally** (1,000 labeled fixture sales over 40 cards, a warm local runtime, uncached): a card's analytics **5 statements, 55 rows read, ~20 ms**; the whole-market series **2 statements, 2,000 rows read, 13–27 ms**; a rarity series 2 statements, 1,482 rows; movers one query. Every analytics response carries its own `cost: { queries, rowsRead }`. With the free plan's 5,000,000 rows/day the uncached whole-market view could be computed about 2,500 times a day; the cache bounds it to one computation per key per 45 s. These are local figures: Cloudflare's own latency and billing were not measured.
@@ -125,13 +125,13 @@ Not read, ever: any trade that cannot be verified (the offline Simulation's trad
 
 ## 8. Alerts
 
-Price thresholds and saved searches are stored on the server and evaluated **when a real listing appears or is repriced**. A match is one in-app inbox notification per alert per listing (deduplicated by a unique key), never for your own listing. The beta has no push channel, so an alert fires only while the server handles a listing, and waits in the inbox until you open the game; this is stated in the alert dialog. Outbid, ending and fill events already arrive as notifications (Stage 5). "Average Value falls to" alerts are evaluated on this device when the page is open.
+Price thresholds and saved searches are stored on the server and evaluated **when a real listing appears or is repriced**. Only alerts that really match are selected (in SQL) and only then is the fan-out bounded (50 per listing, the alerts that have waited longest first), so a crowd of alerts that match nothing cannot push a real one out of the window; the 20-alert cap is part of the insert, so a burst of requests cannot exceed it. A match is one in-app inbox notification per alert per listing (deduplicated by a unique key), never for your own listing. The beta has no push channel, so an alert fires only while the server handles a listing, and waits in the inbox until you open the game; this is stated in the alert dialog. Outbid, ending and fill events already arrive as notifications (Stage 5). "Average Value falls to" alerts are evaluated on this device when the page is open.
 
 ## 9. Evidence
 
 | Check | Result |
 |---|---|
-| `npm run test:cloudflare` (api, analytics, economy, trading, races) | **72 / 72** |
+| `npm run test:cloudflare` (api, analytics, economy, trading, races) | **73 / 73** |
 | `tests/market-core.test.cjs` incl. the four ranking tests | 26 / 26; `npm run test:market` 74 |
 | formulas vs hand-computed fixtures: zero volume, one sale, outlier, frequent vs scarce, stale reference, one-sale change, time to sell, targets independent of the ask, UTC buckets across midnight, index points | pass |
 | endpoints on labeled fixtures: busy card (48 sales), rare card (one 40-day-old sale), outlier card, none; exact totals vs SQL; a Quick Sell, a swap and a bundle change nothing | pass |

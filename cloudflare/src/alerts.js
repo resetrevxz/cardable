@@ -2,6 +2,7 @@
 // player's listing matches. There is no push channel in the beta, so nothing is promised while the game is closed: the
 // alert is checked when the listing appears (or is repriced) and waits in the inbox until the player opens the game.
 import { ApiError, cleanText } from './util.js';
+import { CATALOG } from './catalog.js';
 import { isCard, nameOf, rarityOf } from './economy.js';
 import { newId } from './ops.js';
 
@@ -34,11 +35,13 @@ export async function createAlert(env, who, body, now) {
     query = normalizeQuery(body.query);
     if (!query) throw new ApiError(422, 'invalid', 'A saved search needs at least one condition.');
   }
-  const open = (await env.DB.prepare('SELECT COUNT(*) AS n FROM alerts WHERE account_id = ? AND active = 1').bind(who.accountId).first()).n;
-  if (open >= MAX_ALERTS) throw new ApiError(409, 'limit', 'You can have ' + MAX_ALERTS + ' alerts at once.');
+  if (variantId && !CATALOG.variants.includes(variantId)) throw new ApiError(422, 'invalid', 'That finish is not in the catalog.');
+  // The limit is part of the INSERT, so two requests at once cannot both slip under it.
   const id = newId('alt');
-  await env.DB.prepare('INSERT INTO alerts (id, account_id, kind, card_id, variant_id, max_price, query, label, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    .bind(id, who.accountId, kind, cardId, variantId, maxPrice, query ? JSON.stringify(query) : null, label, now).run();
+  const r = await env.DB.prepare('INSERT INTO alerts (id, account_id, kind, card_id, variant_id, max_price, query, label, created_at) ' +
+    'SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE (SELECT COUNT(*) FROM alerts WHERE account_id = ? AND active = 1) < ?')
+    .bind(id, who.accountId, kind, cardId, variantId, maxPrice, query ? JSON.stringify(query) : null, label, now, who.accountId, MAX_ALERTS).run();
+  if (!r.meta || !r.meta.changes) throw new ApiError(409, 'limit', 'You can have ' + MAX_ALERTS + ' alerts at once.');
   return { ok: true, alertId: id, kind };
 }
 export async function listAlerts(env, who) {
@@ -73,8 +76,23 @@ function matches(alert, L) {
 export async function evaluateAlerts(env, listingId, now) {
   const L = await env.DB.prepare("SELECT * FROM listings WHERE id = ? AND status = 'active'").bind(listingId).first();
   if (!L) return 0;
-  const alerts = (await env.DB.prepare('SELECT * FROM alerts WHERE active = 1 AND (card_id = ? OR card_id IS NULL) LIMIT 300').bind(L.card_id).all()).results;
-  const hits = alerts.filter((a) => matches(a, L)).slice(0, 50);
+  // Only alerts that really match are selected, and only then is the fan-out bounded. (Bounding first would let a
+  // crowd of alerts that match nothing push everyone else's out of the window.) Alerts that have waited longest since
+  // their last hit go first, so a flood that matches everything cannot starve the rest either.
+  const alerts = (await env.DB.prepare(
+    "SELECT * FROM alerts WHERE active = 1 AND account_id <> ?1 AND (" +
+      "(kind = 'price' AND card_id = ?2 AND ?3 = 0 AND max_price >= ?4 AND (variant_id IS NULL OR variant_id IS ?5)) OR " +
+      "(kind = 'search' AND query IS NOT NULL" +
+        " AND (json_extract(query, '$.q') IS NULL OR instr(?6, lower(json_extract(query, '$.q'))) > 0)" +
+        " AND (json_extract(query, '$.rarity') IS NULL OR EXISTS (SELECT 1 FROM json_each(alerts.query, '$.rarity') WHERE value = ?7))" +
+        " AND (json_extract(query, '$.kind') IS NULL OR EXISTS (SELECT 1 FROM json_each(alerts.query, '$.kind') WHERE value = ?8))" +
+        " AND (json_extract(query, '$.maxPrice') IS NULL OR ?3 = 1 OR json_extract(query, '$.maxPrice') >= ?4)" +
+        " AND (json_extract(query, '$.brand') IS NULL OR json_extract(query, '$.brand') = ?9)" +
+        " AND (json_extract(query, '$.generation') IS NULL OR json_extract(query, '$.generation') = ?10)" +
+        " AND (json_extract(query, '$.variantId') IS NULL OR json_extract(query, '$.variantId') IS ?5))) " +
+    "ORDER BY COALESCE(last_hit_at, 0), id LIMIT 50")
+    .bind(L.seller_id, L.card_id, L.kind === 'swap' ? 1 : 0, L.price, L.variant_id || null, nameOf(L.card_id).toLowerCase(), rarityOf(L.card_id), L.kind, L.brand || null, L.generation || null).all()).results;
+  const hits = alerts.filter((a) => matches(a, L));
   if (!hits.length) return 0;
   const statements = [];
   hits.forEach((a) => {
