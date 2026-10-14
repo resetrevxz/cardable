@@ -2,6 +2,10 @@
 .is-quiet .menu-shell #currency-counter,.is-idle .menu-shell #currency-counter { pointer-events:none; }
 .context-menu-host { position:fixed; inset:0; z-index:var(--z-overlay); pointer-events:none; font:13px var(--font-ui); color:var(--text); }
 .context-menu-host[hidden] { display:none; }
+.context-menu-host[data-owner=studio] { z-index:calc(var(--z-overlay) + 1); }
+.context-owner-heading { padding:10px 10px 11px; margin:0 2px 5px; border-bottom:1px solid var(--hairline); color:var(--text-dim); font:500 11px/16px var(--font-ui); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.context-owner-heading[hidden],.context-status[hidden] { display:none; }
+.context-menu-host[data-owner=studio] .context-item[aria-disabled=true] { opacity:.45; }
 .context-panel { position:absolute; top:0; left:0; width:min(280px,calc(calc(var(--layout-width,100vw) * 1) - 16px)); pointer-events:auto; }
 .context-panel.is-gliding { transition:transform var(--ui-duration-4) var(--ease-out); }
 .context-menu-host .context-surface { position:relative; padding:6px; border-radius:var(--ui-radius-9); max-height:calc(calc(var(--layout-height,100vh) * 1) - 16px); max-height:calc(100dvh - 16px); overflow:auto; overscroll-behavior:contain; opacity:0; transform:scale(.96); transition:opacity var(--ui-duration-5) var(--ease-out),transform var(--ui-duration-6) var(--ease-out); background:var(--ui-color-33); backdrop-filter:blur(28px) saturate(140%); -webkit-backdrop-filter:blur(28px) saturate(140%); scrollbar-width:thin; scrollbar-color:transparent transparent; }
@@ -54,7 +58,7 @@
 .context-menu-host[data-quality="very-low"] .context-switch::after { transition:none; }
 .context-menu-host[data-quality="very-low"] .context-item-ripple { display:none; }
 .reduced-motion .context-panel.is-gliding { transition:none; }
-.reduced-motion .context-surface,.reduced-motion .context-item { transform:none; transition-property:opacity; transition-delay:var(--ui-duration-8); }
+.reduced-motion .context-menu-host .context-panel .context-surface,.reduced-motion .context-menu-host .context-panel .context-item { transform:none; transition-property:opacity; transition-delay:var(--ui-duration-8); }
 .reduced-motion .context-switch::after { transition:none; }
 .reduced-motion .context-item-ripple { display:none; }
 /* The status line eases in when a menu action has something to say. */

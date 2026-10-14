@@ -1,4 +1,6 @@
 /* Advanced owners reuse the kit. Layout belongs here; model code stays independent. */
+.studio-shell.studio-advanced { container-name:cardable-studio; container-type:inline-size; }
+.studio-advanced .studio-stage-column { grid-template-columns:minmax(0,1fr); }
 .studio-advanced[data-mode=pro] .studio-pagebar { justify-content:flex-start; padding-bottom:8px; }
 .studio-advanced .studio-project-state { display:block; color:var(--text-secondary); font:11px/16px var(--font-ui); margin-top:4px; }
 .studio-advanced .studio-director-inspector-toggle { display:none; }
@@ -21,6 +23,35 @@
 .studio-advanced .studio-layer-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .studio-advanced .studio-layer-select { overflow:hidden; gap:8px; padding:8px; }
 .studio-advanced .studio-layer-select .studio-icon { flex:none; width:16px; height:16px; }
+/* A layer is one quiet row. Selection belongs to the row, with names given
+   the available width instead of three competing boxed buttons. */
+.studio-advanced .studio-hierarchy .studio-layer-row { gap:2px; margin-bottom:2px; border-radius:var(--radius-control); border:1px solid transparent; transition:background var(--t-fast) var(--ease-out),border-color var(--t-fast) var(--ease-out); }
+.studio-advanced .studio-hierarchy .studio-layer-row:hover { background:var(--glass-1); }
+.studio-advanced .studio-hierarchy .studio-layer-row:has(.studio-layer-select[aria-pressed=true]) { background:rgba(var(--accent-rgb),.10); border-color:rgba(var(--accent-rgb),.22); }
+.studio-advanced .studio-hierarchy .studio-layer-select,.studio-advanced .studio-hierarchy .studio-layer-toggle { border:0!important; background:transparent!important; box-shadow:none; min-height:36px; padding:6px; }
+.studio-advanced .studio-hierarchy .studio-layer-select[aria-pressed=true] { background:transparent!important; }
+.studio-advanced .studio-hierarchy .studio-layer-toggle { color:var(--text-secondary); opacity:.65; }
+.studio-advanced .studio-hierarchy .studio-layer-toggle:hover,.studio-advanced .studio-hierarchy .studio-layer-toggle:focus-visible,.studio-advanced .studio-hierarchy .studio-layer-toggle[aria-pressed=true] { opacity:1; }
+.studio-advanced .studio-hierarchy .studio-layer-select { padding:8px; }
+.studio-advanced .studio-inspector-section { border-top-color:var(--stroke); }
+.studio-advanced .studio-inspector-section>summary { font-weight:500; letter-spacing:-.01em; }
+.studio-advanced .studio-inspector-section>div { padding-top:4px; }
+.studio-advanced .studio-viewport:focus-visible { outline:2px solid rgba(var(--accent-rgb),.65); outline-offset:2px; box-shadow:none; }
+.studio-advanced .studio-simple-drag-tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.studio-advanced .studio-simple-drag-tools .studio-button { flex-direction:column; align-items:center; justify-content:center; padding:10px 4px; gap:6px; text-align:center; font-size:11px; }
+.studio-advanced .studio-simple-drag-tools .studio-icon { width:20px; height:20px; }
+.studio-advanced .studio-simple-slider-top output { color:var(--text-primary); font-variant-numeric:tabular-nums; }
+.studio-advanced .studio-preset-browser { width:min(460px,calc(100% - 32px)); }
+.studio-advanced .studio-preset-tile-tools { justify-content:space-between; gap:4px; padding:4px 2px 0; }
+.studio-advanced .studio-preset-tile-tools .studio-button { min-height:32px; font-size:11px; background:transparent; border-color:transparent; padding:6px 8px; }
+.studio-advanced .studio-preset-preview-actions { flex:none; display:grid; grid-template-columns:1fr auto; gap:8px; padding:12px; border:1px solid rgba(var(--accent-rgb),.22); border-radius:var(--radius-control); background:var(--glass-1); }
+.studio-advanced .studio-preset-preview-actions strong,.studio-advanced .studio-preset-preview-actions small { grid-column:1/-1; }
+.studio-advanced .studio-preset-preview-actions strong { font-size:12px; font-weight:500; }
+.studio-advanced .studio-preset-preview-actions small { color:var(--text-secondary); font-size:11px; line-height:16px; }
+.studio-advanced .studio-preset-preview-actions .studio-button { padding:8px; font-size:11px; }
+@media(max-width:780px){.studio-advanced .studio-preset-browser { width:auto; } .studio-advanced .studio-preset-preview-actions { padding:8px; gap:4px; } }
+.reduced-motion .studio-advanced .studio-layer-row { transition:none; }
+.studio-advanced.is-preset-preview .studio-workspace-overlay,.studio-advanced.is-preset-preview .studio-graphic-selection,.studio-advanced.is-preset-preview .studio-graphic-guides { display:none!important; }
 .studio-advanced .studio-transform-status { color:var(--text-secondary); font:11px/16px var(--font-mono); padding:0 8px; margin-left:auto; white-space:nowrap; }
 .studio-advanced .studio-editor-grid { pointer-events:none; fill:none; stroke:rgba(210,218,238,.14); stroke-width:1; }
 .studio-advanced .studio-editor-grid .is-origin { stroke:rgba(210,218,238,.26); }
@@ -134,6 +165,7 @@
 }
 @media(max-height:680px) and (min-width:781px) { .studio-advanced .director2-dock { max-height:30vh; } }
 @media(pointer:coarse) {
+  .studio-advanced .studio-hierarchy .studio-layer-select,.studio-advanced .studio-hierarchy .studio-layer-toggle { min-height:44px; }
   .studio-advanced .studio-graphic-handle,.studio-advanced .studio-orientation .studio-button { width:44px; height:44px; }
   .studio-advanced .studio-graphic-handle.is-resize { right:-22px; bottom:-22px; }
   .studio-advanced .studio-stage-bypass { width:44px; height:44px; }
@@ -148,3 +180,21 @@
 .studio-creative-specimen-panel { min-width:0; max-height:65vh; overflow:auto; }
 .studio-creative-specimen>.studio-presets-row,.studio-creative-specimen>.studio-copy { grid-column:1/-1; }
 @media(max-width:640px){.studio-creative-specimen{grid-template-columns:1fr;}.studio-creative-specimen-panel{max-height:40vh;}}
+/* Interface zoom reduces the owner's available width without changing media
+   queries. Respond to the actual workspace, preserving all header actions. */
+@container cardable-studio (max-width:1100px) {
+  .studio-shell.studio-advanced .studio-topbar { flex-wrap:wrap; }
+  .studio-shell.studio-advanced .studio-mode-switch { flex:none; }
+  .studio-shell.studio-advanced .studio-topbar-identity { flex:1 1 190px; }
+  .studio-shell.studio-advanced .studio-topbar-actions { flex:1 1 500px; flex-wrap:wrap; }
+  .studio-shell.studio-advanced .studio-pagebar { overflow:auto; }
+  .studio-shell.studio-advanced .studio-tools { flex:none; min-width:max-content; }
+  .studio-shell.studio-advanced .studio-viewport-toolbar { flex-wrap:wrap; max-width:100%; }
+  .studio-shell.studio-advanced .studio-transform-status { display:none; }
+}
+@container cardable-studio (min-width:781px) and (max-width:1100px) {
+  .studio-shell.studio-advanced[data-mode=pro] .studio-layout { grid-template-columns:clamp(200px,var(--studio-left),24cqw) minmax(180px,1fr) clamp(240px,var(--studio-right),29cqw); }
+  .studio-shell.studio-advanced[data-mode=pro].studio-left-closed .studio-layout { grid-template-columns:0 minmax(180px,1fr) clamp(240px,var(--studio-right),29cqw); }
+  .studio-shell.studio-advanced[data-mode=pro].studio-right-closed .studio-layout { grid-template-columns:clamp(200px,var(--studio-left),24cqw) minmax(180px,1fr) 0; }
+  .studio-shell.studio-advanced[data-mode=pro].studio-left-closed.studio-right-closed .studio-layout { grid-template-columns:0 minmax(180px,1fr) 0; }
+}
