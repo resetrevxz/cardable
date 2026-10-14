@@ -10,7 +10,7 @@
   function loadAlbum(){return files(['src/studio/files.js','src/studio/album.js','src/studio/photo.js','src/studio/ui/album.js']);}
   function load() {
     if(C.studioController)return Promise.resolve();if(loading)return loading;
-    loading=files(['assets/art-data/manifest.js','src/studio/art-data.js','src/studio/camera.js','src/studio/lights.js','src/studio/preset-catalog.js','src/studio/visual-presets.js','src/studio/photo-looks.js','src/studio/presets.js','src/studio/materials.js','src/studio/card-face.js','src/studio/props.js','src/studio/composition.js','src/studio/renderer.js','src/studio/files.js','src/studio/album.js','src/studio/photo.js','src/studio/ui/album.js','src/studio/ui/panels.js','src/studio/ui/gizmos.js','src/studio/ui/scenes.js','src/studio/ui/photo.js','src/studio/animation.js','src/studio/director.js','src/studio/webm.js','src/studio/recording.js','src/studio/ui/timeline-tools.js','src/studio/ui/timeline-curves.js','src/studio/ui/director.js','src/studio/editing.js','src/studio/ui/presets.js','src/studio/ui/look.js','src/studio/ui/deliver.js','src/studio/ui/simple.js','src/studio/ui/workspace.js','src/studio/studio.js']).catch(function(error){loading=null;throw error;});return loading;
+    loading=files(['assets/art-data/manifest.js','src/studio/art-data.js','src/studio/camera.js','src/studio/lights.js','src/studio/preset-catalog.js','src/studio/visual-presets.js','src/studio/photo-looks.js','src/studio/presets.js','src/studio/materials.js','src/studio/card-face.js','src/studio/props.js','src/studio/composition.js','src/studio/color.js','src/studio/graphics.js','src/studio/renderer.js','src/studio/files.js','src/studio/album.js','src/studio/photo.js','src/studio/ui/album.js','src/studio/ui/panels.js','src/studio/ui/gizmos.js','src/studio/ui/scenes.js','src/studio/ui/photo.js','src/studio/animation.js','src/studio/director.js','src/studio/webm.js','src/studio/recording.js','src/studio/ui/timeline-tools.js','src/studio/ui/timeline-curves.js','src/studio/ui/director.js','src/studio/editing.js','src/studio/ui/presets.js','src/studio/ui/look.js','src/studio/ui/deliver.js','src/studio/ui/simple.js','src/studio/ui/graphics.js','src/studio/ui/creative-gallery.js','src/studio/ui/workspace.js','src/studio/studio.js']).catch(function(error){loading=null;throw error;});return loading;
   }
   function reopen(photo){
     if(reopening||busy)return Promise.resolve(false);
@@ -59,6 +59,7 @@
   C.keys.listen(root.document, 'keydown', 'src.studio.entry.js.1', function (event) { if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || String(event.key).toLowerCase() !== 'e' || C.studio.active || busy || C.detail.phase !== 'detail' || !C.detail.view || !C.detail.view.instance.serial || event.target.closest && event.target.closest('input,select,textarea,[contenteditable],[data-tool-surface]')) return; event.preventDefault(); C.studio.enter(); });
   C.events.on('app:ready', function () {
     if (!C.dev) return;
+    C.dev.openStudioCreativeControls=async function(){await load();return C.studioCreativeGallery();};
     C.dev.openStudioControls=async function(){await load();return C.studioUI.gallery();};
     C.dev.checkStudioPresets=async function(){await load();await files(['src/studio/preset-validation.js']);return C.studioPresetValidation.catalog();};
     C.dev.checkStudio2=async function(){

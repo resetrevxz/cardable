@@ -9,11 +9,11 @@
     else if(value&&typeof value==='object')Object.keys(value).forEach(function(k){finite(value[k],path+'.'+k,fail);});
   }
   function inspect(scene,kind){
-    var errors=[],warnings=[],objects=S.objects(scene),ids=new Set(),supported=[].concat.apply([],Object.keys(S.catalog).map(function(k){return S.catalog[k].map(function(p){return p[0];});}));
+    var errors=[],warnings=[],objects=S.objects(scene).concat(scene.graphics||[]),ids=new Set(),supported=[].concat.apply([],Object.keys(S.catalog).map(function(k){return S.catalog[k].map(function(p){return p[0];});}));
     finite(scene,'scene',errors);
     objects.forEach(function(o){if(!o.id||ids.has(o.id))errors.push('Duplicate/missing object ID: '+o.id);ids.add(o.id);});
     scene.props.forEach(function(p){if(supported.indexOf(p.type)<0)errors.push('Unsupported prop: '+p.type);if(p.type==='collection'&&!p.instances.length)warnings.push('Collection prop '+p.id+' needs owned companion cards');});
-    if(scene.lights.length>16||scene.props.length>60)errors.push('Authoring object budget exceeded');
+    if((scene.graphics||[]).length>32)errors.push('Graphic budget exceeded');(scene.graphics||[]).forEach(function(g){if(!['text','rect','line','badge'].includes(g.type))errors.push('Unsupported graphic: '+g.type);});if(scene.lights.length>16||scene.props.length>60)errors.push('Authoring object budget exceeded');
     if(scene.props.reduce(function(n,p){return n+(p.type==='collection'?p.instances.length:0);},0)>10)errors.push('Companion-card budget exceeded');
     scene.animation.cameras.concat(scene.animation.titles).forEach(function(o){if(ids.has(o.id))errors.push('Animation object ID collision: '+o.id);ids.add(o.id);});
     var tracks=new Set(),keys=new Set();
