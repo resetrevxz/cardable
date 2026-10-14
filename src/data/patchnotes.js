@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.7.2',codename:'Director Studio',date:'October 14, 2026',tag:'Update',tagline:'Your collectible. Your composition.',
+    hero:{badge:'CARDABLE / 1.7.2',title:'Director Studio.',subtitle:'Simple photography and a capable Advanced workspace, sharing one scene.',media:[]},
+    sections:{fixes:['Repaired preset lighting, camera motion, support alignment and portrait framing. Existing preset identities are retained.','Right-click commands now use the main-menu surface, with working focus, keyboard navigation, screen bounds and camera-drag handling.'],visuals:['Refined layers, inspectors, controls and timelines, with saved monochrome, reduced motion and enlarged interface layouts.','Twelve new photo looks, color wheels and smooth channel curves, plus metadata text, badges, shapes and layout templates.'],qol:['Look → Adjust → Capture in Simple; scene, lighting, grading, graphics and Director animation in Advanced.','Move, rotate and scale backgrounds independently. Try presets before applying; Undo restores every confirmed edit.','Real PNG/JPEG/WebP photos, supported 4K and WebM, safe Album reopening and cancellation cleanup. Collected cards, serials and existing photos are preserved.']},
+    entries:['The Studio is rebuilt around the card.','Compose, develop and keep a photograph without losing your work.']
+  },
+  {
     version:'1.7.1',codename:'Cinematic by default',date:'October 13, 2026',tag:'Fix',tagline:'Start with the whole ceremony.',
     hero:{badge:'CARDABLE / 1.7.1',title:'Cinematic by default.',subtitle:'High detail, full-length cutscenes and full motion from the first launch.',media:[]},
     sections:{fixes:['Cinematic setup now clears reduced motion and saved cutscene skips, including individual rarity routes.'],visuals:['New players start with High graphics and Full strobing.'],qol:['Existing saves can restore the full presentation through Settings → Quick setups → Cinematic. Existing preferences stay as chosen on load.']},
