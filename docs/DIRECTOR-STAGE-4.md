@@ -1,6 +1,6 @@
 # Director Mode — Stage 4 finish and verification
 
-Implemented locally on `feature/director-mode-update` in `D:/CardableV2/DirectorModeUpdate`. The primary checkout, other worktrees and installed app are unchanged. No publication, release automation, desktop delivery or integration was authorized by this brief.
+Stage 4 was completed locally on `feature/director-mode-update` in `D:/CardableV2/DirectorModeUpdate`. At that checkpoint the primary checkout, other worktrees and installed app were unchanged, and this stage brief did not authorize publication or integration. The owner's subsequent request explicitly authorizes merging the reviewed work and releasing **1.7.2**; see [release notes](../changelog/1.7.2.md). The original acceptance evidence and limits below remain applicable.
 
 ## What changed
 

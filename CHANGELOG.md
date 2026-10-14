@@ -1,3 +1,20 @@
+# Cardable v1.7.2 — Director Studio
+
+Cardable Studio has been rebuilt around the collectible. Simple mode takes you through Look → Adjust → Capture; Advanced brings scene editing, lighting, color grading, graphics and Director animation into one shared workspace.
+
+- **Better compositions.** The existing presets keep their identities, with repaired lighting, camera motion, framing, props and support alignment. Twelve new photo looks join the catalog, for 115 authored presets across six categories.
+- **Independent backgrounds.** Move, rotate and scale the background without moving the card or camera. Simple has direct drag, arrow keys and scroll scaling; Advanced has layers, typed transforms, gizmos, snapping, locks and animation tracks.
+- **Color and layouts.** Ordered correction stages, color wheels, smooth master/channel curves, before/after and real preview scopes. Add local text, actual collectible metadata, badges, lines and shapes, or start with poster, desktop, phone and square layouts. Overlays carry into photos and clips.
+- **A quieter workspace.** Refined layers, inspectors, controls, tooltips, resizable panels, timeline and immersive preview, with saved color/monochrome and reduced-motion support. Right-click uses Cardable’s main-menu styling and animation, with proper selection, keyboard navigation, focus, screen bounds and camera-drag handling.
+- **Try before applying.** Search, favorites, recent and saved presets retain their existing data. Temporary previews change only the picture; Apply is one undoable action and Return restores your scene.
+- **Keep the photograph.** PNG, JPEG and WebP output, supported high-resolution and 4K capture, separate IndexedDB Album photos, saved-scene reopening and supported video-only WebM export. Cancellation releases temporary render work; failed writes retain a download route.
+
+Existing collected cards, ownership, serials, currency, pack reservations and Album blobs remain unchanged. Studio scenes migrate through optional fields without a game-save schema change. The CPU fallback remains a clearly labelled static preview with capability limits; saved graphics preferences are preserved.
+
+Verification included 23 focused regression tests, 43 built-in Studio checks, 2,875 preset renders across five references and five tiers, 470 portrait/landscape composition images, 94 complete Simple photo journeys, color/monochrome layouts, real encoded photo/video output, simulated WebGL failure and export/Album lifecycle checks. The implementation and evidence are documented in docs/DIRECTOR-STAGE-1.md through docs/DIRECTOR-STAGE-4.md.
+
+This release is unsigned. Installer execution, a live updater upgrade, physical touch gestures, long recordings and broad hardware performance remain separate acceptance work.
+
 # Cardable v1.7.1 — Cinematic by default
 
 New players now start with High graphics, full-length cutscenes, Full strobing and reduced motion Off. All ten graphics controls start at High, with normal reveal speed and cutscene skipping disabled.
