@@ -17,7 +17,7 @@
   }
   function price(parent, amount) {
     var row = node('div', 'shop-price', parent);
-    node('strong', '', row, amount.toLocaleString()); node('span', '', row, 'Credits');
+    node('strong', '', row, amount.toLocaleString()); row.appendChild(C.icons.create('coin'));row.setAttribute('aria-label',amount.toLocaleString()+' Credits');
     return row;
   }
   function previewInstance(card, offer) {
@@ -187,8 +187,7 @@
       });
     }
     function openPurchasedPack() {
-      session.presentation.close();
-      root.queueMicrotask(function () {
+      session.presentation.close().then(function () {
         var action = root.document.querySelector('.pack-open-action');
         if (action && !action.disabled) action.focus({ preventScroll: true });
         C.qol.toast('Titan Pack is ready. Hold to charge, then open the vault.');
@@ -221,7 +220,7 @@
       var actions = node('div', 'shop-actions', copy);
       var primary = button(actions, result.kind === 'pack' ? 'Open Titan Pack' : 'View in inventory', function () {
         if (result.kind === 'pack') openPurchasedPack();
-        else { session.presentation.close(); root.queueMicrotask(function () { C.events.notify('inventory:showCard', { cardId: result.instance.cardId, instanceId: result.instance.instanceId }); }); }
+        else { session.presentation.close().then(function () { C.events.notify('inventory:showCard', { cardId: result.instance.cardId, instanceId: result.instance.instanceId }); }); }
       }, 'shop-inspect');
       button(actions, 'Back to shop', function () {
         session.locked = false; session.result = C.shopState.ensure();
@@ -279,8 +278,8 @@
       node('span', 'shop-overline', brand, 'CARDABLE');
       node('h1', '', brand, label);
       var actions = node('div', 'shop-header-actions', header);
-      session.balance = node('div', 'shop-balance', actions);
-      function refreshBalance() { session.balance.textContent = (C.state.current ? C.state.current.currency : 0).toLocaleString() + ' Credits'; }
+      session.balance = node('div', 'shop-balance', actions);var wallet=C.currencyView.create(session.balance);session.cleanups.push(wallet.destroy);
+      function refreshBalance() { wallet.refresh(); }
       refreshBalance();
       button(actions, session.selected === 'history' ? 'Back to Shop' : 'Purchase history', function () {
         if (session.selected === 'history') renderShop(true); else history();
@@ -335,7 +334,7 @@
           C.desktop.retryBackup().catch(function () {}).then(finished);
         else finished();
       }, 'shop-save-retry');
-      button(saveNotice, 'Data settings', function () { session.presentation.close(); root.queueMicrotask(function () { C.openSettings('Data'); }); }, 'shop-save-data');
+      button(saveNotice, 'Data settings', function () { session.presentation.close().then(function () { C.openSettings('Data'); }); }, 'shop-save-data');
       session.saveNotice = saveNotice;
       session.refreshSaveNotice = function () {
         if (!saveNotice.isConnected) return;
@@ -385,7 +384,7 @@
           var cell = node('th', '', headers); cell.scope = 'col';
           var art = node('button', 'shop-compare-art', cell); art.type = 'button'; art.setAttribute('aria-label', 'Inspect ' + entry.card.name);
           art.dataset.cardId = entry.card.id;
-          var view = C.cardView.create(entry.card, previewInstance(entry.card, entry.offer), { thumbnail: true, owned: false, keyboardFlip: false, autoFocus: false });
+          var view = C.cardView.createThumbnail(entry.card, previewInstance(entry.card, entry.offer), { owned: false, keyboardFlip: false, autoFocus: false });
           view.el.inert = true; art.appendChild(view.el); session.views.push(view); arrive(art);
           matchObject(view.el, 'card', entry.card.id);
           art.addEventListener('click', function () { navigate(function () { inspectCard(entry.card, entry.offer); }, view.el, { kind: 'card', id: entry.card.id }); });
@@ -504,7 +503,7 @@
         }catch(_){exportNote.textContent='Export could not start. Try again or use Data settings.';exportNote.dataset.state='error';}
         exportNote.hidden=false;announce(exportNote.textContent);
       },'shop-save-export');
-      button(actions,'Data settings',function(){session.presentation.close();root.queueMicrotask(function(){C.openSettings('Data');});},'shop-save-data-open');
+      button(actions,'Data settings',function(){session.presentation.close().then(function(){C.openSettings('Data');});},'shop-save-data-open');
       button(actions,'Back to shop',function(){renderShop(true);},'shop-back');
       node('p','shop-save-guidance',area,'Studio photos are exported separately from the Album.');
       session.refreshSaveDetails=refresh;refresh();footer(scroll);title.focus({preventScroll:true});
@@ -562,7 +561,7 @@
         paging.hidden = rows.length <= 8;
         if (!force && nextSignature === signature) return;
         signature = nextSignature; list.replaceChildren();
-        if (!rows.length) list.appendChild(C.ui.create('empty-state', { label: records.length ? 'No purchases in this category.' : 'No purchases yet.' }));
+        if(!rows.length)C.ui.empty(list,{icon:'receipt',heading:records.length?'No purchases in this category.':'No purchases yet.',label:'Browse Shop',action:function(){renderShop(true);}});
         rows.slice(session.historyPage * 8, (session.historyPage + 1) * 8).forEach(function (row) {
           var entry = node('article', 'shop-history-row', list); entry.setAttribute('role', 'listitem'); entry.dataset.receipt = row.receipt.receiptId;
           var mark = node('span', 'shop-history-mark', entry); mark.appendChild(C.icons.create(row.receipt.kind));
@@ -580,7 +579,7 @@
           else if (row.copy && row.card) button(actions, 'View card', function () {
             var current = C.state.current.inventory.find(function (item) { return item.instanceId === row.copy.instanceId; });
             if (!current) { refresh(true); announce('This copy is no longer in inventory.'); return; }
-            session.presentation.close(); root.queueMicrotask(function () { C.events.notify('inventory:showCard', { cardId: current.cardId, instanceId: current.instanceId }); });
+            session.presentation.close().then(function () { C.events.notify('inventory:showCard', { cardId: current.cardId, instanceId: current.instanceId }); });
           }, 'shop-history-view');
         });
       }
@@ -661,7 +660,7 @@
         thumb.setAttribute('aria-label', 'Inspect ' + card.name + ', ' + C.rarity(card.rarity).name);
         thumb.addEventListener('click', function () { navigate(function () { inspectCard(card, offer); }, view.el, { kind: 'card', id: card.id }); });
         reactive(thumb);
-        var view = C.cardView.create(card, previewInstance(card, offer), { thumbnail: true, owned: false, keyboardFlip: false, autoFocus: false });
+        var view = C.cardView.createThumbnail(card, previewInstance(card, offer), { owned: false, keyboardFlip: false, autoFocus: false });
         view.el.inert = true;
         matchObject(view.el, 'card', card.id);
         thumb.appendChild(view.el); session.views.push(view);
@@ -733,7 +732,7 @@
         current = index; chooser.value = index;
         if (previewView) { previewView.destroy(); session.views = session.views.filter(function (view) { return view !== previewView; }); }
         var card = pool[index]; if (!card) return;
-        previewView = C.cardView.create(card, previewInstance(card, { variantId: null, cardSkinId: null }), { thumbnail: true, owned: false, keyboardFlip: false });
+        previewView = C.cardView.createThumbnail(card, previewInstance(card, { variantId: null, cardSkinId: null }), { owned: false, keyboardFlip: false });
         preview.appendChild(previewView.el); session.views.push(previewView);
         name.textContent = card.name; rarity.textContent = C.rarity(card.rarity).name;
         count.textContent = String(index + 1).padStart(2, '0') + ' / ' + pool.length;
@@ -837,7 +836,7 @@
     }
     session.renderShop = renderShop;
     renderShop();
-    session.presentation = C.ui.present(surface, { anchor: origin, onClose: function () {
+    session.presentation = C.ui.present(surface, { anchor: origin,onClosing:function(){session.locked=true;session.holds.forEach(function(control){if(control.confirmation)control.confirmation.cancel();});if(session.transition)session.transition.skipTransition();},onClose: function () {
       if (active !== session) return;
       if (session.transition) session.transition.skipTransition();
       root.clearInterval(session.ticker); if (session.offSave) session.offSave();
@@ -955,7 +954,7 @@
     get daily() { return C.shopState.ensure(); },
     get isOpen() { return !!active; },
     open: open,
-    close: function () { if (active) active.presentation.close(); },
+    close: function () { return active?active.presentation.close():Promise.resolve(); },
     previewState: function (state) {
       if (!new URLSearchParams(root.location.search).has('dev') || !['normal','unaffordable','purchased','loading','error','expired','disabled','empty','underfilled'].includes(state)) return false;
       previewState = state;
@@ -966,7 +965,7 @@
       var entry = root.document.getElementById('shop-entry');
       if (!entry || entry.dataset.shopReady) return;
       entry.dataset.shopReady = 'true';
-      entry.prepend(C.icons.create('card'));
+      C.ui.iconAction(entry,'shop','Shop');
       entry.addEventListener('click', open);
       C.events.on('opening:context', function (event) { entry.disabled = event.phase !== 'idle'; });
     }

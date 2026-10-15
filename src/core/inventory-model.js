@@ -6,14 +6,14 @@
   function definitions(value) { return Array.isArray(value) ? Array.from(new Set(value.filter(function(id){return typeof id==='string'&&id.length>0;}))) : []; }
   function find(ui,id) { return ui.collections.find(function(c){return c.id===id;}); }
   function color(id) { return colors.find(function(c){return c.id===id;})||colors[0]; }
-  function defaults() { return { viewMode: 'shelf', sortMode: 'catalog', tabSortMode:'manual', groupMode: 'none', showUnowned: true, activeCollectionId: 'all', lastSelectedStackKey: null, pendingFocusStackKey: null, favorites: [], collections: [], customOrders: { all: [], favorites: [] } }; }
+  function defaults() { return { viewMode: 'shelf', sortMode: 'catalog', tabSortMode:'manual', groupMode: 'none', showUnowned: false, activeCollectionId: 'all', lastSelectedStackKey: null, pendingFocusStackKey: null, favorites: [], collections: [], customOrders: { all: [], favorites: [] } }; }
   function normalize(value) {
     var result = Object.assign(defaults(), value && typeof value === 'object' && !Array.isArray(value) ? value : {});
     ['viewMode', 'sortMode', 'groupMode'].forEach(function (key) {
       var options = key === 'viewMode' ? ['shelf', 'grid'] : key === 'groupMode' ? ['none', 'rarity', 'generation', 'brand', 'ownership', 'new', 'variant'] : ['catalog', 'custom', 'missing-first', 'recent', 'oldest', 'name-asc', 'name-desc', 'rarity-asc', 'rarity-desc', 'generation', 'vram-asc', 'vram-desc', 'quantity', 'serial'];
       if (options.indexOf(result[key]) < 0) result[key] = defaults()[key];
     });
-    result.showUnowned = result.showUnowned !== false; result.favorites = ids(result.favorites);
+    result.showUnowned = result.showUnowned === true; result.favorites = ids(result.favorites);
     if(!tabSorts.some(function(pair){return pair[0]===result.tabSortMode;}))result.tabSortMode='manual';
     var used = new Set(['all', 'favorites']);
     result.collections = (Array.isArray(result.collections) ? result.collections : []).filter(function (item) {

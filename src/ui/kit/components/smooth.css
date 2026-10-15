@@ -2,8 +2,8 @@
    page transitions, the album page, the credits popover and shared hover feedback.
    Motion scales with --q-motion and stops for reduced motion. */
 
-/* ---- Inventory sheet: glass where the tier allows it, prepainted elsewhere ---- */
-:root:not([data-glass-quality="very-low"],[data-glass-quality="low"],[data-reduce-transparency="true"]) .inventory-sheet.glass--sheet { background:linear-gradient(165deg,var(--tone-23),var(--tone-17) 42%,var(--tone-31)); backdrop-filter:blur(calc(30px * var(--q-blur))) saturate(165%) !important; -webkit-backdrop-filter:blur(calc(30px * var(--q-blur))) saturate(165%) !important; }
+/* ---- Inventory sheet: bounded prepainted depth without a large backdrop pass ---- */
+:root:not([data-glass-quality="very-low"],[data-glass-quality="low"],[data-reduce-transparency="true"]) .inventory-sheet.glass--sheet { background:linear-gradient(165deg,var(--tone-23),var(--tone-17) 42%,var(--tone-31)); }
 .inventory-sheet.glass--sheet { border:1px solid var(--stroke-strong); border-bottom:0; box-shadow:inset 0 1px 0 var(--light-edge),inset 0 0 0 1px var(--ui-color-171),var(--shadow-xl); }
 .inventory-sheet::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:radial-gradient(900px 420px at 18% 0,var(--glass-3),transparent 70%); opacity:.7; }
 :root:is([data-glass-quality="very-low"],[data-glass-quality="low"],[data-reduce-transparency="true"]) .inventory-sheet::before { display:none; }

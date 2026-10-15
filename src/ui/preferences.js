@@ -1,6 +1,7 @@
 (function (C, root) {
   'use strict';
   var node = C.packMarkup.node, overlay, panel, gear, feedback, credits, previewHost, preview = null, previousCard = null;
+  var closing=false,closePromise=null;
   var opened = false, blocked = [], controls = [], spring, position = 0, confirmation, undo = null, undoAge = 0, undoButton;
   var saveAge = null, saved = true, tierIndex = 0, previewBase = null, nudge, nudgeShown = false, slowMs = 0, slowFrames = 0;
   function button(text, parent, action) { var el = node('button', 'quiet-button', parent, text); el.type = 'button'; el.addEventListener('click', action); return el; }
@@ -17,6 +18,7 @@
     C.preferences.preview = preview; C.preferences.tierLabel.textContent = rarity.name; C.fx.wake();
   }
   function open(settingId, emergency) {
+    if(closing)return false;C.ui.enter(overlay);
     if (opened) { if (settingId && C.preferences.shell) C.preferences.shell.focus(settingId); return true; }
     if (!emergency && C.setup && C.setup.loading) return false;
     if (!canOpen() && !emergency) return false;
@@ -33,15 +35,14 @@
     spring.target = 1; if (settingId) C.preferences.shell.focus(settingId); C.fx.wake(); return true;
   }
   function close() {
-    if (!opened) return;
-    if (confirmation) confirmation.cancel(); credits.hidden = true; C.accessibility.release(credits);
-    opened = false; overlay.inert = true; root.document.body.classList.remove('settings-open');
-    if (preview) preview.destroy(); preview = null; C.preferences.preview = null;
-    blocked.forEach(function (item) { item.el.inert = item.before; }); blocked = [];
-    C.events.emit('preferences:context', { active: false }); C.events.emit('settings:close');
-    if (previousCard && !previousCard.destroyed && previousCard.visible) previousCard.setMode('full'); previousCard = null;
-    C.accessibility.release(panel); C.events.emit('menu:visibilityHold', { reason: 'preferences', active: false }); C.events.emit('menu:activity');
-    gear.focus({ preventScroll: true }); spring.target = 0; C.fx.wake();
+    if(closing)return closePromise;if(!opened)return Promise.resolve();closing=true;opened=false;
+    if(confirmation)confirmation.cancel();credits.hidden=true;C.accessibility.release(credits);
+    closePromise=C.ui.exit(overlay,function(){
+      overlay.hidden=true;closing=false;root.document.body.classList.remove('settings-open');
+      if(preview)preview.destroy();preview=null;C.preferences.preview=null;blocked.forEach(function(item){if(item.el.isConnected)item.el.inert=item.before;});blocked=[];
+      C.events.emit('preferences:context',{active:false});C.events.emit('settings:close');if(previousCard&&!previousCard.destroyed&&previousCard.visible)previousCard.setMode('full');previousCard=null;
+      C.accessibility.release(panel);C.events.emit('menu:visibilityHold',{reason:'preferences',active:false});C.events.emit('menu:activity');gear.focus({preventScroll:true});spring.reset(0);position=0;
+    });return closePromise;
   }
   function recoverNotice() {
     var recovery = C.state.recovery; if (!recovery) return;
@@ -73,7 +74,7 @@
     if (notice && notice.dataset.saveNotice === 'storage') { notice.remove(); C.preferences.notice = null; }
   }
   C.preferences = {
-    initialized: false, get open() { return opened; }, show: open, close: close,
+    initialized: false, get open() { return opened||closing; }, show: open, close: close,
     read: function (file) { return C.settingsData.current.read(file); },
     init: function () {
       if (C.preferences.initialized) return; C.preferences.initialized = true;
@@ -163,7 +164,7 @@
         var moving = false;
         if (saveAge !== null) { saveAge += dt; if (saved) { message(saveAge >= 200 ? '✓ Saved' : ''); feedback.style.opacity = saveAge < 1400 ? 1 : 0; } if (saveAge >= 1400) saveAge = null; else moving = true; }
         if (undo) { undoAge += dt; if (undoAge >= 8000) { undo = null; undoButton.hidden = true; } else moving = true; }
-        if (!overlay.hidden) {
+        if (!overlay.hidden && !closing) {
           if (C.motion.reduced) { position = Math.max(0, Math.min(1, position + (opened ? 1 : -1) * dt / 150)); spring.reset(position); } else { spring.step(dt, opened ? 1 : 0); position = spring.value; }
           panel.style.transform = C.motion.reduced || position === 1 ? '' : 'translate3d(' + (position - 1) * 40 * (C.settings.get('settingsSide') === 'right' ? -1 : 1) + 'px,0,0) scale(' + (.985 + .015 * Math.min(1, position)) + ')'; panel.style.opacity = Math.max(0, Math.min(1, position)); overlay.style.setProperty('--settings-shade', Math.max(0, Math.min(1, position)));
           var settled = C.motion.reduced ? position === (opened ? 1 : 0) : spring.settled();

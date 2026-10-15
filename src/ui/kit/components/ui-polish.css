@@ -1,0 +1,93 @@
+/* Player controls share one edge, light and motion language. Artwork owns its materials. */
+:root { --duration-exit:120ms; }
+.cb-icon,.inventory-icon svg,.studio-icon,.patch-icon,.context-icon { fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round; }
+.cb-icon-action { display:inline-flex;align-items:center;justify-content:center;width:36px;min-width:36px;min-height:36px;padding:8px;gap:0; }
+.cb-icon-action .cb-icon { width:20px;height:20px; }
+.cb-ui :is(.cb-button,.cb-icon-button,.inventory-icon,.album-button,.studio-button,.quiet-button,.shop-entry):not(:disabled) { transition:transform 150ms var(--ease-out),box-shadow 150ms var(--ease-out),border-color 150ms var(--ease-out),background-color 150ms var(--ease-out); }
+:root:not([data-hover-animations="false"]) .cb-ui :is(.cb-button,.cb-icon-button,.inventory-icon,.album-button,.studio-button,.quiet-button,.shop-entry):hover:not(:disabled) { translate:0 -1px;box-shadow:inset 0 1px 0 var(--light-edge),inset 0 0 0 1px var(--stroke-hover),var(--shadow-sm); }
+.cb-ui :is(button,summary):focus-visible { outline:2px solid var(--focus);outline-offset:3px; }
+.cb-ui button:disabled { cursor:default; }
+.cb-empty { display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center; }
+.cb-empty>.cb-icon { width:40px;height:40px;color:var(--text-secondary); }
+.cb-empty>strong { font:500 16px/22px var(--font-ui);color:var(--text-primary); }
+.cb-empty>p { max-width:360px;margin:0;color:var(--text-secondary);font:12px/18px var(--font-ui); }
+.cb-tooltip { pointer-events:auto;max-width:min(320px,calc(100vw - 16px)); }
+[data-surface-state="closing"] { pointer-events:none; }
+:root[data-hover-animations="false"] .cb-ui :is(button,summary),.reduced-motion .cb-ui :is(button,summary) { translate:none!important; }
+:root[data-shadow-quality="very-low"] .cb-ui button,:root[data-shadow-quality="low"] .cb-ui button { box-shadow:inset 0 0 0 1px var(--stroke)!important; }
+@media(pointer:coarse){.cb-icon-action,.inventory-icon,.cb-icon-button,.studio-button,.album-button { min-height:44px;min-width:44px; }}
+
+.pack-hud { position:fixed;top:calc(28px + var(--titlebar-inset,0px));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:var(--z-sticky);padding:10px 14px;background:var(--ink-1);border:1px solid var(--stroke);border-radius:var(--radius-panel);box-shadow:var(--shadow-sm); }
+.pack-hud>.cb-icon { width:18px;height:18px;color:var(--text-secondary); }
+.pack-hud .pack-timer { margin:0;min-height:0;font:500 14px/20px var(--font-mono);white-space:nowrap; }
+.pack-hud .pack-timer::before { display:none; }
+.pack-hud.is-full>.cb-icon,.pack-hud.is-full .pack-timer { display:none; }
+.pack-hud .pack-stock { position:relative;margin:0;gap:6px; }
+.pack-hud .pack-queue-marker { top:0; }
+.pack-flip-action { width:40px;min-width:40px;padding:10px; }
+.pack-flip-action>.cb-icon { width:20px;height:20px; }
+.pack-meta .pack-timer,.pack-key-hint,.pack-metrics { display:none!important; }
+.is-opening .pack-hud,.inventory-depth-active .pack-hud,.settings-open .pack-hud { opacity:0;pointer-events:none; }
+.inventory-popover { max-height:calc(100% - 100px);overflow-y:auto; }
+.inventory-control-section { margin-top:8px;border-top:1px solid var(--stroke); }
+.inventory-control-section>summary { display:flex;align-items:center;gap:10px;min-height:40px;padding:8px;cursor:pointer;list-style:none;font:500 13px/20px var(--font-ui); }
+.inventory-control-section>summary>.cb-icon { width:18px;height:18px;color:var(--text-secondary); }
+.inventory-control-section>summary::after { content:'›';margin-left:auto; }
+.inventory-control-section[open]>summary::after { transform:rotate(90deg); }
+.inventory-control-section-body { display:grid;gap:8px;padding:8px; }
+.inventory-popover .inventory-search { padding:0;min-height:38px; }
+.inventory-popover .inventory-unowned { margin:12px 8px;order:initial;min-height:32px;font:12px/18px var(--font-ui); }
+.inventory-view-picker { margin:8px; }
+.inventory-popover .inventory-menu-option { text-align:left; }
+.inventory-chips .cb-icon { width:14px;height:14px;flex:none; }
+.inventory-tile.has-stack .inventory-tile-pose::before { display:none; }
+.inventory-tile [data-thumbnail="true"][data-presentation="full"] :is(.card__header,.card__memory,.card__specs,.card__serial,.card__meter,.card__text) { opacity:1!important;visibility:visible; }
+[data-thumbnail="true"][data-presentation="full"] .card__text { display:block!important; }
+[data-thumbnail="true"][data-presentation="full"] .card__art::after { display:block; }
+.inventory-card-caption { background:none!important;border:0!important;box-shadow:none!important;padding:12px 0 0!important;min-height:0!important; }
+.inventory-stack-count { z-index:3; }
+.inventory-empty { inset:0;position:absolute; }
+.shop-wallet { position:relative; }
+.shop-wallet-trigger { display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 12px;border:1px solid var(--stroke);border-radius:var(--radius-control);background:var(--ink-2);color:var(--text-primary);cursor:pointer; }
+.shop-wallet-trigger>.cb-icon,.shop-price>.cb-icon { width:20px;height:20px;color:var(--warning); }
+.shop-wallet-popover { position:absolute;right:0;left:auto;top:calc(100% + 8px);width:240px;z-index:60; }
+.shop-price { align-items:center; }
+@media(max-width:760px){.pack-hud { top:calc(84px + var(--titlebar-inset,0px)); }.inventory-popover { left:12px!important;right:12px!important;width:auto!important; }.inventory-header { gap:8px; }}
+
+.settings-copy { display:grid;grid-template-columns:32px minmax(0,1fr);column-gap:12px;align-items:center; }
+.settings-row-icon { grid-column:1;grid-row:1 / span 2;display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--glass-1);color:var(--text-secondary); }
+.settings-row-icon>.cb-icon { width:18px;height:18px; }
+.settings-label,.settings-helper { grid-column:2; }
+.settings-row[data-essential-help="false"] .settings-helper { display:none; }
+.cbs-blurb { display:none; }
+.album-title { display:flex;align-items:center;gap:12px; }
+.album-title>.cb-icon { width:24px;height:24px; }
+.album-count { font:500 13px/20px var(--font-mono);color:var(--text-secondary); }
+.album-control-menu,.album-storage { position:relative; }
+.album-control-menu { margin-left:auto; }
+.album-control-menu>summary,.album-storage>summary { display:grid;place-items:center;list-style:none;width:40px;min-height:40px;padding:8px;cursor:pointer; }
+.album-control-menu .album-tools,.album-storage>p,.album-storage>.album-meter { position:absolute;right:0;top:calc(100% + 8px);z-index:20;width:min(320px,calc(100vw - 48px));padding:16px;background:var(--ink-2);border:1px solid var(--stroke);border-radius:var(--radius-panel);box-shadow:var(--shadow-md); }
+.album-control-menu .album-tools { display:grid;gap:12px; }
+.album-storage>.album-meter { display:none; }
+.album-without-inspector { grid-template-columns:minmax(0,1fr)!important; }
+.album-delete-armed .album-danger { color:var(--danger);box-shadow:inset 0 0 0 1px var(--danger); }
+.album-empty { display:flex;flex-direction:column;align-items:center;gap:12px; }
+
+.inventory-popover .inventory-suggestions { position:static;grid-column:1 / -1;width:100%;max-height:220px;overflow:auto; }
+.inventory-popover .inventory-search { align-content:start; }
+
+.inventory-tile :is(.card__header,.card__memory,.card__specs,.card__serial,.card__meter){opacity:1!important}.inventory-tile.is-hovered .inventory-tile-card{translate:0 -4px}:root[data-hover-animations="false"] .inventory-tile-card,.reduced-motion .inventory-tile-card{translate:none!important}
+
+html,body{min-width:0}.inventory-card-caption strong{font:500 12px/18px var(--font-ui)}.inventory-card-caption small{font:10px/16px var(--font-mono)}
+@media(max-width:460px){.inventory-sheet{left:8px;right:8px}.inventory-header{flex-wrap:wrap;padding:12px}.inventory-title{min-width:110px}.inventory-tabs{flex-wrap:wrap;padding:0 12px 12px}.inventory-toolbar-buttons{margin-left:auto}.inventory-tab-list{flex-basis:100%}.inventory-popover{top:100px}.pack-hud{top:80px;max-width:calc(100% - 24px);padding:8px}.pack-hud .pack-stock{gap:3px}}
+
+[data-thumbnail="true"][data-presentation="full"] :is(.card__body,.card__finish,.card__prop){display:block!important}
+
+.detail-rail-label{display:none!important}
+
+
+.cb-scrim>.cb-enter{animation-duration:240ms}
+
+.menu-shell{transition:opacity 180ms var(--ease-out)}.inventory-depth-active .menu-shell{opacity:0!important}.reduced-motion .menu-shell{transition:none}
+
+.studio-project-state>.cb-icon{width:16px;height:16px}.studio-project-state.is-error{color:var(--danger)}.studio-save-error-action{font-size:11px;padding:4px 8px;min-height:32px}

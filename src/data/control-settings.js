@@ -7,7 +7,7 @@
   if(C.config&&C.config.flags&&C.config.flags.achievements===false){['visibleAchievements','visibleToastAchievements'].forEach(function(k){if(s[k])s[k].retired=true;});}
   s.visibleDesktop.disabled=true;s.visibleDesktop.helper='Native Windows controls stay available. Fullscreen hides the titlebar.';
   add('visibilityWarningSeen','','',null,false);
-  add('proximityChrome','Proximity chrome','Fade credits and inventory peek until nearby, focused or receiving a reward.','Interface visibility',false,null,'switch',true);
+  add('proximityChrome','Proximity chrome','Fade the inventory peek until nearby or focused.','Interface visibility',false,null,'switch',true);
   add('hoverAnimations','Hover animations','Motion on interface controls only.','Animation and effects',true,null,null,true);
   add('tiltStrength','Tilt strength','A percentage of your selected tilt style.','Animation and effects',100,null,'slider',true);Object.assign(s.tiltStrength,{min:0,max:150,step:5});
   add('packSwapAnimations','Pack transitions','Turn and swap effects between packs.','Animation and effects',true,null,null,true);

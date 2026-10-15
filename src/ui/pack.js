@@ -8,7 +8,7 @@
   var node = C.packMarkup.node, unit = C.packMarkup.unit, openingPaused = false, inventoryPaused = false;
   C.packView = {
     initialized: false, visible: true, stats: { updates: 0, readyMoments: 0 },
-    setVisible: function (value) { C.packView.visible = value; C.fx.wake(); },
+    setVisible: function (value) { C.packView.visible = value; if(C.packView.hud)C.packView.hud.hidden=!value; C.fx.wake(); },
     init: function () {
       if (C.packView.initialized) return; C.packView.initialized = true;
       var host = root.document.getElementById('pack-stage'), cfg = C.config.menuMotion;
@@ -31,35 +31,32 @@
         if (interaction.blocked || openingPaused || inventoryPaused || !C.packView.visible) return false;
         front.ensureRear(); return interaction.flip();
       };
-      C.events.on('pack:flip', function (event) { flipAction.setAttribute('aria-pressed', event.flipped ? 'true' : 'false'); flipAction.firstChild.textContent = event.flipped ? 'Front' : 'Flip'; });
+      C.events.on('pack:flip', function (event) { flipAction.setAttribute('aria-pressed', event.flipped ? 'true' : 'false'); flipAction.dataset.tooltip=(event.flipped?'Show front':'Flip pack')+' · '+C.keys.label('menu.flip-pack'); });
       C.packView.snapshot = function () { return Object.assign({}, interaction.state); };
       host.setAttribute('role', 'group');
       host.setAttribute('aria-description', 'Drag to inspect the sealed wrapper. Press R to flip it over. Hold Space to open when ready. Press V for a closer look; Escape returns.');
       var meta = node('div', 'pack-meta idle-chrome entrance', host); meta.dataset.tutorialTarget='timer'; meta.style.setProperty('--entry', 2);
-      var timer = node('div', 'pack-timer', meta); timer.setAttribute('role', 'timer'); timer.setAttribute('aria-live', 'off');
+      var hud=node('div','pack-hud idle-chrome',root.document.querySelector('.menu-shell'));hud.id='pack-hud';hud.dataset.tutorialTarget='timer';C.packView.hud=hud;hud.appendChild(C.icons.create('clock'));var timer = node('div', 'pack-timer', hud); timer.setAttribute('role', 'timer'); timer.setAttribute('aria-live', 'off');
       var actions = node('div', 'pack-actions', meta);
       var action = node('button', 'pack-open-action', actions); action.type = 'button';
-      var openLabel = node('span', '', action, 'Open pack'); var openKey = node('kbd', '', action, 'Space'); openKey.dataset.keyAction = 'opening.hold';
+      var openLabel = node('span', '', action, 'Hold to open'); var openKey = node('kbd', '', action, 'Space'); openKey.dataset.keyAction = 'opening.hold';
       action.setAttribute('aria-label', 'Hold to open pack');
       var flipAction = node('button', 'pack-flip-action', actions); flipAction.type = 'button';
       flipAction.setAttribute('aria-label', 'Flip pack'); flipAction.setAttribute('aria-pressed', 'false');
-      node('span', '', flipAction, 'Flip'); node('kbd', '', flipAction, 'R').dataset.keyAction = 'menu.flip-pack';
+      flipAction.appendChild(C.icons.create('flip'));flipAction.dataset.shortcutAction='menu.flip-pack';flipAction.dataset.tooltip='Flip pack';
       flipAction.addEventListener('click', function () { C.packView.flip(); });
       var chargePointer = null;
-      var holdAt = 0, labelTimer = null;
-      action.addEventListener('pointerdown', function (event) { if (event.button !== 0 || action.disabled) return; event.preventDefault(); chargePointer = event.pointerId; holdAt = root.performance.now(); C.input.chargeStart(); });
+
+      action.addEventListener('pointerdown', function (event) { if (event.button !== 0 || action.disabled) return; event.preventDefault(); chargePointer = event.pointerId; C.input.chargeStart(); });
       function endCharge(event) { if (event.type === 'pointerup' && event.button !== 0) return; if (chargePointer !== null && event.pointerId === chargePointer) {
           chargePointer = null; C.input.chargeEnd();
-          // A quick tap teaches the gesture: the label says Hold to open for a moment.
-          if (root.performance.now() - holdAt < 350) { openLabel.textContent = 'Hold to open'; root.clearTimeout(labelTimer); labelTimer = root.setTimeout(function () { openLabel.textContent = 'Open pack'; }, 1600); }
         } }
       root.document.addEventListener('pointerup', endCharge); root.document.addEventListener('pointercancel', endCharge);
       C.events.on('input:cancel', function () { chargePointer = null; });
       C.events.on('charge:progress', function (fill) { action.style.setProperty('--hold', Math.max(0, Math.min(1, fill)).toFixed(3)); });
       C.events.on('charge:end', function () { action.style.setProperty('--hold', 0); });
       var digits = C.numbers.create(node('span', '', timer));
-      var stock = node('div', 'pack-stock', meta); stock.setAttribute('role', 'img');
-      var metrics = node('div', 'pack-metrics', meta);
+      var stock = node('div', 'pack-stock', hud);C.packView.stock=stock;C.packView.openButton=action; stock.setAttribute('role', 'img');
       var vials = [];
       for (var i = 0; i < C.config.packs.maxStored; i++) {
         var vial = node('div', 'stock-card', stock); vial.setAttribute('aria-hidden', 'true');
@@ -70,7 +67,7 @@
         var initialFill = i < C.state.current.packs.ready ? 1 : i === C.state.current.packs.ready ? C.timers.progress(Date.now()) : 0;
         vials.push({ el: vial, fill: fill, value: initialFill, from: 0, target: 0, start: null, arrival: null });
       }
-      var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true'); var holdRow = node('div', 'pack-key-row', hint); node('kbd', '', holdRow, 'Space'); node('span', '', holdRow, 'Open'); var flipRow = node('div', 'pack-key-row', hint); var flipKey = node('kbd', '', flipRow, 'R'); node('span', '', flipRow, 'Flip'); flipKey.dataset.keyAction = 'menu.flip-pack';
+      var hint = node('div', 'pack-key-hint idle-chrome', host); hint.setAttribute('aria-hidden', 'true');hint.hidden=true; var holdRow = node('div', 'pack-key-row', hint); node('kbd', '', holdRow, 'Space'); node('span', '', holdRow, 'Open'); var flipRow = node('div', 'pack-key-row', hint); var flipKey = node('kbd', '', flipRow, 'R'); node('span', '', flipRow, 'Flip'); flipKey.dataset.keyAction = 'menu.flip-pack';
       function updateOpeningKey() { hint.querySelector('kbd').dataset.keyAction='opening.hold';hint.querySelector('kbd').textContent = C.keys.label('opening.hold'); openKey.textContent = C.keys.label('opening.hold'); flipKey.textContent = C.keys.label('menu.flip-pack'); var description = host.getAttribute('aria-description'); if (description) host.setAttribute('aria-description', description.replace(/Hold (Space|Enter)/, 'Hold ' + C.settings.holdKey)); }
       C.settings.onChange('keyBindings',updateOpeningKey);C.settings.onChange('openKey', updateOpeningKey); updateOpeningKey();
       var ready = C.state.current.packs.ready, purchasedReady = false, pendingGain = 0, arrivalStart = null, time = 0, handoff = null, progress = C.timers.progress(Date.now());
@@ -106,12 +103,11 @@
         back.el.style.opacity = (purchasedReady ? ready > 0 : ready > 1) ? cfg.backOpacity : 0;
         host.classList.toggle('is-first-visit', !state.tutorial.done && state.stats.packsOpened === 0);
         stock.setAttribute('aria-label', ready + ' of ' + C.config.packs.maxStored + ' packs stored');
-        metrics.textContent = state.inventory.length + (state.inventory.length === 1 ? ' card · ' : ' cards · ') + ready + ' / ' + C.config.packs.maxStored + ' timer packs' + (purchasedReady ? ' · Purchased Titan ready' : '');
         host.setAttribute('aria-label', purchasedReady ? 'Purchased Titan Pack ready to open; timer stock unchanged' : types[0].name + ': ' + (ready ? ready + ' ready' : 'regenerating'));
-        openLabel.textContent = purchasedReady ? 'Open purchased Titan' : 'Open pack';
+        openLabel.textContent = purchasedReady ? 'Hold to open Titan' : 'Hold to open';
         action.setAttribute('aria-label', purchasedReady ? 'Hold to open purchased Titan Pack' : 'Hold to open pack');
         action.disabled = ready <= 0 && !purchasedReady; action.hidden = ready <= 0 && !purchasedReady;
-        timer.dataset.label = ready >= C.config.packs.maxStored ? 'Pack storage' : ready > 0 ? 'Next pack' : 'Regenerating';
+        timer.dataset.label='';hud.classList.toggle('is-full',ready>=C.config.packs.maxStored);hud.dataset.tooltip=ready+' of '+C.config.packs.maxStored+' packs available';
         vials.forEach(function (vial, i) {
           var target = i < ready ? 1 : 0;
           if (initial) { vial.target = target; }

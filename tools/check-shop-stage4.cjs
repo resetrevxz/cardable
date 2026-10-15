@@ -1,9 +1,9 @@
-/* Final Shop integration checks against a local file:// Chromium session. */
+/* Final Shop integration checks against a disposable localhost Chromium session. */
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
-const url = 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/');
+let url;
 let browser;
 
 async function ready(page) {
@@ -12,7 +12,8 @@ async function ready(page) {
 }
 
 (async () => {
-  browser = await chromium.launch({ headless: true, executablePath: process.env.SHOP_BROWSER_PATH || undefined });
+  const local=await require('./qa-local-server.cjs').start(root);url=local.url+'/index.html';
+  browser = await chromium.launch({ headless: true, channel:'msedge', executablePath: process.env.SHOP_BROWSER_PATH || undefined });
   const errors = [];
   const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
   page.on('pageerror', error => errors.push(error.message));
@@ -76,7 +77,7 @@ async function ready(page) {
   await page.locator('.dev-search').fill('Open Shop');
   await page.keyboard.press('Enter');
   await page.locator('.shop-screen').waitFor();
-  await page.locator('.shop-close').click();
+  await page.locator('.shop-close').click();await page.waitForFunction(()=>!Cardable.shop.isOpen);
   assert.equal(await page.evaluate(() => Cardable.fx.stats.subscribers), afterFirstCloseSubscribers);
 
   await page.locator('#shop-entry').click();
@@ -89,7 +90,7 @@ async function ready(page) {
   await page.mouse.up();
   await page.waitForTimeout(1500);
   assert.equal(await page.evaluate(() => Cardable.state.current.shop.receipts.length), 0);
-  await page.locator('.shop-close').click();
+  await page.locator('.shop-close').click();await page.waitForFunction(()=>!Cardable.shop.isOpen);
   assert.equal(await page.evaluate(() => Cardable.fx.stats.subscribers), afterFirstCloseSubscribers);
 
   // A normally loaded historic copy may outlive its catalog definition. Its

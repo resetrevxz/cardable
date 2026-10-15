@@ -16,6 +16,7 @@
   function label(d, value) { return d.format ? d.format(value) : String(value); }
   function frame(d, parent, block) {
     var row = node('div', 'settings-row' + (block ? ' cbs-row-block' : ''), parent), copy = node('div', 'settings-copy', row); row.dataset.setting = d.key;
+    var glyph=node('span','settings-row-icon',copy);glyph.appendChild(C.icons.create(d.icon||'settings'));row.dataset.essentialHelp=String(!!d.essentialHelp);glyph.dataset.tooltip=d.helper;
     var name = node('span', 'settings-label', copy, d.label); name.id = (d.prefix || 'setting-') + d.key; node('span', 'settings-helper', copy, d.helper);
     return { row: row, copy: copy, label: name, host: node('div', 'settings-control', row), disabled: !!d.disabled || !!d.nativeOnly && !C.native };
   }

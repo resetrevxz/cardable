@@ -22,18 +22,7 @@
     return 'empty';
   }
   function icon(name, parent) {
-    var paths = {
-      pack:'M5 4h14v16H5zM5 7h14M9 11h6M9 14h6', inventory:'M4 7h16v13H4zM7 4h10M8 11h8M8 15h8',
-      settings:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z',
-      quality:'M4 6h16v12H4zM8 21h8M12 18v3', dots:'M5 5h.01M12 5h.01M19 5h.01M5 12h.01M12 12h.01M19 12h.01M5 19h.01M12 19h.01M19 19h.01',
-      cursor:'M5 3l14 10-7 1-3 7z', motion:'M5 7h14M8 12h11M11 17h8', timer:'M12 8v5l3 2M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16M9 1h6',
-      color:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 3v18', hide:'M3 3l18 18M4 9l-2 3s4 6 10 6l4-1M8 6l4-1c6 0 10 7 10 7l-3 4',
-      fullscreen:'M9 3H3v6M15 3h6v6M3 15v6h6M21 15v6h-6', export:'M12 3v12M8 7l4-4 4 4M4 14v7h16v-7',
-      replay:'M4 9V3M4 9h6M4 9a8 8 0 1 1 0 8', info:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 10v7M12 7h.01',
-      copy:'M9 8h11v13H9zM5 16H3V3h11v2', coin:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M15 8c-5-3-7 8 0 8',
-      check:'M5 12l4 4L19 6', chevron:'M9 5l7 7-7 7', volume:'M3 9h4l5-4v14l-5-4H3zM16 8l5 8M21 8l-5 8'
-    };
-    if(paths[name])C.icons.register(name,paths[name]);var el=C.icons.create(name||'help');el.classList.add('context-icon');parent.appendChild(el);return el;
+    var el=C.icons.create(name||'help');el.classList.add('context-icon');parent.appendChild(el);return el;
   }
   function ensure() {
     if (host) return;

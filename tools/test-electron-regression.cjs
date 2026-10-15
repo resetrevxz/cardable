@@ -13,12 +13,12 @@ const evidence = { groups: [], errors: [], network: [], metrics: [], screens: []
 let application;
 async function launch(dev = false) {
   const start = performance.now();
-  application = await _electron.launch({ executablePath: binary, args: ['--qa-test', `--test-user-data=${profile}`, ...(dev ? ['--qa-dev-workspace'] : [])], timeout: 30000 });
+  application = await _electron.launch({ executablePath: binary, args: [...(process.env.CARDABLE_QA_SOURCE?[root]:[]),'--qa-test', `--test-user-data=${profile}`, ...(dev ? ['--qa-dev-workspace'] : [])], timeout: 30000 });
   const page = await application.firstWindow();
   page.on('pageerror', error => evidence.errors.push(error.stack));
   page.on('console', message => { if (message.type() === 'error') evidence.errors.push(message.text()); });
   page.on('request', request => { if (/^https?:/.test(request.url())) evidence.network.push(request.url()); });
-  await page.waitForFunction(() => window.Cardable && Cardable.state && Cardable.state.current && Cardable.preferences.initialized);
+  await page.waitForFunction(() => window.Cardable && Cardable.state && Cardable.state.current && Cardable.preferences?.initialized && !Cardable.setup?.loading);
   await page.evaluate(() => Cardable.tutorial.skipButton.click());
   // 4.1 added real modal onboarding; complete it before testing pointer controls.
   await page.waitForTimeout(250);
@@ -28,6 +28,7 @@ async function launch(dev = false) {
     await panel.getByRole('button', { name: /^(Continue|Keep this collection|Done|Dismiss)$/ }).click();
     await page.waitForTimeout(250);
   }
+  if(await page.getByRole('button',{name:'Start collecting',exact:true}).count())await page.getByRole('button',{name:'Start collecting',exact:true}).click();
   evidence.metrics.push({ startupMs: Math.round(performance.now() - start), mode: dev ? 'developer' : 'normal' });
   return page;
 }
@@ -42,12 +43,12 @@ async function shot(page, name) { await page.screenshot({ path: path.join(output
     assert.equal(security.contextIsolation, true); assert.equal(security.nodeIntegration, false); assert.equal(security.sandbox, true); assert.equal(security.webSecurity, true);
     assert(await page.evaluate(() => typeof require === 'undefined' && typeof process === 'undefined' && !cardableDesktop.ipcRenderer));
     await shot(page, 'menu');
-    await page.keyboard.press('s'); await page.waitForFunction(() => Cardable.preferences.open);
-    assert.equal(await page.locator('.settings-update-box:visible').count(), 1);
+    await page.keyboard.press('s'); await page.waitForFunction(() => Cardable.preferences.open);await page.evaluate(()=>Cardable.settings.set('settingsMode','advanced'));await page.getByRole('button',{name:'Desktop',exact:true}).click();
+    assert(await page.getByRole('heading',{name:'Window size',exact:true}).isVisible());
     await page.keyboard.press('Tab'); assert(await page.evaluate(() => Cardable.preferences.panel.contains(document.activeElement)));
-    await page.evaluate(() => { const scroll = document.querySelector('.settings-scroll'); scroll.scrollTop = scroll.scrollHeight; });
+    await page.evaluate(() => { const scroll = document.querySelector('.cbs-content')||document.querySelector('.settings-scroll'); scroll.scrollTop = scroll.scrollHeight; });
     await page.waitForTimeout(350); await shot(page, 'desktop-settings');
-    await page.keyboard.press('Escape'); await page.waitForFunction(() => !Cardable.preferences.open);
+    await page.keyboard.press('Escape');await page.waitForTimeout(180);if(await page.evaluate(()=>Cardable.preferences.open))await page.keyboard.press('Escape');await page.waitForFunction(() => !Cardable.preferences.open);
     evidence.groups.push('Native security preferences, renderer isolation, keyboard Settings/focus trap and desktop presentation.');
 
     // Durable real instances, not an inventory-only presentation fixture.
@@ -71,18 +72,18 @@ async function shot(page, name) { await page.screenshot({ path: path.join(output
     await page.waitForTimeout(500); assert.notEqual(await page.evaluate(() => Cardable.inventory.carousel.position), before);
     const count = await page.evaluate(() => ({ total: Cardable.inventory.entries.length, rendered: Cardable.inventory.rendered.size }));
     assert(count.total > 100); assert(count.rendered <= 11);
-    await page.getByRole('button', { name: 'Sort cards', exact: true }).click();
-    await page.getByRole('button', { name: 'Name A–Z', exact: true }).click();
-    await page.getByRole('button', { name: 'Filter cards', exact: true }).click();
+    await page.getByRole('button', { name: 'Inventory controls', exact: true }).click();
+    await page.locator('summary').filter({hasText:/^Sort$/}).click();await page.getByRole('combobox',{name:'Sort cards',exact:true}).selectOption('name-asc');
+    await page.locator('summary').filter({hasText:/^Filters$/}).click();
     await page.getByRole('button', { name: 'Owned', exact: true }).click();
     await page.getByRole('button', { name: 'Close options', exact: true }).click();
-    await page.getByRole('button', { name: 'Search cards', exact: true }).click();
+    await page.getByRole('button', { name: 'Inventory controls', exact: true }).click();
     await page.locator('.inventory-search input').fill('brand:NVIDIA');
     await page.waitForTimeout(200); assert(await page.evaluate(() => Cardable.inventory.entries.length > 0 && Cardable.inventory.entries.every(entry => entry.card.brand.toLowerCase() === 'nvidia')));
     await page.locator('.inventory-search input').fill(''); await page.keyboard.press('Escape');
     await page.waitForTimeout(250);
     await page.locator('.inventory-tile.is-centered').click(); await page.waitForFunction(() => Cardable.detail.phase === 'detail');
-    await page.getByRole('button', { name: 'Flip · R', exact: true }).click(); await page.waitForFunction(() => Cardable.detail.view.side === 'back');
+    await page.getByRole('button', { name: 'Flip', exact: true }).click(); await page.waitForFunction(() => Cardable.detail.view.side === 'back');
     await page.waitForTimeout(800);
     await page.keyboard.press('r'); await page.waitForFunction(() => Cardable.detail.view.side === 'front');
     await shot(page, 'detail');
@@ -91,19 +92,19 @@ async function shot(page, name) { await page.screenshot({ path: path.join(output
     assert(await page.evaluate(() => !!Cardable.studioController.scene));
     await page.evaluate(() => { Cardable.studioController.scene.camera.yaw = .4; Cardable.studioController.scene.director.duration = 5; });
     await shot(page, 'studio');
-    await page.getByRole('button', { name: 'Director', exact: true }).click();
-    await page.getByRole('button', { name: 'Build cinematic orbit', exact: true }).click();
-    assert(await page.evaluate(() => Cardable.studioController.scene.keyframes.length > 0));
+    await page.getByRole('button',{name:'Advanced',exact:true}).click();await page.getByRole('button', { name: 'Director', exact: true }).click();
+    await page.getByRole('button',{name:'Key · K',exact:true}).click();await page.getByRole('slider',{name:'Timeline playhead',exact:true}).fill('2');await page.getByRole('spinbutton',{name:'Pose X',exact:true}).fill('0.3');await page.keyboard.press('Tab');await page.getByRole('button',{name:'Key · K',exact:true}).click();
+    assert(await page.evaluate(()=>Cardable.studioController.scene.animation.tracks.some(t=>t.keys.length>=2)));
     await page.getByRole('button', { name: 'Preview', exact: true }).click(); await page.waitForTimeout(500);
     await page.getByRole('button', { name: 'Pause preview', exact: true }).click();
     await page.getByRole('slider', { name: 'Timeline playhead', exact: true }).fill('2');
     await shot(page, 'director'); await page.evaluate(() => Cardable.studio.exit()); await page.waitForFunction(() => !Cardable.studio.active);
-    assert(await page.evaluate(() => Object.values(Cardable.state.current.studio.last).some(scene => scene.keyframes.length > 0 && scene.director.playhead === 2)));
+    assert(await page.evaluate(() => Object.values(Cardable.state.current.studio.last).some(scene => scene.animation.tracks.some(t=>t.keys.length>=2) && scene.director.playhead === 2)));
     await page.getByRole('button', { name: 'Close card detail', exact: true }).click(); await page.waitForFunction(() => Cardable.detail.phase === 'closed');
-    await page.getByRole('button', { name: 'Switch to Grid', exact: true }).click();
+    await page.getByRole('button',{name:'Inventory controls',exact:true}).click();await page.getByRole('radio',{name:'Grid',exact:true}).click();await page.getByRole('button',{name:'Close options',exact:true}).click();
     await page.locator('.inventory-grid').evaluate(el => { el.scrollTop = 2800; }); await page.waitForTimeout(250);
     assert(await page.locator('.inventory-grid .inventory-tile').count() <= 80); await shot(page, 'grid');
-    evidence.groups.push('600 durable instances: shelf drag, bounded DOM, sort/filter/search, detail mouse/keyboard flip, Studio load/save/exit, Director orbit/play/pause/scrub, virtual grid scroll.');
+    evidence.groups.push('600 durable instances: shelf drag, bounded DOM, sort/filter/search, detail mouse/keyboard flip, Studio load/save/exit, Director keys/play/pause/scrub, virtual grid scroll.');
 
     for (const [width, height] of [[960,640],[1920,1080],[2560,1080],[3840,2160]]) {
       await application.evaluate(({ BrowserWindow }, size) => BrowserWindow.getAllWindows()[0].setSize(size[0], size[1]), [width,height]);
@@ -134,8 +135,8 @@ async function shot(page, name) { await page.screenshot({ path: path.join(output
         if (Date.now() > deadline) throw new Error(`Pack ${pack} stuck in ${phase}`);
         if (phase === 'cutting') await page.evaluate(() => Cardable.opening.finishCut());
         if (phase === 'vaultWaiting' || phase === 'boxWaiting') await page.keyboard.press('Enter');
-        if (await page.locator('.picker-option:not([disabled])').count()) {
-          await page.locator('.picker-option').first().click(); await page.keyboard.press('Enter');
+        if (phase==='vaultOpening' && await page.locator('.shuffle-card:not(.is-locked)').count()) {
+          await page.keyboard.press('1');await page.keyboard.press('Enter');
         }
         await page.waitForTimeout(80);
       }
@@ -151,7 +152,7 @@ async function shot(page, name) { await page.screenshot({ path: path.join(output
       console.log('Pack regression passed: ' + pack);
     }
     // Exercise the real Chromium download and file-input import pathways.
-    await page.keyboard.press('s'); await page.waitForFunction(() => Cardable.preferences.open);
+    await page.keyboard.press('s'); await page.waitForFunction(() => Cardable.preferences.open);await page.evaluate(()=>Cardable.settings.set('settingsMode','advanced'));await page.getByRole('button',{name:'Data',exact:true}).click();
     const originalCurrency = await page.evaluate(() => Cardable.state.current.currency);
     const file = path.join(profile, 'exported-save.json');
     await application.evaluate(({ BrowserWindow }, file) => {
@@ -220,7 +221,7 @@ async function shot(page, name) { await page.screenshot({ path: path.join(output
     }), photo);
     await application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].minimize());
     await new Promise((resolve,reject) => {
-      const second=spawn(binary,['--qa-test',`--test-user-data=${profile}`],{stdio:'pipe'}); let text='';
+      const second=spawn(binary,[...(process.env.CARDABLE_QA_SOURCE?[root]:[]),'--qa-test',`--test-user-data=${profile}`],{stdio:'pipe'}); let text='';
       second.stdout.on('data',data=>{text+=data;}); second.on('error',reject); second.on('exit',code=>code===0&&text.includes('Another instance')?resolve():reject(new Error('Single-instance failure')));
     });
     assert.equal(await application.evaluate(({ BrowserWindow })=>BrowserWindow.getAllWindows()[0].isMinimized()), false);
@@ -231,11 +232,11 @@ async function shot(page, name) { await page.screenshot({ path: path.join(output
       // Use the existing Checks tool: it suspends dev clock/encode overrides
       // and runs fixtures in their own storage context, restoring in finally.
       D.tools.get('checks.run').run();
-      return {bug:D.checkSummary==='● Existing logic checks passed',logicReport:D.output.textContent,schedule:D.checkPackSchedule(),picker:D.checkPicker(),journal:D.checkJournal(),achievements:D.checkAchievements(),studio:await D.checkStudio()};
+      return {bug:D.checkSummary==='● Existing logic checks passed',logicReport:D.output.textContent,schedule:D.checkPackSchedule(),picker:D.checkPicker(),qol:D.checkQol(),achievements:D.checkAchievements()};
     });
     evidence.checks=checks; assert.equal(checks.bug,true); assert.equal(checks.schedule.pass,true); assert.equal(checks.picker.pass,true);
-    assert.equal(checks.journal.passed,true); assert.equal(checks.achievements.passed,true); assert.equal(checks.studio.pending.length,0);
-    evidence.groups.push('Repeated launch preserves exact cards/serials, settings, Studio content and IndexedDB photo PNG bytes; second instance restores window; existing developer logic/Studio photo+IndexedDB checks.');
+    assert.equal(checks.qol.passed,true); assert.equal(checks.achievements.passed,true);
+    evidence.groups.push('Repeated launch preserves exact cards/serials, settings, Studio content and IndexedDB photo PNG bytes; second instance restores window; current developer logic, schedule, Picker, QoL and achievement checks. Studio/photo persistence is exercised above through actual APIs.');
     assert.deepEqual(evidence.errors,[]); assert.deepEqual(evidence.network,[]);
     console.log(JSON.stringify(evidence,null,2));
   } finally {

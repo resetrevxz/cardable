@@ -228,7 +228,7 @@ if (!gotTheLock) {
                   C.desktop.downloadUpdate = savedDownload; C.desktop.installUpdate = savedInstall;
                   ui.updateUi(await C.desktop.getUpdateState());
                   res.desktopServices = !!diagnostics.electronVersion && !rejectedUrl && !rejectedSave.success && !rejectedPresence && !rejectedInstall && progressOk && downloads === 1 && installs === 1;
-                  window.Cardable.preferences.close();
+                  await window.Cardable.preferences.close();
                 }
                 window.Cardable.inventory.request(true);
                 await new Promise(resolve => setTimeout(resolve, 80));

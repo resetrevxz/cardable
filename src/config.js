@@ -4,7 +4,7 @@
 
   C.config = {
     gameName: 'Cardable',
-    version: '1.7.2',
+    version: '1.7.3',
     titanPack: { coreMs:4000, rimMs:7000, swapMs:1200, tickRadians:Math.PI/2, tickCount:3,
       tickPulseMs:450, unsealMs:1400, dipPx:2, steamCount:6 },
     royalPack: { glintMs:5000, sheenMs:1400, swapMs:1100, boxRiseMs:900, boxHintMs:2000,
@@ -159,7 +159,7 @@
       // Inventory height choices (Settings › Appearance › Interface). Standard is the default detent.
       heightsVh: { compact: 50, standard: 62, tall: 74 },
       shelfTurnDegrees: 10, shelfTurnCap: 24, shelfDepthPx: 12, shelfSideScale: 0.9,
-      shelfSideOpacity: 0.72, gridMinWidthPx: 160, gridMaxWidthPx: 220, gridGapPx: 24, gridOverscanRows: 2,
+      shelfSideOpacity: 0.72, gridMinWidthPx: 240, gridMaxWidthPx: 300, gridGapPx: 24, gridOverscanRows: 2,
       transitionMs: 450, transitionStaggerMs: 18, tooltipMs: 600, reorderHoldMs: 320, reorderEdgePx: 64, reorderScrollSpeed: 4, reorderGapPx: 16,
       handoffMs: 700, indicatorWidthPx: 8, indicatorStretchMax: 2.4,
       sheetHeightVh: 62, sheetSpring: { stiffness: 220, damping: 26, mass: 1, epsilon: 0.002 },

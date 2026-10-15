@@ -2,7 +2,7 @@
   'use strict';
   var node = C.packMarkup.node;
   C.events.on('app:ready', function() {
-    var view = C.packView, stock = view.el && view.el.querySelector('.pack-stock');
+    var view = C.packView, stock = view.stock;
     if (!stock) return;
     stock.setAttribute('role', 'group');
     var markers = new Map(), retiring = [], currentCount = C.state.current.packs.openedCount;

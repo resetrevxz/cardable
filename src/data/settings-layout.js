@@ -125,6 +125,16 @@
   base.graphicsKeys.forEach(function (key) { tune(key, { control: 'level', advanced: false }); });
   var visibility = C.data.visibilityKeys.filter(function (key) { return s[key] && !s[key].retired; });
   var routes = Object.keys(s).filter(function (key) { return /^cutscene_/.test(key); });
+  var settingIcons={
+    quality:'gauge',finishQuality:'variant',reflectionQuality:'image',propQuality:'box',particleQuality:'sparkle',shadowQuality:'layers',glassQuality:'eye',backgroundQuality:'dots',ambientQuality:'motion',canvasQuality:'monitor',cutsceneQuality:'film',
+    dots:'dots',dotDensity:'dots',dotTint:'dots',clickRipples:'dots',cursorGlow:'cursor',cursorGlowSize:'cursor',cursorGlowTint:'cursor',
+    rarityColor:'palette',accentColor:'palette',logoStyle:'text',logoAnimation:'text',fpsLimit:'gauge',performanceMode:'gauge',performanceCorner:'gauge',backgroundMode:'monitor',unfocusedMode:'monitor',batterySaver:'bolt',
+    interfaceSize:'scale',inventoryHeight:'shelf',shelfCaptions:'card',settingsSide:'swap',settingsPreviews:'eye',idleFade:'clock',hoverAnimations:'cursor',motion:'motion',strobing:'light',tilt:'card',tiltStrength:'card',revealSpeed:'motion',
+    serialOnFront:'badge',holdDuration:'clock',openKey:'keyboard',toggleHold:'pack',cutAssist:'pack',keyHints:'keyboard',defaultView:'grid',defaultSort:'sort',defaultTagMode:'badge',startupScreen:'monitor',confirmLowDelete:'trash',
+    shopLayout:'shop',shopMotion:'motion',shopSort:'sort',shopCompareDifferences:'compare',shopWishlistMarkers:'star',timeFormat:'clock',dateFormat:'clock',numberFormat:'text',toastPosition:'notes',windowAspect:'crop',alwaysOnTop:'pin',miniSide:'monitor',miniFps:'gauge',reduceTransparency:'eye',highContrast:'palette',largerText:'text',focusEmphasis:'cursor',announcements:'access'
+  };
+  Object.keys(s).forEach(function(key){s[key].icon=settingIcons[key]||(/^(studio)/.test(key)?'camera':/^cutscene/.test(key)?'film':'settings');s[key].essentialHelp=/restart|required|unavailable|cannot|confirmation|backup|reset your|session only/i.test(s[key].helper||'');});
+  s.visibleCredits.group=null;s.visibleCredits.retired=true;
   var studio = Object.keys(s).filter(function (key) { return /^studio[A-Z]/.test(key); });
   // Page → sections → keys. `slot` names a host the settings UI fills itself.
   var pages = [

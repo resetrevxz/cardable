@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.7.2**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.7.3**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -390,3 +390,15 @@ Mini is a separate native 352 × 620 companion with dense ink panels, shared typ
 The companion loads no catalog, full card renderer, pack material, canvas or film. Artwork is static local thumbnails, bounds are fixed, updates are coalesced to the saved frame ceiling and unchanged snapshots do not rebuild the view. The hidden full renderer retains timer/save ownership and pauses its shared visual scheduler. Reduced motion has no extra movement, and saved monochrome changes both artwork and semantic accents. The full renderer is the only save writer; the mini bridge accepts bounded, token-checked commands and reports completion.
 
 Desktop settings own saved window proportions (Free, 16:9, 21:9), size presets and explicit custom size application. Native dimensions fit the work area. Fullscreen and maximized windows return to windowed mode on explicit size application; the native state keeper remembers the result.
+
+## UI polish (1.7.3)
+
+Controls use the canonical `Cardable.icons` registry: 24-unit SVGs, 1.5-unit strokes and rounded caps/joins. Familiar quick actions may be icon-only with an accessible action name; unfamiliar tools keep short labels. A shared `Cardable.ui.tooltips.attach(scope)` service owns hover/focus descriptions, a 400 ms initial delay, current shortcuts, edge clamping and Escape dismissal. Do not add competing native titles or another tooltip tree. Interactive content belongs in a popover.
+
+Use one Inventory controls panel for Search, Filters, Sort, View, Show unowned and collection options. Retain focused fields and synchronize checked/selected state from saved preferences without rebuilding the panel. Fresh/missing Show unowned is false, while explicit booleans remain unchanged. Patch notes and Help stay separate. Album owns its page heading, compact count and a storage disclosure.
+
+Browsing uses complete static card fronts built from the same text/spec anatomy as detail. Retain the explicit `full` and `art-only` names. Full thumbnails mount bounded static body, finish and prop layers, never a back face or live material tree. At most one hovered/focused card per inventory surface may promote to a live card, and returns to static when inactive. Conceal protected unowned content. Use one visible card with a quantity badge, with real copies available in detail. Sorting moves real tiles; layout replacement never adds decorative cloned cards.
+
+`Cardable.ui.present` returns state and a `closed` promise. Close is idempotent. Input is blocked immediately; the owner, focus trap, frozen preview and background shield persist through the 120 ms exit. Restore input/focus and clean resources only afterward. Navigation handoffs await the outgoing owner. Geometry owners such as Inventory and Studio retain their authored movement. Ordinary controls use 150 ms feedback, panels 240 ms arrival and 120 ms exit, with saved motion/hover/shadow/glass controls respected. Cancel completed WAAPI effects before reusing a surface.
+
+Pack stock sits in the top rail; the main menu retains Shop, Help and Settings. The wallet mounts only inside Shop. Empty states use one relevant icon, a short message and one next action. Keep names, values, prices, stats and meaningful restrictions/failures; move secondary explanations to Help/tooltips. Routine save state uses a quiet icon. Persistent save failures keep an explanation and an export route. For acceptance evidence and the scope map, see `docs/UI-POLISH-1.7.3.md`.

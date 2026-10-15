@@ -9,6 +9,7 @@
       var disabled = !!descriptor.disabled || descriptor.nativeOnly && !C.native || descriptor.group === 'Sound' || descriptor.group === 'Desktop' && !C.native || descriptor.group === 'Notifications' && !C.native, spring = C.springs.create(0, { stiffness: 220, damping: 26 });
       var row = node('div', 'settings-row', parent), copy = node('div', 'settings-copy', row);
       row.dataset.setting = key;
+      var glyph=node('span','settings-row-icon',copy);glyph.appendChild(C.icons.create(descriptor.icon||'settings'));row.dataset.essentialHelp=String(!!descriptor.essentialHelp);glyph.dataset.tooltip=descriptor.helper;
       var label = node('span', 'settings-label', copy, descriptor.label); label.id = (descriptor.prefix || 'setting-') + key;
       node('span', 'settings-helper', copy, descriptor.helper);
       var controlHost = node('div', 'settings-control', row);

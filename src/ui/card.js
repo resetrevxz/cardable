@@ -168,6 +168,7 @@
   }
   C.cardView = {
     stats: stats,
+    frontText:frontText,
     get active() { return active; },
     trackThumbnail: function (view) { views.add(view); return function () { views.delete(view); }; },
     focus: function (view) {

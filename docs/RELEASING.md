@@ -38,6 +38,6 @@ Installed 1.x builds use the public release provider and successful-save/normal-
 
 ## Acceptance
 
-Current policy permits the small data validator and source/resource/build/ZIP/Pages checks, with no old suites, new test files, game screenshots, recordings or profiling. The approved stage-24 website screenshot exception covers product posters and website visual review only. Clean-profile installer execution, real previous-version updater upgrades, hardware performance and the full cinematic/accessibility matrix remain unverified. Keep BUGS, ROADMAP and CINEMATICS gaps visible. Public source does not grant third-party artwork licenses; see NOTICE.md.
+The owner's approved 1.7.3 UI plan authorizes representative game screenshots, native/browser journeys and focused regression checks, superseding the earlier restricted acceptance policy for this update. Record actual results and limitations in the update report. Clean-profile installer execution, real previous-version updater upgrades, hardware performance and the full cinematic/accessibility matrix remain separate acceptance. Keep BUGS, ROADMAP and CINEMATICS gaps visible. Public source does not grant third-party artwork licenses; see NOTICE.md.
 
 Pages configuration is in [GITHUB-PAGES](GITHUB-PAGES.md). Check live outcome rather than merely giving publication instructions.

@@ -1,3 +1,20 @@
+# Cardable v1.7.3 — UI polish
+
+Inventory cards now show their complete fronts, rarity frames and key stats. Search, filters, sort, view and Show unowned share one compact controls panel. New collections start with Show unowned off; existing explicit choices are preserved.
+
+- **Clearer controls.** Shared SVG icons, keyboard-aware tooltips, visible focus and consistent hover depth. Settings rows have individual icons, including Dot grid and Cursor glow.
+- **A quieter pack screen.** Pack availability sits at the top. The redundant card/timer-pack sentence and separate Open/Flip reminder are removed. The Credits wallet lives in Shop.
+- **Complete card previews.** Browsing uses static fronts with shared card stats and rarity treatments. One focused or hovered inventory card can use live materials. Duplicate stacks show one card and ×N, with each serial still available in Copies.
+- **Useful empty states.** Empty inventory, Favorites, collections, wishlists, Album, purchase history, presets and graphics offer a relevant icon and next action.
+- **Album and Studio cleanup.** Compact photo counts, storage details in a popover, icon actions and one empty Album state. Album keyboard Delete uses the same confirmation as its button, ignores key repeat and retains full-photo Undo. Studio and Director remove repeated navigation/status copy and use clearer page names and transport icons. Scene-slot replacement and deletion have confirmation and Undo.
+- **Predictable exits.** Closing panels retain their input shield until the exit finishes. Shop, Settings, Patch notes and helper handoffs wait for closure; reusable surfaces remain visible after repeated opening.
+
+Offline play, existing cards, serials, Credits, pack schedules, pending reveals, purchase durability and photo storage remain unchanged. Achievements remain paused; Market and audio remain outside this update.
+
+Verification includes native Electron UI journeys, the four-tier virtual inventory suite, Shop integration, Studio lifecycle, desktop service checks, a twelve-case browser size/scale matrix, Album confirmation/Undo/comparison and repeated animated panel reuse. See docs/UI-POLISH-1.7.3.md for the exact evidence and remaining manual limits. Installer execution, live updater upgrades and broad physical-device performance are not established by these checks.
+
+---
+
 # Cardable v1.7.2 — Director Studio
 
 Cardable Studio has been rebuilt around the collectible. Simple mode takes you through Look → Adjust → Capture; Advanced brings scene editing, lighting, color grading, graphics and Director animation into one shared workspace.
