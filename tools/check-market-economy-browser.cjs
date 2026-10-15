@@ -140,13 +140,19 @@ async function waitRevealed(page) {
     });
 
     await step('the wallet shows three separate numbers and what each means', async () => {
-      await page.click('#currency-counter .cb-wallet-trigger');
-      await page.waitForSelector('.cb-wallet-values');
-      const text = await page.evaluate(() => document.querySelector('.cb-wallet-popover').textContent);
+      await page.evaluate(() => { if (Cardable.inventory.active) Cardable.inventory.request(false); });
+      await page.waitForFunction(() => !Cardable.inventory.active && Cardable.opening.phase === 'idle' && !Cardable.ui.modal, null, { timeout: 15000 });
+      await page.evaluate(() => Cardable.shop.open());
+      await page.waitForSelector('.shop-wallet-trigger', { timeout: 15000 });
+      await page.click('.shop-wallet-trigger');
+      await page.waitForSelector('.shop-wallet-popover .cb-wallet-values');
+      const text = await page.evaluate(() => document.querySelector('.shop-wallet-popover').textContent);
       assert(/Collection estimate/.test(text) && /Quick Sell value/.test(text) && /Opening a pack pays nothing/.test(text), text);
       await page.waitForTimeout(450);
       await shot(page, 'wallet');
       await page.keyboard.press('Escape');
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !document.querySelector('.shop-screen'), null, { timeout: 8000 }).catch(() => {});
     });
 
     await step('Sell this copy: the price is stated first, a stale quote is refused, and the sale has a receipt and an Undo', async () => {
@@ -222,7 +228,7 @@ async function waitRevealed(page) {
     await step('receipts list exactly what was sold and the ledger reads consistent', async () => {
       await page.evaluate(() => Cardable.receiptsView.show());
       await page.waitForSelector('.sale-receipts');
-      const text = await page.evaluate(() => document.querySelector('.sale-dialog').textContent);
+      const text = await page.evaluate(() => document.querySelector('.sale-receipts').closest('.sale-dialog').textContent);
       assert(/consistent/.test(text) && /Credits/.test(text), text);
       assert((await page.locator('.sale-receipt').count()) >= 2);
       await page.waitForTimeout(450);

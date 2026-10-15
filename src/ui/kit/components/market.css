@@ -892,3 +892,9 @@ textarea.mk-input { padding: 10px 12px; resize: vertical; min-height: 84px; line
   .mk-feed-item { grid-template-columns: 72px minmax(0, 1fr); }
   .mk-feed-item .mk-tile-photo, .mk-feed-icon { width: 72px; }
 }
+
+/* ---- Beside the Shop entry (main 1.7.x) ---- */
+/* The Shop entry takes the slot the Market button used to have, so the Market button sits to its left. On narrow windows the
+   Shop entry drops below the gear and the Market button keeps the original slot. */
+.mk-hud { right: calc(var(--s-6) + 266px + var(--safe-right, 0px)); }
+@media (max-width: 700px) { .mk-hud { right: calc(var(--s-6) + 168px + var(--safe-right, 0px)); } }
