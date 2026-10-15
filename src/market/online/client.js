@@ -18,7 +18,8 @@
     return typeof v === 'string' && /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(v) ? v : '';
   }
   function base() {
-    var b = cfg().apiBase || localOverride();
+    // A local Worker named by a developer or test page (loopback only) wins, so a test can never reach the live beta.
+    var b = localOverride() || cfg().apiBase;
     if (!b) return '';
     try {
       var u = new root.URL(b);

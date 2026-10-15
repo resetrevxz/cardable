@@ -2,6 +2,8 @@
 
 Everything online for the Market beta lives in resources named `cardable-market-beta*`. Nothing here is production, nothing is attached to a custom domain, and nothing outside those names is read, changed or deleted. The code is in `cloudflare/`; this file is the operator's guide. The acceptance report is [stage-4.md](stage-4.md).
 
+> **Update 2026-10-15: deployed to the beta (see the identifiers at the end of section 9).** The note below is the Stage 4 status and is kept as history.
+>
 > **Status at the end of Stage 4 (2026-10-13): not deployed.** The Cloudflare CLI (Wrangler 4.149) is installed in `cloudflare/` and the Worker is verified end to end on the local Workers runtime, but `wrangler whoami` reports *not authenticated* and the sign-in needs the account owner's interactive consent. No remote resource was created, so no ID or URL in this file is real yet. Section 9 lists the exact steps that remain. Nothing below is claimed as live.
 
 ## 1. Resources
@@ -161,7 +163,8 @@ Remaining, in order — each is blocked only by the first:
 
 | Identifier | Value |
 |---|---|
-| Account id | _not created_ |
-| D1 database id | _not created_ |
-| Worker origin | _not deployed_ |
-| Deployed version id | _not deployed_ |
+| Account id | d2cf850211741463a3cfd2caaea8d743 |
+| D1 database id | 16cf1582-4d8a-436a-b18d-bf0ba5859399 (`cardable-market-beta-db`, schema 5) |
+| Worker origin | https://cardable-market-beta.resetrevxz.workers.dev (workers.dev only) |
+| R2 bucket | `cardable-market-beta-media` (R2 enabled on the account by the owner, 2026-10-15) |
+| Verified | `deploy.cjs --verify` 20 / 20 on 2026-10-15, including a real picture upload, read-back and removal by two independent accounts; `--admin reconcile` clean |

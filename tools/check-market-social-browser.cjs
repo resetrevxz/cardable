@@ -45,7 +45,7 @@ function serveGame() {
     if (!file.startsWith(root) || file.includes(path.sep + 'node_modules' + path.sep) || file.includes(path.sep + '.git' + path.sep)) { res.writeHead(403); res.end(); return; }
     fs.readFile(file, (error, data) => {
       if (error) { res.writeHead(404); res.end(); return; }
-      if (path.basename(file) === 'index.html') data = Buffer.from(data.toString().replace("connect-src 'none'", 'connect-src ' + API));
+      if (path.basename(file) === 'index.html') data = Buffer.from(data.toString().replace(/connect-src [^;]*;/, 'connect-src ' + API + ';'));
       res.writeHead(200, { 'content-type': MIME[path.extname(file)] || 'application/octet-stream' }); res.end(data);
     });
   });

@@ -5,7 +5,7 @@ name = "cardable-market-beta"
 main = "src/index.js"
 compatibility_date = "2026-06-01"
 workers_dev = true
-account_id = ""            # filled by deploy.cjs from the authenticated account; not a secret
+account_id = "d2cf850211741463a3cfd2caaea8d743"            # filled by deploy.cjs from the authenticated account; not a secret
 
 [observability]
 enabled = true
@@ -23,7 +23,7 @@ REFRESH_TTL_DAYS = "30"
 [[d1_databases]]
 binding = "DB"
 database_name = "cardable-market-beta-db"
-database_id = "00000000-0000-0000-0000-000000000000"   # replaced with the real id after `wrangler d1 create`; local dev ignores it
+database_id = "16cf1582-4d8a-436a-b18d-bf0ba5859399"   # replaced with the real id after `wrangler d1 create`; local dev ignores it
 migrations_dir = "migrations"
 
 [[r2_buckets]]

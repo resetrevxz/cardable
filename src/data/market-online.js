@@ -6,7 +6,7 @@
   'use strict';
   C.data = C.data || {};
   C.data.marketOnline = {
-    apiBase: '',                         // e.g. 'https://cardable-market-beta.<account>.workers.dev' once deployed and verified
+    apiBase: 'https://cardable-market-beta.resetrevxz.workers.dev',                         // e.g. 'https://cardable-market-beta.<account>.workers.dev' once deployed and verified
     apiVersion: 1,
     storageKey: 'cardable.market.online',
     timeoutMs: 15000,
