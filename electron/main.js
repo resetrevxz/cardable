@@ -266,7 +266,7 @@ if (!gotTheLock) {
             })()
           `);
           logger.info('Smoke Test Execution Results:', testResults);
-          const persistenceOk = !process.argv.includes('--smoke-verify') || testResults.persistedCurrency > 424242 && testResults.persistedInventoryCount === 1;
+          const persistenceOk = !process.argv.includes('--smoke-verify') || testResults.persistedCurrency === 424242 && testResults.persistedInventoryCount === 1;
           const openingOk = !process.argv.includes('--smoke-game') || testResults.openingInteraction;
           if (testResults.hasCardableDesktop && testResults.hasCardable && testResults.hasState && testResults.backupSuccess && testResults.rendererIsolated && testResults.coreUiPresent && testResults.preferencesInteraction && testResults.inventoryInteraction && testResults.desktopServices && persistenceOk && openingOk) {
             logger.info('ALL SMOKE TEST CHECKS PASSED SUCCESSFULLY!');
