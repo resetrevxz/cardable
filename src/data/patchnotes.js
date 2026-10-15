@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.7.5',codename:'Inventory glass',date:'October 15, 2026',tag:'Update',tagline:'Translucent glass and refracted edges.',
+    hero:{badge:'CARDABLE / 1.7.5',title:'Inventory glass.',subtitle:'Frosted charcoal, a brighter rim and refraction that scales with your graphics settings.',media:[]},
+    sections:{visuals:['High and Very High add frosted depth, a spectral bevel and narrow refracting edges.','Medium uses denser frost; Low and Very Low use solid ink.'],qol:['Independent Glass / blur and shadow settings remain respected. Monochrome neutralizes the coating, and Reduce transparency restores solid surfaces.'],fixes:['Complete card previews and first-click cursor tracking stay intact.']},
+    entries:['Translucent inventory glass with refracting edges on High and Very High.','Simpler Medium frost and solid low-tier/accessibility fallbacks.']
+  },
+  {
     version:'1.7.4',codename:'Inventory fixes',date:'October 15, 2026',tag:'Fix',tagline:'Responsive inspection and lighter browsing.',
     hero:{badge:'CARDABLE / 1.7.4',title:'Inventory fixes.',subtitle:'First-click cursor tracking and less work during rapid browsing.',media:[]},
     sections:{fixes:['Cards handed from a live inventory preview into detail become interactive immediately, so the first inspection follows the cursor.','Delayed hover work is cancelled when a card leaves its browsing surface.'],visuals:['Complete static card fronts keep their artwork, rarity treatment and stats.'],qol:['Rapid pointer sweeps keep static previews; a settled hover activates live materials. Keyboard focus remains immediate.']},

@@ -1,11 +1,11 @@
 # The Cardable design rules
 
-Current app: **1.7.4**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.7.5**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
 1. The card is the hero. Chrome recedes; artwork keeps its identity.
-2. One surface language: near-black ink and local frosted glass. Browsing and Settings stay readable on solid ink.
+2. One surface language: near-black ink and local frosted glass. Browsing and Settings keep readable dark glass with solid accessibility fallbacks.
 3. Restraint: fewer elements, more space, one primary action per decision.
 4. Physical light: a top-left lamp, a top hairline and a pointer-following edge where quality permits.
 5. Motion explains change. Ordinary feedback takes 150–240 ms; cinematic pacing remains separately authored.
@@ -203,7 +203,7 @@ The main screen centers the active pack, Cardable wordmark, stock/refill metrics
 
 Use locally bundled Inter for UI and JetBrains Mono for values, labels, serials and technical detail, with system fallbacks. **VT323 is allowed only inside the Classic pack's terminal artwork. Bodoni Moda is allowed only for ASCENDANT artwork.** Mythical's Gothic title is original vector lettering. These exceptions do not authorize extra menu fonts.
 
-Prefer solid shaded surfaces for browsing and Settings over blurring the whole game. Very Low/Low use solid tinted panels. Medium/High can use the independent glass policy for appropriate local surfaces; Inventory uses dense glass at Medium and above and a solid fill below. Preserve borders, readable contrast and foreground separation when blur is disabled.
+Prefer solid shaded surfaces for browsing and Settings over blurring the whole game. Very Low/Low use solid tinted panels. Medium/High can use the independent glass policy for appropriate local surfaces; Inventory uses translucent frosted glass at Medium and above and a solid fill below. High/Very High add three bounded 16 px refracting rim strips, a brighter bevel and subtle spectral coating; Medium omits refraction and uses denser 12 px frost. The independent Glass / blur setting controls this material; explicit customized settings stay independent. Preserve borders, readable contrast and foreground separation when blur is disabled.
 
 ## Four graphics tiers
 
@@ -313,7 +313,7 @@ Nothing should vanish, jump or arrive without motion. These rules apply to new w
 - **One layout per header.** A header keeps the same arrangement in every state; elements that only apply to one state reserve their space and fade.
 - **Pages ease in.** Changing a page inside the sheet plays `cb-page-in` (rise, fade and a short unblur) on the incoming page. Cards, Achievements and the album are peers; choosing a collection returns to the cards.
 - **Shared feedback.** Hover lifts 1 to 3 px, press scales to .97, popovers and tooltips arrive with `cb-pop-in`, scrims fade. Use the duration tokens and `--ease-out`; scale durations by `--q-motion`. Everything stops for reduced motion, the Hover animations option and Very Low.
-- **Glass.** The inventory sheet and the credits popover use the Settings glass on Medium and above. The fill is dense enough (about 84 to 94 percent) to read without the blur; lower tiers and Reduce transparency use the solid fill.
+- **Glass.** The inventory sheet uses its shared `inventory-glass` material: High/Very High charcoal opacity 52–74%, 18 px frost, a spectral beveled rim and edge-only SVG refraction. Medium uses 74–86% opacity and 12 px frost without refraction; lower glass tiers and Reduce transparency use solid ink. Monochrome neutralizes the spectral coating. Foreground cards and controls are never distorted, shadows retain their independent setting, and no optical animation clock is added. The UI gallery carries the same material specimen.
 
 The photo album is an inventory page (`src/studio/ui/album.js`): header with usage, search and sort; tag chips; a selection bar; a photo grid; and an inspector for the selected photo. Photos remain in their own IndexedDB store. Deleting uses click-again plus an Undo toast that restores the full photo.
 

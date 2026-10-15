@@ -1,0 +1,36 @@
+/* One frosted sheet plus three narrow optical strips; no per-card blur or clock. */
+.cb-inventory-optics { position:absolute;width:0;height:0;overflow:hidden;pointer-events:none; }
+:is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) {
+  --inventory-glass-filter:none; --inventory-glass-fill:var(--ink-1); --inventory-glass-rim:rgba(255,255,255,.18);
+  position:relative;isolation:isolate;border:1px solid var(--stroke-strong);border-radius:var(--r-sheet);
+  background:var(--inventory-glass-fill);backdrop-filter:var(--inventory-glass-filter);-webkit-backdrop-filter:var(--inventory-glass-filter);
+  box-shadow:inset 0 1px 0 var(--light-edge),inset 0 0 0 1px rgba(255,255,255,.025),var(--shadow-2);
+}
+.inventory-sheet.cb-inventory-glass { position:fixed;border-bottom:0;border-radius:var(--r-sheet) var(--r-sheet) 0 0; }
+:root[data-glass-quality="medium"] :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) {
+  --inventory-glass-fill:linear-gradient(160deg,rgba(35,35,43,.74),rgba(16,16,21,.78) 48%,rgba(10,10,14,.86));
+  --inventory-glass-filter:blur(12px) saturate(125%);
+}
+:root:is([data-glass-quality="high"],[data-glass-quality="very-high"]) :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) {
+  --inventory-glass-fill:linear-gradient(160deg,rgba(40,40,48,.52),rgba(18,18,24,.60) 46%,rgba(10,10,15,.74));
+  --inventory-glass-filter:blur(18px) saturate(145%);
+  --inventory-glass-rim:rgba(255,255,255,.38);
+}
+.cb-inventory-glass::before { content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;background:radial-gradient(ellipse at 12% 0,rgba(255,255,255,.12),transparent 56%),linear-gradient(115deg,rgba(173,196,255,.035),transparent 35%,rgba(239,200,228,.025)); }
+.cb-inventory-glass::after { content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;padding:1px;background:linear-gradient(135deg,var(--inventory-glass-rim),rgba(173,196,255,.13) 22%,rgba(255,255,255,.035) 48%,rgba(239,200,228,.14) 74%,var(--inventory-glass-rim));mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude; }
+:root[data-rarity-color="mono"] .cb-inventory-glass::before { background:radial-gradient(ellipse at 12% 0,rgba(255,255,255,.12),transparent 56%); }
+:root[data-rarity-color="mono"] .cb-inventory-glass::after { background:linear-gradient(135deg,var(--inventory-glass-rim),rgba(255,255,255,.035) 48%,var(--inventory-glass-rim)); }
+:root:is([data-glass-quality="low"],[data-glass-quality="very-low"],[data-reduce-transparency="true"]) :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { background:var(--ink-1);backdrop-filter:none;-webkit-backdrop-filter:none; }
+:root:is([data-glass-quality="low"],[data-glass-quality="very-low"],[data-reduce-transparency="true"]) .cb-inventory-glass::before { display:none; }
+:root:is([data-glass-quality="very-low"],[data-reduce-transparency="true"]) .cb-inventory-glass::after { display:none; }
+:root[data-high-contrast="true"] :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { border-color:var(--focus); }
+:root[data-shadow-quality="very-low"] :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { box-shadow:inset 0 1px 0 var(--light-edge); }
+:root[data-shadow-quality="low"] :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { box-shadow:inset 0 1px 0 var(--light-edge),0 -4px 16px rgba(0,0,0,.22); }
+.cb-gallery-glass-stage { position:relative;overflow:hidden;border-radius:var(--r-sheet);padding:36px 20px;background:radial-gradient(ellipse at 15% 0,rgba(173,196,255,.4),transparent 50%),repeating-linear-gradient(110deg,#111116 0 28px,#353540 29px 30px); }
+.cb-gallery-glass-stage :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { padding:24px;min-height:150px; }
+
+.cb-inventory-glass-edge { display:none;position:absolute;z-index:-1;pointer-events:none; }
+:root:is([data-glass-quality="high"],[data-glass-quality="very-high"]):not([data-reduce-transparency="true"]) .cb-inventory-glass-edge { display:block; }
+.cb-inventory-glass-edge--left,.cb-inventory-glass-edge--right { top:24px;bottom:0;width:16px;backdrop-filter:url("#cb-inventory-refraction-x") blur(1px);-webkit-backdrop-filter:url("#cb-inventory-refraction-x") blur(1px); }
+.cb-inventory-glass-edge--left { left:0; }.cb-inventory-glass-edge--right { right:0; }
+.cb-inventory-glass-edge--top { top:0;left:24px;right:24px;height:16px;backdrop-filter:url("#cb-inventory-refraction-y") blur(1px);-webkit-backdrop-filter:url("#cb-inventory-refraction-y") blur(1px); }

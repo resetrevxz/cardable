@@ -1,3 +1,15 @@
+# Cardable v1.7.5 — Inventory glass
+
+Inventory now uses translucent charcoal glass that fits Cardable's quiet interface. High and Very High add a brighter bevel, subtle spectral highlights, frosted depth and real backdrop refraction along the rim. Medium uses denser, simpler frost; Low and Very Low retain solid surfaces.
+
+- Refraction is limited to three narrow edge regions, keeping card artwork, stats and controls sharp.
+- Glass, shadows and monochrome retain their independent settings. Reduce transparency restores a solid surface, and no optical animation loop is added.
+- The complete static cards and the recent first-click and hover-churn fixes remain in place.
+
+Browser and native Electron checks cover quality policies, independent overrides, accessibility fallbacks, actual refracted pixels, controls and supported window sizes. Repeated inventory measurements record the added High glass cost and the rejected full-sheet refraction experiment. See docs/INVENTORY-GLASS-1.7.5.md for evidence and acceptance limits. Save data and gameplay rules are unchanged.
+
+---
+
 # Cardable v1.7.4 — Inventory fixes
 
 Cards opened from a live inventory preview now respond to the cursor on their first inspection. Rapid browsing avoids repeatedly constructing and tearing down full card materials.
