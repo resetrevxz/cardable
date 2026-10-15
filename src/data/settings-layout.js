@@ -23,6 +23,60 @@
   add('cursorGlowSize', 'Cursor glow size', 'A percentage of the standard glow.', 100, null, 'slider');
   Object.assign(s.cursorGlowSize, { min: 50, max: 200, step: 10, unit: '%' });
   add('inventoryHeight', 'Inventory height', 'How tall the inventory opens from the bottom edge.', 'standard', ['compact', 'standard', 'tall']);
+  add('inventoryBackground', 'Inventory background', 'Choose the tint behind your cards.', 'graphite', ['graphite', 'slate', 'midnight', 'moss', 'plum', 'warm'], 'inventoryTiles');
+  add('inventoryOpacity', 'Inventory opacity', 'How much of the scene shows through the inventory.', 78, null, 'slider');
+  Object.assign(s.inventoryOpacity, { min: 0, max: 100, step: 1, unit: '%', format: function (value) { return Math.round(Number(value)) + '%'; } });
+  var inventoryBackgrounds = [
+    { id: 'graphite', label: 'Graphite', hex: '#34363D' }, { id: 'slate', label: 'Slate', hex: '#3E4A58' },
+    { id: 'midnight', label: 'Midnight', hex: '#252C3D' }, { id: 'moss', label: 'Moss', hex: '#35483F' },
+    { id: 'plum', label: 'Plum', hex: '#493D4D' }, { id: 'warm', label: 'Warm', hex: '#51463B' }
+  ];
+  C.data.inventoryBackgrounds = inventoryBackgrounds;
+  C.data.inventoryBackgroundColor = function (value) {
+    var raw = String(value == null ? '' : value).trim(), preset = inventoryBackgrounds.find(function (item) { return item.id === raw.toLowerCase(); });
+    return preset ? preset.hex : /^#[0-9a-f]{6}$/i.test(raw) ? raw.toUpperCase() : inventoryBackgrounds[0].hex;
+  };
+  C.data.inventoryChromeColors = function (value, opacityValue, forceOpaque) {
+    var color = C.data.inventoryBackgroundColor(value).slice(1).match(/.{2}/g).map(function (part) { return parseInt(part, 16); });
+    var forced = forceOpaque == null ? C.settings && (C.settings.get('reduceTransparency') || C.settings.get('highContrast')) : forceOpaque;
+    var rawOpacity = Number(opacityValue), opacity = forced ? 1 : Number.isFinite(rawOpacity) ? Math.max(0, Math.min(100, rawOpacity)) / 100 : .78;
+    var scene = [8, 8, 10], composite = color.map(function (channel, index) { return channel * opacity + scene[index] * (1 - opacity); });
+    var linear = composite.map(function (channel) { var n = channel / 255; return n <= .04045 ? n / 12.92 : Math.pow((n + .055) / 1.055, 2.4); });
+    function lum(rgb) { var parts = rgb.split(',').map(function (part) { var n = Number(part) / 255; n = n <= .04045 ? n / 12.92 : Math.pow((n + .055) / 1.055, 2.4); return n; }); return .2126 * parts[0] + .7152 * parts[1] + .0722 * parts[2]; }
+    function choose(light, dark) { var background = .2126 * linear[0] + .7152 * linear[1] + .0722 * linear[2], l = lum(light), d = lum(dark), lightContrast = (Math.max(l, background) + .05) / (Math.min(l, background) + .05), darkContrast = (Math.max(d, background) + .05) / (Math.min(d, background) + .05); return lightContrast >= darkContrast ? light : dark; }
+    return { text: choose('245,245,247', '18,20,26'), muted: choose('174,178,193', '58,62,74'), opacity: opacity, rgb: color.join(',') };
+  };
+  function inventoryChrome(value, opacityValue) {
+    var colors = C.data.inventoryChromeColors(value, opacityValue), style = window.document.documentElement.style;
+    style.setProperty('--inventory-chrome-rgb', colors.text);
+    style.setProperty('--inventory-chrome-muted-rgb', colors.muted);
+  }
+  s.inventoryBackground.validate = function (value) {
+    var raw = String(value == null ? '' : value).trim(), lower = raw.toLowerCase();
+    return inventoryBackgrounds.some(function (item) { return item.id === lower; }) ? lower : /^#[0-9a-f]{6}$/i.test(raw) ? raw.toUpperCase() : this.defaultValue;
+  };
+  s.inventoryOpacity.validate = function (value) {
+    if (typeof value !== 'number' && (typeof value !== 'string' || value.trim() === '')) return this.defaultValue;
+    var number = Number(value);
+    return Number.isFinite(number) ? Math.max(0, Math.min(100, number)) : this.defaultValue;
+  };
+  s.inventoryBackground.apply = function (value) {
+    var hex = C.data.inventoryBackgroundColor(value), channels = hex.slice(1).match(/.{2}/g).map(function (part) { return parseInt(part, 16); });
+    function rgb(factor, toward) { return channels.map(function (channel) { return Math.round(channel + (toward - channel) * factor); }).join(','); }
+    var style = window.document.documentElement.style;
+    style.setProperty('--inventory-bg-rgb', channels.join(','));
+    style.setProperty('--inventory-bg-light-rgb', rgb(.2, 255));
+    style.setProperty('--inventory-bg-dark-rgb', rgb(.08, 0));
+    inventoryChrome(value, C.settings && C.settings.get('inventoryOpacity'));
+  };
+  s.inventoryOpacity.apply = function (value) {
+    window.document.documentElement.style.setProperty('--inventory-bg-opacity', String(Math.max(0, Math.min(100, Number(value))) / 100));
+    inventoryChrome(C.settings && C.settings.get('inventoryBackground'), value);
+  };
+  ['reduceTransparency', 'highContrast'].forEach(function (key) {
+    var descriptor = s[key], original = descriptor.apply;
+    descriptor.apply = function (value, api) { original.call(this, value, api); inventoryChrome(C.settings.get('inventoryBackground'), C.settings.get('inventoryOpacity')); };
+  });
   add('toastPosition', 'Notice position', 'Where unlock and action notices appear. Bottom sits under the pack; top keeps the pack clear.', 'bottom', ['bottom', 'top']);
   add('shelfCaptions', 'Card captions', 'The name and tier under each card in the inventory shelf and grid.', true);
   add('settingsSide', 'Settings side', 'Dock this panel on the left or the right of the game.', 'left', ['left', 'right']);
@@ -129,7 +183,7 @@
     quality:'gauge',finishQuality:'variant',reflectionQuality:'image',propQuality:'box',particleQuality:'sparkle',shadowQuality:'layers',glassQuality:'eye',backgroundQuality:'dots',ambientQuality:'motion',canvasQuality:'monitor',cutsceneQuality:'film',
     dots:'dots',dotDensity:'dots',dotTint:'dots',clickRipples:'dots',cursorGlow:'cursor',cursorGlowSize:'cursor',cursorGlowTint:'cursor',
     rarityColor:'palette',accentColor:'palette',logoStyle:'text',logoAnimation:'text',fpsLimit:'gauge',performanceMode:'gauge',performanceCorner:'gauge',backgroundMode:'monitor',unfocusedMode:'monitor',batterySaver:'bolt',
-    interfaceSize:'scale',inventoryHeight:'shelf',shelfCaptions:'card',settingsSide:'swap',settingsPreviews:'eye',idleFade:'clock',hoverAnimations:'cursor',motion:'motion',strobing:'light',tilt:'card',tiltStrength:'card',revealSpeed:'motion',
+    interfaceSize:'scale',inventoryHeight:'shelf',inventoryBackground:'palette',inventoryOpacity:'eye',shelfCaptions:'card',settingsSide:'swap',settingsPreviews:'eye',idleFade:'clock',hoverAnimations:'cursor',motion:'motion',strobing:'light',tilt:'card',tiltStrength:'card',revealSpeed:'motion',
     serialOnFront:'badge',holdDuration:'clock',openKey:'keyboard',toggleHold:'pack',cutAssist:'pack',keyHints:'keyboard',defaultView:'grid',defaultSort:'sort',defaultTagMode:'badge',startupScreen:'monitor',confirmLowDelete:'trash',
     shopLayout:'shop',shopMotion:'motion',shopSort:'sort',shopCompareDifferences:'compare',shopWishlistMarkers:'star',timeFormat:'clock',dateFormat:'clock',numberFormat:'text',toastPosition:'notes',windowAspect:'crop',alwaysOnTop:'pin',miniSide:'monitor',miniFps:'gauge',reduceTransparency:'eye',highContrast:'palette',largerText:'text',focusEmphasis:'cursor',announcements:'access'
   };
@@ -149,7 +203,8 @@
       { title: 'Theme', keys: ['rarityColor', 'accentColor'] },
       { title: 'Wordmark', keys: ['logoStyle', 'logoAnimation'] },
       { title: 'Backdrop', keys: ['dots', 'dotDensity', 'dotTint', 'clickRipples', 'cursorGlow', 'cursorGlowSize', 'cursorGlowTint'] },
-      { title: 'Interface', keys: ['interfaceSize', 'idleFade', 'inventoryHeight', 'shelfCaptions', 'settingsSide', 'settingsPreviews'] },
+      { title: 'Interface', keys: ['interfaceSize', 'idleFade', 'settingsSide', 'settingsPreviews'] },
+      { title: 'Inventory', keys: ['inventoryBackground', 'inventoryOpacity', 'inventoryHeight', 'shelfCaptions'] },
       { title: 'Show and hide', slot: 'visibility', grid: true, keys: visibility.concat(['proximityChrome']) } ] },
     { id: 'Motion', icon: 'motion', blurb: 'Movement, cards and cutscenes.', sections: [
       { title: 'Comfort', keys: ['motion', 'strobing'] },

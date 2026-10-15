@@ -6,6 +6,7 @@ Give one authorized milestone per prompt. Read AGENTS.md, Designs.MD, the releva
 
 | Work | Implementation / commit | Packaging / runtime evidence | Remaining scope |
 |---|---|---|---|
+| 1.7.6 Lighter inventory / stage 125 | Static browsing, cached glass, palette/custom color and opacity previews | Browser/native acceptance and repeated inventory comparison; [report](INVENTORY-LIGHT-1.7.6.md) | Installer/updater execution and broad hardware acceptance |
 | 1.7.5 Inventory glass / stage 124 | Shared frosted sheet, bounded rim refraction and quality-aware fallbacks | Native/browser optical, policy, responsive and inventory checks; [report](INVENTORY-GLASS-1.7.5.md) | Installer/updater execution and broad hardware acceptance |
 | 1.7.4 Inventory fixes / stage 123 | Interactive detail handoff and cancellable hover promotion | Native/browser cursor, focus, reduced-motion and cleanup journeys; repeated inventory cost comparison | Installer/updater execution and broad hardware acceptance |
 | 1.7.3 UI polish / stage 122 | Shared icons/tooltips, combined Inventory controls, complete static cards, top pack HUD, Shop wallet, Settings/Album/Studio and ordered exits | Native and browser UI acceptance, four-tier inventory, Shop/Studio lifecycle and desktop checks; [report](UI-POLISH-1.7.3.md) | Installer execution, live updater, physical touch and broad hardware performance |

@@ -100,3 +100,7 @@ The detail people would feel missing: the flying card and destination share the 
 ## Historical implementation and current gate
 
 Fixed F1–F6/N1–N6 narratives and the original ranked review are preserved in [the original backlog](../archive/4.2.0-cleanup/docs/POLISH-BACKLOG.md). Open evidence gates above stay active; later scoped browser/desktop results do not certify all devices or invalidate unrelated acceptance. Current broad test/capture/profiling work requires separate authorization under [PROMPTING.md](PROMPTING.md).
+
+## Stage 125 follow-up
+
+- [ ] (desktop QA) Investigate Mini skin/tier synchronization: `check-desktop-optimization.cjs:108` times out in disposable native profiles on both unchanged 1.7.5 and the 1.7.6 update. Initial idle/movement and Mini visibility measurements complete; the 40-combination journey does not.

@@ -2,8 +2,8 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {execFileSync}=require('node:child_process'),{chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),label=process.env.CARDABLE_PROFILE_LABEL||'current',baseline=process.env.CARDABLE_PROFILE_BASELINE==='1';
-const out=path.join(root,'qa-output/inventory-regression'),repeats=Number(process.env.CARDABLE_PROFILE_REPEATS||2);
-const evidence={label,baseline,repeats,layerDiagnostics:process.env.CARDABLE_PROFILE_LAYERS==='1',cases:[],pointer:[],errors:[],network:[]};const tiers=(process.env.CARDABLE_PROFILE_TIERS||'very-low,low,medium,high').split(',');
+const out=path.join(root,'qa-output/inventory-regression'),repeats=Number(process.env.CARDABLE_PROFILE_REPEATS||2),hoverSteps=Number(process.env.CARDABLE_PROFILE_HOVER_STEPS||24),hoverDelay=Number(process.env.CARDABLE_PROFILE_HOVER_DELAY_MS||35);
+const evidence={label,baseline,repeats,hoverSteps,hoverDelay,layerDiagnostics:process.env.CARDABLE_PROFILE_LAYERS==='1',cases:[],pointer:[],errors:[],network:[]};const tiers=(process.env.CARDABLE_PROFILE_TIERS||'very-low,low,medium,high').split(',');
 assert(Number.isInteger(repeats)&&repeats>0,'CARDABLE_PROFILE_REPEATS must be a positive integer');
 function summary(values){const a=values.slice().sort((a,b)=>a-b);return {median:a[Math.floor(a.length*.5)]||0,p95:a[Math.min(a.length-1,Math.floor(a.length*.95))]||0,over25ms:a.filter(v=>v>25).length,count:a.length};}
 async function setup(browser,local,tier){
@@ -38,7 +38,7 @@ async function pointerProbe(page){
     if(tier==='high')await pointerProbe(page);
     for(const mode of ['shelf','grid']){await page.evaluate(mode=>Cardable.inventoryModel.update({viewMode:mode}),mode);await page.mouse.move(100,100);await page.waitForTimeout(650);if(mode==='grid')await page.screenshot({path:path.join(out,label+'-grid.png')});
       for(let repeat=0;repeat<repeats;repeat++){
-        const hover=await measure(page,cdp,async()=>{for(let i=0;i<24;i++){const points=await page.evaluate(()=>Array.from(Cardable.inventory.rendered.values()).map(t=>t.el.getBoundingClientRect()).filter(r=>r.width>0&&r.left>=0&&r.right<=innerWidth&&r.bottom>250&&r.top<innerHeight-80).map(r=>({x:r.x+r.width*.5,y:Math.min(innerHeight-100,Math.max(270,r.y+Math.min(r.height*.35,140)))})));const p=points[i%Math.max(1,points.length)];if(p)await page.mouse.move(p.x,p.y);await page.waitForTimeout(35);}await page.mouse.move(100,100);});
+        const hover=await measure(page,cdp,async()=>{for(let i=0;i<hoverSteps;i++){const points=await page.evaluate(()=>Array.from(Cardable.inventory.rendered.values()).map(t=>t.el.getBoundingClientRect()).filter(r=>r.width>0&&r.left>=0&&r.right<=innerWidth&&r.bottom>250&&r.top<innerHeight-80).map(r=>({x:r.x+r.width*.5,y:Math.min(innerHeight-100,Math.max(270,r.y+Math.min(r.height*.35,140)))})));const p=points[i%Math.max(1,points.length)];if(p)await page.mouse.move(p.x,p.y);await page.waitForTimeout(hoverDelay);}await page.mouse.move(100,100);});
         await page.waitForTimeout(250);
         const pan=await measure(page,cdp,async()=>{for(let i=0;i<24;i++){await page.evaluate(({mode,i})=>{if(mode==='shelf')Cardable.inventory.carousel.move(10+i*.55);else Cardable.inventory.grid.scrollTop=200+i*95;},{mode,i});await page.waitForTimeout(35);}});
         evidence.cases.push({tier,mode,repeat,hover,pan});console.log(tier,mode,repeat,JSON.stringify({hoverTaskMs:Math.round(hover.taskMs),fullCreates:hover.creates.full,panTaskMs:Math.round(pan.taskMs),hoverP95:Math.round(hover.frames.p95),panP95:Math.round(pan.frames.p95)}));

@@ -65,10 +65,9 @@ async function fixture() {
     await page.keyboard.press('Escape'); await page.waitForTimeout(200); await shot('inventory-grid');
     const previews = await page.evaluate(() => Array.from(document.querySelectorAll('.inventory-grid [data-thumbnail="true"]')).map(el => ({ rarity: el.dataset.rarity, text: !!el.querySelector('.card__text'), artOnly: el.dataset.presentation === 'art-only', back: !!el.querySelector('.card__face--back') })));
     assert(previews.length > 0 && previews.every(p => p.text && !p.artOnly && !p.back));
-    await page.evaluate(() => { const tiles = Array.from(Cardable.inventory.rendered.values()); tiles.slice(0, 4).forEach(t => Cardable.inventoryTiles.live(t, true)); });
-    assert.equal(await page.evaluate(() => Array.from(Cardable.inventory.rendered.values()).filter(t => t.live).length), 1);
-    await page.evaluate(() => { if (Cardable.inventoryTiles.liveTile) Cardable.inventoryTiles.live(Cardable.inventoryTiles.liveTile, false); });
-    evidence.passed.push('Search remains in the combined panel; grid previews have full fronts without backs; live promotion is limited to one card.');
+    const stable = await page.evaluate(() => { const tiles=Array.from(Cardable.inventory.rendered.values()).slice(0,4),views=tiles.map(t=>t.view);tiles.forEach(t=>t.el.focus());return tiles.every((t,i)=>t.view===views[i]&&t.view.thumbnail); });
+    assert(stable);
+    evidence.passed.push('Search stays in the combined panel; complete card fronts remain static and preserve identity through keyboard focus.');
     for (const [w, h] of [[1280,720],[1920,1080]]) {
       await size(w, h); await shot('grid-' + w);
       const layout = await page.evaluate(() => ({ width: innerWidth, overflow: document.documentElement.scrollWidth > innerWidth + 1, rendered: Cardable.inventory.rendered.size }));

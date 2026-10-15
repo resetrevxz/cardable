@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.7.6',codename:'Lighter inventory',date:'October 15, 2026',tag:'Fix',tagline:'Lighter browsing. Your own background.',
+    hero:{badge:'CARDABLE / 1.7.6',title:'Lighter inventory.',subtitle:'Complete cards, clearer glass and background controls with previews.',media:[]},
+    sections:{fixes:['Hover and focus keep the same static card instead of rebuilding full materials. Inspection retains complete effects and cursor interaction.','Removed inventory backdrop/refraction filters and moving Shelf blur. Normal-height Grid keeps the focused card header visible.'],visuals:['Clearer glass edges, soft static lighting and a separated header.'],qol:['Choose six inventory palettes or a custom color, and set opacity from 0 to 100% in Appearance. Miniature tiles and the dock preview show the choice.','Light colors use readable chrome; Reduce transparency and High contrast keep the chosen tint opaque.']},
+    entries:['Static browsing and glass without live optical filters.','Inventory color and opacity controls with previews.']
+  },
+  {
     version:'1.7.5',codename:'Inventory glass',date:'October 15, 2026',tag:'Update',tagline:'Translucent glass and refracted edges.',
     hero:{badge:'CARDABLE / 1.7.5',title:'Inventory glass.',subtitle:'Frosted charcoal, a brighter rim and refraction that scales with your graphics settings.',media:[]},
     sections:{visuals:['High and Very High add frosted depth, a spectral bevel and narrow refracting edges.','Medium uses denser frost; Low and Very Low use solid ink.'],qol:['Independent Glass / blur and shadow settings remain respected. Monochrome neutralizes the coating, and Reduce transparency restores solid surfaces.'],fixes:['Complete card previews and first-click cursor tracking stay intact.']},

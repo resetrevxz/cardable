@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.7.5**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.7.6**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -203,7 +203,7 @@ The main screen centers the active pack, Cardable wordmark, stock/refill metrics
 
 Use locally bundled Inter for UI and JetBrains Mono for values, labels, serials and technical detail, with system fallbacks. **VT323 is allowed only inside the Classic pack's terminal artwork. Bodoni Moda is allowed only for ASCENDANT artwork.** Mythical's Gothic title is original vector lettering. These exceptions do not authorize extra menu fonts.
 
-Prefer solid shaded surfaces for browsing and Settings over blurring the whole game. Very Low/Low use solid tinted panels. Medium/High can use the independent glass policy for appropriate local surfaces; Inventory uses translucent frosted glass at Medium and above and a solid fill below. High/Very High add three bounded 16 px refracting rim strips, a brighter bevel and subtle spectral coating; Medium omits refraction and uses denser 12 px frost. The independent Glass / blur setting controls this material; explicit customized settings stay independent. Preserve borders, readable contrast and foreground separation when blur is disabled.
+Prefer cached shaded surfaces for browsing. Inventory uses transparent user-tinted glass with static gradients, a bevel and upper-left lighting; no backdrop filter, SVG optics or moving blur. High/Very High retain richer static lighting, Medium simplifies it, Low/Very Low use a flat tint. Independent Glass and shadow controls remain independent. Appearance → Inventory offers six named palettes, a custom #RRGGBB color and 0–100% opacity (Graphite / 78% defaults). Reduce transparency and High contrast force the chosen tint opaque. Chrome selects readable light/dark ink without changing card artwork. Palette tiles and the dock preview show the surface and transparency, following the Wordmark preview pattern.
 
 ## Four graphics tiers
 
@@ -234,7 +234,7 @@ Controls need visible focus, real keyboard actions, understandable disabled/sele
 
 ## Cards, inventory and detail
 
-Inventory pointer previews wait 110 ms before constructing live materials and 130 ms before returning to the complete static front. Crossing a tile briefly never rebuilds it. Keyboard focus promotes immediately; only one browsing tile is live. Cancel pending work on recycle, removal, detail handoff and restore, and reject promotion on hidden/inert surfaces or a hidden document. Detail explicitly restores pointer interaction and accessible visibility on an inherited live preview, then makes its returning visual noninteractive.
+Inventory hover and keyboard focus retain the same complete static front. No browsing full-card promotion, delayed material work or return rebuild occurs. Inspection alone constructs full materials, restores cursor interaction and returns to a noninteractive static front. Shelf depth uses scale/opacity/translation without per-frame filters. Grid aligns oversized focused rows at their beginning to retain the card header.
 
 Card face/back anatomy, rarity props, specs and permanent variants are governed by [03-CARD](docs/03-CARD.md), [02-RARITIES](docs/02-RARITIES.md) and [VARIANTS-AND-TAGS](docs/VARIANTS-AND-TAGS.md). Preserve real timestamps, serials and provenance. No fabricated specs, rarity indicators on an Unfound Secret, arbitrary extra color or duplicate reward effects.
 
@@ -313,7 +313,7 @@ Nothing should vanish, jump or arrive without motion. These rules apply to new w
 - **One layout per header.** A header keeps the same arrangement in every state; elements that only apply to one state reserve their space and fade.
 - **Pages ease in.** Changing a page inside the sheet plays `cb-page-in` (rise, fade and a short unblur) on the incoming page. Cards, Achievements and the album are peers; choosing a collection returns to the cards.
 - **Shared feedback.** Hover lifts 1 to 3 px, press scales to .97, popovers and tooltips arrive with `cb-pop-in`, scrims fade. Use the duration tokens and `--ease-out`; scale durations by `--q-motion`. Everything stops for reduced motion, the Hover animations option and Very Low.
-- **Glass.** The inventory sheet uses its shared `inventory-glass` material: High/Very High charcoal opacity 52–74%, 18 px frost, a spectral beveled rim and edge-only SVG refraction. Medium uses 74–86% opacity and 12 px frost without refraction; lower glass tiers and Reduce transparency use solid ink. Monochrome neutralizes the spectral coating. Foreground cards and controls are never distorted, shadows retain their independent setting, and no optical animation clock is added. The UI gallery carries the same material specimen.
+- **Glass.** The inventory sheet shares `inventory-glass`: transparent user tint, cached lighting, a beveled rim and a separate header. High/Very High use richer static gradients; Medium simplifies them; Low/Very Low use a flat tint. No live backdrop capture, SVG refraction or optical animation loop. Reduce transparency and High contrast keep the chosen color opaque. Monochrome neutralizes the highlight; card colors and shadow settings remain independent. The UI gallery carries the same material specimen.
 
 The photo album is an inventory page (`src/studio/ui/album.js`): header with usage, search and sort; tag chips; a selection bar; a photo grid; and an inspector for the selected photo. Photos remain in their own IndexedDB store. Deleting uses click-again plus an Undo toast that restores the full photo.
 

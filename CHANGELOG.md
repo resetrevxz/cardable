@@ -1,3 +1,17 @@
+# Cardable v1.7.6 — Lighter inventory
+
+Inventory keeps complete cards and rarity designs while browsing uses static fronts throughout. Opening a card still brings up its full materials and cursor interaction.
+
+- Removed live hover/focus material rebuilding, full-sheet backdrop blur, rim refraction filters and moving Shelf blur.
+- Added clearer glass edges, soft static lighting and a separated header without a live optical pass.
+- Appearance → Inventory now includes six background palettes, a custom color picker and 0–100% opacity, with miniature inventory previews and a live Settings dock preview.
+- Light backgrounds choose readable chrome colors. Reduce transparency and High contrast make the chosen background opaque.
+- Fixed normal-height Grid focus positioning when a complete card is taller than the viewport.
+
+Focused browser/native checks and repeated inventory measurements are recorded in docs/INVENTORY-LIGHT-1.7.6.md. Save schema, card ownership and gameplay rules remain unchanged.
+
+---
+
 # Cardable v1.7.5 — Inventory glass
 
 Inventory now uses translucent charcoal glass that fits Cardable's quiet interface. High and Very High add a brighter bevel, subtle spectral highlights, frosted depth and real backdrop refraction along the rim. Medium uses denser, simpler frost; Low and Very Low retain solid surfaces.
