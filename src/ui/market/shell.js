@@ -204,6 +204,9 @@
     }
     function run(q) {
       q = String(q || '').trim();
+      // a pasted listing reference opens that listing (an internal page; it is text, not a link)
+      var ref = ui.social && ui.social.parseRef ? ui.social.parseRef(q) : null;
+      if (ref && frameRealm() === 'global') { hide(); go('listing', { id: ref }); return; }
       store.session.filters = Object.assign(C.market.core.emptyFilters(), store.session.filters || {}, { q: q });
       store.rememberSearch(q);
       hide();

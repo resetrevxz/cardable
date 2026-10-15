@@ -166,6 +166,9 @@ export async function putVariant(env, who, uploadId, variant, request, now) {
   try {
     results = await env.DB.batch([
       env.DB.prepare("INSERT INTO _guard (stale) SELECT NULL WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE id = ? AND status = 'pending' AND expires_at > ?)").bind(uploadId, now),
+      // two uploads at once cannot both slip under the storage cap: it is checked again here, where they are serialised
+      env.DB.prepare("INSERT INTO _guard (quota) SELECT NULL WHERE NOT ((SELECT COALESCE(SUM(v.bytes), 0) FROM upload_variants v JOIN uploads u ON u.id = v.upload_id WHERE u.account_id = ? AND u.status IN ('pending', 'ready', 'attached') AND NOT (v.upload_id = ? AND v.variant = ?)) + ? <= ?)")
+        .bind(who.accountId, uploadId, variant, img.bytes.length, limits.maxBytes),
       env.DB.prepare('SELECT object_key FROM upload_variants WHERE upload_id = ? AND variant = ?').bind(uploadId, variant),
       env.DB.prepare('INSERT INTO upload_variants (upload_id, variant, object_key, type, width, height, bytes, stripped, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ' +
         'ON CONFLICT(upload_id, variant) DO UPDATE SET object_key = excluded.object_key, type = excluded.type, width = excluded.width, height = excluded.height, bytes = excluded.bytes, stripped = excluded.stripped, created_at = excluded.created_at')
@@ -176,6 +179,7 @@ export async function putVariant(env, who, uploadId, variant, request, now) {
   } catch (error) {
     try { await env.MEDIA.delete(objectKey); } catch (_) { /* the sweep removes it */ }
     if (/_guard\.stale/.test(String(error && error.message))) throw new ApiError(409, 'not-pending', 'This upload is no longer open.');
+    if (/_guard\.quota/.test(String(error && error.message))) throw new ApiError(409, 'storage-full', 'This would take you over your picture storage. Remove a picture first.');
     throw error;
   }
   const previous = results[1].results[0];

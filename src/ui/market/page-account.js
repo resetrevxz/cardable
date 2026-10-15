@@ -188,6 +188,7 @@
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope, live = ui.sim.live(realm);
     host.appendChild(head('Activity', 'Bids, listings, sales and watchlist movement in one place.',
       [ui.button('Mark all read', { variant: 'secondary', icon: 'check', onClick: function () { store.markRead(items.map(function (n) { return n.id; })); paint(); } })]));
+    if (realm === 'global' && ui.social) { var due = ui.social.reviewsDueBox(ctx); if (due) host.appendChild(due); }
     var data = ctx.api.activitySync(realm);
     var items = data.notifications;
     var filter = 'all';
@@ -442,6 +443,7 @@
     var layout = h('div.mk-settings');
     host.appendChild(layout);
     layout.appendChild(ui.online.settingsPanel(ctx));
+    if (ctx.realm === 'global' && ui.social) layout.appendChild(ui.social.settingsPanel(ctx));
     if (ui.sim.live('simulation')) layout.appendChild(ui.sim.settingsPanel(ctx));
     page.sections.forEach(function (section) {
       var visible = section.keys.filter(function (key) { return advanced || !C.settingsSchema.entries[key].advanced; });

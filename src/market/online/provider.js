@@ -330,6 +330,7 @@
         return se && se.data ? null : d.loadStocks(q, false);
       }
       if (name === 'alerts') return S.alerts.data ? null : d.loadAlerts(false);
+      if (name === 'profile') { var pe = S.profiles[String(params.alias || '').toLowerCase()]; return pe && pe.data ? null : d.loadProfile(params.alias, false); }
       if (name === 'compare') {
         var cmp = C.market.store.compareList().filter(function (x) { return x.realm === 'global'; });
         var cws = cmp.filter(function (x) { var a = S.analytics[x.cardId + '|' + (x.variantId || '') + '|7d']; return !(a && a.data); }).map(function (x) { return d.loadAnalytics(x.cardId, x.variantId || null, '7d', false); });
@@ -375,6 +376,9 @@
       if (spec.kind === 'fixed') body.ask = spec.ask;
       if (spec.kind === 'auction') { body.start = spec.start; body.reserve = spec.reserve; body.buyout = spec.buyout; if (spec.step) body.step = spec.step; }
       if (spec.kind === 'swap') { body.wants = wantsOf(spec); if (spec.minTopUp) body.minTopUp = spec.minTopUp; }
+      // pictures are earlier, explicit uploads: only their ids and the crop travel here
+      if (spec.images && spec.images.length) { body.images = spec.images.map(function (i) { return { uploadId: i.uploadId, alt: i.alt || '' }; }); body.cover = spec.cover || { layout: 'banner', zoom: 1, x: 50, y: 50 }; }
+      if (spec.treatment && spec.treatment !== 'none') body.treatment = spec.treatment;
       return write('POST', '/v1/listings', body, spec.requestId, listingResult);
     },
     cancelListing: function (realm, id) { return write('POST', '/v1/listings/' + encodeURIComponent(id) + '/cancel', {}, C.market.ui.sim.newRequestId(), function () { return { listing: { id: id } }; }); },
@@ -401,6 +405,88 @@
   };
   provider.quoteLocal = quoteLocal;
   provider.mapWants = wantsOf;
+
+  // ---- the social layer ----------------------------------------------------------------------------------------------------
+  // Reads come from the data layer's last answer and ask again in the background; writes use a key and read again.
+  function slotOf(map, k) { return map[k] || { data: null, loading: false }; }
+  function post(method, path, body, touch) {
+    if (!isLive()) return Promise.resolve(Object.assign(friendly({ code: 'signed-out' }), { message: 'Connect to Global Market to do that.' }));
+    return online().authed(method, path, body || null, { idempotencyKey: key(C.market.ui.sim.newRequestId()), timeoutMs: 20000 }).then(function (res) {
+      data().used();
+      var out = Object.assign({ ok: true }, res);
+      return Promise.resolve(touch ? touch(res) : null).then(function () { return out; }, function () { return out; });
+    }, friendly);
+  }
+  var social = {
+    comments: function (listingId) {
+      if (!isLive()) return { items: [], loading: false, open: false };
+      data().used(); data().loadComments(listingId, false);
+      var E = slotOf(data().state.comments, listingId);
+      return E.data ? Object.assign({ loading: false }, E.data) : { items: [], loading: !E.error, error: E.error || null, open: true };
+    },
+    moreComments: function (listingId) { return data().moreComments(listingId); },
+    postComment: function (listingId, text, parentId) {
+      return post('POST', '/v1/listings/' + encodeURIComponent(listingId) + '/comments', { body: text, parentId: parentId || undefined }, function () { return data().loadComments(listingId, true); });
+    },
+    editComment: function (listingId, id, text) { return post('PUT', '/v1/comments/' + encodeURIComponent(id), { body: text }, function () { return data().loadComments(listingId, true); }); },
+    removeComment: function (listingId, id) { return post('DELETE', '/v1/comments/' + encodeURIComponent(id), null, function () { return data().loadComments(listingId, true); }); },
+    hideComment: function (listingId, id, hidden) { return post('POST', '/v1/comments/' + encodeURIComponent(id) + '/hide', { hidden: hidden !== false }, function () { return data().loadComments(listingId, true); }); },
+    report: function (targetType, targetId, reason, note, listingId) { return post('POST', '/v1/reports', { targetType: targetType, targetId: targetId, reason: reason, note: note || '' }, function () { return listingId ? data().loadComments(listingId, true) : null; }); },
+    profile: function (alias) {
+      if (!isLive()) return { loading: false, offline: true };
+      data().used(); data().loadProfile(alias, false);
+      var E = slotOf(data().state.profiles, String(alias).toLowerCase());
+      return E.data ? Object.assign({ loading: false }, E.data) : { loading: !E.error, error: E.error || null };
+    },
+    profileReviews: function (alias, cursor) { return data().profileReviews(alias, cursor); },
+    follows: function () {
+      if (!isLive()) return { sellers: [], cards: [], max: 100, loading: false };
+      data().loadFollows(false);
+      var E = data().state.follows;
+      return E.data ? Object.assign({ loading: false }, E.data) : { sellers: [], cards: [], max: 100, loading: true };
+    },
+    isFollowingSeller: function (alias) { var f = social.follows(); return f.sellers.some(function (x) { return x.alias.toLowerCase() === String(alias).toLowerCase(); }); },
+    isFollowingCard: function (cardId) { return social.follows().cards.some(function (x) { return x.cardId === cardId; }); },
+    follow: function (spec, on) {
+      var path = '/v1/follows' + (on ? '' : '?kind=' + encodeURIComponent(spec.kind) + (spec.alias ? '&alias=' + encodeURIComponent(spec.alias) : '') + (spec.cardId ? '&cardId=' + encodeURIComponent(spec.cardId) : ''));
+      return post(on ? 'POST' : 'DELETE', path, on ? spec : null, function () { var S = data().state; S.follows.at = 0; Object.keys(S.profiles).forEach(function (k) { S.profiles[k].at = 0; }); return Promise.all([data().loadFollows(true)]); });
+    },
+    feed: function (scope) {
+      if (!isLive()) return { items: [], loading: false };
+      data().used(); data().loadFeed(scope, false);
+      var E = slotOf(data().state.feeds, scope || 'all');
+      return E.data ? Object.assign({ loading: false }, E.data) : { items: [], loading: true };
+    },
+    moreFeed: function (scope) { return data().moreFeed(scope); },
+    reviewsDue: function () {
+      if (!isLive()) return { items: [], loading: false };
+      data().loadReviewsDue(false);
+      var E = data().state.reviewsDue;
+      return E.data ? Object.assign({ loading: false }, E.data) : { items: [], loading: true };
+    },
+    postReview: function (tradeId, rating, text) { return post('POST', '/v1/reviews', { tradeId: tradeId, rating: rating, body: text || '' }, function () { data().state.reviewsDue.at = 0; return data().loadReviewsDue(true); }); },
+    editReview: function (id, rating, text) { return post('PUT', '/v1/reviews/' + encodeURIComponent(id), { rating: rating, body: text || '' }, function () { Object.keys(data().state.profiles).forEach(function (k) { data().state.profiles[k].at = 0; }); }); },
+    settings: function () {
+      if (!isLive()) return { loading: false };
+      data().loadSettings(false);
+      var E = data().state.settings;
+      return E.data ? Object.assign({ loading: false }, E.data) : { loading: true };
+    },
+    saveSettings: function (patch) {
+      var cur = data().state.settings.data || {};
+      return post('PUT', '/v1/settings', Object.assign({}, cur, patch), function (r) { data().state.settings.data = r.value || {}; data().state.settings.at = Date.now(); data().changed(); });
+    },
+    uploads: function () {
+      if (!isLive()) return { items: [], usage: null, loading: false };
+      data().loadUploads(false);
+      var E = data().state.uploads;
+      return E.data ? Object.assign({ loading: false }, E.data) : { items: [], usage: null, loading: true };
+    },
+    refreshUploads: function () { return data().loadUploads(true); },
+    deleteUpload: function (id) { return post('DELETE', '/v1/uploads/' + encodeURIComponent(id), null, function () { return data().loadUploads(true); }); },
+    updatePresentation: function (listingId, body) { return post('POST', '/v1/listings/' + encodeURIComponent(listingId) + '/presentation', body, function () { return data().invalidate(); }); }
+  };
+  provider.social = social;
 
   C.market.onlineProvider = provider;
   C.events.on('app:ready', function () {

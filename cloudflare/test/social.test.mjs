@@ -511,3 +511,21 @@ test('events other players read are bounded: a listing can be lowered only so of
   const drops = sql(server, "SELECT COUNT(*) AS n FROM listing_events WHERE listing_id = '" + L + "' AND kind = 'repriced' AND at >= " + (now + 2 * HOUR - 1))[0].n;
   assert.ok(drops <= 6, 'at most six drops in the hour, got ' + drops + ' from ' + burst.map((r) => r.status).join(','));
 });
+
+test('limits hold under a race: two comments at once are not both the first, and two uploads cannot both fit the last of the storage', async () => {
+  const seller = await player(server, { cards: 1, cardList: cardsOf(1, 30) }), talker = await player(server, {});
+  const L = unwrap(await call(server, 'POST', '/v1/listings', { kind: 'fixed', instanceIds: [seller.cards[0].id], ask: 45 }, seller.token)).listingId;
+  const at = Date.now() + 9 * HOUR;
+  const both = await Promise.all([0, 1, 2, 3].map((i) => call(server, 'POST', '/v1/listings/' + L + '/comments', { body: 'A quick remark number ' + i + ' about the card' }, talker.token, { at })));
+  assert.equal(both.filter((r) => r.status === 200).length, 1, both.map((r) => r.status).join(','));
+  assert.ok(both.filter((r) => r.status !== 200).every((r) => r.status === 429 || r.status === 409), both.map((r) => r.status).join(','));
+  // storage: 4000 bytes in all, three pictures of about 1800 bytes each started together
+  const me = await player(small, {});
+  const slots = [];
+  for (let i = 0; i < 3; i++) slots.push(unwrap(await call(small, 'POST', '/v1/uploads', {}, me.token)).uploadId);
+  const puts = await Promise.all(slots.map((id) => put(small, me.token, id, 'thumb', webp(...SIZES.thumb, 1800), 'image/webp')));
+  const ok = puts.filter((r) => r.status === 200).length;
+  assert.ok(ok >= 1 && ok <= 2, 'at most two fit in 4000 bytes: ' + puts.map((r) => r.status).join(','));
+  const used = sql(small, "SELECT COALESCE(SUM(v.bytes), 0) AS n FROM upload_variants v JOIN uploads u ON u.id = v.upload_id WHERE u.account_id = (SELECT id FROM accounts WHERE alias = '" + me.alias + "')")[0].n;
+  assert.ok(used <= 4000, 'stored ' + used);
+});

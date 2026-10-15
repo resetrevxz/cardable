@@ -178,6 +178,8 @@
       };
       paintStrip();
       scope.add(store.subscribe(function (what) { if (what === 'sim') paintStrip(); }));
+      // what real players have just listed and sold, and what the people you follow are doing
+      if (ui.social && C.market.onlineProvider && C.market.onlineProvider.social) host.appendChild(ui.social.feedSection(ctx));
     }
     // Simulation realm: a quiet pill when the market changed under the page, so rows never jump while you read.
     var pill = h('button.mk-updates', { type: 'button', hidden: true, 'aria-live': 'polite' });

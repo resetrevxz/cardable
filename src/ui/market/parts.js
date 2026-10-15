@@ -260,7 +260,14 @@
     options = options || {};
     var el = h('span.mk-seller');
     el.appendChild(icon(seller.isBot ? 'layers' : 'user'));
-    el.appendChild(h('span.mk-seller-alias', { text: seller.alias }));
+    var linked = !seller.isBot && !seller.isYou && C.market.store && C.market.store.session.realm === 'global' && C.market.onlineProvider && ui.go;
+    if (linked) {
+      var link = h('span.mk-seller-alias.is-link', { text: seller.alias, role: 'link', tabindex: '0', title: 'See ' + seller.alias + '’s profile' });
+      var openProfile = function (e) { e.stopPropagation(); ui.go('profile', { alias: seller.alias }); };
+      link.addEventListener('click', openProfile);
+      link.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProfile(e); } });
+      el.appendChild(link);
+    } else el.appendChild(h('span.mk-seller-alias', { text: seller.alias }));
     if (!options.compact) el.appendChild(h('span.mk-seller-meta', { text: seller.isYou ? 'Your listing' : seller.isBot ? (seller.personaLabel || 'Simulation bot') : seller.sales + ' sales' }));
     return el;
   }
@@ -292,6 +299,9 @@
     });
     art.appendChild(watch);
     tile.appendChild(art);
+    // a seller's own picture sits beside the card, labelled, never in its place; the card art above is always the card
+    var photo = ui.social && ui.social.tilePhoto ? ui.social.tilePhoto(l) : null;
+    if (photo) { tile.appendChild(photo); tile.dataset.photo = '1'; if (l.treatment && l.treatment !== 'none') tile.dataset.treatment = l.treatment; }
 
     var body = h('div.mk-tile-body');
     var open = h('button.mk-tile-open', { type: 'button' });

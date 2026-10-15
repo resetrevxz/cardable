@@ -61,7 +61,8 @@
         durationMode: advanced ? draft.durationMode : 'preset', customHours: draft.customHours, fixedDays: draft.fixedDays,
         wanted: draft.wanted.map(function (w) { return { cardId: w.type === 'card' ? w.cardId : '', rarity: w.type === 'rarity' ? w.rarity : '', variant: w.type === 'finish' ? w.variant : '', minValuePct: w.minValuePct }; }),
         creditTopUp: advanced ? draft.creditTopUp : '', minRelativePct: advanced ? draft.minRelativePct : '', wantLowSerial: advanced && draft.wantLowSerial,
-        title: draft.title, description: draft.description };
+        title: draft.title, description: draft.description,
+        pictures: (draft.pictures || []).map(function (p) { return { uploadId: p.uploadId, alt: p.alt || '', layout: p.layout || 'banner', crop: p.crop || null }; }), treatment: draft.treatment || 'none' };
     }
 
     // ---- layout ----
@@ -93,6 +94,8 @@
       draft.items = ids; draft.format = d.format || draft.format; draft.price = d.price || ''; draft.startBid = d.startBid || ''; draft.reserve = d.reserve || ''; draft.buyout = d.buyout || '';
       draft.preset = d.preset || draft.preset; draft.durationMode = d.durationMode || 'preset'; draft.customHours = d.customHours || 48;
       draft.creditTopUp = d.creditTopUp || ''; draft.minRelativePct = d.minRelativePct || ''; draft.wantLowSerial = !!d.wantLowSerial; draft.title = d.title || ''; draft.description = d.description || '';
+      draft.pictures = Array.isArray(d.pictures) ? d.pictures.filter(function (p) { return p && /^upl_/.test(p.uploadId); }).slice(0, 3) : [];
+      draft.treatment = d.treatment || 'none';
       if (Array.isArray(d.wanted) && d.wanted.length) draft.wanted = d.wanted.map(function (w) { return { type: w.cardId ? 'card' : w.rarity ? 'rarity' : w.variant ? 'finish' : 'card', cardId: w.cardId || '', rarity: w.rarity || '', variant: w.variant || '', minValuePct: w.minValuePct || '' }; });
     }
 
@@ -370,8 +373,13 @@
       note.addEventListener('input', function () { draft.description = note.value; touch(); });
       body.appendChild(field('Note', note, { name: 'description' }));
 
+      if (live && realm === 'global' && C.market.media && C.market.online && C.market.online.state.status === 'online') {
+        body.appendChild(picturesSection());
+        presentHost.appendChild(body);
+        return;
+      }
       if (live) {
-        body.appendChild(h('p.mk-hint', icon('image'), h('span', { text: 'Listings in the Simulation use the card’s own art. Custom cover images arrive with the online Market.' })));
+        body.appendChild(h('p.mk-hint', icon('image'), h('span', { text: realm === 'global' ? 'Connect to Global Market to add pictures to a listing.' : 'Listings in the Simulation use the card’s own art. Custom pictures are for Global Market, where real players see them.' })));
         presentHost.appendChild(body);
         return;
       }
@@ -422,6 +430,126 @@
       coverFrame.addEventListener('pointerup', function () { if (drag) { drag = null; touch(); } });
       paintCover();
     }
+    // ---- Global Market pictures: chosen, cropped and uploaded on purpose, then attached to the listing ----
+    var MAXPIC = 3;
+    function pictures() { return draft.pictures || (draft.pictures = []); }
+    function picturesSection() {
+      var sec = h('div.mk-pictures-edit', { 'aria-label': 'Pictures' });
+      sec.appendChild(h('span.mk-field-label', { text: 'Pictures from you' }));
+      sec.appendChild(h('p.mk-hint', icon('shield'), h('span', { text: 'Optional. A picture is decoration shown next to the card. It never replaces the card, its serial or its price, and it is not proof of the item. Nothing is uploaded until you choose a picture, crop it and confirm.' })));
+      var list = h('ul.mk-pictures', { role: 'list' });
+      pictures().forEach(function (p, n) {
+        var li = h('li.mk-picture');
+        var thumb = h('div.mk-picture-thumb'); thumb.appendChild(ui.social.photoImg({ id: p.uploadId, alt: p.alt }, 'thumb', p.alt || 'Picture ' + (n + 1)));
+        var alt = h('input.mk-input', { type: 'text', maxlength: '140', value: p.alt || '', placeholder: 'Describe the picture (optional)', 'aria-label': 'Description of picture ' + (n + 1) });
+        alt.addEventListener('input', function () { p.alt = alt.value; touch(); });
+        var acts = h('div.mk-picture-actions');
+        if (n > 0) acts.appendChild(ui.button('Make cover', { variant: 'ghost', size: 'sm', onClick: function () { pictures().splice(n, 1); pictures().unshift(p); touch(); buildPresent(); renderSide(); } }));
+        acts.appendChild(ui.button('Remove', { variant: 'ghost', size: 'sm', icon: 'trash', onClick: function () { pictures().splice(n, 1); touch(); buildPresent(); renderSide(); } }));
+        li.append(thumb, h('div.mk-picture-copy', h('strong', { text: n === 0 ? 'Cover' : 'Picture ' + (n + 1) }), alt), acts);
+        list.appendChild(li);
+      });
+      sec.appendChild(list);
+      if (pictures().length < MAXPIC) {
+        var fileInput = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp', hidden: true, 'aria-label': 'Choose a picture' });
+        var choose = ui.button('Choose a picture', { icon: 'upload', variant: 'secondary', onClick: function () { fileInput.click(); } });
+        var album = ui.button('From Director album', { icon: 'image', variant: 'secondary', onClick: function () { openAlbum(album, true); } });
+        sec.append(h('div.mk-cover-actions', choose, album, fileInput));
+        fileInput.addEventListener('change', function () { var file = fileInput.files && fileInput.files[0]; fileInput.value = ''; if (file) pictureDialog(file, 'file', choose); });
+        var drop = h('div.mk-dropzone', { tabindex: '0', role: 'button', 'aria-label': 'Drop a picture here, or press Enter to choose one' }, icon('upload'), h('span', { text: 'Drop a picture here, or paste one from your clipboard' }));
+        drop.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+        ['dragenter', 'dragover'].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.add('is-over'); }); });
+        ['dragleave', 'drop'].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.remove('is-over'); }); });
+        drop.addEventListener('drop', function (e) { var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (file) pictureDialog(file, 'file', drop); });
+        sec.appendChild(drop);
+        // paste: only while this step is open and the focus is in it
+        sec.addEventListener('paste', function (e) {
+          var items = e.clipboardData && e.clipboardData.items;
+          for (var i = 0; items && i < items.length; i++) if (items[i].kind === 'file') { var file = items[i].getAsFile(); if (file) { e.preventDefault(); pictureDialog(file, 'file', drop); return; } }
+        });
+        drop.setAttribute('data-paste', 'true');
+      } else sec.appendChild(h('p.mk-hint', { text: 'A listing can show up to ' + MAXPIC + ' pictures.' }));
+      var look = ui.segmented({ label: 'Look', value: draft.treatment || 'none', onChange: function (v) { draft.treatment = v; touch(); renderSide(); },
+        options: [{ value: 'none', label: 'Plain' }, { value: 'frame', label: 'Framed' }, { value: 'spotlight', label: 'Spotlight' }] });
+      sec.appendChild(h('div.mk-field', h('span.mk-field-label', { text: 'How the pictures look' }), look,
+        h('small.mk-hint', { text: 'Restrained on purpose: a thin frame or a soft light behind the picture. It never changes the card or the terms.' })));
+      return sec;
+    }
+    // Crop, describe, confirm, upload with real progress. The original file is only read.
+    function pictureDialog(blob, source, anchor) {
+      var surface = h('section.mk-modal.mk-crop', { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Add a picture' });
+      var state = { img: null, crop: { layout: 'banner', zoom: 1, x: 50, y: 50 }, job: null, busy: false };
+      var canvas = h('canvas.mk-crop-canvas', { width: 480, height: 270, role: 'img', 'aria-label': 'Preview of the part of the picture that will be shown', tabindex: '0' });
+      var status = h('p.mk-hint', { role: 'status', text: 'Reading the picture…' });
+      var err = h('p.mk-field-error', { role: 'alert', hidden: true });
+      var bar = h('progress.mk-progress', { max: '100', value: '0', hidden: true, 'aria-label': 'Upload progress' });
+      var layoutSwitch = ui.segmented({ label: 'Shape', value: state.crop.layout, onChange: function (v) { state.crop.layout = v; fit(); draw(); },
+        options: Object.keys(C.market.media.LAYOUTS).map(function (k) { return { value: k, label: C.market.media.LAYOUTS[k].label }; }) });
+      var zoomIn = h('input', { type: 'range', min: '1', max: '4', step: '0.05', value: '1', 'aria-label': 'Zoom' });
+      var alt = h('input.mk-input', { type: 'text', maxlength: '140', placeholder: 'Describe the picture for someone who cannot see it (optional)', 'aria-label': 'Picture description' });
+      var agree = h('input', { type: 'checkbox', 'aria-label': 'I understand this picture is uploaded and shown to other players' });
+      var send = ui.button('Upload picture', { variant: 'primary', icon: 'upload', disabled: true });
+      var cancel = ui.button('Cancel', { variant: 'ghost' });
+      function fit() { var a = C.market.media.LAYOUTS[state.crop.layout].ratio; canvas.height = Math.round(canvas.width / a); }
+      function draw() {
+        if (!state.img) return;
+        var r = C.market.media.cropRect(state.img, state.crop), g = canvas.getContext('2d');
+        g.fillStyle = '#16181c'; g.fillRect(0, 0, canvas.width, canvas.height);
+        g.drawImage(state.img.source, r.sx, r.sy, r.sw, r.sh, 0, 0, canvas.width, canvas.height);
+      }
+      function ready() { send.disabled = !(state.img && agree.checked) || state.busy; }
+      agree.addEventListener('change', ready);
+      zoomIn.addEventListener('input', function () { state.crop.zoom = Number(zoomIn.value); draw(); });
+      var drag = null;
+      canvas.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, y: e.clientY, ox: state.crop.x, oy: state.crop.y }; canvas.setPointerCapture(e.pointerId); });
+      canvas.addEventListener('pointermove', function (e) {
+        if (!drag) return;
+        var b = canvas.getBoundingClientRect();
+        state.crop.x = Math.max(0, Math.min(100, drag.ox - (e.clientX - drag.x) / b.width * 100 * Math.max(1, state.crop.zoom)));
+        state.crop.y = Math.max(0, Math.min(100, drag.oy - (e.clientY - drag.y) / b.height * 100 * Math.max(1, state.crop.zoom)));
+        draw();
+      });
+      canvas.addEventListener('pointerup', function () { drag = null; });
+      canvas.addEventListener('keydown', function (e) {
+        var d = { ArrowLeft: [-5, 0], ArrowRight: [5, 0], ArrowUp: [0, -5], ArrowDown: [0, 5] }[e.key];
+        if (d) { e.preventDefault(); state.crop.x = Math.max(0, Math.min(100, state.crop.x + d[0])); state.crop.y = Math.max(0, Math.min(100, state.crop.y + d[1])); draw(); }
+      });
+      function close() { if (state.job) state.job.cancel(); if (state.img) state.img.close(); handle.close(); }
+      cancel.addEventListener('click', close);
+      send.addEventListener('click', function () {
+        state.busy = true; send.disabled = true; err.hidden = true; bar.hidden = false; bar.value = 0;
+        status.textContent = 'Preparing the picture…';
+        C.market.media.prepare(state.img, state.crop).then(function (prepared) {
+          status.textContent = 'Uploading ' + Math.max(1, Math.round(prepared.bytes / 1024)) + ' KB…';
+          cancel.querySelector('span').textContent = 'Cancel upload';
+          state.job = C.market.media.upload(prepared, { source: source === 'album' ? 'director' : 'file', onProgress: function (f) { bar.value = Math.round(f * 100); } });
+          return state.job.promise.then(function (res) { return { res: res, prepared: prepared }; });
+        }).then(function (done) {
+          pictures().push({ uploadId: done.res.uploadId, alt: alt.value.trim(), layout: state.crop.layout, crop: Object.assign({}, state.crop) });
+          draft.cover = Object.assign({}, draft.cover, { photoLayout: pictures()[0].layout });
+          if (state.img) state.img.close();
+          touch(); handle.close(); buildPresent(); renderSide();
+          C.ui.toast('Picture uploaded. It is shown only once you list the card.');
+          if (C.market.onlineProvider && C.market.onlineProvider.social) C.market.onlineProvider.social.refreshUploads();
+        }, function (error) {
+          state.busy = false; state.job = null; bar.hidden = true; cancel.querySelector('span').textContent = 'Cancel';
+          if (error && error.code === 'cancelled') { status.textContent = 'Upload cancelled. Nothing was kept.'; ready(); return; }
+          err.textContent = (error && error.message) || 'The picture could not be uploaded.';
+          err.hidden = false; status.textContent = 'You can try again with the same picture.'; ready();
+        });
+      });
+      surface.append(h('header', ui.eyebrow('Global Market'), h('h2', { text: 'Add a picture' })),
+        h('div.mk-crop-stage', canvas), status, bar, layoutSwitch, h('label.mk-field', h('span.mk-field-label', { text: 'Zoom' }), zoomIn),
+        h('div.mk-field', h('span.mk-field-label', { text: 'Description' }), alt),
+        h('label.mk-check', agree, h('span', { text: 'I understand this picture is uploaded to Global Market and shown to other players on this listing. Camera and location data are removed.' })),
+        err, h('div.mk-modal-actions', cancel, send));
+      var handle = C.ui.present(surface, { anchor: anchor, onClose: function () { if (state.job) state.job.cancel(); } });
+      fit();
+      C.market.media.open(blob).then(function (img) {
+        state.img = img; status.textContent = 'Drag the picture, or use the arrow keys, to choose the part that is shown. ' + img.width + ' × ' + img.height + ' pixels.';
+        fit(); draw(); ready();
+      }, function (error) { status.textContent = ''; err.textContent = (error && error.message) || 'That picture could not be used.'; err.hidden = false; });
+    }
     function paintCover() {
       if (!coverFrame) return;
       var r = RATIOS.find(function (x) { return x.id === draft.cover.ratio; }) || RATIOS[0];
@@ -437,16 +565,17 @@
       else { coverUrl = c.url; draft.cover.kind = c.kind; draft.cover.name = c.name; draft.cover.x = 50; draft.cover.y = 50; }
       touch(); buildPresent();
     }
-    function openAlbum(anchor) {
+    function openAlbum(anchor, forUpload) {
       var surface = h('section.mk-modal.mk-album', { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Director album' });
       var grid = h('div.mk-album-grid', { role: 'list' });
       var made = [];
-      surface.append(h('h2', { text: 'Director album' }), h('p', { text: 'Photos you made in Inspect and Director. They are only read here, never changed or uploaded.' }), grid,
+      surface.append(h('h2', { text: 'Director album' }), h('p', { text: forUpload ? 'Photos you made in Inspect and Director. Choosing one lets you crop it and upload a copy. The album itself is never changed.' : 'Photos you made in Inspect and Director. They are only read here, never changed or uploaded.' }), grid,
         h('div.mk-modal-actions', ui.button('Close', { variant: 'primary', onClick: function () { handle.close(); } })));
       var handle = C.ui.present(surface, { anchor: anchor, onClose: function () { made.forEach(function (u) { try { root.URL.revokeObjectURL(u); } catch (_) { /* gone */ } }); } });
-      if (!C.studioAlbum || !C.studioAlbum.list) { grid.appendChild(ui.emptyState({ kind: 'empty', icon: 'image', title: 'The album is not available here', body: 'Director photos can be chosen once the album is available.' })); return; }
       grid.appendChild(h('p.mk-hint', { text: 'Looking through the album…' }));
-      C.studioAlbum.list().then(function (photos) {
+      // The album's storage code loads on demand (it is part of the Studio); only that part is loaded, and it only reads.
+      var ready = C.studioAlbum && C.studioAlbum.list ? Promise.resolve() : (C.studio && C.studio.ensureAlbumData ? C.studio.ensureAlbumData() : Promise.reject(new Error('The album is not available here.')));
+      ready.then(function () { return C.studioAlbum.list(); }).then(function (photos) {
         ui.clear(grid);
         if (!photos.length) { grid.appendChild(ui.emptyState({ kind: 'empty', icon: 'image', title: 'No Director photos yet', body: 'Take a photo in Inspect or Director and it appears here.' })); return; }
         photos.slice(0, 24).forEach(function (p) {
@@ -456,6 +585,7 @@
           b.addEventListener('click', function () {
             C.studioAlbum.get(p.id).then(function (full) {
               if (!full || !full.blob) return;
+              if (forUpload) { handle.close(); pictureDialog(full.blob, 'album', anchor); return; }
               setCover({ url: root.URL.createObjectURL(full.blob), name: p.name || 'Director photo', kind: 'album' });
               handle.close();
             });
@@ -470,7 +600,9 @@
       var sel = selected()[0];
       if (!sel) return null;
       var base = { id: 'draft', realm: realm, format: draft.format, status: 'active', card: { cardId: sel.cardId, variantId: sel.variantId || null, cardSkinId: sel.cardSkinId || null, serial: sel.serial, count: draft.items.length, packId: sel.packId },
-        title: draft.title, description: draft.description, cover: { kind: 'card' }, seller: { alias: 'You', isBot: false, sales: 0, rating: 1, tenureDays: 0 }, valuation: v || valuationOf(sel), listedMin: 0, watchers: 0, source: 'draft', ask: Number(draft.price) || 0 };
+        title: draft.title, description: draft.description, cover: { kind: 'card' },
+        images: (draft.pictures || []).map(function (p) { return { id: p.uploadId, alt: p.alt || '' }; }), photoCover: (draft.pictures || []).length ? { layout: draft.pictures[0].layout || 'banner' } : null, treatment: draft.treatment || 'none',
+        seller: { alias: 'You', isBot: false, sales: 0, rating: 1, tenureDays: 0 }, valuation: v || valuationOf(sel), listedMin: 0, watchers: 0, source: 'draft', ask: Number(draft.price) || 0 };
       if (draft.format === 'auction') { var s = Number(draft.startBid) || 0; base.ask = s; base.auction = { start: s, current: s, bids: 0, reserve: draft.reserve ? Number(draft.reserve) : null, reserveMet: !draft.reserve, increment: K().minIncrement(s), buyout: draft.buyout ? Number(draft.buyout) : null }; base.endsMin = (hours() || 24) * 60; }
       if (draft.format === 'swap') {
         var rule = draft.wanted[0] || {};
@@ -548,6 +680,11 @@
     function listingSpec(requestId) {
       var ids = selected().map(function (i) { return i.instanceId; });
       var base = { instanceIds: ids, title: draft.title.trim(), note: draft.description.trim(), requestId: requestId };
+      if (realm === 'global' && (draft.pictures || []).length) {
+        base.images = draft.pictures.map(function (p) { return { uploadId: p.uploadId, alt: p.alt || '' }; });
+        base.cover = { layout: draft.pictures[0].layout || 'banner', zoom: 1, x: 50, y: 50 };
+      }
+      if (realm === 'global' && draft.treatment && draft.treatment !== 'none') base.treatment = draft.treatment;
       if (draft.format === 'buy-now') return Object.assign(base, { kind: 'fixed', ask: Math.floor(Number(draft.price)), durationMs: draft.fixedDays * DAY });
       if (draft.format === 'auction') {
         return Object.assign(base, { kind: 'auction', start: Math.floor(Number(draft.startBid)), durationMs: (hours() || 24) * 3600000,
@@ -573,6 +710,7 @@
         rows.push({ label: draft.format === 'auction' ? 'You receive at the starting bid' : 'You receive', value: ui.fmt.exact(result.net) + ' Credits', strong: true });
       }
       if (draft.title) rows.push({ label: 'Title', value: draft.title });
+      if (realm === 'global' && (draft.pictures || []).length) rows.push({ label: 'Pictures', value: draft.pictures.length + ' shown to other players, next to the card' });
       ui.sim.confirm({
         title: 'List ' + (sel.length === 1 ? 'this card' : sel.length + ' cards'), eyebrow: 'Review', rows: rows, anchor: root.document.activeElement,
         note: 'The card stays in your collection but is locked while listed. A sale adds your Credits once, after the fee, and the card leaves your collection at that moment.',

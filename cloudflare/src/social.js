@@ -121,6 +121,9 @@ export async function postComment(env, who, key, listingId, body, now) {
     const id = newId('cmt'), tx = new Tx(env, now);
     tx.guard('limit_hit', '(SELECT COUNT(*) FROM comments WHERE listing_id = ?) < ?', listingId, c.perListing);
     tx.guard('quota', '(SELECT COUNT(*) FROM comments WHERE author_id = ? AND created_at > ?) < ?', who.accountId, now - HOUR, c.perHour);
+    tx.guard('quota', '(SELECT COUNT(*) FROM comments WHERE author_id = ? AND created_at > ?) < ?', who.accountId, now - DAY, c.perDay);
+    // the cooldown is in the transaction too: two comments at once cannot both be the first
+    tx.guard('quota', 'NOT EXISTS (SELECT 1 FROM comments WHERE author_id = ? AND created_at > ?)', who.accountId, now - c.cooldownMs);
     tx.add("INSERT INTO comments (id, listing_id, author_id, parent_id, body, created_at) VALUES (?, ?, ?, ?, ?, ?)", id, listingId, who.accountId, parentId, text, now);
     const name = who.alias;
     if (parent && parent.author_id !== who.accountId) socialNote(tx, parent.author_id, 'reply', name + ' replied to your comment.', listingId);
@@ -191,6 +194,7 @@ export async function report(env, who, key, body, now) {
     if (already) throw new ApiError(409, 'duplicate', 'You already reported that. Thank you.');
     const rid = newId('rep'), tx = new Tx(env, now);
     tx.guard('duplicate', 'NOT EXISTS (SELECT 1 FROM reports WHERE reporter_id = ? AND target_type = ? AND target_id = ?)', who.accountId, type, id);
+    tx.guard('quota', '(SELECT COUNT(*) FROM reports WHERE reporter_id = ? AND created_at > ?) < ?', who.accountId, now - DAY, SOCIAL.report.perDay);
     tx.add('INSERT INTO reports (id, reporter_id, target_type, target_id, reason, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)', rid, who.accountId, type, id, reason, note, now);
     // A comment or review that several different players report is held (hidden from everyone but its author) until
     // the operator looks. Reports are one per player per target, so the count is of distinct players.
@@ -230,6 +234,7 @@ export async function postReview(env, who, key, body, now) {
     if (day >= SOCIAL.review.perDay) throw new ApiError(429, 'quota', 'That is a lot of reviews for one day.', { limit: SOCIAL.review.perDay });
     const id = newId('rev'), tx = new Tx(env, now);
     tx.guard('duplicate', 'NOT EXISTS (SELECT 1 FROM reviews WHERE trade_id = ?)', tradeId);
+    tx.guard('quota', '(SELECT COUNT(*) FROM reviews WHERE buyer_id = ? AND created_at > ?) < ?', who.accountId, now - DAY, SOCIAL.review.perDay);
     tx.add('INSERT INTO reviews (id, trade_id, seller_id, buyer_id, rating, body, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)', id, tradeId, t.seller_id, who.accountId, rating, text, now);
     socialNote(tx, t.seller_id, 'review', who.alias + ' rated a trade with you ' + rating + ' out of 5.', t.id);
     return { tx, result: { ok: true, reviewId: id, tradeId } };
@@ -276,7 +281,7 @@ export async function profile(env, who, alias, now) {
     env.DB.prepare("SELECT COUNT(*) AS n FROM listings WHERE seller_id = ? AND status = 'active' AND ends_at > ?").bind(id, now).first(),
     env.DB.prepare("SELECT COUNT(*) AS n FROM follows WHERE kind = 'seller' AND target = ?").bind(id).first(),
     env.DB.prepare("SELECT 1 AS x FROM follows WHERE account_id = ? AND kind = 'seller' AND target = ?").bind(who.accountId, id).first(),
-    env.DB.prepare("SELECT r.*, b.alias AS buyer_alias FROM reviews r JOIN accounts b ON b.id = r.buyer_id WHERE r.seller_id = ? AND r.status = 'visible' ORDER BY r.created_at DESC, r.id DESC LIMIT 10").bind(id).all()
+    env.DB.prepare("SELECT r.*, b.alias AS buyer_alias FROM reviews r JOIN accounts b ON b.id = r.buyer_id WHERE r.seller_id = ? AND r.status = 'visible' ORDER BY r.created_at DESC, r.id DESC LIMIT 11").bind(id).all()
   ]);
   const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   dist.results.forEach((r) => { distribution[r.rating] = r.n; });
@@ -288,7 +293,8 @@ export async function profile(env, who, alias, now) {
     activity: { sales: sales.n, purchases: bought.n, swaps: swaps.n, activeListings: active.n },
     reputation: { reviews: n, average: n ? Math.round(rev.avg * 10) / 10 : null, distribution, distinctBuyers: buyers.n, sample: sampleTier(n),
       note: n ? 'Rated ' + (Math.round(rev.avg * 10) / 10) + ' out of 5 from ' + n + ' review' + (n === 1 ? '' : 's') + ' by ' + buyers.n + ' buyer' + (buyers.n === 1 ? '' : 's') + '.' : 'No reviews yet. Reviews come only from completed trades.' },
-    reviews: recent.results.map((r) => reviewView(r, who.accountId)), serverNow: now
+    reviews: recent.results.slice(0, 10).map((r) => reviewView(r, who.accountId)),
+    reviewsCursor: recent.results.length > 10 ? cursorOf(recent.results[9].created_at, recent.results[9].id) : null, serverNow: now
   };
 }
 

@@ -17,7 +17,8 @@
     listings: { items: null, total: 0, at: 0, loading: null, error: null },
     details: {}, cards: {}, vals: {}, tradesBy: {},
     activity: { data: null, at: 0, loading: null }, inventory: { items: null, total: 0, at: 0, loading: null }, rules: null,
-    analytics: {}, stocksBy: {}, movers: { data: null, at: 0, loading: null }, portfolio: { data: null, at: 0, loading: null }, alerts: { data: null, at: 0, loading: null } };
+    analytics: {}, stocksBy: {}, movers: { data: null, at: 0, loading: null }, portfolio: { data: null, at: 0, loading: null }, alerts: { data: null, at: 0, loading: null },
+    comments: {}, profiles: {}, feeds: {}, uploads: { data: null, at: 0, loading: null }, follows: { data: null, at: 0, loading: null }, reviewsDue: { data: null, at: 0, loading: null }, settings: { data: null, at: 0, loading: null } };
 
   // ---- time ----------------------------------------------------------------------------------------------------------
   function learn(serverNow) { if (Number.isFinite(serverNow) && serverNow > 0) { S.skew = serverNow - Date.now(); S.skewAt = Date.now(); } }
@@ -107,7 +108,8 @@
       id: v.id, realm: 'global', format: v.format, kind: v.kind, status: statusOf(v), ask: v.ask, title: v.title || '', description: v.description || '', cover: { kind: 'card' }, reason: '',
       card: { cardId: v.card.cardId, variantId: v.card.variantId || null, cardSkinId: v.card.cardSkinId || null, serial: v.card.serial, count: v.card.count, packId: v.card.packId || null },
       items: (v.items || []).map(function (i) { return { instanceId: i.instanceId || '', cardId: i.cardId, variantId: i.variantId || null, cardSkinId: i.cardSkinId || null, serial: i.serial, packId: i.packId || null }; }),
-      seller: { alias: v.seller.alias, isBot: false, isYou: !!v.seller.isYou, persona: null, personaLabel: null, sales: v.seller.sales || 0, rating: null, tenureDays: v.seller.tenureDays || 0 },
+      seller: { alias: v.seller.alias, isBot: false, isYou: !!v.seller.isYou, persona: null, personaLabel: null, sales: v.seller.sales || 0, rating: null, reviews: v.seller.rating || null, tenureDays: v.seller.tenureDays || 0 },
+      images: (v.images || []).map(function (i) { return { id: i.id, alt: i.alt || '', width: i.width, height: i.height }; }), photoCover: v.cover || null, treatment: v.treatment || 'none', commentCount: v.commentCount || 0,
       valuation: val, listedMin: Math.max(0, (t - v.createdAt) / MIN), watchers: 0, source: 'players', isMine: !!v.isMine,
       closedAt: v.closedAt || null, endsMin: closed ? null : minutesUntil(v.endsAt), endedMin: v.closedAt ? Math.max(0, (t - v.closedAt) / MIN) : null,
       soldFor: v.soldFor != null ? v.soldFor : null, endNote: v.endNote || '', snipeNote: v.snipeNote || '', createdSim: v.createdAt, endsAt: v.endsAt, offerIds: [], reservedCard: false, version: v.version
@@ -296,6 +298,70 @@
     return E.loading;
   }
 
+  // ---- the social layer: comments, profiles, the community feed, pictures, follows and reviews -------------------------------
+  function loadComments(listingId, force) {
+    var E = slot(S.comments, listingId);
+    if (!live()) return Promise.resolve(E);
+    if (E.loading) return E.loading;
+    if (!force && E.data && fresh(E.at, TTL.detail)) return Promise.resolve(E);
+    E.loading = get('/v1/listings/' + encodeURIComponent(listingId) + '/comments?limit=30').then(function (d) { learn(d.serverNow); E.data = d; E.at = Date.now(); E.loading = null; E.error = null; changed(); return E; },
+      function (error) { E.loading = null; E.error = error; E.at = Date.now(); changed(); return E; });
+    return E.loading;
+  }
+  function moreComments(listingId) {
+    var E = slot(S.comments, listingId);
+    if (!E.data || !E.data.nextCursor) return Promise.resolve(E);
+    return get('/v1/listings/' + encodeURIComponent(listingId) + '/comments?limit=30&cursor=' + encodeURIComponent(E.data.nextCursor)).then(function (d) {
+      E.data = Object.assign({}, d, { items: E.data.items.concat(d.items) }); E.at = Date.now(); changed(); return E;
+    });
+  }
+  function aliasKey(alias) { return String(alias || '').toLowerCase(); }
+  function loadProfile(alias, force) {
+    var E = slot(S.profiles, aliasKey(alias));
+    if (!live()) return Promise.resolve(E);
+    if (E.loading) return E.loading;
+    if (!force && E.data && fresh(E.at, 20000)) return Promise.resolve(E);
+    E.loading = get('/v1/profiles/' + encodeURIComponent(alias)).then(function (d) { learn(d.serverNow); E.data = d; E.error = null; E.at = Date.now(); E.loading = null; changed(); return E; },
+      function (error) { E.loading = null; E.error = error; E.at = Date.now(); changed(); return E; });
+    return E.loading;
+  }
+  function profileReviews(alias, cursor) {
+    return get('/v1/profiles/' + encodeURIComponent(alias) + '/reviews?limit=10' + (cursor ? '&cursor=' + encodeURIComponent(cursor) : ''));
+  }
+  function loadFeed(scope, force) {
+    var E = slot(S.feeds, scope || 'all');
+    if (!live()) return Promise.resolve(E);
+    if (E.loading) return E.loading;
+    if (!force && E.data && fresh(E.at, TTL.listings)) return Promise.resolve(E);
+    E.loading = get('/v1/feed?limit=24&scope=' + (scope === 'following' ? 'following' : 'all')).then(function (d) {
+      learn(d.serverNow);
+      E.data = { items: d.items.map(function (v) { var l = toListing(v); l.event = v.event; l.eventAt = v.eventAt; l.eventMin = Math.max(0, (now() - v.eventAt) / MIN); return l; }), nextCursor: d.nextCursor, scope: d.scope };
+      E.at = Date.now(); E.loading = null; changed(); return E;
+    }, function () { E.loading = null; E.at = Date.now(); return E; });
+    return E.loading;
+  }
+  function moreFeed(scope) {
+    var E = slot(S.feeds, scope || 'all');
+    if (!E.data || !E.data.nextCursor) return Promise.resolve(E);
+    return get('/v1/feed?limit=24&scope=' + (scope === 'following' ? 'following' : 'all') + '&cursor=' + encodeURIComponent(E.data.nextCursor)).then(function (d) {
+      var more = d.items.map(function (v) { var l = toListing(v); l.event = v.event; l.eventAt = v.eventAt; l.eventMin = Math.max(0, (now() - v.eventAt) / MIN); return l; });
+      E.data = { items: E.data.items.concat(more), nextCursor: d.nextCursor, scope: d.scope }; changed(); return E;
+    });
+  }
+  function simpleLoader(box, path, after) {
+    return function (force) {
+      if (!live()) return Promise.resolve(box);
+      if (box.loading) return box.loading;
+      if (!force && box.data && fresh(box.at, TTL.activity)) return Promise.resolve(box);
+      box.loading = get(path).then(function (d) { box.data = after ? after(d) : d; box.at = Date.now(); box.loading = null; changed(); return box; }, function () { box.loading = null; box.at = Date.now(); return box; });
+      return box.loading;
+    };
+  }
+  var loadUploads = function (force) { return simpleLoader(S.uploads, '/v1/uploads')(force); };
+  var loadFollows = function (force) { return simpleLoader(S.follows, '/v1/follows')(force); };
+  var loadReviewsDue = function (force) { return simpleLoader(S.reviewsDue, '/v1/reviews/pending')(force); };
+  var loadSettings = function (force) { return simpleLoader(S.settings, '/v1/settings', function (d) { return d.value || {}; })(force); };
+
   // ---- background refresh while the Market is in use -------------------------------------------------------------------------------
   function used() {
     S.usedAt = Date.now();
@@ -320,18 +386,27 @@
     Object.keys(S.analytics).forEach(function (k) { S.analytics[k].at = 0; });
     Object.keys(S.stocksBy).forEach(function (k) { S.stocksBy[k].at = 0; });
     S.movers.at = 0; S.portfolio.at = 0; S.alerts.at = 0;
+    Object.keys(S.comments).forEach(function (k) { S.comments[k].at = 0; });
+    Object.keys(S.profiles).forEach(function (k) { S.profiles[k].at = 0; });
+    Object.keys(S.feeds).forEach(function (k) { S.feeds[k].at = 0; });
+    S.uploads.at = 0; S.follows.at = 0; S.reviewsDue.at = 0;
     return Promise.all([loadListings(true), loadActivity(true), loadInventory(true)]);
   }
   function reset() {
     S.listings = { items: null, total: 0, at: 0, loading: null, error: null }; S.details = {}; S.cards = {}; S.vals = {}; S.tradesBy = {};
     S.activity = { data: null, at: 0, loading: null }; S.inventory = { items: null, total: 0, at: 0, loading: null };
     S.analytics = {}; S.stocksBy = {}; S.movers = { data: null, at: 0, loading: null }; S.portfolio = { data: null, at: 0, loading: null }; S.alerts = { data: null, at: 0, loading: null };
+    S.comments = {}; S.profiles = {}; S.feeds = {}; S.uploads = { data: null, at: 0, loading: null }; S.follows = { data: null, at: 0, loading: null };
+    S.reviewsDue = { data: null, at: 0, loading: null }; S.settings = { data: null, at: 0, loading: null };
+    if (C.market.media && C.market.media.forget) C.market.media.forget();
     changed();
   }
 
   C.market.onlineData = {
     state: S, now: now, learn: learn, minutesUntil: minutesUntil, used: used, changed: changed, invalidate: invalidate, reset: reset, rules: loadRules,
     loadAnalytics: loadAnalytics, loadStocks: loadStocks, loadMovers: loadMovers, loadPortfolio: loadPortfolio, loadAlerts: loadAlerts, stocksKey: stocksKey,
+    loadComments: loadComments, moreComments: moreComments, loadProfile: loadProfile, profileReviews: profileReviews, loadFeed: loadFeed, moreFeed: moreFeed,
+    loadUploads: loadUploads, loadFollows: loadFollows, loadReviewsDue: loadReviewsDue, loadSettings: loadSettings,
     loadListings: loadListings, loadDetail: loadDetail, loadCard: loadCard, loadActivity: loadActivity, loadInventory: loadInventory, loadTrades: loadTrades, wantValuation: wantValuation,
     valuationFor: valuationFor, fullValuation: fullValuation, toListing: toListing, toOrder: toOrder, toOffer: toOffer, toTrade: toTrade, wantedLabels: wantedLabels,
     get revision() { return S.revision; }

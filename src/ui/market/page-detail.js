@@ -81,6 +81,13 @@
       ];
       box.appendChild(ui.statGrid(rows, { cols: rows.length }));
       var player = !seller.isBot && !seller.isYou && C.market.store && C.market.store.session.realm === 'global';
+      if (player && C.market.onlineProvider && ui.social) {
+        rows.push({ label: 'Reviews', value: seller.reviews ? ui.social.starsLine(seller.reviews.average) + ' · ' + seller.reviews.count + (seller.reviews.count === 1 ? ' review' : ' reviews') : 'No reviews yet' });
+        var oldGrid = box.querySelector('.mk-stats'); if (oldGrid) oldGrid.remove();
+        box.appendChild(ui.statGrid(rows, { cols: rows.length }));
+        box.appendChild(h('div.mk-linkrow', ui.button('View profile', { icon: 'user', variant: 'secondary', size: 'sm', onClick: function () { ui.go('profile', { alias: seller.alias }); } }),
+          ui.social.followButton({ kind: 'seller', alias: seller.alias }, { size: 'sm' })));
+      }
       box.appendChild(h('p.mk-hint', { text: seller.isYou ? 'Withdraw it while it has no bids or offers, or let it run.'
         : player ? 'A real player, shown only by a generated two-word name. Their sales count is every completed player trade of theirs.'
           : (seller.personaNote ? seller.personaNote + ' ' : '') + 'A simulated trader on this device, not a person. It decides with its own budget and habits.' }));
@@ -168,12 +175,15 @@
     }
     identity.appendChild(h('div.mk-linkrow', ui.button('Open this card’s market', { icon: 'trend', variant: 'ghost', onClick: function () { ui.go('card', { id: card.id, variant: first.card.variantId || '' }); } })));
     left.appendChild(identity);
+    // the seller's own pictures, after and apart from the card: labelled, and never a substitute for it
+    var photos = realm === 'global' && ui.social ? ui.social.gallery(first) : null;
+    if (photos) left.appendChild(photos);
     layout.appendChild(left);
 
     var right = h('div.mk-detail-right');
     layout.appendChild(right);
     var bidDraft = { value: '', touched: false };
-    var lastSig = '';
+    var lastSig = '', commentsBox = null;
 
     // ---- the right column is rebuilt from the latest listing whenever something that matters changed ----
     function paintRight(r) {
@@ -386,10 +396,20 @@
         tbox.appendChild(tl);
         right.appendChild(tbox);
       }
-      var comments = h('section.mk-box.is-inactive', { 'aria-label': 'Comments' }, h('div.mk-panel-head', h('h3', { text: 'Comments' }), ui.chip('Not active', { tone: 'soft' })));
-      comments.appendChild(h('p.mk-hint', { text: 'Questions and sale reputation arrive with the social update. Nothing can be posted here yet.' }));
-      comments.appendChild(h('input.mk-input', { type: 'text', disabled: true, placeholder: 'Comments are not available yet', 'aria-label': 'Comment (not available yet)' }));
-      right.appendChild(comments);
+      if (realm === 'global' && ui.social && C.market.onlineProvider) {
+        // built once: it keeps its own draft and subscription while the rest of this column is redrawn
+        if (!commentsBox) commentsBox = ui.social.commentsPanel(ctx, l);
+        right.appendChild(commentsBox);
+        var share = h('section.mk-box', { 'aria-label': 'Share or report' }, h('div.mk-panel-head', h('h3', { text: 'Share or report' })));
+        share.appendChild(h('div.mk-linkrow', ui.button('Copy listing reference', { icon: 'copy', variant: 'secondary', size: 'sm', onClick: function () { ui.social.copyRef(l.id); } }),
+          mine ? null : ui.button('Report listing', { icon: 'warn', variant: 'ghost', size: 'sm', onClick: function () { ui.social.reportDialog('listing', l.id, l.id, 'this listing'); } })));
+        share.appendChild(h('p.mk-hint', { text: 'A reference is plain text. Paste it into Market search to open this listing. It is not a link.' }));
+        right.appendChild(share);
+      } else {
+        var comments = h('section.mk-box.is-inactive', { 'aria-label': 'Comments' }, h('div.mk-panel-head', h('h3', { text: 'Comments' }), ui.chip('Players only', { tone: 'soft' })));
+        comments.appendChild(h('p.mk-hint', { text: 'Traders in the Simulation are software on this device, so there is no one to comment or rate. Comments and reviews live in Global Market.' }));
+        right.appendChild(comments);
+      }
       ui.sim.countdowns(right);
       if (focusId) { var again = right.querySelector('#' + focusId); if (again) again.focus({ preventScroll: true }); }
     }
