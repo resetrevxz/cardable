@@ -135,6 +135,10 @@
 
     // Storage
     openSaveDirectory: function () { if (desktop) return desktop.storage.openSaveDir(); },
+    retryBackup: function () {
+      if (!C.state || !C.state.lastWriteSucceeded) return Promise.resolve(false);
+      root.clearTimeout(backupTimer); return backupCurrent();
+    },
 
     // Logs & Diagnostics
     openLogDirectory: function () { if (desktop) return desktop.logs.openDir(); },

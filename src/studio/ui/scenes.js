@@ -31,12 +31,12 @@
   function scenes(s){
     var ui=C.studioUI,button=ui.button,store=C.state.current.studio||(C.state.current.studio={slots:[],last:{}}),name=ui.node('input','studio-scene-name',s.panel);
     name.type='text';name.maxLength=60;name.placeholder='Scene name';name.setAttribute('aria-label','Scene name');name.value=s.slotName||'Untitled scene';name.addEventListener('input',function(){s.slotName=name.value;});
-    ui.node('p','studio-copy',s.panel,'Ten slots. Save writes the current composition and thumbnail. Load keeps the exact card you entered with. Last scene saves on exit.');
+
     var grid=ui.node('div','studio-slots',s.panel);
     for(var i=0;i<10;i++)(function(index){var slot=store.slots[index],row=ui.node('div','studio-slot',grid);if(slot&&slot.thumbnail){var image=ui.node('img','',row);image.src=slot.thumbnail;image.alt='Scene thumbnail: '+slot.name;image.width=160;image.height=100;}
       ui.node('span','studio-copy',row,(index+1)+'. '+(slot?slot.name:'Empty'));var actions=ui.node('div','studio-presets-row',row);
-      button('Save',actions,function(){s.api.saveSlot(index,name.value);scenesRefresh();});button('Load',actions,slot?function(){s.api.loadScene(slot.scene);s.slotName=slot.name;ui.inspect(s,'scenes');}:null);
-      button('Delete',actions,slot?function(){store.slots[index]=null;C.state.save();scenesRefresh();}:null);
+      var armed=0;var saveButton=button('Save',actions,function(){if(slot&&performance.now()>armed){armed=performance.now()+3000;saveButton.textContent='Replace?';saveButton.dataset.tooltip='Activate again to replace '+slot.name;return;}var previous=slot?C.studioScenes.clone(slot):null;s.api.saveSlot(index,name.value);undo(previous);scenesRefresh();});button('Load',actions,slot?function(){s.api.loadScene(slot.scene);s.slotName=slot.name;ui.inspect(s,'scenes');}:null);
+      var deleteUntil=0,deleteButton=button('Delete',actions,slot?function(){if(performance.now()>deleteUntil){deleteUntil=performance.now()+3000;deleteButton.textContent='Delete?';return;}var previous=C.studioScenes.clone(slot);store.slots[index]=null;C.state.save();undo(previous);scenesRefresh();}:null);function rejectRepeat(b){C.keys.listen(b,'keydown','studio.slot.confirmation',function(e){if(e.repeat&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopImmediatePropagation();}});}rejectRepeat(saveButton);rejectRepeat(deleteButton);function undo(previous){C.ui.toast('Scene slot '+(index+1)+' updated.',{label:'Undo',run:function(){store.slots[index]=previous;C.state.save();if(!s.closing&&s.selected==='scenes')scenesRefresh();}});}
     })(i);
     function scenesRefresh(){ui.inspect(s,'scenes');}
     ui.section(s,'Copyable scene JSON');var text=ui.node('textarea','studio-json',s.panel);text.rows=8;text.spellcheck=false;text.setAttribute('aria-label','Scene JSON');text.value=s.jsonDraft||C.studioScenes.serialize(s.scene);text.addEventListener('input',function(){s.jsonDraft=text.value;});var actions=ui.node('div','studio-presets-row',s.panel);

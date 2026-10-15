@@ -51,6 +51,12 @@
       view: function () { return view; }, flip: flip, browse: function (index) { browse(index - serialIndex); }, close: close });
     flipButton = infoPanel.flipButton;
   }
+  function setVisualInteractive(value) {
+    if (!visual) return;
+    visual.inert = !value;
+    if (value) visual.removeAttribute('aria-hidden');
+    else visual.setAttribute('aria-hidden', 'true');
+  }
   function syncSerial() {
     if (infoPanel) infoPanel.refresh(payload.entry.instances[serialIndex]);
     C.detailPanel.bindCard(view);
@@ -58,6 +64,18 @@
   function open(event) {
     if (phase !== 'closed') return;
     payload = event; if(payload.entry.owned)payload.entry.isNew=false; view = event.view; visual = event.visual; serialIndex = 0; side = 'front';
+    var requested = payload.entry.owned && event.instanceId ? payload.entry.instances.findIndex(function (item) { return item.instanceId === event.instanceId; }) : 0;
+    if (requested > 0 && view) {
+      serialIndex = requested; view.destroy();
+      view = C.cardView.create(payload.entry.card, payload.entry.instances[serialIndex], { owned: true, autoFocus: false, keyboardFlip: false, autoStamp: false, shine: true });
+      visual = view.el; visual.setAttribute('tabindex', '-1');
+      visual.dataset.detailRole = visual.getAttribute('role'); visual.setAttribute('role', 'img'); visual.setAttribute('aria-label', payload.entry.card.name);
+      payload.view = view; payload.visual = visual;
+    }
+    // Live inventory previews are inert and hidden from assistive technology.
+    // The same element can be handed directly into the detail mount, where it
+    // must receive pointer events so its tilt follows the cursor.
+    setVisualInteractive(true);
     overlay.hidden = false; overlay.inert = false; panelOpacity = 0; panel.style.opacity = 0;
     C.accessibility.trap(overlay);
     overlay.style.setProperty('--detail-dim', 0); root.document.body.style.setProperty('--detail-focus', 0);
@@ -130,7 +148,7 @@
     returnPanelFrom = panelOpacity; returnBackdropFrom = clamp(spring.value, 0, 1);
     from = currentRect(); from.top += dragSpring.value; to = C.viewport.rect(target.rect || payload.sourceRect);
     spring.reset(0); dragSpring.reset(0); phase = 'returning';
-    if (view) { view.el.querySelectorAll('[data-copy-serial]').forEach(function (el) { el.tabIndex = -1; }); if (view.el.dataset.detailRole) view.el.setAttribute('role', view.el.dataset.detailRole); delete view.el.dataset.detailRole; view.setPresentation('art-only'); view.setMode('lite'); view.setShine(0); }
+    if (view) { view.el.querySelectorAll('[data-copy-serial]').forEach(function (el) { el.tabIndex = -1; }); if (view.el.dataset.detailRole) view.el.setAttribute('role', view.el.dataset.detailRole); delete view.el.dataset.detailRole; view.setPresentation('art-only'); view.setMode('lite'); view.setShine(0); setVisualInteractive(false); }
     if (swapping) { swapping.old.destroy(); swapping = null; visual.style.opacity = 1; }
     C.fx.wake();
   }
@@ -153,7 +171,9 @@
     C.accessibility.release(overlay);
   }
   function update(now, dt) {
-    if (phase === 'closed' || C.studio && (C.studio.active || C.studio.pending)) return false;
+    // Album reopening waits for this return/lift transition before entering
+    // Studio. Pending blocks input, but must not suspend its own handoff.
+    if (phase === 'closed' || C.studio && C.studio.active) return false;
     if (phase === 'detail' && spring.value === 1 && !drag && dragSpring.settled() && !swapping && shineAge >= cfg.detailShineMs) return false;
     if (C.motion.reduced) { spring.target = 1; spring.velocity = 0; if (1 - spring.value <= dt / fadeMs) spring.reset(1); else spring.value += dt / fadeMs; }
     else spring.step(dt, 1);

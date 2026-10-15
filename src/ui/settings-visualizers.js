@@ -55,8 +55,8 @@
       visibleCredits: function () { rr(c, w - 122, 12, 66, 20, 10); c.fillStyle = white(.08); c.fill(); text(g, '◈ 1,250', w - 89, 22.5, .8, 10, 'center', true); return [w - 126, 8, 74, 28]; },
       visibleSettings: function () { c.strokeStyle = white(.7); c.lineWidth = 1.3; c.beginPath(); c.arc(w - 32, 22, 6, 0, TAU); c.stroke(); c.beginPath(); c.arc(w - 32, 22, 2, 0, TAU); c.stroke(); return [w - 46, 8, 28, 28]; },
       visibleVersion: function () { text(g, 'v' + C.config.version, w - 32, 40, .4, 8, 'center', true); return [w - 54, 33, 44, 14]; },
-      visiblePackCounter: function () { text(g, '3 / 5', w / 2, h - 44, .8, 11, 'center', true); return [w / 2 - 26, h - 54, 52, 20]; },
-      visibleStockVials: function () { for (var i = 0; i < 5; i++) { rr(c, w / 2 - 34 + i * 14, h - 32, 10, 5, 2.5); c.fillStyle = i < 3 ? g.accent : white(.16); c.fill(); } return [w / 2 - 40, h - 38, 80, 16]; },
+      visiblePackCounter: function () { text(g, '3 / '+C.config.packs.maxStored, w / 2, 22, .8, 11, 'center', true); return [w / 2 - 26, h - 54, 52, 20]; },
+      visibleStockVials: function () { for (var i = 0; i < C.config.packs.maxStored; i++) { rr(c, w / 2 - 34 + i * 14, 32, 10, 5, 2.5); c.fillStyle = i < 3 ? g.accent : white(.16); c.fill(); } return [w / 2 - 40, h - 38, 80, 16]; },
       visibleTimer: function () { text(g, '04:12', w / 2, h - 16, .5, 9, 'center', true); return [w / 2 - 24, h - 25, 48, 18]; },
       visibleInventoryArrow: function () { c.strokeStyle = white(.6); c.lineWidth = 1.4; c.beginPath(); c.moveTo(w - 96, h - 20); c.lineTo(w - 88, h - 26); c.lineTo(w - 80, h - 20); c.stroke(); return [w - 104, h - 36, 32, 26]; },
       visibleAchievements: function () { text(g, '★', w - 132, h - 22, .6, 12, 'center'); return [w - 144, h - 36, 24, 26]; },
@@ -126,6 +126,8 @@
         rr(c, x + 110, y + 26, 80, 24, 8); c.fillStyle = g.accent; c.fill(); c.font = '600 10px ' + g.ui; c.textAlign = 'center'; c.fillStyle = '#08080A'; c.fillText('Apply', x + 150, y + 38.5);
       }, stat: function (g, v) { return C.settings.get('rarityColor') === 'mono' ? 'Monochrome is on · accents stay neutral' : title('accentColor', v); } },
     logoStyle: { kind: 'single', draw: function (g, v) { wordmark(g, v, 'cardable'); }, stat: function (g, v) { return title('logoStyle', v); } },
+    inventoryBackground: { kind: 'single', draw: function (g, v) { inventoryScene(g, v, C.settings.get('inventoryOpacity')); }, stat: function (g, v) { var preset = C.data.inventoryBackgrounds.find(function (item) { return item.id === v; }); return preset ? preset.label : 'Custom color'; } },
+    inventoryOpacity: { kind: 'single', draw: function (g, v) { inventoryScene(g, C.settings.get('inventoryBackground'), Number(v)); }, stat: function (g, v) { return Math.round(Number(v)) + '%'; } },
     logoAnimation: { kind: 'pair', sides: function () { return [false, true]; }, draw: function (g, v) { var word = 'cardable', swaps = C.config.logoMorph; if (v && !g.still) { var i = Math.floor(g.t / .7) % word.length, on = g.t % .7 < .45; if (on && swaps[word[i]]) word = word.slice(0, i) + swaps[word[i]] + word.slice(i + 1); } wordmark(g, C.settings.get('logoStyle'), word, 26); } },
     idleFade: { kind: 'single', draw: function (g, v) {
         var never = v === 'never', wait = never ? 1e9 : Number(v), speed = 4, cycle = never ? 6 : wait / speed + 2.4, t = g.still ? 0 : g.t % cycle, idle = Math.max(0, t - .8) * speed, fade = never ? 0 : smooth((idle - wait) / 1.6);
@@ -164,6 +166,23 @@
     if (style === 'outline' || style === 'ghost') { c.lineWidth = 1.2; c.strokeStyle = white(style === 'ghost' ? .5 : .95); c.strokeText(word, x, y); if (style === 'ghost') { c.fillStyle = white(.14); c.fillText(word, x, y); } }
     else { c.fillStyle = fill; c.fillText(word, x, y); }
     c.shadowBlur = 0; }
+  function inventoryScene(g, colorValue, opacityValue) {
+    var c = g.ctx, contrast = C.data.inventoryChromeColors(colorValue, opacityValue), rgb = contrast.rgb, alpha = contrast.opacity, ink = contrast.text, muted = contrast.muted;
+    var cell = 12; for (var y = 0; y < g.h; y += cell) for (var x = 0; x < g.w; x += cell) { c.fillStyle = ((x / cell + y / cell) % 2) ? '#b7bbc2' : '#e0e2e6'; c.fillRect(x, y, cell, cell); }
+    var w = Math.min(g.w - 38, 330), h = Math.min(g.h - 24, 94), x0 = (g.w - w) / 2, y0 = (g.h - h) / 2;
+    rr(c, x0, y0, w, h, 10); c.fillStyle = 'rgba(' + rgb + ',' + alpha + ')'; c.fill(); c.strokeStyle = white(.34); c.lineWidth = 1; c.stroke();
+    rr(c, x0 + 10, y0 + 8, w - 20, 12, 4); c.fillStyle = 'rgba(' + ink + ',.12)'; c.fill();
+    c.fillStyle = 'rgba(' + ink + ',.74)'; for (var dot = 0; dot < 3; dot++) { c.beginPath(); c.arc(x0 + 18 + dot * 6, y0 + 14, 1.2, 0, TAU); c.fill(); }
+    c.font = '600 7.5px ' + g.ui; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillStyle = 'rgb(' + ink + ')'; c.fillText('Inventory', x0 + 42, y0 + 14);
+    rr(c, x0 + w - 53, y0 + 11, 15, 6, 3); c.fillStyle = 'rgba(' + ink + ',.2)'; c.fill();
+    rr(c, x0 + w - 33, y0 + 11, 15, 6, 3); c.fillStyle = 'rgba(' + ink + ',.2)'; c.fill();
+    var gap = 8, cardW = Math.min(42, (w - 36 - gap * 2) / 3), cardH = h - 34, start = g.w / 2 - (cardW * 3 + gap * 2) / 2;
+    for (var i = 0; i < 3; i++) { var cx = start + i * (cardW + gap), cy = y0 + 26; rr(c, cx, cy, cardW, cardH, 4); c.fillStyle = 'rgba(246,247,250,.88)'; c.fill(); c.strokeStyle = 'rgba(20,22,27,.32)'; c.stroke();
+      rr(c, cx + 4, cy + 4, cardW - 8, 3, 1.5); c.fillStyle = 'rgba(35,39,48,.62)'; c.fill();
+      rr(c, cx + 4, cy + 11, cardW - 8, Math.max(7, cardH - 23), 2); c.fillStyle = i === 1 ? 'rgba(' + g.accentRgb + ',.72)' : 'rgba(70,80,96,.48)'; c.fill();
+      rr(c, cx + 4, cy + cardH - 8, cardW * .55, 2, 1); c.fillStyle = 'rgba(35,39,48,.62)'; c.fill();
+      c.fillStyle = 'rgba(' + muted + ',.88)'; c.fillRect(cx + 1, cy + cardH + 2, cardW - 2, 1); }
+  }
   function holdScene(g) { var ms = C.settings.holdMs / 1000, toggle = C.settings.get('toggleHold'), loop = ms + 1.6, t = g.still ? ms * .6 : g.t % loop, p = clamp((t - .4) / ms, 0, 1), down = t > .4 && t < .4 + ms, cx = g.w / 2; pack(g, cx - 54, g.h / 2, g.h * .66, t > .4 ? p : 0); if (p >= 1) { g.ctx.strokeStyle = 'rgba(' + g.accentRgb + ',' + (1 - clamp((t - .4 - ms) / .8, 0, 1)) + ')'; g.ctx.lineWidth = 2; g.ctx.beginPath(); g.ctx.arc(cx - 54, g.h / 2, 30 + (t - .4 - ms) * 50, 0, TAU); g.ctx.stroke(); } keycap(g, C.settings.holdKey, cx + 50, g.h / 2 - 8, toggle ? t > .4 && t < .7 : down, down); text(g, toggle ? 'tap once' : 'hold ' + ms + ' s', cx + 50, g.h / 2 + 24, .5, 10, 'center'); text(g, Math.round(p * 100) + '%', cx - 54, g.h - 10, .6, 9, 'center', true); }
   function overlayScene(g) { var c = g.ctx, mode = C.settings.get('performanceMode'), corner = C.settings.get('performanceCorner'), adv = mode === 'advanced', w = adv ? 96 : 58, h = adv ? 58 : 22, x = /left/.test(corner) ? 28 : g.w - 28 - w, y = /top/.test(corner) ? 22 : g.h - 22 - h; rr(c, 14, 10, g.w - 28, g.h - 20, 10); c.strokeStyle = white(.14); c.lineWidth = 1; c.stroke(); pack(g, g.w / 2, g.h / 2, g.h * .46, 0); if (mode === 'off') { c.setLineDash([3, 3]); rr(c, x, y, w, h, 6); c.strokeStyle = white(.2); c.stroke(); c.setLineDash([]); return; } rr(c, x, y, w, h, 6); c.fillStyle = '#17171b'; c.fill(); c.strokeStyle = g.accent; c.stroke(); text(g, Math.round(C.fx.stats.targetFps || 60) + ' FPS', x + 9, y + 11.5, .9, 10, 'left', true); if (adv) { c.strokeStyle = 'rgba(' + g.accentRgb + ',.8)'; c.beginPath(); for (var i = 0; i < 16; i++) { var yy = y + 40 - (Math.sin(i * 1.7 + (g.still ? 0 : g.t * 3)) * 5 + 6); if (i) c.lineTo(x + 9 + i * 5.2, yy); else c.moveTo(x + 9, yy); } c.stroke(); } }
   function windows(g, state, front) { var c = g.ctx, x = g.w / 2 - 120; rr(c, x, g.h * .16, 150, g.h * .62, 9); c.fillStyle = '#121216'; c.fill(); c.strokeStyle = white(.16); c.lineWidth = 1; c.stroke(); c.globalAlpha = state[1]; pack(g, x + 75, g.h * .5, g.h * .36, 0); c.globalAlpha = 1; text(g, 'Cardable · ' + state[0], x + 10, g.h * .16 + 11, .7, 9, 'left'); rr(c, x + 96, g.h * .32, 146, g.h * .56, 9); c.fillStyle = '#1d1d23'; c.fill(); c.strokeStyle = white(.3); c.stroke(); text(g, front, x + 108, g.h * .32 + 12, .8, 9, 'left'); c.fillStyle = white(.12); for (var i = 0; i < 3; i++) { rr(c, x + 108, g.h * .32 + 26 + i * 12, 96 - i * 18, 5, 2); c.fill(); } }

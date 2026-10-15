@@ -31,10 +31,9 @@
     var cfg = C.config.rarityIntro, canvas, g, spec, name = '', w = 1, h = 1, dpr = 1;
     var active = false, handing = false, section = null, stageId = '', lastElapsed = 0, fadeMs = 160,runMode='full',cardStage=false,cardAgeMs=0,cardState=null;
     var stars = [], motes = [], shards = [], clouds = Object.create(null), glows = Object.create(null);
-    var nebula = null, nebulaKey = '', nebulaAt = -Infinity;
-    var portalCloud = null, portalCloudKey = '', portalWhite = 0;
     var refraction = C.refractionIntro.create();
     var rare = C.rareIntro.create();
+    var superRare = C.superRareIntro.create();
     var gilded = C.gildedIntro.create(), backdrop, backdropG, backSpec = null, backAge = null, seed = '';
     var mythical = C.mythicalIntro.create(), backTime = 0, backPaintAt = -Infinity, backdropFocused = true;
     C.cutscenes.register('crimson', C.mythicalIntro.create); C.cutscenes.register('cosmic', C.exoticIntro.create);
@@ -312,171 +311,11 @@
         g.fillStyle = rgba(q.alt && spec.kind === 'orbit' ? accent : c, envelope * (1 - age) * .8); g.beginPath(); g.arc(x, y, q.size * .85, 0, TAU); g.fill();
       });
     }
-    function ring(radius, angle, opacity, inner) {
-      var c = color(spec.orbitColor || spec.color), light = color(spec.starColor || c), count = inner ? 3 : 4;
-      g.save(); g.translate(w / 2, h / 2); g.rotate(angle); g.globalAlpha *= opacity;
-      var gradient = g.createLinearGradient(-radius, -radius, radius, radius);
-      gradient.addColorStop(0, rgba(light, .96)); gradient.addColorStop(.4, rgba(c, .9)); gradient.addColorStop(1, rgba(tint(c, .42), .9));
-      for (var i = 0; i < count; i++) {
-        var start = i * TAU / count + .095, end = (i + 1) * TAU / count - .095, thickness = radius * (inner ? .0025 : .009);
-        g.beginPath(); g.arc(0, 0, radius, start, end); g.strokeStyle = rgba(c, .12); g.lineWidth = thickness * 4; g.stroke();
-        g.beginPath(); g.arc(0, 0, radius - thickness, start, end);
-        g.lineTo(Math.cos(end + .022) * (radius + thickness), Math.sin(end + .022) * (radius + thickness));
-        g.arc(0, 0, radius + thickness, end + .022, start, true); g.closePath(); g.fillStyle = gradient; g.fill();
-        g.beginPath(); g.arc(0, 0, radius + thickness, start, end);
-        g.strokeStyle = rgba(light, inner ? .45 : .82); g.lineWidth = 1.1; g.stroke();
-        g.beginPath(); g.arc(0, 0, radius - thickness * 2.4, start + .035, end - .07);
-        g.strokeStyle = rgba(c, .3); g.lineWidth = .75; g.stroke();
-      }
-      if (!inner) for (var j = 0; j < 4; j++) {
-        var a = j * TAU / 4, x = Math.cos(a) * radius, y = Math.sin(a) * radius;
-        g.save(); g.translate(x, y); g.rotate(a); starPath(g, radius * .063); g.fillStyle = gradient; g.fill();
-        g.strokeStyle = rgba(light, .8); g.lineWidth = 1; g.stroke();
-        starPath(g, radius * .035); g.fillStyle = rgba(tint(c, .16), 1); g.fill();
-        g.beginPath(); g.moveTo(radius * .085, 0); g.lineTo(radius * .124, radius * .022); g.lineTo(radius * .164, 0); g.lineTo(radius * .124, -radius * .022); g.closePath();
-        g.fillStyle = rgba(c, .72); g.fill(); g.strokeStyle = rgba(light, .65); g.stroke(); g.restore();
-      }
-      g.restore();
-    }
-    // A seeded turbulent spiral is baked once per palette/quality, then advected on
-    // the shared cinematic clock. Its irregular alpha edge avoids a flat blue disc.
-    function portalCloudTexture() {
-      var c = color(spec.color), light = color(spec.starColor), size = quality() === 'high' || quality() === 'very-high' ? 640 : 448;
-      var key = c + ':' + light + ':' + size;
-      if (portalCloud && portalCloudKey === key) return portalCloud;
-      portalCloudKey = key; portalCloud = root.document.createElement('canvas'); portalCloud.width = portalCloud.height = size;
-      var q = portalCloud.getContext('2d'), pixels = q.createImageData(size, size), random = randomFor('super-rare-storm-v1');
-      var grids = [8, 16, 32, 64].map(function(n){var values=new Float32Array(n*n);for(var k=0;k<values.length;k++)values[k]=random();return {n:n,values:values};});
-      function noise(u,v){
-        var result=0,weights=[.48,.28,.16,.08];
-        for(var k=0;k<grids.length;k++){
-          var grid=grids[k],n=grid.n,x=((u%1+1)%1)*n,y=((v%1+1)%1)*n,ix=Math.floor(x),iy=Math.floor(y),fx=smooth(x-ix),fy=smooth(y-iy),values=grid.values;
-          result+=weights[k]*mix(mix(values[iy*n+ix],values[iy*n+(ix+1)%n],fx),mix(values[((iy+1)%n)*n+ix],values[((iy+1)%n)*n+(ix+1)%n],fx),fy);
-        }
-        return result;
-      }
-      for(var y=0;y<size;y++)for(var x=0;x<size;x++){
-        var dx=(x+.5)/size*2-1,dy=(y+.5)/size*2-1,r=Math.hypot(dx,dy),a=Math.atan2(dy,dx);
-        var swirl=a+r*2.4,ux=Math.cos(swirl)*r,uy=Math.sin(swirl)*r;
-        var broad=noise(ux*.52+.3,uy*.52+.5),detail=noise(ux*1.15+.7,uy*1.15+.2);
-        var arms=.5+.5*Math.sin(a*3+r*5+broad*3),density=smooth((broad*.7+detail*.25+arms*.05-.27)/.43);
-        var edge=1-smooth((r-(.76+(broad-.5)*.27))/.22),rim=Math.exp(-Math.pow((r-.59)/.24,2));
-        var brightness=clamp(density*.52+rim*.24),highlight=Math.pow(density,4)*.42,at=(y*size+x)*4;
-        for(var channel=0;channel<3;channel++)pixels.data[at+channel]=mix(c[channel]*(.15+brightness),light[channel],highlight);
-        pixels.data[at+3]=Math.round(edge*(.22+density*.78)*245);
-      }
-      q.putImageData(pixels,0,0); return portalCloud;
-    }
-    // Composite at bounded material resolution; camera movement only scales this image.
-    function nebulaTexture(t) {
-      var c = color(spec.color), light = color(spec.starColor), size = quality() === 'high' || quality() === 'very-high' ? cfg.cloudSize : Math.round(cfg.cloudSize * .75), key = c + ':' + light + ':' + size;
-      if (!nebula) nebula = root.document.createElement('canvas');
-      if (nebula.width !== size) nebula.width = nebula.height = size;
-      // Only slow cloud advection is cached at 30 Hz. Rings, camera, light and the
-      // full-screen intro continue to paint on every shared scheduler frame.
-      if (key === nebulaKey && Math.abs(t - nebulaAt) < 1 / 30) return nebula;
-      nebulaKey = key; nebulaAt = t;
-      var q = nebula.getContext('2d'), radius = size / 2, atlas = portalCloudTexture();
-      q.setTransform(1, 0, 0, 1, 0, 0); q.clearRect(0, 0, size, size);
-      q.save(); q.translate(radius, radius); q.filter='blur('+Math.max(2,size*.008)+'px)';
-      q.save(); q.rotate(t * .085); q.drawImage(atlas, -radius, -radius, radius * 2, radius * 2); q.restore();
-      q.save(); q.rotate(-t * .045 + 1.7); q.globalAlpha = .58; q.drawImage(atlas, -radius * .92, -radius * .96, radius * 1.84, radius * 1.92); q.restore();
-      q.restore(); return nebula;
-    }
-    function portalCrescents(radius,t,opacity) {
-      var light=color(spec.starColor),c=color(spec.orbitColor);
-      g.save();g.translate(w/2,h/2);g.rotate(t*.045);g.globalAlpha*=opacity;
-      for(var j=0;j<6;j++){
-        var a=j*TAU/6+Math.PI/6,len=radius*.115;
-        g.save();g.translate(Math.cos(a)*radius*.43,Math.sin(a)*radius*.43);g.rotate(a+Math.PI/2);
-        g.beginPath();g.moveTo(-len,len*.42);g.bezierCurveTo(-len*.1,len*.12,len*.23,-len*.24,len,-len*.62);
-        g.quadraticCurveTo(len*.31,len*.02,len*.26,len*.55);g.quadraticCurveTo(-len*.3,len*.12,-len,len*.42);g.closePath();
-        var sheen=g.createLinearGradient(-len,len,len,-len);sheen.addColorStop(0,rgba(c,.85));sheen.addColorStop(.6,rgba(light,1));sheen.addColorStop(1,rgba(light,.96));
-        g.fillStyle=sheen;g.fill();g.strokeStyle=rgba(light,.68);g.lineWidth=.65;g.stroke();g.restore();
-      }g.restore();
-    }
-    function portalBeam(radius,power) {
-      var light=color(spec.starColor);
-      g.save();g.globalCompositeOperation='lighter';
-      g.translate(w/2,h/2);g.scale(1,.035);glow(0,0,radius*2.1,light,.4*power);g.restore();
-      g.save();g.translate(w/2,h/2);g.scale(.026,1);glow(0,0,radius*1.18,light,.24*power);g.restore();
-      var reach=Math.max(radius*1.45,w*.46),beam=g.createLinearGradient(w/2-reach,0,w/2+reach,0);
-      beam.addColorStop(0,rgba(light,0));beam.addColorStop(.4,rgba(light,.18*power));beam.addColorStop(.5,rgba(light,.55*power));beam.addColorStop(.6,rgba(light,.18*power));beam.addColorStop(1,rgba(light,0));
-      g.fillStyle=beam;g.fillRect(w/2-reach,h/2-.55,reach*2,1.1);
-    }
-    function portalCore(radius,intensity,collapse) {
-      var c=color(spec.color),light=color(spec.starColor),r=radius*mix(.205,.255,collapse);
-      glow(w/2,h/2,radius*mix(.48,.85,intensity),light,.22+intensity*.42);
-      g.save();g.translate(w/2,h/2);g.scale(1,mix(1.9,1.25,collapse));starPath(g,r);
-      var jewel=g.createLinearGradient(-r,-r,r,r);jewel.addColorStop(0,rgba(c,1));jewel.addColorStop(.4,rgba(light,1));jewel.addColorStop(.6,rgba(light,1));jewel.addColorStop(1,rgba(c,.95));
-      g.fillStyle=jewel;g.fill();g.strokeStyle=rgba(light,.95);g.lineWidth=1;g.stroke();
-      g.beginPath();g.moveTo(0,-r*.6);g.lineTo(r*.34,0);g.lineTo(0,r*.6);g.lineTo(-r*.34,0);g.closePath();
-      g.fillStyle=rgba(c,(1-intensity)*.7);g.fill();g.strokeStyle=rgba(light,(1-intensity)*.8);g.lineWidth=1.2;g.stroke();g.restore();
-      star(w/2,h/2,r*.48,light,.65+intensity*.35,0,1.7);
-      g.save();g.globalCompositeOperation='lighter';glow(w/2,h/2,radius*.34,light,intensity*.58);g.restore();
-    }
-    function portalPetals(radius,t,p) {
-      if(p<=0)return;
-      var c=color(spec.color),light=color(spec.starColor),distance=radius*mix(.66,.33,smooth(p)),size=radius*mix(.1,.28,smooth(p));
-      g.save();g.translate(w/2,h/2);g.rotate(t*.06);g.globalAlpha=p;
-      for(var j=0;j<6;j++){
-        var a=j*TAU/6;
-        g.save();g.rotate(a);g.translate(distance*(1+(j%2)*.06),0);g.rotate(.42+p*.35+(j%2?-.13:.08));g.scale(j%2?1.08:.94,1);
-        g.beginPath();g.moveTo(-size*.7,-size*.5);g.lineTo(-size*.1,-size*1.15);
-        g.bezierCurveTo(size*.45,-size*1.4,size*.7,-size*.75,size*.68,-size*.2);g.lineTo(size*1.15,size*.25);
-        g.quadraticCurveTo(size*.75,size*.95,size*.22,size*.78);g.lineTo(-size*.42,size*.57);
-        g.quadraticCurveTo(-size*.95,size*.13,-size*.7,-size*.5);g.closePath();
-        var glass=g.createLinearGradient(-size,-size,size,size);glass.addColorStop(0,rgba(light,.22));glass.addColorStop(.3,rgba(c,.25));glass.addColorStop(.5,rgba(light,.45));glass.addColorStop(.7,rgba(c,.08));glass.addColorStop(1,rgba(light,.5));
-        g.fillStyle=glass;g.fill();g.strokeStyle=rgba(c,.22);g.lineWidth=size*.12;g.stroke();g.strokeStyle=rgba(light,.18);g.lineWidth=size*.055;g.stroke();g.strokeStyle=rgba(light,.88);g.lineWidth=Math.max(1.2,size*.016);g.stroke();
-        g.beginPath();g.moveTo(-size*.62,-size*.28);g.lineTo(size*.22,-size*.91);g.lineTo(size*.55,-size*.09);g.lineTo(size*.28,size*.68);g.closePath();g.fillStyle=rgba(light,.12);g.fill();
-        g.beginPath();g.moveTo(-size*.47,-size*.36);g.bezierCurveTo(size*.4,-size*1.3,size*.6,-size*.8,size*.55,-size*.1);g.quadraticCurveTo(size*.08,size*.08,size*.25,size*.64);
-        g.strokeStyle=rgba(light,.65);g.lineWidth=Math.max(1,size*.02);g.stroke();g.restore();
-      }g.restore();
-    }
-    function portal(radius, t, opacity, intensity, collapse) {
-      var c = color(spec.color), light = color(spec.starColor);
-      g.save(); g.globalAlpha = opacity;
-      glow(w / 2, h / 2, radius * 1.55, c, .25+intensity*.3);
-      g.globalAlpha*=1-collapse*.66;g.drawImage(nebulaTexture(t), w / 2 - radius, h / 2 - radius, radius * 2, radius * 2);g.globalAlpha=opacity;
-      g.save();g.globalCompositeOperation='lighter';
-      var mist=g.createRadialGradient(w/2,h/2,radius*.12,w/2,h/2,radius*.96);
-      mist.addColorStop(0,rgba(light,.14+intensity*.26));mist.addColorStop(.52,rgba(c,.1+intensity*.27));mist.addColorStop(1,rgba(c,0));
-      g.fillStyle=mist;g.fillRect(w/2-radius,h/2-radius,radius*2,radius*2);
-      glow(w/2,h/2,radius*.9,light,intensity*.45);g.restore();
-      ring(radius*mix(1,.91,collapse), t*.055, .92-collapse*.62, false);
-      ring(radius*mix(.86,.6,collapse), -t*.075, .42-collapse*.35, true);
-      portalCrescents(radius,t,1-smooth(collapse/.6));portalPetals(radius,t,smooth(collapse));
-      portalBeam(radius,.65+intensity*.75+collapse*.6);portalCore(radius,intensity,collapse);
-      star(w/2,h/2-radius*.73,radius*.023,light,.85*(1-collapse),0,2.5);
-      star(w/2,h/2+radius*.73,radius*.023,light,.85*(1-collapse),0,2.5);
-      g.restore();
-    }
-    function portalFrame(s, t) {
-      var p=s.p,unit=Math.min(w,h),light=color(spec.starColor),c=color(spec.color),white=0;
-      screenStars(t,light,s.id==='seed'?smooth(p)*.08:.12,0);
-      if(s.id==='seed')cloudStar(unit*mix(.028,.062,smooth(p)),smooth(p/.5),t,0);
-      else if(s.id==='evolve'){
-        var form=smooth(p),r=unit*mix(.062,.385,form),morph=smooth(p/.62);
-        cloudStar(unit*.062,1-morph,t,0);portal(r,t,morph,.1+form*.12,0);
-      }else if(s.id==='intensify')portal(unit*mix(.385,.535,smooth(p)),t,1,mix(.22,.8,smooth(p)),0);
-      else if(s.id==='collapse'){
-        var fold=smooth(p);portal(unit*mix(.535,.65,fold),t,1,mix(.8,1,fold),fold);
-        g.save();g.globalCompositeOperation='lighter';glow(w/2,h/2,unit*.85,c,fold*.22);g.restore();
-      }else if(s.id==='explosion'){
-        portal(unit*.65,t,1,1,1);var burst=out(p);glow(w/2,h/2,Math.hypot(w,h)*mix(.2,1.2,burst),light,.7);
-        white=smooth(p/(C.cutscenes.profile()==='full'?.38:.9));
-      }else if(s.id==='whiteout')white=1;
-      // One monotonic white climax per run. Backward scrubbing cannot reflash it.
-      portalWhite=Math.max(portalWhite,white);if(portalWhite>0){g.fillStyle='rgba(255,255,255,'+portalWhite+')';g.fillRect(0,0,w,h);}
-    }
     function staticFrame(p) {
       var envelope = smooth(p / .25) * (1 - smooth((p - .65) / .35)), c = color(spec.color);
       if (lineKind()) { lineStill(envelope); return; }
       fronts(.7, envelope * .23, .04); glow(w / 2, h / 2, Math.min(w, h) * .38, c, envelope * .2);
-      if (spec.kind === 'portal') {
-        ring(Math.min(w, h) * .34, 0, envelope * .45, false); ring(Math.min(w, h) * .28, 0, envelope * .3, true);
-        star(w / 2, h / 2, Math.min(w, h) * .075, color(spec.starColor), envelope * .5, 0, 1.9);
-      } else if (spec.kind === 'crystal') star(w / 2, h / 2, Math.min(w, h) * .22, color(spec.starColor), envelope * .45);
+      if (spec.kind === 'crystal') star(w / 2, h / 2, Math.min(w, h) * .22, color(spec.starColor), envelope * .45);
       else if (spec.kind === 'orbit') { g.strokeStyle = rgba(color(spec.orbitColor), envelope * .25); g.beginPath(); g.ellipse(w / 2, h / 2, w * .44, h * .43, 0, 0, TAU); g.stroke(); }
     }
     function segment(elapsed, total) {
@@ -503,14 +342,16 @@
       else if (spec.kind === 'cosmic') {
         exotic.paint(g, w, h, section, elapsed / 1000, still() ? clamp(elapsed / total) : null);
       }
-      else if (still()) staticFrame(clamp(elapsed / total)); else if (spec.kind === 'crystal') rareFrame(section, elapsed / 1000); else if (spec.kind === 'portal') portalFrame(section, elapsed / 1000); else if (lineKind()) lineFrame(section, elapsed / 1000); else pulseFrame(section, elapsed / 1000);
+      else if (spec.kind === 'portal') superRare.paint(g, w, h, section, elapsed / 1000, still() ? clamp(elapsed / total) : null);
+      else if (still()) staticFrame(clamp(elapsed / total)); else if (spec.kind === 'crystal') rareFrame(section, elapsed / 1000); else if (lineKind()) lineFrame(section, elapsed / 1000); else pulseFrame(section, elapsed / 1000);
       if (spec.kind === 'prismatic' && !still()) runtime.letterbox(g, w, h, elapsed / total * spec.sections.reduce(function(n,s){return n+s.ms;},0));
       if(spec.kind!=='system')runtime.meter(canvas,runtime.presentationMs);
       stats.paints++; stats.lastDrawMs = root.performance.now() - begin; stats.maxDrawMs = Math.max(stats.maxDrawMs, stats.lastDrawMs);
     }
     function start(next, label, instanceSeed) {
       if (active) stop(); ensure(); spec = next; name = label; active = true; handing = false; stageId = ''; lastElapsed = 0;cardStage=false;cardAgeMs=0;cardState=null;runMode=C.cutscenes.mode();if(quality()==='low'&&['prismatic','system'].indexOf(next.kind)<0)runMode='light';blockedElapsed=0;
-      clearBackdrop(); seed = instanceSeed || label; portalWhite=0;
+      clearBackdrop(); seed = instanceSeed || label;
+      if (spec.kind === 'portal') superRare.start(seed);
       if(spec.kind==='system'){
         root.document.body.classList.add('is-secret-cinematic');
         notice.start(function(profile){secret.setProfile(profile);limiter.reset(profile);runtime.start(spec,secret,runMode);});
@@ -533,8 +374,6 @@
           shards.push({ points: points, cx: (points[0][0] + points[1][0] + points[2][0]) / 3, cy: (points[0][1] + points[1][1] + points[2][1]) / 3, speed: random(), turn: (random() - .5) * 1.1 });
         });
       }
-      if (!still() && spec.kind === 'portal') cloudTexture();
-      if (!still() && spec.kind === 'portal') portalCloudTexture();
       C.events.emit('opening:introStart', { rarity: label, durationMs: duration(), sections: next.sections }); update(0, root.performance.now());
     }
     function update(elapsed, now) {
@@ -575,6 +414,7 @@
       if (spec && spec.kind === 'crimson') mythical.releaseScene();
       if (spec && spec.kind === 'prismatic') ascendant.releaseScene();
       rare.stop();
+      superRare.stop();
       active = false; handing = false;cardStage=false;cardState=null; canvas.hidden = true; canvas.style.opacity = ''; spec = null; section = null;
       C.events.emit('opening:introEnd', { rarity: name });
     }
@@ -620,11 +460,11 @@
       backdrop.style.opacity = String(1 - smooth(p)); if (p === 1) clearBackdrop();
       return p < 1;
     }
-    function stop() { notice.stop();limiter.hide();secret.stop();rare.stop();root.document.body.classList.remove('is-secret-cinematic');runtime.stop(); endOverlay(); clearBackdrop(); mythical.stop(); ascendant.stop(); }
+    function stop() { notice.stop();limiter.hide();secret.stop();rare.stop();superRare.stop();root.document.body.classList.remove('is-secret-cinematic');runtime.stop(); endOverlay(); clearBackdrop(); mythical.stop(); ascendant.stop(); }
     return { start: start, update: update, stop: stop, resize: resize, beginHandoff: beginHandoff, updateRelease: updateRelease,
       restoreBackdrop: restoreBackdrop, exitBackdrop: exitBackdrop, updateBackdrop: updateBackdrop,
       get cardFrame(){return cardState;},get cardStageActive(){return cardStage;},
-      get backdrop() { return backdrop; }, get backdropActive() { return !!backSpec; },
+      get backdrop() { return backdrop; }, get backdropActive() { return !!backSpec; },get superRareStats(){return superRare.stats;},
       get runtime() { return runtime; }, get sceneCanvas() { var painter = (spec || {}).kind === 'system' ? secret : (spec || {}).kind === 'prismatic' ? ascendant : mythical; return painter.scene && painter.scene.canvas; }, get rendererStats() { var kind = (spec || backSpec || {}).kind; return kind === 'system' ? secret.stats : kind === 'prismatic' ? ascendant.stats : kind === 'cosmic' ? exotic.stats : mythical.stats; },
       get active() { return active; }, get durationMs() { return duration(); }, get section() { return section && section.id; }, get canvas() { return canvas; }, stats: stats };
   } };

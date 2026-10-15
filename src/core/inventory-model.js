@@ -6,14 +6,14 @@
   function definitions(value) { return Array.isArray(value) ? Array.from(new Set(value.filter(function(id){return typeof id==='string'&&id.length>0;}))) : []; }
   function find(ui,id) { return ui.collections.find(function(c){return c.id===id;}); }
   function color(id) { return colors.find(function(c){return c.id===id;})||colors[0]; }
-  function defaults() { return { viewMode: 'shelf', sortMode: 'catalog', tabSortMode:'manual', groupMode: 'none', showUnowned: true, activeCollectionId: 'all', lastSelectedStackKey: null, pendingFocusStackKey: null, favorites: [], collections: [], customOrders: { all: [], favorites: [] } }; }
+  function defaults() { return { viewMode: 'shelf', sortMode: 'catalog', tabSortMode:'manual', groupMode: 'none', showUnowned: false, activeCollectionId: 'all', lastSelectedStackKey: null, pendingFocusStackKey: null, favorites: [], collections: [], customOrders: { all: [], favorites: [] } }; }
   function normalize(value) {
     var result = Object.assign(defaults(), value && typeof value === 'object' && !Array.isArray(value) ? value : {});
     ['viewMode', 'sortMode', 'groupMode'].forEach(function (key) {
       var options = key === 'viewMode' ? ['shelf', 'grid'] : key === 'groupMode' ? ['none', 'rarity', 'generation', 'brand', 'ownership', 'new', 'variant'] : ['catalog', 'custom', 'missing-first', 'recent', 'oldest', 'value-desc', 'value-asc', 'change-desc', 'change-asc', 'name-asc', 'name-desc', 'rarity-asc', 'rarity-desc', 'generation', 'vram-asc', 'vram-desc', 'quantity', 'serial'];
       if (options.indexOf(result[key]) < 0) result[key] = defaults()[key];
     });
-    result.showUnowned = result.showUnowned !== false; result.favorites = ids(result.favorites);
+    result.showUnowned = result.showUnowned === true; result.favorites = ids(result.favorites);
     if(!tabSorts.some(function(pair){return pair[0]===result.tabSortMode;}))result.tabSortMode='manual';
     var used = new Set(['all', 'favorites']);
     result.collections = (Array.isArray(result.collections) ? result.collections : []).filter(function (item) {
@@ -30,17 +30,20 @@
     if (result.sortMode === 'custom'||result.sortMode==='missing-first') result.groupMode = 'none';
     return result;
   }
-  function mutate(update) {
+  function mutate(update, durable) {
     if(C.bootFailure||C.state.recovery&&C.state.recovery.pending)return false;
+    if(durable&&(!C.state.persistenceAvailable||!C.state.lastWriteSucceeded))return false;
     var previousCollections=JSON.stringify(C.state.current.inventoryUi.collections);
     // UI edits own only inventoryUi. Preserve card-instance identity and avoid
     // cloning the complete collection/journal/Studio state on each selection.
     var candidate = Object.assign({}, C.state.current);
     candidate.inventoryUi = JSON.parse(JSON.stringify(candidate.inventoryUi));
     update(candidate.inventoryUi, candidate); candidate.inventoryUi = normalize(candidate.inventoryUi);
-    C.state.current = candidate; C.state.save();
-    C.events.emit('inventory:preferencesChanged', candidate.inventoryUi);
-    if(previousCollections!==JSON.stringify(candidate.inventoryUi.collections))C.events.emit('inventory:collectionsChanged',candidate.inventoryUi.collections);
+    if(durable){if(!C.state.commit(candidate))return false;}
+    else {C.state.current = candidate; C.state.save();}
+    var notify=durable?C.events.notify:C.events.emit;
+    notify('inventory:preferencesChanged', candidate.inventoryUi);
+    if(previousCollections!==JSON.stringify(candidate.inventoryUi.collections))notify('inventory:collectionsChanged',candidate.inventoryUi.collections);
     return candidate.inventoryUi;
   }
   // All collection membership, metrics and tab ordering are projections, never UI rules.
@@ -85,13 +88,13 @@
     get current() { return C.state.current.inventoryUi; },
     update: function (patch) { return mutate(function (ui) { Object.assign(ui, patch); }); },
     favorite: function (id) { id = C.stacks.canonical(id); if (!C.state.current.inventory.some(function (item) { return C.stacks.of(item) === C.stacks.canonical(id); })) return; return mutate(function (ui) { var at = ui.favorites.indexOf(id); if (at < 0) ui.favorites.push(id); else ui.favorites.splice(at, 1); }); },
-    create: function (name,options) { options=options||{};var id = C.randomId('collection');var result=mutate(function (ui) { var c={id:id,name:String(name).trim().slice(0,60)||'Collection',stackKeys:[],kind:options.kind==='wishlist'?'wishlist':'collection',createdAt:C.clock.now()};if(c.kind==='wishlist'){c.cardIds=options.cardId&&C.card(options.cardId)?[options.cardId]:[];c.priorities={};}ui.collections.push(c); ui.customOrders[id] = []; ui.activeCollectionId = id; }); return result?id:false; },
+    create: function (name,options) { options=options||{};var id = C.randomId('collection');var result=mutate(function (ui) { var c={id:id,name:String(name).trim().slice(0,60)||'Collection',stackKeys:[],kind:options.kind==='wishlist'?'wishlist':'collection',createdAt:C.clock.now()};if(c.kind==='wishlist'){c.cardIds=options.cardId&&C.card(options.cardId)?[options.cardId]:[];c.priorities={};}ui.collections.push(c); ui.customOrders[id] = []; if(options.activate!==false)ui.activeCollectionId = id; },options.durable===true); return result?id:false; },
     settings:function(id,patch){return mutate(function(ui){var c=find(ui,id);if(!c)return;['name','color','pinned','description'].forEach(function(key){if(Object.prototype.hasOwnProperty.call(patch,key)&&(key!=='name'||String(patch.name).trim()))c[key]=patch[key];});});},
     duplicate:function(id){var source=find(this.current,id);if(!source)return false;var names=new Set(this.current.collections.map(function(c){return c.name.toLocaleLowerCase();})),n=1,name;do{var suffix=' copy'+(n>1?' '+n:'');name=source.name.slice(0,60-suffix.length)+suffix;n++;}while(names.has(name.toLocaleLowerCase()));var newId=C.randomId('collection');return mutate(function(ui){var c=JSON.parse(JSON.stringify(find(ui,id)));c.id=newId;c.name=name;c.createdAt=C.clock.now();ui.collections.splice(ui.collections.findIndex(function(c){return c.id===id;})+1,0,c);ui.customOrders[newId]=(ui.customOrders[id]||[]).slice();ui.activeCollectionId=newId;})?newId:false;},
     clear:function(id){var c=find(this.current,id);if(!c)return false;var receipt={id:id,identity:identity(),until:performance.now()+4000,collection:JSON.parse(JSON.stringify(c)),order:(this.current.customOrders[id]||[]).slice()};if(!mutate(function(ui){var item=find(ui,id);item.stackKeys=[];if(item.kind==='wishlist'){item.cardIds=[];item.priorities={};}ui.customOrders[id]=[];}))return false;receipts.set(id,receipt);return receipt;},
     restoreClear:function(receipt){if(!receipt||receipts.get(receipt.id)!==receipt||receipt.until<performance.now()||receipt.identity!==identity()||!find(this.current,receipt.id))return false;var result=mutate(function(ui){var c=find(ui,receipt.id),old=receipt.collection;c.stackKeys=ids(old.stackKeys.concat(c.stackKeys));if(c.kind==='wishlist'){c.cardIds=definitions(old.cardIds.concat(c.cardIds));c.priorities=Object.assign({},old.priorities,c.priorities);}ui.customOrders[c.id]=ids(receipt.order.concat(ui.customOrders[c.id]||[]));});if(result)receipts.delete(receipt.id);return !!result;},
-    wishlistMembership:function(id,cardId,included){if(included&&!C.card(cardId))return false;return mutate(function(ui){var c=find(ui,id);if(!c||c.kind!=='wishlist')return;c.cardIds=c.cardIds.filter(function(key){return key!==cardId;});if(included){c.cardIds.push(cardId);if(!c.priorities[cardId])c.priorities[cardId]='normal';}else delete c.priorities[cardId];});},
-    priority:function(id,cardId,value){return mutate(function(ui){var c=find(ui,id);if(c&&c.kind==='wishlist'&&c.cardIds.indexOf(cardId)>=0)c.priorities[cardId]=value;});},
+    wishlistMembership:function(id,cardId,included,options){var c=find(this.current,id);if(!c||c.kind!=='wishlist'||included&&!C.card(cardId))return false;return mutate(function(ui){var c=find(ui,id);c.cardIds=c.cardIds.filter(function(key){return key!==cardId;});if(included){c.cardIds.push(cardId);if(!c.priorities[cardId])c.priorities[cardId]='normal';}else delete c.priorities[cardId];},options&&options.durable===true);},
+    priority:function(id,cardId,value,options){var c=find(this.current,id);if(!c||c.kind!=='wishlist'||c.cardIds.indexOf(cardId)<0||['low','normal','high'].indexOf(value)<0)return false;return mutate(function(ui){find(ui,id).priorities[cardId]=value;},options&&options.durable===true);},
     rename: function (id, name) { mutate(function (ui) { var item = ui.collections.find(function (c) { return c.id === id; }); if (item && String(name).trim()) item.name = String(name).trim().slice(0, 60); }); },
     remove: function (id) { mutate(function (ui) { ui.collections = ui.collections.filter(function (c) { return c.id !== id; }); delete ui.customOrders[id]; if (ui.activeCollectionId === id) ui.activeCollectionId = 'all'; }); },
     moveCollection: function (id, delta) { if(this.current.tabSortMode!=='manual')return false;return mutate(function (ui) {var c=find(ui,id);if(!c)return;var group=ui.collections.filter(function(item){return item.pinned===c.pinned;}),at=group.indexOf(c),next=group[at+delta];if(!next)return;var from=ui.collections.indexOf(c),to=ui.collections.indexOf(next);ui.collections[from]=next;ui.collections[to]=c;}); },

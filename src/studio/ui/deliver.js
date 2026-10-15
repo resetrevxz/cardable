@@ -22,15 +22,15 @@
       for(var i=0;i<total;i++){
         alive();opts.time=kind==='still'?scene.director.playhead:frameTime(scene,i,fps);opts.presentationTime=start+(kind==='still'?0:i/fps);job.progress=(function(index){return function(n,message){ui.update((index+n)/total,'Frame '+(index+1)+' / '+total+' · '+message);};})(i);
         var result=await C.studioPhoto.capture(s,opts,job);alive();
-        if(kind==='still'){s.latestPhoto=result.record;ui.update(1,'Saving…');await C.studioFiles.save(result.record.blob,result.record.name);alive();await s.photoFilm.refresh();}
+        if(kind==='still'){s.latestPhoto=result.record;ui.update(1,'Photo ready');await C.studioFiles.save(result.record.blob,result.record.name);alive();await s.photoFilm.refresh();}
         else if(kind==='sequence'){await C.studioFiles.write(folder,result.record.blob,stem+'-'+String(i+1).padStart(5,'0'));}
         else {var frame=new root.VideoFrame(result.canvas,{timestamp:Math.round(i*1e6/fps),duration:Math.round(1e6/fps)});try{encoder.encode(frame,{keyFrame:i%(fps*2)===0});}finally{frame.close();}if(encoder.encodeQueueSize>=2)await encoder.flush();}
         ui.update((i+1)/total,'Frame '+(i+1)+' / '+total);
       }
       if(encoder){await encoder.flush();alive();s.clip=new root.Blob(chunks,{type:'video/webm'});await C.studioFiles.save(s.clip,stem+'-director');alive();C.events.emit('studio:clip',{cardId:s.view.card.id,instanceId:s.view.instance.instanceId,duration:total/fps,fps:fps,frames:total,bytes:s.clip.size,stepped:true,at:Date.now()});}
-      if(kind==='sequence')C.events.emit('studio:render',{cardId:s.view.card.id,instanceId:s.view.instance.instanceId,kind:'sequence',frames:total,fps:fps,w:opts.w,h:opts.h,at:Date.now()});s.api.status(kind==='sequence'?'Image sequence saved.':kind==='clip'?'Frame-stepped clip ready.':'Rendered still ready in your album.');
+      if(kind==='sequence')C.events.emit('studio:render',{cardId:s.view.card.id,instanceId:s.view.instance.instanceId,kind:'sequence',frames:total,fps:fps,w:opts.w,h:opts.h,at:Date.now()});s.api.status(kind==='sequence'?'Image sequence saved.':kind==='clip'?'Frame-stepped clip ready.':result.notice);
     }catch(e){if(!s.closing)s.api.status(job.encoderError?job.encoderError.message:e.message);}
-    finally{if(encoder&&encoder.state!=='closed')encoder.close();chunks.length=0;C.studioPhoto.release(job);await C.studioFiles.release(folder).catch(function(){});if(ui)ui.destroy();if(s.photoJob===job)s.photoJob=null;if(!s.closing&&s.root.isConnected){C.studioPhotoPanel.lock(s,false);s.api.select('photo');}}
+    finally{if(encoder&&encoder.state!=='closed')encoder.close();chunks.length=0;C.studioPhoto.release(job);await C.studioFiles.release(folder).catch(function(){});if(ui)ui.destroy();if(s.photoJob===job)s.photoJob=null;if(!s.closing&&s.root.isConnected){C.studioPhotoPanel.lock(s,false);if(s.workspace)s.workspace.page('Deliver');else s.api.select('photo');}}
   }
   C.studioDeliver={panel:panel,run:run,frames:frames,frameTime:frameTime,presets:presets};
 })(window.Cardable,window);

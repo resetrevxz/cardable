@@ -1,0 +1,43 @@
+/* Printed glass stays cached while the cards move. No backdrop sampling or masks. */
+:is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) {
+  --inventory-glass-tint:var(--inventory-bg-rgb,173,196,255);
+  --inventory-glass-fill:linear-gradient(145deg,#17171d,#0e0e12 70%);
+  position:relative;isolation:isolate;border:1px solid;border-color:rgba(255,255,255,.26) rgba(255,255,255,.10) rgba(255,255,255,.08) rgba(255,255,255,.18);border-radius:var(--r-sheet);
+  background:var(--inventory-glass-fill);backdrop-filter:none;-webkit-backdrop-filter:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(255,255,255,.025),0 -12px 32px rgba(0,0,0,.26);
+}
+.inventory-sheet.cb-inventory-glass { position:fixed;border-bottom:0;border-radius:var(--r-sheet) var(--r-sheet) 0 0; }
+:root[data-glass-quality="medium"] :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) {
+  --inventory-glass-fill:radial-gradient(ellipse at 0 0,rgba(var(--inventory-glass-tint),calc(var(--inventory-bg-opacity,.78) * .10)),transparent 55%),linear-gradient(145deg,rgba(var(--inventory-bg-light-rgb,35,37,45),var(--inventory-bg-opacity,.78)),rgba(var(--inventory-bg-dark-rgb,14,15,21),var(--inventory-bg-opacity,.78)) 65%);
+}
+:root:is([data-glass-quality="high"],[data-glass-quality="very-high"]) :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) {
+  --inventory-glass-fill:radial-gradient(ellipse at 0 0,rgba(var(--inventory-glass-tint),calc(var(--inventory-bg-opacity,.78) * .20)),transparent 48%),radial-gradient(ellipse at 100% 100%,rgba(var(--inventory-glass-tint),calc(var(--inventory-bg-opacity,.78) * .06)),transparent 46%),linear-gradient(115deg,rgba(var(--inventory-bg-light-rgb,47,49,59),var(--inventory-bg-opacity,.78)),rgba(var(--inventory-bg-rgb,20,22,29),var(--inventory-bg-opacity,.78)) 38%,rgba(var(--inventory-bg-dark-rgb,12,14,20),var(--inventory-bg-opacity,.78)) 72%);
+}
+.cb-inventory-glass::before { content:"";position:absolute;top:0;left:24px;right:24px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.56) 12%,rgba(var(--inventory-glass-tint),.30) 45%,transparent 95%); }
+.cb-inventory-glass::after { content:"";position:absolute;inset:1px;border:1px solid rgba(255,255,255,.045);border-radius:inherit;pointer-events:none; }
+.inventory-sheet.cb-inventory-glass > .inventory-header { background:linear-gradient(180deg,rgba(255,255,255,.025),transparent); }
+.inventory-sheet.cb-inventory-glass > .inventory-tabs { border-bottom:1px solid rgba(255,255,255,.065); }
+:root[data-rarity-color="mono"] .cb-inventory-glass { --inventory-glass-tint:210,210,218; }
+:root:is([data-glass-quality="low"],[data-glass-quality="very-low"]) :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { background:rgba(var(--inventory-bg-rgb,14,14,17),var(--inventory-bg-opacity,.78)); }
+:root:is([data-reduce-transparency="true"],[data-high-contrast="true"]) :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { background:rgb(var(--inventory-bg-rgb,14,14,17)) !important; }
+:root:is([data-glass-quality="very-low"],[data-reduce-transparency="true"]) .cb-inventory-glass::before,
+:root:is([data-glass-quality="very-low"],[data-reduce-transparency="true"]) .cb-inventory-glass::after { display:none; }
+:root[data-high-contrast="true"] :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { border-color:rgb(var(--inventory-chrome-rgb,245,245,247)); }
+:root[data-shadow-quality="very-low"] :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { box-shadow:inset 0 1px 0 var(--light-edge); }
+:root[data-shadow-quality="low"] :is(.cb-inventory-glass,.inventory-sheet.cb-inventory-glass) { box-shadow:inset 0 1px 0 var(--light-edge),0 -4px 16px rgba(0,0,0,.22); }
+.cb-gallery-glass-stage { position:relative;overflow:hidden;border-radius:var(--r-sheet);padding:36px 20px;background:radial-gradient(ellipse at 15% 0,rgba(173,196,255,.4),transparent 50%),repeating-linear-gradient(110deg,#111116 0 28px,#353540 29px 30px); }
+.cb-gallery-glass-stage .cb-inventory-glass { padding:24px;min-height:150px; }
+
+/* Light custom backgrounds change chrome only; card artwork owns its own text. */
+.inventory-sheet.cb-inventory-glass > :is(.inventory-header,.inventory-tabs),
+.inventory-sheet.cb-inventory-glass :is(.inventory-card-caption,.inventory-tag-rail,.inventory-selected-tags,.inventory-group-label,.inventory-grid-group) {
+  --text:rgb(var(--inventory-chrome-rgb,245,245,247));--text-dim:rgb(var(--inventory-chrome-muted-rgb,174,178,193));
+  --stroke:rgba(var(--inventory-chrome-rgb,245,245,247),.12);--stroke-strong:rgba(var(--inventory-chrome-rgb,245,245,247),.24);
+  --hairline:var(--stroke);--hairline-strong:var(--stroke-strong);--glass:rgba(var(--inventory-chrome-rgb,245,245,247),.06);
+  --focus:var(--text);
+  color:var(--text);
+}
+.inventory-sheet.cb-inventory-glass .inventory-popover {
+  --text:var(--text-primary);--text-dim:var(--text-secondary);--stroke:rgba(255,255,255,.10);--stroke-strong:rgba(255,255,255,.16);--hairline:var(--stroke);--hairline-strong:var(--stroke-strong);--glass:rgba(255,255,255,.04);
+}
+.inventory-sheet.cb-inventory-glass .inventory-empty { --text:rgb(var(--inventory-chrome-rgb,245,245,247));--text-dim:rgb(var(--inventory-chrome-muted-rgb,174,178,193));color:var(--text); }

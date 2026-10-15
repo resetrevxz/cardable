@@ -87,6 +87,15 @@
       });
     }
     if (value.achievements !== undefined) base.achievements = C.achievements ? C.achievements.normalize(value.achievements) : value.achievements;
+    if (value.shop !== undefined) base.shop = C.shopState.normalize(value.shop);
+    // Stage 3 reservations predate per-card Shop-pack provenance. Recover it
+    // from the durable pending entitlement before Keep transfers the card.
+    if (base.pendingReveal && base.pendingReveal.source === 'shop' && Array.isArray(base.pendingReveal.cards))
+      base.pendingReveal.cards.forEach(function (item) {
+        if (item && item.source === undefined && item.shopEntitlementId === undefined) {
+          item.source = 'shop-pack'; item.shopEntitlementId = base.pendingReveal.entitlementId;
+        }
+      });
     return base;
   }
   function validate(value, strict) {
@@ -132,7 +141,10 @@
       if (item.variantId === undefined) item.variantId = null;
       if (item.cardSkinId === undefined) item.cardSkinId = null;
       require(item.cardSkinId === null || typeof item.cardSkinId === 'string' && !!C.cardSkin(item.cardSkinId), 'Unsupported card skin');
-      require(typeof item.packId === 'string' && !!C.pack(item.packId), 'Unsupported card pack');
+      require(item.source === 'shop' ? item.packId === null && typeof item.shopOfferId === 'string' && !!item.shopOfferId :
+        item.source === 'shop-pack' ? item.packId === C.data.shop.featuredPackId &&
+          typeof item.shopEntitlementId === 'string' && /^shop-pack-[a-f0-9]{32}$/.test(item.shopEntitlementId) :
+        typeof item.packId === 'string' && !!C.pack(item.packId), 'Unsupported card provenance');
       require(item.variantId === null || typeof item.variantId === 'string' && !!C.variant(item.variantId), 'Unsupported card variant');
       require(number(item.pulledAt) && typeof item.seen === 'boolean', 'Invalid card progress');
       if (item.pickerChoice !== undefined) require(item.pickerChoice && integer(item.pickerChoice.index) && integer(item.pickerChoice.count) && item.pickerChoice.count > item.pickerChoice.index && item.pickerChoice.count <= 3, 'Invalid choice provenance');
@@ -156,11 +168,26 @@
         typeof pending.packId === 'string' && !!C.pack(pending.packId) && number(pending.committedAt), 'Invalid reserved pack');
       if (hasOptions) { require(!!C.picker, 'Choice support is unavailable'); C.picker.validatePending(pending); }
       pending.cards.forEach(function (item) { instance(item, true); });
+      if (pending.source !== undefined) require(pending.source === 'shop' && typeof pending.entitlementId === 'string' && !!pending.entitlementId,
+        'Invalid purchased pack provenance');
       require(pending.cards.every(function(item) { return item.packId === pending.packId; }), 'Reserved card pack mismatch');
       require(pending.keptCount === undefined || integer(pending.keptCount) && (pending.keptCount < pending.cards.length || hasOptions && pending.choice === null && pending.keptCount === 0), 'Invalid reserved pack progress');
       if (pending.discardedInstanceIds !== undefined) {
         require(Array.isArray(pending.discardedInstanceIds) && new Set(pending.discardedInstanceIds).size === pending.discardedInstanceIds.length &&
           pending.discardedInstanceIds.every(function (id) { return pending.cards.slice(0, pending.keptCount || 0).some(function (item) { return item.instanceId === id; }); }), 'Invalid discarded pack cards');
+      }
+    }
+    if (candidate.pendingReveal && candidate.pendingReveal.source === 'shop')
+      require(!!candidate.shop, 'Purchased pack reveal lacks Shop state');
+    if (candidate.shop) {
+      require(!candidate.shop.entitlement || candidate.pendingReveal === null, 'Pack entitlement overlaps a reveal');
+      if (candidate.pendingReveal && candidate.pendingReveal.source === 'shop') {
+        require(candidate.pendingReveal.packId === C.data.shop.featuredPackId &&
+          candidate.pendingReveal.cards.every(function (item) {
+            return item.source === 'shop-pack' && item.shopEntitlementId === candidate.pendingReveal.entitlementId;
+          }) &&
+          candidate.shop.receipts.some(function (receipt) { return receipt.kind === 'pack' && receipt.entitlementId === candidate.pendingReveal.entitlementId; }),
+          'Purchased pack reveal lacks its receipt');
       }
     }
     if (strict) require(candidate.serialCounter >= maxCounter, 'Serial counter precedes existing cards');

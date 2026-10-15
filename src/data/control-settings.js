@@ -7,7 +7,7 @@
   if(C.config&&C.config.flags&&C.config.flags.achievements===false){['visibleAchievements','visibleToastAchievements'].forEach(function(k){if(s[k])s[k].retired=true;});}
   s.visibleDesktop.disabled=true;s.visibleDesktop.helper='Native Windows controls stay available. Fullscreen hides the titlebar.';
   add('visibilityWarningSeen','','',null,false);
-  add('proximityChrome','Proximity chrome','Fade credits and inventory peek until nearby, focused or receiving a reward.','Interface visibility',false,null,'switch',true);
+  add('proximityChrome','Proximity chrome','Fade the inventory peek until nearby or focused.','Interface visibility',false,null,'switch',true);
   add('hoverAnimations','Hover animations','Motion on interface controls only.','Animation and effects',true,null,null,true);
   add('tiltStrength','Tilt strength','A percentage of your selected tilt style.','Animation and effects',100,null,'slider',true);Object.assign(s.tiltStrength,{min:0,max:150,step:5});
   add('packSwapAnimations','Pack transitions','Turn and swap effects between packs.','Animation and effects',true,null,null,true);
@@ -42,6 +42,8 @@
   add('notifySound','Notification sound','Sound is not available.','Notifications',false).disabled=true;
   [['studioDefaultMode','Default mode','current',['current','simple','pro']],['studioNavigation','Viewport navigation','default',['default','blender','figma']],['studioGizmoSize','Gizmo size',1,[.75,1,1.25,1.5]],['studioSnap','Snapping on launch',false,null],['studioAutoKey','Auto-key on launch','current',['current','on','off']],['studioAutosave','Autosave interval',4,[4,10,30,60]],['studioRenderQuality','Default render quality','current',['current','global','very-low','low','medium','high','very-high']],['studioRememberPage','Remember last page',true,null],['studioHints','Studio hints',true,null]].forEach(function(p){add(p[0],p[1],'Used when opening the Studio workspace.','Studio',p[2],p[3],null,true);});
   s.controlsProfile=add('controlsProfile','','',null,'Default',['Default','One-handed','Compact']);
-  C.data.settingsProfiles={Default:{},Performance:{quality:'low',fpsLimit:'60',resolutionScale:.75,dots:'off',reduceTransparency:true},Cinematic:{quality:'high',cutscenes:'full',skipAllCutscenes:false,revealSpeed:'normal'},Minimal:{visibleWordmark:false,visibleCredits:false,visibleHelp:false,visibleTooltips:false,visibleTags:false,dots:'off',cursorGlow:false},Accessibility:{motion:'on',reduceTransparency:true,highContrast:true,largerText:true,focusEmphasis:true,toggleHold:true,holdDuration:'short'}};
+  var cinematic={quality:'high',motion:'off',cutscenes:'full',strobing:'full',skipAllCutscenes:false,playCutscenesOnce:false,revealSpeed:'normal',variantAnimation:'full',packSwapAnimations:true,shopMotion:'cinematic'};
+  C.data.rarities.filter(function(r){return r.openingIntro;}).forEach(function(r){cinematic['cutscene_'+r.id]='inherit';});
+  C.data.settingsProfiles={Default:{},Performance:{quality:'low',fpsLimit:'60',resolutionScale:.75,dots:'off',reduceTransparency:true},Cinematic:cinematic,Minimal:{visibleWordmark:false,visibleCredits:false,visibleHelp:false,visibleTooltips:false,visibleTags:false,dots:'off',cursorGlow:false},Accessibility:{motion:'on',reduceTransparency:true,highContrast:true,largerText:true,focusEmphasis:true,toggleHold:true,holdDuration:'short'}};
   C.data.visibilityKeys=Object.keys(visibility).map(function(id){return 'visible'+id[0].toUpperCase()+id.slice(1);});
 })(window.Cardable);

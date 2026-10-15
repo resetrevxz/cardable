@@ -41,8 +41,16 @@
     var before = values; values = next; policy = resolvePolicy();
     Object.keys(schema.entries).forEach(function (key) { if (force || before[key] !== next[key]) apply(key, effective(key)); });
   }
-  function replace(next) {
-    next = schema.normalize(next); var before = values; values = next; policy = resolvePolicy();
+  function replace(next, durable) {
+    next = schema.normalize(next);
+    if(durable){
+      var candidate=Object.assign({},C.state.current,{settings:next});
+      var saved=C.state.commit(candidate);
+      if(saved)reread(false);
+      C.events.notify('settings:persisted',{saved:saved,retained:!saved});
+      return saved;
+    }
+    var before = values; values = next; policy = resolvePolicy();
     C.state.current.settings = next;
     Object.keys(schema.entries).forEach(function (key) { if (before[key] !== next[key]) apply(key, effective(key)); });
     C.state.save(); C.events.emit('settings:persisted', { saved: C.state.lastWriteSucceeded });
@@ -63,6 +71,12 @@
       var next = Object.assign({}, values, { quality: tier });
       schema.graphicsKeys.forEach(function (key) { next[key] = tier; });
       return replace(next);
+    },
+    resetShop: function(){
+      if(!C.state.current)return false;
+      var next=Object.assign({},values);
+      Object.keys(schema.entries).forEach(function(key){if(/^shop[A-Z]/.test(key))next[key]=schema.entries[key].defaultValue;});
+      return replace(next,true);
     },
     get holdKey() { return values.openKey === 'enter' ? 'Enter' : 'Space'; },
     get actionKey() { return values.openKey === 'enter' ? 'Space' : 'Enter'; },
@@ -89,7 +103,7 @@
       if (key === 'quality') return C.settings.applyPreset(schema.validate(key, value));
       var next = Object.assign({}, values); next[key] = schema.validate(key, value);
       if (next[key] === values[key]) return C.state.lastWriteSucceeded;
-      return replace(next);
+      return replace(next,/^shop[A-Z]/.test(key));
     },
     withPolicy: function (tier, fn) {
       if (!tier || schema.tiers.indexOf(tier) < 0) return fn();

@@ -4,23 +4,12 @@
   var node = C.packMarkup.node, doc = root.document;
   var version = C.config.version, seenKey = 'cardable.patchNotesSeen';
   var overlay, modal, archive, content, scroll, search, sort, filters, status, progress, modeButton, hover;
+  var closePromise=null, closing=false;
   var opened = false, interactive = false, activeVersion = version, query = '', order = 'newest', filter = 'overview';
   var savedFocus, inspectFocus, inspectLayer, inspectView, inspector;
   var views = [], inertRecords = [], positions = {}, expansions = {}, observer, visibleViews = new Map();
   var categories = { features: 'Features', systems: 'Systems', visuals: 'Visuals', qol: 'Quality of life', fixes: 'Fixes' };
-  var paths = {
-    journal: 'M5 3h14v18H5zM8 7h8M8 11h8M8 15h5',
-    cards: 'M7 3h13v17H7zM4 7H2v14h13', search: 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14m5 12 6 6',
-    arrow: 'M5 12h14m-5-5 5 5-5 5', close: 'm6 6 12 12M6 18 18 6',
-    motion: 'M3 8h11M3 12h7M3 16h11m2-12 5 8-5 8', chevron: 'm8 10 4 4 4-4', copy: 'M8 8h12v13H8zM16 8V3H3v13h5',
-    check: 'm5 12 4 4L19 6', expand: 'M4 9V4h5m6 0h5v5M4 15v5h5m6 0h5v-5'
-  };
-  function icon(name, host) {
-    var svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.classList.add('patch-icon');
-    var path = doc.createElementNS(svg.namespaceURI, 'path'); path.setAttribute('d', paths[name] || paths.journal); svg.appendChild(path); host.appendChild(svg);
-    return svg;
-  }
+  function icon(name,host){var svg=C.icons.create(name);svg.classList.add('patch-icon');host.appendChild(svg);return svg;}
   function button(host, label, className, action, glyph) {
     var el = node('button', className || 'patch-button', host); el.type = 'button';
     if (glyph) icon(glyph, el); node('span', '', el, label); if (action) el.addEventListener('click', action); return el;
@@ -320,10 +309,7 @@
     C.accessibility.trap(inspector); closeBtn.focus();
   }
   function closeInspect() {
-    if (!inspectLayer) return;
-    if (inspectView) inspectView.destroy(); inspectView = null;
-    C.accessibility.release(inspector); inspectLayer.remove(); inspectLayer = null; inspector = null; modal.inert = false;
-    if (opened && inspectFocus && inspectFocus.isConnected) inspectFocus.focus({ preventScroll: true });
+    if(!inspectLayer)return Promise.resolve();var old=inspectLayer,view=inspectView,box=inspector;inspectLayer=null;inspectView=null;inspector=null;return C.ui.exit(old,function(){if(view)view.destroy();C.accessibility.release(box);old.remove();modal.inert=false;if(opened&&inspectFocus&&inspectFocus.isConnected)inspectFocus.focus({preventScroll:true});});
   }
   function markdown(note) {
     var text = '# Cardable ' + note.version + ' — ' + note.codename + '\n\n' + note.date + ' · ' + note.tag + '\n\n' + note.tagline + '\n\n';
@@ -361,19 +347,16 @@
   }
   function open() {
     if(C.setup&&C.setup.loading)return false;
-    if(C.opening.phase!=='idle'||C.studio.active||C.tutorial.active||C.state.recovery&&C.state.recovery.pending)return false;if(C.commands.active)C.commands.close();if(C.preferences.open)C.preferences.close();
-    build(); if (opened) return; opened = true; savedFocus = doc.activeElement; overlay.hidden = false;
+    if(C.opening.phase!=='idle'||C.studio.active||C.tutorial.active||C.state.recovery&&C.state.recovery.pending)return false;if(C.commands.active)return C.commands.close().then(open);if(C.preferences.open)return C.preferences.close().then(open);if(closing)return closePromise.then(open);
+    build(); if (opened) return; C.ui.enter(overlay);opened = true; savedFocus = doc.activeElement; overlay.hidden = false;
     // Restore exact prior inert values, including a Settings dialog beneath this journal.
     inertRecords = C.viewport.layers().filter(function (el) { return el !== overlay && el.tagName !== 'SCRIPT' && el.tagName !== 'LINK'; }).map(function (el) { var record = [el, el.inert]; el.inert = true; return record; });
     doc.body.classList.add('patch-notes-open'); modal.classList.toggle('is-interactive', interactive);
     markSeen(); render(); C.accessibility.trap(modal); modal.focus(); C.events.emit('menu:visibilityHold', { reason: 'patch-notes', active: true });
   }
   function close() {
-    if (!opened) return; remember(); closeInspect(); opened = false; destroyViews(); content.replaceChildren();
-    overlay.hidden = true; doc.body.classList.remove('patch-notes-open'); C.accessibility.release(modal);
-    inertRecords.forEach(function (record) { record[0].inert = record[1]; }); inertRecords = [];
-    C.events.emit('menu:visibilityHold', { reason: 'patch-notes', active: false });
-    if (savedFocus && savedFocus.isConnected) savedFocus.focus({ preventScroll: true });
+    if(closing)return closePromise;if(!opened)return Promise.resolve();remember();opened=false;closing=true;
+    closePromise=Promise.resolve(closeInspect()).then(function(){return C.ui.exit(overlay,function(){destroyViews();content.replaceChildren();overlay.hidden=true;doc.body.classList.remove('patch-notes-open');C.accessibility.release(modal);inertRecords.forEach(function(r){r[0].inert=r[1];});inertRecords=[];closing=false;C.events.emit('menu:visibilityHold',{reason:'patch-notes',active:false});if(savedFocus&&savedFocus.isConnected)savedFocus.focus({preventScroll:true});});});return closePromise;
   }
   C.patchNotes = {
     initialized: false, version: version, get isOpen() { return opened; },get open(){return opened;},get unread(){return unread();},show:open,markdown:markdown,close:close,

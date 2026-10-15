@@ -8,7 +8,7 @@ const evidence={checks:[],errors:[],network:[],profile,screens:[]};
 function check(name){evidence.checks.push(name);console.log('PASS',name);}
 async function shot(page,name){const data=await application.evaluate(async({BrowserWindow},url)=>{const w=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL()===url);return (await w.webContents.capturePage()).toPNG().toString('base64');},page.url());fs.writeFileSync(path.join(output,name+'.png'),Buffer.from(data,'base64'));evidence.screens.push(name+'.png');}
 async function launch(){
-  application=await _electron.launch({executablePath:binary||require('electron'),args:binary?['--qa-test',`--test-user-data=${profile}`]:[root,'--dev',`--diagnostic-user-data=${profile}`],timeout:30000});
+  application=await _electron.launch({executablePath:binary||require('electron'),args:binary?[...(process.env.CARDABLE_QA_SOURCE?[root]:[]),'--qa-test',`--test-user-data=${profile}`]:[root,'--dev',`--diagnostic-user-data=${profile}`],timeout:30000});
   function observe(page){page.on('pageerror',error=>evidence.errors.push(error.stack));page.on('request',r=>{if(/^https?:/.test(r.url()))evidence.network.push(r.url());});}
   application.on('window',observe);main=await application.firstWindow();observe(main);
   await main.waitForFunction(()=>window.Cardable?.opening?.initialized&&Cardable.preferences.initialized);
@@ -30,8 +30,8 @@ async function restore(){await mini.locator('#expand').click();await main.waitFo
   await main.evaluate(()=>{const C=Cardable;C.preferences.close();if(C.friendly?.active)C.friendly.close?.();const s=structuredClone(C.state.current);s.tutorial.done=true;s.tutorial.step='done';s.packs.ready=4;s.packs.timerStartedAt=null;C.state.commit(s);});
   await enter();
   const native=await application.evaluate(({BrowserWindow})=>{const main=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().endsWith('index.html'));const mini=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('mini.html'));return {pinned:mini.isAlwaysOnTop(),mainVisible:main.isVisible(),bounds:mini.getBounds(),prefs:mini.webContents.getLastWebPreferences()};});
-  assert(native.pinned&&!native.mainVisible);assert(native.prefs.sandbox&&native.prefs.contextIsolation&&!native.prefs.nodeIntegration);
-  assert.equal(await mini.evaluate(()=>typeof require),'undefined');check('Mini pinned, hidden full renderer, sandboxed narrow bridge');await shot(mini,'01-ready');
+  evidence.native=native;assert(!native.mainVisible);assert(native.prefs.sandbox&&native.prefs.contextIsolation&&!native.prefs.nodeIntegration);
+  assert.equal(await mini.evaluate(()=>typeof require),'undefined');assert.equal(await mini.locator('#action-hint').isVisible(),false);assert.equal(await mini.locator('.pinned').isVisible(),native.pinned);assert.equal(await mini.locator('#fps').textContent(),'30 FPS');check('Mini hides full renderer and uses a sandboxed narrow bridge');await shot(mini,'01-ready');
   const before=await state();await mini.keyboard.press('Space');await mini.waitForFunction(()=>document.getElementById('action-label').textContent==='Keep card');
   const opened=await state();assert.equal(opened.ready,before.ready-1);assert(opened.currency>=before.currency+200);assert.equal(opened.count,before.count);assert.equal(opened.serial,before.serial+1);assert(opened.pending.cards.length===1);check('Keyboard open reserves once and grants pack and achievement rewards without collecting');await shot(mini,'02-reserved');
   const oldToken=await mini.evaluate(()=>cardableMini.getState().then(s=>s.token));
@@ -68,7 +68,7 @@ async function restore(){await mini.locator('#expand').click();await main.waitFo
   await main.evaluate(()=>{Cardable.settings.set('windowAspect','free');return cardableDesktop.window.setSize({width:1280,height:720});});await main.waitForTimeout(350);await shot(main,'08-compact');
   await main.keyboard.press('s');await main.waitForFunction(()=>Cardable.preferences.open);await main.evaluate(()=>Cardable.preferences.shell.go('Desktop'));await main.waitForTimeout(250);await shot(main,'09-full-settings');assert(await main.getByRole('button',{name:'Apply custom size',exact:true}).isVisible());await main.getByLabel('Custom window width').fill('1400');await main.getByLabel('Custom window height').fill('800');await main.getByRole('button',{name:'Apply custom size',exact:true}).click();await main.waitForFunction(()=>document.body.textContent.includes('Window set to 1400 × 800'));check('Custom width and height applied through the visible Desktop settings');await shot(main,'10-custom-window');
   await main.evaluate(()=>Cardable.preferences.close());
-  assert.deepEqual(evidence.errors,[]);assert.deepEqual(evidence.network,[]);check('No renderer exceptions or renderer network requests');
+  assert.deepEqual(evidence.errors,[]);assert.deepEqual(evidence.network,[]);check('No renderer exceptions or renderer network requests');assert(native.pinned,'Mini did not establish native always-on-top; inspect host window-manager support.');check('Mini native always-on-top');
  }catch(error){evidence.failure=error.stack;console.error(error);process.exitCode=1;}
  finally{fs.writeFileSync(path.join(output,'evidence.json'),JSON.stringify(evidence,null,2));if(application)await application.close();console.log('Evidence:',path.join(output,'evidence.json'));}
 })();

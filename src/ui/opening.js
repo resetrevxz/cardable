@@ -12,13 +12,14 @@
   var finePointer = root.matchMedia('(hover: hover) and (pointer: fine)');
   var preferencesActive = false;
   var packPose = null, packMaterial, foilMaterial, halfMaterials, cutStrategy=null, swapEffect=null, packEntrance=false;
+  var chargeSource = null;
   var cutHeatNow = 0, foilFxAt = 0;
   var stats = { commits: 0, transitions: 0, tears: 0, updates: 0, particles: 0, shines: 0, keeps: 0, collections: 0, recoveries: 0 };
   function node(tag, className, parent, text) { return C.packMarkup.node(tag, className, parent, text); }
   function svg(tag, parent) { var el = root.document.createElementNS('http://www.w3.org/2000/svg', tag); if (parent) parent.appendChild(el); return el; }
   function clamp(value) { return Math.max(0, Math.min(1, value)); }
   function ease(value) { return 1 - Math.pow(1 - clamp(value), 3); }
-  function context() { C.events.emit('opening:context', { enabled: enabled, active: phase !== 'idle', phase: phase, step:phase==='cutting'&&!!(cutStrategy&&cutStrategy.advance), ready: !C.state.current.pendingReveal && C.state.current.packs.ready > 0 }); }
+  function context() { C.events.emit('opening:context', { enabled: enabled, active: phase !== 'idle', phase: phase, step:phase==='cutting'&&!!(cutStrategy&&cutStrategy.advance), ready: !C.state.current.pendingReveal && (C.state.current.packs.ready > 0 || !!(C.shopPurchase && C.shopPurchase.entitlement(C.state.current))) }); }
   function announce(text) { if(C.settings.get('announcements'))status.textContent = text; }
   function focus(el) { if (el && el.focus) el.focus({ preventScroll: true }); }
   function blade(value) { value = value && finePointer.matches; host.classList.toggle('has-blade', value); C.events.emit('cursor:blade', value); }
@@ -134,8 +135,9 @@
   }
   function chargeStart() {
     if (!enabled || preferencesActive || inventoryBlocked || phase !== 'idle' || C.state.current.pendingReveal || root.document.hidden) return;
-    C.timers.tick(); if (C.state.current.packs.ready <= 0) return;
-    usePack(C.packs.upcoming(1)[0]);
+    chargeSource = C.shopPurchase && C.shopPurchase.entitlement(C.state.current);
+    if (!chargeSource) { C.timers.tick(); if (C.state.current.packs.ready <= 0) return; }
+    usePack(chargeSource ? C.pack(chargeSource.packId) : C.packs.upcoming(1)[0]);
     savedFocus = root.document.activeElement; clearCut(); particles.clear(); meniscus.reset(0); fill = 0;
     errorUntil = 0; error.style.opacity = 0; chargeAt = root.performance.now(); pulseAt = 0;
     packPose = C.packView.snapshot ? C.packView.snapshot() : null;
@@ -147,22 +149,27 @@
   function cancel(reason) {
     release(); blade(false);
     if (phase !== 'charging') return;
+    chargeSource = null;
     fill = clamp((root.performance.now() - chargeAt) / C.settings.holdMs); drainFrom = fill;
     phaseTo('draining'); C.events.emit('charge:end', { reason: reason });
   }
   function commit(compact) {
     if (compact ? phase !== 'idle' : phase !== 'charging' || root.document.hidden) return;
     var candidate = JSON.parse(JSON.stringify(C.state.current)), now = C.clock.now();
-    C.timers.reconcileInto(candidate, now);
-    if (candidate.pendingReveal || !C.timers.consumeInto(candidate, now)) { cancel('unavailable'); return; }
-    var request = { pack: C.packs.resolve(candidate), options: {} };
-    try { C.events.emit('opening:resolve', request); } catch (failure) {
+    var entitlement = compact ? C.shopPurchase && C.shopPurchase.entitlement(candidate) : chargeSource;
+    var purchased = entitlement && candidate.shop && candidate.shop.entitlement &&
+      candidate.shop.entitlement.entitlementId === entitlement.entitlementId;
+    if (entitlement && !purchased) { cancel('unavailable'); return; }
+    if (!purchased) C.timers.reconcileInto(candidate, now);
+    if (candidate.pendingReveal || !purchased && !C.timers.consumeInto(candidate, now)) { cancel('unavailable'); return; }
+    var request = { pack: purchased ? C.pack(entitlement.packId) : C.packs.resolve(candidate), options: {} };
+    try { if (!purchased) C.events.emit('opening:resolve', request); } catch (failure) {
       root.console.error('Cardable opening preparation failed:', failure);
       cancel('backup-failed');
       error.textContent=failure.name==='QuotaExceededError'?'Storage is full. Export your save from Settings → Data. Your pack is still here.':'Could not preserve the save. Your pack is still here. Open Settings → Data for recovery.';
       errorUntil=root.performance.now()+cfg.errorMs;announce(error.textContent);return;
     }
-    if (!candidate.tutorial.done) { request.pack=C.pack('standard'); delete request.buildPending; }
+    if (!candidate.tutorial.done && !purchased) { request.pack=C.pack('standard'); delete request.buildPending; }
     if (request.pack && request.pack.enabled) usePack(request.pack);
     var forced = request.options.forcedTier || null;
     try {
@@ -174,14 +181,25 @@
         luck: request.options.luck || 1,
         allocateSerial: function () { candidate.serialCounter += 1; return C.serial.format(candidate.playerCode, candidate.serialCounter); }
       }));
-      candidate.stats.packsOpened += 1;
-      candidate.packs.openedCount += 1;
-      if (!Number.isSafeInteger(candidate.packs.openedCount)) throw new Error('Pack count exceeds its safe range');
+      if (!purchased) {
+        candidate.stats.packsOpened += 1;
+        candidate.packs.openedCount += 1;
+        if (!Number.isSafeInteger(candidate.packs.openedCount)) throw new Error('Pack count exceeds its safe range');
+      }
       var before = candidate.currency, reward = Number(C.config.currency.packOpenReward) || 0;
       // Opening a pack pays nothing since Market Beta Stage 3. The switch stays so a saved opening replays identically.
-      if (reward > 0) C.currency.applyInto(candidate,reward,'pack opening',now);
+      if (!purchased && reward > 0) C.currency.applyInto(candidate,reward,'pack opening',now);
       if (!Number.isSafeInteger(candidate.currency)) throw new Error('Currency exceeds its safe range');
       candidate.pendingReveal = request.buildPending ? request.buildPending(candidate, now) : { packId: pack.id, cards: cards, committedAt: now, keptCount: 0 };
+      if (purchased) {
+        candidate.pendingReveal.source = 'shop';
+        candidate.pendingReveal.entitlementId = entitlement.entitlementId;
+        candidate.pendingReveal.cards.forEach(function (item) {
+          item.source = 'shop-pack';
+          item.shopEntitlementId = entitlement.entitlementId;
+        });
+        candidate.shop.entitlement = null;
+      }
       C.events.emit('opening:prepareCommit', candidate);
       if (!C.state.commit(candidate)) throw new Error('durable save unavailable');
     } catch (failure) {
@@ -190,12 +208,12 @@
       cancel('save-failed'); announce(error.textContent); return;
     }
     C.events.notify('opening:committed', { cards: candidate.pendingReveal.cards, options: request.options, pack: pack });
-    stats.commits += 1; fill = 1;
+    stats.commits += 1; fill = 1; chargeSource = null;
     if (candidate.currency !== before) {
       C.currency.notify(before,'pack opening');
       C.events.notify('pack:reward', { before: before, value: candidate.currency, amount: candidate.currency - before, source: host.getBoundingClientRect() });
     }
-    C.events.notify('pack:opened', { ready: candidate.packs.ready }); C.events.notify('charge:complete', candidate.pendingReveal);
+    C.events.notify('pack:opened', { ready: candidate.packs.ready, source: purchased ? 'shop' : 'timer' }); C.events.notify('charge:complete', candidate.pendingReveal);
     if (compact) { fill = 0; candidate.pendingReveal.cards.forEach(function(item){C.events.notify('card:revealed',item);}); return true; }
     phaseTo('dissolving'); particles.emit('dissolve', null, width, height);
   }

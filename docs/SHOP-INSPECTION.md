@@ -1,0 +1,21 @@
+# Daily offer inspection
+
+2026-10-13 · isolated `feature/daily-shop`, following `0aa6553`.
+
+Previous/Next and Left/Right move through the same daily offers in the saved grid order. The tabular position wraps across four offers. The current card's frozen price, finish and hold action travel with it. Returning restores focus to that card in Shop or comparison. Only the selected card mounts full effects; switching destroys the previous view and its handlers. Keyboard fields keep native arrow behavior, repeated arrows are ignored and closing releases the new handlers.
+
+A step cancels an unfinished hold immediately, before a native view transition defers the render. A committed purchase locks navigation until its receipt. Midnight expiry or save replacement disables browsing in the old inspection, keeping its quote separate from the current day. Existing native object transitions carry the selected card; Quiet and reduced/static policies use the existing instant path. No new frame loop, network, timer, purchase writer or serial allocation is added.
+
+The header remains Shop. Price and purchase now precede a native Specifications disclosure. Its open state is retained within the open Shop session without save writes; a new Shop session starts collapsed. This removes duplicate front-face data from the initial presentation and exposes the price sooner on mobile. Previous, Next, Turn card and disclosure targets retain 44 px heights.
+
+`check-shop-inspection.cjs` passed saved price-order browsing, native snapshot readiness, focus after steps, wrap, one full card, stable key handlers across eight steps, native text-field arrows, unchanged economy/quotes/lists while browsing, immediate cancellation of an unfinished hold, selected-offer hold purchase and reload, comparison return, disabling old inspection after actual export/import and midnight, mobile mono, Quiet motion and stable event listeners across repeated open/close. `check-shop-wishlist.cjs` and `check-shop-compare.cjs` also passed after grid and inspection began sharing order logic. The existing six-size Stage 4 check passed its layout, calm/Very Low, high-DPI, legacy inventory, receipt-cap, focus-return and resize-cancel gates. Syntax, index asset references and whitespace checks passed.
+
+Review [desktop](../artifacts/shop-inspection-desktop.png) and [mobile monochrome](../artifacts/shop-inspection-mobile-mono.png). The mobile surface scrolls to lower controls; no horizontal overflow was observed. Physical touch, screen-reader output, GPU frame times and installer execution remain separate acceptance.
+
+The native check now browses forward/back before its existing held purchase/restart/recovery checks and retains its asserted QA profile before any fixture mutation. Source review caught a later status refresh potentially re-enabling an inspection marked stale by import when the offer ID matched. Availability now respects that stale-view marker, and the import check also triggers a focus/status reconciliation before checking the disabled purchase.
+
+The final `npm run dist` completed with publishing disabled. The rebuilt packaged app passed forward/back inspection, held purchase, rejected/repaired native mirror, no purchase replay, restart, wishlist persistence and restoration after primary-store loss in the asserted QA profile. All three changed shipped UI files match their source bytes in app.asar. The unsigned review installer is `dist/Cardable-Setup-1.6.4.exe`, 189869633 bytes, SHA-256 `1B1E73D060FCD0C249A0AD6CC46A25489AE2F803E3A40564DEC0DBAC210B3B6A`. It was not installed.
+
+The required `npm run deliver:desktop` attempt stopped at unresolved preview origin. No Shop promotion, Latest Build shortcut replacement, cleanup, merge, push or publication occurred. The existing delivery remains in place. A different preview origin still requires an owner decision and save/separate-photo export guidance.
+
+The previously reported save failure remains unidentified; these isolated checks do not establish its cause. The earlier QA incident and cleanup disposition stay in [SHOP-COMPARE-NATIVE](SHOP-COMPARE-NATIVE.md). No player profile or backup-history cleanup was used by this inspection pass.

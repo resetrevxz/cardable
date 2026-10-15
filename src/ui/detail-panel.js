@@ -76,7 +76,7 @@
     var extensionHost = node('div', 'detail-extension-actions', host); extensionHost.hidden = true;
     C.detailActions.render(extensionHost, { entry: entry, panel: host, preview: context.preview, dismiss: function () { closeMenu(false); } });
     function railButton(icon, label, keys, action) {
-      var b = button(host, '', action, 'detail-rail-button', icon); b.setAttribute('aria-label', label); var tip = node('span', 'detail-rail-label', b, label); if (keys) { node('kbd', '', tip, keys); b.setAttribute('aria-keyshortcuts', keys); } return b;
+      var b = button(host, '', action, 'detail-rail-button', icon); b.setAttribute('aria-label', label);b.dataset.tooltip=label;var actionId={Flip:'detail.flip',Favorite:'detail.favorite'}[label];if(actionId){b.dataset.keyAction=actionId;b.dataset.keyLabel=label;}var tip = node('span', 'detail-rail-label', b, label); if (keys) { node('kbd', '', tip, keys); b.setAttribute('aria-keyshortcuts', keys); } return b;
     }
     var inspect = extensionHost.querySelector('.studio-inspect-action');
     if (inspect) { host.appendChild(inspect); inspect.classList.add('detail-rail-button', 'detail-rail-primary'); inspect.querySelector('span').className = 'detail-rail-label'; node('kbd', '', inspect.querySelector('span'), 'I'); inspect.dataset.keyAction = 'detail.inspect'; inspect.dataset.keyLabel = 'Inspect'; inspect.removeAttribute('title'); inspect.setAttribute('aria-keyshortcuts', 'I'); }
@@ -86,7 +86,7 @@
     var flip = railButton('flip', 'Flip', 'R', context.flip); flip.disabled = !entry.owned;
     var copies = null;
     if (entry.owned && entry.instances.length > 1) { copies = railButton('layers', 'Copies', null, function () { openMenu(copies, 'copies'); }); node('i', 'detail-rail-count', copies, String(entry.instances.length)); copies.setAttribute('aria-haspopup', 'dialog'); }
-    var more = railButton('dots', 'More', null, function () { openMenu(more, 'more'); }); more.setAttribute('aria-haspopup', 'dialog'); more.setAttribute('aria-expanded', 'false'); more.classList.add('detail-rail-more');
+    var more = railButton('more', 'More', null, function () { openMenu(more, 'more'); }); more.setAttribute('aria-haspopup', 'dialog'); more.setAttribute('aria-expanded', 'false'); more.classList.add('detail-rail-more');
     var extensionActions = Array.from(extensionHost.children).filter(function (el) { return !el.classList.contains('cb-replay-action'); });
     var hint = overlay.querySelector('.detail-card-hint');
     if (hint && !hint.querySelector('.detail-hint-parts')) node('span', 'detail-hint-parts', hint, 'Point at the card for details');

@@ -24,25 +24,25 @@
     if(!state)return;paints++;C.miniKeyBindings=state.keyBindings||{};
     doc.documentElement.dataset.rarityColor=state.rarityColor;doc.documentElement.classList.toggle('reduced-motion',state.reduced);
     if(/^#[0-9a-f]{6}$/i.test(state.accent))doc.documentElement.style.setProperty('--accent',state.rarityColor==='mono'?'#F5F5F7':state.accent);
-    text('stock',state.ready);text('capacity','/ '+state.capacity+' stored');text('credits','$'+state.credits.toLocaleString());
+    text('stock',state.ready);text('capacity','/ '+state.capacity+' stored');text('credits',state.credits.toLocaleString()+' Credits');
     if(!last||last.ready!==state.ready||last.capacity!==state.capacity){el('slots').replaceChildren();for(var i=0;i<Math.min(12,state.capacity);i++)el('slots').appendChild(node('span','slot'+(i<state.ready?' filled':'')));}
     var seconds=Math.ceil(state.remainingMs/1000),time=Math.floor(seconds/3600)+':'+String(Math.floor(seconds%3600/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
     text('timer-label',state.ready>=state.capacity?'Stock is full':'Next refill');text('countdown',state.ready>=state.capacity?'Timer paused':time);el('progress').value=state.ready>=state.capacity?1:state.progress;
-    text('fps',state.miniFps+' FPS · quiet when idle');text('restore-hint',C.keys.label('menu.mini')+' to expand');
+    text('fps',state.miniFps+' FPS');doc.querySelector('.pinned').hidden=!state.miniPinned;text('restore-hint',C.keys.label('menu.mini')+' to expand');
     el('side').value=state.miniSide;el('frame-limit').value=String(state.miniFps);
     var changed=!last||state.token!==last.token||state.packId!==last.packId;
     if(changed){
       var reveal=state.reveal,choice=reveal&&reveal.choices,row=reveal&&reveal.cards[0];doc.body.dataset.choice=String(!!choice);el('preview').replaceChildren();el('preview').classList.toggle('has-card',!!row&&!choice);el('choices').replaceChildren();el('choices').hidden=!choice;
-      text('stage-label',choice?'CHOOSE ONE':reveal?'RESERVED FOR YOU':'UP NEXT');text('receipt',reveal?'Saved safely':'');
-      if(choice){text('name','Three offers. One keeper.');text('detail',reveal.packName+' · choose with 1, 2 or 3');reveal.cards.forEach(function(card,index){var b=node('button','choice');b.type='button';if(card.art){var img=node('img');img.src=card.art;img.alt='';b.appendChild(img);}var copy=node('span','',card.name);copy.appendChild(node('small','',card.rarity+(card.variant?' · '+card.variant:'')));b.append(copy,node('kbd','',index+1));b.addEventListener('click',function(){act(index);});el('choices').appendChild(b);});}
+      text('stage-label',choice?'CHOOSE ONE':reveal?'RESERVED FOR YOU':'UP NEXT');text('receipt','');
+      if(choice){text('name','Choose a card');text('detail',reveal.packName);reveal.cards.forEach(function(card,index){var b=node('button','choice');b.type='button';if(card.art){var img=node('img');img.src=card.art;img.alt='';b.appendChild(img);}var copy=node('span','',card.name);copy.appendChild(node('small','',card.rarity+(card.variant?' · '+card.variant:'')));b.append(copy,node('kbd','',index+1));b.addEventListener('click',function(){act(index);});el('choices').appendChild(b);});}
       else if(row){el('preview').appendChild(art(row,''));text('name',row.name);text('detail',row.rarity+(row.variant?' · '+row.variant:'')+' · '+row.serial);}
-      else{var p=node('div','pack-emblem');p.append(node('small','','CARDABLE'),node('strong','','C'),node('span','',state.packId.toUpperCase()));el('preview').appendChild(p);text('name',state.nextPackName);text('detail','One press to reveal your next card.');}
-      text('action-label',reveal?'Keep card':'Open pack');text('action-hint',choice?'Only your chosen offer receives a serial.':reveal?'Keep to add it to your collection. Expand for full card controls.':'Open here. Keep here. Carry on.');
+      else{var p=node('div','pack-emblem');p.append(node('small','','CARDABLE'),node('strong','','C'),node('span','',state.packId.toUpperCase()));el('preview').appendChild(p);text('name',state.nextPackName);text('detail','');}
+      text('action-label',reveal?'Keep card':'Open pack');text('action-hint','');el('action-hint').hidden=true;el('detail').hidden=!el('detail').textContent;
     }
     text('action-key',C.keys.label(state.reveal?'opening.keep':'opening.hold')||'Click');el('open').hidden=!!(state.reveal&&state.reveal.choices);
     if(!last||JSON.stringify(last.recent)!==JSON.stringify(state.recent)){
       el('recent').replaceChildren();text('recent-count',state.recent.length?'LAST '+state.recent.length:'');
-      if(!state.recent.length)el('recent').appendChild(node('p','recent-empty','Your first pull belongs here. Open a pack to start.'));
+      if(!state.recent.length)el('recent').appendChild(node('p','recent-empty','No cards yet. Open a pack.'));
       state.recent.forEach(function(card){var row=node('div','recent-row'),copy=node('div');row.appendChild(art(card,'recent-art'));copy.append(node('strong','',card.name),node('small','',card.rarity+(card.variant?' · '+card.variant:'')));row.appendChild(copy);el('recent').appendChild(row);});
     }
     last=state;actionState();

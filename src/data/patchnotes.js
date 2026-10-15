@@ -1,5 +1,53 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.7.6',codename:'Lighter inventory',date:'October 15, 2026',tag:'Fix',tagline:'Lighter browsing. Your own background.',
+    hero:{badge:'CARDABLE / 1.7.6',title:'Lighter inventory.',subtitle:'Complete cards, clearer glass and background controls with previews.',media:[]},
+    sections:{fixes:['Hover and focus keep the same static card instead of rebuilding full materials. Inspection retains complete effects and cursor interaction.','Removed inventory backdrop/refraction filters and moving Shelf blur. Normal-height Grid keeps the focused card header visible.'],visuals:['Clearer glass edges, soft static lighting and a separated header.'],qol:['Choose six inventory palettes or a custom color, and set opacity from 0 to 100% in Appearance. Miniature tiles and the dock preview show the choice.','Light colors use readable chrome; Reduce transparency and High contrast keep the chosen tint opaque.']},
+    entries:['Static browsing and glass without live optical filters.','Inventory color and opacity controls with previews.']
+  },
+  {
+    version:'1.7.5',codename:'Inventory glass',date:'October 15, 2026',tag:'Update',tagline:'Translucent glass and refracted edges.',
+    hero:{badge:'CARDABLE / 1.7.5',title:'Inventory glass.',subtitle:'Frosted charcoal, a brighter rim and refraction that scales with your graphics settings.',media:[]},
+    sections:{visuals:['High and Very High add frosted depth, a spectral bevel and narrow refracting edges.','Medium uses denser frost; Low and Very Low use solid ink.'],qol:['Independent Glass / blur and shadow settings remain respected. Monochrome neutralizes the coating, and Reduce transparency restores solid surfaces.'],fixes:['Complete card previews and first-click cursor tracking stay intact.']},
+    entries:['Translucent inventory glass with refracting edges on High and Very High.','Simpler Medium frost and solid low-tier/accessibility fallbacks.']
+  },
+  {
+    version:'1.7.4',codename:'Inventory fixes',date:'October 15, 2026',tag:'Fix',tagline:'Responsive inspection and lighter browsing.',
+    hero:{badge:'CARDABLE / 1.7.4',title:'Inventory fixes.',subtitle:'First-click cursor tracking and less work during rapid browsing.',media:[]},
+    sections:{fixes:['Cards handed from a live inventory preview into detail become interactive immediately, so the first inspection follows the cursor.','Delayed hover work is cancelled when a card leaves its browsing surface.'],visuals:['Complete static card fronts keep their artwork, rarity treatment and stats.'],qol:['Rapid pointer sweeps keep static previews; a settled hover activates live materials. Keyboard focus remains immediate.']},
+    entries:['First-click card inspection follows the cursor.','Rapid browsing avoids rebuilding full materials for every passing card.']
+  },
+  {
+    version:'1.7.3',codename:'UI polish',date:'October 15, 2026',tag:'Update',tagline:'Complete cards and clearer controls.',
+    hero:{badge:'CARDABLE / 1.7.3',title:'UI polish.',subtitle:'One inventory menu, complete card previews and consistent navigation.',media:[]},
+    sections:{fixes:['Closing panels keep the background blocked until their exit finishes. Shop, Settings and helper handoffs run in order.','Album Delete uses the same confirmation for keyboard and pointer, ignores key repeat and retains full-photo Undo.','New inventories hide unowned cards by default while existing saved choices are preserved.'],visuals:['Complete inventory and daily-offer card fronts retain artwork, rarity frames and key specs. Duplicate stacks show one card and a ×N badge.','Shared icons, focus tooltips and restrained hover depth connect Settings, Album, Shop, Studio and Director.'],qol:['Search, Filters, Sort, View and Show unowned share one compact inventory panel.','Pack stock moves to the top; Credits balance moves into Shop. Empty surfaces offer a useful next action.','Album uses a compact count and storage popover. Studio removes repeated navigation and routine save narration; scene slots support confirmation and Undo.']},
+    entries:['Complete card previews and one inventory controls menu.','Clearer icons, useful empty states and ordered panel exits.']
+  },
+  {
+    version:'1.7.2',codename:'Director Studio',date:'October 14, 2026',tag:'Update',tagline:'Your collectible. Your composition.',
+    hero:{badge:'CARDABLE / 1.7.2',title:'Director Studio.',subtitle:'Simple photography and a capable Advanced workspace, sharing one scene.',media:[]},
+    sections:{fixes:['Repaired preset lighting, camera motion, support alignment and portrait framing. Existing preset identities are retained.','Right-click commands now use the main-menu surface, with working focus, keyboard navigation, screen bounds and camera-drag handling.'],visuals:['Refined layers, inspectors, controls and timelines, with saved monochrome, reduced motion and enlarged interface layouts.','Twelve new photo looks, color wheels and smooth channel curves, plus metadata text, badges, shapes and layout templates.'],qol:['Look → Adjust → Capture in Simple; scene, lighting, grading, graphics and Director animation in Advanced.','Move, rotate and scale backgrounds independently. Try presets before applying; Undo restores every confirmed edit.','Real PNG/JPEG/WebP photos, supported 4K and WebM, safe Album reopening and cancellation cleanup. Collected cards, serials and existing photos are preserved.']},
+    entries:['The Studio is rebuilt around the card.','Compose, develop and keep a photograph without losing your work.']
+  },
+  {
+    version:'1.7.1',codename:'Cinematic by default',date:'October 13, 2026',tag:'Fix',tagline:'Start with the whole ceremony.',
+    hero:{badge:'CARDABLE / 1.7.1',title:'Cinematic by default.',subtitle:'High detail, full-length cutscenes and full motion from the first launch.',media:[]},
+    sections:{fixes:['Cinematic setup now clears reduced motion and saved cutscene skips, including individual rarity routes.'],visuals:['New players start with High graphics and Full strobing.'],qol:['Existing saves can restore the full presentation through Settings → Quick setups → Cinematic. Existing preferences stay as chosen on load.']},
+    entries:['New-player settings show the full presentation.','Cinematic setup restores every cutscene route.']
+  },
+  {
+    version:'1.7.0',codename:'Shop',date:'October 13, 2026',tag:'Feature',tagline:'Four daily cards. One featured Titan pack.',
+    hero:{badge:'CARDABLE / 1.7.0',title:'Shop.',subtitle:'Inspect, compare, mark your targets and hold to add a card to your collection.',media:[]},
+    sections:{fixes:['Rejected purchases retain your Credits and collection. Failed Shop preference writes retain the saved setting.'],visuals:['A cinematic showroom, interactive card backs, pack rotation and sequential inspection.'],qol:['Four daily offers with fixed prices, purchased Titan packs, wishlists, purchase history and direct save export.','Saved layouts, sorting and quiet motion; save status with explicit retry actions.']},
+    entries:['The Daily Shop is open.','Buy cards and a featured Titan pack with Credits.']
+  },
+  {
+    version:'1.6.4',codename:'Celestial seal',date:'October 12, 2026',tag:'Update',tagline:'Super Rare becomes a ceremony of light.',
+    hero:{badge:'CARDABLE / 1.6.4',title:'Celestial seal.',subtitle:'A suspended seal, luminous cloud star and inward-folding glass end in one white explosion.',media:[]},
+    sections:{fixes:['The white endpoint remains held after backward seeking.'],visuals:['Super Rare has a new formation shot, layered clouds, broken arcs, constellation marks and curved glass with moving refraction.'],qol:['Full lasts 12 seconds; Short keeps all six stages in 7.3 seconds. Calm settings retain a three-second seal.']},
+    entries:['Super Rare is completely remade from the supplied references.','The star compresses through overlapping glass into one white climax.']
+  },
+  {
     version:'1.6.3',codename:'Cloudbreak',date:'October 12, 2026',tag:'Update',tagline:'Rare moves through a sky of light.',
     hero:{badge:'CARDABLE / 1.6.3',title:'Cloudbreak.',subtitle:'A glass star, accelerating clouds and a pale-blue break into the card reveal.',media:[]},
     sections:{fixes:['Saving warnings clear after recovery and offer Retry saving. Preparation errors no longer report that primary storage is unavailable.'],visuals:['Rare has layered clouds, a curved glass star, luminous lighting and sixteen fragments that retain the original material.'],qol:['Rare Full lasts 8 seconds; Short keeps all five stages in 5.2 seconds.']},

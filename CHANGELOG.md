@@ -1,3 +1,108 @@
+# Cardable v1.7.6 — Lighter inventory
+
+Inventory keeps complete cards and rarity designs while browsing uses static fronts throughout. Opening a card still brings up its full materials and cursor interaction.
+
+- Removed live hover/focus material rebuilding, full-sheet backdrop blur, rim refraction filters and moving Shelf blur.
+- Added clearer glass edges, soft static lighting and a separated header without a live optical pass.
+- Appearance → Inventory now includes six background palettes, a custom color picker and 0–100% opacity, with miniature inventory previews and a live Settings dock preview.
+- Light backgrounds choose readable chrome colors. Reduce transparency and High contrast make the chosen background opaque.
+- Fixed normal-height Grid focus positioning when a complete card is taller than the viewport.
+
+Focused browser/native checks and repeated inventory measurements are recorded in docs/INVENTORY-LIGHT-1.7.6.md. Save schema, card ownership and gameplay rules remain unchanged.
+
+---
+
+# Cardable v1.7.5 — Inventory glass
+
+Inventory now uses translucent charcoal glass that fits Cardable's quiet interface. High and Very High add a brighter bevel, subtle spectral highlights, frosted depth and real backdrop refraction along the rim. Medium uses denser, simpler frost; Low and Very Low retain solid surfaces.
+
+- Refraction is limited to three narrow edge regions, keeping card artwork, stats and controls sharp.
+- Glass, shadows and monochrome retain their independent settings. Reduce transparency restores a solid surface, and no optical animation loop is added.
+- The complete static cards and the recent first-click and hover-churn fixes remain in place.
+
+Browser and native Electron checks cover quality policies, independent overrides, accessibility fallbacks, actual refracted pixels, controls and supported window sizes. Repeated inventory measurements record the added High glass cost and the rejected full-sheet refraction experiment. See docs/INVENTORY-GLASS-1.7.5.md for evidence and acceptance limits. Save data and gameplay rules are unchanged.
+
+---
+
+# Cardable v1.7.4 — Inventory fixes
+
+Cards opened from a live inventory preview now respond to the cursor on their first inspection. Rapid browsing avoids repeatedly constructing and tearing down full card materials.
+
+- A detail handoff restores pointer interaction on the card; its returning preview becomes noninteractive again.
+- Pointer previews activate after a short, cancellable hover. Keyboard focus remains immediate, and one browsing card can use live materials.
+- Pending hover work is cancelled when cards are recycled, taken into detail, restored or removed. Complete static fronts, rarity frames and key stats remain visible.
+
+Browser and native Electron journeys check first-click tracking in Shelf and Grid, flip/return, keyboard focus, reduced motion and cleanup. Repeated four-tier hover/scroll measurements compare the same large collection against 1.7.3. See docs/INVENTORY-FIXES-1.7.4.md for measured results and limits. No save schema, card ownership, pack timing or reward changes are included.
+
+---
+
+# Cardable v1.7.3 — UI polish
+
+Inventory cards now show their complete fronts, rarity frames and key stats. Search, filters, sort, view and Show unowned share one compact controls panel. New collections start with Show unowned off; existing explicit choices are preserved.
+
+- **Clearer controls.** Shared SVG icons, keyboard-aware tooltips, visible focus and consistent hover depth. Settings rows have individual icons, including Dot grid and Cursor glow.
+- **A quieter pack screen.** Pack availability sits at the top. The redundant card/timer-pack sentence and separate Open/Flip reminder are removed. The Credits wallet lives in Shop.
+- **Complete card previews.** Browsing uses static fronts with shared card stats and rarity treatments. One focused or hovered inventory card can use live materials. Duplicate stacks show one card and ×N, with each serial still available in Copies.
+- **Useful empty states.** Empty inventory, Favorites, collections, wishlists, Album, purchase history, presets and graphics offer a relevant icon and next action.
+- **Album and Studio cleanup.** Compact photo counts, storage details in a popover, icon actions and one empty Album state. Album keyboard Delete uses the same confirmation as its button, ignores key repeat and retains full-photo Undo. Studio and Director remove repeated navigation/status copy and use clearer page names and transport icons. Scene-slot replacement and deletion have confirmation and Undo.
+- **Predictable exits.** Closing panels retain their input shield until the exit finishes. Shop, Settings, Patch notes and helper handoffs wait for closure; reusable surfaces remain visible after repeated opening.
+
+Offline play, existing cards, serials, Credits, pack schedules, pending reveals, purchase durability and photo storage remain unchanged. Achievements remain paused; Market and audio remain outside this update.
+
+Verification includes native Electron UI journeys, the four-tier virtual inventory suite, Shop integration, Studio lifecycle, desktop service checks, a twelve-case browser size/scale matrix, Album confirmation/Undo/comparison and repeated animated panel reuse. See docs/UI-POLISH-1.7.3.md for the exact evidence and remaining manual limits. Installer execution, live updater upgrades and broad physical-device performance are not established by these checks.
+
+---
+
+# Cardable v1.7.2 — Director Studio
+
+Cardable Studio has been rebuilt around the collectible. Simple mode takes you through Look → Adjust → Capture; Advanced brings scene editing, lighting, color grading, graphics and Director animation into one shared workspace.
+
+- **Better compositions.** The existing presets keep their identities, with repaired lighting, camera motion, framing, props and support alignment. Twelve new photo looks join the catalog, for 115 authored presets across six categories.
+- **Independent backgrounds.** Move, rotate and scale the background without moving the card or camera. Simple has direct drag, arrow keys and scroll scaling; Advanced has layers, typed transforms, gizmos, snapping, locks and animation tracks.
+- **Color and layouts.** Ordered correction stages, color wheels, smooth master/channel curves, before/after and real preview scopes. Add local text, actual collectible metadata, badges, lines and shapes, or start with poster, desktop, phone and square layouts. Overlays carry into photos and clips.
+- **A quieter workspace.** Refined layers, inspectors, controls, tooltips, resizable panels, timeline and immersive preview, with saved color/monochrome and reduced-motion support. Right-click uses Cardable’s main-menu styling and animation, with proper selection, keyboard navigation, focus, screen bounds and camera-drag handling.
+- **Try before applying.** Search, favorites, recent and saved presets retain their existing data. Temporary previews change only the picture; Apply is one undoable action and Return restores your scene.
+- **Keep the photograph.** PNG, JPEG and WebP output, supported high-resolution and 4K capture, separate IndexedDB Album photos, saved-scene reopening and supported video-only WebM export. Cancellation releases temporary render work; failed writes retain a download route.
+
+Existing collected cards, ownership, serials, currency, pack reservations and Album blobs remain unchanged. Studio scenes migrate through optional fields without a game-save schema change. The CPU fallback remains a clearly labelled static preview with capability limits; saved graphics preferences are preserved.
+
+Verification included 23 focused regression tests, 43 built-in Studio checks, 2,875 preset renders across five references and five tiers, 470 portrait/landscape composition images, 94 complete Simple photo journeys, color/monochrome layouts, real encoded photo/video output, simulated WebGL failure and export/Album lifecycle checks. The implementation and evidence are documented in docs/DIRECTOR-STAGE-1.md through docs/DIRECTOR-STAGE-4.md.
+
+This release is unsigned. Installer execution, a live updater upgrade, physical touch gestures, long recordings and broad hardware performance remain separate acceptance work.
+
+# Cardable v1.7.1 — Cinematic by default
+
+New players now start with High graphics, full-length cutscenes, Full strobing and reduced motion Off. All ten graphics controls start at High, with normal reveal speed and cutscene skipping disabled.
+
+The Cinematic quick setup now restores full motion, all rarity cutscene routes, Full strobing, normal reveal speed, full variant animation, pack transitions and cinematic Shop motion. It clears both skip-all and play-once options, so a saved skip or reduced-motion choice cannot silently defeat that setup. Review the changes and select Apply; Undo remains available.
+
+Existing saved preferences are retained when loading or upgrading. To enable the complete presentation on an existing save, use Settings → Quick setups → Cinematic → Apply. Safe, reduced motion, lighter graphics and calm reveals remain selectable. Secret retains its flashing notice and existing final-output limits. Market remains disabled.
+
+This release is unsigned. Installer execution, a live updater upgrade and a broad physical-device performance matrix remain separate acceptance work.
+
+# Cardable v1.7.0 — Shop
+
+The Daily Shop arrives with four GPU offers that rotate at local midnight and a featured Titan First Contact pack. Prices stay fixed for the day. Inspect the cards, compare their catalog specs, mark wishlist targets, and hold to buy with Credits.
+
+- A cinematic showroom with interactive card backs, pack rotation, sequential inspection and the complete card-design gallery.
+- A 1.4-second hold confirms purchases. Cards retain their serials and Shop provenance; receipts link to the exact copy in your collection.
+- Purchased Titan packs use the existing opening ceremony and recover after interruption. They do not consume refill stock or grant the normal pack-opening Credits reward.
+- Saved Showroom/Compact layouts, Cinematic/Quiet motion, sorting and comparison preferences. Keyboard controls, monochrome, reduced motion and lower graphics tiers remain available.
+- Purchase history, durable wishlist priorities, save status, explicit save/backup retry and direct JSON save export from the Shop.
+- Failed purchase writes retain the prior collection and Credits. Failed Shop preference changes retain the saved setting.
+
+This release also includes the existing Rare and Super Rare cinematic updates, blended Double Super Rare glass, and the Windows setup option for reduced motion. Existing saves and app identity are preserved. Market remains disabled and its separate branch is not included.
+
+The Windows release is unsigned. JSON save exports do not include Studio photos; download those separately from the Album. Installer execution, a live updater upgrade and performance across physical devices remain separate acceptance work.
+
+# Cardable v1.6.4 — Celestial seal
+
+Super Rare is completely rebuilt around the supplied references. A small cloud star forms a suspended blue seal above a luminous ground circle. The camera pushes into layered clouds, four curved constellation marks and broken glass arcs around a bright central star. Eight curved glass forms fold inward, refract the clouds and catch changing highlights as the star compresses into a brilliant point. One white explosion ends the cinematic and hands to the existing card reveal.
+
+Full lasts 12 seconds; authored Short retains all six stages in 7.3 seconds. Off/reduced motion/lowest graphics use a calm three-second seal without the cloud atlases or glass shader. Cloud composition and texture uploads are capped at 30 Hz; geometry follows the shared cinematic clock. The 640 px High / 448 px Medium glass target has a Canvas fallback, handles context loss and releases resources after handoff. Materials and the first shader draw warm during the committed wrapper phase.
+
+Verification covered color/monochrome, 1280 × 720 and 390 × 844, Full/Short/Fast/Off/reduced motion, a complete recorded High sequence, the native Medium opening through Keep and reload, and failed Keep followed by exact-once reload recovery. White remains held after backward seeking; monochrome pixels are neutral; context loss falls back and the next run restores the glass renderer. A sampled Rare frame matches 1.6.3 exactly. The real player profile was untouched. Installer execution, live updater and a hardware performance matrix remain unverified. Kept local for review; this build is unsigned.
+
 # Cardable v1.6.3 — Cloudbreak
 
 Rare has a new atmospheric cloud material, a curved glass star, directional bevels and a luminous core. Pale-blue side light introduces the scene; layered clouds cross the star faster and faster, the star fractures into sixteen pieces carrying its last cloud image, and a growing pale-blue wash hands directly to the card. Full lasts 8 seconds; authored Short retains all five stages in 5.2 seconds. Off and reduced motion retain the calm route. Materials warm during the committed wrapper opening and are released after the reveal.

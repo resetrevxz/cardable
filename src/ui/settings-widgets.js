@@ -16,6 +16,7 @@
   function label(d, value) { return d.format ? d.format(value) : String(value); }
   function frame(d, parent, block) {
     var row = node('div', 'settings-row' + (block ? ' cbs-row-block' : ''), parent), copy = node('div', 'settings-copy', row); row.dataset.setting = d.key;
+    var glyph=node('span','settings-row-icon',copy);glyph.appendChild(C.icons.create(d.icon||'settings'));row.dataset.essentialHelp=String(!!d.essentialHelp);glyph.dataset.tooltip=d.helper;
     var name = node('span', 'settings-label', copy, d.label); name.id = (d.prefix || 'setting-') + d.key; node('span', 'settings-helper', copy, d.helper);
     return { row: row, copy: copy, label: name, host: node('div', 'settings-control', row), disabled: !!d.disabled || !!d.nativeOnly && !C.native };
   }
@@ -71,12 +72,12 @@
 
   // Slider: a native range with a filled track and a readable value.
   function slider(d, parent, binding) {
-    binding = bind(binding); var f = frame(d, parent), wrap = node('div', 'cbs-range', f.host), input = node('input', 'settings-volume', wrap), out = node('output', 'settings-value', wrap), late = d.key === 'interfaceSize';
+    binding = bind(binding); var f = frame(d, parent), wrap = node('div', 'cbs-range', f.host), input = node('input', 'settings-volume', wrap), out = node('output', 'settings-value', wrap), late = d.key === 'interfaceSize' || d.key === 'inventoryOpacity';
     input.type = 'range'; input.min = d.min == null ? 0 : d.min; input.max = d.max == null ? 100 : d.max; input.step = d.step || 1; input.disabled = f.disabled; input.setAttribute('aria-labelledby', f.label.id);
     function number(v) { return v === 'auto' ? 100 : Number(v); }
     function show(v) { var n = number(v), span = input.max - input.min; wrap.style.setProperty('--fill', span ? (n - input.min) / span : 0); out.textContent = v === 'auto' ? 'Auto' : (d.step && d.step < 1 ? n.toFixed(1) : n) + (d.unit || ''); input.setAttribute('aria-valuetext', out.textContent); }
     function refresh(v) { input.value = number(v); show(v); }
-    // Interface scale re-lays out the page, so it commits on release instead of under the pointer.
+    // Layout and transparency previews commit on release instead of under the pointer.
     input.addEventListener('input', function () { var v = Number(input.value); show(v); if (late) C.events.emit('settings:preview', { key: d.key, value: String(v) }); else binding.set(d.key, v); });
     input.addEventListener('change', function () { if (late) binding.set(d.key, Number(input.value)); });
     refresh(binding.get(d.key));
@@ -111,7 +112,7 @@
   }
 
   // Graphics tiers: five tiles, the effect of each in a sentence, and a way back from a customized mix.
-  var tierCopy = { 'very-low': ['Very Low', 'Still materials and solid panels. For basic devices.'], low: ['Low', 'Clean materials with light motion.'], medium: ['Medium', 'Balanced detail and cost. The default.'], high: ['High', 'Full materials, lighting and focused effects.'], 'very-high': ['Very High', 'Extra reflections and cinematic optics for capable hardware.'] };
+  var tierCopy = { 'very-low': ['Very Low', 'Still materials and solid panels. For basic devices.'], low: ['Low', 'Clean materials with light motion.'], medium: ['Medium', 'Balanced detail and cost.'], high: ['High', 'The default. Full materials, lighting and focused effects.'], 'very-high': ['Very High', 'Extra reflections and cinematic optics for capable hardware.'] };
   function tiers(d, parent, binding) {
     binding = bind(binding); var f = frame(d, parent, true), group = node('div', 'cbs-tiers', f.host); group.setAttribute('role', 'radiogroup'); group.setAttribute('aria-labelledby', f.label.id);
     var buttons = d.choices.map(function (tier, i) { var b = node('button', 'cbs-tier', group); b.type = 'button'; b.value = tier; b.setAttribute('role', 'radio'); var bars = node('span', 'cbs-tier-bars', b); bars.setAttribute('aria-hidden', 'true'); for (var n = 0; n < 5; n++) node('i', n <= i ? 'is-on' : '', bars); node('span', 'cbs-tier-name', b, tierCopy[tier][0]); b.addEventListener('click', function () { binding.set(d.key, tier); }); return b; });
@@ -143,7 +144,45 @@
     return result(group, f, buttons, [binding.subscribe && binding.subscribe(d.key, refresh)]);
   }
 
-  var kinds = { menu: menu, slider: slider, fps: fps, tiers: tiers, swatches: swatches, tiles: tiles, level: function (d, parent, binding) { return menu(d, parent, binding, true); } };
+  // Inventory background choices show the translucent surface behind card fronts.
+  function inventoryTiles(d, parent, binding) {
+    binding = bind(binding); var f = frame(d, parent, true), group = node('div', 'cbs-inventory-tiles cb-scroll', f.host), opacityPreview = null; group.setAttribute('role', 'radiogroup'); group.setAttribute('aria-labelledby', f.label.id);
+    var buttons = C.data.inventoryBackgrounds.map(function (preset) {
+      var b = node('button', 'cbs-inventory-tile', group); b.type = 'button'; b.setAttribute('role', 'radio');
+      var sheet = node('span', 'cbs-inventory-mini', b); sheet.setAttribute('aria-hidden', 'true');
+      var tint = node('i', 'cbs-inventory-mini-tint', sheet); tint.style.setProperty('--tile-bg', preset.hex);
+      var toolbar = node('i', 'cbs-inventory-mini-toolbar', sheet); toolbar.appendChild(node('i', '', toolbar)); toolbar.appendChild(node('i', '', toolbar));
+      var cards = node('span', 'cbs-inventory-mini-cards', sheet);
+      for (var i = 0; i < 3; i++) { var card = node('i', 'cbs-inventory-mini-card', cards); node('i', 'cbs-inventory-mini-card-top', card); node('i', 'cbs-inventory-mini-card-art', card); node('i', 'cbs-inventory-mini-card-foot', card); }
+      node('span', 'cbs-inventory-tile-name', b, preset.label);
+      b.setAttribute('aria-label', preset.label + ' inventory background'); b.title = preset.label;
+      b.addEventListener('click', function () { binding.set(d.key, preset.id); }); return b;
+    });
+    roving(buttons, function (i) { binding.set(d.key, C.data.inventoryBackgrounds[i].id); });
+    var custom = node('label', 'cbs-inventory-custom', f.host); node('span', '', custom, 'Custom color');
+    var color = node('input', 'cbs-inventory-color', custom); color.type = 'color'; color.setAttribute('aria-label', 'Custom inventory background color');
+    color.addEventListener('input', function () { binding.set(d.key, color.value.toUpperCase()); });
+    function updateOpacity() {
+      var value = opacityPreview == null ? C.settings.get('inventoryOpacity') : opacityPreview;
+      var forced = C.settings.get('reduceTransparency') || C.settings.get('highContrast');
+      var alpha = forced ? 1 : Math.max(0, Math.min(100, Number(value))) / 100;
+      buttons.forEach(function (button) { var layer = button.querySelector('.cbs-inventory-mini-tint'); if (layer) layer.style.opacity = String(alpha); });
+    }
+    function refresh(v) {
+      var index = C.data.inventoryBackgrounds.findIndex(function (preset) { return preset.id === v; });
+      mark(buttons, index); color.value = C.data.inventoryBackgroundColor(v);
+      updateOpacity();
+      if (buttons[index] && group.scrollWidth > group.clientWidth) group.scrollLeft = Math.max(0, buttons[index].offsetLeft - group.clientWidth / 2 + buttons[index].offsetWidth / 2);
+    }
+    refresh(binding.get(d.key));
+    var stops = [binding.subscribe && binding.subscribe(d.key, refresh),
+      C.settings.onChange('inventoryOpacity', function () { opacityPreview = null; updateOpacity(); }),
+      C.settings.onChange('reduceTransparency', updateOpacity), C.settings.onChange('highContrast', updateOpacity),
+      C.events.on('settings:preview', function (event) { if (event.key === 'inventoryOpacity') { opacityPreview = Number(event.value); updateOpacity(); } })];
+    return result(group, f, buttons, stops);
+  }
+
+  var kinds = { menu: menu, slider: slider, fps: fps, tiers: tiers, swatches: swatches, tiles: tiles, inventoryTiles: inventoryTiles, level: function (d, parent, binding) { return menu(d, parent, binding, true); } };
   C.uiKit.create = function (descriptor, parent, binding) {
     var make = kinds[descriptor.control];
     return make ? make(descriptor, parent, binding) : base.call(this, descriptor, parent, binding);

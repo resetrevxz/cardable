@@ -1,0 +1,74 @@
+/* Shop preferences commit before presentation, including the Gameplay settings route. */
+const assert=require('node:assert/strict'),path=require('node:path');
+const {chromium}=require('playwright');let browser;
+const root=path.resolve(__dirname,'..');
+(async()=>{
+  browser=await chromium.launch({headless:true,executablePath:process.env.SHOP_BROWSER_PATH||undefined});
+  const page=await browser.newPage({viewport:{width:1366,height:768}}),errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.goto('file:///'+path.join(root,'index.html').replace(/\\/g,'/'));
+  await page.waitForFunction(()=>Cardable.setup&&!Cardable.setup.loading);
+  await page.evaluate(()=>{if(Cardable.tutorial.active)Cardable.tutorial.skipButton.click();Cardable.settings.applyPreset('high');Cardable.currency.add(100000,'dev');});
+  await page.locator('#shop-entry').click();await page.locator('.shop-options-control').click();
+  const economic=()=>page.evaluate(()=>JSON.stringify({inventory:Cardable.state.current.inventory,currency:Cardable.state.current.currency,
+    serial:Cardable.state.current.serialCounter,packs:Cardable.state.current.packs,shop:Cardable.shopState.normalize(Cardable.state.current.shop),lists:Cardable.inventoryModel.current.collections}));
+  const before=await economic();
+  const preference=key=>page.locator('.shop-options [data-setting="'+key+'"]');
+  const defaults=await page.evaluate(()=>Object.fromEntries(Object.entries(Cardable.settings.snapshot).filter(([key])=>/^shop[A-Z]/.test(key))));
+  await page.evaluate(()=>{window.preferenceEvents=[];Cardable.events.on('settings:persisted',event=>preferenceEvents.push(event));Cardable.state.beforeWrite=()=>{throw Error('Shop preference rejection');};});
+  await preference('shopLayout').selectOption('compact');
+  assert.equal(await preference('shopLayout').inputValue(),'showroom');
+  assert.equal(await page.locator('.shop-screen').getAttribute('data-shop-layout'),'showroom');
+  assert.equal(await page.evaluate(()=>Cardable.state.current.settings.shopLayout),'showroom');
+  assert.deepEqual(await page.evaluate(()=>preferenceEvents.at(-1)),{saved:false,retained:true});
+  await page.locator('.shop-marker-toggle').click();assert.equal(await page.locator('.shop-marker-toggle').isChecked(),true);
+  assert.deepEqual(await economic(),before);
+  await page.evaluate(()=>{Cardable.state.beforeWrite=null;});await page.locator('.shop-save-retry').click();
+  await preference('shopLayout').selectOption('compact');await preference('shopMotion').selectOption('quiet');
+  await preference('shopSort').selectOption('price-desc');await page.locator('.shop-marker-toggle').uncheck();
+  await page.evaluate(()=>Cardable.settings.set('shopCompareDifferences',true));
+  const changed=await page.evaluate(()=>Object.fromEntries(Object.entries(Cardable.settings.snapshot).filter(([key])=>/^shop[A-Z]/.test(key))));
+  await page.reload();await page.waitForFunction(()=>Cardable.setup&&!Cardable.setup.loading);
+  assert.deepEqual(await page.evaluate(()=>Object.fromEntries(Object.entries(Cardable.settings.snapshot).filter(([key])=>/^shop[A-Z]/.test(key)))),changed);
+  await page.locator('#shop-entry').click();await page.locator('.shop-options-control').click();
+  const other=await page.evaluate(()=>Object.fromEntries(Object.entries(Cardable.settings.snapshot).filter(([key])=>!/^shop[A-Z]/.test(key))));
+  await page.evaluate(()=>{Cardable.state.beforeWrite=()=>{throw Error('Reset rejection');};});
+  await page.locator('.shop-options-reset').click();
+  assert.deepEqual(await page.evaluate(()=>Object.fromEntries(Object.entries(Cardable.settings.snapshot).filter(([key])=>/^shop[A-Z]/.test(key)))),changed);
+  await page.screenshot({path:path.join(root,'artifacts/shop-preferences-error.png')});
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(()=>{Cardable.state.beforeWrite=null;Cardable.state.save();Cardable.settings.set('rarityColor','mono');Cardable.state.beforeWrite=()=>{throw Error('Mobile preference rejection');};});
+  await preference('shopSort').selectOption('daily');assert.equal(await preference('shopSort').inputValue(),'price-desc');
+  await page.locator('.shop-scroll').evaluate(el=>{el.scrollTop=0;});
+  await page.screenshot({path:path.join(root,'artifacts/shop-preferences-mobile-mono.png')});
+  assert.ok(await page.locator('.shop-scroll').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+  await page.evaluate(()=>{Cardable.state.beforeWrite=null;});await page.locator('.shop-save-retry').click();
+  // Mono changed for the screenshot; compare the remaining global preferences separately.
+  await page.evaluate(()=>Cardable.settings.set('rarityColor','color'));
+  await page.locator('.shop-options-reset').click();
+  assert.ok(await page.locator('.shop-options-reset').evaluate(el=>el.getBoundingClientRect().height>=44));
+  assert.deepEqual(await page.evaluate(()=>Object.fromEntries(Object.entries(Cardable.settings.snapshot).filter(([key])=>/^shop[A-Z]/.test(key)))),defaults);
+  assert.deepEqual(await page.evaluate(()=>Object.fromEntries(Object.entries(Cardable.settings.snapshot).filter(([key])=>!/^shop[A-Z]/.test(key)))),other);
+  assert.deepEqual(await economic(),before);
+  await page.locator('.shop-close').click();
+  await page.evaluate(()=>Cardable.openSettings('Gameplay'));
+  const layout=page.locator('.settings-row[data-setting="shopLayout"]');await layout.waitFor();
+  await page.evaluate(()=>{Cardable.state.beforeWrite=()=>{throw Error('Gameplay preference rejection');};});
+  await layout.locator('.cbs-menu-button').click();await layout.getByRole('option',{name:'Compact',exact:true}).click();
+  assert.equal(await layout.locator('.cbs-menu-value').innerText(),'Showroom');
+  assert.equal(await page.evaluate(()=>Cardable.settings.getRequested('shopLayout')),'showroom');
+  assert.match(await page.locator('.settings-panel').innerText(),/Previous Shop settings are retained/);
+  await page.evaluate(()=>{Cardable.state.beforeWrite=null;Cardable.state.save();});
+  await layout.locator('.cbs-menu-button').click();await layout.getByRole('option',{name:'Compact',exact:true}).click();
+  await page.reload();await page.waitForFunction(()=>Cardable.setup&&!Cardable.setup.loading);
+  assert.equal(await page.evaluate(()=>Cardable.settings.getRequested('shopLayout')),'compact');
+  const recovery=await page.evaluate(()=>{
+    const C=Cardable,before=C.settings.snapshot;C.state.recovery={pending:true,reason:'fixture'};
+    const accepted=C.settings.set('shopMotion','quiet'),reset=C.settings.resetShop();
+    const unchanged=JSON.stringify(before)===JSON.stringify(C.settings.snapshot);C.state.recovery=null;C.state.save();
+    return {accepted,reset,unchanged};
+  });assert.deepEqual(recovery,{accepted:false,reset:false,unchanged:true});
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({pass:true,atomicPreference:true,atomicReset:true,controlsReverted:true,
+    unchangedEconomy:true,globalPreferencesPreserved:true,reload:true,gameplayRoute:true,recoveryBlocked:true,mobileMono:true}));
+  await browser.close();browser=null;
+})().catch(async error=>{console.error(error);process.exitCode=1;if(browser)await browser.close();});

@@ -140,7 +140,7 @@
       if (!cutHint) return;
       packHost = first(root.document.body, '[data-tutorial-target=pack]'); wrapperHost = first(root.document.body, '[data-tutorial-target=wrapper]');
       keepControl = first(root.document.body, '[data-tutorial-target=keep]'); inventoryHost = first(root.document.body, '[data-tutorial-target=inventory]');
-      meta = first(packHost, '[data-tutorial-target=timer]'); toastHost = first(root.document.body, '.collection-toast'); enter = first(root.document.body, '.opening-enter-hint');
+      meta = first(root.document.body, '.pack-hud[data-tutorial-target=timer]'); toastHost = first(root.document.body, '.collection-toast'); enter = first(root.document.body, '.opening-enter-hint');
       shell = C.packMarkup.node('aside', 'tutorial', root.document.body); shell.hidden = true; shell.setAttribute('aria-label', 'Getting started');shell.appendChild(C.ui.create('help',{help:'tutorial',label:'Tutorial help'}));
       instruction = C.packMarkup.node('p', 'tutorial-instruction', shell); instruction.setAttribute('role', 'status'); instruction.setAttribute('aria-live', 'polite'); instruction.setAttribute('aria-atomic', 'true');
       skipButton = C.packMarkup.node('button', 'tutorial-skip', shell, 'Skip tutorial'); skipButton.setAttribute('type', 'button'); skipButton.setAttribute('aria-label', 'Skip tutorial');

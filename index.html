@@ -45,6 +45,8 @@
   <link rel="stylesheet" href="src/styles/pack-designs-halo.css">
   <link rel="stylesheet" href="src/styles/picker-shuffle.css">
   <link rel="stylesheet" href="src/ui/kit/components/studio.css">
+  <link rel="stylesheet" href="src/ui/kit/components/studio-reborn.css">
+  <link rel="stylesheet" href="src/ui/kit/components/studio-advanced.css">
   <link rel="stylesheet" href="src/ui/kit/components/detail-panel.css">
   <link rel="stylesheet" href="src/ui/kit/components/desktop-qol.css">
   <link rel="stylesheet" href="src/ui/kit/components/desktop-setup.css">
@@ -63,6 +65,9 @@
   <link rel="stylesheet" href="src/ui/kit/components/credits.css">
   <link rel="stylesheet" href="src/ui/kit/components/market.css">
   <link rel="stylesheet" href="src/ui/kit/components/sales.css">
+  <link rel="stylesheet" href="src/ui/kit/components/shop.css">
+  <link rel="stylesheet" href="src/ui/kit/components/ui-polish.css">
+  <link rel="stylesheet" href="src/ui/kit/components/inventory-glass.css">
 </head>
 <body class="is-booting">
   <div id="cardable-startup" class="cb-startup" role="progressbar" aria-label="Starting Cardable" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i class="cb-startup-fill"></i></div>
@@ -72,7 +77,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"></svg>
     </div>
     <div id="pack-stage" data-tutorial-target="pack" class="pack-stage entrance" tabindex="0" role="img" style="--entry: 1"></div>
-    <div id="currency-counter" class="currency-counter idle-chrome entrance" style="--entry: 2"></div>
+    <button id="shop-entry" class="shop-entry idle-chrome entrance" type="button" style="--entry: 2" aria-label="Open Shop">Shop</button>
     <div id="inventory-affordance" data-tutorial-target="inventory" class="inventory-affordance idle-chrome entrance" style="--entry: 2"></div>
     <div id="market-slot" hidden></div>
   </main>
@@ -94,9 +99,11 @@
   <script src="src/data/titan-pack.js"></script>
   <script src="src/data/picker-pack.js"></script>
   <script src="src/data/variants.js"></script>
+  <script src="src/data/shop.js"></script>
   <script src="src/data/achievements.js"></script>
   <script src="src/data/achievement-program.js"></script>
   <script src="src/core/variants.js"></script>
+  <script src="src/core/shop-state.js"></script>
   <script src="src/core/events.js"></script>
   <script src="src/core/keys.js"></script>
   <script src="src/data/key-actions.js"></script>
@@ -130,6 +137,7 @@
   <script src="src/core/viewport.js"></script>
   <script src="src/core/qol.js"></script>
   <script src="src/core/currency.js"></script>
+  <script src="src/core/shop-purchase.js"></script>
   <script src="src/data/economy.js"></script>
   <script src="src/data/patchnotes.js"></script>
   <script src="src/core/cutscene-unlocks.js"></script>
@@ -171,6 +179,8 @@
   <script src="src/fx/mythical-intro.js"></script>
   <script src="src/fx/exotic-intro.js"></script>
   <script src="src/fx/rare-intro.js"></script>
+  <script src="src/fx/super-rare-glass.js"></script>
+  <script src="src/fx/super-rare-intro.js"></script>
   <script src="src/fx/rarity-intro.js"></script>
   <script src="src/finishes/index.js"></script>
   <script src="src/finishes/basic.js"></script>
@@ -199,6 +209,8 @@
   <script src="src/data/help.js"></script>
   <script src="src/ui/kit/icons.js"></script>
   <script src="src/ui/kit/index.js"></script>
+  <script src="src/ui/kit/inventory-glass.js"></script>
+  <script src="src/ui/kit/polish.js"></script>
   <script src="src/ui/kit/gallery.js"></script>
   <script src="src/ui/command-palette.js"></script>
   <script src="src/ui/pack-skins.js"></script>
@@ -206,6 +218,8 @@
   <script src="src/ui/classic-pack-skin.js"></script>
   <script src="src/ui/royal-pack-skin.js"></script>
   <script src="src/ui/titan-pack-skin.js"></script>
+  <script src="src/ui/shop-wishlist.js"></script>
+  <script src="src/ui/shop.js"></script>
   <script src="src/ui/picker-pack-skin.js"></script>
   <script src="src/ui/pack-couture.js"></script>
   <script src="src/ui/pack-transitions.js"></script>

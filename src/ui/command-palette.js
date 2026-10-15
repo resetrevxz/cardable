@@ -4,8 +4,8 @@
   // Shared surface for the game and the existing developer command registry.
   var closing=new WeakMap();
   C.paletteUI = {
-    show:function(el){root.clearTimeout(closing.get(el));closing.delete(el);el.classList.remove('qol-closing');el.inert=false;el.hidden=false;},
-    hide:function(el,remove){root.clearTimeout(closing.get(el));el.inert=true;el.classList.add('qol-closing');var delay=C.settings.get('quality')==='very-low'?0:150;closing.set(el,root.setTimeout(function(){closing.delete(el);el.classList.remove('qol-closing');if(remove)el.remove();else el.hidden=true;},delay));},
+    show:function(el){C.ui.enter(el);el.classList.remove('qol-closing');el.hidden=false;},
+    hide:function(el,remove){return C.ui.exit(el,function(){if(remove)el.remove();else el.hidden=true;});},
     create: function (options) {
     var backdrop=node('div','dev-palette-backdrop',C.viewport.parent(root.document.body));backdrop.hidden=true;
     var dialog=node('section','dev-palette glass glass--sheet',backdrop);dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',options.label);
