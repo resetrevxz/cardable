@@ -67,7 +67,7 @@
     C.events.on('save:willReplace', function() { toast.hidden = true; toastStart = null; C.menu.holdVisible('pack-intro', false); });
     C.viewport.onResize( function() { queue({ openedCount: currentCount, reason: 'layout' }); });
     C.fx.subscribe(function(now, dt) {
-      var reduced = C.motion.reduced || C.settings.policy.animation < 2, quiet = root.document.hidden || C.menu.afk || C.menu.idle || blocked.size;
+      var reduced = C.motion.reduced || C.settings.policy.animation < 2, quiet = root.document.hidden || C.menu.afk || C.menu.idle || blocked.size || !!(C.market && C.market.isOpen);
       var active = false;
       markers.forEach(function(m) {
         var x = reduced || quiet ? m.target : m.spring.step(dt, m.target);

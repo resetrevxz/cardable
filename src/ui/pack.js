@@ -145,7 +145,11 @@
         if (openingPaused && previewSwap) { clearPreviewEffect();adopt(C.packs.upcoming(1)[0]); previewSwap = null; front.el.style.transform = ''; front.el.style.opacity = ''; front.el.classList.remove('is-pack-swapping'); }
         C.fx.wake();
       });
-      C.events.on('inventory:context', function (event) { inventoryPaused = event.active; C.fx.wake(); });
+      // The pack is paused while a full-screen surface covers it: the inventory sheet or the Market.
+      var coveredByInventory = false, coveredByMarket = false;
+      C.events.on('inventory:context', function (event) { coveredByInventory = !!event.active; inventoryPaused = coveredByInventory || coveredByMarket; C.fx.wake(); });
+      C.events.on('market:open', function () { coveredByMarket = true; inventoryPaused = true; C.fx.wake(); });
+      C.events.on('market:close', function () { coveredByMarket = false; inventoryPaused = coveredByInventory; C.fx.wake(); });
       C.events.on('pack:handoff', function (event) { if (ready && !(event && event.swapped)) handoff = 0; C.fx.wake(); });
       C.events.on('save:reset', function () { handoff = null; front.el.style.transform = ''; });
       C.events.on('fx:visibility', function (visible) {

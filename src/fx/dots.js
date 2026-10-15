@@ -49,7 +49,7 @@
     C.fx.wake();
   }
   // The inventory sheet covers the grid; following the pointer under it would repaint a full-screen canvas for nothing.
-  function covered() { return !!(root.document.body && root.document.body.classList.contains('inventory-depth-active')); }
+  function covered() { var list = root.document.body && root.document.body.classList; return !!(list && (list.contains('inventory-depth-active') || list.contains('market-open'))); }
   function update(now, dt) {
     if (!C.settings.dotsPolicy().enabled) return false;
     if (!dirty && !heat.size && !ripples.length && !pendingPaths.length && !cursorFade) return false;

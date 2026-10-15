@@ -21,8 +21,21 @@ const SURFACES = {
     await page.waitForFunction(() => Cardable.detail.phase === 'detail');
   },
   settings: async (page) => { await page.locator('.settings-corner button, button.settings-corner, #settings-open').first().click({ timeout: 4000 }); await page.waitForTimeout(600); },
-  shop: async (page) => { await page.locator('.shop-entry').first().click({ timeout: 4000 }); await page.waitForTimeout(900); }
+  shop: async (page) => { await page.locator('.shop-entry').first().click({ timeout: 4000 }); await page.waitForTimeout(900); },
+  // The Market opens on its Simulation world (offline, no network). A listing page is the heaviest route: charts, tiles, countdowns.
+  'market-discover': async (page) => { await marketOpen(page, { name: 'discover', params: {} }); },
+  'market-listing': async (page) => {
+    await marketOpen(page, { name: 'discover', params: {} });
+    const id = await page.evaluate(() => Cardable.market.api.listingsSync('simulation', { filters: Cardable.market.core.emptyFilters(), limit: 100, facets: false }).items.map((e) => e.listing).find((l) => l.format === 'auction').id);
+    await page.evaluate((id) => Cardable.market.ui.go('listing', { id }, { reset: true }), id); await page.waitForSelector('#mk-max'); await page.waitForTimeout(500);
+  },
+  'market-stocks': async (page) => { await marketOpen(page, { name: 'stocks', params: {} }); }
 };
+async function marketOpen(page, route) {
+  await page.waitForFunction(() => Cardable.market.ui.shell.canOpen());
+  await page.evaluate((r) => { Cardable.market.store.markGuideSeen(); Cardable.market.open(r); }, route);
+  await page.waitForSelector('.mk-page'); await page.waitForTimeout(500);
+}
 
 async function measure(browser, local, tier, name) {
   const page = await browser.newPage({ viewport: { width, height } });

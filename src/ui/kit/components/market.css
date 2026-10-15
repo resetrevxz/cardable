@@ -99,8 +99,8 @@ html .mk-hud:hover { border-color: color-mix(in srgb, var(--text-primary) 22%, t
 .mk-realm-state { padding: 3px 7px; border-radius: var(--radius-sheet); border: 1px solid var(--hairline-strong); color: var(--text-dim); letter-spacing: .04em; }
 .mk-main { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; overscroll-behavior: contain; outline: none; }
 .mk-page { width: 100%; max-width: var(--mk-max); margin: 0 auto; padding: var(--s-5) var(--mk-pad) var(--s-8); }
-.mk-page[data-enter="forward"] { animation: mk-rise calc(var(--duration-slow) * var(--q-motion, 1)) var(--ease-out) both; }
-.mk-page[data-enter="back"] { animation: mk-fade calc(var(--duration-base) * var(--q-motion, 1)) var(--ease-out) both; }
+.mk-page[data-enter="forward"] { animation: mk-rise calc(var(--duration-slow) * var(--q-motion, 1)) var(--ease-out) backwards; }
+.mk-page[data-enter="back"] { animation: mk-fade calc(var(--duration-base) * var(--q-motion, 1)) var(--ease-out) backwards; }
 @keyframes mk-rise { from { opacity: 0; transform: translateY(10px); filter: blur(calc(4px * var(--q-blur, 0))); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes mk-fade { from { opacity: 0; } to { opacity: 1; } }
 
@@ -215,7 +215,7 @@ textarea.mk-input { padding: 10px 12px; resize: vertical; min-height: 84px; line
 .mk-grid { --tile: 208px; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--tile), 1fr)); gap: var(--s-4); }
 .mk-frame[data-density="compact"] .mk-grid { --tile: 176px; gap: var(--s-3); }
 .mk-grid.is-compact { --tile: 188px; }
-.mk-tile { position: relative; display: flex; flex-direction: column; border-radius: var(--radius-panel); border: 1px solid var(--hairline); background: var(--mk-surface); overflow: hidden; isolation: isolate; contain: layout paint; transition: transform var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out); animation: mk-tile-in calc(var(--duration-base) * var(--q-motion, 1)) var(--ease-out) both; animation-delay: calc(var(--mk-i, 0) * var(--duration-instant) * .5 * var(--q-motion, 1)); }
+.mk-tile { position: relative; display: flex; flex-direction: column; border-radius: var(--radius-panel); border: 1px solid var(--hairline); background: var(--mk-surface); overflow: hidden; isolation: isolate; contain: layout paint; transition: transform var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out); animation: mk-tile-in calc(var(--duration-base) * var(--q-motion, 1)) var(--ease-out) backwards; animation-delay: calc(var(--mk-i, 0) * var(--duration-instant) * .5 * var(--q-motion, 1)); }
 @keyframes mk-tile-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .mk-tile::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(170px circle at var(--pointer-x, 50%) var(--pointer-y, 0%), var(--glass-3), transparent 70%); opacity: 0; transition: opacity var(--duration-base) var(--ease-out); }
 .mk-tile:hover, .mk-tile:focus-within { transform: translateY(-4px); border-color: var(--stroke-hover); box-shadow: var(--shadow-md), inset 0 1px 0 var(--light-edge); }
@@ -554,7 +554,7 @@ textarea.mk-input { padding: 10px 12px; resize: vertical; min-height: 84px; line
 .mk-setting-label { font-size: 14px; font-weight: 500; }
 
 /* ---- Guide, dialogs, popovers ---- */
-.mk-pop { position: absolute; z-index: var(--z-overlay); min-width: 240px; max-width: min(380px, calc(100% - 16px)); border-radius: var(--radius-panel); border: 1px solid var(--hairline-strong); background: var(--ink-2); box-shadow: var(--shadow-lg); animation: mk-fade calc(var(--duration-fast) * var(--q-motion, 1)) var(--ease-out) both; }
+.mk-pop { position: absolute; z-index: var(--z-overlay); min-width: 240px; max-width: min(380px, calc(100% - 16px)); border-radius: var(--radius-panel); border: 1px solid var(--hairline-strong); background: var(--ink-2); box-shadow: var(--shadow-lg); animation: mk-fade calc(var(--duration-fast) * var(--q-motion, 1)) var(--ease-out) backwards; }
 .mk-menu { display: flex; flex-direction: column; gap: 4px; padding: 8px; }
 .mk-menu-title { padding: 6px 8px; font: 500 11px/14px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
 .mk-menu-row { display: flex; align-items: center; gap: 4px; }
