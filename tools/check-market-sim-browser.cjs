@@ -55,6 +55,14 @@ async function step(name, fn) {
   try { const detail = await fn(); evidence.steps.push({ name, ok: true, ms: Date.now() - started, detail: detail || null }); console.log('ok   ' + name); }
   catch (error) { evidence.steps.push({ name, ok: false, error: String(error.message || error).slice(0, 600) }); console.log('FAIL ' + name + '\n     ' + String(error.message || error).split('\n')[0]); throw error; }
 }
+async function fillNumber(page, selector, value) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    await page.fill(selector, String(value));
+    if ((await page.inputValue(selector)) === String(value)) return;
+    await page.waitForTimeout(150);
+  }
+  throw new Error('the field ' + selector + ' did not keep ' + value);
+}
 async function clickByText(page, scope, text) {
   const btn = page.locator(scope + ' button', { hasText: text }).first();
   await btn.waitFor({ state: 'visible', timeout: 5000 });
@@ -136,7 +144,7 @@ async function clickByText(page, scope, text) {
       const max = t.min + 40;
       await page.evaluate((id) => Cardable.market.ui.go('listing', { id }, {}), t.id);
       await page.waitForSelector('#mk-max');
-      await page.fill('#mk-max', String(max));
+      await fillNumber(page, '#mk-max', max);
       await clickByText(page, '.mk-buybox-actions', 'Place bid');
       await page.waitForSelector('.mk-review');
       await clickByText(page, '.mk-review .mk-modal-actions', 'Place bid');
@@ -377,7 +385,9 @@ async function clickByText(page, scope, text) {
           document.querySelectorAll('.mk-frame *').forEach((el) => { const r = el.getBoundingClientRect(); if (r.width && r.right > f.right + 1 && !el.closest('.mk-table, .mk-nav, .mk-presets, .mk-segments, .mk-hero-side, .mk-picker, .mk-sr, .mk-album-grid, .mk-stage, .mk-modal, .mk-popover, .mk-suggest, .mk-chart-plotarea')) off.push((el.tagName + '.' + (el.getAttribute('class') || '') + ' < ' + (el.parentElement ? el.parentElement.getAttribute('class') || el.parentElement.tagName : '')).slice(0, 80)); });
           return { label: l, scroll: main.scrollWidth - main.clientWidth, chipInside: c.right <= f.right + 1 && c.left >= f.left - 1, overlap: !(c.right <= w.left || c.left >= w.right || c.bottom <= w.top || c.top >= w.bottom), offenders: Array.from(new Set(off)).slice(0, 5) };
         }, label);
-        await route('discover'); let m = await metrics('discover'); seen.push(Object.assign({ size: name }, m));
+        await route('discover'); let m = await metrics('discover');
+        if (m.scroll > 1 || m.offenders.length) { await p.waitForTimeout(500); m = await metrics('discover'); }
+        seen.push(Object.assign({ size: name }, m));
         assert(m.scroll <= 1 && m.chipInside && !m.overlap && m.offenders.length === 0, name + ' discover ' + JSON.stringify(m));
         await shot(p, 'discover-' + name);
         const listing = await p.evaluate(() => Cardable.market.api.listingsSync('simulation', { filters: Cardable.market.core.emptyFilters(), limit: 100, facets: false }).items.map((e) => e.listing).find((l) => l.format === 'auction').id);

@@ -183,7 +183,7 @@ async function adminGet(pathname) {
       auctionId = made.listing.id;
       await openGlobal(B, { name: 'listing', params: { id: auctionId } });
       await B.page.waitForSelector('#mk-max');
-      await B.page.fill('#mk-max', '12');
+      for (let attempt = 0; attempt < 5; attempt++) { await B.page.fill('#mk-max', '12'); if ((await B.page.inputValue('#mk-max')) === '12') break; await B.page.waitForTimeout(150); }
       await B.page.locator('.mk-buybox button', { hasText: /Place bid/ }).click();
       const dlg = B.page.locator('.mk-review');
       if (await dlg.count()) await dlg.locator('button', { hasText: /Place bid/ }).click();
