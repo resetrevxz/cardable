@@ -10,7 +10,7 @@ import { CATALOG } from '../src/catalog.js';
 
 let server, small;
 before(async () => {
-  server = await start(8851, {});
+  server = await start(8851, { MEDIA_PUTS_PER_UPLOAD: '60' });
   small = await start(8852, { MEDIA_MAX_STORED: '4', MEDIA_MAX_BYTES: '4000', MEDIA_CREATE_PER_DAY: '6' });
 });
 after(() => stopAll());
@@ -528,4 +528,15 @@ test('limits hold under a race: two comments at once are not both the first, and
   assert.ok(ok >= 1 && ok <= 2, 'at most two fit in 4000 bytes: ' + puts.map((r) => r.status).join(','));
   const used = sql(small, "SELECT COALESCE(SUM(v.bytes), 0) AS n FROM upload_variants v JOIN uploads u ON u.id = v.upload_id WHERE u.account_id = (SELECT id FROM accounts WHERE alias = '" + me.alias + "')")[0].n;
   assert.ok(used <= 4000, 'stored ' + used);
+});
+
+test('a slot accepts only so many attempts, accepted or refused, so it cannot be used to hammer storage', async () => {
+  const me = await player(small, {});
+  const id = unwrap(await call(small, 'POST', '/v1/uploads', {}, me.token)).uploadId;
+  const codes = [];
+  for (let i = 0; i < 14; i++) codes.push((await put(small, me.token, id, 'thumb', Buffer.from('<html></html>'), 'image/jpeg')).status);
+  assert.deepEqual(codes.slice(0, 12), new Array(12).fill(415), 'refused, but counted');
+  assert.deepEqual(codes.slice(12), [429, 429], codes.join(','));
+  // the right bytes no longer help on that slot; a new one is needed
+  assert.equal((await put(small, me.token, id, 'thumb', webp(...SIZES.thumb, 60), 'image/webp')).status, 429);
 });

@@ -719,7 +719,7 @@
         success: function (res) {
           var id = res.listing && res.listing.id;
           store.clearDraft(draftKey); dirty = false; saved = null;
-          draft.items = []; draft.price = ''; draft.startBid = ''; draft.title = ''; draft.description = '';
+          draft.items = []; draft.price = ''; draft.startBid = ''; draft.title = ''; draft.description = ''; draft.pictures = []; draft.treatment = 'none';
           C.ui.toast('Listed. It is now open to the market.');
           if (id) ui.go('listing', { id: id }, { replace: true }); else ui.go('my-listings', {}, { replace: true });
         }

@@ -168,6 +168,42 @@ async function verify(origin) {
     const w = await get('/v1/wallet', { headers: { authorization: 'Bearer ' + tok } });
     const wj = await w.json().catch(() => null);
     ok = out('new account wallet is zero and empty', w.status === 200 && wj.data.balance === 0) && ok;
+    // pictures: a real round trip through R2, with what must be refused refused, and nobody else able to read a draft
+    const auth = (extra) => Object.assign({ authorization: 'Bearer ' + tok }, extra || {});
+    const webp = (w, h) => { const p = Buffer.alloc(5 + 41); p[0] = 0x2f; p.writeUInt32LE(((w - 1) | ((h - 1) << 14)) >>> 0, 1); const c = Buffer.alloc(8 + p.length); c.write('VP8L', 0, 'ascii'); c.writeUInt32LE(p.length, 4); p.copy(c, 8);
+      const r = Buffer.alloc(12); r.write('RIFF', 0, 'ascii'); r.writeUInt32LE(c.length + 4, 4); r.write('WEBP', 8, 'ascii'); return Buffer.concat([r, c]); };
+    const slot = await get('/v1/uploads', { method: 'POST', headers: auth({ 'content-type': 'application/json', 'idempotency-key': 'verify-' + Date.now().toString(36) + '-slot' }), body: '{}' });
+    const sj = await slot.json().catch(() => null);
+    ok = out('an upload slot is issued', slot.status === 200 && sj && sj.ok && /^upl_/.test(sj.data.uploadId), 'status ' + slot.status) && ok;
+    if (sj && sj.ok) {
+      const id = sj.data.uploadId;
+      const html = await get('/v1/uploads/' + id + '/thumb', { method: 'PUT', headers: auth({ 'content-type': 'image/jpeg' }), body: '<html><script>1</script></html>' });
+      ok = out('a web page sent as a picture is refused', html.status === 415, 'status ' + html.status) && ok;
+      const svg = await get('/v1/uploads/' + id + '/thumb', { method: 'PUT', headers: auth({ 'content-type': 'image/svg+xml' }), body: '<svg xmlns="http://www.w3.org/2000/svg"><script>1</script></svg>' });
+      ok = out('an SVG is refused', svg.status === 415, 'status ' + svg.status) && ok;
+      let last = null;
+      for (const [v, w, h] of [['thumb', 320, 180], ['card', 960, 540], ['full', 1600, 900]]) {
+        last = await get('/v1/uploads/' + id + '/' + v, { method: 'PUT', headers: auth({ 'content-type': 'image/webp' }), body: webp(w, h) });
+      }
+      const lj = last && await last.json().catch(() => null);
+      ok = out('three sizes make a finished picture', last && last.status === 200 && lj && lj.data.ready === true, last ? 'status ' + last.status : 'none') && ok;
+      const mine = await get('/v1/media/' + id + '/card', { headers: auth() });
+      ok = out('the owner can read it back as an image, with nosniff and a sandbox policy', mine.status === 200 && mine.headers.get('content-type') === 'image/webp' && mine.headers.get('x-content-type-options') === 'nosniff' && /sandbox/.test(mine.headers.get('content-security-policy') || '')) && ok;
+      const other = await get('/v1/auth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+      const oj = await other.json().catch(() => null);
+      if (oj && oj.ok) {
+        const theirs = await get('/v1/media/' + id + '/card', { headers: { authorization: 'Bearer ' + oj.data.accessToken } });
+        ok = out('another player cannot read a draft picture', theirs.status === 404, 'status ' + theirs.status) && ok;
+        const forged = await get('/v1/uploads/' + id + '/thumb', { method: 'PUT', headers: { authorization: 'Bearer ' + oj.data.accessToken, 'content-type': 'image/webp' }, body: webp(320, 180) });
+        ok = out('another player cannot write to it', forged.status === 404, 'status ' + forged.status) && ok;
+      }
+      const anon = await get('/v1/media/' + id + '/card');
+      ok = out('no token, no picture', anon.status === 401, 'status ' + anon.status) && ok;
+      const del = await get('/v1/uploads/' + id, { method: 'DELETE', headers: auth({ 'idempotency-key': 'verify-' + Date.now().toString(36) + '-del' }) });
+      ok = out('the picture can be removed', del.status === 200, 'status ' + del.status) && ok;
+      const gone = await get('/v1/media/' + id + '/card', { headers: auth() });
+      ok = out('and is then gone', gone.status === 404, 'status ' + gone.status) && ok;
+    }
     await get('/v1/auth/logout', { method: 'POST', headers: { authorization: 'Bearer ' + tok, 'content-type': 'application/json' }, body: '{}' });
     const again = await get('/v1/me', { headers: { authorization: 'Bearer ' + tok } });
     ok = out('logout revokes the session at once', again.status === 401) && ok;
@@ -191,11 +227,11 @@ function applyOrigin(origin) {
 
 async function adminCall(origin, what) {
   if (!/^https:\/\/[a-z0-9.-]+\.workers\.dev$/.test(origin || '') && !/^http:\/\/127\.0\.0\.1:\d+$/.test(origin || '')) fail('give the deployed origin');
-  if (!['reconcile', 'repair', 'sweep'].includes(what)) fail('say reconcile, repair or sweep');
+  if (!['reconcile', 'repair', 'sweep', 'reports', 'usage', 'log'].includes(what)) fail('say reconcile, repair, sweep, reports, usage or log');
   const file = path.join(ROOT, '.admin-token');
   if (!fs.existsSync(file)) fail('there is no cloudflare/.admin-token: it is written when --apply sets the secret');
   const token = fs.readFileSync(file, 'utf8').trim();
-  const res = await fetch(origin + '/v1/admin/' + what, { method: what === 'reconcile' ? 'GET' : 'POST', headers: { 'x-admin-token': token, 'content-type': 'application/json' }, body: what === 'reconcile' ? undefined : '{}' });
+  const res = await fetch(origin + '/v1/admin/' + what, { method: ['reconcile', 'reports', 'usage', 'log'].includes(what) ? 'GET' : 'POST', headers: { 'x-admin-token': token, 'content-type': 'application/json' }, body: ['reconcile', 'reports', 'usage', 'log'].includes(what) ? undefined : '{}' });
   const body = await res.json();
   console.log(JSON.stringify(body.data || body.error, null, 2));
   process.exit(res.ok && (what !== 'reconcile' || body.data.ok) ? 0 : 1);

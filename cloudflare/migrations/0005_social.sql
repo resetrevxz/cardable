@@ -25,6 +25,7 @@ CREATE TABLE uploads (
   created_at   INTEGER NOT NULL,
   expires_at   INTEGER NOT NULL,
   alt          TEXT NOT NULL DEFAULT '',
+  puts         INTEGER NOT NULL DEFAULT 0,   -- variant uploads attempted on this slot, accepted or not
   listing_id   TEXT REFERENCES listings(id),
   position     INTEGER,
   removed_at   INTEGER,

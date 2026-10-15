@@ -23,6 +23,7 @@ export const MEDIA = {
   createPerDay: 20,         // new upload slots per rolling 24 hours: bounds R2 writes
   maxPending: 3,            // slots open at once
   perListing: 3,            // pictures on one listing (the first is the cover)
+  putsPerUpload: 12,        // attempts a slot accepts (three sizes and a few retries); each is an R2 write
   pendingTtlMs: 15 * 60_000, // how long a slot accepts variants
   readyTtlMs: DAY,          // how long a finished, unattached picture waits to be used
   keepSoldMs: 30 * DAY,     // a sold listing keeps its pictures this long
@@ -33,7 +34,7 @@ const own = (o, k) => typeof k === 'string' && Object.prototype.hasOwnProperty.c
 // The beta limits, tunable by the operator in the test environment only (so the quotas can be exercised cheaply).
 export function mediaLimits(env) {
   const t = env.ENVIRONMENT === 'test', n = (v, d) => (t && Number.isSafeInteger(Number(v)) && Number(v) > 0 ? Number(v) : d);
-  return Object.assign({}, MEDIA, { maxStored: n(env.MEDIA_MAX_STORED, MEDIA.maxStored), maxBytes: n(env.MEDIA_MAX_BYTES, MEDIA.maxBytes), createPerDay: n(env.MEDIA_CREATE_PER_DAY, MEDIA.createPerDay) });
+  return Object.assign({}, MEDIA, { maxStored: n(env.MEDIA_MAX_STORED, MEDIA.maxStored), maxBytes: n(env.MEDIA_MAX_BYTES, MEDIA.maxBytes), createPerDay: n(env.MEDIA_CREATE_PER_DAY, MEDIA.createPerDay), putsPerUpload: n(env.MEDIA_PUTS_PER_UPLOAD, MEDIA.putsPerUpload) });
 }
 
 // ---- shapes a request may carry --------------------------------------------------------------------------------------
@@ -152,6 +153,9 @@ export async function putVariant(env, who, uploadId, variant, request, now) {
   if (!U) throw new ApiError(404, 'not-found', 'That upload could not be found.');
   if (U.status !== 'pending') throw new ApiError(409, 'not-pending', U.status === 'ready' || U.status === 'attached' ? 'This picture is already finished. Start a new upload to change it.' : 'This upload is no longer open.');
   if (now >= U.expires_at) throw new ApiError(410, 'expired', 'This upload ran out of time. Start a new one.');
+  // Every attempt is counted before anything is read or written, accepted or not: a slot cannot be used to hammer storage.
+  const bump = await env.DB.prepare("UPDATE uploads SET puts = puts + 1 WHERE id = ? AND account_id = ? AND status = 'pending' AND puts < ?").bind(uploadId, who.accountId, limits.putsPerUpload).run();
+  if (!bump.meta || !bump.meta.changes) throw new ApiError(429, 'quota', 'This upload has used its attempts. Start a new one.', { limit: limits.putsPerUpload });
   const raw = await readBytes(request, VARIANTS[variant].maxBytes + 1);
   const img = inspectImage(raw, request.headers.get('content-type'), variant);
   // every variant must be the same picture
