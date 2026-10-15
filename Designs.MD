@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.7.3**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.7.4**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -233,6 +233,8 @@ Achievements uses lavender weekly headers, teal recurring headers, rose pinned h
 Controls need visible focus, real keyboard actions, understandable disabled/selected states, modal focus trapping and focus restoration. Essential coarse-pointer actions have at least 44 px targets. Touch has hold-to-open, cutting/Tear fallback, Flip and Keep/Delete. Hints may quiet down; essential controls remain usable. Never rely on hue, hover or a tiny icon alone.
 
 ## Cards, inventory and detail
+
+Inventory pointer previews wait 110 ms before constructing live materials and 130 ms before returning to the complete static front. Crossing a tile briefly never rebuilds it. Keyboard focus promotes immediately; only one browsing tile is live. Cancel pending work on recycle, removal, detail handoff and restore, and reject promotion on hidden/inert surfaces or a hidden document. Detail explicitly restores pointer interaction and accessible visibility on an inherited live preview, then makes its returning visual noninteractive.
 
 Card face/back anatomy, rarity props, specs and permanent variants are governed by [03-CARD](docs/03-CARD.md), [02-RARITIES](docs/02-RARITIES.md) and [VARIANTS-AND-TAGS](docs/VARIANTS-AND-TAGS.md). Preserve real timestamps, serials and provenance. No fabricated specs, rarity indicators on an Unfound Secret, arbitrary extra color or duplicate reward effects.
 

@@ -2,9 +2,20 @@
   'use strict';
   var node = C.packMarkup.node;
   function clamp(v,a,b) { return Math.max(a,Math.min(b,v)); }
+  function liveOwner(tile){return tile.el.closest('.inventory-grid, .inventory-shelf');}
+  function canPromote(tile){var owner=liveOwner(tile);return !root.document.hidden&&!tile.destroyed&&tile.el.isConnected&&owner&&!owner.hidden&&!owner.inert&&!tile.el.closest('[hidden],[inert]');}
   C.inventoryTiles = {
+    cancelLiveTimers:function(tile){if(!tile)return;root.clearTimeout(tile.promoteTimer);root.clearTimeout(tile.demoteTimer);tile.promoteTimer=tile.demoteTimer=null;},
+    scheduleLive:function(tile,value,delay){
+      if(!tile||tile.destroyed||!tile.el.isConnected||!tile.entry.owned)return;
+      root.clearTimeout(value?tile.demoteTimer:tile.promoteTimer);
+      if(value)tile.demoteTimer=null;else tile.promoteTimer=null;
+      var key=value?'promoteTimer':'demoteTimer';root.clearTimeout(tile[key]);
+      tile[key]=root.setTimeout(function(){tile[key]=null;if(tile.destroyed||!tile.el.isConnected)return;if(value){if(canPromote(tile)&&(tile.el.matches(':hover')||tile.el.contains(root.document.activeElement)))C.inventoryTiles.live(tile,true);}else if(!tile.el.matches(':hover')&&!tile.el.contains(root.document.activeElement))C.inventoryTiles.live(tile,false);},delay);
+    },
     label: function(entry){return (entry.owned||entry.nameVisible?entry.card.name:'Unknown '+entry.rarity.name+' card')+', '+(entry.variant?entry.variant.name:entry.owned?'Normal finish':'Undiscovered')+', '+entry.rarity.name+(entry.instances.length>1?', '+entry.instances.length+' copies':'')+(entry.isNew?', New':'')+(entry.isFavorite?', Favorite':'')+(entry.wishlist?', '+(entry.owned?'Owned':'Wanted')+', '+entry.priority+' priority':'');},
     live:function(tile,value){
+      C.inventoryTiles.cancelLiveTimers(tile);
       if(!tile.entry.owned||!tile.visual||tile.view&&tile.view.destroyed)return;
       if(value&&C.inventoryTiles.liveTile&&C.inventoryTiles.liveTile!==tile)C.inventoryTiles.live(C.inventoryTiles.liveTile,false);
       if(tile.live===value)return;tile.live=value;
@@ -13,7 +24,7 @@
     create: function (entry, index, callbacks) {
       var el = node('div','inventory-tile'), pose = node('div','inventory-tile-pose',el), card = node('div','inventory-tile-card',pose);
       el.dataset.cardId = entry.card.id; el.dataset.stackKey = entry.stackKey; el.dataset.owned = entry.owned; el.setAttribute('role','option'); el.setAttribute('tabindex','-1');
-      var tile = { el:el, pose:pose, card:card, entry:entry, index:index, view:null, visual:null, contentCurrent:true };
+      var tile = { el:el, pose:pose, card:card, entry:entry, index:index, view:null, visual:null, live:false, contentCurrent:true, destroyed:false };
       if (entry.owned || entry.rarity.finish === 'secret') {
         tile.view = C.cardView.createThumbnail(entry.card,entry.instances[0] || { instanceId:'unknown-'+entry.stackKey,cardId:entry.card.id,serial:'',seen:true }, { owned:entry.owned });
         tile.visual=tile.view.el; tile.visual.setAttribute('tabindex','-1'); tile.visual.setAttribute('role','img'); tile.visual.setAttribute('aria-label',entry.owned ? entry.card.name : 'Unknown Secret card'); tile.view.setMode('lite');
@@ -37,9 +48,9 @@
       el.setAttribute('aria-label',this.label(entry));
       el.addEventListener('click',function(event){if(!event.target.closest('.card-tag'))callbacks.activate(tile,event);});
       el.addEventListener('contextmenu',function(event){ event.preventDefault(); callbacks.context(tile,event); });
-      el.addEventListener('pointerenter',function(){el.classList.add('is-hovered');C.inventoryTiles.live(tile,true);}); el.addEventListener('pointerleave',function(){el.classList.remove('is-hovered');if(!el.contains(root.document.activeElement))C.inventoryTiles.live(tile,false);});
+      el.addEventListener('pointerenter',function(){el.classList.add('is-hovered');C.inventoryTiles.scheduleLive(tile,true,110);}); el.addEventListener('pointerleave',function(){el.classList.remove('is-hovered');if(!el.contains(root.document.activeElement))C.inventoryTiles.scheduleLive(tile,false,130);});
       C.keys.listen(el, 'keydown', 'src.ui.inventory-shelf.js.1', function(event){ if(event.target.closest('.card-tag'))return;if(event.key==='Delete'&&!event.repeat&&tile.entry.owned){event.preventDefault();event.stopPropagation();C.cardDeletionView.show(tile.entry);return;}if(event.key==='Enter' && !event.repeat){event.preventDefault();callbacks.activate(tile,event);} if(event.key==='ContextMenu'||event.key==='F10'&&event.shiftKey){event.preventDefault();callbacks.context(tile,event);} });
-      el.addEventListener('focusin',function(){C.inventoryTiles.live(tile,true);});el.addEventListener('focusout',function(){root.queueMicrotask(function(){if(!el.contains(root.document.activeElement)&&!el.matches(':hover'))C.inventoryTiles.live(tile,false);});});
+      el.addEventListener('focusin',function(){C.inventoryTiles.cancelLiveTimers(tile);C.inventoryTiles.live(tile,true);});el.addEventListener('focusout',function(){root.queueMicrotask(function(){if(!el.contains(root.document.activeElement)&&!el.matches(':hover'))C.inventoryTiles.scheduleLive(tile,false,130);});});
       return tile;
     },
     decorate:function(tile,entry){
@@ -47,8 +58,10 @@
       C.cardTags.render(tile.tagRail,entry,entry.instances[0],'compact');tile.caption.children[0].textContent=entry.owned||entry.nameVisible?entry.card.name:'Unknown card';tile.caption.children[0].title=entry.owned||entry.nameVisible?entry.card.name:'Unknown '+entry.rarity.name+' card';tile.caption.children[1].textContent=entry.rarity.name+' · '+(entry.instances.length>1?entry.instances.length+' copies':String(entry.generation.name).replace(/^Generation\s+/,'Gen '));tile.caption.children[1].title=entry.rarity.name+' · '+entry.generation.name;
       if(entry.wishlist){if(!tile.wishlistState){tile.wishlistState=C.ui.create('wishlist-state',{owned:entry.owned,priority:entry.priority});tile.caption.appendChild(tile.wishlistState);}tile.wishlistState.hidden=false;tile.wishlistState.update(entry.owned,entry.priority);}else if(tile.wishlistState)tile.wishlistState.hidden=true;
     },
-    destroy:function(tile){if(C.inventoryTiles.liveTile===tile)C.inventoryTiles.liveTile=null;if(tile.view) tile.view.destroy(); if(tile.el.parentElement) tile.el.remove();},
+    destroy:function(tile){C.inventoryTiles.cancelLiveTimers(tile);tile.destroyed=true;if(C.inventoryTiles.liveTile===tile)C.inventoryTiles.liveTile=null;if(tile.view) tile.view.destroy(); if(tile.el.parentElement) tile.el.remove();},
     recycle:function(tile,entry,index){
+      C.inventoryTiles.cancelLiveTimers(tile);
+      tile.destroyed=false;
       tile.live=false;if(C.inventoryTiles.liveTile===tile)C.inventoryTiles.liveTile=null;if(tile.view)tile.view.destroy();else if(tile.visual)tile.visual.remove();
       var next=this.create(entry,index,{activate:function(){},context:function(){}});
       tile.contentCurrent=false;tile.entry=entry;tile.index=index;tile.view=next.view;tile.visual=next.visual;tile.card.appendChild(next.visual);tile.card.style.visibility='';
@@ -57,8 +70,8 @@
       return tile;
     },
     refresh:function(tile,entry){if(tile.entry===entry&&tile.contentCurrent)return;tile.entry=entry;tile.contentCurrent=true;this.decorate(tile,entry);tile.count.textContent=entry.instances.length>1?'×'+entry.instances.length:'';tile.count.hidden=entry.instances.length<2;tile.newDot.hidden=!entry.isNew;tile.el.classList.toggle('has-stack',entry.instances.length>1);tile.el.setAttribute('aria-label',this.label(entry));},
-    take:function(tile){tile.live=false;if(C.inventoryTiles.liveTile===tile)C.inventoryTiles.liveTile=null;var rect=tile.card.getBoundingClientRect();if(tile.view&&tile.view.thumbnail){var instance=tile.view.instance;tile.view.destroy();tile.view=C.cardView.create(tile.entry.card,instance,{owned:tile.entry.owned,autoFocus:false,autoStamp:false,keyboardFlip:false,shine:true});tile.visual=tile.view.el;}var result={entry:tile.entry,view:tile.view,visual:tile.visual,sourceRect:rect};tile.view=null;tile.visual=null;tile.card.style.visibility='hidden';return result;},
-    restore:function(tile,event){tile.live=false;tile.card.style.visibility='';if(event.view){event.view.destroy();tile.view=C.cardView.createThumbnail(tile.entry.card,tile.entry.instances[0]||event.view.instance,{owned:tile.entry.owned});tile.visual=tile.view.el;}else{tile.view=null;tile.visual=event.visual;}tile.card.appendChild(tile.visual);}
+    take:function(tile){C.inventoryTiles.cancelLiveTimers(tile);tile.live=false;if(C.inventoryTiles.liveTile===tile)C.inventoryTiles.liveTile=null;var rect=tile.card.getBoundingClientRect();if(tile.view&&tile.view.thumbnail){var instance=tile.view.instance;tile.view.destroy();tile.view=C.cardView.create(tile.entry.card,instance,{owned:tile.entry.owned,autoFocus:false,autoStamp:false,keyboardFlip:false,shine:true});tile.visual=tile.view.el;}var result={entry:tile.entry,view:tile.view,visual:tile.visual,sourceRect:rect};tile.view=null;tile.visual=null;tile.card.style.visibility='hidden';return result;},
+    restore:function(tile,event){C.inventoryTiles.cancelLiveTimers(tile);tile.live=false;tile.card.style.visibility='';if(event.view){event.view.destroy();tile.view=C.cardView.createThumbnail(tile.entry.card,tile.entry.instances[0]||event.view.instance,{owned:tile.entry.owned});tile.visual=tile.view.el;}else{tile.view=null;tile.visual=event.visual;}tile.card.appendChild(tile.visual);}
   };
   C.inventoryShelf = {
     range:function(position,count,radius){var center=clamp(Math.round(position),0,Math.max(0,count-1));radius=radius==null?C.config.inventoryMotion.overscan:radius;return {center:center,min:Math.max(0,center-radius),max:Math.min(count-1,center+radius)};},

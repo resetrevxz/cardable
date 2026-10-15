@@ -1,3 +1,15 @@
+# Cardable v1.7.4 — Inventory fixes
+
+Cards opened from a live inventory preview now respond to the cursor on their first inspection. Rapid browsing avoids repeatedly constructing and tearing down full card materials.
+
+- A detail handoff restores pointer interaction on the card; its returning preview becomes noninteractive again.
+- Pointer previews activate after a short, cancellable hover. Keyboard focus remains immediate, and one browsing card can use live materials.
+- Pending hover work is cancelled when cards are recycled, taken into detail, restored or removed. Complete static fronts, rarity frames and key stats remain visible.
+
+Browser and native Electron journeys check first-click tracking in Shelf and Grid, flip/return, keyboard focus, reduced motion and cleanup. Repeated four-tier hover/scroll measurements compare the same large collection against 1.7.3. See docs/INVENTORY-FIXES-1.7.4.md for measured results and limits. No save schema, card ownership, pack timing or reward changes are included.
+
+---
+
 # Cardable v1.7.3 — UI polish
 
 Inventory cards now show their complete fronts, rarity frames and key stats. Search, filters, sort, view and Show unowned share one compact controls panel. New collections start with Show unowned off; existing explicit choices are preserved.

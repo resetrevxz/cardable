@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.7.4',codename:'Inventory fixes',date:'October 15, 2026',tag:'Fix',tagline:'Responsive inspection and lighter browsing.',
+    hero:{badge:'CARDABLE / 1.7.4',title:'Inventory fixes.',subtitle:'First-click cursor tracking and less work during rapid browsing.',media:[]},
+    sections:{fixes:['Cards handed from a live inventory preview into detail become interactive immediately, so the first inspection follows the cursor.','Delayed hover work is cancelled when a card leaves its browsing surface.'],visuals:['Complete static card fronts keep their artwork, rarity treatment and stats.'],qol:['Rapid pointer sweeps keep static previews; a settled hover activates live materials. Keyboard focus remains immediate.']},
+    entries:['First-click card inspection follows the cursor.','Rapid browsing avoids rebuilding full materials for every passing card.']
+  },
+  {
     version:'1.7.3',codename:'UI polish',date:'October 15, 2026',tag:'Update',tagline:'Complete cards and clearer controls.',
     hero:{badge:'CARDABLE / 1.7.3',title:'UI polish.',subtitle:'One inventory menu, complete card previews and consistent navigation.',media:[]},
     sections:{fixes:['Closing panels keep the background blocked until their exit finishes. Shop, Settings and helper handoffs run in order.','Album Delete uses the same confirmation for keyboard and pointer, ignores key repeat and retains full-photo Undo.','New inventories hide unowned cards by default while existing saved choices are preserved.'],visuals:['Complete inventory and daily-offer card fronts retain artwork, rarity frames and key specs. Duplicate stacks show one card and a ×N badge.','Shared icons, focus tooltips and restrained hover depth connect Settings, Album, Shop, Studio and Director.'],qol:['Search, Filters, Sort, View and Show unowned share one compact inventory panel.','Pack stock moves to the top; Credits balance moves into Shop. Empty surfaces offer a useful next action.','Album uses a compact count and storage popover. Studio removes repeated navigation and routine save narration; scene slots support confirmation and Undo.']},
