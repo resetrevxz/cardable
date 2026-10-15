@@ -1,0 +1,22 @@
+=== test:market
+ℹ tests 74
+ℹ pass 74
+ℹ fail 0
+=== test:cloudflare
+ℹ tests 91
+ℹ pass 91
+ℹ fail 0
+=== check:market
+Market browser check passed.
+=== check:market-sim
+18 steps passed, 0 failed. Evidence: D:\CardableV2\Market\qa-output\market-beta\stage-2\evidence.json
+=== check:market-economy
+13 steps passed, 0 failed. Evidence: D:\CardableV2\Market\qa-output\market-beta\stage-3\evidence.json
+=== check:market-online
+9 steps passed, 0 failed. Evidence: D:\CardableV2\Market\qa-output\market-beta\stage-4\evidence.json
+=== check:market-trading
+10 steps passed, 0 failed. Evidence: D:\CardableV2\Market\qa-output\market-beta\stage-5\evidence.json
+=== check:market-analytics
+11 steps passed, 0 failed. Evidence: D:\CardableV2\Market\qa-output\market-beta\stage-6\evidence.json
+=== check:market-social
+14 steps passed, 0 failed. Evidence: D:\CardableV2\Market\qa-output\market-beta\stage-7\evidence.json

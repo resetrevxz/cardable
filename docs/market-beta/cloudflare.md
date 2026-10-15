@@ -11,7 +11,7 @@ Everything online for the Market beta lives in resources named `cardable-market-
 | Worker | `cardable-market-beta` (`workers.dev` only, no routes) | the HTTPS API `/v1/*` | `deploy.cjs --apply` |
 | D1 database | `cardable-market-beta-db` · binding `DB` | the single source of truth (accounts, wallets, ledger, instances, imports, listings schema) | `deploy.cjs --apply` |
 | Durable Object class | `Gate` · binding `GATE` · SQLite-backed | per-key rate limiting and short locks, and one **alarm per listing** that closes it on time; it owns **no** game data | Worker migration `v1` |
-| R2 bucket | `cardable-market-beta-media` · binding `MEDIA` | private listing images (used from Stage 7; created now so the binding is stable) | `deploy.cjs --apply` |
+| R2 bucket | `cardable-market-beta-media` · binding `MEDIA` | listing pictures (Stage 7): three validated variants per picture under `u/<upload id>/…`; no public access, no custom domain, read only through the Worker | `deploy.cjs --apply` |
 | Secret | `SESSION_SECRET` | HMAC key for access tokens and import receipts | `wrangler secret put` (stdin) |
 | Secret | `ADMIN_TOKEN` | the operator's reconcile, repair, sweep and import-revoke tools; without it those routes answer 404 | `deploy.cjs --apply` (also kept in `cloudflare/.admin-token`, git-ignored) |
 | Cron trigger | `*/5 * * * *` | backstop for the alarms: close and expire what is due, match waiting orders | `wrangler.toml` |
@@ -21,7 +21,7 @@ Recorded after deployment (non-sensitive identifiers only): `account_id`, D1 `da
 
 ## 2. Configuration (`cloudflare/wrangler.toml`)
 
-Plain variables (public, safe to commit): `ENVIRONMENT=beta`, `API_VERSION=1`, `CORS_ALLOW`, `TURNSTILE_SITEKEY` (empty = no challenge), `BETA_IMPORT_CAP=3000`, `SESSION_TTL_SECONDS=900`, `REFRESH_TTL_DAYS=30`. Optional tuning, none set by default: `REGISTER_PER_HOUR` (8), `API_RATE_LIMIT` (600 requests a minute per account), `QS_CARDS_PER_DAY` (40), `QS_CREDITS_PER_DAY` (4000), `QS_REALM_CREDITS_PER_DAY` (250000), `SWEEP_LIMIT` (5 listings per cron run), `ANALYTICS_CACHE` (`on` makes the analytics answers cacheable outside `beta`, where they always are; tests leave it off so figures are never stale). `ENVIRONMENT=test` and the `TEST_*` variables exist only for the local test suite: with `ENVIRONMENT=beta` the Worker ignores `x-test-now` and every `TEST_*` value.
+Plain variables (public, safe to commit): `ENVIRONMENT=beta`, `API_VERSION=1`, `CORS_ALLOW`, `TURNSTILE_SITEKEY` (empty = no challenge), `BETA_IMPORT_CAP=3000`, `SESSION_TTL_SECONDS=900`, `REFRESH_TTL_DAYS=30`. Optional tuning, none set by default: `REGISTER_PER_HOUR` (8), `API_RATE_LIMIT` (600 requests a minute per account), `QS_CARDS_PER_DAY` (40), `QS_CREDITS_PER_DAY` (4000), `QS_REALM_CREDITS_PER_DAY` (250000), `SWEEP_LIMIT` (5 listings per cron run), `ALERT_GAP_MS` / `ALERT_EXAMINE` / `MEDIA_MAX_STORED` / `MEDIA_MAX_BYTES` / `MEDIA_CREATE_PER_DAY` / `MEDIA_PUTS_PER_UPLOAD` (test environment only: they make the quotas cheap to exercise and are ignored with `ENVIRONMENT=beta`), `ANALYTICS_CACHE` (`on` makes the analytics answers cacheable outside `beta`, where they always are; tests leave it off so figures are never stale). `ENVIRONMENT=test` and the `TEST_*` variables exist only for the local test suite: with `ENVIRONMENT=beta` the Worker ignores `x-test-now` and every `TEST_*` value.
 
 Secrets are **never** in this file, in the client, in markdown, in logs or in screenshots. `deploy.cjs --check` scans the folder for private keys, token-shaped strings and secret assignments and fails if it finds any. Local development passes a throw-away secret with `--var`; tests generate a random one per run.
 
@@ -83,6 +83,16 @@ All responses are `{ "ok": true, "data": … , "trace": "<id>" }` or `{ "ok": fa
 | GET `/v1/analytics/stocks?scope=&id=&window=` · `/v1/analytics/movers` | bearer | index series and the Explore lists, from completed player sales only |
 | GET `/v1/portfolio` · `/v1/export?kind=&format=` | bearer | the player's books; CSV or JSON of holdings, trades and ledger |
 | GET/POST `/v1/alerts` · DELETE `/v1/alerts/:id` | bearer | in-app price and saved-search alerts |
+| POST `/v1/uploads` · GET `/v1/uploads` · DELETE `/v1/uploads/:id` | bearer + `Idempotency-Key` on writes | a picture slot, the player's own pictures and storage use, removal |
+| PUT `/v1/uploads/:id/:variant` (`thumb`, `card`, `full`) | bearer, raw bytes with the real image type | one validated size of a picture |
+| GET `/v1/media/:id/:variant` | bearer | a picture: its owner always, everyone once it is on a listing; `ETag` and `If-None-Match` |
+| POST `/v1/listings/:id/presentation` | bearer + key | title, note, pictures, cover and look of an open listing (never the cards or terms) |
+| GET/POST `/v1/listings/:id/comments` · PUT/DELETE `/v1/comments/:id` · POST `/v1/comments/:id/hide` | bearer (+ key on writes) | plain-text comments, one level of replies |
+| POST `/v1/reports` | bearer + key | report a comment, review, picture or listing |
+| GET `/v1/reviews/pending` · POST `/v1/reviews` · PUT `/v1/reviews/:id` | bearer (+ key) | reviews of completed trades |
+| GET `/v1/profiles/:alias` · `/v1/profiles/:alias/reviews` | bearer | pseudonymous profile and its reviews |
+| GET/POST/DELETE `/v1/follows` · GET `/v1/feed?scope=all|following` | bearer | follows and the community feed |
+| GET `/v1/admin/reports` · POST `/v1/admin/moderate` · GET `/v1/admin/log` · `/v1/admin/usage` | `x-admin-token` | the operator's moderation tools (404 for anyone else) |
 | POST `/v1/notifications/read` | bearer | mark notifications read up to an id |
 | POST `/v1/import/preview` | bearer | validate a package, return accepted items and reasoned rejections, 15 minute preview id |
 | POST `/v1/import/commit` | bearer + `Idempotency-Key` | one-time claim; returns the signed receipt |
@@ -91,18 +101,18 @@ All responses are `{ "ok": true, "data": … , "trace": "<id>" }` or `{ "ok": fa
 
 The trading fields, rules and receipts are specified in [stage-5.md](stage-5.md).
 
-## 6. Schema (`migrations/0001_init.sql` … `0004_analytics.sql`, schema 4)
+## 6. Schema (`migrations/0001_init.sql` … `0005_social.sql`, schema 5)
 
 `schema_info` · `accounts` (alias UNIQUE NOCASE, recovery hash UNIQUE) · `sessions` (refresh hash UNIQUE, previous hash kept for reuse detection) · `wallets` (`CHECK balance ≥ 0`, `0 ≤ held ≤ balance`, version) · `ledger` (append-only by convention: no code path updates or deletes a row; `delta ≠ 0`, `balance_after ≥ 0`, `UNIQUE(account_id, idem)`) · `instances` (server-issued id, **`serial` UNIQUE globally**, `source`, `state ∈ owned|escrow|redeemed`) · `imports` (**one per account, one per package hash, one per origin code**, receipt signature, idempotency key unique per account) · `import_previews` · `idempotency` (`PRIMARY KEY(account_id, key)`, request hash; reserved for Stage 5) · `listings`, `listing_items` (`instance_id` UNIQUE: a card can be in one listing), `price_observations`, `notifications`, `settings`.
 
-Indexes: ledger by account (id desc), instances by owner/state/card, listings by status/ends_at, price by card/at, notifications by account, sessions by account. Schema 4 adds the analytics read model (`price_observations` gains `card_id`, indexed by card and time), cost basis columns (`instances.basis`, `trades.seller_basis`, `redemptions.basis`), listing search facets (rarity, brand, generation with composite indexes) and `alerts` / `alert_hits` (a unique hit per alert and listing). See [stage-6.md](stage-6.md).
+Indexes: ledger by account (id desc), instances by owner/state/card, listings by status/ends_at, price by card/at, notifications by account, sessions by account. Schema 5 adds `uploads` and `upload_variants` (pictures and their three stored sizes), the listing presentation columns, `comments`, `reviews`, `follows`, `reports`, `moderation_log`, the ordered `listing_events` log that alerts read, and the operator restrictions on `accounts`; see [stage-7.md](stage-7.md). Schema 4 adds the analytics read model (`price_observations` gains `card_id`, indexed by card and time), cost basis columns (`instances.basis`, `trades.seller_basis`, `redemptions.basis`), listing search facets (rarity, brand, generation with composite indexes) and `alerts` / `alert_hits` (a unique hit per alert and listing). See [stage-6.md](stage-6.md).
 
 Foreign keys cascade only from account-owned convenience rows; money and card rows never cascade.
 
 ### Migration contract
 
 1. A migration is a new `NNNN_name.sql`; applied files are immutable.
-2. Forward only (`0001_init.sql`, `0002_import_hardening.sql`, `0003_trading.sql`, `0004_analytics.sql`). Destructive changes ship as add-new → backfill → switch → (later migration) drop.
+2. Forward only (`0001_init.sql`, `0002_import_hardening.sql`, `0003_trading.sql`, `0004_analytics.sql`, `0005_social.sql`). Destructive changes ship as add-new → backfill → switch → (later migration) drop.
 3. Local rehearsal first: `wrangler d1 migrations apply cardable-market-beta-db --local`, then the test suite, then `--remote`.
 4. `schema_info.schema` and `/v1/status.schema` move together; the client treats a higher schema than it knows as read-only.
 
@@ -138,7 +148,7 @@ How the beta is shaped by them:
 |---|---|
 | `wrangler --version` | 4.149.0 (installed from `cloudflare/package.json`) |
 | `wrangler whoami` | **not authenticated** (2026-10-13) |
-| Local integration tests (`npm run test:cloudflare`: api, analytics, economy, trading, races) on the real Workers runtime (`wrangler dev --local`, local D1 and DO) | 73 / 73 pass (Stage 6, 2026-10-13); 54 / 54 at Stage 4 |
+| Local integration tests (`npm run test:cloudflare`: api, analytics, economy, trading, races) on the real Workers runtime (`wrangler dev --local`, local D1 and DO) | 92 / 92 pass (Stage 7, 2026-10-15); 73 / 73 at Stage 6; 54 / 54 at Stage 4 |
 | `deploy.cjs --verify` against a local origin | 10 / 10 pass |
 | `deploy.cjs --check` | names ok · secret scan ok · wrangler ok · **authentication FAIL** |
 

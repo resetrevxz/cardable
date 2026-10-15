@@ -540,3 +540,20 @@ test('a slot accepts only so many attempts, accepted or refused, so it cannot be
   // the right bytes no longer help on that slot; a new one is needed
   assert.equal((await put(small, me.token, id, 'thumb', webp(...SIZES.thumb, 60), 'image/webp')).status, 429);
 });
+
+test('the game (a file:// page, origin "null") may upload, read and moderate-nothing: the preflight allows exactly what it needs', async () => {
+  const pre = await fetch(server.base + '/v1/uploads/upl_abcdefghij12/card', { method: 'OPTIONS', headers: { origin: 'null', 'access-control-request-method': 'PUT', 'access-control-request-headers': 'authorization,content-type' } });
+  assert.equal(pre.status, 204);
+  assert.equal(pre.headers.get('access-control-allow-origin'), 'null');
+  assert.match(pre.headers.get('access-control-allow-methods'), /PUT/);
+  assert.match(pre.headers.get('access-control-allow-headers'), /authorization/);
+  const evil = await fetch(server.base + '/v1/media/upl_abcdefghij12/card', { headers: { origin: 'https://evil.example' } });
+  assert.equal(evil.headers.get('access-control-allow-origin'), null, 'a foreign page gets no CORS grant, and no token anyway');
+  assert.equal(evil.status, 401);
+  // a picture response carries the grant for the game's own origin
+  const me = await player(server, {});
+  const id = await picture(server, me);
+  const got = await fetch(server.base + '/v1/media/' + id + '/thumb', { headers: { origin: 'null', authorization: 'Bearer ' + me.token } });
+  assert.equal(got.status, 200); assert.equal(got.headers.get('access-control-allow-origin'), 'null');
+  assert.equal(got.headers.get('cross-origin-resource-policy'), 'cross-origin');
+});

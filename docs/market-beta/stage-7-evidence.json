@@ -1,0 +1,117 @@
+{
+  "when": "2026-10-15T14:50:52.062Z",
+  "steps": [
+    {
+      "name": "A adds a picture from a file: it is cropped and confirmed first, uploaded with progress, and stored without its source",
+      "ok": true,
+      "ms": 2317,
+      "detail": null
+    },
+    {
+      "name": "A lists the card with the picture; the card, serial and price stay the listing, the picture sits beside them",
+      "ok": true,
+      "ms": 1732,
+      "detail": null
+    },
+    {
+      "name": "B (an independent account) sees the listing in the feed with the seller picture, labelled, and the card art beside it",
+      "ok": true,
+      "ms": 1263,
+      "detail": null
+    },
+    {
+      "name": "B comments; A replies and hides nothing; threads, limits and plain text hold",
+      "ok": true,
+      "ms": 2305,
+      "detail": null
+    },
+    {
+      "name": "B buys, rates the trade, and the seller profile shows the review with its sample; A cannot rate their own sale",
+      "ok": true,
+      "ms": 1851,
+      "detail": null
+    },
+    {
+      "name": "follow: C follows A, A lists again, and it reaches C's feed and inbox; C can switch it off",
+      "ok": true,
+      "ms": 2170,
+      "detail": null
+    },
+    {
+      "name": "a photo taken sideways (EXIF orientation) is shown upright, and its metadata does not travel",
+      "ok": true,
+      "ms": 885,
+      "detail": null
+    },
+    {
+      "name": "cancelling an upload in flight leaves nothing behind",
+      "ok": true,
+      "ms": 2264,
+      "detail": null
+    },
+    {
+      "name": "refused pictures say why: a vector file, an animated format and a too-small picture; nothing is uploaded",
+      "ok": true,
+      "ms": 2483,
+      "detail": null
+    },
+    {
+      "name": "a Director album photo is chosen, cropped and uploaded; the album itself is untouched",
+      "ok": true,
+      "ms": 1068,
+      "detail": null
+    },
+    {
+      "name": "C reports the seller picture; the operator removes it; it is gone for everyone and A is told why; the log records it",
+      "ok": true,
+      "ms": 971,
+      "detail": null
+    },
+    {
+      "name": "the pictures, comments and profile fit 360, 390, 768, 1366 and 1920 wide, in saved monochrome and with reduced motion",
+      "ok": true,
+      "ms": 5858,
+      "detail": null
+    },
+    {
+      "name": "storage is bounded and accounted for, and the operator can see it",
+      "ok": true,
+      "ms": 32,
+      "detail": null
+    },
+    {
+      "name": "no page errors and no unexpected console messages",
+      "ok": true,
+      "ms": 0,
+      "detail": null
+    }
+  ],
+  "console": [
+    {
+      "who": "B",
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+    },
+    {
+      "who": "A",
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+    },
+    {
+      "who": "C",
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "who": "C",
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "pageErrors": [],
+  "timings": {
+    "galleryLazyUntilScrolled": true,
+    "liveBytes": 7192,
+    "livePictures": 1
+  }
+}

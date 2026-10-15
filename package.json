@@ -42,6 +42,7 @@
     "test:cloudflare": "node --test cloudflare/test/api.test.mjs cloudflare/test/analytics.test.mjs cloudflare/test/social.test.mjs cloudflare/test/economy.test.mjs cloudflare/test/trading.test.mjs cloudflare/test/races.test.mjs",
     "check:market-trading": "node tools/check-market-trading-browser.cjs",
     "check:market-analytics": "node tools/check-market-analytics-browser.cjs",
+    "check:market-social": "node tools/check-market-social-browser.cjs",
     "economy:global": "node tools/global-economy-experiment.cjs",
     "cloudflare:check": "node cloudflare/scripts/deploy.cjs --check",
     "economy:experiment": "node tools/economy-experiment.cjs",

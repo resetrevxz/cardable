@@ -1,0 +1,26 @@
+Verifying http://127.0.0.1:8861
+  ok   status 200 and ok envelope — schema 5
+  ok   trace id present
+  ok   CSP is locked down
+  ok   no-store caching
+  ok   CORS answers the null origin (file://)
+  ok   CORS refuses a foreign origin
+  ok   unauthenticated /v1/me is 401
+  ok   register issues an alias and a recovery code — alias Royal Whippet
+  ok   new account wallet is zero and empty
+  ok   an upload slot is issued — status 200
+  ok   a web page sent as a picture is refused — status 415
+  ok   an SVG is refused — status 415
+  ok   three sizes make a finished picture — status 200
+  ok   the owner can read it back as an image, with nosniff and a sandbox policy
+  ok   another player cannot read a draft picture — status 404
+  ok   another player cannot write to it — status 404
+  ok   no token, no picture — status 401
+  ok   the picture can be removed — status 200
+  ok   and is then gone — status 404
+  ok   logout revokes the session at once
+
+Verified.
+
+{
+  "byStatus": [

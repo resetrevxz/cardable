@@ -127,6 +127,7 @@ async function addPicture(p, file, alt) {
     FILES.svg = path.join(work, 'logo.svg'); fs.writeFileSync(FILES.svg, '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><script>alert(1)</script><rect width="400" height="300" fill="red"/></svg>');
     FILES.gif = path.join(work, 'spin.gif'); fs.writeFileSync(FILES.gif, Buffer.concat([Buffer.from('GIF89a'), crypto.randomBytes(64)]));
     FILES.tiny = path.join(work, 'tiny.png'); fs.writeFileSync(FILES.tiny, makePng(120, 90, 3));
+    FILES.big = path.join(work, 'huge.png'); fs.writeFileSync(FILES.big, Buffer.concat([makePng(64, 64, 4), Buffer.alloc(16 * 1024 * 1024)]));
     const A = await newPlayer(browser, 'A', 0), B = await newPlayer(browser, 'B', 3), C = await newPlayer(browser, 'C', 5);
     const aAlias = (await refresh(A)).alias, bAlias = (await refresh(B)).alias;
     await refresh(C);
@@ -258,13 +259,52 @@ async function addPicture(p, file, alt) {
       await shot(C.page, 'settings-social-desktop');
     });
 
+    await step('a photo taken sideways (EXIF orientation) is shown upright, and its metadata does not travel', async () => {
+      const page = A.page;
+      const b64 = await page.evaluate(async () => {
+        const c = document.createElement('canvas'); c.width = 800; c.height = 400; const g = c.getContext('2d'); g.fillStyle = '#c33'; g.fillRect(0, 0, 800, 400); g.fillStyle = '#fff'; g.fillRect(0, 0, 100, 400);
+        const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.9)); const buf = new Uint8Array(await blob.arrayBuffer()); let s = ''; buf.forEach((x) => { s += String.fromCharCode(x); }); return btoa(s);
+      });
+      const jpeg = Buffer.from(b64, 'base64');
+      const tiff = Buffer.from([0x4d, 0x4d, 0x00, 0x2a, 0, 0, 0, 8, 0, 1, 0x01, 0x12, 0, 3, 0, 0, 0, 1, 0, 6, 0, 0, 0, 0, 0, 0]);
+      const gps = Buffer.from('GPSLatitude 51.5074 N Make Canon');
+      const payload = Buffer.concat([Buffer.from('Exif  ', 'binary'), tiff, gps]);
+      const seg = Buffer.concat([Buffer.from([0xff, 0xe1, (payload.length + 2) >> 8, (payload.length + 2) & 255]), payload]);
+      FILES.rot = path.join(work, 'sideways.jpg'); fs.writeFileSync(FILES.rot, Buffer.concat([jpeg.subarray(0, 2), seg, jpeg.subarray(2)]));
+      await openGlobal(A, { name: 'compose', params: {} });
+      await A.page.waitForSelector('.mk-composer .mk-pick .mk-pill.is-serial:not([disabled])', { timeout: 20000 });
+      await A.page.locator('.mk-composer .mk-pick .mk-pill.is-serial:not([disabled])').first().click();
+      await addPicture(A, FILES.rot, 'Sideways');
+      const text = await A.page.evaluate(() => document.querySelector('.mk-crop').textContent);
+      assert(/400 × 800 pixels/.test(text), 'turned upright: ' + text.slice(0, 200));
+      await A.page.locator('.mk-crop button', { hasText: 'Cancel' }).click();
+      await A.page.waitForFunction(() => !document.querySelector('.mk-crop'));
+    });
+
+    await step('cancelling an upload in flight leaves nothing behind', async () => {
+      await A.page.route('**/v1/uploads/*/full', async (route) => { await new Promise((r) => setTimeout(r, 4000)); try { await route.continue(); } catch (_) { /* aborted */ } });
+      const before = (await call(A, 'GET', '/v1/uploads')).data.items.length;
+      await addPicture(A, FILES.png2, 'Shelf');
+      await A.page.locator('.mk-crop input[type=checkbox]').check();
+      await A.page.locator('.mk-crop button', { hasText: 'Upload picture' }).click();
+      await A.page.waitForFunction(() => /Uploading/.test(document.querySelector('.mk-crop').textContent), null, { timeout: 15000 });
+      await sleep(900);
+      await A.page.locator('.mk-crop button', { hasText: 'Cancel upload' }).click();
+      await A.page.waitForFunction(() => !document.querySelector('.mk-crop') || /cancelled/.test(document.querySelector('.mk-crop').textContent), null, { timeout: 15000 });
+      await A.page.unroute('**/v1/uploads/*/full');
+      await sleep(800);
+      const after = (await call(A, 'GET', '/v1/uploads')).data.items;
+      assert.equal(after.length, before, 'no half upload is kept: ' + JSON.stringify(after.map((i) => i.status)));
+      if (await A.page.locator('.mk-crop').count()) { await A.page.locator('.mk-crop button', { hasText: 'Cancel' }).click(); }
+    });
+
     await step('refused pictures say why: a vector file, an animated format and a too-small picture; nothing is uploaded', async () => {
       await refresh(A);
       await openGlobal(A, { name: 'compose', params: {} });
       await A.page.waitForSelector('.mk-composer .mk-pick .mk-pill.is-serial:not([disabled])', { timeout: 20000 });
       await A.page.locator('.mk-composer .mk-pick .mk-pill.is-serial:not([disabled])').first().click();
       const before = (await call(A, 'GET', '/v1/uploads')).data.usage.startedToday;
-      for (const [file, re] of [[FILES.svg, /Vector pictures|SVG/], [FILES.gif, /GIF/], [FILES.tiny, /too small/]]) {
+      for (const [file, re] of [[FILES.svg, /Vector pictures|SVG/], [FILES.gif, /GIF/], [FILES.tiny, /too small/], [FILES.big, /over 15 MB/]]) {
         await A.page.evaluate(() => { const d = document.querySelector('.mk-present'); if (d) d.open = true; });
         await A.page.locator('.mk-pictures-edit input[type=file]').setInputFiles(file);
         await A.page.waitForSelector('.mk-crop .mk-field-error:not([hidden])', { timeout: 15000 });

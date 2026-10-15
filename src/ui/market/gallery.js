@@ -97,6 +97,28 @@
     sellRow.appendChild(h('button.sale-hold', { type: 'button', text: 'Hold 2 s to sell 14 copies for 311' }));
     sellRow.appendChild(h('button.sale-hold', { type: 'button', disabled: true, text: 'Nothing to sell' }));
 
+    // the social layer: a seller's picture, comments, reviews and a profile line (sample text, no actions)
+    var social = group('Pictures, comments and reputation', 'A seller picture is always labelled and never replaces the card. Comments and reviews are plain text under an anonymous name.');
+    var photoRow = row(social);
+    photoRow.appendChild(h('div.mk-tile-photo', { data: { layout: 'banner' }, style: { width: '260px' } }, h('div', { style: { height: '100%', background: 'linear-gradient(120deg, var(--ink-2), var(--glass-3))' } }), h('span.mk-photo-tag', { text: 'Seller photo' })));
+    photoRow.appendChild(h('div.mk-tile-photo', { data: { layout: 'banner', treatment: 'frame' }, style: { width: '260px' } }, h('div', { style: { height: '100%', background: 'linear-gradient(120deg, var(--ink-2), var(--glass-3))' } }), h('span.mk-photo-tag', { text: 'Seller photos · 3' })));
+    photoRow.appendChild(h('p.mk-hint', { text: 'A restrained look (plain, framed, spotlight) is the most a seller can add.' }));
+    var cm = h('div.mk-comment-list');
+    cm.appendChild(h('article.mk-comment', h('div.mk-comment-head', h('span.mk-comment-who', h('button.mk-comment-alias', { type: 'button', text: 'Silent Falcon' })), h('span.mk-muted', { text: '3 min ago' })), h('p.mk-comment-body', { text: 'Is the serial a low number?' }),
+      h('div.mk-comment-actions', ui.button('Reply', { variant: 'ghost', size: 'sm' }), ui.button('Report', { variant: 'ghost', size: 'sm' }), ui.button('Mute', { variant: 'ghost', size: 'sm' })),
+      h('div.mk-comment-replies', h('article.mk-comment.is-reply', h('div.mk-comment-head', h('span.mk-comment-who', h('button.mk-comment-alias', { type: 'button', text: 'Amber Otter' }), ui.chip('Seller', { tone: 'soft' })), h('span.mk-muted', { text: '1 min ago' })), h('p.mk-comment-body', { text: 'Yes, in the low hundreds.' })))));
+    cm.appendChild(h('article.mk-comment', h('p.mk-comment-body.is-placeholder', { text: 'Hidden while it is reviewed.' })));
+    social.appendChild(cm);
+    var rep = row(social);
+    rep.appendChild(h('p.mk-rep-score', { text: '★★★★☆ 4.3' }));
+    rep.appendChild(ui.chip('A fair sample', { tone: 'soft' }));
+    rep.appendChild(h('span.mk-muted', { text: 'Rated 4.3 out of 5 from 9 reviews by 7 buyers.' }));
+    var stars = h('div.mk-stars', { role: 'radiogroup', 'aria-label': 'Rating specimen' });
+    for (var n = 1; n <= 5; n++) stars.appendChild(h('button.mk-star' + (n <= 4 ? '.is-on' : ''), { type: 'button', role: 'radio', 'aria-checked': String(n === 4), 'aria-label': n + ' out of 5', text: n <= 4 ? '★' : '☆' }));
+    social.appendChild(stars);
+    var drop = h('div.mk-dropzone', ui.icon('upload'), h('span', { text: 'Drop a picture here, or paste one from your clipboard' }));
+    social.appendChild(drop);
+
     // states
     var states = group('States', 'Loading, empty, offline, error, closed and draft states share one family.');
     states.appendChild(ui.skeletonGrid(3));
