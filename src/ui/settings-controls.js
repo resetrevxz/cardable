@@ -124,7 +124,7 @@
             button.style.setProperty('--confirm-wave', C.motion.reduced ? '0px' : Math.sin(now / 140) * fill + 'px');
             if (held && Math.floor(fill * 4) > milestone) { milestone = Math.floor(fill * 4); if (milestone < 4) announce(milestone * 25 + ' percent.'); }
             if (fill >= 1 - 1e-9 && !fired && held) { fired = true; held = false; button.classList.add('is-confirmed'); var accepted = action(); if (accepted !== false) { if (C.ui) C.ui.emit('confirm', {component:'hold'}); announce('Confirmed.'); } }
-            if (!held && fill === 0) { button.classList.remove('is-confirming', 'is-confirmed'); button.textContent = text; } return held || fill > 0;
+            if (!held && fill === 0) { button.classList.remove('is-confirming', 'is-confirmed'); if (button.textContent !== text) button.textContent = text; } return held || fill > 0;
           }
           if (armedAt === null) return false;
           var p = Math.min(1, (now - armedAt) / 3000); button.style.setProperty('--confirm-progress', 1 - p); if (p === 1) cancel(); return p < 1;

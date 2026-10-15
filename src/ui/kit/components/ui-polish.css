@@ -88,6 +88,8 @@ html,body{min-width:0}.inventory-card-caption strong{font:500 12px/18px var(--fo
 
 .cb-scrim>.cb-enter{animation-duration:240ms}
 
-.menu-shell{transition:opacity 180ms var(--ease-out)}.inventory-depth-active .menu-shell{opacity:0!important}.reduced-motion .menu-shell{transition:none}
+.menu-shell{transition:opacity 180ms var(--ease-out),visibility 0s}
+/* Behind the inventory the menu is invisible, so it is also unpainted: visibility hides its layers once the fade has finished. */
+.inventory-depth-active .menu-shell{opacity:0!important;visibility:hidden;transition:opacity 180ms var(--ease-out),visibility 0s linear 180ms}.reduced-motion .menu-shell{transition:none}
 
 .studio-project-state>.cb-icon{width:16px;height:16px}.studio-project-state.is-error{color:var(--danger)}.studio-save-error-action{font-size:11px;padding:4px 8px;min-height:32px}

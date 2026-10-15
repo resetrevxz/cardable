@@ -62,5 +62,5 @@
 .reduced-motion .context-switch::after { transition:none; }
 .reduced-motion .context-item-ripple { display:none; }
 /* The status line eases in when a menu action has something to say. */
-.context-notice { animation:cb-fade-in var(--t-fast) var(--ease-out) both; }
+.context-notice { animation:cb-fade-in var(--t-fast) var(--ease-out) backwards; }
 .reduced-motion .context-notice { animation:none; }

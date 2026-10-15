@@ -238,7 +238,7 @@
       if (options.shine && !options.controlledReveal) front.el.querySelectorAll('.card__glare')[0].appendChild(shine);
       var lamp = root.getComputedStyle(root.document.documentElement);
       var lampX = parseFloat(lamp.getPropertyValue('--lamp-x')), lampY = parseFloat(lamp.getPropertyValue('--lamp-y'));
-      var painted = Object.create(null), glareClock = Infinity;
+      var painted = Object.create(null), glareClock = Infinity, lastPoseAt = -Infinity;
       var tiltPolicy = C.settings.tiltPolicy; sx.configure({ stiffness: C.config.cardView.spring.stiffness * tiltPolicy.stiffness }); sy.configure({ stiffness: C.config.cardView.spring.stiffness * tiltPolicy.stiffness });
       function idleWake() {
         root.clearTimeout(idleTimer);
@@ -434,7 +434,12 @@
           if (Math.abs(rx) > cap) { rx = clamp(rx, -cap, cap); sx.value = rx; sx.velocity = 0; }
           if (Math.abs(ry) > cap) { ry = clamp(ry, -cap, cap); sy.value = ry; sy.velocity = 0; }
           var raised = lift.step(dt, reduced ? 0 : cfg.focusedLift, reduced ? cfg.reducedDamping : undefined);
-          pose(rx, ry, raised); stats.updates += 1; view.stats.updates += 1;
+          // Ambient sway alone (nothing springing, pointer still) moves a few hundredths of a degree a frame. It is drawn at
+          // most 30 times a second: every pose restyles the whole card subtree, which at 120 or 144 Hz was the card's whole
+          // idle cost, for motion nobody can tell from the smoother version.
+          var swayOnly = sway && lift.settled();
+          if (!(swayOnly && now - lastPoseAt < 33)) { pose(rx, ry, raised); lastPoseAt = now; }
+          stats.updates += 1; view.stats.updates += 1;
           var variantMoving = !reduced && view.side === 'front' && variantBinding && variantBinding.update(dt, pointer);
           var finishMoving = !reduced && view.side === 'front' && front.finish.update(dt, pointer);
           if (!options.controlledReveal && options.autoStamp !== false && !stamped && sx.settled() && sy.settled() && lift.settled()) view.stamp();

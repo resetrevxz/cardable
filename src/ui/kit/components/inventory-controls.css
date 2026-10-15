@@ -71,5 +71,5 @@
 .reduced-motion .inventory-icon:hover, .reduced-motion .inventory-icon:active { transform: none; }
 .reduced-motion .inventory-popover, .reduced-motion .inventory-search { animation: none; }
 /* The hover tooltip and the search error ease in rather than popping up. */
-.inventory-tooltip, .inventory-search-error { animation: cb-fade-in var(--t-fast) var(--ease-out) both; }
+.inventory-tooltip, .inventory-search-error { animation: cb-fade-in var(--t-fast) var(--ease-out) backwards; }
 .reduced-motion :is(.inventory-tooltip, .inventory-search-error) { animation: none; }

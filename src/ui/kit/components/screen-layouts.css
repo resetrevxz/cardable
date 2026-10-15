@@ -122,5 +122,5 @@
 
 /* Shelf captions rise in as their card settles (8 px, 250 ms); static under reduced motion. */
 @keyframes cb-caption-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.inventory-card-caption { animation: cb-caption-rise var(--t-ui) var(--ease-out) both; }
+.inventory-card-caption { animation: cb-caption-rise var(--t-ui) var(--ease-out) backwards; }
 .reduced-motion .inventory-card-caption { animation: none; }

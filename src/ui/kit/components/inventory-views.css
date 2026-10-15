@@ -79,8 +79,13 @@
 [data-reflection-quality="very-low"] .inventory-mystery::before { display: none; }
 
 /* These layers are bounded by virtualization and released on close. */
+/* One layer per mounted tile, and no more: a tile that owns its layer is not re-rastered when the grid scrolls, but the parts
+   inside it (icons, caption, tags, the 3D tilter) used to be layers of their own, which made hundreds of layers whose
+   commit cost, not painting, set the frame rate. Those parts no longer hold animation end states or identity 3D transforms. */
 .inventory-grid .inventory-tile, .inventory-shelf .inventory-tile-pose { will-change: transform; }
 .reduced-motion .inventory-shelf .inventory-tile-pose { will-change: auto; }
+/* A static thumbnail never tilts or lifts; an identity 3D transform would still be its own layer. */
+.inventory-tile .card__tilter { transform: none; }
 
 /* The inventory owns input; the gear must not cover its detail close button. */
 .inventory-depth-active .settings-corner { pointer-events: none; opacity: 0; }

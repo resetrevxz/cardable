@@ -48,6 +48,8 @@
     heat.clear(); pendingPaths = []; lastHeatAt = null; dirty = true;
     C.fx.wake();
   }
+  // The inventory sheet covers the grid; following the pointer under it would repaint a full-screen canvas for nothing.
+  function covered() { return !!(root.document.body && root.document.body.classList.contains('inventory-depth-active')); }
   function update(now, dt) {
     if (!C.settings.dotsPolicy().enabled) return false;
     if (!dirty && !heat.size && !ripples.length && !pendingPaths.length && !cursorFade) return false;
@@ -56,7 +58,7 @@
     dt = Math.min(paintClock, C.config.shell.maxFrameDeltaMs); paintClock = 0;
     lastPaintAt = now;
     var cfg = C.settings.dotsPolicy(), tuning = C.config.shell.dots, pointer = cursorPoint;
-    if (!cursorBlocked) { cursorPoint = { x: C.input.pointer.x, y: C.input.pointer.y, inside: C.input.pointer.inside }; pointer = cursorPoint; }
+    if (!cursorBlocked) { cursorPoint = { x: C.input.pointer.x, y: C.input.pointer.y, inside: C.input.pointer.inside && !covered() }; pointer = cursorPoint; }
     if (cursorFade) {
       cursorFade.elapsed += dt;
       var fade = Math.min(1, cursorFade.elapsed / cursorFade.ms), e = 1 - Math.pow(1 - fade, 3);
@@ -142,8 +144,11 @@
       function tint() { var style = root.getComputedStyle(root.document.documentElement); ink = style.getPropertyValue(C.settings.get('dotTint') === 'accent' ? '--accent' : '--highlight').trim(); dirty = true; C.fx.wake(); }
       tint(); ['dotTint', 'accentColor', 'rarityColor'].forEach(function (key) { C.settings.onChange(key, tint); });
       resize();
-      C.events.on('pointer:move', function (event) { if (cursorBlocked || !C.settings.dotsPolicy().enabled) return; if (!C.motion.reduced && C.settings.dotsPolicy().trail) pendingPaths.push(event.path); dirty = true; });
+      C.events.on('pointer:move', function (event) { if (cursorBlocked || covered() || !C.settings.dotsPolicy().enabled) return; if (!C.motion.reduced && C.settings.dotsPolicy().trail) pendingPaths.push(event.path); dirty = true; });
       C.events.on('pointer:leave', function () { if (!cursorBlocked) dirty = true; });
+      // opening or closing the inventory repaints the grid once, with or without the pointer's glow
+      C.events.on('inventory:open', function () { heat.clear(); pendingPaths = []; dirty = true; C.fx.wake(); });
+      C.events.on('inventory:close', function () { dirty = true; C.fx.wake(); });
       C.events.on('pointer:click', function (event) {
         if (C.motion.reduced || cursorBlocked || !C.settings.dotsPolicy().enabled || C.settings.get('clickRipples') === false) return;
         // The cap includes queued echoes, so rapid clicks cannot accumulate hidden energy.

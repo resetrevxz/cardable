@@ -33,7 +33,7 @@ html .currency-counter.cb-credits.idle-chrome:hover { transform: none; border-co
 /* The pinned card: the balance in full and where credits come from. */
 .cb-credits .cb-wallet-popover { position: absolute; top: calc(100% + 10px); right: 0; z-index: var(--z-overlay); width: min(268px,calc(var(--available-width,100vw) - 32px)); max-height: calc(100vh - 150px); overflow: hidden auto; box-sizing: border-box; padding: 16px 18px 14px; text-align: left; border: 1px solid var(--stroke-strong,rgba(255,255,255,.16)); border-radius: var(--radius-card,20px); background: linear-gradient(160deg,var(--tone-25,rgba(34,34,40,.94)),var(--tone-09,rgba(20,20,24,.94))); backdrop-filter: blur(calc(28px * var(--q-blur,1))) saturate(165%); -webkit-backdrop-filter: blur(calc(28px * var(--q-blur,1))) saturate(165%); box-shadow: inset 0 1px 0 var(--light-edge,rgba(255,255,255,.14)),var(--shadow-lg,0 24px 60px rgba(0,0,0,.5)); transform-origin: 100% 0; }
 .cb-credits .cb-wallet-popover[hidden] { display: none; }
-.cb-credits .cb-wallet-popover:not([hidden]) { animation: cb-pop-in calc(260ms * var(--q-motion,1)) var(--ease-out) both; }
+.cb-credits .cb-wallet-popover:not([hidden]) { animation: cb-pop-in calc(260ms * var(--q-motion,1)) var(--ease-out) backwards; }
 .cb-wallet-head { display: flex; align-items: center; gap: 12px; }
 .cb-wallet-coin { flex: none; width: 40px; height: 40px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.45)); }
 .cb-wallet-coin .currency-mark { display: block; width: 100%; height: 100%; }
