@@ -45,7 +45,7 @@ pullCard(pack):
   5. instance = { instanceId, cardId, variantId, serial, pulledAt, seen: false }
 ```
 
-- Weights are normalized by their sum. In dev mode, log a warning if the chances do not sum to 100 (they currently sum to 100.5, see OPEN-QUESTIONS #2).
+- Weights are normalized by their sum. In dev mode, log a warning if the chances do not sum to 100 (they have summed to exactly 100 since 1.10.0, see OPEN-QUESTIONS #2).
 - `pack.cardsPerPack` (default **1**) cards are pulled per pack. If more than 1, reveal them one at a time (`docs/04-PACK-OPENING.md`).
 - The Limited tier is `pullable: false` and never appears in normal pulls.
 - **Commit at charge completion.** When the 3-second hold completes, consume the pack, resolve the pull, and store it as `save.pendingReveal`. This prevents refreshing to re-roll. On the next load, if `pendingReveal` exists, skip straight to the revealed state with the Keep button.

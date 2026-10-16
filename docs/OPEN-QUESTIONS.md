@@ -9,7 +9,7 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 | # | Question | Default used | Change it |
 |---|---|---|---|
 | 1 | Pack regeneration cadence. | Owner changed it to 2 hours per pack; up to 12 per day while below the stock cap | `config.packs.regenMs` |
-| 2 | The tier chances add up to **100.5 %**, and the printed running totals imply Legendary is **0.5 %**, not 1 %. | Chances kept as written and normalized by their sum; dev-mode warning | `chance` of `legendary` in `rarities.js` |
+| 2 | The tier chances added up to **100.5 %**, and the printed running totals implied Legendary was **0.5 %**, not 1 %. | Resolved by 1.10.0: the owner asked for rarer rare cards, the chances were re-cut to sum to exactly 100 % (Legendary 0.3 %) | `chance` in `rarities.js`, [RARITY-ODDS-1.10.0](RARITY-ODDS-1.10.0.md) |
 | 3 | Default color versus monochrome presentation. | Owner now permits purposeful default UI accents; the existing Color theme setting selects color or monochrome for cards, cinematics and Achievements. | `settings.rarityColor` / Designs.MD |
 | 4 | How many cards does one pack give? Some text says "the card", other text says "cards". | 1 card per pack; the sequence supports more | `cardsPerPack` in `packs.js` |
 | 5 | Rarity should slow the charge, but the charge is a fixed 3 s hold. | Hold is always 3 s. Rarity scales rise, pre-flip pause, flip, bloom and grid dim. | `reveal` in `rarities.js` |
@@ -23,7 +23,7 @@ Things the spec left undecided or contradictory. Codex must use the **default** 
 | 13 | Limited tier: pull chance and dates are undefined. | `pullable: false`, `availableUntil: null`, date text shown as `<date>` until set | `rarities.js` |
 | 14 | What happens to the timer when 4 packs are stored? | Timer pauses at the cap; time is not banked | `docs/01-GAME-RULES.md` section 1 |
 | 15 | Cutting: hover-slide or press-and-drag? | Press and drag | `config.cut.requirePress` |
-| 16 | The tier text mentions "rare card packs". How many pack types now? | Owner approved Standard plus Rare on every fourth lifetime opening in 2.0.0. | `src/data/packs.js` |
+| 16 | The tier text mentions "rare card packs". How many pack types now? | Owner approved Standard plus Rare on every fourth lifetime opening in 2.0.0; 1.10.0 made it every sixth (Rare Packs held back so the Rare tier is rarer). | `src/data/packs.js` |
 | 17 | The Limited design text is identical to Unusual. Intended? | Treated as intended: Unusual-style base plus crimson border prop | `docs/02-RARITIES.md` tier 12 |
 | 18 | Which specs appear on a card? | Remade tiers 0–11: memory capacity/type plus up to 4 available specs, using icons. Unfound Secret conceals them. Limited retains up to 3. | `src/ui/card-specs.js` |
 | 19 | Font files must be supplied. | Inter and JetBrains Mono woff2 in `assets/fonts/`; fallbacks work without them | `assets/fonts/` |

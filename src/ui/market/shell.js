@@ -23,7 +23,7 @@
   ui.pages = { register: function (name, def) { pages[name] = def; }, get: function (name) { return pages[name]; } };
   ui.TABS = TABS;
 
-  var el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, moreButtonTop, noticeHost, simChip;
+  var inkReady = false, tabsEl, tabInk, el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, moreButtonTop, noticeHost, simChip;
   var PRIMARY = TABS.filter(function (t) { return t.primary; }).map(function (t) { return t.id; });
   var opened = false, stack = [], current = null, pageScope = null, savedFocus = null, inertRecords = [], mounting = false, suggestPop = null;
   var returnFocusKey = null;
@@ -146,6 +146,15 @@
     var allowed = { bids: C.settings.get('marketNotifyBids'), trades: C.settings.get('marketNotifyTrades'), watch: C.settings.get('marketNotifyWatch') };
     return api.notifications.filter(function (n) { var m = ui.activityMeta[n.kind]; return m && allowed[m.group] && !read[n.id]; }).length;
   }
+  // The underline under the current tab slides from the old tab to the new one (a transform, so it costs no layout while moving).
+  function moveInk() {
+    if (!tabsEl || !tabInk) return;
+    var on = tabsEl.querySelector('.mk-tab[data-active="true"]:not([hidden])');
+    // when no tab is current, or the bar is not laid out yet, the tab's own underline (market.css) is the fallback
+    if (!on || on.offsetWidth < 30) { tabsEl.dataset.ink = 'off'; tabsEl.style.setProperty('--ink-w', '0'); return; }
+    tabsEl.dataset.ink = 'on';
+    tabsEl.style.setProperty('--ink-x', (on.offsetLeft + 12) + 'px'); tabsEl.style.setProperty('--ink-w', String(on.offsetWidth - 24));
+  }
   function updateChrome() {
     if (!el) return;
     var active = current ? navFor(current) : (frameRealm() === 'simulation' ? 'home' : 'discover');
@@ -176,6 +185,7 @@
       var onMore = MORE.some(function (m) { return current && current.name === m[0]; }) && PRIMARY.indexOf(active) < 0;
       moreButtonTop.setAttribute('aria-current', onMore ? 'page' : 'false'); moreButtonTop.dataset.active = String(onMore);
     }
+    moveInk(); if (!inkReady) { inkReady = true; root.requestAnimationFrame(function () { root.requestAnimationFrame(moveInk); }); if (root.addEventListener) root.addEventListener('resize', function () { if (opened) moveInk(); }, { passive: true }); }
     var wallet = C.market.api.walletSync(frameRealm());
     var priorBalance = walletEl._mkBalance, priorRealm = walletEl._mkRealm;
     ui.clear(walletEl);
@@ -313,7 +323,8 @@
 
     // navigation
     navEl = h('nav.mk-nav', { 'aria-label': 'Market sections' });
-    var tabs = h('div.mk-tabs');
+    var tabs = h('div.mk-tabs'); tabsEl = tabs;
+    tabInk = h('span.mk-tab-ink', { 'aria-hidden': 'true' }); tabs.appendChild(tabInk);
     TABS.filter(function (t) { return t.primary; }).forEach(function (t) {
       var b = h('button.mk-tab', { type: 'button', data: { tab: t.id }, 'aria-keyshortcuts': t.key }, icon(t.icon), h('span.mk-tab-label', { text: t.label }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
       b.addEventListener('click', function () { goTab(t.id); });
@@ -334,6 +345,7 @@
     frame.appendChild(noticeHost);
     scroller = h('main.mk-main', { id: 'mk-main', tabindex: '-1' });
     frame.appendChild(scroller);
+    if (ui.hover) ui.hover.attach(scroller);
 
     // phone bottom bar
     bottomBar = h('nav.mk-bottom', { 'aria-label': 'Market sections' });

@@ -1,3 +1,16 @@
+# Cardable v1.10.0 — Rarer rares
+
+Rare cards are rare now, common cards are common, and the Market prices follow.
+
+- **Rarer rares.** Across every pack you open, Legendary or better was one card in ten; it is now about one in sixty-six, and Mythical, Exotic, Ascendant and Secret are five to seven times scarcer. Basic and Common are more than 63% of cards (they were 47%).
+- **Every pack rebalanced.** Rare Packs now arrive every sixth opening instead of every fourth and hold back the top tiers; Royal Packs are about a tenth as frequent; Titan Packs about a fifteenth; the Classic Pack's Secret boost is halved. Rare Packs still always give Rare or better, Royal still always gives Legendary or better, and the Picker still offers one Rare or better.
+- **Prices follow rarity.** Rare through Secret cards are worth two to three times what they were; Basic and Common a little less. The Shop prices of the scarcest cards went up so that buying there and selling on the Market is never a free profit. On average a pull is worth about a third less in Credits, and the lucky ones are worth far more.
+- **Livelier Market.** Cards lean toward your mouse and catch a band of light once; the glow takes the card's rarity colour (scarcer cards glow more); suggestions and news react; buttons sink when pressed; the tab underline slides to the tab you pick. Nothing moves for touch, Reduced motion, Hover animations off, or Very Low and Low quality.
+
+Saves are unchanged: no schema change. Cards you already own keep their tier, serial and finish. The full before and after is in docs/RARITY-ODDS-1.10.0.md.
+
+---
+
 # Cardable v1.9.0 — Local Market 2.0
 
 The Simulation is easier to start, calmer to look at, and worth getting good at.

@@ -1,5 +1,5 @@
 {
-  "when": "2026-10-16T13:37:17.421Z",
+  "when": "2026-10-16T17:42:18.719Z",
   "node": "v24.20.0",
   "rows": [
     {
@@ -14,21 +14,21 @@
       "command": "node tools/verify-assets.cjs",
       "ok": true,
       "seconds": 0,
-      "summary": "All 228 scripts and 62 stylesheets in index.html EXIST!"
+      "summary": "All 229 scripts and 62 stylesheets in index.html EXIST!"
     },
     {
       "name": "desktop services",
       "command": "npm run test:services",
       "ok": true,
       "seconds": 0,
-      "summary": "✔ logging: native Error causes survive serialization without arbitrary Error properties (1.5162ms) | ✔ Discord: no ID, absence and invalid screen data do not block the game (3.0421ms) | ℹ pass 8 | ℹ fail 0"
+      "summary": "✔ logging: native Error causes survive serialization without arbitrary Error properties (1.5932ms) | ✔ Discord: no ID, absence and invalid screen data do not block the game (3.2404ms) | ℹ pass 8 | ℹ fail 0"
     },
     {
       "name": "market rules, simulation and sales (node tests)",
       "command": "npm run test:market",
       "ok": true,
       "seconds": 2,
-      "summary": "✔ invalid prices are rejected: zero, negative, fractional, huge (7.4884ms) | ✔ a failed save write leaves the sale pending and a retry applies it once (15.9335ms) | ℹ pass 85 | ℹ fail 0"
+      "summary": "✔ invalid prices are rejected: zero, negative, fractional, huge (7.6237ms) | ✔ a failed save write leaves the sale pending and a retry applies it once (17.1604ms) | ℹ pass 92 | ℹ fail 0"
     },
     {
       "name": "merged collections",
@@ -41,84 +41,91 @@
       "name": "Cloudflare Worker (real local runtime)",
       "command": "npm run test:cloudflare",
       "ok": true,
-      "seconds": 55,
-      "summary": "✔ settings keep social choices, and a muted alias list is bounded and validated (75.0871ms) | ✔ auction: cancel is refused once there is a valid bid, and allowed before (1381.3254ms) | ℹ pass 100 | ℹ fail 0"
+      "seconds": 53,
+      "summary": "✔ settings keep social choices, and a muted alias list is bounded and validated (75.1663ms) | ✔ auction: cancel is refused once there is a valid bid, and allowed before (1418.4718ms) | ℹ pass 100 | ℹ fail 0"
     },
     {
       "name": "Market interface",
       "command": "npm run check:market",
       "ok": true,
-      "seconds": 87,
+      "seconds": 85,
       "summary": "Market browser check passed."
     },
     {
       "name": "Simulation in the interface",
       "command": "npm run check:market-sim",
       "ok": true,
-      "seconds": 64,
-      "summary": "ok   no console errors, page errors or network requests were made | 18 steps passed, 0 failed. Evidence: D:\\CardableV2\\LocalMarket\\qa-output\\market-beta\\stage-2\\evidence.json"
+      "seconds": 60,
+      "summary": "ok   no console errors, page errors or network requests were made | 18 steps passed, 0 failed. Evidence: D:\\CardableV2\\Rarity\\qa-output\\market-beta\\stage-2\\evidence.json"
     },
     {
       "name": "economy and selling",
       "command": "npm run check:market-economy",
       "ok": true,
-      "seconds": 50,
-      "summary": "ok   no console errors, page errors or network requests were made | 13 steps passed, 0 failed. Evidence: D:\\CardableV2\\LocalMarket\\qa-output\\market-beta\\stage-3\\evidence.json"
+      "seconds": 52,
+      "summary": "ok   no console errors, page errors or network requests were made | 13 steps passed, 0 failed. Evidence: D:\\CardableV2\\Rarity\\qa-output\\market-beta\\stage-3\\evidence.json"
     },
     {
       "name": "online client and import",
       "command": "npm run check:market-online",
       "ok": true,
       "seconds": 11,
-      "summary": "ok   no page errors; the only console messages are the expected network failure | 9 steps passed, 0 failed. Evidence: D:\\CardableV2\\LocalMarket\\qa-output\\market-beta\\stage-4\\evidence.json"
+      "summary": "ok   no page errors; the only console messages are the expected network failure | 9 steps passed, 0 failed. Evidence: D:\\CardableV2\\Rarity\\qa-output\\market-beta\\stage-4\\evidence.json"
     },
     {
       "name": "analytics and portfolio",
       "command": "npm run check:market-analytics",
       "ok": true,
-      "seconds": 27,
-      "summary": "ok   no page errors and no unexpected console messages | 11 steps passed, 0 failed. Evidence: D:\\CardableV2\\LocalMarket\\qa-output\\market-beta\\stage-6\\evidence.json"
+      "seconds": 29,
+      "summary": "ok   no page errors and no unexpected console messages | 11 steps passed, 0 failed. Evidence: D:\\CardableV2\\Rarity\\qa-output\\market-beta\\stage-6\\evidence.json"
     },
     {
       "name": "trading",
       "command": "npm run check:market-trading",
       "ok": true,
       "seconds": 76,
-      "summary": "ok   no page errors; every request went to the one allowed origin | 10 steps passed, 0 failed. Evidence: D:\\CardableV2\\LocalMarket\\qa-output\\market-beta\\stage-5\\evidence.json"
+      "summary": "ok   no page errors; every request went to the one allowed origin | 10 steps passed, 0 failed. Evidence: D:\\CardableV2\\Rarity\\qa-output\\market-beta\\stage-5\\evidence.json"
     },
     {
       "name": "social: pictures, comments, reviews",
       "command": "npm run check:market-social",
       "ok": true,
       "seconds": 39,
-      "summary": "ok   no page errors and no unexpected console messages | 14 steps passed, 0 failed. Evidence: D:\\CardableV2\\LocalMarket\\qa-output\\market-beta\\stage-7\\evidence.json"
+      "summary": "ok   no page errors and no unexpected console messages | 14 steps passed, 0 failed. Evidence: D:\\CardableV2\\Rarity\\qa-output\\market-beta\\stage-7\\evidence.json"
     },
     {
       "name": "Home, coach and motion",
       "command": "npm run check:market-home",
       "ok": true,
-      "seconds": 28,
-      "summary": "ok   no page errors and no unexpected console messages | 10 steps passed, 0 failed. Evidence: D:\\CardableV2\\LocalMarket\\qa-output\\market-home\\evidence.json"
+      "seconds": 29,
+      "summary": "ok   no page errors and no unexpected console messages | 10 steps passed, 0 failed. Evidence: D:\\CardableV2\\Rarity\\qa-output\\market-home\\evidence.json"
+    },
+    {
+      "name": "hover and press feedback",
+      "command": "npm run check:market-hover",
+      "ok": true,
+      "seconds": 15,
+      "summary": "7 steps, 0 failed; screenshots in qa-output\\market-hover"
     },
     {
       "name": "acceptance journeys and UI sweep",
       "command": "npm run check:market-acceptance",
       "ok": true,
-      "seconds": 155,
-      "summary": "ok   no page errors and no unexpected console messages across the whole run | 15 steps passed, 0 failed. Evidence: D:\\CardableV2\\LocalMarket\\qa-output\\market-beta\\stage-8\\evidence.json"
+      "seconds": 156,
+      "summary": "ok   no page errors and no unexpected console messages across the whole run | 15 steps passed, 0 failed. Evidence: D:\\CardableV2\\Rarity\\qa-output\\market-beta\\stage-8\\evidence.json"
     },
     {
       "name": "inventory glass",
       "command": "node tools/check-inventory-glass.cjs",
       "ok": true,
-      "seconds": 13,
+      "seconds": 14,
       "summary": "    \"Responsive browser/native widths, normal-grid Home/End focus with an oversized row, gallery specimen/cleanup, no renderer network or console/page errors.\" |   \"errors\": [],"
     },
     {
       "name": "inventory interaction",
       "command": "node tools/check-inventory-interaction.cjs",
       "ok": true,
-      "seconds": 16,
+      "seconds": 17,
       "summary": "  \"errors\": [],"
     },
     {
@@ -133,7 +140,7 @@
       "command": "npm run release:validate",
       "ok": true,
       "seconds": 0,
-      "summary": "Release 1.9.0: version, notes validated."
+      "summary": "Release 1.10.0: version, notes validated."
     }
   ]
 }

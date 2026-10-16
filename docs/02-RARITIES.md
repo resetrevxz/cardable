@@ -12,21 +12,21 @@ Owner-approved card remake pass 2: Legendary through Ascendant and Secret now us
 
 | Tier | Code | Name | Chance | Group |
 |---|---|---|---|---|
-| 0 | B | Basic | 46.5 % | Common Tiers |
-| 1 | C | Common | 23.5 % | Common Tiers |
-| 2 | UC | Uncommon | 15 % | Common Tiers |
-| 3 | R | Rare | 7.5 % | Common Tiers |
-| 4 | SR | Super Rare | 2.5 % | Uncommon Tiers |
-| 5 | U | Unusual | 2 % | Uncommon Tiers |
-| 6 | SSR | Double Super Rare | 1.5 % | Uncommon Tiers |
-| 7 | L | Legendary | 1 % (see note) | Rare Tiers |
-| 8 | M | Mythical | 0.75 % | Rare Tiers |
-| 9 | E | Exotic | 0.2 % | Rare Tiers |
-| 10 | A | Ascendant | 0.045 % | Legendary Tiers |
-| 11 | ? | Secret | 0.005 % | Legendary Tiers |
+| 0 | B | Basic | 54.945 % | Common Tiers |
+| 1 | C | Common | 25.5 % | Common Tiers |
+| 2 | UC | Uncommon | 12.5 % | Common Tiers |
+| 3 | R | Rare | 4.1 % | Common Tiers |
+| 4 | SR | Super Rare | 1.1 % | Uncommon Tiers |
+| 5 | U | Unusual | 0.8 % | Uncommon Tiers |
+| 6 | SSR | Double Super Rare | 0.5 % | Uncommon Tiers |
+| 7 | L | Legendary | 0.3 % | Rare Tiers |
+| 8 | M | Mythical | 0.18 % | Rare Tiers |
+| 9 | E | Exotic | 0.06 % | Rare Tiers |
+| 10 | A | Ascendant | 0.0135 % | Legendary Tiers |
+| 11 | ? | Secret | 0.0015 % | Legendary Tiers |
 | 12 | # | Limited | not pullable | Exclusive Tiers |
 
-Note: the chances as written add up to 100.5 %. The running totals in the source imply Legendary is 0.5 %. See OPEN-QUESTIONS #2. Code normalizes by the sum until this is decided.
+Note: since 1.10.0 the chances add up to exactly 100 % (before, they added up to 100.5 %, OPEN-QUESTIONS #2). They describe a Standard-pack card; the Rare, Royal, Titan and Picker packs change the odds of the card in them, and [RARITY-ODDS-1.10.0](RARITY-ODDS-1.10.0.md) lists what a player meets across every pack.
 
 Target card counts per tier (reference only; the real set is small for now): B 34, C 23, UC 18, R 39, SR 14, U 16, SSR 20, L 31, M 26, E 19, A 15, ? 16, # 15. `marketValueUsd` is stored in data but is RESERVED for the future market. Do not read or display it.
 

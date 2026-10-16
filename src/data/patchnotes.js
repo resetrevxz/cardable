@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.10.0',codename:'Rarer rares',date:'October 16, 2026',tag:'Update',tagline:'Rare cards are rare. Prices follow.',
+    hero:{badge:'CARDABLE / 1.10.0',title:'Rarer rares.',subtitle:'Scarcer top tiers in every pack, prices that follow, and a livelier Market.',media:[]},
+    sections:{features:['Legendary or better goes from about one card in ten to about one in sixty-six; Mythical, Exotic, Ascendant and Secret are five to seven times scarcer.','Cards in the Market lean toward your mouse, glow in their rarity colour and answer a press; the tab underline slides.'],changes:['Rare Packs arrive every sixth opening instead of every fourth, Royal and Titan Packs are much less frequent, and the Classic Pack boosts Secret half as much.','Rare through Secret cards are worth two to three times what they were; the Shop prices of the scarcest cards rose with them. An average pull is worth about a third less in Credits.']},
+    entries:['Rarer rares in every pack.','Market prices follow rarity.','Livelier Market hover and press feedback.']
+  },
+  {
     version:'1.9.0',codename:'Local Market 2.0',date:'October 16, 2026',tag:'Update',tagline:'Easier to start. Worth getting good at.',
     hero:{badge:'CARDABLE / 1.9.0',title:'Local Market 2.0.',subtitle:'A calmer Market with a coach, news you can act on, and motion for money.',media:[]},
     sections:{features:['Home: your net worth, a level and goals, the best moves right now and the news, each with what you pay, what you keep after the fee and why.','A coach on every listing: a good price, a fair price, or more than it usually sells for.','News, fire sales and market makers give the Simulation things to read and act on. Buy orders under the market catch fire sales.'],changes:['Five sections and More instead of seven tabs and five icons; no standing notice; Simple mode shows only the list.','Brisk speed (a day in twelve minutes) is the default for new profiles.'],fixes:['The featured card on Browse no longer runs past the edge of a phone.'],qol:['The wallet pulses and a small amount rises from it when your Credits change; prices flash when they move; reduced motion removes all of it.']},

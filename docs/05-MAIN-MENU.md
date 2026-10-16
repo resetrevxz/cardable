@@ -2,7 +2,7 @@
 
 ## 2.1.0 brand packs
 
-Normal slots have a combined 5% brand-pack chance, split equally across NVIDIA, AMD, Snapdragon and Apple. Every fourth slot stays Rare and the two starting tutorial packs stay Standard. The upcoming type is stable per save/opening number. Brand wrappers show a Cardable header above the company logo and brand-only caption, with colored waiting/refill fluid. Counter slots keep stock semantics while their markers, info menu and title follow the next type. Ordinary menu type changes turn through a foil back; reduced motion and low animation use fades. The post-Keep handoff arrives directly at the menu wrapper without replaying its old slide-in.
+Normal slots have a combined 5% brand-pack chance, split equally across NVIDIA, AMD, Snapdragon and Apple. Every sixth slot stays Rare (every fourth before 1.10.0) and the two starting tutorial packs stay Standard. The upcoming type is stable per save/opening number. Brand wrappers show a Cardable header above the company logo and brand-only caption, with colored waiting/refill fluid. Counter slots keep stock semantics while their markers, info menu and title follow the next type. Ordinary menu type changes turn through a foil back; reduced motion and low animation use fades. The post-Keep handoff arrives directly at the menu wrapper without replaying its old slide-in.
 
 Quiet, centered, lots of empty space. The pack is the hero.
 

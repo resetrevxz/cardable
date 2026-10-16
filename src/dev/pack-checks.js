@@ -7,9 +7,9 @@
     for (var n = 1; n <= 100; n++) {
       var type = C.packs.typeAt(n), rare = type.id === 'rare' || type.replacesPackId === 'rare';
       if (rare) rareCount++;
-      if (rare !== (n % 4 === 0)) schedule = false;
+      if (rare !== (n % 6 === 0)) schedule = false;
     }
-    checks.push({label:'100 openings: exactly every fourth is a Rare slot, including upgrades (25 total)',pass:schedule && rareCount === 25});
+    checks.push({label:'100 openings: exactly every sixth is a Rare slot, including upgrades (16 total)',pass:schedule && rareCount === 16});
     var sampler = C.pull.createSampler(C.pack('rare'), {random:random}), safe = true;
     for (var i = 0; i < 3000; i++) {
       var result = sampler.draw();

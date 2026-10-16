@@ -7,8 +7,8 @@
     baseByRarity: {
       basic: 900, common: 1200, uncommon: 1700, rare: 2400,
       'super-rare': 3200, unusual: 3900, 'double-super-rare': 4700,
-      legendary: 6000, mythical: 7800, exotic: 10500,
-      ascendant: 16000, secret: 24000
+      legendary: 6000, mythical: 9000, exotic: 15500,
+      ascendant: 30000, secret: 54000
     },
     convenienceMultiplier: 1.25,
     variantMultiplier: 1.20,

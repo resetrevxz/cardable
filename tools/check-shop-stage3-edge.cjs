@@ -116,7 +116,7 @@ let browser;
   assert.equal(natural.after.stock, natural.before.stock - 1);
   assert.equal(natural.after.opened, natural.before.opened + 1);
   assert.equal(natural.after.stats, natural.before.stats + 1);
-  assert.equal(natural.after.wallet, natural.before.wallet + 200);
+  assert.equal(natural.after.wallet, natural.before.wallet); // opening a pack pays nothing since Market Beta stage 3
   assert.equal(natural.source, 'natural');
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ pass: true, checks: ['insufficient', 'exact funds', 'write failure', 'recovery', 'repeat', 'import', 'restore', 'full counter', 'midnight', 'invalid save', 'duplicate copy', 'natural pack regression'] }));

@@ -1,7 +1,7 @@
 /* Original brand-neutral vault; curated catalog IDs only. Data only. */
 (function(C){
   'use strict';
-  C.data.packs.push({id:'titan',name:'Titan Pack',enabled:true,priority:0,cadence:null,randomChance:.05,
+  C.data.packs.push({id:'titan',name:'Titan Pack',enabled:true,priority:0,cadence:null,randomChance:.003,
     pool:{minTier:5,maxTier:10,cardIds:['geforce-gtx-titan','titan-x-pascal','titan-rtx','geforce-gtx-690',
       'geforce-gtx-980-ti','geforce-gtx-1080-ti','geforce-rtx-2080-ti','geforce-rtx-3090',
       'geforce-rtx-3090-ti','geforce-rtx-4090','geforce-rtx-5090','geforce-rtx-5080',

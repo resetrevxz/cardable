@@ -1,7 +1,7 @@
 /* Cardable — rarity tiers. DATA ONLY.
  * Add a tier: append an object, add src/finishes/<id>.js, add a reveal row. See docs/02-RARITIES.md.
  *
- * chance: percent. NOTE: the chances below sum to 100.5 (OPEN-QUESTIONS #2). Code normalizes by the sum.
+ * chance: percent, summing to exactly 100 since 1.10.0 (rarer rares: see docs/RARITY-ODDS-1.10.0.md). Code still normalizes by the sum.
  * marketValueUsd: RESERVED for the future market. Do not read, display or build logic on it.
  * The source template's "variation chance" is intentionally omitted (variants system not made yet).
  * reveal: see the table in docs/02-RARITIES.md section 4.
@@ -13,7 +13,7 @@
   C.data.rarities = [
     {
       id: 'basic', tier: 0, code: 'B', name: 'Basic', group: 'Common Tiers',
-      chance: 46.5, pullable: true, targetCardCount: 34,
+      chance: 54.945, pullable: true, targetCardCount: 34,
       description: 'A basic card with no distinction.',
       designSpec: 'A basic white color which changes to gray based on viewing angles', propSpec: null,
       finish: 'basic', frontDesign: 'full-art',
@@ -24,7 +24,7 @@
     },
     {
       id: 'common', tier: 1, code: 'C', name: 'Common', group: 'Common Tiers',
-      chance: 23.5, pullable: true, targetCardCount: 23,
+      chance: 25.5, pullable: true, targetCardCount: 23,
       description: 'Common cards found in almost every pack.',
       designSpec: 'A gray color that spins around the card border in a shiny white outline', propSpec: null,
       finish: 'common', frontDesign: 'full-art',
@@ -35,7 +35,7 @@
     },
     {
       id: 'uncommon', tier: 2, code: 'UC', name: 'Uncommon', group: 'Common Tiers',
-      chance: 15, pullable: true, targetCardCount: 18,
+      chance: 12.5, pullable: true, targetCardCount: 18,
       description: 'More uncommon than common cards, but still usual.',
       designSpec: 'A basic lime color going to gradient green, and changes from green to dark green based on moving it', propSpec: null,
       finish: 'uncommon', frontDesign: 'full-art',
@@ -46,7 +46,7 @@
     },
     {
       id: 'rare', tier: 3, code: 'R', name: 'Rare', group: 'Common Tiers',
-      chance: 7.5, pullable: true, targetCardCount: 39,
+      chance: 4.1, pullable: true, targetCardCount: 39,
       description: 'A rare card mostly found in rare card packs.',
       designSpec: 'A light blue shade with sparkles going to a less light blue without sparkles', propSpec: null,
       finish: 'rare', frontDesign: 'full-art',
@@ -58,7 +58,7 @@
     },
     {
       id: 'super-rare', tier: 4, code: 'SR', name: 'Super Rare', group: 'Uncommon Tiers',
-      chance: 2.5, pullable: true, targetCardCount: 14,
+      chance: 1.1, pullable: true, targetCardCount: 14,
       description: 'A super rare card mostly found rarely in rare card packs.',
       designSpec: 'A blue color with ocean-like animated waves on the blue going/fading to a darker blue with a checkerbox pattern non-animated',
       propSpec: null,
@@ -71,7 +71,7 @@
     },
     {
       id: 'unusual', tier: 5, code: 'U', name: 'Unusual', group: 'Uncommon Tiers',
-      chance: 2, pullable: true, targetCardCount: 16,
+      chance: 0.8, pullable: true, targetCardCount: 16,
       description: 'A strangely unique unusual card to come across.',
       designSpec: 'A purple color with animated white shining coming from the top with slowly boosting down and up (the white)',
       propSpec: null,
@@ -86,7 +86,7 @@
     },
     {
       id: 'double-super-rare', tier: 6, code: 'SSR', name: 'Double Super Rare', group: 'Uncommon Tiers',
-      chance: 1.5, pullable: true, targetCardCount: 20,
+      chance: 0.5, pullable: true, targetCardCount: 20,
       description: 'A double super rare card found rarest in rare card packs',
       designSpec: 'A dark blue checkerbox pattern moving to a gold color with animated sparkles and the gold shifting colors with the dark blue following too slowly',
       propSpec: null,
@@ -102,7 +102,7 @@
     },
     {
       id: 'legendary', tier: 7, code: 'L', name: 'Legendary', group: 'Rare Tiers',
-      chance: 1, pullable: true, targetCardCount: 31,   // OPEN-QUESTIONS #2: running totals imply 0.5
+      chance: 0.3, pullable: true, targetCardCount: 31,
       description: "A card so legendary that it's sought after for millions.",
       designSpec: 'A golden color with sparkles, tip sparks, and in the middle part a different waving line which fades colors from light yellow-gold to a red-maroon colors, the red maroon color has a checkerbox pattern in it',
       propSpec: 'A gold crown (with sparkles and sparks) with red, blue and green gemstones with red having a hexagonal rotating glow, the blue being a mythril like non-animated white-ish texture, and the green having a extremely shiny outline',
@@ -117,7 +117,7 @@
     },
     {
       id: 'mythical', tier: 8, code: 'M', name: 'Mythical', group: 'Rare Tiers',
-      chance: 0.75, pullable: true, targetCardCount: 26,
+      chance: 0.18, pullable: true, targetCardCount: 26,
       description: 'Such a tale said about mythical cards almost no one has seen it for ages.',
       designSpec: 'A ruby like color which slowly goes from a basic to a shining one, has the glassy look with shiny refractions and actual crystal look',
       propSpec: 'White to red flames outside the card having a burning flame animation from the bottom only',
@@ -136,7 +136,7 @@
     },
     {
       id: 'exotic', tier: 9, code: 'E', name: 'Exotic', group: 'Rare Tiers',
-      chance: 0.2, pullable: true, targetCardCount: 19,
+      chance: 0.06, pullable: true, targetCardCount: 19,
       description: 'A truly Exotic card that stands apart from the rest.',
       designSpec: 'A pink color with a purple border, and animated random shapes in the middle.',
       propSpec: 'A glowing outside square with small squircle edges border made of dark purple with a pink outline with white going circling border',
@@ -153,7 +153,7 @@
     },
     {
       id: 'ascendant', tier: 10, code: 'A', name: 'Ascendant', group: 'Legendary Tiers',
-      chance: 0.045, pullable: true, targetCardCount: 15,
+      chance: 0.0135, pullable: true, targetCardCount: 15,
       description: 'A truly Ascendant card throughout generations.',
       designSpec: 'A white colored shifting pastel RGB colors on all side with random faded splashes happening every 2-3 seconds for 1 second fade in and out.',
       propSpec: 'A outside square with small squircle edges which shines and shifts colors like a aurora but with pastel colors',
@@ -168,7 +168,7 @@
     },
     {
       id: 'secret', tier: 11, code: '?', name: 'Secret', group: 'Legendary Tiers',
-      chance: 0.005, pullable: true, targetCardCount: 16,
+      chance: 0.0015, pullable: true, targetCardCount: 16,
       // Two states: "unfound" (player does not own it) and "found" (owned). See docs/02-RARITIES.md tier 11.
       unfoundDescription: 'No record of this card exists.',
       unfoundDesignSpec: 'Fast white line sweeps on black, confined to the sides, without lettering.',

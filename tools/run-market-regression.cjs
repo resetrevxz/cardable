@@ -24,6 +24,7 @@ const SUITES = [
   ['trading', 'check:market-trading'],
   ['social: pictures, comments, reviews', 'check:market-social'],
   ['Home, coach and motion', 'check:market-home'],
+  ['hover and press feedback', 'check:market-hover'],
   ['acceptance journeys and UI sweep', 'check:market-acceptance'],
   ['inventory glass', ['node', 'tools/check-inventory-glass.cjs']],
   ['inventory interaction', ['node', 'tools/check-inventory-interaction.cjs']],

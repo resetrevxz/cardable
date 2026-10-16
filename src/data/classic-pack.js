@@ -9,7 +9,7 @@
   C.data.cards.forEach(function(card) { if (!card.retired) card.era = C.data.classicCardIds.includes(card.id) ? 'classic' : 'modern'; });
   C.data.packs.push({
     id:'classic', name:'Classic Pack', enabled:true, priority:0, cadence:null, randomChance:.05,
-    pool:{}, tierWeightModifiers:{secret:4}, eraWeightModifiers:{classic:3, modern:1},
+    pool:{}, tierWeightModifiers:{secret:2}, eraWeightModifiers:{classic:3, modern:1},
     modernWeightConfig:'modernCardWeight', excludedVariantKinds:['frame'], cardSkinId:'classic',
     variantChanceMultiplier:1, cardsPerPack:1, skin:'classic', opening:'pullTab', swapIn:'pixelAway',
     counterStyle:{accent:'#D8D2BE',glyph:'486',label:'CLASSIC PACK'},

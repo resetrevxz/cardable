@@ -559,7 +559,7 @@
       if (rear) {
         node('div', 'pack-rear-title', layer, 'Rare pack');
         var copy = node('div', 'pack-rear-copy', layer);
-        ['Rare or better', 'Every fourth pack'].forEach(function (line) { node('span', '', copy, line); });
+        ['Rare or better', 'Every sixth pack'].forEach(function (line) { node('span', '', copy, line); });
         node('div', 'pack-batch', layer, (pack.design.batch || 'R+ / CB / 00018472'));
       }
       node('div', 'pack-series-mark', layer, 'Series ' + (pack.design.series || '01')).dataset.packText = 'series';

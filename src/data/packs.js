@@ -30,13 +30,15 @@
     },
     {
       id: 'rare', name: 'Rare Pack', enabled: true,
-      priority: 10, cadence: { every: 4 }, pool: { minTier: 3 }, skin: 'rare', swapIn: 'chameleon',
+      priority: 10, cadence: { every: 6 }, pool: { minTier: 3 }, skin: 'rare', swapIn: 'chameleon',
       variantChanceMultiplier: 1,
       counterStyle: { accent: 'var(--pack-rare-blue)', glyph: 'R+', label: 'RARE PACK' },
-      tagline: 'RARE OR BETTER', introText: 'Every fourth pack is a Rare Pack. Rare or better.',
+      tagline: 'RARE OR BETTER', introText: 'Every sixth pack is a Rare Pack. Rare or better.',
       cardsPerPack: 1,
-      tierWeightModifiers: { 'super-rare': 1.5, 'unusual': 1.5, 'double-super-rare': 1.5,
-        legendary: 2, mythical: 2, exotic: 2, ascendant: 2, secret: 2 },
+      // A Rare Pack guarantees Rare or better, and then mostly gives Rare. The scarcest tiers are held back so that a guaranteed
+      // slot does not make them common: Legendary or better is about one Rare Pack in forty.
+      tierWeightModifiers: { 'super-rare': .9, 'unusual': .8, 'double-super-rare': .55,
+        legendary: .28, mythical: .25, exotic: .22, ascendant: .22, secret: .22 },
       guarantees: [],
       design: { face: 'rare', material: 'sapphire-lacquer', wrapper: 'gloss-foil', graphic: 'die-ring',
         roughness: 0.12, foilStrength: 0.85, refraction: 0.32, emboss: 0.7,

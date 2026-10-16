@@ -30,8 +30,10 @@
     ],
 
     // Baseline value per rarity in Credits, scaled again per GPU by its own specification. Provisional.
-    rarityBase: { basic: 10, common: 18, uncommon: 32, rare: 70, 'super-rare': 130, unusual: 200, 'double-super-rare': 320,
-      legendary: 600, mythical: 1200, exotic: 2400, ascendant: 4800, secret: 9000 },
+    // Re-based for the 1.10.0 odds (docs/RARITY-ODDS-1.10.0.md): worth follows how seldom a card is pulled, so Rare and above are worth
+    // two to three times what they were, Basic and Common a little less, and the average pull stays within about a quarter of before.
+    rarityBase: { basic: 9, common: 17, uncommon: 34, rare: 140, 'super-rare': 330, unusual: 540, 'double-super-rare': 960,
+      legendary: 1500, mythical: 3000, exotic: 5000, ascendant: 9000, secret: 16000 },
     rarityBaseFallbackGrowth: 1.9,
     // A card's own spec score nudges its baseline within its tier (0.8x to 1.35x).
     cardSpread: { min: 0.8, max: 1.35 },
