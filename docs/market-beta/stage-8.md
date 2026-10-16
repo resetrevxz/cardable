@@ -83,3 +83,7 @@ Method: `tools/survey-surfaces.cjs` (compositor layers, held animations and main
 ## 7. What was not verified
 
 Real hardware and GPUs; the installer's execution and a live updater upgrade (CI builds the installer; nothing here runs it); screen readers; a physical phone; Turnstile; load at scale; a real v1.5.6 save file (a shaped fixture was used); the Electron regression suite, which cannot launch on this machine even on unmodified `main`. See [ACCEPTANCE.md](ACCEPTANCE.md).
+
+## 8. Evidence files
+
+[stage-8-evidence.json](stage-8-evidence.json) (the acceptance check: every step and every row of the route sweep) · [stage-8-regression.json](stage-8-regression.json) · [stage-8-cloudflare-tests.txt](stage-8-cloudflare-tests.txt) · [stage-8-live-trade.json](stage-8-live-trade.json) · screenshots in [screenshots/](screenshots/) named `stage-8-*` (Help, the paused and read-only states, Discover at 360 px, 1920 px and 2560 px wide, a listing at tablet and desktop width, Portfolio, monochrome phone and desktop).

@@ -1,0 +1,1962 @@
+{
+  "when": "2026-10-16T12:06:20.676Z",
+  "steps": [
+    {
+      "name": "a brand-new profile opens a pack, keeps the card with its exact serial and is paid nothing",
+      "ok": true,
+      "ms": 7822,
+      "detail": {
+        "start": {
+          "currency": 0,
+          "inventory": 0,
+          "opened": 0
+        },
+        "end": {
+          "currency": 0,
+          "inventory": 1,
+          "opened": 1
+        },
+        "serialShown": "CBL-UPQN-000001",
+        "serialKept": "CBL-UPQN-000001",
+        "quote": 163,
+        "fair": 297
+      }
+    },
+    {
+      "name": "an old save (duplicates, finishes, a locked card, favorites, a photo) loads intact through migration",
+      "ok": true,
+      "ms": 2699,
+      "detail": null
+    },
+    {
+      "name": "connect, preview and convert once: a receipt, a retry that changes nothing, and the offline save, locks and photo untouched",
+      "ok": true,
+      "ms": 1182,
+      "detail": {
+        "serials": 6
+      }
+    },
+    {
+      "name": "read-only: the client says so, looks still work, a write is refused before it is sent",
+      "ok": true,
+      "ms": 180,
+      "detail": null
+    },
+    {
+      "name": "maintenance: the client shows a calm pause, nothing is lost, and opening the service restores it",
+      "ok": true,
+      "ms": 222,
+      "detail": null
+    },
+    {
+      "name": "Help & feedback: honest sections, a report with no personal detail unless asked, a Beta badge at every width",
+      "ok": true,
+      "ms": 2387,
+      "detail": null
+    },
+    {
+      "name": "every route fits and shows the Beta badge: phone-360 (360x800 @2x, color, high quality)",
+      "ok": true,
+      "ms": 10736,
+      "detail": null
+    },
+    {
+      "name": "every route fits and shows the Beta badge: phone-390 (390x844 @3x, color, high quality)",
+      "ok": true,
+      "ms": 11456,
+      "detail": null
+    },
+    {
+      "name": "every route fits and shows the Beta badge: tablet-768 (768x1024 @1x, color, high quality)",
+      "ok": true,
+      "ms": 10360,
+      "detail": null
+    },
+    {
+      "name": "every route fits and shows the Beta badge: laptop-720p (1280x720 @1x, color, high quality)",
+      "ok": true,
+      "ms": 10378,
+      "detail": null
+    },
+    {
+      "name": "every route fits and shows the Beta badge: desktop-1080p (1920x1080 @1x, color, high quality)",
+      "ok": true,
+      "ms": 10518,
+      "detail": null
+    },
+    {
+      "name": "every route fits and shows the Beta badge: wide-2560 (2560x1080 @1x, color, high quality)",
+      "ok": true,
+      "ms": 10705,
+      "detail": null
+    },
+    {
+      "name": "every route fits in saved monochrome at phone and desktop width",
+      "ok": true,
+      "ms": 21152,
+      "detail": null
+    },
+    {
+      "name": "every route fits at each quality tier (very low, low, medium, high) and nothing animates under reduced motion",
+      "ok": true,
+      "ms": 45849,
+      "detail": null
+    },
+    {
+      "name": "no page errors and no unexpected console messages across the whole run",
+      "ok": true,
+      "ms": 0,
+      "detail": null
+    }
+  ],
+  "console": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+      "where": "legacy"
+    }
+  ],
+  "pageErrors": [],
+  "sweep": [
+    {
+      "label": "phone-360",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Discover"
+    },
+    {
+      "label": "phone-360",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 13,
+      "title": "Buy Now"
+    },
+    {
+      "label": "phone-360",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "Trades"
+    },
+    {
+      "label": "phone-360",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "phone-360",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "phone-360",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "phone-360",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "phone-360",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "phone-360",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "phone-360",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "phone-360",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "phone-360",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "phone-360",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "phone-360",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "phone-360",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 5,
+      "title": "GeForce 2 GTS"
+    },
+    {
+      "label": "phone-390",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 19,
+      "title": "Discover"
+    },
+    {
+      "label": "phone-390",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Buy Now"
+    },
+    {
+      "label": "phone-390",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "Trades"
+    },
+    {
+      "label": "phone-390",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "phone-390",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "phone-390",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "phone-390",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "phone-390",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "phone-390",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "phone-390",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "phone-390",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "phone-390",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "phone-390",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "phone-390",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "phone-390",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "GeForce GTX 1050 Ti"
+    },
+    {
+      "label": "tablet-768",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Discover"
+    },
+    {
+      "label": "tablet-768",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Buy Now"
+    },
+    {
+      "label": "tablet-768",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 9,
+      "title": "Trades"
+    },
+    {
+      "label": "tablet-768",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "tablet-768",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "tablet-768",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "tablet-768",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "tablet-768",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "tablet-768",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "tablet-768",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "tablet-768",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "tablet-768",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "tablet-768",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "tablet-768",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "tablet-768",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 7,
+      "title": "GeForce GTX 680"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 19,
+      "title": "Discover"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 19,
+      "title": "Buy Now"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 2,
+      "title": "Trades"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "laptop-720p",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "Radeon RX 6600"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Discover"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 19,
+      "title": "Buy Now"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "Trades"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "desktop-1080p",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 950"
+    },
+    {
+      "label": "wide-2560",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 19,
+      "title": "Discover"
+    },
+    {
+      "label": "wide-2560",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Buy Now"
+    },
+    {
+      "label": "wide-2560",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 9,
+      "title": "Trades"
+    },
+    {
+      "label": "wide-2560",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "wide-2560",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "wide-2560",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "wide-2560",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "wide-2560",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "wide-2560",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "wide-2560",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "wide-2560",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "wide-2560",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "wide-2560",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "wide-2560",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "wide-2560",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 1660 Ti"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Discover"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Buy Now"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 5,
+      "title": "Trades"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "mono-phone-390",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 1070"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Discover"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 19,
+      "title": "Buy Now"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 8,
+      "title": "Trades"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "mono-desktop-1080p",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "Arc A380"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Discover"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Buy Now"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Trades"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "tier-very-low",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "GeForce RTX 3070"
+    },
+    {
+      "label": "tier-low",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Discover"
+    },
+    {
+      "label": "tier-low",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Buy Now"
+    },
+    {
+      "label": "tier-low",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Trades"
+    },
+    {
+      "label": "tier-low",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "tier-low",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "tier-low",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "tier-low",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "tier-low",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "tier-low",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "tier-low",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "tier-low",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "tier-low",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "tier-low",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "tier-low",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "tier-low",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce RTX 2070"
+    },
+    {
+      "label": "tier-medium",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 16,
+      "title": "Discover"
+    },
+    {
+      "label": "tier-medium",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Buy Now"
+    },
+    {
+      "label": "tier-medium",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Trades"
+    },
+    {
+      "label": "tier-medium",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "tier-medium",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "tier-medium",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "tier-medium",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "tier-medium",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "tier-medium",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "tier-medium",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "tier-medium",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "tier-medium",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "tier-medium",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "tier-medium",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "tier-medium",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "Radeon HD 2900 XT"
+    },
+    {
+      "label": "tier-high",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Discover"
+    },
+    {
+      "label": "tier-high",
+      "route": "buy-now",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 18,
+      "title": "Buy Now"
+    },
+    {
+      "label": "tier-high",
+      "route": "trades",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 5,
+      "title": "Trades"
+    },
+    {
+      "label": "tier-high",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "tier-high",
+      "route": "portfolio",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Portfolio"
+    },
+    {
+      "label": "tier-high",
+      "route": "activity",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Activity"
+    },
+    {
+      "label": "tier-high",
+      "route": "watchlist",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Watchlist"
+    },
+    {
+      "label": "tier-high",
+      "route": "alerts",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Alerts"
+    },
+    {
+      "label": "tier-high",
+      "route": "compare",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Compare"
+    },
+    {
+      "label": "tier-high",
+      "route": "my-listings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "My listings"
+    },
+    {
+      "label": "tier-high",
+      "route": "settings",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Market settings"
+    },
+    {
+      "label": "tier-high",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "tier-high",
+      "route": "compose",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "List a card"
+    },
+    {
+      "label": "tier-high",
+      "route": "card",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 650"
+    },
+    {
+      "label": "tier-high",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 6,
+      "title": "GeForce GTX 1650 Super"
+    },
+    {
+      "label": "reduced-motion",
+      "route": "discover",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Discover"
+    },
+    {
+      "label": "reduced-motion",
+      "route": "stocks",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Stocks"
+    },
+    {
+      "label": "reduced-motion",
+      "route": "help",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Help & feedback"
+    },
+    {
+      "label": "reduced-motion",
+      "route": "listing",
+      "scroll": 0,
+      "page": 0,
+      "offenders": [],
+      "beta": true,
+      "running": 0,
+      "title": "Apple M2 Pro GPU"
+    }
+  ]
+}
