@@ -43,7 +43,7 @@ Two kinds of evidence are kept apart on purpose: **local** (the real Worker on t
 | Swaps, counteroffers, bundles, buy orders | Verified | Worker tests (swap ×2, bundle, orders); `check:market-trading` drives them through the interface |
 | Two buyers race for one listing; 120 generated interleavings | Verified | Worker `races.test.mjs` |
 | No bots, fixtures or Simulation numbers in Global | Verified | `check:market-online` ("the connected Global Market is empty on purpose and has a wallet of zero"), Worker analytics tests ("only real sales are counted") |
-| A real two-account transaction on the live service | see [RELEASE.md](RELEASE.md) | `live-trade.cjs` against the deployed Worker |
+| A real two-account transaction on the live service | Verified (live) | `live-trade.cjs` against the deployed Worker, 2026-10-16: two accounts, Quick Sell for exactly the quote, a 34-Credit sale, the seller received 33 (1-Credit minimum fee), one card moved once, replay changed nothing, the realm reconciled; [record](stage-8-live-trade.json) |
 
 ### Journey 4 — pictures, comments, reviews, discovery
 
@@ -91,7 +91,7 @@ Two kinds of evidence are kept apart on purpose: **local** (the real Worker on t
 
 | Claim | Status | Evidence |
 |---|---|---|
-| Hard stop (maintenance), read-only, and a recovery path | Verified | `ops.test.mjs`; [RUNBOOK.md](RUNBOOK.md) sections 3 and 5 |
+| Hard stop (maintenance), read-only, and a recovery path | Verified, locally and live | `ops.test.mjs`; on 2026-10-16 the live service was put in maintenance, refused a request with `maintenance`, and was opened again; [RUNBOOK.md](RUNBOOK.md) sections 3 and 5 |
 | A look never changes data while paused | Verified | `ops.test.mjs` "read-only means a look changes nothing" |
 | Daily budget breaker | Verified | `ops.test.mjs` |
 | Reset dry run changes nothing and lists no personal detail | Verified | `ops.test.mjs`; **no reset was run** |
@@ -108,7 +108,7 @@ Two kinds of evidence are kept apart on purpose: **local** (the real Worker on t
 |---|---|---|
 | Host version 1.8.0 is newer than 1.7.6 for the updater; the Market's own version (Beta 1.0.0) is independent | Verified | `release:validate`; `market.betaVersion` is separate in `src/data/market-config.js` |
 | Release notes, help, terms, privacy, moderation, rights | Done | `changelog/1.8.0.md`, patch notes, Help & feedback |
-| Installer, ZIP, checksums, updater metadata, links | see [RELEASE.md](RELEASE.md) | CI run and live asset checks |
+| Installer, ZIP, checksums, updater metadata, links | Verified for what CI produced and the public endpoints serve; **Not Verified** by running them | Windows release run succeeded; five assets present; `latest.yml` names 1.8.0 with SHA-512 and size; the site and both download links answer 200 ([RELEASE.md](RELEASE.md) section 6) |
 | A live updater upgrade from 1.7.6 to 1.8.0 | **Not Verified** | needs an installed 1.7.6 and a person to run it |
 
 ## 5. Open items, ranked

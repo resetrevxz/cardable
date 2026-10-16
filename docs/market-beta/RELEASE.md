@@ -40,7 +40,7 @@ Resources as recorded by the `summary` report just before the trade (counts only
 
 ## 4. Desktop and public release
 
-Filled in after publication — see section 6.
+Local delivery ran once from the merged `main` (`npm run deliver:desktop`: build `2026-10-16T12-14-14.637Z-b5309e385628`, the stable **Cardable (Latest Build)** shortcut points at it, older binaries removed, legacy outputs retained). Publication: section 6.
 
 ## 5. Verification that backs the release
 
@@ -54,4 +54,16 @@ Not run and why: the Electron regression suite (`test:regression`) cannot launch
 
 ## 6. Publication record
 
-(Written after the release; see below.)
+| Step | Result |
+|---|---|
+| Merge | `feature/market-beta` fast-forwarded into `main` in the primary checkout (no merge commit, no force-push); `main` went from `3554555` to `7d1d857` |
+| Tag and push | annotated tag `v1.8.0` and `main` pushed to `origin` (`gh` is not logged in on this machine, so the release helper's `gh` step was replaced by its guards done by hand: branch main, only the six website briefs untracked, tag absent, `release:validate` passing) |
+| GitHub Actions | **Windows release** (tag `v1.8.0`): success. **Source integrity** (main): success. **Cardable website** (main, twice): success |
+| Release | https://github.com/resetrevxz/cardable/releases/tag/v1.8.0 — "Cardable v1.8.0 — Market Beta", published (not a draft, not a pre-release) |
+| Assets | `Cardable-Setup-1.8.0.exe` (190,411,863 bytes), `Cardable-1.8.0-Windows-x64.zip` (242,408,978), `Cardable-Setup-1.8.0.exe.blockmap`, `latest.yml`, `SHA256SUMS.txt` |
+| Updater metadata | `latest.yml` says version 1.8.0 and names the installer with its SHA-512 and size (the size matches the asset) |
+| Checksums | `SHA256SUMS.txt` lists the installer, blockmap, ZIP and `latest.yml` (installer `296120e6…`, ZIP `fe776dd0…`). The files were not re-downloaded and re-hashed here |
+| Live site | https://resetrevxz.github.io/cardable/ answers 200 and shows 1.8.0; both `releases/latest/download/` links answer 200 |
+| Unsigned | the release is unsigned (no signing credentials exist); Windows will show its usual unknown-publisher notice |
+
+**Not checked after publication:** the installer was not run on a clean machine; a live updater upgrade from 1.7.6 was not observed; the downloaded ZIP was not extracted and launched. Those need a person at a Windows machine.
