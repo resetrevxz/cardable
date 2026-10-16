@@ -1,0 +1,103 @@
+{
+  "origin": "https://cardable-market-beta.resetrevxz.workers.dev",
+  "at": "2026-10-16T12:13:01.289Z",
+  "steps": [
+    {
+      "name": "the service is open",
+      "ok": true,
+      "detail": {
+        "mode": "open",
+        "version": "1.0.0-beta",
+        "schema": 6
+      }
+    },
+    {
+      "name": "two private accounts exist, with different names",
+      "ok": true,
+      "detail": {
+        "seller": "Fern Slope",
+        "buyer": "Little Newt"
+      }
+    },
+    {
+      "name": "each converted a few test cards, once",
+      "ok": true,
+      "detail": {
+        "seller": 3,
+        "buyer": 5
+      }
+    },
+    {
+      "name": "a Quick Sell quote is given before anything is sold",
+      "ok": true,
+      "detail": {
+        "total": 34
+      }
+    },
+    {
+      "name": "Quick Sell paid exactly the quote",
+      "ok": true,
+      "detail": {
+        "paid": 34
+      }
+    },
+    {
+      "name": "the seller listed one card at a fixed price",
+      "ok": true,
+      "detail": {
+        "price": 34
+      }
+    },
+    {
+      "name": "the buyer bought it at the listed price",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "the buyer paid the price and nothing else",
+      "ok": true,
+      "detail": {
+        "paid": 34
+      }
+    },
+    {
+      "name": "the seller received the price less the 2% fee (at least 1, half up)",
+      "ok": true,
+      "detail": {
+        "fee": 1,
+        "received": 33
+      }
+    },
+    {
+      "name": "the card moved to the buyer, once",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "repeating the same request acts once (same key)",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "buying it again with a new key is refused and charges nothing",
+      "ok": true,
+      "detail": {
+        "status": 409,
+        "code": "closed"
+      }
+    }
+  ],
+  "trade": {
+    "listing": "lst_Pm53KAos2sV-uA",
+    "price": 34,
+    "fee": 1,
+    "seller": "Fern Slope",
+    "buyer": "Little Newt"
+  },
+  "reconcile": {
+    "ok": true,
+    "problems": []
+  }
+}

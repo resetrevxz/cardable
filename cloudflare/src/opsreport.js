@@ -6,7 +6,7 @@ import { currentMode } from './maintenance.js';
 // Player-owned state, children before parents. The audit tables (moderation_log, ops_log), the service mode, the schema
 // record and the constant guard table are kept.
 const PLAYER_TABLES = ['alert_hits', 'alerts', 'order_fills', 'orders', 'offer_items', 'offers', 'bid_events', 'bids', 'holds', 'listing_events', 'reviews', 'comments', 'follows', 'reports',
-  'upload_variants', 'uploads', 'price_observations', 'trades', 'redemptions', 'listing_items', 'listings', 'notifications', 'settings', 'idempotency', 'ledger', 'instances', 'imports_v', 'import_previews',
+  'upload_variants', 'uploads', 'price_observations', 'trades', 'redemptions', 'listing_items', 'listings', 'notifications', 'settings', 'idempotency', 'ledger', 'instances', 'import_previews',
   'imports', 'sessions', 'wallets', 'accounts'];
 const KEPT_TABLES = ['moderation_log', 'ops_log', 'ops_state', 'schema_info', '_guard'];
 

@@ -3,7 +3,7 @@
  *
  *   node scripts/deploy.cjs --check                 read-only: tooling, authentication, config sanity, secret scan
  *   node scripts/deploy.cjs --plan                  print exactly what --apply would create; changes nothing
- *   node scripts/deploy.cjs --apply                 create D1 + R2 (cardable-market-beta*), migrate, set secrets, deploy
+ *   node scripts/deploy.cjs --apply                 create D1 + R2 (cardable-market-beta*), migrate, deploy, set only the secrets that are missing
  *   node scripts/deploy.cjs --verify <origin>       real requests against a deployed origin; fails loudly
  *   node scripts/deploy.cjs --apply-origin <origin> write a verified origin into the client config and the page CSP
  *   node scripts/deploy.cjs --admin <origin> reconcile|repair|sweep|summary|budget|ops-log|reset-plan   operator tools, with the admin token kept beside this file
@@ -129,13 +129,24 @@ function apply() {
   const url = (/https:\/\/[A-Za-z0-9.-]+\.workers\.dev/.exec(dep.stdout + dep.stderr) || [''])[0];
   out('Worker deployed', true, url || '(origin not parsed)');
 
-  const secret = crypto.randomBytes(32).toString('hex');
-  const s = wrangler(['secret', 'put', 'SESSION_SECRET'], { input: secret + '\n' });
-  out('SESSION_SECRET set', s.status === 0, s.status === 0 ? 'value not shown' : (s.stderr || '').trim().split('\n').pop());
-  const adminToken = crypto.randomBytes(24).toString('hex');
-  const a = wrangler(['secret', 'put', 'ADMIN_TOKEN'], { input: adminToken + '\n' });
-  if (a.status === 0) { fs.writeFileSync(path.join(ROOT, '.admin-token'), adminToken + '\n', { mode: 0o600 }); }
-  out('ADMIN_TOKEN set', a.status === 0, a.status === 0 ? 'value kept in cloudflare/.admin-token (git-ignored), not shown' : (a.stderr || '').trim().split('\n').pop());
+  // A secret that already exists is never replaced: a new SESSION_SECRET would end every session and break the signature of
+  // every import receipt, and a new ADMIN_TOKEN would lock the operator out of the file that holds it. To rotate one on
+  // purpose use `wrangler secret put` (RUNBOOK.md, incidents). If the list cannot be read, nothing is touched.
+  const listed = wrangler(['secret', 'list', '--format', 'json']);
+  let have = null;
+  try { have = JSON.parse(listed.stdout).map((x) => x.name); } catch (_) { have = null; }
+  if (have === null) console.log('  --   could not read the secret list; SESSION_SECRET and ADMIN_TOKEN were left as they are');
+  if (have && !have.includes('SESSION_SECRET')) {
+    const secret = crypto.randomBytes(32).toString('hex');
+    const s = wrangler(['secret', 'put', 'SESSION_SECRET'], { input: secret + '\n' });
+    out('SESSION_SECRET set', s.status === 0, s.status === 0 ? 'value not shown' : (s.stderr || '').trim().split('\n').pop());
+  } else if (have) out('SESSION_SECRET already set, kept', true);
+  if (have && !have.includes('ADMIN_TOKEN')) {
+    const adminToken = crypto.randomBytes(24).toString('hex');
+    const a = wrangler(['secret', 'put', 'ADMIN_TOKEN'], { input: adminToken + '\n' });
+    if (a.status === 0) { fs.writeFileSync(path.join(ROOT, '.admin-token'), adminToken + '\n', { mode: 0o600 }); }
+    out('ADMIN_TOKEN set', a.status === 0, a.status === 0 ? 'value kept in cloudflare/.admin-token (git-ignored), not shown' : (a.stderr || '').trim().split('\n').pop());
+  } else if (have) out('ADMIN_TOKEN already set, kept', true);
   if (flag('--turnstile-secret-stdin')) {
     const v = fs.readFileSync(0, 'utf8').trim();
     const t = wrangler(['secret', 'put', 'TURNSTILE_SECRET'], { input: v + '\n' });

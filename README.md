@@ -9,6 +9,7 @@
 
 Cardable turns GPU hardware into collectible cards. Charge a pack, tear its seal and uncover a card with its own finish, rarity and history. The Windows app includes the game and Electron runtime, so players can install and play without developer tools.
 
+- **Market Beta**: sell for Credits, trade with bot traders offline in the Simulation, or connect to Global to trade with real players under anonymous names (fixed prices, auctions, swaps, buy orders). Opening a pack no longer pays Credits. Global is a beta and may be reset; your offline game never is.
 - Daily Shop with four rotating GPU offers, a featured Titan pack, wishlists and purchase history.
 - Physical-feeling pack openings and rarity-specific cinematics.
 - Permanent cosmetic variants, sculpted frames and metallic card materials.

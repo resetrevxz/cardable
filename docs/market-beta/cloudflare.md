@@ -2,6 +2,8 @@
 
 Everything online for the Market beta lives in resources named `cardable-market-beta*`. Nothing here is production, nothing is attached to a custom domain, and nothing outside those names is read, changed or deleted. The code is in `cloudflare/`; this file is the operator's guide. The acceptance report is [stage-4.md](stage-4.md).
 
+> **Update 2026-10-16 (Stage 8): the operator's day-to-day manual moved to [RUNBOOK.md](RUNBOOK.md)** (service modes, the daily budget breaker, incidents, backups, the reset policy). This file stays the reference for resources, the API and the schema.
+>
 > **Update 2026-10-15: deployed to the beta (see the identifiers at the end of section 9).** The note below is the Stage 4 status and is kept as history.
 >
 > **Status at the end of Stage 4 (2026-10-13): not deployed.** The Cloudflare CLI (Wrangler 4.149) is installed in `cloudflare/` and the Worker is verified end to end on the local Workers runtime, but `wrangler whoami` reports *not authenticated* and the sign-in needs the account owner's interactive consent. No remote resource was created, so no ID or URL in this file is real yet. Section 9 lists the exact steps that remain. Nothing below is claimed as live.
@@ -100,12 +102,17 @@ All responses are `{ "ok": true, "data": … , "trace": "<id>" }` or `{ "ok": fa
 | POST `/v1/import/commit` | bearer + `Idempotency-Key` | one-time claim; returns the signed receipt |
 | GET `/v1/import/receipt` | bearer | the permanent receipt |
 | GET `/v1/admin/reconcile` · POST `/v1/admin/repair` · `sweep` · `import/revoke` | `x-admin-token` | operator tools; 404 for anyone else |
+| GET · POST `/v1/admin/mode` · GET `/v1/admin/ops-log` · `summary` · `reset-plan` · POST `/v1/admin/budget` | `x-admin-token` | Stage 8: the service mode (open, read-only, maintenance), its log, counts-only summary, the reset dry run, one budget check |
+
+`GET /v1/status` also reports `mode` and an optional `message`. In `read-only` every write answers `503 read-only` and in `maintenance` everything but the status page answers `503 maintenance`, both with `Retry-After`; see [RUNBOOK.md](RUNBOOK.md) section 3.
 
 The trading fields, rules and receipts are specified in [stage-5.md](stage-5.md).
 
-## 6. Schema (`migrations/0001_init.sql` … `0005_social.sql`, schema 5)
+## 6. Schema (`migrations/0001_init.sql` … `0006_ops.sql`, schema 6)
 
 `schema_info` · `accounts` (alias UNIQUE NOCASE, recovery hash UNIQUE) · `sessions` (refresh hash UNIQUE, previous hash kept for reuse detection) · `wallets` (`CHECK balance ≥ 0`, `0 ≤ held ≤ balance`, version) · `ledger` (append-only by convention: no code path updates or deletes a row; `delta ≠ 0`, `balance_after ≥ 0`, `UNIQUE(account_id, idem)`) · `instances` (server-issued id, **`serial` UNIQUE globally**, `source`, `state ∈ owned|escrow|redeemed`) · `imports` (**one per account, one per package hash, one per origin code**, receipt signature, idempotency key unique per account) · `import_previews` · `idempotency` (`PRIMARY KEY(account_id, key)`, request hash; reserved for Stage 5) · `listings`, `listing_items` (`instance_id` UNIQUE: a card can be in one listing), `price_observations`, `notifications`, `settings`.
+
+Schema 6 adds `ops_state` (the service mode, message and the daily budget counters) and `ops_log` (every change, with its actor); neither touches money or cards.
 
 Indexes: ledger by account (id desc), instances by owner/state/card, listings by status/ends_at, price by card/at, notifications by account, sessions by account. Schema 5 adds `uploads` and `upload_variants` (pictures and their three stored sizes), the listing presentation columns, `comments`, `reviews`, `follows`, `reports`, `moderation_log`, the ordered `listing_events` log that alerts read, and the operator restrictions on `accounts`; see [stage-7.md](stage-7.md). Schema 4 adds the analytics read model (`price_observations` gains `card_id`, indexed by card and time), cost basis columns (`instances.basis`, `trades.seller_basis`, `redemptions.basis`), listing search facets (rarity, brand, generation with composite indexes) and `alerts` / `alert_hits` (a unique hit per alert and listing). See [stage-6.md](stage-6.md).
 
@@ -114,7 +121,7 @@ Foreign keys cascade only from account-owned convenience rows; money and card ro
 ### Migration contract
 
 1. A migration is a new `NNNN_name.sql`; applied files are immutable.
-2. Forward only (`0001_init.sql`, `0002_import_hardening.sql`, `0003_trading.sql`, `0004_analytics.sql`, `0005_social.sql`). Destructive changes ship as add-new → backfill → switch → (later migration) drop.
+2. Forward only (`0001_init.sql`, `0002_import_hardening.sql`, `0003_trading.sql`, `0004_analytics.sql`, `0005_social.sql`, `0006_ops.sql`). Destructive changes ship as add-new → backfill → switch → (later migration) drop.
 3. Local rehearsal first: `wrangler d1 migrations apply cardable-market-beta-db --local`, then the test suite, then `--remote`.
 4. `schema_info.schema` and `/v1/status.schema` move together; the client treats a higher schema than it knows as read-only.
 

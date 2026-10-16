@@ -90,6 +90,11 @@ test('the summary and the reset dry-run change nothing and list no personal deta
   assert.ok(plan.data.statements.includes('DELETE FROM accounts;'));
   assert.ok(!plan.data.statements.some((s) => /moderation_log|ops_log|schema_info/.test(s)), 'the audit trail and schema record are kept');
   assert.equal(plan.data.wouldDelete.accounts, sum.data.rows.accounts);
+  assert.ok(Object.values(plan.data.wouldDelete).every((n) => Number.isInteger(n)), 'every table in the plan exists: ' + JSON.stringify(plan.data.wouldDelete));
+  assert.ok(Object.values(sum.data.rows).every((n) => Number.isInteger(n)), 'every table in the summary exists');
+  const real = sql(server, "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' AND name <> 'd1_migrations'").map((r) => r.name);
+  const named = Object.keys(plan.data.wouldDelete).concat(Object.keys(plan.data.wouldKeep));
+  assert.deepEqual(real.filter((t) => !named.includes(t)), [], 'a reset plan that forgets a table would leave orphans behind');
   assert.ok(!/alias|token|serial/i.test(JSON.stringify(sum.data.rows)));
   const rowsAfter = JSON.stringify(sql(server, 'SELECT (SELECT COUNT(*) FROM accounts) a, (SELECT COUNT(*) FROM wallets) w, (SELECT COUNT(*) FROM instances) i, (SELECT COUNT(*) FROM ledger) l'));
   assert.equal(rowsAfter, rowsBefore);

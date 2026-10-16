@@ -8,6 +8,13 @@ const root = path.resolve(__dirname, '..');
 const surface = process.argv[2] || 'shop', tier = process.argv[3] || 'medium', seconds = Number(process.argv[4] || 3);
 const OPEN = {
   menu: async () => {},
+  'market-listing': async (page) => {
+    await page.waitForFunction(() => Cardable.market.ui.shell.canOpen());
+    await page.evaluate(() => { Cardable.market.store.markGuideSeen(); Cardable.market.open({ name: 'discover', params: {} }); });
+    await page.waitForSelector('.mk-page');
+    const id = await page.evaluate(() => Cardable.market.api.listingsSync('simulation', { filters: Cardable.market.core.emptyFilters(), limit: 100, facets: false }).items.map((e) => e.listing).find((l) => l.format === 'auction').id);
+    await page.evaluate((id) => Cardable.market.ui.go('listing', { id }, { reset: true }), id); await page.waitForSelector('#mk-max'); await page.waitForTimeout(500);
+  },
   detail: async (page) => { await page.evaluate(() => { Cardable.inventoryModel.update({ viewMode: 'grid' }); Cardable.inventory.request('expanded'); }); await page.waitForFunction(() => Cardable.inventory.rendered.size > 0); await page.locator('.inventory-grid .inventory-tile[data-owned=true]').first().click(); await page.waitForFunction(() => Cardable.detail.phase === 'detail'); },
   settings: async (page) => { await page.locator('.settings-corner button, button.settings-corner, #settings-open').first().click({ timeout: 4000 }); await page.waitForTimeout(600); },
   shop: async (page) => { await page.locator('.shop-entry').first().click({ timeout: 4000 }); await page.waitForTimeout(900); }
