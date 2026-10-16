@@ -7,7 +7,7 @@
   var cfg = function () { return C.data.market; };
 
   var PAGES = {
-    discover: { title: 'Discover', blurb: 'Cards worth a look right now, ranked for you rather than by price.', tabs: true, hero: true, formats: null },
+    discover: { title: 'Browse', blurb: 'Cards worth a look right now, ranked for you rather than by price.', tabs: true, hero: true, formats: null },
     auctions: { title: 'Auctions', blurb: 'Timed bidding. Set a maximum and the market bids for you, one step at a time.', formats: ['auction'], sort: 'ending', auctionControls: true },
     'buy-now': { title: 'Buy Now', blurb: 'Fixed prices. The first buyer settles it.', formats: ['buy-now'], sort: 'recommended' },
     trades: { title: 'Trades', blurb: 'Card for card, with an optional Credits top-up to even things out.', formats: ['swap'], sort: 'recommended' }
@@ -631,7 +631,12 @@
         var amount = node.querySelector('.mk-credits .mk-num'), p = K().currentPrice(l);
         if (amount && l.format !== 'swap') {
           var text = ui.fmt.credits(p);
-          if (amount.textContent !== text) { amount.textContent = text; var wrap = amount.parentNode; wrap.title = ui.fmt.exact(p) + ' Credits'; wrap.setAttribute('aria-label', ui.fmt.exact(p) + ' Credits'); }
+          var prevPrice = Number(node.dataset.price) || null; node.dataset.price = String(p);
+          if (amount.textContent !== text) {
+            amount.textContent = text; var wrap = amount.parentNode; wrap.title = ui.fmt.exact(p) + ' Credits'; wrap.setAttribute('aria-label', ui.fmt.exact(p) + ' Credits');
+            // A price that moved while you were looking says so: a brief flash in the direction it went.
+            if (prevPrice != null && prevPrice !== p && ui.motion) ui.motion.flash(wrap, p > prevPrice ? 'up' : 'down');
+          }
         }
       });
       res.items.forEach(function (e) { if (!present[e.listing.id]) changed++; });

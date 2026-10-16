@@ -17,9 +17,10 @@
     speeds: [
       { id: 'calm', label: 'Calm', factor: 20, note: 'One minute of play is twenty simulated minutes.' },
       { id: 'standard', label: 'Standard', factor: 60, note: 'One minute of play is one simulated hour.' },
+      { id: 'brisk', label: 'Brisk', factor: 120, note: 'One minute of play is two simulated hours. A day takes twelve minutes.' },
       { id: 'fast', label: 'Fast', factor: 240, note: 'One minute of play is four simulated hours.' }
     ],
-    defaultSpeed: 'standard',
+    defaultSpeed: 'brisk',
     maxGapMs: 30000,          // a longer gap between two active ticks is an interruption and counts as zero
     tickBudgetEvents: 250,    // events handled per slice before yielding
     persistEveryMs: 4000,     // dirty-state write cadence while running (player actions write at once)
@@ -77,8 +78,51 @@
       { id: 'specialist', label: 'Specialist', blurb: 'Knows one brand or generation and trades only in it.', wake: [8, 22], buyMargin: 0.05, markup: 0.15, holdDays: [6, 25], spend: 0.35, auction: 0.35, snipe: 0.4, tier: [0, 11], trend: 0, keep: 0.4, wish: 12, allowance: 1.0, packs: 0.9 },
       { id: 'cautious', label: 'Cautious buyer', blurb: 'Prefers steady, liquid cards and small positions.', wake: [12, 36], buyMargin: 0.1, markup: 0.1, holdDays: [4, 20], spend: 0.15, auction: 0.1, snipe: 0.2, tier: [0, 4], trend: -0.05, keep: 0.2, wish: 6, allowance: 0.8, packs: 0.8 },
       { id: 'risk', label: 'Risk seeker', blurb: 'Chases scarce cards and accepts wide spreads.', wake: [6, 20], buyMargin: -0.02, markup: 0.3, holdDays: [3, 30], spend: 0.55, auction: 0.5, snipe: 0.5, tier: [5, 11], trend: 0.2, keep: 0.1, wish: 6, allowance: 1.2, packs: 1.0 },
+      { id: 'maker', label: 'Market maker', blurb: 'Quotes a price to buy and a price to sell on everyday cards, and lives on the gap.', wake: [3, 10], buyMargin: 0.1, markup: 0.1, holdDays: [0.2, 2], spend: 0.25, auction: 0.04, snipe: 0, tier: [0, 6], trend: 0, keep: 0, wish: 2, allowance: 1.2, packs: 0.5, quotes: true },
       { id: 'hype', label: 'Hype follower', blurb: 'Buys what has just moved and sells into strength.', wake: [3, 12], buyMargin: 0.0, markup: 0.1, holdDays: [0.5, 6], spend: 0.4, auction: 0.3, snipe: 0.3, tier: [0, 9], trend: 0.55, keep: 0, wish: 4, allowance: 1.0, packs: 0.9 }
     ],
+
+    // ---- news: demand shifts the player can read and act on ----------------------------------------------------------------
+    // A piece of news changes what the bots are willing to pay (and ask) for the cards it names. The price history, which
+    // is where Average Value comes from, only follows after trades happen, so the player who reads the news can be early.
+    // Hype lifts demand after a short lead; a dip lowers it; both fade back. How strongly each personality reacts is below.
+    events: {
+      gapHours: [3, 6],              // between one piece of news and the next
+      maxActive: 3,
+      afterHours: 8,                  // how long the effect takes to fade once the news is over
+      rampHours: 2,                   // how long it takes to reach full strength
+      kinds: [
+        { id: 'hype', weight: 5, mag: [0.25, 0.5], leadHours: [1.5, 4], hours: [9, 20] },
+        { id: 'dip', weight: 3, mag: [-0.34, -0.16], leadHours: [0.3, 1], hours: [10, 24] }
+      ],
+      scopes: [ { id: 'brand', weight: 4 }, { id: 'generation', weight: 3 }, { id: 'tier', weight: 2 }, { id: 'card', weight: 2 } ],
+      minCards: 4,
+      react: { collector: 0.5, investor: 0.4, hunter: 0.6, flipper: 1.0, completionist: 0.5, specialist: 0.9, cautious: 0.3, risk: 1.2, maker: 0.8, hype: 1.5 },
+      askFollow: 0.6                  // share of the shift that sellers put into their own asking prices
+    },
+
+    // ---- fire sales: a seller who needs Credits now ----------------------------------------------------------------------
+    // Rare and capped per simulated day, so a bargain is something you spot, not something that is always there.
+    fireSale: { chance: 0.34, perDay: 16, discount: [0.18, 0.4] },
+
+    // ---- the coach: how the Market tells a beginner what is worth doing --------------------------------------------------
+    // Everything it says is computed from the world's own listings, orders, news and trades. Thresholds live here.
+    coach: {
+      minGain: 3,                     // Credits a suggestion must be worth after the fee
+      minGainPct: 0.06,               // and this share of what it costs
+      dealBelowFair: 0.1,             // a listing this far under Average Value is a deal
+      snipeHours: 8,                  // an auction closing within this time can be sniped
+      snipeBidUp: 0.1,                // how far above the current bid the last bid is expected to land
+      resellDiscount: 0.04,           // list a little under fair to sell quickly
+      wantedPremium: [0.08, 0.22],    // asking above fair when traders are looking for the card
+      maxMoves: 6,
+      maxOrders: 4, trapBelowFair: 0.16, trapMinTrades: 3, trapMaxShare: 0.3,
+      levels: [
+        { id: 0, name: 'Newcomer', at: 0 }, { id: 1, name: 'Trader', at: 1 }, { id: 2, name: 'Flipper', at: 40 },
+        { id: 3, name: 'Dealer', at: 140 }, { id: 4, name: 'Broker', at: 400 }, { id: 5, name: 'Tycoon', at: 1000 }
+      ],
+      historyEveryHours: 3, historyKeep: 120
+    },
 
     // Stable bot names reuse the Market's two-word aliases.
     nameSeedTag: 'sim-bots',

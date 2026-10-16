@@ -280,7 +280,7 @@
     var id = ui.identity(card, owned), variant = l.card.variantId ? env.variants[l.card.variantId] : null;
     var fmtDef = formatDef(l.format), price = K().currentPrice(l);
     var watching = C.market.store.isWatching(l.id);
-    var tile = h('article.mk-tile', { data: { format: l.format, status: l.status, id: l.id, rarity: card.rarity, hover: 'glow-edge' }, style: { '--mk-i': Math.min(env.index || 0, 8) } });
+    var tile = h('article.mk-tile', { data: { format: l.format, status: l.status, id: l.id, rarity: card.rarity, hover: 'glow-edge', price: String(price) }, style: { '--mk-i': Math.min(env.index || 0, 8) } });
     var art = h('div.mk-tile-art');
     var thumb = env.thumbs.mount(card, { instanceId: 'mk-' + l.id, cardId: card.id, serial: l.card.serial, variantId: l.card.variantId, cardSkinId: l.card.cardSkinId, seen: true }, { owned: owned });
     art.appendChild(thumb);
@@ -288,6 +288,7 @@
     var f = h('span.mk-format', { data: { format: l.format } }, icon(fmtDef.icon), h('span', { text: fmtDef.short }));
     top.appendChild(f);
     if (l.format === 'auction' && l.endsMin != null) top.appendChild(h('span.mk-time' + (l.endsMin <= 60 ? '.is-urgent' : ''), { title: 'Time left in this auction', data: l.endsAt ? { end: String(l.endsAt) } : {} }, icon('clock'), h('span.mk-num', { text: fmt.duration(l.endsMin) })));
+    if (l.fire) top.appendChild(h('span.mk-fire', { title: 'The seller needs Credits quickly, so it is priced under what it usually sells for.' }, icon('zap'), h('span', { text: 'Fire sale' })));
     art.appendChild(top);
     var watch = h('button.mk-watch', { type: 'button', 'aria-pressed': String(watching), 'aria-label': (watching ? 'Remove from watchlist: ' : 'Add to watchlist: ') + id.name, title: watching ? 'Watching' : 'Watch' }, icon('bookmark'));
     watch.addEventListener('click', function (e) {

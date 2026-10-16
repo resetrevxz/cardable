@@ -198,7 +198,8 @@
       var headBox = h('header.mk-detail-head');
       var topLine = h('div.mk-detail-top');
       topLine.appendChild(h('span.mk-format', { data: { format: l.format } }, icon(ui.formatDef(l.format).icon), h('span', { text: ui.formatDef(l.format).label })));
-      topLine.appendChild(ui.realmBadge(l.realm || realm, { short: true }));
+      // The realm switch already says where you are in the Simulation; Global keeps its badge because real players are involved.
+      if ((l.realm || realm) !== 'simulation') topLine.appendChild(ui.realmBadge(l.realm || realm, { short: true }));
       topLine.appendChild(ui.chip(STATUS[l.status] || l.status, { tone: l.status === 'sold' || l.status === 'expired' || l.status === 'cancelled' ? 'warn' : 'soft', icon: l.status === 'sold' ? 'check' : closed ? 'clock' : null }));
       if (mine) topLine.appendChild(ui.chip('Yours', { tone: 'soft' }));
       // What is going on with this exact auction, in the words the market uses everywhere.
@@ -233,6 +234,15 @@
         var myBid = ctx.api.activitySync(realm).bids.find(function (b) { return b.listingId === l.id; });
         if (myBid && myBid.state === 'outbid') banner('danger', 'down', 'You were outbid. Your maximum of ' + ui.fmt.exact(myBid.yourMax) + ' Credits is below the current bid of ' + ui.fmt.exact(myBid.current) + '.');
         else if (myBid && myBid.state === 'leading') banner('success', 'up', 'You are leading with a maximum of ' + ui.fmt.exact(myBid.yourMax) + ' Credits.');
+      }
+
+      // ---- the coach: a plain answer to "is this a good price?" (Simulation) ----
+      if (r.coach && open && !mine) {
+        var co = r.coach, cbox = h('section.mk-coachbox', { data: { verdict: co.verdict }, 'aria-label': 'What the coach thinks' }, h('span.mk-coach-mark', icon(co.verdict === 'good' ? 'up' : co.verdict === 'fair' ? 'check' : 'warn')));
+        var ctext = h('div.mk-coach-text', h('strong', { text: co.title }));
+        co.lines.forEach(function (t) { ctext.appendChild(h('p', { text: t })); });
+        ctext.appendChild(h('p.mk-coach-foot', { text: 'A guide from today’s prices, not a promise.' }));
+        cbox.appendChild(ctext); right.appendChild(cbox);
       }
 
       // ---- price and action ----

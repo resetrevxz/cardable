@@ -326,9 +326,26 @@
       // The player sold to a bot: the bot pays and receives the card.
       if (buyerBot) { buyerBot.credits -= price; delete buyerBot.held['L' + l.id]; l.items.forEach(function (it) { it.a = world.now; it.u = price; buyerBot.inv.push(it); buyerBot.stats.bought += 1; }); }
       world.stats.you.sold += 1; world.stats.you.earned += net;
+      // Realized profit: what the sale paid after the fee against what these cards cost here. Cards from packs have no cost, so no profit is claimed.
+      var cost = 0, known = l.items.length > 0;
+      l.items.forEach(function (it) { var b = world.basis[it.i]; if (b == null) known = false; else cost += b; });
+      var you = world.stats.you;
+      if (known) {
+        var gain = net - cost;
+        you.realized = (you.realized || 0) + gain; you.realizedN = (you.realizedN || 0) + 1;
+        you.wins = (you.wins || []).concat([{ t: world.now, c: l.items[0].c, gain: gain, price: price }]).slice(-12);
+        if (gain > 0) world.coach.done.profit = true;
+      }
+      world.coach.done.sell = true;
+      if (world.coach.plan) l.items.forEach(function (it) { delete world.coach.plan[it.i]; });
     } else if (buyer === 'you') {
       if (sellerBot) { sellerBot.credits += net; sellerBot.open = Math.max(0, sellerBot.open - 1); sellerBot.stats.sold += 1; sellerBot.soldRecent[itemKey(l.items[0])] = world.now; }
       world.stats.you.bought += 1; world.stats.you.spent += price;
+      world.coach.done.buy = true;
+      var fairBuy = fairInfo(world, env, l.items[0].c, l.items[0].v, l.items[0].k).average * serialFactor(l.items[0].s);
+      if (price <= fairBuy * (1 - cfg().coach.dealBelowFair)) world.coach.done.deal = true;
+      if (s.kind === 'auction' || s.kind === 'buyout') world.coach.done.auction = true;
+      if (l.fire) world.coach.done.fire = true;
       l.items.forEach(function (it) { world.basis[it.i] = Math.round(price / l.items.length); });
       var keys = Object.keys(world.basis);
       if (keys.length > 1500) keys.slice(0, keys.length - 1500).forEach(function (k) { delete world.basis[k]; });

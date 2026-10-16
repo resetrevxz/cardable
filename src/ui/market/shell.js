@@ -6,21 +6,25 @@
   var ui = C.market.ui, h = ui.h, icon = ui.icon, store = C.market.store, doc = root.document;
   var cfg = function () { return C.data.market; };
 
+  // Five sections are always in view; everything else is one tap away under More. Home is the Simulation's front page.
   var TABS = [
-    { id: 'discover', label: 'Discover', icon: 'search', key: '1' }, { id: 'auctions', label: 'Auctions', icon: 'gavel', key: '2' },
-    { id: 'buy-now', label: 'Buy Now', icon: 'tag', key: '3' }, { id: 'trades', label: 'Trades', icon: 'swap', key: '4' },
-    { id: 'stocks', label: 'Stocks', icon: 'trend', key: '5' }, { id: 'portfolio', label: 'Portfolio', icon: 'wallet', key: '6' },
-    { id: 'activity', label: 'Activity', icon: 'activity', key: '7' }
+    { id: 'home', label: 'Home', icon: 'home', key: '1', primary: true, sim: true },
+    { id: 'discover', label: 'Browse', icon: 'search', key: '2', primary: true }, { id: 'auctions', label: 'Auctions', icon: 'gavel', key: '3', primary: true },
+    { id: 'portfolio', label: 'Portfolio', icon: 'wallet', key: '4', primary: true }, { id: 'stocks', label: 'Prices', icon: 'trend', key: '5', primary: true },
+    { id: 'buy-now', label: 'Buy Now', icon: 'tag', key: '6' }, { id: 'trades', label: 'Trades', icon: 'swap', key: '7' },
+    { id: 'activity', label: 'Activity', icon: 'activity', key: '8' }
   ];
   var UTILITIES = [
-    { id: 'watchlist', label: 'Watchlist', icon: 'bookmark' }, { id: 'alerts', label: 'Alerts', icon: 'bell' },
-    { id: 'compare', label: 'Compare', icon: 'cards' }, { id: 'my-listings', label: 'My listings', icon: 'layers' }, { id: 'settings', label: 'Market settings', icon: 'sliders' }
+    { id: 'watchlist', label: 'Watchlist', icon: 'bookmark' }, { id: 'alerts', label: 'Alerts', icon: 'bell' }
   ];
+  var MORE = [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['compare', 'Compare', 'cards'], ['my-listings', 'My listings', 'layers'],
+    ['settings', 'Market settings', 'sliders'], ['help', 'Help & feedback', 'info'], ['guide', 'Market guide', 'book']];
   var pages = {};
   ui.pages = { register: function (name, def) { pages[name] = def; }, get: function (name) { return pages[name]; } };
   ui.TABS = TABS;
 
-  var el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, noticeHost, simChip;
+  var el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, moreButtonTop, noticeHost, simChip;
+  var PRIMARY = TABS.filter(function (t) { return t.primary; }).map(function (t) { return t.id; });
   var opened = false, stack = [], current = null, pageScope = null, savedFocus = null, inertRecords = [], mounting = false, suggestPop = null;
   var returnFocusKey = null;
 
@@ -144,7 +148,9 @@
   }
   function updateChrome() {
     if (!el) return;
-    var active = current ? navFor(current) : 'discover';
+    var active = current ? navFor(current) : (frameRealm() === 'simulation' ? 'home' : 'discover');
+    if (tabButtons.home) tabButtons.home.hidden = frameRealm() !== 'simulation';
+    if (bottomBar) { var bh = bottomBar.querySelector('[data-tab="home"]'); if (bh) bh.hidden = frameRealm() !== 'simulation'; bottomBar.dataset.count = String(bottomBar.querySelectorAll('button:not([hidden])').length); }
     Object.keys(tabButtons).forEach(function (id) {
       var b = tabButtons[id], on = id === active;
       b.setAttribute('aria-current', on ? 'page' : 'false');
@@ -159,26 +165,40 @@
       var badge = utilButtons[id] && utilButtons[id].querySelector('.mk-count');
       if (badge) { badge.textContent = counts[id] ? String(counts[id]) : ''; badge.hidden = !counts[id]; }
     });
-    var unread = unreadCount(), ab = tabButtons.activity && tabButtons.activity.querySelector('.mk-count');
+    var unread = unreadCount(), ab = moreButtonTop && moreButtonTop.querySelector('.mk-count');
     if (ab) { ab.textContent = unread ? String(unread) : ''; ab.hidden = !unread; }
     if (bottomBar) {
       bottomBar.querySelectorAll('[data-tab]').forEach(function (b) { b.setAttribute('aria-current', b.dataset.tab === active ? 'page' : 'false'); });
-      var moreOn = ['buy-now', 'trades', 'activity', 'watchlist', 'alerts', 'my-listings', 'settings'].indexOf(current ? current.name : '') >= 0 || ['buy-now', 'trades', 'activity'].indexOf(active) >= 0;
-      moreButton.setAttribute('aria-current', moreOn && ['discover', 'auctions', 'stocks', 'portfolio'].indexOf(active) < 0 ? 'page' : 'false');
+      var moreOn = MORE.some(function (m) { return current && current.name === m[0]; }) && ['home', 'discover', 'auctions', 'portfolio'].indexOf(active) < 0;
+      moreButton.setAttribute('aria-current', moreOn ? 'page' : 'false');
+    }
+    if (moreButtonTop) {
+      var onMore = MORE.some(function (m) { return current && current.name === m[0]; }) && PRIMARY.indexOf(active) < 0;
+      moreButtonTop.setAttribute('aria-current', onMore ? 'page' : 'false'); moreButtonTop.dataset.active = String(onMore);
     }
     var wallet = C.market.api.walletSync(frameRealm());
+    var priorBalance = walletEl._mkBalance, priorRealm = walletEl._mkRealm;
     ui.clear(walletEl);
     walletEl.appendChild(icon('coin', 'mk-coin'));
     if (wallet.balance == null) walletEl.appendChild(h('span.mk-wallet-off', { text: 'Not connected' }));
-    else walletEl.appendChild(h('span.mk-num', { text: ui.fmt.credits(wallet.balance, true) }));
+    else { var walletNum = h('span.mk-num', { text: ui.fmt.credits(wallet.balance, true) }); walletEl.appendChild(walletNum); }
     var held = wallet.held || 0;
     walletEl.title = wallet.balance == null ? wallet.note : ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held by open bids and orders' : '') + '. ' + wallet.note;
     walletEl.setAttribute('aria-label', (wallet.balance == null ? 'Global Market wallet: not connected' : 'Your balance: ' + ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held' : '')) + '. Open Portfolio');
     if (held) walletEl.appendChild(h('span.mk-wallet-held', { text: '−' + ui.fmt.credits(held, true) + ' held', 'aria-hidden': 'true' }));
+    // The wallet answers a change in your Credits: it pulses, flashes in the direction it moved, and a small badge rises with the amount.
+    if (wallet.balance != null && priorBalance != null && priorRealm === frameRealm() && wallet.balance !== priorBalance) {
+      var diff = wallet.balance - priorBalance;
+      ui.motion.flash(walletEl, diff > 0 ? 'up' : 'down'); ui.motion.pulse(walletEl);
+      if (Math.abs(diff) >= 1 && !ui.motion.still()) ui.motion.floatBadge(walletEl, (diff > 0 ? '+' : '\u2212') + ui.fmt.exact(Math.abs(diff)), diff > 0 ? 'up' : 'down');
+    }
+    walletEl._mkBalance = wallet.balance; walletEl._mkRealm = frameRealm();
     if (simChip) simChip.hidden = frameRealm() !== 'simulation';
     realmSwitch.set(frameRealm());
+    // The Simulation needs no standing notice (the realm switch and the clock say where you are); Global keeps its notice about real players.
     ui.clear(noticeHost);
-    noticeHost.appendChild(ui.noticeBar(frameRealm()));
+    if (frameRealm() !== 'simulation') noticeHost.appendChild(ui.noticeBar(frameRealm()));
+    noticeHost.hidden = frameRealm() === 'simulation';
     el.dataset.realm = frameRealm();
     frame.dataset.mode = C.settings.get('marketMode');
     frame.dataset.density = C.settings.get('marketDensity');
@@ -193,6 +213,8 @@
     wrap.appendChild(icon('search', 'mk-search-icon'));
     wrap.appendChild(searchInput);
     wrap.appendChild(h('kbd.mk-keycap', { text: '/', 'aria-hidden': 'true' }));
+    // On a narrow window the field is a search button until it is used: tapping anywhere on it opens it.
+    wrap.addEventListener('click', function (e) { if (e.target !== searchInput) searchInput.focus(); });
     var list = h('div.mk-suggest', { id: 'mk-suggest', role: 'listbox', 'aria-label': 'Search suggestions', hidden: true });
     wrap.appendChild(list);
     var active = -1, items = [];
@@ -280,11 +302,10 @@
     realmSwitch = ui.segmented({ label: 'Realm', value: store.session.realm, onChange: function (v) { store.setRealm(v); },
       options: cfg().realms.map(function (r) { return { value: r.id, label: r.shortLabel, title: r.label + ': ' + r.blurb }; }) });
     realmSwitch.classList.add('mk-realm-switch');
-    var guideBtn = ui.iconButton('info', 'Market guide and glossary', function () { openGuide(guideBtn); }, { variant: 'ghost' });
     var closeBtn = ui.iconButton('close', 'Close Market', function () { close(); }, { variant: 'ghost' });
     closeBtn.classList.add('mk-close');
     simChip = ui.sim.statusChip();
-    end.append(simChip, walletEl, guideBtn, closeBtn);
+    end.append(simChip, walletEl, closeBtn);
     var realmHost = h('div.mk-realm-host', realmSwitch);
     headerEl.append(brand, search, realmHost, end);
     ui.shell.searchField = search;
@@ -293,7 +314,7 @@
     // navigation
     navEl = h('nav.mk-nav', { 'aria-label': 'Market sections' });
     var tabs = h('div.mk-tabs');
-    TABS.forEach(function (t) {
+    TABS.filter(function (t) { return t.primary; }).forEach(function (t) {
       var b = h('button.mk-tab', { type: 'button', data: { tab: t.id }, 'aria-keyshortcuts': t.key }, icon(t.icon), h('span.mk-tab-label', { text: t.label }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
       b.addEventListener('click', function () { goTab(t.id); });
       tabs.appendChild(b); tabButtons[t.id] = b;
@@ -304,6 +325,9 @@
       b.addEventListener('click', function () { go(u.id, {}, { reset: false, replace: false }); });
       utils.appendChild(b); utilButtons[u.id] = b;
     });
+    moreButtonTop = h('button.mk-tab.mk-tab-more', { type: 'button', 'aria-haspopup': 'menu', 'aria-label': 'More Market sections' }, icon('list'), h('span.mk-tab-label', { text: 'More' }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
+    moreButtonTop.addEventListener('click', function () { openMore(moreButtonTop); });
+    tabs.appendChild(moreButtonTop);
     navEl.append(tabs, utils);
     frame.appendChild(navEl);
     noticeHost = h('div.mk-notice-host');
@@ -313,9 +337,10 @@
 
     // phone bottom bar
     bottomBar = h('nav.mk-bottom', { 'aria-label': 'Market sections' });
-    [['discover', 'Discover', 'search'], ['auctions', 'Auctions', 'gavel'], ['stocks', 'Stocks', 'trend'], ['portfolio', 'Portfolio', 'wallet']].forEach(function (t) {
+    [['home', 'Home', 'home'], ['discover', 'Browse', 'search'], ['auctions', 'Auctions', 'gavel'], ['portfolio', 'Portfolio', 'wallet']].forEach(function (t) {
       var b = h('button.mk-bottom-item', { type: 'button', data: { tab: t[0] } }, icon(t[2]), h('span', { text: t[1] }));
       b.addEventListener('click', function () { goTab(t[0]); });
+      if (t[0] === 'home') b.hidden = frameRealm() !== 'simulation';
       bottomBar.appendChild(b);
     });
     moreButton = h('button.mk-bottom-item', { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' }, icon('list'), h('span', { text: 'More' }));
@@ -328,11 +353,13 @@
   function openMore(anchor) {
     ui.popover(anchor, function (close) {
       var box = h('div.mk-more', { role: 'menu' });
-      [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell'], ['compare', 'Compare', 'cards'], ['my-listings', 'My listings', 'layers'], ['settings', 'Market settings', 'sliders'], ['help', 'Help & feedback', 'info'], ['guide', 'Market guide', 'info']].forEach(function (r) {
+      // On a phone the bottom bar has four sections, so Prices, the watchlist and alerts join the list; on a desktop they are already in view.
+      var list = anchor === moreButton ? [['stocks', 'Prices', 'trend'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell']].concat(MORE) : MORE;
+      list.forEach(function (r) {
         var b = h('button.mk-more-item', { type: 'button', role: 'menuitem' }, icon(r[2]), h('span', { text: r[1] }));
         b.addEventListener('click', function () {
           close();
-          if (r[0] === 'guide') { openGuide(moreButton); return; }
+          if (r[0] === 'guide') { openGuide(anchor); return; }
           if (TABS.some(function (t) { return t.id === r[0]; })) goTab(r[0]); else go(r[0], {});
         });
         box.appendChild(b);
@@ -383,7 +410,7 @@
     C.events.emit('market:open', {});
     C.events.emit('menu:visibilityHold', { reason: 'market', active: true });
     C.events.emit('qol:context', { active: true });
-    if (!stack.length) stack = [{ name: 'discover', params: {} }];
+    if (!stack.length) stack = [{ name: store.session.realm === 'simulation' ? 'home' : 'discover', params: {} }];
     var entry = route && route.name ? { name: route.name, params: route.params || {}, from: route.from } : stack[stack.length - 1];
     if (route && route.name) stack = [entry];
     mount(entry, { forward: true, focus: false });
@@ -435,7 +462,7 @@
     }
     if (editing(event.target) || C.ui && C.ui.modal) return;
     if (event.key === '/') { event.preventDefault(); event.stopImmediatePropagation(); searchInput.focus(); return; }
-    var tab = TABS.find(function (t) { return t.key === event.key; });
+    var tab = TABS.find(function (t) { return t.key === event.key && (!t.sim || frameRealm() === 'simulation'); });
     if (tab && !event.repeat) { event.preventDefault(); event.stopImmediatePropagation(); goTab(tab.id); }
   }
 
@@ -473,7 +500,12 @@
     C.keys.listen(doc, 'keydown', 'market.navigation', onKey, true);
     store.subscribe(function (what) {
       if (!opened) return;
-      if (what === 'realm') { updateChrome(); mount(current, { forward: false, focus: false }); }
+      if (what === 'realm') {
+        updateChrome();
+        // Home belongs to the Simulation; arriving in Global from it lands on Browse, and the other way round lands on Home.
+        if (frameRealm() !== 'simulation' && current && current.name === 'home') { go('discover', {}, { reset: true }); return; }
+        mount(current, { forward: false, focus: false });
+      }
       else if (what === 'watch' || what === 'alerts' || what === 'notifications' || what === 'cleared' || what === 'compare') updateChrome();
       else if (what === 'online') { updateChrome(); if (frameRealm() === 'global' && current && current.name !== 'settings') mount(current, { forward: false, focus: false }); }
     });

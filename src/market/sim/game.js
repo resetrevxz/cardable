@@ -91,6 +91,7 @@
       env: env, storage: storage, key: cfg().storageKey,
       now: function () { return root.performance.now(); }, wall: function () { return Date.now(); },
       gate: gate, timers: { set: function (fn, ms) { return root.setTimeout(fn, ms); }, clear: function (id) { root.clearTimeout(id); } },
+      sample: function (world, env) { var s = save(); if (s) S.advisor.sample(world, env, { inventory: s.inventory, balance: s.currency }); },
       player: player, speedId: C.settings.get('marketSimSpeed') || cfg().defaultSpeed,
       saveSpeed: function (id) { C.settings.set('marketSimSpeed', id); },
       log: function (e) { if (root.console) root.console.error('Market simulation', e); }

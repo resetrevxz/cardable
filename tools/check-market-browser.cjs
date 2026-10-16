@@ -157,6 +157,8 @@ async function overflow(page) {
       await page.waitForTimeout(250);
       await page.evaluate(() => { document.querySelector('.mk-main').scrollTop = 900; });
       await page.waitForTimeout(150);
+      await page.locator('.mk-tile .mk-tile-open').nth(3).scrollIntoViewIfNeeded();
+      await page.waitForTimeout(150);
       const before = await page.evaluate(() => document.querySelector('.mk-main').scrollTop);
       await page.locator('.mk-tile .mk-tile-open').nth(3).click({ force: true }).catch(async () => { await page.evaluate(() => document.querySelectorAll('.mk-tile .mk-tile-open')[3].click()); });
       await page.waitForSelector('.mk-detail'); await page.waitForTimeout(300);
@@ -215,10 +217,13 @@ async function overflow(page) {
       await page.locator('.mk-rail-foot .mk-button').click(); await page.waitForSelector('.mk-modal'); await page.locator('.mk-modal input').fill('Uncommons'); await page.keyboard.press('Enter'); await page.waitForTimeout(250);
       assert.equal(await page.evaluate(() => Cardable.market.store.prefs.saved.length), 1, 'view saved');
       await page.locator('.mk-chiprow .mk-button', { hasText: 'Clear all' }).click({ timeout: 1500 }).catch(() => {});
+      // saved views belong to Advanced; the Simple list keeps only the sort
+      await page.evaluate(() => Cardable.settings.set('marketMode', 'advanced')); await page.waitForTimeout(500);
       await page.locator('.mk-controlbar-right .mk-button').click(); await page.waitForTimeout(150);
       await page.locator('.mk-menu-item', { hasText: 'Uncommons' }).click(); await page.waitForTimeout(250);
       assert((await page.locator('.mk-activechip').count()) >= 1, 'saved view re-applies its filters');
-      await page.locator('.mk-header-end .mk-icon-button').first().click(); await page.waitForSelector('.mk-guide');
+      await page.evaluate(() => Cardable.settings.set('marketMode', 'simple')); await page.waitForTimeout(300);
+      await page.locator('.mk-tab-more').click(); await page.locator('.mk-more-item', { hasText: 'Market guide' }).click(); await page.waitForSelector('.mk-guide');
       assert((await page.locator('.mk-glossary dt').count()) >= 10, 'glossary lists every term');
       await page.keyboard.press('Escape'); await page.waitForTimeout(200);
       assert.equal(await page.locator('.mk-guide').count(), 0);

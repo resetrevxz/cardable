@@ -24,6 +24,7 @@
     search: 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14m5 12 6 6', eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6',
     clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 7v5l4 2', warn: 'm12 3 10 18H2zM12 9v5M12 17h.01', star: 'm12 3 3 6 6 1-4.5 4.5 1 6L12 18l-5.5 2.5 1-6L3 10l6-1z',
     layers: 'm12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5', copy: 'M8 8h13v13H8zM3 16V3h13', book: 'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11',
+    home: 'M4 11l8-7 8 7v9h-5v-6H9v6H4z', target: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M12 11.5v1', zap: 'M13 3 5 14h6l-1 7 8-11h-6z',
     cards: 'M7 3h13v17H7zM4 7H2v14h13', pause: 'M7 4v16M17 4v16', play: 'm8 4 12 8-12 8z'
   };
   Object.keys(ICONS).forEach(function (name) { C.icons.register('mk-' + name, ICONS[name]); });

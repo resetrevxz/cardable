@@ -266,7 +266,7 @@ async function openMarket(page, route) {
     await globalThis.__legacyContext.context.close();
 
     // ---- the sweep: every route, viewport, color mode, quality tier, reduced motion ----
-    const ROUTES = [['discover', {}], ['buy-now', {}], ['trades', {}], ['stocks', {}], ['portfolio', {}], ['activity', {}], ['watchlist', {}], ['alerts', {}], ['compare', {}], ['my-listings', {}], ['settings', {}], ['help', {}], ['compose', {}], ['card', null], ['listing', null]];
+    const ROUTES = [['home', {}], ['discover', {}], ['buy-now', {}], ['trades', {}], ['stocks', {}], ['portfolio', {}], ['activity', {}], ['watchlist', {}], ['alerts', {}], ['compare', {}], ['my-listings', {}], ['settings', {}], ['help', {}], ['compose', {}], ['card', null], ['listing', null]];
     async function sweepOne(page, label, route, params, shotName) {
       const cardId = await page.evaluate(() => Cardable.data.cards.filter((c) => !c.retired)[4].id);
       if (route === 'card') params = { id: cardId, variant: '' };

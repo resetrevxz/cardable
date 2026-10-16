@@ -1,3 +1,19 @@
+# Cardable v1.9.0 — Local Market 2.0
+
+The Simulation is easier to start, calmer to look at, and worth getting good at.
+
+- **A new front page.** The Market opens on Home ("Today"): your net worth counting to its new value, a level and goals, the best moves right now and the news. Each suggestion says what you pay, what you keep after the 2% fee and why, and has one button. Quick Sell is one tap away for cash now.
+- **A coach on every listing.** "A good price", "A fair price" or "More than it usually sells for", with what such cards usually sell for and what a resale would keep. It is a guide, never a promise, and says so.
+- **A market worth reading.** News names a brand, generation, rarity or card and moves what traders pay, with time to act before it starts. Sellers in a hurry list fire sales under the going price. Market makers keep everyday cards moving. Set a buy order a little under a card's Average Value and it catches a fire sale before anyone else can. In seeded 14-day tests, doing nothing stays flat, clicking at random loses about 10%, and following the coach gains about 68% on average. Measured by simulation, not by people.
+- **Less crowded.** Five sections (Home, Browse, Auctions, Portfolio, Prices) and More; the standing Simulation notice is gone; Simple mode shows only the list, the feed tabs and one sort. More room around everything, a two-row phone header, and a search that opens when you tap it.
+- **Motion for money.** The wallet pulses and a small "+33" or "−38" rises from it, a price that moves while you look flashes, net worth counts to its new value, a level or goal bursts briefly. All of it is skipped under Reduced motion, Hover animations off, Very Low quality and when the game is hidden.
+- **Brisk speed.** Two simulated hours per minute of play (a day in twelve minutes), the default for new profiles; your own choice is kept.
+- Fixed: the featured card on Browse could run past the edge of a 360 px phone.
+
+Saves are unchanged: no schema change, and an older Simulation world keeps its traders and gets its first news an hour after loading. Opening a pack still pays nothing; Credits come from selling and trading.
+
+---
+
 # Cardable v1.8.0 — Market Beta
 
 Cardable Market arrives as a beta: a place to sell, bid, swap and watch what your cards are worth. It has two separate worlds. The **Simulation** is an offline market of bot traders that runs on your device only while Cardable is open. **Global** is a market of real players under anonymous names, with its own Credits, and it is only used if you choose to connect.

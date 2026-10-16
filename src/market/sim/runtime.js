@@ -158,6 +158,7 @@
       var res = S.advance(rt.world, rt.env, rt.host, target, cfg().tickBudgetEvents);
       pendingTarget = res.reached ? null : target;
       if (res.processed) { rt.revision++; dirty = true; }
+      if (deps.sample && S.advisor && S.advisor.due(rt.world)) { try { deps.sample(rt.world, rt.env); dirty = true; } catch (e) { if (deps.log) deps.log(e); } }
       if (S.retrySettlements && rt.world.pending.length) S.retrySettlements(rt.world, rt.env, rt.host);
       if (dirty && deps.wall() - lastPersistWall >= cfg().persistEveryMs) persistNow('tick');
       emit('tick');
@@ -249,8 +250,13 @@
     // Developer-only: moves time forward explicitly. The normal clock is never changed behind the player's back.
     rt.dev = {
       fastForward: function (simMs) {
-        var w = rt.ensure(), target = w.now + simMs, r, n = 0;
-        do { r = S.advance(w, rt.env, rt.host, target, 4000); n += r.processed; } while (!r.reached);
+        var w = rt.ensure(), target = w.now + simMs, r, n = 0, chunk = 3 * 3600000;
+        // In steps, so the net worth line gets its points exactly as it would while playing.
+        while (w.now < target) {
+          var to = Math.min(target, w.now + chunk);
+          do { r = S.advance(w, rt.env, rt.host, to, 4000); n += r.processed; } while (!r.reached);
+          if (deps.sample && S.advisor && S.advisor.due(w)) { try { deps.sample(w, rt.env); } catch (e) { if (deps.log) deps.log(e); } }
+        }
         rt.revision++; dirty = true; persistNow('action'); emit('changed');
         return { processed: n, now: w.now };
       }

@@ -126,7 +126,7 @@
       card: { cardId: it.c, variantId: it.v || null, cardSkinId: it.k || null, serial: it.s, count: l.items.length, packId: it.p },
       items: l.items.map(function (x) { return { instanceId: x.i, cardId: x.c, variantId: x.v || null, cardSkinId: x.k || null, serial: x.s, packId: x.p }; }),
       seller: sellerView(world, l.seller), valuation: val, listedMin: Math.max(0, (world.now - l.createdAt) / MIN), watchers: recent * 2 + (l.bids ? l.bids.length : 0),
-      source: 'simulation', isMine: l.seller === 'you', closedAt: l.closedAt || null, endsMin: l.status === 'open' ? Math.max(0, (l.endsAt - world.now) / MIN) : null,
+      source: 'simulation', fire: !!l.fire, isMine: l.seller === 'you', closedAt: l.closedAt || null, endsMin: l.status === 'open' ? Math.max(0, (l.endsAt - world.now) / MIN) : null,
       endedMin: l.closedAt != null ? Math.max(0, (world.now - l.closedAt) / MIN) : null, soldFor: l.soldFor != null ? l.soldFor : null, endNote: l.endNote || '', snipeNote: l.snipeNote || '',
       createdSim: l.createdAt, endsAt: l.endsAt, offerIds: l.offers.slice(), reservedCard: !!l.reserve
     };
@@ -210,7 +210,8 @@
       var similar = openViews(world, env, false).filter(function (v) { return v.id !== id && v.card.cardId === view.card.cardId; }).slice(0, 6);
       var offers = l.offers.map(function (oid) { return world.offers[oid]; }).filter(Boolean).map(function (of) { return offerView(world, env, of); });
       var mine = Object.keys(world.offers).map(function (oid) { return world.offers[oid]; }).filter(function (of) { return of.listingId === id && of.from === 'you'; }).map(function (of) { return offerView(world, env, of); });
-      return { listing: view, rank: core().recommend(view, ctx), card: env.cardById[view.card.cardId], similar: similar, offers: offers, myOffers: mine,
+      var coach = S.advisor && l.status === 'open' && l.seller !== 'you' ? S.advisor.assess(world, env, l, Math.max(0, playerState().currency - S.playerHeld(world))) : null;
+      return { listing: view, coach: coach, rank: core().recommend(view, ctx), card: env.cardById[view.card.cardId], similar: similar, offers: offers, myOffers: mine,
         trades: (index(world, env).byCard[view.card.cardId] || []).slice(-6).reverse().map(function (t) { return tradeView(world, env, t); }) };
     },
     cardMarket: function (realm, cardId, variantId) {
@@ -282,6 +283,35 @@
       var x = ctxNow(), sf = spec.serial ? core().serialFactor(spec.serial, C.data.market) : 1;
       return valuationFor(x.world, x.env, spec.cardId, spec.variantId || null, spec.cardSkinId || null, sf);
     },
+    // The Home page of the Simulation: what is worth doing, what is in the news, and how the player is doing.
+    // Everything is read from the world; nothing here changes it except the first net worth sample.
+    home: function () {
+      var x = ctxNow(), world = x.world, env = x.env, p = playerState(), save = C.state.current, A = S.advisor;
+      var prot = {};
+      p.inventory.forEach(function (i) {
+        var rule = C.cardDeletion && C.cardDeletion.rules ? C.cardDeletion.rules(save, i) : null;
+        if (rule && (rule.favorite || rule.locked)) prot[i.instanceId] = true;
+      });
+      var held = S.playerHeld(world), available = Math.max(0, p.currency - held);
+      var free = p.inventory.filter(function (i) { return !world.locks[i.instanceId]; });
+      var player = { inventory: free, available: available, balance: p.currency, protectedIds: prot, locked: world.locks,
+        quote: function (i) { var q = C.sales && C.sales.quote ? C.sales.quote(i) : null; return q ? q.quote : null; } };
+      var nw = A.sample(world, env, { inventory: p.inventory, balance: p.currency });
+      var moves = A.moves(world, env, player).map(function (m) {
+        var out = Object.assign({}, m, { card: env.cardById[m.cardId] || null });
+        if (m.listingId && world.listings[m.listingId]) out.listing = listingView(world, env, world.listings[m.listingId]);
+        return out;
+      }).filter(function (m) { return m.card && (m.type !== 'buy' && m.type !== 'bid' || m.listing); });
+      var hist = world.coach.hist.slice();
+      if (!hist.length || hist[hist.length - 1][1] !== nw) hist.push([world.now, nw]);
+      var start = world.coach.nw0 != null ? world.coach.nw0 : nw;
+      return { realm: 'simulation', clock: clockLabel(world), now: world.now, moves: moves, news: A.pulse(world, env, { inventory: p.inventory }), progress: A.progress(world, nw),
+        netWorth: { now: nw, start: start, change: start ? (nw - start) / start : 0, history: hist, credits: p.currency, cards: Math.max(0, nw - p.currency) },
+        state: { cards: p.inventory.length, free: free.length, credits: p.currency, held: held, available: available, openListings: p.inventory.length - free.length },
+        wallet: provider.wallet('simulation'), revision: x.r.revision, quests: world.coach.done };
+    },
+    // Remembers the price a purchase was meant to resell at, so the next step is waiting for the player.
+    notePlan: function (itemId, price) { var x = ctxNow(); S.advisor.plan(x.world, itemId, price); return true; },
     inventory: function () {
       var p = playerState(), r = C.marketSim.runtime, w = r.world;
       return { items: p.inventory.map(function (i) { return Object.assign({}, i, { _listed: w ? w.locks[i.instanceId] || null : null }); }), demo: false };

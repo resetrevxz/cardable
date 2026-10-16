@@ -15,13 +15,18 @@
       now: 0, epoch: 0, nextId: 0, evSeq: 0, queue: [], day: -1,
       bots: [], listings: {}, closed: [], orders: {}, offers: {}, locks: {}, requests: {}, basis: {},
       trades: [], obs: {}, obsStamp: {}, daily: {}, agg: {}, feed: [], notices: [], receipts: {}, pending: [],
-      minted: 0, days: [], speedNote: '',
+      minted: 0, days: [], speedNote: '', events: [], fireToday: { day: -1, n: 0 }, coach: { seen: false, nw0: null, t0: null, hist: [], lastSample: -1, done: {} },
       stats: { trades: 0, volume: 0, fees: 0, burnt: 0, allowance: 0, packs: 0, you: { sold: 0, bought: 0, earned: 0, spent: 0 } }
     };
   }
   function index(world) {
     world.botIndex = {};
     world.basis = world.basis || {};
+    world.events = world.events || [];
+    world.fireToday = world.fireToday || { day: -1, n: 0 };
+    world.coach = world.coach || { seen: false, nw0: null, t0: null, hist: [], lastSample: -1, done: {} };
+    // A world made before news existed gets its first piece of news an hour from now, so an older save is not left without any.
+    if (!world.queue.some(function (e) { return e.type === 'news'; })) S.addEvent(world, world.now + HOUR, 'news', '');
     world.bots.forEach(function (b) { world.botIndex[b.id] = b; });
     world._fair = {};
     return world;
@@ -89,16 +94,111 @@
       S.addEvent(world, Math.round(S.between(world, 0, persona.wake[1]) * HOUR), 'wake', bot.id);
     }
     S.addEvent(world, DAY, 'day', '');
+    S.addEvent(world, Math.round(S.between(world, 0.5, cfg().events.gapHours[1]) * HOUR), 'news', '');
     index(world);
     world.minted = 0;
     return world;
+  }
+
+  // ---- news ----------------------------------------------------------------------------------------------------------
+  // A piece of news names a group of cards and moves what bots will pay (and ask) for them for a while. Nothing is invented
+  // for the player: the same shift is what the bots act on, and trades are what move Average Value afterwards.
+  function tierNames(env) {
+    if (env._tierNames) return env._tierNames;
+    var out = {};
+    env.cards.forEach(function (c) { var r = env.rarityById[c.rarity], t = env.tierOf[c.id] || 0; if (r && !out[t]) out[t] = r.name; });
+    env._tierNames = out;
+    return out;
+  }
+  var BRANDS = { amd: 'AMD', nvidia: 'NVIDIA', intel: 'Intel', apple: 'Apple', qualcomm: 'Qualcomm', arm: 'Arm', ati: 'ATI', '3dfx': '3dfx', matrox: 'Matrox', s3: 'S3' };
+  function brandName(b) { var key = String(b).toLowerCase(); return BRANDS[key] || (key.charAt(0).toUpperCase() + key.slice(1)); }
+  function generationName(id) {
+    var g = (C.data.generations || []).find(function (x) { return x.id === id; });
+    return g && g.name ? g.name : id;
+  }
+  function inScope(scope, card, tier) {
+    if (!card) return false;
+    if (scope.card) return card.id === scope.card;
+    if (scope.brand) return card.brand === scope.brand;
+    if (scope.gen) return card.generation === scope.gen;
+    if (scope.tierLo != null) return tier >= scope.tierLo && tier <= scope.tierHi;
+    return false;
+  }
+  function scopeCards(env, scope) { return env.cards.filter(function (c) { return inScope(scope, c, env.tierOf[c.id] || 0); }); }
+  // How strongly an event is acting at time t: 0 before it starts, a ramp up, full, then a fade after it ends.
+  function strength(e, t) {
+    var ev = cfg().events;
+    if (t < e.start) return 0;
+    if (t <= e.end) return Math.min(1, (t - e.start) / (ev.rampHours * HOUR));
+    return Math.max(0, 1 - (t - e.end) / (ev.afterHours * HOUR));
+  }
+  // The multiplier news puts on one card's price for one bot (bot null: the average bot). 1 means no news applies.
+  function eventFactor(world, env, it, bot) {
+    var list = world.events;
+    if (!list || !list.length) return 1;
+    var card = env.cardById[it.c], tier = env.tierOf[it.c] || 0, m = 1, react = cfg().events.react, p = bot ? S.personaOf(bot) : null;
+    for (var i = 0; i < list.length; i++) {
+      var e = list[i], k = strength(e, world.now);
+      if (!k || !inScope(e.scope, card, tier)) continue;
+      var sens = p ? (react[p.id] != null ? react[p.id] : 0.7) : 0.7;
+      m *= 1 + e.mag * k * sens;
+    }
+    return m;
+  }
+  // Public: the news that is announced or acting now, newest first, each with what it is doing at this moment.
+  function activeNews(world) {
+    var ev = cfg().events;
+    return (world.events || []).filter(function (e) { return world.now <= e.end + ev.afterHours * HOUR; })
+      .map(function (e) { return Object.assign({}, e, { phase: world.now < e.start ? 'coming' : world.now <= e.end ? 'acting' : 'fading', strength: strength(e, world.now) }); })
+      .sort(function (a, b) { return b.announced - a.announced; });
+  }
+  function pickWeighted(world, list) {
+    var total = list.reduce(function (n, x) { return n + x.weight; }, 0), r = S.rnd(world) * total;
+    for (var i = 0; i < list.length; i++) { r -= list[i].weight; if (r <= 0) return list[i]; }
+    return list[list.length - 1];
+  }
+  function makeScope(world, env, kind) {
+    var cards = env.cards;
+    if (kind.id === 'brand' && env.brands.length) { var b = S.pick(world, env.brands); return { scope: { brand: b }, label: brandName(b) }; }
+    if (kind.id === 'generation' && env.generations.length) { var g = S.pick(world, env.generations); return { scope: { gen: g }, label: generationName(g) }; }
+    if (kind.id === 'tier') {
+      var tiers = tierNames(env), keys = Object.keys(tiers).map(Number).sort(function (a, b) { return a - b; }).filter(function (t) { return t >= 1; });
+      if (keys.length) { var lo = S.pick(world, keys), hi = Math.min(keys[keys.length - 1], lo + (S.chance(world, 0.5) ? 1 : 0)); return { scope: { tierLo: lo, tierHi: hi }, label: lo === hi ? tiers[lo] : tiers[lo] + ' and ' + tiers[hi] }; }
+    }
+    var c = S.pick(world, cards.filter(function (x) { return (env.tierOf[x.id] || 0) >= 1; }));
+    return { scope: { card: c.id }, label: c.name };
+  }
+  function newsTick(world, env, host) {
+    var ev = cfg().events, now = world.now;
+    world.events = (world.events || []).filter(function (e) { return now <= e.end + ev.afterHours * HOUR + 6 * HOUR; });
+    var live = world.events.filter(function (e) { return now <= e.end; }).length;
+    if (live < ev.maxActive) {
+      for (var tries = 0; tries < 8; tries++) {
+        var kind = pickWeighted(world, ev.kinds), where = makeScope(world, env, pickWeighted(world, ev.scopes));
+        var n = scopeCards(env, where.scope).length;
+        if (n < (where.scope.card ? 1 : ev.minCards)) continue;
+        // The same group is not in the news twice at once.
+        if (world.events.some(function (e) { return JSON.stringify(e.scope) === JSON.stringify(where.scope) && now <= e.end; })) continue;
+        var mag = Math.round(S.between(world, kind.mag[0], kind.mag[1]) * 100) / 100;
+        var lead = Math.round(S.between(world, kind.leadHours[0], kind.leadHours[1]) * HOUR), dur = Math.round(S.between(world, kind.hours[0], kind.hours[1]) * HOUR);
+        var up = mag > 0, pct = Math.round(Math.abs(mag) * 100 / 5) * 5;
+        var e2 = { id: S.nextId(world, 'N'), kind: kind.id, scope: where.scope, label: where.label, mag: mag, announced: now, start: now + lead, end: now + lead + dur, cards: n,
+          headline: up ? where.label + ' is getting attention' : where.label + ' prices are slipping',
+          detail: up ? 'Traders expect to pay about ' + pct + '% more for ' + (where.scope.card ? 'it' : 'these cards') + ' soon. Buy before it starts and sell while it lasts.'
+            : 'Traders expect to pay about ' + pct + '% less for ' + (where.scope.card ? 'it' : 'these cards') + '. Hold off buying until it passes, or sell before it bites.' };
+        world.events.push(e2);
+        S.feed(world, 'news', e2.headline + (up ? ' - demand expected to rise' : ' - demand expected to fall'), { news: e2.id });
+        break;
+      }
+    }
+    S.addEvent(world, now + Math.round(S.between(world, ev.gapHours[0], ev.gapHours[1]) * HOUR), 'news', '');
   }
 
   // ---- decisions -----------------------------------------------------------------------------------------------------
   function privateValue(world, env, bot, it, persona) {
     var fair = S.fairInfo(world, env, it.c, it.v, it.k);
     var noise = 1 + cfg().valuation.botNoise * (S.stableUnit(bot.id + '|' + S.itemKey(it)) * 2 - 1);
-    var v = fair.average * S.serialFactor(it.s) * noise;
+    var v = fair.average * S.serialFactor(it.s) * noise * eventFactor(world, env, it, bot);
     var wished = bot.wish.indexOf(it.c) >= 0;
     if (wished) v *= 1 + (persona.id === 'completionist' ? 0.3 : persona.id === 'collector' ? 0.18 : 0.08);
     if (persona.trend) {
@@ -190,6 +290,12 @@
     }
   }
 
+  function fireSaleAllowed(world, bot, persona) {
+    var fs = cfg().fireSale, day = S.dayIndex(world.now);
+    if (world.fireToday.day !== day) world.fireToday = { day: day, n: 0 };
+    if (persona.quotes || persona.id === 'collector' || persona.id === 'completionist') return false;
+    return world.fireToday.n < fs.perDay && S.chance(world, fs.chance);
+  }
   function listItem(world, env, host, bot, persona, it, needCash) {
     var fair = S.fairInfo(world, env, it.c, it.v, it.k), sf = S.serialFactor(it.s);
     var value = fair.average * sf;
@@ -211,12 +317,19 @@
       S.feed(world, 'listed', bot.alias + ' put ' + S.cardLabel(env, it) + ' up for auction from ' + start + ' Credits', { listing: l.id });
       return l;
     }
+    // Sellers follow part of the shift in their own price, and a fire sale is a seller who needs Credits now.
+    var shift = eventFactor(world, env, it, null);
+    if (shift !== 1) value *= 1 + (shift - 1) * cfg().events.askFollow;
+    var fire = !needCash && fireSaleAllowed(world, bot, persona);
+    if (fire) { var fsd = cfg().fireSale.discount; markup = -S.between(world, fsd[0], fsd[1]); why = 'Needs Credits quickly'; world.fireToday.n += 1; }
     var ask = S.nice(value * (1 + markup));
-    if (cost && persona.id === 'flipper') ask = Math.max(ask, S.nice(cost * 1.03));
+    if (cost && persona.id === 'flipper' && !fire) ask = Math.max(ask, S.nice(cost * 1.03));
     ask = Math.max(cfg().economy.minPrice, ask);
     var days = S.between(world, lp.fixedDurationDays[0], lp.fixedDurationDays[1]);
+    if (fire) days = Math.min(days, 3);
     var l2 = S.makeListing(world, { kind: 'fixed', seller: bot.id, items: [it], ask: ask, durationMs: Math.round(days * DAY), reason: why });
     l2.pricedAt = world.now;
+    if (fire) { l2.fire = true; l2.fairAt = Math.round(value); }
     bot.open += 1;
     S.feed(world, 'listed', bot.alias + ' listed ' + S.cardLabel(env, it) + ' at ' + ask + ' Credits', { listing: l2.id });
     S.matchOrdersFor(world, env, host, l2);
@@ -262,7 +375,9 @@
     var mine = 0;
     for (var id in world.orders) if (world.orders[id].owner === bot.id && world.orders[id].status === 'open') mine++;
     if (mine >= cfg().listing.maxOrdersPerBot || !S.chance(world, 0.22)) return;
-    var pool = env.cards.filter(function (c) { return bot.wish.indexOf(c.id) >= 0 && !bot.inv.some(function (x) { return x.c === c.id; }); });
+    var pool = persona.quotes
+      ? env.cards.filter(function (c) { var t = env.tierOf[c.id] || 0; return t >= persona.tier[0] && t <= persona.tier[1]; })
+      : env.cards.filter(function (c) { return bot.wish.indexOf(c.id) >= 0 && !bot.inv.some(function (x) { return x.c === c.id; }); });
     if (!pool.length) return;
     var card = S.pick(world, pool), fair = S.fairInfo(world, env, card.id, null, null).average;
     var price = Math.max(cfg().economy.minPrice, S.nice(fair * (1 - persona.buyMargin - S.between(world, 0.02, 0.1))));
@@ -476,6 +591,7 @@
         break;
       }
       case 'day': dailyTick(world, env, host); break;
+      case 'news': newsTick(world, env, host); break;
       default: break;
     }
   }
@@ -494,5 +610,5 @@
   }
 
   Object.assign(S, { create: create, index: index, advance: advance, botWake: botWake, privateValue: privateValue, blankWorld: blankWorld, acceptSwap: acceptSwap,
-    finishSwap: finishSwap, botAnswersOffer: botAnswersOffer, dailyTick: dailyTick, openListings: openListings, interested: interested });
+    finishSwap: finishSwap, botAnswersOffer: botAnswersOffer, eventFactor: eventFactor, activeNews: activeNews, scopeCards: scopeCards, inScope: inScope, newsTick: newsTick, dailyTick: dailyTick, openListings: openListings, interested: interested });
 })(window.Cardable = window.Cardable || {});

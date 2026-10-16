@@ -23,6 +23,7 @@ const SURFACES = {
   settings: async (page) => { await page.locator('.settings-corner button, button.settings-corner, #settings-open').first().click({ timeout: 4000 }); await page.waitForTimeout(600); },
   shop: async (page) => { await page.locator('.shop-entry').first().click({ timeout: 4000 }); await page.waitForTimeout(900); },
   // The Market opens on its Simulation world (offline, no network). A listing page is the heaviest route: charts, tiles, countdowns.
+  'market-home': async (page) => { await marketOpen(page, { name: 'home', params: {} }); },
   'market-discover': async (page) => { await marketOpen(page, { name: 'discover', params: {} }); },
   'market-listing': async (page) => {
     await marketOpen(page, { name: 'discover', params: {} });

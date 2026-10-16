@@ -5,7 +5,7 @@ const path = require('path');
 const vm = require('vm');
 const root = path.resolve(__dirname, '..', '..');
 const FILES = ['src/data/rarities.js', 'src/data/cards.js', 'src/data/variants.js', 'src/data/packs.js', 'src/data/market-config.js', 'src/data/market-sim.js',
-  'src/market/core.js', 'src/market/fixtures.js', 'src/market/sim/engine.js', 'src/market/sim/world.js', 'src/market/sim/player.js'];
+  'src/market/core.js', 'src/market/fixtures.js', 'src/market/sim/engine.js', 'src/market/sim/world.js', 'src/market/sim/player.js', 'src/market/sim/advisor.js'];
 
 function load(extra) {
   const sandbox = { console };

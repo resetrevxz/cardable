@@ -71,7 +71,7 @@ test('charts place trades by time: nothing without trades, then only buckets whe
 });
 
 test('listing views carry the exact card, a price, a countdown and honest seller facts', () => {
-  const x = setup(16);
+  const x = setup(24);
   run(x.S, x.world, x.env, x.host, 2 * DAY);
   const res = x.api.listings('simulation', { filters: x.C.market.core.emptyFilters(), limit: 400, facets: false });
   assert.ok(res.items.length > 8);

@@ -46,7 +46,7 @@ Local delivery ran once from the merged `main` (`npm run deliver:desktop`: build
 
 | Evidence | Result |
 |---|---|
-| Headless battery, `node tools/run-stage8-regression.cjs` ([record](stage-8-regression.json)) | **18 of 18** suites: data integrity, assets, desktop services, market node tests, merged collections, the Cloudflare suite (**100** tests on the real local runtime), Market interface, Simulation (18 steps), economy (13), online (9), analytics (11), trading (10), social (14), acceptance (15), inventory glass, inventory interaction, UI polish contracts, release validation |
+| Headless battery, `node tools/run-stage8-regression.cjs` (renamed `tools/run-market-regression.cjs` in 1.9.0) ([record](stage-8-regression.json)) | **18 of 18** suites: data integrity, assets, desktop services, market node tests, merged collections, the Cloudflare suite (**100** tests on the real local runtime), Market interface, Simulation (18 steps), economy (13), online (9), analytics (11), trading (10), social (14), acceptance (15), inventory glass, inventory interaction, UI polish contracts, release validation |
 | Electron smoke (`npm run test:electron`) | passes (run once; it opens a real window) |
 | Live | `--verify`, reconcile, the hard stop and the two-account trade above |
 

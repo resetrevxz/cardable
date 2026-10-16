@@ -1,13 +1,13 @@
 'use strict';
 // Runs the headless checks that guard Cardable Market Beta and the game around it, one after another, and writes a
 // plain table of what passed. Nothing here opens a window: Electron suites are run once, by hand, and recorded separately.
-//   node tools/run-stage8-regression.cjs [--out docs/market-beta/stage-8-regression.json]
+//   node tools/run-market-regression.cjs [--out docs/market-beta/regression.json]
 const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const args = process.argv.slice(2);
-const out = path.resolve(root, args.includes('--out') ? args[args.indexOf('--out') + 1] : 'docs/market-beta/stage-8-regression.json');
+const out = path.resolve(root, args.includes('--out') ? args[args.indexOf('--out') + 1] : 'docs/market-beta/regression.json');
 
 const SUITES = [
   ['data integrity', 'check:data'],
@@ -23,6 +23,7 @@ const SUITES = [
   ['analytics and portfolio', 'check:market-analytics'],
   ['trading', 'check:market-trading'],
   ['social: pictures, comments, reviews', 'check:market-social'],
+  ['Home, coach and motion', 'check:market-home'],
   ['acceptance journeys and UI sweep', 'check:market-acceptance'],
   ['inventory glass', ['node', 'tools/check-inventory-glass.cjs']],
   ['inventory interaction', ['node', 'tools/check-inventory-interaction.cjs']],

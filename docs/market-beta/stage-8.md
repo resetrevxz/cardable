@@ -24,7 +24,7 @@ Branch `feature/market-beta`, worktree `D:/CardableV2/Market`. This stage asks o
 | Help & feedback | terms, privacy, moderation, rights, a copyable report, the desktop GitHub report | `src/ui/market/page-help.js` |
 | Beta badge | "Beta 1.0.0" wide, "Beta" narrow, with a tooltip about resets | `src/ui/market/shell.js` |
 | Acceptance check | journeys, service modes, Help, 6 viewports × 15 routes, monochrome, four quality tiers, reduced motion | `tools/check-market-acceptance-browser.cjs` |
-| Regression runner | the headless battery in one command, recorded | `tools/run-stage8-regression.cjs` |
+| Regression runner | the headless battery in one command, recorded | `tools/run-stage8-regression.cjs` (now `tools/run-market-regression.cjs`) |
 | Header | HSTS on every API response | `cloudflare/src/util.js` |
 
 ## 2. Defects found and fixed
