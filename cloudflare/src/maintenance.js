@@ -9,6 +9,9 @@ const TTL_MS = 3000;
 let cache = null;
 
 export function forgetMode() { cache = null; }
+// A read that would also write (settling an ended auction on sight, looking at a player's alerts) only does so while the
+// service is open: read-only must mean that a look changes nothing.
+export async function mayWrite(env) { return (await currentMode(env)).mode === 'open'; }
 
 export async function currentMode(env) {
   const t = Date.now();

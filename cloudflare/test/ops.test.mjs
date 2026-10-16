@@ -124,3 +124,24 @@ test('the daily circuit breaker pauses writes on its own, says why, and opens ag
   const log = await admin(small, 'GET', '/v1/admin/ops-log');
   assert.ok(log.data.items.some((i) => i.actor === 'circuit-breaker'), 'the breaker is in the log under its own name');
 });
+
+test('read-only means a look changes nothing: an ended auction is not settled by anyone opening it, and the sweep waits', async () => {
+  await mode('open', '');
+  const seller = await player(server, { cards: 2, credits: 0 }), buyer = await player(server, { cards: 0, credits: 5000 });
+  const T = Date.now() + 3600000, HOUR = 3600000, id0 = seller.cards[0].id;
+  const made = await call(server, 'POST', '/v1/listings', { kind: 'auction', instanceIds: [id0], start: 30, durationMs: HOUR }, seller.token, { at: T });
+  assert.equal(made.status, 200, made.text);
+  const id = made.data.listingId;
+  assert.equal((await call(server, 'POST', '/v1/listings/' + id + '/bid', { max: 100 }, buyer.token, { at: T + 600000 })).status, 200);
+  await mode('read-only', 'Looking after the books.');
+  const end = T + HOUR + 5000;
+  const look = await call(server, 'GET', '/v1/listings/' + id, null, buyer.token, { at: end });
+  assert.equal(look.status, 200);
+  assert.equal(sql(server, "SELECT status FROM listings WHERE id = '" + id + "'")[0].status, 'active', 'opening it did not settle it');
+  assert.equal(sql(server, "SELECT COUNT(*) AS n FROM trades WHERE listing_id = '" + id + "'")[0].n, 0);
+  await mode('open', '');
+  const look2 = await call(server, 'GET', '/v1/listings/' + id, null, buyer.token, { at: end });
+  assert.equal(look2.status, 200);
+  assert.equal(sql(server, "SELECT status FROM listings WHERE id = '" + id + "'")[0].status, 'sold', 'once open again, the same look settles it exactly once');
+  assert.equal(sql(server, "SELECT COUNT(*) AS n FROM trades WHERE listing_id = '" + id + "'")[0].n, 1);
+});

@@ -6,6 +6,7 @@ import { CATALOG } from './catalog.js';
 import { valuations } from './valuation.js';
 import { settleListing } from './listings.js';
 import { evaluateOwnAlerts } from './alerts.js';
+import { mayWrite } from './maintenance.js';
 
 const placeholders = (n) => new Array(n).fill('?').join(',');
 const FORMAT = { fixed: 'buy-now', auction: 'auction', swap: 'swap' };
@@ -142,7 +143,7 @@ export async function detail(env, who, id, now) {
   let r = await env.DB.prepare(LISTING_SQL + 'WHERE l.id = ?2').bind(who.accountId, id).first();
   if (!r) throw new ApiError(404, 'not-found', 'That listing could not be found.');
   // A listing past its end is settled on the spot: whoever opens it sees the truth, not a stale "active".
-  if (r.status === 'active' && now >= r.ends_at) {
+  if (r.status === 'active' && now >= r.ends_at && await mayWrite(env)) {
     await settleListing(env, id, now);
     r = await env.DB.prepare(LISTING_SQL + 'WHERE l.id = ?2').bind(who.accountId, id).first();
   }
@@ -214,7 +215,7 @@ export function orderView(o) {
 export async function activity(env, who, now) {
   const me = who.accountId;
   // The player's own alerts are looked at now, by this request; a failure here never costs them their activity page.
-  try { await evaluateOwnAlerts(env, who, now); } catch (_) { /* looked at again on the next request */ }
+  if (await mayWrite(env)) { try { await evaluateOwnAlerts(env, who, now); } catch (_) { /* looked at again on the next request */ } }
   const mineRows = (await env.DB.prepare(LISTING_SQL + 'WHERE l.seller_id = ?1 ORDER BY (l.status = \'active\') DESC, l.created_at DESC LIMIT 60').bind(me).all()).results;
   const bidRows = (await env.DB.prepare(LISTING_SQL + "WHERE l.status = 'active' AND l.id IN (SELECT listing_id FROM bids WHERE bidder_id = ?1) ORDER BY l.ends_at LIMIT 40").bind(me).all()).results;
   const orders = (await env.DB.prepare('SELECT * FROM orders WHERE account_id = ? ORDER BY (status = \'open\') DESC, created_at DESC LIMIT 40').bind(me).all()).results;

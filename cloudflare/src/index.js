@@ -131,7 +131,7 @@ async function route(request, env, url, trace) {
     return { valuation: await valuationOf(env, { cardId: card, variantId: p.get('variantId') || null, skinId: p.get('skinId') || null, serial: p.get('serial') || null }, now), serverNow: now };
   }
   if (pathname === '/v1/notifications' && method === 'GET') {
-    try { await evaluateOwnAlerts(env, who, now); } catch (_) { /* looked at again on the next request */ }
+    if ((await currentMode(env)).mode === 'open') { try { await evaluateOwnAlerts(env, who, now); } catch (_) { /* looked at again on the next request */ } }
     const rows = await env.DB.prepare('SELECT id, at, kind, body, read_at, ref FROM notifications WHERE account_id = ? ORDER BY id DESC LIMIT 50').bind(who.accountId).all();
     return { items: rows.results.map((r) => ({ id: r.id, at: r.at, kind: r.kind, body: r.body, ref: r.ref, read: !!r.read_at })) };
   }

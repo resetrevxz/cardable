@@ -1,3 +1,20 @@
+# Cardable v1.8.0 — Market Beta
+
+Cardable Market arrives as a beta: a place to sell, bid, swap and watch what your cards are worth. It has two separate worlds. The **Simulation** is an offline market of bot traders that runs on your device only while Cardable is open. **Global** is a market of real players under anonymous names, with its own Credits, and it is only used if you choose to connect.
+
+- **Credits now come from selling.** Opening a pack no longer pays Credits. Quick Sell (always priced below a card's Average Value, and shown before you press it) and Bulk Sell (exact copies, favorites protected, one hold to confirm) pay Credits and leave a receipt with Undo. Existing saves keep their Credits.
+- **Simulation (offline).** Buy, list, auction, swap and place buy orders against bot traders. Its clock stops whenever Cardable is closed, hidden or paused. Nothing in it needs the internet.
+- **Global (online beta).** Convert your collection once (your offline save is only read), then trade with real players: fixed prices, auctions with proxy bids, reserves, buyouts and anti-sniping, swaps with counteroffers, bundles and buy orders. The server decides every price, fee (2%) and winner, and closes auctions on time even when nobody is online.
+- **Numbers you can trust.** Prices and charts come only from completed sales between players, with confidence shown. Portfolio books, alerts, watchlists, comparison and recommendations are included. Cards from packs show "No cost basis" instead of a made-up profit.
+- **Pictures, comments and reviews.** Attach your own photos (or Director album pictures) to a listing, ask questions, and review a seller after a completed trade. Pictures are checked and stripped of camera and location data on the server. Reports reach a human moderator.
+- **Beta honesty.** A Beta badge is always visible. Help & feedback explains what is kept, the terms, moderation and how to report a problem. The Global economy may be reset with notice; your offline game, Credits and photos never are. If the service is paused or read-only, the Market says so and nothing is lost.
+- **Much lighter inventory.** Opening the inventory no longer builds hundreds of idle compositor layers or keeps the menu working behind it. Idle inventory time is down to roughly 1 ms per second in headless measurements, and the Market stops the pack scene, hint arrow and queue behind it too.
+- **Calmer first run.** A new profile starts with Reduced motion on when your system asks for less motion. Existing settings are never changed.
+
+Save schema, card ownership and the card, pack and rarity rules are unchanged. The Market's own version is Beta 1.0.0 and is independent of this app version. See docs/market-beta/ for the acceptance record, operator runbook and release record.
+
+---
+
 # Cardable v1.7.6 — Lighter inventory
 
 Inventory keeps complete cards and rarity designs while browsing uses static fronts throughout. Opening a card still brings up its full materials and cursor interaction.

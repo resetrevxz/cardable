@@ -154,6 +154,9 @@ async function verify(origin) {
   const j = await s.json().catch(() => null);
   ok = out('status 200 and ok envelope', s.status === 200 && j && j.ok === true && j.data.service === 'cardable-market-beta', 'schema ' + (j && j.data && j.data.schema)) && ok;
   ok = out('trace id present', !!(j && j.trace)) && ok;
+  ok = out('the service says whether it is open', !!(j && j.data && ['open', 'read-only', 'maintenance'].includes(j.data.mode)), 'mode ' + (j && j.data && j.data.mode) + ', version ' + (j && j.data && j.data.version)) && ok;
+  ok = out('schema is the current one (6)', !!(j && j.data && j.data.schema === 6), 'schema ' + (j && j.data && j.data.schema)) && ok;
+  ok = out('HTTPS is pinned (HSTS)', /max-age=\d+/.test(s.headers.get('strict-transport-security') || '') || /^http:/.test(origin)) && ok;
   ok = out('CSP is locked down', /default-src 'none'/.test(s.headers.get('content-security-policy') || '')) && ok;
   ok = out('no-store caching', /no-store/.test(s.headers.get('cache-control') || '')) && ok;
   ok = out('CORS answers the null origin (file://)', s.headers.get('access-control-allow-origin') === 'null') && ok;
