@@ -70,7 +70,7 @@ export function corsHeaders(request, env) {
 export function json(status, body, headers) {
   return new Response(JSON.stringify(body), { status, headers: Object.assign({
     'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff',
-    'content-security-policy': "default-src 'none'; frame-ancestors 'none'", 'referrer-policy': 'no-referrer', 'cross-origin-resource-policy': 'cross-origin' }, headers || {}) });
+    'content-security-policy': "default-src 'none'; frame-ancestors 'none'", 'referrer-policy': 'no-referrer', 'strict-transport-security': 'max-age=31536000', 'cross-origin-resource-policy': 'cross-origin' }, headers || {}) });
 }
 // Reads at most `maxBytes` of body. The declared length is checked first, and the stream itself is counted, so a
 // chunked or lying request is cut off at the limit instead of being buffered whole.

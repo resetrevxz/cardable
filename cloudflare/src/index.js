@@ -10,7 +10,7 @@
 //   POST /v1/orders, PUT /v1/orders/:id, POST /v1/orders/:id/cancel
 //   POST /v1/offers, POST /v1/offers/:id/accept|decline|counter|withdraw
 //   POST /v1/sell        (Quick Sell: system redemption)
-//   operator: GET /v1/admin/reconcile, POST /v1/admin/repair|sweep|import/revoke   (x-admin-token)
+//   operator: GET|POST /v1/admin/mode, GET /v1/admin/summary|reset-plan|ops-log, GET /v1/admin/reconcile, POST /v1/admin/repair|sweep|import/revoke   (x-admin-token)
 // Every write needs an Idempotency-Key. There are no bots and no fabricated data: a new realm is empty and says so.
 import { authenticate, listSessions, logout, recover, refresh, register, revokeSession, rateLimit } from './auth.js';
 import { commit as commitImport, existingReceipt, preview as previewImport } from './importer.js';
@@ -32,9 +32,12 @@ import { createUpload, deleteUpload, listUploads, putVariant, serveMedia } from 
 import { editComment, editReview, feed, follow, hideComment, listComments, listFollows, pendingReviews, postComment, postReview, profile, profileReviews, removeComment, report } from './social.js';
 import { actorOf, listReports, moderate, moderationLog } from './moderation.js';
 import { mediaUsage } from './uploads.js';
+import { currentMode, enforceMode, opsLog, setMode } from './maintenance.js';
+import { resetPlan, summary } from './opsreport.js';
+import { checkBudget } from './budget.js';
 export { Gate } from './gate.js';
 
-const VERSION = '0.5.0-beta';
+const VERSION = '1.0.0-beta';
 const LISTING_PATH = /^\/v1\/listings\/(lst_[A-Za-z0-9_-]{6,40})(?:\/(cancel|buy|bid|buyout|relist))?$/;
 const ORDER_PATH = /^\/v1\/orders\/(ord_[A-Za-z0-9_-]{6,40})(?:\/(cancel))?$/;
 const UPLOAD_PATH = /^\/v1\/uploads\/(upl_[A-Za-z0-9_-]{6,40})(?:\/([a-z]{3,8}))?$/;
@@ -59,10 +62,13 @@ async function route(request, env, url, trace) {
   const { pathname } = url, method = request.method, now = nowOf(env, request), key = request.headers.get('idempotency-key');
   if (pathname === '/v1/status' && method === 'GET') {
     const schema = await env.DB.prepare("SELECT value FROM schema_info WHERE key = 'schema'").first();
-    return { service: 'cardable-market-beta', version: VERSION, apiVersion: env.API_VERSION || '1', environment: env.ENVIRONMENT || 'beta', schema: Number(schema && schema.value),
+    const state = await currentMode(env);
+    return { service: 'cardable-market-beta', version: VERSION, mode: state.mode, message: state.message || null, apiVersion: env.API_VERSION || '1', environment: env.ENVIRONMENT || 'beta', schema: Number(schema && schema.value),
       catalog: CATALOG.hash, time: now, features: { listings: true, trading: true, auctions: true, orders: true, swaps: true, quickSell: true, imports: true, uploads: !!env.MEDIA, social: true, turnstile: !!env.TURNSTILE_SITEKEY },
       turnstileSitekey: env.TURNSTILE_SITEKEY || null, rules: publicRules(env) };
   }
+  // The service mode decides before anything is read or written; the operator's routes below stay reachable.
+  if (!pathname.startsWith('/v1/admin/')) await enforceMode(env, method, pathname);
   if (pathname === '/v1/auth/register' && method === 'POST') return register(env, request, await readJson(request, 8_000));
   if (pathname === '/v1/auth/refresh' && method === 'POST') return refresh(env, request, await readJson(request, 8_000));
   if (pathname === '/v1/auth/recover' && method === 'POST') return recover(env, request, await readJson(request, 8_000));
@@ -78,6 +84,12 @@ async function route(request, env, url, trace) {
     if (pathname === '/v1/admin/moderate' && method === 'POST') return moderate(env, await readJson(request, 4_000), actorOf(request), now);
     if (pathname === '/v1/admin/log' && method === 'GET') return moderationLog(env, url);
     if (pathname === '/v1/admin/usage' && method === 'GET') return mediaUsage(env);
+    if (pathname === '/v1/admin/mode' && method === 'GET') return currentMode(env);
+    if (pathname === '/v1/admin/mode' && method === 'POST') return setMode(env, await readJson(request, 2_000), actorOf(request), now);
+    if (pathname === '/v1/admin/ops-log' && method === 'GET') return opsLog(env, url.searchParams.get('limit'));
+    if (pathname === '/v1/admin/summary' && method === 'GET') return summary(env, now);
+    if (pathname === '/v1/admin/budget' && method === 'POST') return checkBudget(env, now);
+    if (pathname === '/v1/admin/reset-plan' && method === 'GET') return resetPlan(env, now);
     throw new ApiError(404, 'not-found', 'There is no such endpoint.');
   }
 
@@ -262,5 +274,11 @@ export default {
     }
   },
   // Backstop for the per-listing alarms: close and expire what is due, match what is waiting.
-  async scheduled(event, env, ctx) { ctx.waitUntil(sweep(env, Date.now())); }
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil((async () => {
+      try { await checkBudget(env, Date.now()); } catch (error) { console.error(JSON.stringify({ budget: String(error && error.message).slice(0, 200) })); }
+      const state = await currentMode(env);
+      if (state.mode === 'open') await sweep(env, Date.now());
+    })());
+  }
 };

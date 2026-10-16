@@ -8,7 +8,7 @@
   C.market = C.market || {};
   var listeners = new Set();
   var S = { status: 'unconfigured', alias: null, imported: false, balance: null, held: 0, available: null, inventoryTotal: null, error: null,
-    checkedAt: 0, token: null, tokenExp: 0, refreshToken: null, receipt: null, server: null, ledger: [] };
+    mode: 'open', modeMessage: null, checkedAt: 0, token: null, tokenExp: 0, refreshToken: null, receipt: null, server: null, ledger: [] };
   var inflight = null;
   var cfg = function () { return C.data.marketOnline; };
 
@@ -52,6 +52,7 @@
         var json = null; try { json = JSON.parse(text); } catch (_) { /* not json */ }
         if (res.ok && json && json.ok) return json.data;
         var err = json && json.error || { code: 'http-' + res.status, message: 'The service answered with an error.' };
+        S.lastError = { code: err.code, trace: json && json.trace || null, at: Date.now() };
         throw failure(err.code, err.message, { status: res.status, trace: json && json.trace, detail: err.detail });
       }); }, function (error) {
         throw failure('offline', error && error.name === 'AbortError' ? 'The service did not answer in time.' : 'Could not reach the service.');
@@ -81,12 +82,13 @@
   }
 
   // ---- state ---------------------------------------------------------------------------------------------------
-  function setOffline(error) { S.status = error.code === 'not-configured' ? 'unconfigured' : error.code === 'signed-out' ? 'signed-out' : error.code === 'offline' ? 'offline' : 'error'; S.error = error.message; emit(); }
+  function setOffline(error) { S.status = error.code === 'maintenance' ? 'paused' : error.code === 'not-configured' ? 'unconfigured' : error.code === 'signed-out' ? 'signed-out' : error.code === 'offline' ? 'offline' : 'error'; S.error = error.message; emit(); }
   function refresh(force) {
     if (!base()) { S.status = 'unconfigured'; emit(); return Promise.resolve(S); }
     if (!force && S.status === 'online' && Date.now() - S.checkedAt < cfg().statusTtlMs) return Promise.resolve(S);
     return request('GET', '/v1/status').then(function (server) {
-      S.server = server;
+      S.server = server; S.mode = server && server.mode || 'open'; S.modeMessage = server && server.message || null;
+      if (S.mode === 'maintenance') { S.status = 'paused'; S.error = S.modeMessage; S.checkedAt = Date.now(); emit(); return S; }
       if (!S.refreshToken) { S.status = 'signed-out'; S.error = null; S.checkedAt = Date.now(); emit(); return S; }
       return Promise.all([authed('GET', '/v1/me'), authed('GET', '/v1/wallet'), authed('GET', '/v1/inventory?limit=1')]).then(function (r) {
         S.alias = r[0].alias; S.imported = r[0].imported; S.balance = r[1].balance; S.held = r[1].held; S.available = r[1].available; S.ledger = r[1].ledger;

@@ -14,6 +14,9 @@ export class Gate {
     const id = await this.ctx.storage.get('listing');
     if (!id) return;
     const { settleListing, getListing } = await import('./listings.js');
+    // A paused service settles nothing; the alarm comes back when the service is open again.
+    const { currentMode } = await import('./maintenance.js');
+    if ((await currentMode(this.env)).mode !== 'open') { await this.ctx.storage.setAlarm(Date.now() + 60_000); return; }
     try { await settleListing(this.env, id, Date.now()); } catch (error) { console.error(JSON.stringify({ alarm: id, error: String(error && error.message).slice(0, 200) })); }
     const L = await getListing(this.env, id);
     if (L && L.status === 'active') await this.ctx.storage.setAlarm(Math.max(L.ends_at, Date.now() + 1000));

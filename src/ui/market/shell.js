@@ -272,7 +272,7 @@
 
     // header
     headerEl = h('header.mk-header');
-    var brand = h('div.mk-brand', h('span.mk-brand-mark', icon('market')), h('span.mk-brand-name', { text: 'Market' }), h('span.mk-brand-tag', { text: 'Beta 1.0' }));
+    var brand = h('div.mk-brand', h('span.mk-brand-mark', icon('market')), h('span.mk-brand-name', { text: 'Market' }), h('span.mk-brand-tag', { title: 'Cardable Market Beta ' + cfg().betaVersion + '. Real players, its own Credits, and it can be reset.' }, 'Beta', h('span.mk-brand-ver', { text: ' ' + cfg().betaVersion })));
     var search = buildSearch();
     var end = h('div.mk-header-end');
     walletEl = h('button.mk-wallet', { type: 'button' });
@@ -328,7 +328,7 @@
   function openMore(anchor) {
     ui.popover(anchor, function (close) {
       var box = h('div.mk-more', { role: 'menu' });
-      [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell'], ['compare', 'Compare', 'cards'], ['my-listings', 'My listings', 'layers'], ['settings', 'Market settings', 'sliders'], ['guide', 'Market guide', 'info']].forEach(function (r) {
+      [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell'], ['compare', 'Compare', 'cards'], ['my-listings', 'My listings', 'layers'], ['settings', 'Market settings', 'sliders'], ['help', 'Help & feedback', 'info'], ['guide', 'Market guide', 'info']].forEach(function (r) {
         var b = h('button.mk-more-item', { type: 'button', role: 'menuitem' }, icon(r[2]), h('span', { text: r[1] }));
         b.addEventListener('click', function () {
           close();

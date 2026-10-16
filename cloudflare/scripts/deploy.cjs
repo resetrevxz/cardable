@@ -6,7 +6,8 @@
  *   node scripts/deploy.cjs --apply                 create D1 + R2 (cardable-market-beta*), migrate, set secrets, deploy
  *   node scripts/deploy.cjs --verify <origin>       real requests against a deployed origin; fails loudly
  *   node scripts/deploy.cjs --apply-origin <origin> write a verified origin into the client config and the page CSP
- *   node scripts/deploy.cjs --admin <origin> reconcile|repair|sweep   operator tools, with the admin token kept beside this file
+ *   node scripts/deploy.cjs --admin <origin> reconcile|repair|sweep|summary|budget|ops-log|reset-plan   operator tools, with the admin token kept beside this file
+ *   node scripts/deploy.cjs --admin <origin> mode [open|read-only|maintenance [message]]   show or change the service mode
  *
  * Safety rules, enforced here:
  *  - it refuses to do anything remote unless `wrangler whoami` proves an authenticated account;
@@ -227,13 +228,28 @@ function applyOrigin(origin) {
 
 async function adminCall(origin, what) {
   if (!/^https:\/\/[a-z0-9.-]+\.workers\.dev$/.test(origin || '') && !/^http:\/\/127\.0\.0\.1:\d+$/.test(origin || '')) fail('give the deployed origin');
-  if (!['reconcile', 'repair', 'sweep', 'reports', 'usage', 'log'].includes(what)) fail('say reconcile, repair, sweep, reports, usage or log');
+  const READS = ['reconcile', 'reports', 'usage', 'log', 'ops-log', 'summary', 'reset-plan', 'mode'], WRITES = ['repair', 'sweep', 'budget'];
+  if (!READS.concat(WRITES).includes(what)) fail('say one of: ' + READS.concat(WRITES).join(', '));
   const file = path.join(ROOT, '.admin-token');
   if (!fs.existsSync(file)) fail('there is no cloudflare/.admin-token: it is written when --apply sets the secret');
   const token = fs.readFileSync(file, 'utf8').trim();
-  const res = await fetch(origin + '/v1/admin/' + what, { method: ['reconcile', 'reports', 'usage', 'log'].includes(what) ? 'GET' : 'POST', headers: { 'x-admin-token': token, 'content-type': 'application/json' }, body: ['reconcile', 'reports', 'usage', 'log'].includes(what) ? undefined : '{}' });
+  // 'mode' alone shows the service mode; 'mode <open|read-only|maintenance> [message words]' changes it (and is logged by the Worker).
+  const rest = args.slice(args.indexOf('--admin') + 3);
+  const setting = what === 'mode' && rest.length > 0;
+  if (setting && !['open', 'read-only', 'maintenance'].includes(rest[0])) fail('the mode must be open, read-only or maintenance');
+  const method = setting || WRITES.includes(what) ? 'POST' : 'GET';
+  const payload = setting ? JSON.stringify({ mode: rest[0], message: rest.slice(1).join(' ') }) : method === 'POST' ? '{}' : undefined;
+  const res = await fetch(origin + '/v1/admin/' + what, { method, headers: { 'x-admin-token': token, 'content-type': 'application/json', 'x-admin-actor': 'deploy-script' }, body: payload });
   const body = await res.json();
   console.log(JSON.stringify(body.data || body.error, null, 2));
+  // A reset is never run from here. The plan is written for a person to read, and applied by hand after an export.
+  if (what === 'reset-plan' && res.ok) {
+    const plan = body.data, out = path.join(ROOT, 'reset-plan.sql');
+    const lines = ['-- Cardable Market Beta reset plan, written ' + new Date(plan.at).toISOString() + '. NOT APPLIED.', '-- Read docs/market-beta/RUNBOOK.md section "Beta reset" first. Needs: maintenance mode on, an export on disk, the owner\'s written approval.', '-- Rows that would be deleted:']
+      .concat(Object.keys(plan.wouldDelete).map((t) => '--   ' + t + ': ' + plan.wouldDelete[t]), ['PRAGMA foreign_keys = OFF;'], plan.statements, ['PRAGMA foreign_keys = ON;']);
+    fs.writeFileSync(out, lines.join('\n') + '\n');
+    console.log('Wrote ' + out + ' (git-ignored). Nothing was applied.');
+  }
   process.exit(res.ok && (what !== 'reconcile' || body.data.ok) ? 0 : 1);
 }
 

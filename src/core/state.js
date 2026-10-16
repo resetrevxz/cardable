@@ -12,9 +12,13 @@
       packs: { ready: C.config.packs.startingPacks, timerStartedAt: null, openedCount: 0, introSeen: {} },
       serialCounter: 0, inventory: [], pendingReveal: null, currency: 0,
       tutorial: { step: 'welcome', done: false },
-      settings: C.settingsSchema.normalize({ motion: C.desktop && C.desktop.info && C.desktop.info.installerReducedMotion ? 'on' : 'off' }), stats: { packsOpened: 0 },
+      settings: C.settingsSchema.normalize({ motion: C.desktop && C.desktop.info && C.desktop.info.installerReducedMotion || systemReducesMotion() ? 'on' : 'off' }), stats: { packsOpened: 0 },
       inventoryUi: C.inventoryModel ? C.inventoryModel.defaults() : {}
     };
+  }
+  // A new profile starts calm when the system asks for less motion. Only the first save follows it: the player's own setting is never overridden.
+  function systemReducesMotion() {
+    try { return !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (_) { return false; }
   }
   function migrate(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Save must be an object');

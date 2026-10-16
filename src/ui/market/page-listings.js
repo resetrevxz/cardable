@@ -465,15 +465,15 @@
     function renderEmpty(res) {
       ui.releaseArt(results, ctx.thumbs);
       ui.clear(results); grid = null;
-      if (realm === 'global' && ['signed-out', 'offline', 'no-listings'].indexOf(res.emptyReason) >= 0 && !store.session.showGlobalSample) {
+      if (realm === 'global' && ['signed-out', 'offline', 'paused', 'no-listings'].indexOf(res.emptyReason) >= 0 && !store.session.showGlobalSample) {
         var gs = C.market.api.statusSync('global');
         var actions = [];
         if (res.emptyReason === 'signed-out') actions.push({ label: 'Connect to Global Market', variant: 'primary', icon: 'user', run: function () { if (ui.online) ui.online.connectDialog(); } });
-        if (res.emptyReason === 'offline') actions.push({ label: 'Try again', variant: 'primary', icon: 'forward', run: function () { C.market.online.refresh(true); } });
+        if (res.emptyReason === 'offline' || res.emptyReason === 'paused') actions.push({ label: 'Try again', variant: 'primary', icon: 'forward', run: function () { C.market.online.refresh(true); } });
         actions.push({ label: 'Open Simulation', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
         if (res.emptyReason === 'no-listings') actions.unshift({ label: 'List a card', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } });
         results.appendChild(ui.emptyState({ kind: res.emptyReason === 'no-listings' ? 'empty' : 'offline', icon: res.emptyReason === 'no-listings' ? 'market' : 'lock',
-          title: res.emptyReason === 'no-listings' ? 'No one is selling yet' : res.emptyReason === 'offline' ? 'Global Market is unreachable' : 'Connect to see Global Market',
+          title: res.emptyReason === 'no-listings' ? 'No one is selling yet' : res.emptyReason === 'paused' ? 'Global Market is paused' : res.emptyReason === 'offline' ? 'Global Market is unreachable' : 'Connect to see Global Market',
           body: res.emptyReason === 'no-listings' ? 'Everything here comes from real players, and the beta is new. When a player lists a card it appears here. Nothing is added to make it look busy: no bots, no samples. List a card of your own, or sell a few to the system to get your first Credits.'
             : gs.message, actions: actions }));
         return;

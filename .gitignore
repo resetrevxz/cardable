@@ -31,3 +31,4 @@ Thumbs.db
 
 # Operator admin token written by cloudflare/scripts/deploy.cjs
 cloudflare/.admin-token
+cloudflare/reset-plan.sql
