@@ -115,7 +115,7 @@ const shot = (page, name) => page.screenshot({ path: path.join(out, name + '.jpg
       assert(/No one is selling yet/.test(text), text);
       const wallet = await page.evaluate(() => document.querySelector('.mk-wallet').textContent);
       assert(/0/.test(wallet), wallet);
-      const badge = await page.evaluate(() => document.querySelector('.mk-island').textContent);
+      const badge = await page.evaluate(() => document.querySelector('.mk-sim-chip').textContent);
       assert(/Online/.test(badge), 'the island says Global is online: ' + badge);
       await shot(page, 'global-empty');
     });

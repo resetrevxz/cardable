@@ -224,6 +224,7 @@
       { title: 'Simulation', keys: ['marketSimSpeed'] },
       { title: 'Stocks', keys: ['marketChartType', 'marketWindow'] },
       { title: 'Trading', keys: ['marketConfirm', 'marketListingDuration'] },
+      { title: 'Notch', keys: ['marketNotch', 'marketNotchMode', 'marketNotchCycle', 'marketNotchPeek'] },
       { title: 'Notices', keys: ['marketNotifyBids', 'marketNotifyTrades', 'marketNotifyWatch'] } ] },
     { id: 'Controls', icon: 'keyboard', advanced: true, blurb: 'Two keys for every action.', sections: [{ title: 'Keyboard', slot: 'bindings', keys: [] }] },
     { id: 'Accessibility', icon: 'access', blurb: 'Clearer, calmer, easier to read.', sections: [

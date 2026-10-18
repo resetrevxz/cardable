@@ -505,6 +505,7 @@
         row.append(copy, control);
         card.appendChild(row);
       });
+      if (section.title === 'Notch') card.appendChild(h('div.mk-setting', h('div.mk-setting-copy', h('span.mk-setting-label', { text: 'What it covers' }), h('span.mk-hint', { text: 'Turn kinds of news on or off and set their priority.' })), ui.button('Customize', { variant: 'secondary', icon: 'sliders', onClick: function () { ui.notchSettings.open(); } })));
       layout.appendChild(card);
     });
 

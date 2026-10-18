@@ -53,9 +53,9 @@ async function tileBox(page, index) {
 async function pointAt(page, index, fx, fy) {
   const box = await tileBox(page, index);
   const x = box.x + box.width * fx, y = box.y + box.height * fy;
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 10; attempt++) {
     await page.mouse.move(x + attempt, y, { steps: 4 });
-    try { await page.waitForFunction((i) => document.querySelectorAll('.mk-tile')[i].classList.contains('is-pointed'), index, { timeout: 1500 }); break; } catch (e) { /* move again */ }
+    try { await page.waitForFunction((i) => document.querySelectorAll('.mk-tile')[i].classList.contains('is-pointed'), index, { timeout: 2500 }); break; } catch (e) { /* move again */ }
   }
   await page.waitForTimeout(450);
 }

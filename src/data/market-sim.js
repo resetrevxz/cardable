@@ -127,6 +127,9 @@
     // Stable bot names reuse the Market's two-word aliases.
     nameSeedTag: 'sim-bots',
 
+    // ---- the notch: what counts as a big sale and a rare find ----
+    notch: { salesHours: 12, salesMinTrades: 8, rareTier: 7, rareHours: 3 },
+
     // ---- persistence and presentation limits --------------------------------------------------------------------
     keep: { trades: 700, feed: 120, receipts: 400, days: 120, notices: 80 },
     maxStateBytes: 1800000,

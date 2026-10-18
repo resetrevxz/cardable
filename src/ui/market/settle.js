@@ -22,7 +22,7 @@
   // Where it starts: the thing you just pressed, else the island (a trade that finished by itself), else the middle.
   function origin() {
     if (press && Date.now() - press.at < 6000) return { x: press.x, y: press.y };
-    var pill = ui.island && ui.island.el;
+    var pill = ui.island && ui.island.visibleEl;
     if (visible(pill)) return centre(pill);
     var r = host().getBoundingClientRect();
     return { x: r.width / 2, y: r.height / 2 };

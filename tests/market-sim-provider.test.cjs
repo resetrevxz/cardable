@@ -165,3 +165,24 @@ test('longer changes come from the daily aggregates and need a day that old', ()
   assert.equal(v.change90d, null, 'no day as old as 90 d, so no 90 d change');
   assert.ok(Math.abs(v.changeAll - (104 / 80 - 1)) < 1e-9, 'all time against the first open');
 });
+
+test('the notch reader: big sales are other traders\' sales that were high for their time, movers are cards you hold, matches are what you look for', () => {
+  const x = setup(24);
+  run(x.S, x.world, x.env, x.host, 9 * DAY);
+  const pool = x.env.cards.filter((c) => (x.env.tierOf[c.id] || 0) <= 3);
+  for (let i = 0; i < 6; i++) x.host.state.inventory.push({ instanceId: 'n' + i, packId: 'standard', cardSkinId: null, cardId: pool[i * 3].id, variantId: null, serial: 'CBL-TEST-00000' + i, pulledAt: 1, seen: true });
+  const wanted = Object.values(x.world.listings).find((l) => l.status === 'open' && l.seller !== 'you' && l.items.length === 1 && l.kind === 'fixed');
+  x.C.state.current.inventoryUi.collections = [{ kind: 'wishlist', cardIds: [wanted.items[0].c] }];
+  const n = x.api.notch([], []);
+  const win = (cfgHours) => x.world.now - cfgHours * HOUR;
+  n.sales.forEach((t) => {
+    assert.ok(!t.you, 'your own sales are in your notices, not in the big sales');
+    assert.ok(t.minutesAgo * 60000 <= 12 * HOUR + 1, 'inside the window: ' + t.minutesAgo);
+    assert.ok(t.tier >= 7 || t.price > 0, 'high for their time or Legendary and above');
+  });
+  assert.ok(n.sales.length <= 4 && n.sales.every((t, i, a) => i === 0 || a[i - 1].price >= t.price), 'at most four, dearest first');
+  n.movers.forEach((m) => { assert.ok(x.host.state.inventory.some((i) => i.cardId === m.cardId), 'a card you hold'); assert.ok(m.change24h != null, 'with a change to report'); assert.ok(m.owned >= 1); });
+  assert.ok(n.matches.some((m) => m.kind === 'wishlist' && m.listing.card.cardId === wanted.items[0].c), 'a wishlist card that is on sale matches');
+  n.rare.forEach((l) => { assert.ok((x.env.tierOf[l.card.cardId] || 0) >= 7, 'Legendary or better'); assert.ok(l.createdSim >= win(3), 'listed in the last three hours'); assert.ok(!l.isMine); });
+  assert.equal(JSON.stringify(x.api.notch([], [])), JSON.stringify(n), 'reading twice changes nothing');
+});

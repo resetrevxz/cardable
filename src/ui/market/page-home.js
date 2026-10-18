@@ -164,6 +164,8 @@
     }
   }
 
+  ui.homeAct = act;
+
   // Quick Sell from a suggestion: the system's fixed bid, paid at once, with the receipt and Undo the rest of the Market gives it.
   function quickSell(m, ctx, env, anchor, onDone) {
     var idn = ui.identity(m.card, !!(env.owned && env.owned[m.cardId])), wallet = ctx.api.walletSync(ctx.realm);

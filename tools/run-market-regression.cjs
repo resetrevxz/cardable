@@ -26,6 +26,7 @@ const SUITES = [
   ['Home, coach and motion', 'check:market-home'],
   ['hover and press feedback', 'check:market-hover'],
   ['the same Cardable: menu, header, island, rarity, settle', 'check:market-polish'],
+  ['the notch: menu, panel, quick bids, peek, customize', 'check:market-notch'],
   ['acceptance journeys and UI sweep', 'check:market-acceptance'],
   ['inventory glass', ['node', 'tools/check-inventory-glass.cjs']],
   ['inventory interaction', ['node', 'tools/check-inventory-interaction.cjs']],

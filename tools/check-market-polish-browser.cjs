@@ -69,14 +69,14 @@ const rects = (page, selectors) => page.evaluate((list) => { const r = {}; list.
     });
 
     await openMarket(page);
-    const SELECTORS = ['.mk-brand-mark', '.mk-search', '.mk-island', '.mk-realm-switch', '.mk-wallet', '.mk-close', '.mk-tabs', '.mk-tab[data-tab="home"]', '.mk-tab[data-tab="discover"]', '.mk-tab[data-tab="auctions"]', '.mk-tab[data-tab="portfolio"]', '.mk-tab[data-tab="stocks"]', '.mk-tab-more', '.mk-util'];
+    const SELECTORS = ['.mk-brand-mark', '.mk-search', '.mk-header .mk-island', '.mk-sim-chip', '.mk-realm-switch', '.mk-wallet', '.mk-close', '.mk-tabs', '.mk-tab[data-tab="home"]', '.mk-tab[data-tab="discover"]', '.mk-tab[data-tab="auctions"]', '.mk-tab[data-tab="portfolio"]', '.mk-tab[data-tab="stocks"]', '.mk-tab-more', '.mk-util'];
     await step('the header does not move between Local and Global, and keeps every section', async () => {
       const local = await rects(page, SELECTORS);
-      const localIsland = await page.evaluate(() => document.querySelector('.mk-island').textContent);
+      const localIsland = await page.evaluate(() => document.querySelector('.mk-header .mk-island').textContent);
       await page.evaluate(() => Cardable.market.store.setRealm('global'));
       await page.waitForTimeout(900);
       const global = await rects(page, SELECTORS);
-      const globalIsland = await page.evaluate(() => document.querySelector('.mk-island').textContent);
+      const globalIsland = await page.evaluate(() => document.querySelector('.mk-header .mk-island').textContent);
       Object.keys(local).forEach((q) => { assert.ok(global[q], q + ' exists in Global'); local[q].forEach((v, i) => assert.ok(near(v, global[q][i], 1), q + ' moved: ' + local[q] + ' to ' + global[q])); });
       assert.notEqual(localIsland, globalIsland, 'the island says something different in each realm: ' + localIsland + ' / ' + globalIsland);
       const tabs = await page.evaluate(() => Array.from(document.querySelectorAll('.mk-tabs > .mk-tab')).filter((b) => !b.hidden).length);
@@ -101,23 +101,23 @@ const rects = (page, selectors) => page.evaluate((list) => { const r = {}; list.
     });
 
     await step('the island: the clock when nothing is open, then what needs you, and it opens, reads, closes and returns focus', async () => {
-      const idle = await page.evaluate(() => document.querySelector('.mk-island').getAttribute('aria-label'));
-      assert.ok(/Clock Day \d+/.test(idle), idle);
+      const idle = await page.evaluate(() => document.querySelector('.mk-sim-chip').getAttribute('aria-label'));
+      assert.ok(/Simulation clock: Day \d+/.test(idle), 'the clock chip says the day: ' + idle);
       await page.evaluate(async () => {
         const w = Cardable.marketSim.runtime.world, list = Object.values(w.listings).filter((x) => x.status === 'open' && x.kind === 'auction' && x.seller !== 'you').slice(0, 2);
         for (const l of list) { let r = await Cardable.market.api.placeBid('simulation', l.id, l.start + 1, 'p1' + l.id); if (!r.ok && r.minimum) r = await Cardable.market.api.placeBid('simulation', l.id, r.minimum, 'p2' + l.id); }
       });
-      await page.waitForFunction(() => /^(Outbid|Leading|Ends soon)/.test(document.querySelector('.mk-island').getAttribute('aria-label')), null, { timeout: 8000 });
-      const label = await page.evaluate(() => document.querySelector('.mk-island').getAttribute('aria-label'));
-      await page.focus('.mk-island'); await page.keyboard.press('Enter');
+      await page.waitForFunction(() => /^(Outbid|Leading|Ends soon)/.test(document.querySelector('.mk-header .mk-island').getAttribute('aria-label')), null, { timeout: 8000 });
+      const label = await page.evaluate(() => document.querySelector('.mk-header .mk-island').getAttribute('aria-label'));
+      await page.focus('.mk-header .mk-island'); await page.keyboard.press('Enter');
       await page.waitForSelector('.mk-island-panel'); await page.waitForTimeout(700);
-      const panel = await page.evaluate(() => ({ rows: document.querySelectorAll('.mk-island-row').length, text: document.querySelector('.mk-island-panel').textContent, expanded: document.querySelector('.mk-island').getAttribute('aria-expanded'), inside: (() => { const r = document.querySelector('.mk-island-pop').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; })() }));
-      assert.ok(panel.rows >= 1 && panel.rows <= 2 + 0, 'rows for the bids: ' + panel.rows);
-      assert.ok(/Your trades/.test(panel.text) && /Pause|Resume/.test(panel.text) && /Calm/.test(panel.text), panel.text.slice(0, 200));
+      const panel = await page.evaluate(() => ({ rows: document.querySelectorAll('.mk-island-row').length, text: document.querySelector('.mk-island-panel').textContent, expanded: document.querySelector('.mk-header .mk-island').getAttribute('aria-expanded'), inside: (() => { const r = document.querySelector('.mk-island-pop').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; })() }));
+      assert.ok(panel.rows >= 1, 'rows for the bids: ' + panel.rows);
+      assert.ok(/Your market/.test(panel.text) && /to spend/.test(panel.text) && /Pause|Resume/.test(panel.text) && /Calm/.test(panel.text), panel.text.slice(0, 200));
       assert.equal(panel.expanded, 'true'); assert.ok(panel.inside, 'panel inside the window');
       await page.screenshot({ path: path.join(out, 'island-open.png') });
       await page.keyboard.press('Escape'); await page.waitForTimeout(250);
-      const closed = await page.evaluate(() => ({ open: !!document.querySelector('.mk-island-panel'), focus: document.activeElement === document.querySelector('.mk-island'), expanded: document.querySelector('.mk-island').getAttribute('aria-expanded') }));
+      const closed = await page.evaluate(() => ({ open: !!document.querySelector('.mk-island-panel'), focus: document.activeElement === document.querySelector('.mk-header .mk-island'), expanded: document.querySelector('.mk-header .mk-island').getAttribute('aria-expanded') }));
       assert.equal(closed.open, false); assert.equal(closed.expanded, 'false'); assert.ok(closed.focus, 'focus returns to the island');
       return { label, rows: panel.rows };
     });
@@ -171,14 +171,14 @@ const rects = (page, selectors) => page.evaluate((list) => { const r = {}; list.
       await openMarket(p3);
       const m = await p3.evaluate(() => {
         const f = document.querySelector('.mk-frame').getBoundingClientRect(), box = (q) => { const e = document.querySelector(q); return e ? e.getBoundingClientRect() : null; };
-        const island = box('.mk-island'), realm = box('.mk-realm-switch'), wallet = box('.mk-wallet'), close = box('.mk-close');
+        const island = box('.mk-header .mk-island'), realm = box('.mk-realm-switch'), wallet = box('.mk-wallet'), close = box('.mk-close');
         const overlap = (a, b) => !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
         const labels = Array.from(document.querySelectorAll('.mk-bottom-item')).map((b) => ({ name: b.getAttribute('aria-label'), shown: getComputedStyle(b.querySelector('span')).display !== 'none' }));
-        return { scroll: document.querySelector('.mk-main').scrollWidth - document.querySelector('.mk-main').clientWidth, inside: [island, realm, wallet, close].every((r) => r.left >= f.left - 1 && r.right <= f.right + 1), overlap: overlap(island, realm) || overlap(wallet, close), labels, islandText: document.querySelector('.mk-island').textContent };
+        return { scroll: document.querySelector('.mk-main').scrollWidth - document.querySelector('.mk-main').clientWidth, inside: [island, realm, wallet, close].every((r) => r.left >= f.left - 1 && r.right <= f.right + 1), overlap: overlap(island, realm) || overlap(wallet, close), labels, clockText: document.querySelector('.mk-sim-chip').textContent };
       });
       assert.ok(m.scroll <= 1, 'no sideways scroll: ' + m.scroll); assert.ok(m.inside, 'header controls inside the window'); assert.equal(m.overlap, false, 'no overlaps');
       assert.equal(m.labels.filter((l) => l.shown).length, 1, 'only the current section shows its name: ' + JSON.stringify(m.labels)); assert.ok(m.labels.every((l) => l.name), 'every one has an accessible name');
-      assert.ok(/Day \d+/.test(m.islandText), 'the island still says the clock: ' + m.islandText);
+      assert.ok(/D(ay )?\d+/.test(m.clockText), 'the clock chip still says the day: ' + m.clockText);
       await p3.screenshot({ path: path.join(out, 'phone.png') });
       await c3.close();
     });

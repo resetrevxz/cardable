@@ -65,6 +65,14 @@
     [['bad', 'down', 'Outbid', 'GeForce GTX 760'], ['good', 'up', 'Leading', 'Radeon RX 5600 XT'], ['warn', 'clock', 'Ends soon', 'RTX 4060 \u00b7 42m'], ['info', 'swap', 'Swap offer', 'Calm Otter \u00b7 1d 23h'], ['good', 'check', 'Sold', 'RTX 3050 for 640'], ['run', 'play', 'Day 4 \u00b7 06:12', 'Running'], ['idle', 'lock', 'Not connected', 'Global']].forEach(function (c) {
       clocks.appendChild(h('span.mk-island', { data: { tone: c[0] } }, h('span.mk-island-glyph', ui.icon(c[1])), h('span.mk-island-text', h('span.mk-island-label', { text: c[2] }), h('span.mk-island-name', { text: c[3] }))));
     });
+    // the notch's peek, its spending card and a row with quick bids, made from the same pieces the notch uses
+    var peeks = row(simGroup);
+    peeks.appendChild(h('div.mk-notch-peek.is-specimen', { data: { tone: 'bad' } }, h('span.mk-island-glyph', ui.icon('down')), h('div.mk-notch-peek-copy', h('strong', { text: 'Outbid \u00b7 GeForce GTX 760' }), h('span', { text: 'Now 38 \u00b7 your max 36' })),
+      h('div.mk-notch-peek-actions', h('button.mk-quick', { type: 'button', data: { kind: 'raise' } }, h('span', { text: 'Lead' }), h('span.mk-num', { text: '40' })), h('button.mk-quick', { type: 'button', data: { kind: 'raise' } }, h('span', { text: '+10%' }), h('span.mk-num', { text: '42' })))));
+    var wallet = h('section.mk-notch-wallet.is-specimen', h('div.mk-notch-spend', h('span.mk-notch-big.mk-num', { text: '5,045' }), h('span.mk-notch-sub', { text: 'to spend \u00b7 955 held by bids and orders' })),
+      h('div.mk-notch-bar', h('i', { data: { part: 'free' }, style: { flexGrow: '5' } }), h('i', { data: { part: 'held' }, style: { flexGrow: '1' } })),
+      h('div.mk-notch-worth', h('div', h('span.mk-notch-sub', { text: 'Net worth' }), h('span.mk-num.mk-notch-nw', { text: '9,137' })), h('span.mk-notch-delta', { data: { dir: 'up' } }, ui.icon('up'), h('span.mk-num', { text: '312' }), h('span', { text: 'today' }))));
+    simGroup.appendChild(wallet);
     var tiers = row(simGroup);
     ['basic', 'rare', 'unusual', 'double-super-rare', 'legendary', 'mythical', 'secret'].forEach(function (r) {
       var rar = C.rarity(r) || { name: r };

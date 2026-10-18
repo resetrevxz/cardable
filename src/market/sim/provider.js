@@ -310,6 +310,42 @@
         state: { cards: p.inventory.length, free: free.length, credits: p.currency, held: held, available: available, openListings: p.inventory.length - free.length },
         wallet: provider.wallet('simulation'), revision: x.r.revision, quests: world.coach.done };
     },
+    // What the notch reads besides the activity and the wallet: high-price sales, price movers among the cards you own, listings that
+    // match what you are looking for, and rare cards that just appeared. Read-only; nothing here creates or changes the world.
+    notch: function (watchIds, alerts) {
+      var x = ctxNow(), world = x.world, env = x.env, p = playerState(), now = world.now, K = cfg().notch || {};
+      var windowMs = (K.salesHours || 12) * HOUR, own = function (t) { return t.seller === 'you' || t.buyer === 'you'; };
+      // a sale is worth saying when it is in the top five percent of the last three days (with enough trades to say so) or is Legendary or better
+      var recent = world.trades.filter(function (t) { return t.t >= now - 3 * DAY; }).map(function (t) { return t.price; }).sort(function (u, v) { return u - v; });
+      var cut = recent.length >= (K.salesMinTrades || 8) ? recent[Math.floor(recent.length * 0.95)] : Infinity;
+      var sales = world.trades.filter(function (t) { return t.t >= now - windowMs && !own(t) && ((env.tierOf[t.c] || 0) >= (K.rareTier || 7) || t.price >= cut); })
+        .sort(function (u, v) { return v.price - u.price; }).slice(0, 4).map(function (t) { var out = tradeView(world, env, t); out.tier = env.tierOf[t.c] || 0; return out; });
+      // price movers among the cards you hold: one entry per exact card and finish
+      var groups = {};
+      p.inventory.forEach(function (i) { var key = S.keyOf(i.cardId, i.variantId || null, i.cardSkinId || null); var g = groups[key] = groups[key] || { cardId: i.cardId, variantId: i.variantId || null, cardSkinId: i.cardSkinId || null, owned: 0 }; g.owned++; });
+      var movers = Object.keys(groups).map(function (k) { var g = groups[k], v = valuationFor(world, env, g.cardId, g.variantId, g.cardSkinId, 1); return { cardId: g.cardId, variantId: g.variantId, owned: g.owned, change24h: v.change24h, change7d: v.change7d, average: v.average }; })
+        .filter(function (m) { return m.change24h != null; }).sort(function (u, v) { return Math.abs(v.change24h) - Math.abs(u.change24h); }).slice(0, 8);
+      // open listings by other traders, once
+      var open = [], id, l;
+      for (id in world.listings) { l = world.listings[id]; if (l.status === 'open' && l.seller !== 'you' && l.items.length === 1 && now < l.endsAt) open.push(l); }
+      var matches = [], used = {};
+      function match(kind, note, l2) { var key = kind + l2.id; if (used[key]) return; used[key] = true; var v = listingView(world, env, l2); matches.push({ kind: kind, note: note, listing: v }); }
+      open.filter(function (l2) { return p.wishlist[l2.items[0].c]; }).sort(function (u, v) { return (u.ask || 0) - (v.ask || 0); }).slice(0, 3).forEach(function (l2) { match('wishlist', l2.fire ? 'Fire sale' : '', l2); });
+      (alerts || []).forEach(function (al) {
+        if (al.kind !== 'below') return;
+        var hit = open.filter(function (l2) { return l2.items[0].c === al.cardId && l2.kind !== 'swap' && (l2.kind === 'auction' ? S.auctionView(l2).price : l2.ask) <= al.value; }).sort(function (u, v) { return (u.ask || 0) - (v.ask || 0); })[0];
+        if (hit) match('alert', 'At or below ' + al.value, hit);
+      });
+      (watchIds || []).forEach(function (wid) {
+        var l2 = world.listings[wid];
+        if (!l2 || l2.status !== 'open' || now >= l2.endsAt || l2.seller === 'you') return;
+        var left = (l2.endsAt - now) / MIN;
+        if (l2.fire) match('watch', 'Fire sale', l2); else if (l2.kind === 'auction' && left <= 120) match('watch', 'Closing soon', l2);
+      });
+      var rare = open.filter(function (l2) { return (env.tierOf[l2.items[0].c] || 0) >= (K.rareTier || 7) && l2.createdAt >= now - (K.rareHours || 3) * HOUR; })
+        .sort(function (u, v) { return (env.tierOf[v.items[0].c] || 0) - (env.tierOf[u.items[0].c] || 0); }).slice(0, 3).map(function (l2) { return listingView(world, env, l2); });
+      return { now: now, sales: sales, movers: movers, matches: matches, rare: rare };
+    },
     // Remembers the price a purchase was meant to resell at, so the next step is waiting for the player.
     notePlan: function (itemId, price) { var x = ctxNow(); S.advisor.plan(x.world, itemId, price); return true; },
     inventory: function () {

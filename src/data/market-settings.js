@@ -28,8 +28,20 @@
   add('marketNotifyTrades', 'Sale and offer notices', 'Sold, won, expired and offer notices in Activity.', true);
   add('marketNotifyWatch', 'Watchlist and price notices', 'Watchlist and price-alert notices in Activity.', true);
 
+  // The notch: the pill at the top of the main menu and of the Market. Order and hidden are set from its own Customize sheet; they live here so
+  // they save, export and reset like every other setting.
+  add('marketNotch', 'Notch on the main menu', 'Your trades, prices and Credits at the top, even with the Market closed.', true);
+  add('marketNotchMode', 'What the notch says', 'Quiet: only what needs you. Calm: and what is going on. Busy: everything, with prices and news.', 'calm', ['quiet', 'calm', 'busy']).format = fmt({ quiet: 'Quiet', calm: 'Calm', busy: 'Busy' });
+  add('marketNotchCycle', 'Move through items', 'When nothing needs you, the notch moves through the best few things. Off keeps the top one.', true);
+  add('marketNotchPeek', 'Peek for important news', 'A small card under the notch when you are outbid, an offer arrives or something sells.', true);
+  var ORDER = 'outbid,offer,ending,sold,bids,listings,watch,deals,rare,sales,fell,rose,news,goals,worth,spend,clock';
+  function ids(text) { return String(text || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean); }
+  add('marketNotchOrder', 'Notch order', 'The order of what the notch says. Change it from the notch.', ORDER, null, 'none', { advanced: true, validate: function (value) { var n = C.market && C.market.notch; return n ? n.serialize(n.normalizeOrder(value)) : (typeof value === 'string' ? value : ORDER); } });
+  add('marketNotchHidden', 'Notch hidden items', 'What the notch leaves out. Change it from the notch.', '', null, 'none', { advanced: true, validate: function (value) { var n = C.market && C.market.notch; return n ? Object.keys(n.normalizeHidden(value)).join(',') : (typeof value === 'string' ? ids(value).join(',') : ''); } });
+  s.marketNotchOrder.group = null; s.marketNotchHidden.group = null;
+
   ['marketSimSpeed', 'marketMode', 'marketRealm', 'marketView', 'marketDensity', 'marketChartType', 'marketWindow', 'marketReducedData', 'marketCompactNumbers',
-    'marketConfirm', 'marketListingDuration', 'marketNotifyBids', 'marketNotifyTrades', 'marketNotifyWatch'].forEach(function (key) {
+    'marketConfirm', 'marketListingDuration', 'marketNotifyBids', 'marketNotifyTrades', 'marketNotifyWatch', 'marketNotch', 'marketNotchMode', 'marketNotchCycle', 'marketNotchPeek', 'marketNotchOrder', 'marketNotchHidden'].forEach(function (key) {
     // Defaults for new keys must also pass the shared validator.
     s[key].key = key;
   });

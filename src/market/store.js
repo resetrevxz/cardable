@@ -12,7 +12,7 @@
   var KEY = function () { return C.data.market.previewStorageKey; };
 
   function defaults() {
-    return { v: 1, watch: [], saved: [], alerts: [], drafts: {}, recentSearches: [], guideSeen: false, notificationsRead: [], groups: [], sortPresets: [], compare: [] };
+    return { v: 1, watch: [], saved: [], alerts: [], drafts: {}, recentSearches: [], guideSeen: false, notificationsRead: [], groups: [], sortPresets: [], compare: [], notch: { pins: {}, snooze: {}, day: null, open: null } };
   }
   var prefs = defaults(), stored = true;
   function load() {
@@ -25,6 +25,14 @@
       ['watch', 'saved', 'alerts', 'recentSearches', 'notificationsRead', 'groups', 'sortPresets', 'compare'].forEach(function (k) { if (Array.isArray(parsed[k])) base[k] = parsed[k].slice(0, 200); });
       if (parsed.drafts && typeof parsed.drafts === 'object') base.drafts = parsed.drafts;
       base.guideSeen = parsed.guideSeen === true;
+      // the notch: pinned items, items hidden for a while, and the net worth at the start of the current day
+      if (parsed.notch && typeof parsed.notch === 'object') {
+        var n = parsed.notch, now = Date.now();
+        Object.keys(n.pins || {}).slice(0, 12).forEach(function (id) { if (n.pins[id] === true && typeof id === 'string' && id.length < 80) base.notch.pins[id] = true; });
+        Object.keys(n.snooze || {}).slice(0, 60).forEach(function (id) { if (typeof n.snooze[id] === 'number' && n.snooze[id] > now && id.length < 80) base.notch.snooze[id] = n.snooze[id]; });
+        if (Number.isFinite(n.day)) base.notch.day = n.day;
+        if (Number.isFinite(n.open)) base.notch.open = n.open;
+      }
       prefs = base;
     } catch (_) { stored = false; }
   }
@@ -58,6 +66,16 @@
       emit('realm');
     },
     // ---- watchlist ----
+    // ---- the notch ----
+    notchState: function () { return prefs.notch; },
+    pinNotch: function (id) {
+      if (prefs.notch.pins[id]) delete prefs.notch.pins[id];
+      else if (Object.keys(prefs.notch.pins).length < 12) prefs.notch.pins[id] = true;
+      persist(); emit('notch');
+    },
+    snoozeNotch: function (id, ms) { prefs.notch.snooze[id] = Date.now() + ms; persist(); emit('notch'); },
+    clearNotchSnoozes: function () { prefs.notch.snooze = {}; persist(); emit('notch'); },
+    setNotchDay: function (day, open) { prefs.notch.day = day; prefs.notch.open = open; persist(); },
     isWatching: function (id) { return prefs.watch.indexOf(id) >= 0; },
     watching: function () { var m = {}; prefs.watch.forEach(function (id) { m[id] = true; }); return m; },
     toggleWatch: function (id) {

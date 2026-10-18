@@ -24,6 +24,7 @@
 
   // ---- the chip -------------------------------------------------------------------------------------------------------
   function paintChip(chip) {
+    if (C.market.store.session.realm !== 'simulation') { paintGlobalChip(chip); return; }
     var st = status();
     ui.clear(chip);
     var word = stateWord(st);
@@ -35,11 +36,23 @@
     chip.setAttribute('aria-label', 'Simulation clock: ' + (st.clock || 'not started') + '. ' + word + (st.reason ? '. ' + st.reason : '') + '. Open the simulation controls.');
     chip.title = st.exists ? word + '. ' + (st.paused || st.clockState !== 'running' ? 'Simulated time is stopped.' : 'Simulated time runs only while Cardable is open.') : 'The simulation starts when you first use the Market.';
   }
+  // In Global the same chip says whether you are connected, so the header has the same shape in both realms.
+  function paintGlobalChip(chip) {
+    var g = C.market.api.statusSync('global'), on = !!g.connected, text = on ? (/read-only/i.test(g.label) ? 'Read-only' : 'Online') : (g.label || 'Global');
+    ui.clear(chip);
+    chip.dataset.state = on ? 'running' : 'idle';
+    chip.appendChild(icon(on ? 'check' : 'lock'));
+    chip.appendChild(h('span.mk-sim-clock.mk-num', { text: text }));
+    chip.appendChild(h('span.mk-sim-clock-short.mk-num', { text: text, 'aria-hidden': 'true' }));
+    chip.appendChild(h('span.mk-sim-word', { text: on ? 'Global' : '' }));
+    chip.setAttribute('aria-label', 'Global Market: ' + text + '. Open your market');
+    chip.title = g.message || '';
+  }
   function statusChip() {
     var chip = h('button.mk-sim-chip', { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
     chips.add(chip);
     paintChip(chip);
-    chip.addEventListener('click', function () { openPanel(chip); });
+    chip.addEventListener('click', function () { if (C.market.store.session.realm === 'simulation') openPanel(chip); else if (ui.island) ui.island.toggle(chip); });
     return chip;
   }
   function refresh() {

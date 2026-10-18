@@ -23,7 +23,7 @@
   ui.pages = { register: function (name, def) { pages[name] = def; }, get: function (name) { return pages[name]; } };
   ui.TABS = TABS;
 
-  var inkReady = false, tabsEl, tabInk, el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, moreButtonTop, noticeHost;
+  var inkReady = false, tabsEl, tabInk, el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, moreButtonTop, noticeHost, simChip;
   var PRIMARY = TABS.filter(function (t) { return t.primary; }).map(function (t) { return t.id; });
   var opened = false, stack = [], current = null, pageScope = null, savedFocus = null, inertRecords = [], mounting = false, suggestPop = null;
   var returnFocusKey = null;
@@ -202,7 +202,7 @@
       if (Math.abs(diff) >= 1 && !ui.motion.still()) ui.motion.floatBadge(walletEl, (diff > 0 ? '+' : '\u2212') + ui.fmt.exact(Math.abs(diff)), diff > 0 ? 'up' : 'down');
     }
     walletEl._mkBalance = wallet.balance; walletEl._mkRealm = frameRealm();
-    if (ui.island) ui.island.refresh();
+    ui.sim.refresh();
     realmSwitch.set(frameRealm());
     // Neither realm keeps a standing notice: the realm switch and the island say where you are. Sample listings are always labelled.
     ui.clear(noticeHost);
@@ -318,7 +318,8 @@
     closeBtn.classList.add('mk-close');
     end.append(walletEl, closeBtn);
     var realmHost = h('div.mk-realm-host', realmSwitch);
-    var islandHost = h('div.mk-island-host', ui.island.build());
+    simChip = ui.sim.statusChip();
+    var islandHost = h('div.mk-island-host', ui.island.build(), simChip);
     headerEl.append(brand, search, islandHost, realmHost, end);
     ui.shell.searchField = search;
     frame.appendChild(headerEl);
@@ -554,6 +555,9 @@
     if (C.market.initialized) return; C.market.initialized = true;
     store.init(); store.session.initialized = true;
     initEntries();
+    // The notch lives on the main menu too: load the saved Local world (never create one) so it can keep moving, then mount the floating copy.
+    try { if (C.marketSim) C.marketSim.ensure(false); } catch (error) { if (root.console) root.console.error('Market simulation could not start', error); }
+    if (ui.island && ui.island.boot) ui.island.boot();
   };
   C.events.on('app:ready', C.market.init);
 })(window.Cardable = window.Cardable || {}, window);

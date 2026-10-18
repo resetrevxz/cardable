@@ -88,12 +88,12 @@ async function clickByText(page, scope, text) {
     });
 
     await step('the clock chip shows a running simulated day and opens its controls', async () => {
-      const chip = await page.evaluate(() => document.querySelector('.mk-island').textContent);
+      const chip = await page.evaluate(() => document.querySelector('.mk-sim-chip').textContent);
       assert(/Day \d+/.test(chip) && /running/i.test(chip), chip);
-      await page.click('.mk-island');
-      await page.waitForSelector('.mk-island-panel');
+      await page.click('.mk-sim-chip');
+      await page.waitForSelector('.mk-sim-panel');
       await page.waitForTimeout(300);
-      const text = await page.evaluate(() => document.querySelector('.mk-island-panel').textContent);
+      const text = await page.evaluate(() => document.querySelector('.mk-sim-panel').textContent);
       assert(/Pause/.test(text) && /Calm/.test(text) && /Standard/.test(text) && /Fast/.test(text), text);
       await shot(page, 'sim-panel');
       await page.keyboard.press('Escape');
@@ -254,7 +254,13 @@ async function clickByText(page, scope, text) {
       await page.waitForFunction((id) => !Cardable.marketSim.lockOf(id), offer.give[0].i);
     });
 
+    // The detail page remounts when the simulator reports a change, which can land between filling the form and confirming it (it also did before the notch); the step retries once the page is stable.
     await step('a buy order reserves its price and can be cancelled', async () => {
+      for (let attempt = 0; ; attempt++) {
+        try { await buyOrderOnce(); return; } catch (error) { if (attempt >= 2) throw error; await page.waitForTimeout(600); }
+      }
+    });
+    async function buyOrderOnce() {
       const cardId = await page.evaluate(() => Cardable.market.api.listingsSync('simulation', { filters: Cardable.market.core.emptyFilters(), limit: 10, facets: false }).items[0].listing.card.cardId);
       await page.evaluate((id) => Cardable.market.ui.go('card', { id, variant: '' }, { reset: true }), cardId);
       await page.waitForSelector('.mk-detail');
@@ -269,14 +275,14 @@ async function clickByText(page, scope, text) {
       assert(o && o.maxPrice === 5);
       await clickByText(page, '.mk-offers', 'Cancel order');
       await page.waitForFunction((id) => Cardable.marketSim.runtime.world.orders[id].status === 'cancelled', o.id);
-    });
+    }
 
     await step('pausing stops simulated time and resuming does not jump it', async () => {
       const t0 = await page.evaluate(() => { Cardable.marketSim.runtime.pause(); return Cardable.marketSim.runtime.world.now; });
       await page.waitForTimeout(2600);
       const t1 = await page.evaluate(() => Cardable.marketSim.runtime.world.now);
       assert.equal(t1, t0, 'time is frozen while paused');
-      const chip = await page.evaluate(() => document.querySelector('.mk-island').textContent);
+      const chip = await page.evaluate(() => document.querySelector('.mk-sim-chip').textContent);
       assert(/paused/i.test(chip), chip);
       await page.evaluate(() => Cardable.marketSim.runtime.resume());
       await page.waitForTimeout(4600);
@@ -380,7 +386,7 @@ async function clickByText(page, scope, text) {
         const route = async (n, params) => { await p.evaluate(([a, b]) => Cardable.market.ui.go(a, b, { reset: true }), [n, params || {}]); await p.waitForTimeout(450); };
         const metrics = async (label) => p.evaluate((l) => {
           const f = document.querySelector('.mk-frame').getBoundingClientRect(), main = document.querySelector('.mk-main');
-          const chip = document.querySelector('.mk-island'), wallet = document.querySelector('.mk-wallet'), c = chip.getBoundingClientRect(), w = wallet.getBoundingClientRect();
+          const chip = document.querySelector('.mk-sim-chip'), wallet = document.querySelector('.mk-wallet'), c = chip.getBoundingClientRect(), w = wallet.getBoundingClientRect();
           const off = [];
           document.querySelectorAll('.mk-frame *').forEach((el) => { const r = el.getBoundingClientRect(); if (r.width && r.right > f.right + 1 && !el.closest('.mk-table, .mk-nav, .mk-presets, .mk-segments, .mk-hero-side, .mk-picker, .mk-sr, .mk-album-grid, .mk-stage, .mk-modal, .mk-popover, .mk-suggest, .mk-chart-plotarea')) off.push((el.tagName + '.' + (el.getAttribute('class') || '') + ' < ' + (el.parentElement ? el.parentElement.getAttribute('class') || el.parentElement.tagName : '')).slice(0, 80)); });
           return { label: l, scroll: main.scrollWidth - main.clientWidth, chipInside: c.right <= f.right + 1 && c.left >= f.left - 1, overlap: !(c.right <= w.left || c.left >= w.right || c.bottom <= w.top || c.top >= w.bottom), offenders: Array.from(new Set(off)).slice(0, 5) };
@@ -398,8 +404,11 @@ async function clickByText(page, scope, text) {
         await route('compose'); m = await metrics('compose'); assert(m.scroll <= 1, name + ' compose ' + JSON.stringify(m));
         await route('stocks'); m = await metrics('stocks'); assert(m.scroll <= 1, name + ' stocks ' + JSON.stringify(m));
         await route('portfolio'); m = await metrics('portfolio'); assert(m.scroll <= 1, name + ' portfolio ' + JSON.stringify(m));
-        await p.click('.mk-island'); await p.waitForSelector('.mk-island-panel'); await p.waitForTimeout(300);
-        const panel = await p.evaluate(() => { const r = document.querySelector('.mk-island-panel').getBoundingClientRect(); return r.left >= 0 && r.right <= window.innerWidth + 1; });
+        // on a phone the clock chip gives way (the clock is in the notch's panel); the panel opens from the notch there
+        const chipShown = await p.evaluate(() => getComputedStyle(document.querySelector('.mk-sim-chip')).display !== 'none');
+        if (chipShown) { await p.click('.mk-sim-chip'); await p.waitForSelector('.mk-sim-panel'); } else { await p.click('.mk-header .mk-island'); await p.waitForSelector('.mk-island-panel'); }
+        await p.waitForTimeout(300);
+        const panel = await p.evaluate(() => { const r = (document.querySelector('.mk-sim-panel') || document.querySelector('.mk-island-pop')).getBoundingClientRect(); return r.left >= 0 && r.right <= window.innerWidth + 1; });
         assert(panel, name + ' sim panel inside the window');
         await shot(p, 'sim-panel-' + name);
         await context.close();
@@ -411,8 +420,8 @@ async function clickByText(page, scope, text) {
       const { context, page: p } = await boot(browser, { width: 1440, height: 900 });
       await p.evaluate(() => { Cardable.settings.set('rarityColor', 'mono'); });
       await openMarket(p);
-      const chipState = await p.evaluate(() => { const c = document.querySelector('.mk-island'); return { text: c.textContent, label: c.getAttribute('aria-label') }; });
-      assert(/Running/i.test(chipState.text) && /Clock/.test(chipState.label), JSON.stringify(chipState));
+      const chipState = await p.evaluate(() => { const c = document.querySelector('.mk-sim-chip'); return { text: c.textContent, label: c.getAttribute('aria-label') }; });
+      assert(/Running/i.test(chipState.text) && /Simulation clock/.test(chipState.label), JSON.stringify(chipState));
       await shot(p, 'discover-mono');
       const l = await p.evaluate(() => Cardable.market.api.listingsSync('simulation', { filters: Cardable.market.core.emptyFilters(), limit: 100, facets: false }).items.map((e) => e.listing).find((x) => x.format === 'auction').id);
       await p.evaluate((id) => Cardable.market.ui.go('listing', { id }, { reset: true }), l); await p.waitForSelector('#mk-max');

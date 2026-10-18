@@ -76,6 +76,11 @@
   function gate() {
     if (C.bootFailure) return 'Cardable did not finish starting.';
     if (C.state.recovery && C.state.recovery.pending) return 'Waiting for a save recovery choice.';
+    // The notch keeps the market moving on the main menu, so the clock also waits while something else is changing the save.
+    if (C.setup && C.setup.loading) return 'Cardable is starting.';
+    if (C.opening && C.opening.phase && C.opening.phase !== 'idle') return 'A pack is opening.';
+    if (C.studio && C.studio.active) return 'Studio is open.';
+    if (C.tutorial && C.tutorial.active) return 'The tutorial is running.';
     if (doc.hidden || nativeHidden) return 'Cardable is hidden or minimized.';
     var unfocused = C.settings && C.settings.get('unfocusedMode');
     if (unfocused === 'pause' && !doc.hasFocus()) return 'The window is not in front, and your setting pauses it.';
