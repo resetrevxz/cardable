@@ -67,13 +67,13 @@
         var gain = netOf(target) - ask;
         if (gain < Math.max(k.minGain, k.minGainPct * ask)) continue;
         var below = (fair - ask) / fair, why;
-        if (l.fire) why = 'A seller needs Credits quickly.';
-        else if (below >= k.dealBelowFair) why = 'Priced ' + Math.round(below * 100) + '% under its Average Value of ' + money(fair) + '.';
-        else why = 'News is lifting demand for it.';
-        if (dr.news && dr.d > 0 && !l.fire && below < k.dealBelowFair) why = 'Demand for ' + dr.news.who + ' is about to rise, and this one is still at the old price.';
+        if (l.fire) why = 'Seller needs cash.';
+        else if (below >= k.dealBelowFair) why = Math.round(below * 100) + '% under Average Value (' + money(fair) + ').';
+        else why = 'News is lifting demand.';
+        if (dr.news && dr.d > 0 && !l.fire && below < k.dealBelowFair) why = dr.news.who + ' demand is rising. This one is still at the old price.';
         out.push({ type: 'buy', tag: l.fire ? 'Fire sale' : dr.d > 0.05 && below < k.dealBelowFair ? 'In the news' : 'Deal', listingId: l.id, itemId: it.i, cardId: it.c, variantId: it.v || null, serial: it.s,
           cost: ask, resell: target, gain: gain, fair: Math.round(fair), expiresMin: Math.max(0, (l.endsAt - world.now) / MIN), why: why,
-          how: 'Buy for ' + money(ask) + ', then list it at ' + money(target) + ' and keep about ' + money(netOf(target)) + ' after the 2% fee.' });
+          how: 'Buy ' + money(ask) + ', list ' + money(target) + ', keep about ' + money(netOf(target)) + '.' });
       } else if (l.kind === 'auction') {
         var hoursLeft = (l.endsAt - world.now) / HOUR;
         if (hoursLeft > k.snipeHours) continue;
@@ -85,8 +85,8 @@
         var g2 = netOf(target) - finalGuess;
         if (g2 < Math.max(k.minGain, k.minGainPct * finalGuess)) continue;
         out.push({ type: 'bid', tag: 'Closing soon', listingId: l.id, itemId: it.i, cardId: it.c, variantId: it.v || null, serial: it.s, cost: finalGuess, max: cap, resell: target, gain: g2, fair: Math.round(fair),
-          expiresMin: Math.max(0, (l.endsAt - world.now) / MIN), why: 'Ends in ' + (hoursLeft < 1 ? Math.max(1, Math.round(hoursLeft * 60)) + ' min' : Math.round(hoursLeft * 10) / 10 + ' h') + ' at ' + money(cur) + ' so far; similar cards sell for about ' + money(fair) + '.',
-          how: 'Bid up to ' + money(cap) + ' near the end. It will probably close around ' + money(finalGuess) + ', and you could then list it at ' + money(target) + '.' });
+          expiresMin: Math.max(0, (l.endsAt - world.now) / MIN), why: 'Ends in ' + (hoursLeft < 1 ? Math.max(1, Math.round(hoursLeft * 60)) + ' min' : Math.round(hoursLeft * 10) / 10 + ' h') + ' at ' + money(cur) + '. Similar cards sell for about ' + money(fair) + '.',
+          how: 'Bid up to ' + money(cap) + '. Likely closes near ' + money(finalGuess) + '.' });
       }
     }
     // Cards to sell: where another trader beats Quick Sell by enough to be worth the wait.
@@ -97,17 +97,17 @@
       if (quick == null) quick = Math.max(1, Math.floor(fair2 * 0.6));
       var dem = demandFor(world, env, inst.cardId), dr2 = drift(world, env, inst.cardId);
       var price = nice(fair2 * 0.98), reason = 'Another trader pays more than Quick Sell.', tag = 'Sell for more', instant = false;
-      if (dem.bestBid >= Math.max(quick * 1.15, fair2 * 0.75)) { price = dem.bestBid; reason = 'A trader has a standing order to pay ' + money(dem.bestBid) + '. Listing at that price sells it at once.'; tag = 'Buyer waiting'; instant = true; }
-      else if (dr2.d > 0.08) { price = nice(fair2 * (1 + dr2.d * 0.75)); reason = 'Demand for ' + dr2.news.who + ' is rising, so you can ask more than its Average Value of ' + money(fair2) + '.'; tag = 'In the news'; }
-      else if (dem.wanting >= 1 && dem.richest >= fair2 * 0.8) { var prem = k.wantedPremium; price = nice(fair2 * (1 + prem[0] + (prem[1] - prem[0]) * Math.min(1, dem.wanting / 3))); reason = dem.wanting + (dem.wanting === 1 ? ' trader is' : ' traders are') + ' looking for this card, so it can ask above its Average Value of ' + money(fair2) + '.'; tag = 'In demand'; }
-      else if (dr2.d < -0.08) { price = nice(fair2 * 0.97); reason = 'Prices for ' + dr2.news.who + ' are slipping. Selling before it bites beats waiting.'; tag = 'Sell before it slips'; }
+      if (dem.bestBid >= Math.max(quick * 1.15, fair2 * 0.75)) { price = dem.bestBid; reason = 'A trader will pay ' + money(dem.bestBid) + ' right now.'; tag = 'Buyer waiting'; instant = true; }
+      else if (dr2.d > 0.08) { price = nice(fair2 * (1 + dr2.d * 0.75)); reason = dr2.news.who + ' demand is rising. Ask above ' + money(fair2) + '.'; tag = 'In the news'; }
+      else if (dem.wanting >= 1 && dem.richest >= fair2 * 0.8) { var prem = k.wantedPremium; price = nice(fair2 * (1 + prem[0] + (prem[1] - prem[0]) * Math.min(1, dem.wanting / 3))); reason = dem.wanting + (dem.wanting === 1 ? ' trader wants' : ' traders want') + ' this card. Ask above ' + money(fair2) + '.'; tag = 'In demand'; }
+      else if (dr2.d < -0.08) { price = nice(fair2 * 0.97); reason = dr2.news.who + ' prices are slipping. Sell before it bites.'; tag = 'Sell before it slips'; }
       // A card bought from a suggestion carries the price the plan was made at, so the next step is waiting for you.
       var planned = world.coach.plan && world.coach.plan[inst.instanceId];
-      if (planned) { price = planned; reason = 'You bought this to resell. At ' + money(planned) + ' you keep about ' + money(netOf(planned)) + ' after the 2% fee.'; tag = 'Your plan'; }
+      if (planned) { price = planned; reason = 'Your plan: list at ' + money(planned) + ' and keep about ' + money(netOf(planned)) + '.'; tag = 'Your plan'; }
       var gain = netOf(price) - quick;
       if (!planned && gain < Math.max(k.minGain, 0.15 * quick)) return;
       sells.push({ type: 'sell', planned: !!planned, tag: tag, instance: inst, itemId: inst.instanceId, cardId: inst.cardId, variantId: inst.variantId || null, serial: inst.serial, cost: 0, quick: quick, price: price, gain: gain, fair: Math.round(fair2), instant: instant,
-        why: reason, how: 'List it at ' + money(price) + ' and keep about ' + money(netOf(price)) + ' after the 2% fee, against ' + money(quick) + ' from Quick Sell.', score: gain + (tag === 'Sell for more' ? -1e6 : 0) });
+        why: reason, how: 'List ' + money(price) + ', keep about ' + money(netOf(price)) + '. Quick Sell pays ' + money(quick) + '.', score: gain + (tag === 'Sell for more' ? -1e6 : 0) });
     });
     // Traps: a buy order under the market. A seller in a hurry lists below the usual price and the order fills at once, before anyone else can react.
     var mineOpen = 0, orderedCards = {};
@@ -124,8 +124,8 @@
         var resell = nice(fairC * (1 + Math.max(0, drC.d)) * (1 - k.resellDiscount)), gain = netOf(resell) - price;
         if (gain < Math.max(k.minGain, k.minGainPct * price)) return;
         traps.push({ type: 'order', tag: 'Set a trap', cardId: card.id, variantId: null, serial: null, itemId: 'order:' + card.id, cost: price, resell: resell, gain: gain, fair: Math.round(fairC), busy: recent[card.id],
-          why: 'It traded ' + recent[card.id] + ' times in the last three days. When a seller is in a hurry and lists it under ' + money(price) + ', this order buys it before anyone else can.',
-          how: 'Place a buy order for ' + money(price) + ' (Average Value ' + money(fairC) + '). Your Credits are held until it fills or you cancel. If it fills, list the card at about ' + money(resell) + ' and keep ' + money(netOf(resell)) + '.' });
+          why: 'Traded ' + recent[card.id] + ' times in 3 days. Catches a fire sale under ' + money(price) + '.',
+          how: 'Order ' + money(price) + ' (Average Value ' + money(fairC) + '), list near ' + money(resell) + ', keep ' + money(netOf(resell)) + '.' });
       });
       traps.sort(function (a, b) { return b.busy - a.busy || b.gain - a.gain; });
       out = out.concat(traps.slice(0, 2));
@@ -153,15 +153,15 @@
     var diff = (fair - likely) / fair, target = nice(fair * (1 + dr.d) * (1 - k.resellDiscount)), gain = netOf(target) - likely;
     var verdict = diff >= k.dealBelowFair ? 'good' : diff >= -0.05 ? 'fair' : 'pricey', lines = [];
     var pct = Math.round(Math.abs(diff) * 100);
-    lines.push('Cards like this usually sell for about ' + money(fair) + '. ' + (pct < 3 ? 'This one is right at that.' : diff > 0 ? (l.kind === 'auction' ? 'It should close about ' + pct + '% under that.' : 'This one is ' + pct + '% under.') : (l.kind === 'auction' ? 'It will probably close about ' + pct + '% over that.' : 'This one is ' + pct + '% over.')));
-    if (l.fire) lines.push('The seller needs Credits quickly, which is why it is cheap. Other traders may spot it soon.');
-    if (dr.news && dr.d > 0) lines.push('News: demand for ' + dr.news.who + ' is rising, so it may be worth more soon.');
-    if (dr.news && dr.d < 0) lines.push('News: prices for ' + dr.news.who + ' are slipping. Waiting may get you a better price.');
-    if (gain >= Math.max(k.minGain, k.minGainPct * likely)) lines.push('Buy it and list it at about ' + money(target) + ', and you keep about ' + money(netOf(target)) + ' after the 2% fee: roughly ' + money(gain) + ' more than you paid.');
-    else lines.push('At this price a resale would not clearly cover the 2% fee and the wait. It is fine to buy to keep, not to flip.');
-    if (l.kind === 'auction') lines.push('Others tend to bid in the last minutes, so set a maximum you are happy with and let the market bid for you.');
-    if (available != null && likely > available) lines.push('You have ' + money(available) + ' Credits available, ' + money(likely - available) + ' short of the likely price.');
-    var title = verdict === 'good' ? 'A good price' : verdict === 'fair' ? 'A fair price' : 'More than it usually sells for';
+    lines.push('Usually sells for about ' + money(fair) + '. ' + (pct < 3 ? 'This is right at that.' : diff > 0 ? (l.kind === 'auction' ? 'Likely closes ' + pct + '% under.' : pct + '% under.') : (l.kind === 'auction' ? 'Likely closes ' + pct + '% over.' : pct + '% over.')));
+    if (l.fire) lines.push('Fire sale: the seller needs cash, so others may spot it soon.');
+    if (dr.news && dr.d > 0) lines.push('News is lifting ' + dr.news.who + '.');
+    if (dr.news && dr.d < 0) lines.push('News is pulling ' + dr.news.who + ' down. Waiting may pay.');
+    if (gain >= Math.max(k.minGain, k.minGainPct * likely)) lines.push('Resell near ' + money(target) + ' and keep about ' + money(netOf(target)) + ' after the 2% fee: about ' + money(gain) + ' over what you paid.');
+    else lines.push('A resale would not clear the 2% fee. Buy to keep, not to flip.');
+    if (l.kind === 'auction') lines.push('Bids come late. Set a maximum and let it run.');
+    if (available != null && likely > available) lines.push('You have ' + money(available) + ' available, ' + money(likely - available) + ' short.');
+    var title = verdict === 'good' ? 'Good price' : verdict === 'fair' ? 'Fair price' : 'Above usual';
     return { verdict: verdict, title: title, lines: lines, fair: Math.round(fair), likely: likely, gain: gain, resell: target, news: dr.news ? dr.news.headline : null, fire: !!l.fire };
   }
 
@@ -187,13 +187,13 @@
     var from = level.at, to = next ? next.at : level.at, frac = next ? Math.max(0, Math.min(1, (xp - from) / (to - from))) : 1;
     var nw0 = world.coach.nw0, grew = nw0 != null && netWorth != null && netWorth >= nw0 * 1.25;
     var quests = [
-      { id: 'buy', label: 'Make your first purchase', hint: 'Open Browse and buy any card from a trader.', done: !!done.buy },
-      { id: 'sell', label: 'Sell a card to a trader', hint: 'List a card from Portfolio. It usually pays more than Quick Sell.', done: !!done.sell },
-      { id: 'deal', label: 'Catch a deal', hint: 'Buy a card at least ' + Math.round(k.dealBelowFair * 100) + '% under its Average Value.', done: !!done.deal },
-      { id: 'profit', label: 'Make a profit', hint: 'Sell a card for more than you paid, after the fee.', done: !!done.profit },
-      { id: 'auction', label: 'Win an auction', hint: 'Bid near the end of a closing auction.', done: !!done.auction },
-      { id: 'fire', label: 'Snap up a fire sale', hint: 'Watch for a seller who needs Credits quickly.', done: !!done.fire },
-      { id: 'grow', label: 'Grow your wealth by 25%', hint: nw0 != null ? 'You started at ' + money(nw0) + ' Credits of net worth.' : 'Credits plus the value of your cards.', done: !!done.grow || grew }
+      { id: 'buy', label: 'Make a purchase', hint: 'Buy any card from a trader.', done: !!done.buy },
+      { id: 'sell', label: 'Sell a card to a trader', hint: 'List a card from Portfolio. Usually beats Quick Sell.', done: !!done.sell },
+      { id: 'deal', label: 'Catch a deal', hint: 'Buy a card ' + Math.round(k.dealBelowFair * 100) + '% or more under Average Value.', done: !!done.deal },
+      { id: 'profit', label: 'Make a profit', hint: 'Sell for more than you paid, after the fee.', done: !!done.profit },
+      { id: 'auction', label: 'Win an auction', hint: 'Win an auction near its close.', done: !!done.auction },
+      { id: 'fire', label: 'Catch a fire sale', hint: 'Watch for sellers who need cash.', done: !!done.fire },
+      { id: 'grow', label: 'Grow your wealth by 25%', hint: nw0 != null ? 'Started at ' + money(nw0) + '.' : 'Credits plus card value.', done: !!done.grow || grew }
     ];
     if (grew && !done.grow) done.grow = true;
     return { level: level, next: next, xp: xp, fraction: frac, realized: realized, trades: (you.sold || 0) + (you.bought || 0), quests: quests, questsDone: quests.filter(function (q) { return q.done; }).length, wins: (you.wins || []).slice().reverse() };

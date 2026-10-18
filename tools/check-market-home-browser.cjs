@@ -62,7 +62,7 @@ async function waitForMove(page, types, maxHours) {
     await step('the Simulation opens on Home, with a calm header: five sections, one More, no standing notice', async () => {
       const r = await page.evaluate(() => ({ route: Cardable.market.ui.shell.current().name, h1: document.querySelector('.mk-page h1').textContent, tabs: Array.from(document.querySelectorAll('.mk-tabs > .mk-tab')).filter((b) => !b.hidden).map((b) => b.textContent.trim().replace(/\d+$/, '')),
         notice: !!document.querySelector('.mk-notice-host:not([hidden]) .mk-notice'), headerHeight: document.querySelector('.mk-header').getBoundingClientRect().height + document.querySelector('.mk-nav').getBoundingClientRect().height }));
-      assert.equal(r.route, 'home'); assert.equal(r.h1, 'Today');
+      assert.equal(r.route, 'home'); assert.equal(r.h1, 'Home');
       assert.deepEqual(r.tabs, ['Home', 'Browse', 'Auctions', 'Portfolio', 'Prices', 'More']);
       assert.equal(r.notice, false, 'no standing notice in the Simulation');
       await shot(page, 'home-1440');
@@ -74,11 +74,12 @@ async function waitForMove(page, types, maxHours) {
       assert.equal(r.nw.credits, r.credits); assert.equal(r.nw.now, r.nw.credits + r.nw.cards);
       assert(r.nw.cards > 0, 'the cards are worth something');
       assert.equal(r.level, 'Newcomer'); assert.equal(r.quests, 7);
-      assert(/none of this is guaranteed/i.test(r.text) && /Opening packs pays nothing/.test(r.text));
+      assert(/Opening packs pays nothing/.test(r.text), 'the new-here note says packs pay nothing');
+      assert(/not promises/i.test(await page.evaluate(() => (document.querySelector('.mk-moves [title]') || {}).title || '')), 'the moves say they are guides, in a tooltip');
       assert(new RegExp(r.nw.now.toLocaleString('en-US').replace(/,/g, ',?')).test(r.label), r.label);
     });
 
-    await step('keys 1 to 5 and the More menu reach every section; Home is not offered in Global', async () => {
+    await step('keys 1 to 5 and the More menu reach every section; Home is in both realms', async () => {
       for (const [key, name] of [['2', 'discover'], ['3', 'auctions'], ['4', 'portfolio'], ['5', 'stocks'], ['1', 'home']]) {
         await page.keyboard.press(key); await page.waitForTimeout(250);
         assert.equal(await page.evaluate(() => Cardable.market.ui.shell.current().name), name, 'key ' + key);
@@ -88,8 +89,8 @@ async function waitForMove(page, types, maxHours) {
       ['Buy Now', 'Trades', 'Activity', 'Compare', 'My listings', 'Market settings', 'Help & feedback', 'Market guide'].forEach((t) => assert(items.some((x) => x.trim() === t), 'More lists ' + t + ': ' + items.join('|')));
       await page.keyboard.press('Escape');
       await page.evaluate(() => Cardable.market.store.setRealm('global')); await page.waitForTimeout(500);
-      const g = await page.evaluate(() => ({ route: Cardable.market.ui.shell.current().name, homeTab: !!Array.from(document.querySelectorAll('.mk-tab')).find((b) => /Home/.test(b.textContent) && !b.hidden), notice: !!document.querySelector('.mk-notice-host .mk-notice') }));
-      assert.equal(g.route, 'discover', 'leaving the Simulation from Home lands on Browse'); assert.equal(g.homeTab, false); assert.equal(g.notice, true, 'Global keeps its notice about real players');
+      const g = await page.evaluate(() => ({ route: Cardable.market.ui.shell.current().name, homeTab: !!Array.from(document.querySelectorAll('.mk-tab')).find((b) => /Home/.test(b.textContent) && !b.hidden), notice: !!document.querySelector('.mk-notice-host:not([hidden]) .mk-notice') }));
+      assert.equal(g.route, 'home', 'leaving Local from Home stays on Home, which Global has too'); assert.equal(g.homeTab, true, 'the Home tab does not move or vanish'); assert.equal(g.notice, false, 'no standing notice in either realm');
       await page.evaluate(() => Cardable.market.store.setRealm('simulation')); await page.waitForTimeout(400);
       await page.evaluate(() => Cardable.market.ui.shell.goTab('home')); await page.waitForSelector('.mk-home');
     });
@@ -106,7 +107,7 @@ async function waitForMove(page, types, maxHours) {
       await card.locator('.mk-button[data-variant="primary"]').click();
       await page.waitForSelector('.mk-review');
       const text = await page.evaluate(() => document.querySelector('.mk-review').textContent);
-      assert(/Confirm purchase/.test(text) && /2% fee/.test(text) && /not a promise/.test(text), text);
+      assert(/Confirm purchase/.test(text) && /2% fee/.test(text) && /Prices can move/.test(text), text);
       await shot(page, 'home-confirm');
       await page.locator('.mk-review .mk-modal-actions button', { hasText: /^Buy for/ }).click();
       await page.waitForFunction((n) => Cardable.state.current.inventory.length === n + 1, before.count);
@@ -141,7 +142,7 @@ async function waitForMove(page, types, maxHours) {
       await page.locator('.mk-move[data-type="sell"] .mk-button', { hasText: /^Quick Sell for/ }).first().click();
       await page.waitForSelector('.mk-review');
       const text = await page.evaluate(() => document.querySelector('.mk-review').textContent);
-      assert(/Quick Sell/.test(text) && /less than what another trader pays/.test(text) && /undo/i.test(text), text);
+      assert(/Quick Sell/.test(text) && /less than a trader pays/.test(text) && /undo/i.test(text), text);
       await page.locator('.mk-review .mk-modal-actions button', { hasText: /^Quick Sell for/ }).click();
       await page.waitForFunction((n) => Cardable.state.current.inventory.length === n - 1, before.count);
       const after = await save(page);
@@ -177,7 +178,7 @@ async function waitForMove(page, types, maxHours) {
       const r = await page.evaluate(() => { const d = Cardable.market.sim.provider.home(); return { news: d.news.length, headline: d.news[0] && d.news[0].headline, when: d.news[0] && d.news[0].when, cards: document.querySelectorAll('.mk-news').length, trap: d.moves.some((m) => m.type === 'order') }; });
       assert(r.news >= 1 && r.cards >= 1, JSON.stringify(r));
       assert(/in \d|Under way|Fading|Starts/.test(r.when), r.when);
-      await page.locator('.mk-news .mk-button', { hasText: 'Find these cards' }).first().click(); await page.waitForTimeout(500);
+      await page.locator('.mk-news .mk-button', { hasText: 'Find cards' }).first().click(); await page.waitForTimeout(500);
       const route = await page.evaluate(() => Cardable.market.ui.shell.current().name);
       assert(route === 'discover' || route === 'card', route);
       await page.evaluate(() => Cardable.market.ui.shell.goTab('home'));

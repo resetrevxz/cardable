@@ -6,11 +6,11 @@
   var ui = C.market.ui, h = ui.h, icon = ui.icon, store = C.market.store, doc = root.document;
   var cfg = function () { return C.data.market; };
 
-  // Five sections are always in view; everything else is one tap away under More. Home is the Simulation's front page.
+  // Five sections are always in view, as icons with names on hover; everything else is one tap away under More. Home is in both realms.
   var TABS = [
-    { id: 'home', label: 'Home', icon: 'home', key: '1', primary: true, sim: true },
-    { id: 'discover', label: 'Browse', icon: 'search', key: '2', primary: true }, { id: 'auctions', label: 'Auctions', icon: 'gavel', key: '3', primary: true },
-    { id: 'portfolio', label: 'Portfolio', icon: 'wallet', key: '4', primary: true }, { id: 'stocks', label: 'Prices', icon: 'trend', key: '5', primary: true },
+    { id: 'home', label: 'Home', icon: 'home', key: '1', primary: true },
+    { id: 'discover', label: 'Browse', icon: 'explore', key: '2', primary: true }, { id: 'auctions', label: 'Auctions', icon: 'gavel', key: '3', primary: true },
+    { id: 'portfolio', label: 'Portfolio', icon: 'briefcase', key: '4', primary: true }, { id: 'stocks', label: 'Prices', icon: 'prices', key: '5', primary: true },
     { id: 'buy-now', label: 'Buy Now', icon: 'tag', key: '6' }, { id: 'trades', label: 'Trades', icon: 'swap', key: '7' },
     { id: 'activity', label: 'Activity', icon: 'activity', key: '8' }
   ];
@@ -23,7 +23,7 @@
   ui.pages = { register: function (name, def) { pages[name] = def; }, get: function (name) { return pages[name]; } };
   ui.TABS = TABS;
 
-  var inkReady = false, tabsEl, tabInk, el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, moreButtonTop, noticeHost, simChip;
+  var inkReady = false, tabsEl, tabInk, el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, moreButtonTop, noticeHost;
   var PRIMARY = TABS.filter(function (t) { return t.primary; }).map(function (t) { return t.id; });
   var opened = false, stack = [], current = null, pageScope = null, savedFocus = null, inertRecords = [], mounting = false, suggestPop = null;
   var returnFocusKey = null;
@@ -86,7 +86,7 @@
       var wait = null;
       try { wait = C.market.api.prefetch(frameRealm(), entry.name, entry.params || {}); } catch (_) { wait = null; }
       if (wait && typeof wait.then === 'function') {
-        var loading = h('div.mk-page', { data: { page: entry.name, enter: 'forward' } }, ui.emptyState({ kind: 'loading', icon: 'clock', title: 'Loading from Global Market', body: 'Reading the latest from the server.' }));
+        var loading = h('div.mk-page', { data: { page: entry.name, enter: 'forward' } }, ui.emptyState({ kind: 'loading', icon: 'clock', title: 'Loading', body: 'Reading from Global.' }));
         scroller.appendChild(loading);
         var again = function () { if (current === entry && opened) mount(entry, Object.assign({}, flags, { prefetched: true })); };
         wait.then(again, again);
@@ -122,7 +122,7 @@
       console.error('Market page failed to render', error);
       ui.clear(host);
       host.appendChild(ui.emptyState({ kind: 'error', icon: 'warn', role: 'alert', title: 'This page could not be shown',
-        body: 'Something went wrong while building it. Your collection and Credits are untouched.',
+        body: 'Your collection and Credits are untouched.',
         actions: [{ label: 'Back to Discover', variant: 'primary', run: function () { goTab('discover'); } }] }));
     }
     if (!page.async) shellApi.restoreScroll();
@@ -153,13 +153,12 @@
     // when no tab is current, or the bar is not laid out yet, the tab's own underline (market.css) is the fallback
     if (!on || on.offsetWidth < 30) { tabsEl.dataset.ink = 'off'; tabsEl.style.setProperty('--ink-w', '0'); return; }
     tabsEl.dataset.ink = 'on';
-    tabsEl.style.setProperty('--ink-x', (on.offsetLeft + 12) + 'px'); tabsEl.style.setProperty('--ink-w', String(on.offsetWidth - 24));
+    tabsEl.style.setProperty('--ink-x', on.offsetLeft + 'px'); tabsEl.style.setProperty('--ink-w', on.offsetWidth + 'px');
   }
   function updateChrome() {
     if (!el) return;
-    var active = current ? navFor(current) : (frameRealm() === 'simulation' ? 'home' : 'discover');
-    if (tabButtons.home) tabButtons.home.hidden = frameRealm() !== 'simulation';
-    if (bottomBar) { var bh = bottomBar.querySelector('[data-tab="home"]'); if (bh) bh.hidden = frameRealm() !== 'simulation'; bottomBar.dataset.count = String(bottomBar.querySelectorAll('button:not([hidden])').length); }
+    var active = current ? navFor(current) : 'home';
+    if (bottomBar) bottomBar.dataset.count = String(bottomBar.querySelectorAll('button:not([hidden])').length);
     Object.keys(tabButtons).forEach(function (id) {
       var b = tabButtons[id], on = id === active;
       b.setAttribute('aria-current', on ? 'page' : 'false');
@@ -203,12 +202,15 @@
       if (Math.abs(diff) >= 1 && !ui.motion.still()) ui.motion.floatBadge(walletEl, (diff > 0 ? '+' : '\u2212') + ui.fmt.exact(Math.abs(diff)), diff > 0 ? 'up' : 'down');
     }
     walletEl._mkBalance = wallet.balance; walletEl._mkRealm = frameRealm();
-    if (simChip) simChip.hidden = frameRealm() !== 'simulation';
+    if (ui.island) ui.island.refresh();
     realmSwitch.set(frameRealm());
-    // The Simulation needs no standing notice (the realm switch and the clock say where you are); Global keeps its notice about real players.
+    // Neither realm keeps a standing notice: the realm switch and the island say where you are. Sample listings are always labelled.
     ui.clear(noticeHost);
-    if (frameRealm() !== 'simulation') noticeHost.appendChild(ui.noticeBar(frameRealm()));
-    noticeHost.hidden = frameRealm() === 'simulation';
+    // Only a condition the player needs explained keeps a notice: sample listings, a paused or read-only service, an unreachable one.
+    var gl = frameRealm() === 'global' ? C.market.api.statusSync('global') : null;
+    var sampleOn = !!gl && !!store.session.showGlobalSample, unusual = !!gl && /^(Paused|Offline|Unavailable|Beta \u00b7 read-only)$/.test(gl.label || '');
+    if (sampleOn || unusual) noticeHost.appendChild(ui.noticeBar(frameRealm()));
+    noticeHost.hidden = !(sampleOn || unusual);
     el.dataset.realm = frameRealm();
     frame.dataset.mode = C.settings.get('marketMode');
     frame.dataset.density = C.settings.get('marketDensity');
@@ -304,7 +306,7 @@
 
     // header
     headerEl = h('header.mk-header');
-    var brand = h('div.mk-brand', h('span.mk-brand-mark', icon('market')), h('span.mk-brand-name', { text: 'Market' }), h('span.mk-brand-tag', { title: 'Cardable Market Beta ' + cfg().betaVersion + '. Real players, its own Credits, and it can be reset.' }, 'Beta', h('span.mk-brand-ver', { text: ' ' + cfg().betaVersion })));
+    var brand = h('div.mk-brand', { 'aria-label': 'Cardable Market' }, h('span.mk-brand-mark', { title: 'Cardable Market' }, icon('market')), h('span.mk-brand-tag', { title: 'Cardable Market Beta ' + cfg().betaVersion + '. Real players, its own Credits, and it can be reset.' }, 'Beta'));
     var search = buildSearch();
     var end = h('div.mk-header-end');
     walletEl = h('button.mk-wallet', { type: 'button' });
@@ -314,10 +316,10 @@
     realmSwitch.classList.add('mk-realm-switch');
     var closeBtn = ui.iconButton('close', 'Close Market', function () { close(); }, { variant: 'ghost' });
     closeBtn.classList.add('mk-close');
-    simChip = ui.sim.statusChip();
-    end.append(simChip, walletEl, closeBtn);
+    end.append(walletEl, closeBtn);
     var realmHost = h('div.mk-realm-host', realmSwitch);
-    headerEl.append(brand, search, realmHost, end);
+    var islandHost = h('div.mk-island-host', ui.island.build());
+    headerEl.append(brand, search, islandHost, realmHost, end);
     ui.shell.searchField = search;
     frame.appendChild(headerEl);
 
@@ -326,17 +328,17 @@
     var tabs = h('div.mk-tabs'); tabsEl = tabs;
     tabInk = h('span.mk-tab-ink', { 'aria-hidden': 'true' }); tabs.appendChild(tabInk);
     TABS.filter(function (t) { return t.primary; }).forEach(function (t) {
-      var b = h('button.mk-tab', { type: 'button', data: { tab: t.id }, 'aria-keyshortcuts': t.key }, icon(t.icon), h('span.mk-tab-label', { text: t.label }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
+      var b = h('button.mk-tab', { type: 'button', data: { tab: t.id, tooltip: t.label + ' \u00b7 ' + t.key }, 'aria-keyshortcuts': t.key }, icon(t.icon), h('span.mk-tab-label', { text: t.label }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
       b.addEventListener('click', function () { goTab(t.id); });
       tabs.appendChild(b); tabButtons[t.id] = b;
     });
     var utils = h('div.mk-utils');
     UTILITIES.forEach(function (u) {
-      var b = h('button.mk-util', { type: 'button', title: u.label, 'aria-label': u.label }, icon(u.icon), h('span.mk-util-label', { text: u.label }), h('span.mk-count', { hidden: true }));
+      var b = h('button.mk-util', { type: 'button', data: { tooltip: u.label }, 'aria-label': u.label }, icon(u.icon), h('span.mk-util-label', { text: u.label }), h('span.mk-count', { hidden: true }));
       b.addEventListener('click', function () { go(u.id, {}, { reset: false, replace: false }); });
       utils.appendChild(b); utilButtons[u.id] = b;
     });
-    moreButtonTop = h('button.mk-tab.mk-tab-more', { type: 'button', 'aria-haspopup': 'menu', 'aria-label': 'More Market sections' }, icon('list'), h('span.mk-tab-label', { text: 'More' }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
+    moreButtonTop = h('button.mk-tab.mk-tab-more', { type: 'button', 'aria-haspopup': 'menu', 'aria-label': 'More Market sections', data: { tooltip: 'More' } }, icon('more'), h('span.mk-tab-label', { text: 'More' }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
     moreButtonTop.addEventListener('click', function () { openMore(moreButtonTop); });
     tabs.appendChild(moreButtonTop);
     navEl.append(tabs, utils);
@@ -349,13 +351,12 @@
 
     // phone bottom bar
     bottomBar = h('nav.mk-bottom', { 'aria-label': 'Market sections' });
-    [['home', 'Home', 'home'], ['discover', 'Browse', 'search'], ['auctions', 'Auctions', 'gavel'], ['portfolio', 'Portfolio', 'wallet']].forEach(function (t) {
-      var b = h('button.mk-bottom-item', { type: 'button', data: { tab: t[0] } }, icon(t[2]), h('span', { text: t[1] }));
+    [['home', 'Home', 'home'], ['discover', 'Browse', 'explore'], ['auctions', 'Auctions', 'gavel'], ['portfolio', 'Portfolio', 'briefcase']].forEach(function (t) {
+      var b = h('button.mk-bottom-item', { type: 'button', 'aria-label': t[1], data: { tab: t[0] } }, icon(t[2]), h('span', { text: t[1], 'aria-hidden': 'true' }));
       b.addEventListener('click', function () { goTab(t[0]); });
-      if (t[0] === 'home') b.hidden = frameRealm() !== 'simulation';
       bottomBar.appendChild(b);
     });
-    moreButton = h('button.mk-bottom-item', { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' }, icon('list'), h('span', { text: 'More' }));
+    moreButton = h('button.mk-bottom-item', { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'aria-label': 'More' }, icon('more'), h('span', { text: 'More', 'aria-hidden': 'true' }));
     moreButton.addEventListener('click', function () { openMore(moreButton); });
     bottomBar.appendChild(moreButton);
     frame.appendChild(bottomBar);
@@ -366,7 +367,7 @@
     ui.popover(anchor, function (close) {
       var box = h('div.mk-more', { role: 'menu' });
       // On a phone the bottom bar has four sections, so Prices, the watchlist and alerts join the list; on a desktop they are already in view.
-      var list = anchor === moreButton ? [['stocks', 'Prices', 'trend'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell']].concat(MORE) : MORE;
+      var list = anchor === moreButton ? [['stocks', 'Prices', 'prices'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell']].concat(MORE) : MORE;
       list.forEach(function (r) {
         var b = h('button.mk-more-item', { type: 'button', role: 'menuitem' }, icon(r[2]), h('span', { text: r[1] }));
         b.addEventListener('click', function () {
@@ -386,14 +387,14 @@
     var inner = h('div.mk-guide-inner');
     inner.appendChild(h('header.mk-guide-head', h('h2', { text: 'How the Market works' }), ui.iconButton('close', 'Close guide', function () { handle.close(); }, { variant: 'ghost' })));
     var intro = h('div.mk-guide-body');
-    intro.appendChild(h('p', { text: 'Cardable Market has two realms. They never share balances, histories or valuations.' }));
+    intro.appendChild(h('p', { text: 'Two markets. They never share balances, histories or values.' }));
     var realms = h('div.mk-guide-realms');
     cfg().realms.forEach(function (r) {
       realms.appendChild(h('div.mk-guide-realm', { data: { realm: r.id } }, ui.realmBadge(r.id), h('p', { text: r.blurb })));
     });
     intro.appendChild(realms);
     intro.appendChild(h('p.mk-guide-note', { text: C.market.api.simulationLive
-      ? 'The Simulation is a working market on this device. Its traders are bots, its prices come only from trades they and you complete, and its clock stops whenever Cardable is closed, hidden or paused. Global Market is not connected in this build, so it has no listings.'
+      ? 'Local is a working market on this device. Its traders are bots, its prices come from trades they and you complete, and its clock stops when Cardable is closed, hidden or paused. Global is not connected in this build, so it has no listings.'
       : 'In this build every listing, price and trade is invented sample data. You can browse, filter, watch and draft, but nothing is bought, sold or saved to your collection.' }));
     intro.appendChild(h('h3', { text: 'Glossary' }));
     var dl = h('dl.mk-glossary');
@@ -474,7 +475,7 @@
     }
     if (editing(event.target) || C.ui && C.ui.modal) return;
     if (event.key === '/') { event.preventDefault(); event.stopImmediatePropagation(); searchInput.focus(); return; }
-    var tab = TABS.find(function (t) { return t.key === event.key && (!t.sim || frameRealm() === 'simulation'); });
+    var tab = TABS.find(function (t) { return t.key === event.key; });
     if (tab && !event.repeat) { event.preventDefault(); event.stopImmediatePropagation(); goTab(tab.id); }
   }
 
@@ -514,8 +515,6 @@
       if (!opened) return;
       if (what === 'realm') {
         updateChrome();
-        // Home belongs to the Simulation; arriving in Global from it lands on Browse, and the other way round lands on Home.
-        if (frameRealm() !== 'simulation' && current && current.name === 'home') { go('discover', {}, { reset: true }); return; }
         mount(current, { forward: false, focus: false });
       }
       else if (what === 'watch' || what === 'alerts' || what === 'notifications' || what === 'cleared' || what === 'compare') updateChrome();

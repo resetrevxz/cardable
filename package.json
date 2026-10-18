@@ -1,7 +1,7 @@
 {
   "name": "cardable",
   "productName": "Cardable",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "Cardable - GPU Card Collecting Game",
   "author": "Cardable Team",
   "main": "electron/main.js",
@@ -44,6 +44,7 @@
     "check:market-analytics": "node tools/check-market-analytics-browser.cjs",
     "check:market-home": "node tools/check-market-home-browser.cjs",
     "check:market-hover": "node tools/check-market-hover-browser.cjs",
+    "check:market-polish": "node tools/check-market-polish-browser.cjs",
     "odds:report": "node tools/rarity-report.cjs",
     "check:market-acceptance": "node tools/check-market-acceptance-browser.cjs",
     "check:market-social": "node tools/check-market-social-browser.cjs",

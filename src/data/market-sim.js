@@ -131,9 +131,9 @@
     keep: { trades: 700, feed: 120, receipts: 400, days: 120, notices: 80 },
     maxStateBytes: 1800000,
     help: {
-      intro: 'Simulation is a local, offline market. The traders are software bots on this device, not people. It works with no internet, and it never touches Global Market or your account.',
-      pause: 'Simulation time runs only while Cardable is open and visible. When you close the game, hide the window or pause it, the market stops exactly where it is. It does not catch up afterwards.',
-      reset: 'Resetting Simulation starts a fresh set of bots and listings. Your cards and Credits stay as they are, except cards you currently have listed, which come back to you.'
+      intro: 'A market of software traders on this device. It works offline and never touches Global or your account.',
+      pause: 'Time runs only while Cardable is open and visible. It does not catch up after you close it.',
+      reset: 'Starts a fresh set of traders and listings. Your cards and Credits stay, except cards you have listed, which come back.'
     }
   };
   C.data.marketSim.HOUR = HOUR; C.data.marketSim.DAY = DAY;

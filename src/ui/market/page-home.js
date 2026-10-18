@@ -34,14 +34,14 @@
     var nw = data.netWorth, p = data.progress;
     var box = h('section.mk-desk', { 'aria-labelledby': 'mk-desk-title' });
     var main = h('div.mk-desk-main');
-    main.appendChild(h('h2.mk-desk-title', { id: 'mk-desk-title' }, ui.eyebrow('Your net worth')));
+    main.appendChild(h('h2.mk-desk-title', { id: 'mk-desk-title' }, ui.eyebrow('Net worth')));
     var value = h('div.mk-desk-value', { role: 'text', 'aria-label': fx(nw.now) + ' Credits of net worth' }, icon('coin', 'mk-coin'));
     var num = h('span.mk-num.mk-desk-num', { 'aria-hidden': 'true' });
     value.appendChild(num); main.appendChild(value);
     var changePct = nw.change, steady = Math.abs(changePct) < 0.0005;
-    main.appendChild(h('p.mk-desk-delta', steady ? h('span.mk-muted', { text: 'Your starting point. Every Credit above it is yours to earn.' }) : ui.delta(changePct, { label: 'since you started' })));
+    main.appendChild(h('p.mk-desk-delta', steady ? h('span.mk-muted', { text: 'Level with where you started' }) : ui.delta(changePct, { label: 'since you started' })));
     var facts = h('dl.mk-desk-facts');
-    [['Credits', fx(nw.credits)], ['Cards worth', fx(nw.cards)], ['Cards you own', String(data.state.cards)]].forEach(function (f) {
+    [['Credits', fx(nw.credits)], ['Cards worth', fx(nw.cards)], ['Owned', String(data.state.cards)]].forEach(function (f) {
       facts.appendChild(h('div', h('dt', { text: f[0] }), h('dd.mk-num', { text: f[1] })));
     });
     main.appendChild(facts);
@@ -49,17 +49,17 @@
 
     var side = h('div.mk-desk-side');
     var hist = nw.history.map(function (x) { return x[1]; });
-    var chart = h('div.mk-desk-chart', { role: 'img', 'aria-label': hist.length >= 3 ? 'Net worth over time, from ' + fx(hist[0]) + ' to ' + fx(hist[hist.length - 1]) + ' Credits' : 'Net worth over time. It appears after a few simulated hours.' });
+    var chart = h('div.mk-desk-chart', { role: 'img', 'aria-label': hist.length >= 3 ? 'Net worth over time, from ' + fx(hist[0]) + ' to ' + fx(hist[hist.length - 1]) + ' Credits' : 'Net worth over time. It fills in during the first day.' });
     if (hist.length >= 3) chart.appendChild(chartOf(hist, 320, 96));
-    else chart.appendChild(h('p.mk-muted', { text: 'Your line appears after a few simulated hours.' }));
+    else chart.appendChild(h('p.mk-muted', { text: 'Fills in during the first day' }));
     side.appendChild(chart);
     if (hist.length >= 3) side.appendChild(h('p.mk-desk-caption', { text: 'Net worth since you started' }));
     var level = h('div.mk-level');
     level.appendChild(h('span.mk-level-badge', { data: { level: String(p.level.id) } }, icon('star'), h('span', { text: p.level.name })));
     if (p.next) {
       level.appendChild(h('div.mk-level-bar', { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.round(p.fraction * 100)), 'aria-label': 'Progress to ' + p.next.name }, h('span', { style: { transform: 'scaleX(' + p.fraction.toFixed(3) + ')' } })));
-      level.appendChild(h('span.mk-level-note', { text: Math.max(0, p.next.at - p.xp) + ' more to reach ' + p.next.name }));
-    } else level.appendChild(h('span.mk-level-note', { text: 'You have reached the top.' }));
+      level.appendChild(h('span.mk-level-note', { text: Math.max(0, p.next.at - p.xp) + ' to ' + p.next.name }));
+    } else level.appendChild(h('span.mk-level-note', { text: 'Top level' }));
     side.appendChild(level);
     box.appendChild(side);
     box.__num = num;
@@ -71,7 +71,7 @@
   var VERB = { buy: 'Buy', bid: 'Bid', order: 'Set the trap', sell: 'List' };
   function moveCard(m, ctx, env, onDone) {
     var idn = ui.identity(m.card, !!(env.owned && env.owned[m.cardId])), variant = m.variantId ? env.variants[m.variantId] : null;
-    var card = h('article.mk-move', { data: { type: m.type, tone: TAG_TONE[m.tag] || 'calm' }, style: { '--mk-i': 0 } });
+    var card = h('article.mk-move', { data: { type: m.type, tone: TAG_TONE[m.tag] || 'calm', rarity: m.card.rarity }, style: { '--mk-i': 0, '--mk-rgb': ui.rarityRgb(m.card.rarity), '--mk-tier': ui.rarityTier(m.card.rarity) } });
     var top = h('div.mk-move-top', h('span.mk-move-tag', { text: m.tag }));
     if (m.expiresMin != null && (m.type === 'buy' || m.type === 'bid')) top.appendChild(h('span.mk-move-time', icon('clock'), h('span', { text: ui.fmt.duration(m.expiresMin) + ' left' })));
     card.appendChild(top);
@@ -95,22 +95,21 @@
       nums.appendChild(h('div', h('span.mk-muted', { text: 'Sell for about' }), h('span.mk-num', { text: fx(m.resell) })));
     }
     var gain = h('div.mk-move-gain', { role: 'text', 'aria-label': (m.type === 'sell' ? 'About ' + fx(m.gain) + ' Credits more than Quick Sell' : 'About ' + fx(m.gain) + ' Credits profit after the fee') }, icon('up'),
-      h('span.mk-num', { text: '+' + fx(m.gain) }), h('span.mk-muted', { text: m.type === 'sell' ? 'over Quick Sell' : 'after the fee' }));
+      h('span.mk-num', { text: '+' + fx(m.gain) }), h('span.mk-muted', { text: m.type === 'sell' ? 'over Quick Sell' : 'after fee' }));
     nums.appendChild(gain);
     card.appendChild(nums);
 
     var actions = h('div.mk-move-actions');
-    var label = m.type === 'buy' ? 'Buy for ' + fx(m.cost) : m.type === 'bid' ? 'Bid up to ' + fx(m.max) : m.type === 'order' ? 'Set the trap at ' + fx(m.cost) : (m.instant ? 'Sell for ' : 'List at ') + fx(m.price);
+    var label = m.type === 'buy' ? 'Buy for ' + fx(m.cost) : m.type === 'bid' ? 'Bid up to ' + fx(m.max) : m.type === 'order' ? 'Order at ' + fx(m.cost) : (m.instant ? 'Sell for ' : 'List at ') + fx(m.price);
     var primary = ui.button(label, { variant: 'primary', icon: m.type === 'bid' ? 'gavel' : m.type === 'order' ? 'target' : m.type === 'sell' ? 'tag' : 'tag', onClick: function () { act(m, ctx, env, primary, onDone); } });
     actions.appendChild(primary);
-    var more = ui.button(m.type === 'sell' ? 'Choose another price' : 'See details', { variant: 'ghost', onClick: function () {
+    var more = ui.button(m.type === 'sell' ? 'Other price' : 'Details', { variant: 'ghost', onClick: function () {
       if (m.type === 'sell') ui.go('compose', { instanceId: m.itemId }); else if (m.listingId) ui.go('listing', { id: m.listingId }, { focusKey: m.listingId }); else ui.go('card', { id: m.cardId, variant: '' });
     } });
     actions.appendChild(more);
     // Cash right now is always possible: Quick Sell pays at once, for less. Offered where waiting for a trader is the choice.
     if (m.type === 'sell' && !m.instant && !m.planned && m.quick > 0) actions.appendChild(ui.button('Quick Sell for ' + fx(m.quick), { variant: 'ghost', onClick: function () { quickSell(m, ctx, env, primary, onDone); } }));
     card.appendChild(actions);
-    card.appendChild(h('p.mk-move-how', { text: m.how }));
     return card;
   }
 
@@ -131,31 +130,31 @@
     var cardLine = h('div.mk-review-card', h('strong', { text: idn.name }), h('span', { text: idn.rarityName + ' · ' + (m.variantId ? (env.variants[m.variantId] || {}).name : 'Normal finish') }));
     var after = function (text, floatText, tone) { return function () { C.ui.toast(text); var w = walletEl(); if (floatText) ui.motion.floatBadge(w || anchor, floatText, tone); ui.motion.pulse(w); onDone(); }; };
     if (m.type === 'buy') {
-      ui.sim.confirm({ title: 'Confirm purchase', eyebrow: 'Best move', card: cardLine, anchor: anchor,
+      ui.sim.confirm({ title: 'Confirm purchase', eyebrow: 'Move', card: cardLine, anchor: anchor,
         rows: rows(m, idn).concat([{ label: 'Price', node: ui.credits(m.cost) }, { label: 'Seller', value: m.listing.seller.alias }], balanceRows(m.cost, wallet)),
-        note: 'The card joins your collection straight away. After that the plan is to list it at about ' + fx(m.resell) + ', which would leave about ' + fx(m.resell - fee(m.resell)) + ' after the 2% fee. Prices can move, so this is a guide, not a promise.',
+        note: 'The card is yours at once. Listing it near ' + fx(m.resell) + ' would keep about ' + fx(m.resell - fee(m.resell)) + ' after the 2% fee. Prices can move.',
         confirmLabel: 'Buy for ' + fx(m.cost), icon: 'tag',
         run: function (req) { return ctx.api.purchase(realm, m.listingId, req, m.cost); },
-        success: function () { sim().notePlan(m.itemId, m.resell); after('Bought ' + idn.name + '. Next: list it at about ' + fx(m.resell) + '.', '−' + fx(m.cost), 'down')(); }, failure: onDone });
+        success: function () { sim().notePlan(m.itemId, m.resell); after('Bought ' + idn.name + '.', '−' + fx(m.cost), 'down')(); }, failure: onDone });
     } else if (m.type === 'bid') {
-      ui.sim.confirm({ title: 'Confirm bid', eyebrow: 'Best move', card: cardLine, anchor: anchor,
+      ui.sim.confirm({ title: 'Confirm bid', eyebrow: 'Move', card: cardLine, anchor: anchor,
         rows: [{ label: 'Your maximum', node: ui.credits(m.max) }, { label: 'It will probably close near', node: ui.credits(m.cost) }, { label: 'Closes in', value: ui.fmt.duration(m.expiresMin) }].concat(balanceRows(m.max, wallet)),
-        note: 'Your maximum is held until the auction ends. You pay only what is needed to beat the next bidder, never more than your maximum, and you get the hold back if you lose.',
+        note: 'Your maximum is held until it ends. You pay only what beats the next bidder, and get the hold back if you lose.',
         confirmLabel: 'Bid up to ' + fx(m.max), icon: 'gavel',
         run: function (req) { return ctx.api.placeBid(realm, m.listingId, m.max, req); },
-        success: function (res) { sim().notePlan(m.itemId, m.resell); after(res && res.leading ? 'You are leading at ' + fx(res.price) + ' Credits' : 'Bid placed. Another bid is higher for now.', null)(); }, failure: onDone });
+        success: function (res) { sim().notePlan(m.itemId, m.resell); after(res && res.leading ? 'Leading at ' + fx(res.price) : 'Bid placed. Another bid is higher.', null)(); }, failure: onDone });
     } else if (m.type === 'order') {
-      ui.sim.confirm({ title: 'Set a buy order', eyebrow: 'Best move', card: cardLine, anchor: anchor,
+      ui.sim.confirm({ title: 'Buy order', eyebrow: 'Move', card: cardLine, anchor: anchor,
         rows: [{ label: 'Highest price you will pay', node: ui.credits(m.cost) }, { label: 'Average Value', value: fx(m.fair) }, { label: 'Waits', value: '2 days, or until you cancel' }].concat(balanceRows(m.cost, wallet)),
-        note: 'Your Credits are held while it waits. If a seller lists this card at or under your price, it is yours at once, at their price. If nobody does, you get the hold back when it ends. It can also be cancelled in Activity.',
+        note: 'Your Credits are held while it waits. If a seller lists this card at or under your price, it is yours at their price. Cancel any time in Activity.',
         confirmLabel: 'Place the order', icon: 'target',
         run: function (req) { return ctx.api.placeOrder(realm, { c: m.cardId, v: null, maxPrice: m.cost, durationMs: 2 * DAY, requestId: req }); },
-        success: after('Order placed. It waits for a seller in a hurry.', null), failure: onDone });
+        success: after('Order placed.', null), failure: onDone });
     } else {
       var net = m.price - fee(m.price);
-      ui.sim.confirm({ title: m.instant ? 'Sell to a waiting trader' : 'List your card', eyebrow: 'Best move', card: cardLine, anchor: anchor,
+      ui.sim.confirm({ title: m.instant ? 'Sell to a trader' : 'List your card', eyebrow: 'Move', card: cardLine, anchor: anchor,
         rows: rows(m, idn).concat([{ label: 'Price', node: ui.credits(m.price) }, { label: 'You keep after the 2% fee', node: ui.credits(net), strong: true }, { label: 'Quick Sell would pay', value: fx(m.quick) }]),
-        note: m.instant ? 'A trader has a standing order at this price, so listing it here sells it immediately.' : 'The card stays yours until someone buys it and is locked while it is listed. You can withdraw it or change the price at any time.',
+        note: m.instant ? 'A trader has an order at this price, so it sells at once.' : 'Locked while listed. Withdraw or reprice any time.',
         confirmLabel: m.instant ? 'Sell for ' + fx(m.price) : 'List at ' + fx(m.price), icon: 'tag',
         run: function (req) { return ctx.api.publishListing(realm, { kind: 'fixed', instanceIds: [m.itemId], ask: m.price, durationMs: 3 * DAY, requestId: req }); },
         success: function (res) {
@@ -171,7 +170,7 @@
     ui.sim.confirm({ title: 'Quick Sell', eyebrow: 'Cash now', anchor: anchor,
       card: h('div.mk-review-card', h('strong', { text: idn.name }), h('span', { text: idn.rarityName + ' · ' + (m.variantId ? (env.variants[m.variantId] || {}).name : 'Normal finish') })),
       rows: [{ label: 'You get now', node: ui.credits(m.quick), strong: true }, { label: 'A trader would pay about', value: fx(m.fair) }, { label: 'Your Credits after', value: fx(wallet.balance + m.quick) }],
-      note: 'The system pays this at once, and it is always less than what another trader pays. You get a receipt and a few seconds to undo it.',
+      note: 'Paid at once, always less than a trader pays. You can undo it for a few seconds.',
       confirmLabel: 'Quick Sell for ' + fx(m.quick), icon: 'tag',
       run: function () { return ctx.api.quickSell(ctx.realm, { instanceIds: [m.itemId], expectTotal: m.quick }); },
       success: function () { C.ui.toast('Quick Sold ' + idn.name + ' for ' + fx(m.quick) + ' Credits.'); ui.motion.floatBadge(walletEl() || anchor, '+' + fx(m.quick), 'up'); ui.motion.pulse(walletEl()); onDone(); }, failure: onDone });
@@ -184,8 +183,8 @@
     card.appendChild(h('h3', { text: n.headline }));
     card.appendChild(h('p.mk-news-detail', { text: n.detail }));
     var foot = h('div.mk-news-foot');
-    foot.appendChild(ui.chip(n.mine ? 'You own ' + n.mine + (n.mine === 1 ? ' of them' : ' of them') : 'You own none of them', { tone: n.mine ? 'soft' : 'neutral' }));
-    foot.appendChild(ui.button('Find these cards', { variant: 'ghost', size: 'sm', onClick: function () { findCards(n, env); } }));
+    foot.appendChild(ui.chip(n.mine ? 'You own ' + n.mine : 'You own none', { tone: n.mine ? 'soft' : 'neutral' }));
+    foot.appendChild(ui.button('Find cards', { variant: 'ghost', size: 'sm', onClick: function () { findCards(n, env); } }));
     card.appendChild(foot);
     return card;
   }
@@ -204,7 +203,7 @@
   // ---- goals ----
   function goals(data) {
     var p = data.progress, box = h('section.mk-goals', { 'aria-labelledby': 'mk-goals-title' });
-    box.appendChild(h('div.mk-section-head', h('h2', { id: 'mk-goals-title', text: 'Your goals' }), h('span.mk-muted', { text: p.questsDone + ' of ' + p.quests.length + ' done' })));
+    box.appendChild(h('div.mk-section-head', h('h2', { id: 'mk-goals-title', text: 'Goals' }), h('span.mk-muted', { text: p.questsDone + ' of ' + p.quests.length })));
     var list = h('ul.mk-goal-list');
     p.quests.forEach(function (q) {
       list.appendChild(h('li.mk-goal', { data: { done: String(q.done), id: q.id } }, h('span.mk-goal-mark', q.done ? icon('check') : null),
@@ -212,7 +211,7 @@
     });
     box.appendChild(list);
     if (p.wins.length) {
-      box.appendChild(h('h3.mk-wins-title', { text: 'Recent profits' }));
+      box.appendChild(h('h3.mk-wins-title', { text: 'Recent profit' }));
       var wins = h('ul.mk-wins');
       p.wins.slice(0, 4).forEach(function (w) {
         wins.appendChild(h('li', h('span', { text: (env0().cards[w.c] ? env0().cards[w.c].name : w.c) }), h('span.mk-num.mk-win', { text: (w.gain >= 0 ? '+' : '−') + fx(Math.abs(w.gain)) })));
@@ -225,44 +224,73 @@
 
   function learn(open) {
     var d = h('details.mk-learn', { open: open ? 'open' : undefined });
-    d.appendChild(h('summary', h('span', { text: 'New here? How to make money in 3 steps' }), icon('chevron')));
+    d.appendChild(h('summary', h('span', { text: 'How it works' }), icon('chevron')));
     var steps = h('ol.mk-steps');
-    [['Know what a card is worth', 'Average Value is what traders recently paid for it. Quick Sell always pays less, because it is the system buying in a hurry.'],
-      ['Buy under it, sell near it', 'Fire sales, closing auctions and news make cards cheap for a while. Each sale costs a 2% fee, so look for gains bigger than that.'],
-      ['Read the news', 'When a brand or a rarity is in the news, traders pay more or less for it. Buy before it starts and sell while it lasts. The coach above tells you when.']].forEach(function (s) {
+    [['Know the price', 'Average Value is what traders recently paid. Quick Sell always pays less.'],
+      ['Buy under it', 'Fire sales, closing auctions and news make cards cheap. Each sale costs 2%.'],
+      ['Read the news', 'A brand or rarity in the news moves prices. Move first.']].forEach(function (s) {
       steps.appendChild(h('li', h('strong', { text: s[0] }), h('span', { text: s[1] })));
     });
-    d.appendChild(h('div.mk-learn-body', steps, h('p.mk-hint', icon('info'), h('span', { text: 'Suggestions use today’s prices and news. Other traders act too, so a suggestion can fail, and you can lose Credits. Opening packs pays nothing; Credits come only from selling and trading.' }))));
+    d.appendChild(h('div.mk-learn-body', steps, h('p.mk-hint', icon('info'), h('span', { text: 'Moves can fail and you can lose Credits. Opening packs pays nothing; Credits come from selling and trading.' }))));
     return d;
+  }
+
+  // ---- Global's Home: your balance and your trades, or how to get connected ----
+  function globalHome(ctx, box) {
+    var g = C.market.api.statusSync('global'), live = ui.sim.live('global');
+    if (!live) {
+      var actions = [];
+      if (g.label === 'Not connected' && ui.online) actions.push({ label: 'Connect', variant: 'primary', icon: 'user', run: function () { ui.online.connectDialog(); } });
+      else if (g.label !== 'Not available') actions.push({ label: 'Try again', variant: 'primary', icon: 'forward', run: function () { C.market.online.refresh(true); } });
+      actions.push({ label: 'Open Local', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
+      box.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: g.label === 'Not connected' ? 'Connect to Global' : g.label, body: g.label === 'Not connected' ? 'Real players, with their own Credits. Your offline game is never touched.' : g.message, actions: actions }));
+      return;
+    }
+    var wallet = ctx.api.walletSync('global'), c = ui.island.collect();
+    var desk0 = h('section.mk-desk.is-global');
+    var main = h('div.mk-desk-main', h('h2.mk-desk-title', ui.eyebrow('Balance')));
+    main.appendChild(h('div.mk-desk-value', { role: 'text', 'aria-label': fx(wallet.balance || 0) + ' Credits' }, icon('coin', 'mk-coin'), h('span.mk-num.mk-desk-num', { text: fx(wallet.balance || 0) })));
+    var facts = h('dl.mk-desk-facts');
+    [['Held', fx(wallet.held || 0)], ['Bids', String(c.counts.bids)], ['Listings', String(c.counts.listings)]].forEach(function (f) { facts.appendChild(h('div', h('dt', { text: f[0] }), h('dd.mk-num', { text: f[1] }))); });
+    main.appendChild(facts);
+    desk0.appendChild(main);
+    var side = h('div.mk-desk-side', h('div.mk-desk-actions', ui.button('List a card', { variant: 'primary', icon: 'plus', onClick: function () { ui.go('compose', {}); } }), ui.button('Browse', { variant: 'secondary', icon: 'explore', onClick: function () { ui.shell.goTab('discover'); } })));
+    desk0.appendChild(side);
+    box.appendChild(desk0);
+    var sec = h('section.mk-trades');
+    sec.appendChild(h('div.mk-section-head', h('h2', { text: 'Your trades' }), h('span.mk-muted', { text: ui.island.summary(c) })));
+    if (!c.items.length) sec.appendChild(ui.emptyState({ icon: 'swap', title: 'Nothing open', body: 'Bids, offers, listings and orders show up here.' }));
+    else { var list = h('div.mk-island-list.is-page'); ui.island.fillList(list, c.items, ctx.thumbs, ui.island.env(), function () {}, 8); sec.appendChild(list); }
+    box.appendChild(sec);
+    ctx.scope.add(function () { ui.releaseArt(sec, ctx.thumbs); });
   }
 
   // ---- the page ----
   function mount(ctx) {
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope, provider = sim();
     envRef = env;
-    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', ui.eyebrow('Local market'), h('h1', { text: 'Today' }), h('p.mk-home-sub', { id: 'mk-home-clock', text: 'Loading the market…' }))));
+    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Home' }), h('p.mk-home-sub', { id: 'mk-home-clock', text: realm === 'simulation' || !ui.sim.live('global') ? '' : (C.market.api.statusSync('global').alias || '') }))));
     var root0 = h('div.mk-home'); host.appendChild(root0);
     if (realm !== 'simulation' || !provider || !provider.home) {
-      root0.appendChild(ui.emptyState({ icon: 'layers', title: 'Home is for the Simulation', body: 'Switch to the Simulation to see today’s best moves, the news and your goals. Global Market has Discover and Portfolio.',
-        actions: [{ label: 'Open the Simulation', variant: 'primary', run: function () { store.setRealm('simulation'); } }, { label: 'Browse Global', variant: 'ghost', run: function () { ui.shell.goTab('discover'); } }] }));
+      globalHome(ctx, root0);
       ctx.restoreScroll();
       return;
     }
     var deskHost = h('div.mk-slot.mk-slot-desk'), movesHost = h('div.mk-slot'), newsHost = h('div.mk-slot'), goalsHost = h('div.mk-slot'), learnHost = h('div.mk-slot');
-    root0.append(deskHost, movesHost, newsHost, goalsHost, learnHost);
+    var tradesHost = h('div.mk-slot');
+    root0.append(deskHost, tradesHost, movesHost, newsHost, goalsHost, learnHost);
     var last = { desk: '', moves: '', news: '', quests: '', level: null, value: null, questIds: null };
     var pending = 0, torn = false;
 
     function paintMoves(data) {
       ui.releaseArt(movesHost, ctx.thumbs); ui.clear(movesHost);
       var sec = h('section.mk-moves', { 'aria-labelledby': 'mk-moves-title' });
-      sec.appendChild(h('div.mk-section-head', h('div', h('h2', { id: 'mk-moves-title', text: 'Best moves right now' }), h('p.mk-section-lead', { text: 'Suggestions from today’s prices and news. Prices move, so none of this is guaranteed.' })),
-        data.moves.length ? h('span.mk-muted', { role: 'status', 'aria-live': 'polite', text: plural(data.moves.length, 'move', 'moves') }) : null));
+      sec.appendChild(h('div.mk-section-head', h('div', h('h2', { id: 'mk-moves-title', text: 'Worth a look' })),
+        data.moves.length ? h('span.mk-muted', { role: 'status', 'aria-live': 'polite', title: 'Guides, not promises. Prices move and other traders act.', text: plural(data.moves.length, 'move', 'moves') }) : null));
       if (!data.moves.length) {
         var none = data.state.cards === 0 && data.state.credits < 5;
-        sec.appendChild(ui.emptyState({ icon: none ? 'cards' : 'search', title: none ? 'Nothing to trade yet' : 'No clear moves right now',
-          body: none ? 'You have no cards and no Credits. Open a pack from the main menu, then come back to sell and trade. Opening packs pays no Credits, but the cards are yours to sell.'
-            : 'The market is quiet. Check Browse, or set a buy order a little under a card’s Average Value and let it wait for a seller in a hurry.',
+        sec.appendChild(ui.emptyState({ icon: none ? 'cards' : 'search', title: none ? 'Nothing to trade yet' : 'Quiet right now',
+          body: none ? 'Open a pack from the main menu, then come back to sell.' : 'Nothing stands out. Check Browse, or set a buy order under a card’s Average Value.',
           actions: [{ label: 'Browse listings', variant: 'secondary', run: function () { ui.shell.goTab('discover'); } }] }));
       } else {
         var grid = h('div.mk-move-grid');
@@ -275,10 +303,20 @@
       ui.clear(newsHost);
       if (!data.news.length) return;
       var sec = h('section.mk-newsbox', { 'aria-labelledby': 'mk-news-title' });
-      sec.appendChild(h('div.mk-section-head', h('div', h('h2', { id: 'mk-news-title', text: 'In the news' }), h('p.mk-section-lead', { text: 'Traders react to this. Prices follow after they trade, so you can be early.' }))));
+      sec.appendChild(h('div.mk-section-head', h('div', h('h2', { id: 'mk-news-title', text: 'News' }))));
       var grid = h('div.mk-news-grid');
       data.news.slice(0, 3).forEach(function (n) { grid.appendChild(newsCard(n, ctx, env)); });
       sec.appendChild(grid); newsHost.appendChild(sec);
+    }
+    function paintTrades() {
+      ui.releaseArt(tradesHost, ctx.thumbs); ui.clear(tradesHost);
+      var c = ui.island.collect();
+      if (!c.items.length) return;
+      var sec = h('section.mk-trades', { 'aria-labelledby': 'mk-trades-title' });
+      sec.appendChild(h('div.mk-section-head', h('h2', { id: 'mk-trades-title', text: 'Your trades' }), h('span.mk-muted', { text: ui.island.summary(c) })));
+      var list = h('div.mk-island-list.is-page');
+      ui.island.fillList(list, c.items, ctx.thumbs, ui.island.env(), function () {}, 6);
+      sec.appendChild(list); tradesHost.appendChild(sec);
     }
     function paintGoals(data) { ui.clear(goalsHost); goalsHost.appendChild(goals(data)); ui.clear(learnHost); learnHost.appendChild(learn(!data.quests.sell)); }
     function celebrate(data) {
@@ -297,7 +335,8 @@
     function refresh(force) {
       if (torn) return;
       var data; try { data = provider.home(); } catch (error) { console.error(error); return; }
-      var clock = host.querySelector('#mk-home-clock'); if (clock) clock.textContent = data.clock + ' · the market moves while the game is open';
+      var clock = host.querySelector('#mk-home-clock'); if (clock) clock.textContent = data.clock;
+      paintTrades();
       // The desk's number counts to its new value every time; the sections below repaint only when their content changed.
       var dsig = [data.netWorth.now, data.netWorth.history.length, data.progress.level.id, Math.round(data.progress.fraction * 100), data.state.cards, data.state.credits].join(':');
       if (force || dsig !== last.desk || !deskHost.firstChild) {
@@ -323,8 +362,8 @@
       if (what !== 'sim' || pending) return;
       pending = root.setTimeout(function () { pending = 0; refresh(false); }, 3500);
     }));
-    scope.add(function () { torn = true; if (pending) root.clearTimeout(pending); ui.releaseArt(movesHost, ctx.thumbs); });
+    scope.add(function () { torn = true; if (pending) root.clearTimeout(pending); ui.releaseArt(movesHost, ctx.thumbs); ui.releaseArt(tradesHost, ctx.thumbs); });
     ctx.restoreScroll();
   }
-  ui.pages.register('home', { nav: function () { return 'home'; }, title: function () { return 'Today'; }, mount: mount });
+  ui.pages.register('home', { nav: function () { return 'home'; }, title: function () { return 'Home'; }, mount: mount });
 })(window.Cardable = window.Cardable || {}, window);

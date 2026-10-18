@@ -69,8 +69,8 @@
     var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
     host.appendChild(h('div.mk-pagehead.is-detail', back));
     host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'List a card' }), h('p', { text: live
-      ? 'Choose the exact card, set terms, and see what you would receive. A listed card stays in your collection, locked, until it sells or you withdraw it.'
-      : 'Choose the exact card, set terms, and see what the listing and your proceeds would look like. Nothing is published.' }))));
+      ? 'Pick the card, set terms, see what you keep. Locked while listed.'
+      : 'Pick the card, set terms, see what you would keep. Nothing is published.' }))));
     var banner = h('div.mk-banner-host');
     host.appendChild(banner);
     var layout = h('div.mk-composer');
@@ -272,7 +272,7 @@
         }
       } else {
         body.appendChild(buildWanted(v));
-        if (live) body.appendChild(h('p.mk-hint', { text: 'Traders will offer cards worth at least the share of this card’s value that you set. You can accept, decline or let it lapse. If the listing ends, nothing is charged.' }));
+        if (live) body.appendChild(h('p.mk-hint', { text: 'Traders offer cards worth at least the share of this card’s value you set. Accept, decline or let it lapse.' }));
         if (advanced && !live) {
           var top = numberInput(draft.creditTopUp, function (val) { draft.creditTopUp = val; }, { min: '0', placeholder: 'None' });
           body.appendChild(field('Credits top-up', top, { name: 'creditTopUp', hint: 'Credits to even a trade of unequal value. The ' + cfg().fee.label.toLowerCase() + ' applies to this part only.' }));
@@ -379,7 +379,7 @@
         return;
       }
       if (live) {
-        body.appendChild(h('p.mk-hint', icon('image'), h('span', { text: realm === 'global' ? 'Connect to Global Market to add pictures to a listing.' : 'Listings in the Simulation use the card’s own art. Custom pictures are for Global Market, where real players see them.' })));
+        body.appendChild(h('p.mk-hint', icon('image'), h('span', { text: realm === 'global' ? 'Connect to Global to add pictures to a listing.' : 'Local listings use the card’s own art. Pictures are for Global.' })));
         presentHost.appendChild(body);
         return;
       }
@@ -414,7 +414,7 @@
       var alt = h('input.mk-input', { type: 'text', maxlength: '120', placeholder: 'Describe the image for people using a screen reader', value: draft.cover.alt || '' });
       alt.addEventListener('input', function () { draft.cover.alt = alt.value; touch(); });
       cover.appendChild(field('Image description', alt, { hint: 'Used as alternative text. Required when you add an image.' }));
-      cover.appendChild(h('p.mk-hint', icon('shield'), h('span', { text: 'A cover is decoration. It can never hide the card’s rarity, finish or serial, and it is not proof of ownership. Images stay in this window: nothing is uploaded.' })));
+      cover.appendChild(h('p.mk-hint', icon('shield'), h('span', { text: 'A cover is decoration. It never hides the card’s rarity, finish or serial. Nothing is uploaded.' })));
       body.appendChild(cover);
       presentHost.appendChild(body);
       // drag to reposition
@@ -436,7 +436,7 @@
     function picturesSection() {
       var sec = h('div.mk-pictures-edit', { 'aria-label': 'Pictures' });
       sec.appendChild(h('span.mk-field-label', { text: 'Pictures from you' }));
-      sec.appendChild(h('p.mk-hint', icon('shield'), h('span', { text: 'Optional. A picture is decoration shown next to the card. It never replaces the card, its serial or its price, and it is not proof of the item. Nothing is uploaded until you choose a picture, crop it and confirm.' })));
+      sec.appendChild(h('p.mk-hint', icon('shield'), h('span', { text: 'Optional. It sits beside the card and never replaces it. Nothing is uploaded until you crop and confirm.' })));
       var list = h('ul.mk-pictures', { role: 'list' });
       pictures().forEach(function (p, n) {
         var li = h('li.mk-picture');
@@ -472,7 +472,7 @@
       var look = ui.segmented({ label: 'Look', value: draft.treatment || 'none', onChange: function (v) { draft.treatment = v; touch(); renderSide(); },
         options: [{ value: 'none', label: 'Plain' }, { value: 'frame', label: 'Framed' }, { value: 'spotlight', label: 'Spotlight' }] });
       sec.appendChild(h('div.mk-field', h('span.mk-field-label', { text: 'How the pictures look' }), look,
-        h('small.mk-hint', { text: 'Restrained on purpose: a thin frame or a soft light behind the picture. It never changes the card or the terms.' })));
+        h('small.mk-hint', { text: 'A thin frame or a soft light. It never changes the card or the terms.' })));
       return sec;
     }
     // Crop, describe, confirm, upload with real progress. The original file is only read.
@@ -713,7 +713,7 @@
       if (realm === 'global' && (draft.pictures || []).length) rows.push({ label: 'Pictures', value: draft.pictures.length + ' shown to other players, next to the card' });
       ui.sim.confirm({
         title: 'List ' + (sel.length === 1 ? 'this card' : sel.length + ' cards'), eyebrow: 'Review', rows: rows, anchor: root.document.activeElement,
-        note: 'The card stays in your collection but is locked while listed. A sale adds your Credits once, after the fee, and the card leaves your collection at that moment.',
+        note: 'Locked while listed. A sale pays your Credits once, after the fee, and the card leaves then.',
         confirmLabel: 'List ' + (sel.length === 1 ? 'card' : sel.length + ' cards'), icon: 'check',
         run: function (req) { return ctx.api.publishListing(realm, listingSpec(req)); },
         success: function (res) {

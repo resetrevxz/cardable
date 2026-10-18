@@ -280,7 +280,7 @@
     var id = ui.identity(card, owned), variant = l.card.variantId ? env.variants[l.card.variantId] : null;
     var fmtDef = formatDef(l.format), price = K().currentPrice(l);
     var watching = C.market.store.isWatching(l.id);
-    var tile = h('article.mk-tile', { data: { format: l.format, status: l.status, id: l.id, rarity: card.rarity, hover: 'glow-edge', price: String(price) }, style: { '--mk-i': Math.min(env.index || 0, 8) } });
+    var tile = h('article.mk-tile', { data: { format: l.format, status: l.status, id: l.id, rarity: card.rarity, hover: 'glow-edge', price: String(price) }, style: { '--mk-i': Math.min(env.index || 0, 8), '--mk-rgb': ui.rarityRgb(card.rarity), '--mk-tier': ui.rarityTier(card.rarity) } });
     var art = h('div.mk-tile-art');
     var thumb = env.thumbs.mount(card, { instanceId: 'mk-' + l.id, cardId: card.id, serial: l.card.serial, variantId: l.card.variantId, cardSkinId: l.card.cardSkinId, seen: true }, { owned: owned });
     art.appendChild(thumb);

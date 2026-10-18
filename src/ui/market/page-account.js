@@ -13,28 +13,28 @@
   function portfolio(ctx) {
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, live = ui.sim.live(realm);
     var p = ctx.api.portfolioSync(realm);
-    host.appendChild(head('Portfolio', 'What you hold, valued at estimate. These are not guaranteed sale prices.',
+    host.appendChild(head('Portfolio', 'What you hold, at estimated value.',
       [ui.button('List a card', { variant: 'primary', icon: 'plus', onClick: function () { ui.go('compose', {}); } }),
         realm === 'global' && live && ui.online ? ui.button('Sell to the system', { variant: 'secondary', icon: 'coin', onClick: function () { ui.online.quickSellDialog(); } }) : null].filter(Boolean)));
     var sampleNote = null;
-    if (p.demo) host.appendChild(h('div.mk-banner', { data: { tone: 'info' } }, icon('info'), h('span', { text: 'You have no cards yet, so this shows a sample collection. Open a pack and your own cards are valued here instead.' })));
+    if (p.demo) host.appendChild(h('div.mk-banner', { data: { tone: 'info' } }, icon('info'), h('span', { text: 'No cards yet, so this is a sample collection. Open a pack to see your own.' })));
     var w = p.wallet;
     var summary = h('section.mk-summary', { 'aria-label': 'Totals' });
-    summary.appendChild(h('div.mk-summary-main', ui.eyebrow('Estimated collection value'), h('div.mk-summary-value', ui.credits(p.total, { big: true })),
-      h('p.mk-hint', { text: p.count + ' cards · mark-to-estimate using each card’s Average Value. The market may not pay this.' })));
+    summary.appendChild(h('div.mk-summary-main', ui.eyebrow('Collection value'), h('div.mk-summary-value', ui.credits(p.total, { big: true })),
+      h('p.mk-hint', { text: p.count + (p.count === 1 ? ' card' : ' cards') + ' at Average Value. The market may pay less.' })));
     var signed = function (n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + ui.fmt.exact(Math.abs(n)); };
     if (live) {
       summary.appendChild(ui.statGrid([
-        { label: 'Credits', value: ui.fmt.exact(w.balance), note: w.held ? ui.fmt.exact(w.held) + ' held by open bids and buy orders' : 'None held' },
-        { label: 'Realized profit', value: p.realized == null ? '—' : signed(p.realized), note: p.realizedCount ? 'From ' + p.realizedCount + (p.realizedCount === 1 ? ' sale' : ' sales') + ' of cards you bought here, after fees' : 'Appears after you sell a card you bought here', help: 'settlement' },
-        { label: 'Unrealized change', value: p.unrealized == null ? '—' : signed(p.unrealized), note: p.unrealizedCount ? 'Across ' + p.unrealizedCount + ' cards you bought here' : 'Cards from packs have no cost basis' },
+        { label: 'Credits', value: ui.fmt.exact(w.balance), note: w.held ? ui.fmt.exact(w.held) + ' held by bids and orders' : 'None held' },
+        { label: 'Realized profit', value: p.realized == null ? '—' : signed(p.realized), note: p.realizedCount ? p.realizedCount + (p.realizedCount === 1 ? ' sale' : ' sales') + ', after fees' : 'After you sell a card you bought', help: 'settlement' },
+        { label: 'Unrealized change', value: p.unrealized == null ? '—' : signed(p.unrealized), note: p.unrealizedCount ? 'Across ' + p.unrealizedCount + ' cards you bought' : 'Pack cards have no cost basis' },
         { label: 'Fees paid', value: ui.fmt.exact(p.feesPaid), note: cfg().fee.label + ' on your sales' },
-        { label: 'If sold to the system', value: ui.fmt.exact(p.quickSellValue || 0), note: 'Quick Sell value of all your cards. Another trader would normally pay more.', help: 'quick-sell' }
+        { label: 'Quick Sell value', value: ui.fmt.exact(p.quickSellValue || 0), note: 'All your cards. A trader pays more.', help: 'quick-sell' }
       ], { cols: 2 }));
     } else summary.appendChild(ui.statGrid([
       { label: realm === 'global' ? 'Global wallet' : 'Credits', value: w.balance == null ? 'Not connected' : ui.fmt.exact(w.balance), note: w.note },
-      { label: 'Realized profit', value: '—', note: 'Appears after your first completed sale', help: 'settlement' },
-      { label: 'Unrealized change', value: '—', note: 'Cards from packs have no cost basis' },
+      { label: 'Realized profit', value: '—', note: 'After your first sale', help: 'settlement' },
+      { label: 'Unrealized change', value: '—', note: 'Pack cards have no cost basis' },
       { label: 'Fees paid', value: '0', note: cfg().fee.label }
     ], { cols: 2 }));
     host.appendChild(summary);
@@ -87,11 +87,48 @@
     var sec = h('section.mk-section', { 'aria-label': 'Holdings' });
     var sortId = 'value';
     var sortSel = h('select.mk-select', { 'aria-label': 'Sort holdings' }, h('option', { value: 'value', text: 'Highest value' }), h('option', { value: 'rarity', text: 'Rarity' }), h('option', { value: 'change', text: 'Biggest 7 day move' }));
-    sec.appendChild(h('div.mk-section-head', h('h2', { text: 'Holdings' }), sortSel));
+    var viewId = store.session.holdingsView || 'cards';
+    var viewSwitch = ui.segmented({ label: 'Holdings view', value: viewId, onChange: function (v) { viewId = store.session.holdingsView = v; paint(); },
+      options: [{ value: 'cards', label: 'Cards', icon: 'grid' }, { value: 'list', label: 'List', icon: 'list' }] });
+    sec.appendChild(h('div.mk-section-head', h('h2', { text: 'Holdings' }), h('div.mk-section-tools', viewSwitch, sortSel)));
+    var grid = h('div.mk-grid.is-holdings');
     var table = h('div.mk-table.is-holdings', { role: 'table', 'aria-label': 'Holdings' });
-    sec.appendChild(table);
+    sec.append(grid, table);
+    function holdTile(hd, i) {
+      var idn = ui.identity(hd.card, true), variant = hd.instance.variantId ? env.variants[hd.instance.variantId] : null;
+      var tile = h('article.mk-tile.mk-hold', { data: { rarity: hd.card.rarity }, style: { '--mk-i': Math.min(i, 8), '--mk-rgb': ui.rarityRgb(hd.card.rarity), '--mk-tier': ui.rarityTier(hd.card.rarity) } });
+      var art = h('div.mk-tile-art');
+      art.appendChild(ctx.thumbs.mount(hd.card, hd.instance, { owned: true }));
+      tile.appendChild(art);
+      var body = h('div.mk-tile-body');
+      var open = h('button.mk-tile-open', { type: 'button', 'aria-label': idn.name + ', open card market' }, h('span.mk-tile-name', { text: idn.name, title: idn.name }));
+      open.addEventListener('click', function () { ui.go('card', { id: hd.card.id, variant: hd.instance.variantId || '' }); });
+      body.appendChild(open);
+      body.appendChild(h('div.mk-tile-meta', h('span.mk-tile-rarity', { data: { rarity: hd.card.rarity }, text: idn.rarityName }), variant ? h('span.mk-tile-variant', { text: variant.name }) : null));
+      var price = h('div.mk-tile-price', ui.credits(hd.estimate, { big: true }), hd.valuation.change7d != null ? ui.delta(hd.valuation.change7d, { label: '7 d' }) : null);
+      body.appendChild(price);
+      if (live && hd.basis != null) body.appendChild(h('div.mk-tile-value', h('span.mk-muted', { text: 'paid ' + ui.fmt.exact(hd.basis) })));
+      var sell = hd.listing && live
+        ? ui.button('Listed', { variant: 'ghost', size: 'sm', icon: 'layers', onClick: function () { var id = String(hd.listing).replace(/^offer:/, ''); if (/^offer:/.test(hd.listing)) ui.go('activity', {}); else ui.go('listing', { id: id }); } })
+        : ui.button('List', { variant: 'secondary', size: 'sm', icon: 'plus', onClick: function () { ui.go('compose', { instanceId: hd.instance.instanceId }); } });
+      sell.classList.add('mk-hold-act');
+      body.appendChild(h('div.mk-tile-foot', h('span.mk-mono.mk-serial', { text: String(hd.instance.serial).replace('CBL-', ''), title: 'Serial ' + hd.instance.serial }), sell));
+      tile.appendChild(body);
+      return tile;
+    }
     function paint() {
-      ui.clear(table);
+      ui.releaseArt(grid, ctx.thumbs); ui.clear(grid); ui.clear(table);
+      grid.hidden = viewId !== 'cards'; table.hidden = viewId === 'cards';
+      if (viewId === 'cards') {
+        var ordered = p.holdings.slice().sort(function (a, b) {
+          if (sortId === 'rarity') return (b.valuation.tier - a.valuation.tier) || b.estimate - a.estimate;
+          if (sortId === 'change') return Math.abs(b.valuation.change7d || 0) - Math.abs(a.valuation.change7d || 0);
+          return b.estimate - a.estimate;
+        });
+        ordered.slice(0, 60).forEach(function (hd, i) { grid.appendChild(holdTile(hd, i)); });
+        if (ordered.length > 60) grid.appendChild(h('p.mk-hint', { text: 'Showing the 60 most valuable of ' + ordered.length + ' cards.' }));
+        return;
+      }
       var hr = h('div.mk-trow.mk-trow-head', { role: 'row' });
       ['Card', 'Finish', 'Serial', 'Estimate', '7 d change', ''].forEach(function (t) { hr.appendChild(h('div.mk-tcell', { role: 'columnheader', text: t })); });
       table.appendChild(hr);
@@ -129,7 +166,7 @@
     function paintGroups() {
       Array.from(groupsBox.querySelectorAll('.mk-group')).forEach(function (n) { n.remove(); });
       var list = store.groupsFor(realm);
-      if (!list.length) { groupsBox.appendChild(h('p.mk-hint.mk-group', { text: 'Group cards you think of together, such as a set you are completing. Groups are saved on this device only.' })); return; }
+      if (!list.length) { groupsBox.appendChild(h('p.mk-hint.mk-group', { text: 'Group cards you think of together, such as a set. Saved on this device.' })); return; }
       list.forEach(function (g) {
         var mine = p.holdings.filter(function (hd) { return g.ids.indexOf(hd.instance.instanceId) >= 0; });
         var total = mine.reduce(function (n, hd) { return n + hd.estimate; }, 0);
@@ -186,7 +223,7 @@
   // ---- Activity ----
   function activity(ctx) {
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope, live = ui.sim.live(realm);
-    host.appendChild(head('Activity', 'Bids, listings, sales and watchlist movement in one place.',
+    host.appendChild(head('Activity', 'Bids, listings, sales and watched cards.',
       [ui.button('Mark all read', { variant: 'secondary', icon: 'check', onClick: function () { store.markRead(items.map(function (n) { return n.id; })); paint(); } })]));
     if (realm === 'global' && ui.social) { var due = ui.social.reviewsDueBox(ctx); if (due) host.appendChild(due); }
     var data = ctx.api.activitySync(realm);
@@ -251,11 +288,11 @@
   // ---- Watchlist ----
   function watchlist(ctx) {
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, live = ui.sim.live(realm);
-    host.appendChild(head('Watchlist', 'Listings you are keeping an eye on.', [ui.button('Find cards to watch', { variant: 'secondary', icon: 'search', onClick: function () { ui.shell.goTab('discover'); } })]));
+    host.appendChild(head('Watchlist', 'Listings you are watching.', [ui.button('Find cards to watch', { variant: 'secondary', icon: 'search', onClick: function () { ui.shell.goTab('discover'); } })]));
     var ids = store.prefs.watch.slice();
     var items = ids.map(function (id) { var r = ctx.api.listingSync(realm, id) || ctx.api.listingSync(realm === 'simulation' ? 'global' : 'simulation', id); return r ? { id: id, listing: r.listing } : { id: id, gone: true }; });
     if (!items.length) {
-      host.appendChild(ui.emptyState({ icon: 'bookmark', title: 'Nothing on your watchlist', body: 'Use the bookmark on any listing to follow it. Watched listings stay here, with their latest price and state.',
+      host.appendChild(ui.emptyState({ icon: 'bookmark', title: 'Nothing on your watchlist', body: 'Bookmark a listing to follow it. Its latest price shows here.',
         actions: [{ label: 'Browse Discover', variant: 'primary', icon: 'search', run: function () { ui.shell.goTab('discover'); } }] }));
       return;
     }
@@ -276,7 +313,7 @@
   // ---- Alerts ----
   function alerts(ctx) {
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope, live = ui.sim.live(realm);
-    host.appendChild(head('Alerts', live ? 'Tell the Market what price you are waiting for. Alerts are checked against open Simulation listings whenever you open this page.' : 'Tell the Market what price you are waiting for. Alerts are checked against the sample listings while the Market is open.'));
+    host.appendChild(head('Alerts', live ? 'Hear about a price you are waiting for.' : 'Hear about a price you are waiting for (sample listings).'));
     var form = h('form.mk-alertform', { novalidate: true });
     var cardSel = h('select.mk-select', { 'aria-label': 'Card' }, h('option', { value: '', text: 'Choose a card…' }));
     C.data.rarities.slice().sort(function (a, b) { return a.tier - b.tier; }).forEach(function (r) {
@@ -352,8 +389,8 @@
   // ---- My listings ----
   function myListings(ctx) {
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, live = ui.sim.live(realm), scope = ctx.scope;
-    host.appendChild(head('My listings', 'Everything you have put up, and how it ended.', [ui.button('List a card', { variant: 'primary', icon: 'plus', onClick: function () { ui.go('compose', {}); } })]));
-    if (!live) host.appendChild(h('div.mk-banner', { data: { tone: 'info' } }, icon('info'), h('span', { text: 'These are sample listings, not yours. When listing is live, your real listings, bids and sales appear here.' })));
+    host.appendChild(head('My listings', 'What you have put up, and how it ended.', [ui.button('List a card', { variant: 'primary', icon: 'plus', onClick: function () { ui.go('compose', {}); } })]));
+    if (!live) host.appendChild(h('div.mk-banner', { data: { tone: 'info' } }, icon('info'), h('span', { text: 'Sample listings, not yours. Yours appear here once listing is live.' })));
     var act = ctx.api.activitySync(realm), mine = act.mine;
     var tab = live && mine.every(function (l) { return !(l.status === 'active' || l.status === 'ending'); }) && mine.length ? 'ended' : 'active';
     var tabs = ui.segmented({ label: 'Listing state', role: 'tablist', value: tab, onChange: function (v) { tab = v; paint(); },
@@ -436,7 +473,7 @@
   // ---- Market settings ----
   function settings(ctx) {
     var host = ctx.host, scope = ctx.scope;
-    host.appendChild(head('Market settings', 'These are your saved preferences. They live in Cardable’s normal settings, so they also appear in Settings under Market.',
+    host.appendChild(head('Market settings', 'Saved with Cardable’s settings.',
       [ui.button('Open in Settings', { variant: 'secondary', icon: 'sliders', onClick: function () { ui.shell.close(); C.openSettings('Market'); } })]));
     var page = C.data.settingsPages.find(function (p) { return p.id === 'Market'; });
     var advanced = C.settings.get('marketMode') === 'advanced';
@@ -474,7 +511,7 @@
     // preview data
     var live = ui.sim.live('simulation');
     var data = h('section.mk-box', h('div.mk-panel-head', h('h3', { text: live ? 'Watchlist, views and drafts' : 'Preview data' })));
-    data.appendChild(h('p.mk-hint', { text: 'The watchlist, saved views, alerts and drafts live in this window’s own storage, apart from your collection. Clearing them never touches your cards or Credits' + (live ? ', and does not reset the simulation.' : '.') }));
+    data.appendChild(h('p.mk-hint', { text: 'Watchlist, saved views, alerts and drafts are stored apart from your collection. Clearing them never touches your cards or Credits' + (live ? ' or resets Local.' : '.') }));
     data.appendChild(ui.statGrid([{ label: 'Watching', value: String(store.prefs.watch.length) }, { label: 'Saved views', value: String(store.prefs.saved.length) }, { label: 'Alerts', value: String(store.prefs.alerts.length) }, { label: 'Drafts', value: String(Object.keys(store.prefs.drafts).length) }], { cols: 4 }));
     var clear = ui.button(live ? 'Clear watchlist and drafts' : 'Clear preview data', { variant: 'secondary', icon: 'trash' });
     var armed = false, timer = 0;
@@ -492,7 +529,7 @@
     try { devMode = new root.URLSearchParams(root.location.search).get('dev') === '1'; } catch (_) { devMode = false; }
     if (devMode) {
       var realmCard = h('section.mk-box', h('div.mk-panel-head', h('h3', { text: 'Global Market preview (developer)' })));
-      realmCard.appendChild(h('p.mk-hint', { text: 'Global Market is not connected, so it has no real listings. You can switch on invented sample listings to see how it would look. They are always labelled and never count as volume.' }));
+      realmCard.appendChild(h('p.mk-hint', { text: 'Global is not connected, so it has no listings. Sample listings can be switched on; they are labelled and never count as volume.' }));
       var sample = h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Show sample listings in Global Market', props: { checked: !!store.session.showGlobalSample } });
       sample.addEventListener('change', function () { store.session.showGlobalSample = sample.checked; store.emit('realm'); });
       realmCard.appendChild(h('div.mk-setting', h('div.mk-setting-copy', h('span.mk-setting-label', { text: 'Sample listings in Global Market' }), h('span.mk-hint', { text: 'Off by default. Resets each time you open the game.' })), h('label.mk-switch', sample, h('span.mk-switch-track', { 'aria-hidden': 'true' }, h('i')))));
@@ -501,7 +538,7 @@
 
     if (advanced) {
       var tuning = h('section.mk-box', h('div.mk-panel-head', h('h3', { text: 'Provisional tuning' })));
-      tuning.appendChild(h('p.mk-hint', { text: 'Starting values for the beta economy. They are reversible and will be tuned against real play before release.' }));
+      tuning.appendChild(h('p.mk-hint', { text: 'Starting values for the beta economy. Reversible, and tuned against real play.' }));
       var dl = h('dl.mk-sumrows');
       cfg().tuning.forEach(function (t) { dl.appendChild(h('div', h('dt', { text: t.key }), h('dd', { text: String(t.value) + ' · ' + t.note }))); });
       tuning.appendChild(dl);

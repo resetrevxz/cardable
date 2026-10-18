@@ -12,7 +12,7 @@
     var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
     host.appendChild(h('div.mk-pagehead.is-detail', back));
     if (realm !== 'global' || !C.market.onlineProvider) {
-      host.appendChild(ui.emptyState({ icon: 'user', title: 'Profiles are for real players', body: 'Traders in the Simulation are software on this device, so they have no profile, comments or reviews. Switch to Global Market to see a player.' }));
+      host.appendChild(ui.emptyState({ icon: 'user', title: 'Profiles are for real players', body: 'Local traders are software, so they have no profile. Switch to Global to see a player.' }));
       ctx.restoreScroll(); return;
     }
     var social = C.market.onlineProvider.social, body = h('div.mk-profile');
@@ -53,7 +53,7 @@
         });
         rep.appendChild(bars);
       }
-      rep.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'Reviews come only from a completed trade between two players, one per trade. A Quick Sell to the system or a trade in the Simulation never counts.' })));
+      rep.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'Reviews come only from a completed trade between two players, one per trade. Quick Sell and Local trades never count.' })));
       body.appendChild(rep);
 
       // reviews

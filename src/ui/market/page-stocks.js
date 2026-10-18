@@ -1,4 +1,4 @@
-/* Cardable Market — Stocks.
+/* Cardable Market — Prices (the Stocks view).
  * Market intelligence about collectible cards, not shares: nothing here can be owned or traded.
  * One chart is drawn for the chosen scope; leaders are plain rows with no per-row charts. */
 (function (C, root) {
@@ -15,12 +15,12 @@
     if (!st.windowTouched) st.window = C.settings.get('marketWindow');
     var reduced = !!C.settings.get('marketReducedData');
 
-    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Stocks' }),
-      h('p', { text: 'Prices, trends and depth for collectible cards. This is market intelligence only: cards are not shares and nothing here can be traded.' })),
+    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Prices' }),
+      h('p', { text: 'Trends and depth for every card. Nothing here is traded.' })),
       h('div.mk-pagehead-actions', live
         ? (realm === 'global'
           ? ui.chip('Player trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from completed sales between players on Global Market. Quick Sell, swaps, offers and bundles are never counted. Where there are none, nothing is drawn.' })
-          : ui.chip('Simulated trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from trades completed in this simulation. Where there are none, nothing is drawn.' }))
+          : ui.chip('Simulated trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from trades completed in Local. Where there are none, nothing is drawn.' }))
         : ui.chip('Illustrative', { tone: 'soft', icon: 'info', title: 'All figures are sample data for the preview' }))));
 
     // controls
@@ -113,7 +113,7 @@
       if (empty) {
         chart.hidden = true; title.hidden = true;
         rail.appendChild(ui.emptyState({ kind: 'offline', icon: 'trend', title: 'No Global Market data', body: (gstate && gstate.connected ? 'Global Market is live but no player has completed a sale yet. ' : 'Global Market is not connected. ') + 'Its prices are built only from real completed player sales, so there is nothing to chart yet. The Simulation has its own numbers.',
-          actions: [{ label: 'Open Simulation', variant: 'primary', run: function () { store.setRealm('simulation'); } }] }));
+          actions: [{ label: 'Open Local', variant: 'primary', run: function () { store.setRealm('simulation'); } }] }));
         return;
       }
       chart.hidden = false; title.hidden = false;
@@ -180,5 +180,5 @@
     }
     ctx.restoreScroll();
   }
-  ui.pages.register('stocks', { nav: 'stocks', title: function () { return 'Stocks'; }, mount: mount });
+  ui.pages.register('stocks', { nav: 'stocks', title: function () { return 'Prices'; }, mount: mount });
 })(window.Cardable = window.Cardable || {}, window);

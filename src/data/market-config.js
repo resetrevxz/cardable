@@ -15,11 +15,11 @@
 
     // The two environments never share balances, histories, inventory claims or valuations.
     realms: [
-      { id: 'simulation', label: 'Simulation', shortLabel: 'Simulation', state: 'local', stateLabel: 'Offline · local',
-        blurb: 'Bots on this device. Works offline and never involves other people.',
-        counterparties: 'Simulation bots', sourceLabel: 'Simulation bot' },
+      { id: 'simulation', label: 'Local', shortLabel: 'Local', state: 'local', stateLabel: 'Offline',
+        blurb: 'Traders on this device. Works offline.',
+        counterparties: 'Local traders', sourceLabel: 'Local trader' },
       { id: 'global', label: 'Global Market', shortLabel: 'Global', state: 'offline', stateLabel: 'Not connected',
-        blurb: 'Real players only. Not available in this build.',
+        blurb: 'Real players, with their own Credits.',
         counterparties: 'Players', sourceLabel: 'Player' }
     ],
 
@@ -110,12 +110,12 @@
       { id: 'series', label: 'Series and brand', sort: 'recommended', filters: {}, dynamic: 'brands' }
     ],
     notices: {
-      simulation: 'Simulation is a local market of software traders on this device. It works offline, runs only while Cardable is open, and is separate from Global Market.',
+      simulation: 'Local is a market of software traders on this device. It works offline and is separate from Global.',
       global: 'Global Market is not connected in this build. When it is, only real player listings appear here.',
       globalSample: 'Sample layout. These listings are invented to show the design. They are not real players and never count as market volume.'
     },
     noticesShort: {
-      simulation: 'Local bots, offline. Runs only while Cardable is open.',
+      simulation: 'Local traders, offline.',
       global: 'Not connected. Real players only.',
       globalSample: 'Invented sample listings. Not real players.'
     },
@@ -133,7 +133,7 @@
       { id: 'settlement', term: 'Settlement', body: 'The moment a sale completes: the card changes owner, Credits move, and the fee is taken once.' },
       { id: 'escrow', term: 'Escrow', body: 'Credits or a card held aside while an offer is open, so nothing can be spent or sold twice.' },
       { id: 'quick-sell', term: 'Quick Sell', body: 'An instant sale to the game itself at a deliberate discount. It is not a player trade and is never counted as market volume.' },
-      { id: 'realm', term: 'Realm', body: 'Simulation (bots, offline) and Global Market (real players). Balances, histories and valuations are never shared between them.' },
+      { id: 'realm', term: 'Realm', body: 'Local (traders on this device, offline) and Global (real players). Balances, histories and values are never shared between them.' },
       { id: 'liquidity', term: 'Liquidity', body: 'How easily this card changes hands near its Average Value. Higher means faster, tighter trades.' },
       { id: 'confidence', term: 'Confidence', body: 'How much recent sale data supports the Average Value. Low means the estimate leans on the baseline.' },
       { id: 'volatility', term: 'Volatility', body: 'How far the price tends to move day to day. Scarcer rarities move more.' }

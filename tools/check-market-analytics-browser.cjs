@@ -184,7 +184,7 @@ const apiCall = (p, expr, arg) => p.page.evaluate(new Function('arg', 'return (a
       assert.equal(bought.ok, true, JSON.stringify(bought));
       await B.page.evaluate(() => Cardable.market.store.markGuideSeen());
       await openGlobal(B, { name: 'portfolio', params: {} });
-      await B.page.waitForSelector('.mk-table.is-holdings .mk-trow:not(.mk-trow-head)', { timeout: 20000 });
+      await B.page.evaluate(() => { Cardable.market.store.session.holdingsView = 'list'; Cardable.market.ui.shell.remount(); }); await B.page.waitForSelector('.mk-table.is-holdings .mk-trow:not(.mk-trow-head)', { timeout: 20000 });
       await B.page.waitForFunction(() => /No cost basis/.test(document.body.textContent) && /paid 9/.test(document.body.textContent), null, { timeout: 15000 });
       const books = await B.page.evaluate(() => document.querySelector('[aria-label="Global accounts"]').textContent);
       assert(/Held by open bids/.test(books) && /Cards with no cost basis/.test(books) && /Quick Sell value/.test(books), books.slice(0, 300));
@@ -229,7 +229,7 @@ const apiCall = (p, expr, arg) => p.page.evaluate(new Function('arg', 'return (a
       await B.page.waitForSelector('.mk-explore', { timeout: 20000 });
       await B.page.waitForFunction(() => document.querySelectorAll('.mk-explore-col .mk-minirow').length > 0, null, { timeout: 20000 });
       const t = await B.page.evaluate(() => document.querySelector('.mk-explore').textContent);
-      assert(/Completed player sales/.test(t) && /Simulation is a separate/.test(t), t.slice(0, 300));
+      assert(/Completed player sales/.test(t) && /Local is a separate/.test(t), t.slice(0, 300));
       await shot(B.page, 'discover-moving-desktop');
       // a saved view belongs to its realm
       const views = await B.page.evaluate(() => { const s = Cardable.market.store; s.saveView('Cheap commons', { q: '', sort: 'price-asc', tab: 'for-you', filters: Cardable.market.core.emptyFilters(), realm: 'global' }); return s.prefs.saved.filter((v) => v.realm === 'global').length; });

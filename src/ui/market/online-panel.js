@@ -199,7 +199,7 @@
       surface.appendChild(body);
       body.appendChild(intro);
       if (!rows.length) {
-        body.appendChild(ui.emptyState({ kind: 'empty', icon: 'cards', title: 'You have no cards on Global Market', body: 'Credits here come only from selling cards. Convert your collection to bring copies of your cards online, once, and they can be sold or listed.',
+        body.appendChild(ui.emptyState({ kind: 'empty', icon: 'cards', title: 'You have no cards on Global Market', body: 'Credits here come only from selling cards. Convert your collection once to bring copies online.',
           actions: [{ label: 'Convert my collection', variant: 'primary', icon: 'upload', run: function () { handle.close(); importWizard(); } }] }));
         body.appendChild(h('div.mk-modal-actions', ui.button('Close', { variant: 'ghost', onClick: function () { handle.close(); } })));
         return;
@@ -245,11 +245,11 @@
   function introCard() {
     var card = h('aside.mk-intro.is-global', { role: 'note' },
       h('div', h('strong', { text: 'Global Market is real players.' }),
-        h('p', { text: 'Everything here is listed, bid on and bought by other people under generated two-word names. It starts nearly empty, prices only appear after players trade, and there are no bots.' }),
+        h('p', { text: 'Everything here is listed, bid on and bought by people under generated two-word names. It starts nearly empty, prices appear after players trade, and there are no bots.' }),
         h('ul.mk-bullets',
-          h('li', { text: 'Your online Credits are separate. The first ones come from selling cards to the system, which is disclosed and limited each day.' }),
-          h('li', { text: 'A listed card is held in escrow until it sells or you withdraw it. A sale takes a 2% fee from the seller, once.' }),
-          h('li', { text: 'Auctions close on the server\u2019s clock, even while you are away, and a late bid extends them by a few minutes.' }))),
+          h('li', { text: 'Your online Credits are separate. The first come from selling cards to the system, limited each day.' }),
+          h('li', { text: 'A listed card is held until it sells or you withdraw it. A sale takes a 2% fee from the seller.' }),
+          h('li', { text: 'Auctions close on the server\u2019s clock, even while you are away. A late bid adds a few minutes.' }))),
       ui.button('Got it', { variant: 'secondary', onClick: function () { C.market.store.markGuideSeen(); card.remove(); } }));
     return card;
   }
@@ -261,8 +261,8 @@
       ui.clear(panel);
       var s = online().state;
       panel.appendChild(h('div.mk-panel-head', h('h3', { text: 'Global Market (beta)' }), ui.chip(STATE_WORD[s.status] || s.status, { tone: s.status === 'online' ? 'good' : 'soft' })));
-      panel.appendChild(h('p.mk-hint', { text: 'Real players only, under anonymous two-word names. It has its own Credits and its own history, and it is separate from the Simulation and from your offline save.' }));
-      if (s.status === 'unconfigured') { panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'This build is not connected to a Global Market service, so the realm stays empty and nothing is sent anywhere.' }))); return; }
+      panel.appendChild(h('p.mk-hint', { text: 'Real players only, under anonymous names. Its own Credits and history, separate from Local and your offline save.' }));
+      if (s.status === 'unconfigured') { panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'This build is not connected to Global, so it stays empty and nothing is sent anywhere.' }))); return; }
       var actions = h('div.mk-sim-actions');
       if (s.status === 'online') {
         panel.appendChild(ui.statGrid([{ label: 'Your public name', value: s.alias || '—' }, { label: 'Online Credits', value: ui.fmt.exact(s.balance || 0) }, { label: 'Online cards', value: String(s.inventoryTotal || 0) },

@@ -60,10 +60,15 @@
     chart.update({ candles: series.candles, type: 'line', window: '30d', unit: 'Credits', label: card.name + ' price' });
 
     // simulation clock, live updates and offers
-    var simGroup = group('Simulation clock, live updates and offers', 'The clock is a button. Prices change in place and anything new waits behind a pill. A real action asks once and says what moves.');
+    var simGroup = group('The island, live updates and offers', 'One pill says what needs you, and otherwise the clock or the connection. Prices change in place and anything new waits behind a pill. A real action asks once and says what moves.');
     var clocks = row(simGroup);
-    [['running', 'play', 'Day 4 · 06:12', 'Running'], ['paused', 'pause', 'Day 4 · 06:12', 'Paused'], ['frozen', 'pause', 'Day 4 · 06:12', 'Frozen']].forEach(function (c) {
-      clocks.appendChild(h('span.mk-sim-chip', { data: { state: c[0] } }, ui.icon(c[1]), h('span.mk-sim-clock.mk-num', { text: c[2] }), h('span.mk-sim-word', { text: c[3] })));
+    [['bad', 'down', 'Outbid', 'GeForce GTX 760'], ['good', 'up', 'Leading', 'Radeon RX 5600 XT'], ['warn', 'clock', 'Ends soon', 'RTX 4060 \u00b7 42m'], ['info', 'swap', 'Swap offer', 'Calm Otter \u00b7 1d 23h'], ['good', 'check', 'Sold', 'RTX 3050 for 640'], ['run', 'play', 'Day 4 \u00b7 06:12', 'Running'], ['idle', 'lock', 'Not connected', 'Global']].forEach(function (c) {
+      clocks.appendChild(h('span.mk-island', { data: { tone: c[0] } }, h('span.mk-island-glyph', ui.icon(c[1])), h('span.mk-island-text', h('span.mk-island-label', { text: c[2] }), h('span.mk-island-name', { text: c[3] }))));
+    });
+    var tiers = row(simGroup);
+    ['basic', 'rare', 'unusual', 'double-super-rare', 'legendary', 'mythical', 'secret'].forEach(function (r) {
+      var rar = C.rarity(r) || { name: r };
+      tiers.appendChild(h('span.mk-tile.mk-spec-tile', { data: { rarity: r }, style: { '--mk-rgb': ui.rarityRgb(r), '--mk-tier': ui.rarityTier(r), '--mk-i': 0 } }, h('span.mk-tile-rarity', { data: { rarity: r }, text: rar.name })));
     });
     var live = row(simGroup);
     live.appendChild(h('span.mk-updates', { text: '3 new listings · Show' }));

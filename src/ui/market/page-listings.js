@@ -7,10 +7,10 @@
   var cfg = function () { return C.data.market; };
 
   var PAGES = {
-    discover: { title: 'Browse', blurb: 'Cards worth a look right now, ranked for you rather than by price.', tabs: true, hero: true, formats: null },
-    auctions: { title: 'Auctions', blurb: 'Timed bidding. Set a maximum and the market bids for you, one step at a time.', formats: ['auction'], sort: 'ending', auctionControls: true },
-    'buy-now': { title: 'Buy Now', blurb: 'Fixed prices. The first buyer settles it.', formats: ['buy-now'], sort: 'recommended' },
-    trades: { title: 'Trades', blurb: 'Card for card, with an optional Credits top-up to even things out.', formats: ['swap'], sort: 'recommended' }
+    discover: { title: 'Browse', blurb: 'Picked for you.', tabs: true, hero: true, formats: null },
+    auctions: { title: 'Auctions', blurb: 'Set a maximum. It bids for you.', formats: ['auction'], sort: 'ending', auctionControls: true },
+    'buy-now': { title: 'Buy Now', blurb: 'Fixed prices. First buyer wins.', formats: ['buy-now'], sort: 'recommended' },
+    trades: { title: 'Trades', blurb: 'Card for card, with optional Credits.', formats: ['swap'], sort: 'recommended' }
   };
 
   function pageState(id) {
@@ -139,7 +139,7 @@
       else {
         var intro = h('aside.mk-intro', { role: 'note' },
           h('div', h('strong', { text: 'This is a preview of the Market.' }),
-            h('p', { text: 'Cardable has two realms: Simulation, with bots on this device, and Global Market, with real players. Everything you see now is invented sample data, so you can look around freely. Nothing is bought, sold or saved.' })),
+            h('p', { text: 'Two markets: Local, with traders on this device, and Global, with real players. Everything here is sample data. Nothing is bought, sold or saved.' })),
           ui.button('Got it', { variant: 'secondary', onClick: function () { store.markGuideSeen(); intro.remove(); } }));
         host.appendChild(intro);
       }
@@ -174,7 +174,7 @@
           });
           strip.appendChild(cols);
         }
-        strip.appendChild(h('p.mk-hint', { text: 'Want to practise? The Simulation is a separate, offline market of software traders. Its listings and prices never appear here.' }));
+        strip.appendChild(h('p.mk-hint', { text: 'Want to practise? Local is a separate, offline market. Its listings never appear here.' }));
       };
       paintStrip();
       scope.add(store.subscribe(function (what) { if (what === 'sim') paintStrip(); }));
@@ -470,7 +470,7 @@
         var actions = [];
         if (res.emptyReason === 'signed-out') actions.push({ label: 'Connect to Global Market', variant: 'primary', icon: 'user', run: function () { if (ui.online) ui.online.connectDialog(); } });
         if (res.emptyReason === 'offline' || res.emptyReason === 'paused') actions.push({ label: 'Try again', variant: 'primary', icon: 'forward', run: function () { C.market.online.refresh(true); } });
-        actions.push({ label: 'Open Simulation', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
+        actions.push({ label: 'Open Local', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
         if (res.emptyReason === 'no-listings') actions.unshift({ label: 'List a card', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } });
         results.appendChild(ui.emptyState({ kind: res.emptyReason === 'no-listings' ? 'empty' : 'offline', icon: res.emptyReason === 'no-listings' ? 'market' : 'lock',
           title: res.emptyReason === 'no-listings' ? 'No one is selling yet' : res.emptyReason === 'paused' ? 'Global Market is paused' : res.emptyReason === 'offline' ? 'Global Market is unreachable' : 'Connect to see Global Market',
@@ -480,9 +480,9 @@
       }
       if (res.emptyReason === 'not-connected') {
         results.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: 'Global Market is not connected',
-          body: 'It will list real players’ cards once it is connected. Until then nothing here is real, so there is nothing to show. You can browse the Simulation, draft a listing, or preview what a populated Global Market would look like.',
+          body: 'It lists real players’ cards once connected. You can browse Local or draft a listing meanwhile.',
           actions: [
-            { label: 'Open Simulation', variant: 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } },
+            { label: 'Open Local', variant: 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } },
             { label: 'Draft a listing', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } },
             { label: 'Preview the layout with sample listings', variant: 'ghost', icon: 'eye', run: function () { store.session.showGlobalSample = true; store.emit('realm'); } }].filter(function (action) { return action.icon !== 'eye' || devMode(); }) }));
         return;
@@ -498,7 +498,7 @@
         extra.appendChild(b);
       });
       results.appendChild(ui.emptyState({ kind: 'no-results', icon: 'search', title: 'No listings match',
-        body: ui.sim.live(realm) && !pool.length ? (realm === 'global' ? 'No player is selling this right now. Global Market only lists what real players have put up.' : 'No one in the Simulation is selling this right now. Traders list new cards through the day while the game is open.') : 'Nothing fits every filter at once. Loosen one of these, or clear everything and start again.', extra: hints.length ? extra : null,
+        body: ui.sim.live(realm) && !pool.length ? (realm === 'global' ? 'No player is selling this right now. Global lists only what real players put up.' : 'No one in Local is selling this right now. New cards are listed through the day.') : 'Nothing fits every filter. Loosen one, or clear them all.', extra: hints.length ? extra : null,
         actions: [{ label: 'Clear all filters', variant: 'secondary', run: clearAll }] }));
     }
     function renderResults(res, append) {
@@ -656,7 +656,7 @@
   // ---- Recent trades ----
   function mountRecentTrades(ctx, state) {
     var host = ctx.host, realm = ctx.realm, env = ctx.env(), live = ui.sim.live(realm);
-    var head = h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Discover' }), h('p', { text: 'Completed trades only. Listings, bids and Quick Sell never appear here.' })));
+    var head = h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Discover' }), h('p', { text: 'Completed trades only.' })));
     host.appendChild(head);
     var tabs = ui.segmented({ label: 'Discover feeds', role: 'tablist', value: 'trades', options: cfg().tabs.map(function (t) { return { value: t.id, label: t.label }; }),
       onChange: function (v) { state.tab = v; state.pages = 1; ui.shell.remount(); } });
@@ -668,7 +668,7 @@
       if (ctx.scope.dead) return;
       if (!res.items.length) {
         listHost.appendChild(ui.emptyState({ kind: 'offline', icon: 'swap', title: realm === 'global' ? 'No real trades yet' : 'No trades yet',
-          body: realm === 'global' ? (live ? 'No two players have completed a trade yet. When they do, every completed player trade appears here, and nothing else: never a bot, a sample or a system sale.' : 'Global Market is not connected. When it is, every completed player trade appears here, and nothing else.') : 'Completed Simulation trades appear here as traders buy and sell while the game is open.',
+          body: realm === 'global' ? (live ? 'No two players have completed a trade yet. When they do, every completed player trade appears here, and nothing else: never a bot, a sample or a system sale.' : 'Global Market is not connected. When it is, every completed player trade appears here, and nothing else.') : 'Completed Local trades appear here as traders buy and sell.',
           actions: [{ label: 'Back to For You', variant: 'secondary', run: function () { state.tab = 'for-you'; ui.shell.remount(); } }] }));
         ctx.restoreScroll();
         return;

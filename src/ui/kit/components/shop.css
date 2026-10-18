@@ -1,16 +1,20 @@
 /* Daily Shop showroom: native kit ink, authentic pack/card art, no autonomous motion. */
-.shop-entry {
+/* The Shop entry is one of four round HUD buttons (Market, Shop, Help, Settings): the same 44 px circle, the same glass, 12 px apart. */
+.shop-entry, .shop-entry.cb-icon-action {
   position:fixed; top:calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px));
-  right:calc(var(--s-6) + 168px + var(--safe-right,0px)); z-index:var(--z-menu);
-  pointer-events:auto; min-width:78px; min-height:44px; padding:0 14px; display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  border:1px solid var(--stroke-strong); border-radius:var(--radius-control);
-  background:var(--ink-2); color:var(--text-primary);
-  box-shadow:inset 0 1px 0 var(--light-edge),var(--shadow-sm);
-  font:600 13px/1 var(--font-ui); letter-spacing:.01em; cursor:pointer;
+  right:calc(var(--s-6) + 112px + var(--safe-right,0px)); z-index:var(--z-menu);
+  pointer-events:auto; width:44px; min-width:44px; height:44px; min-height:44px; padding:0; display:inline-grid; place-items:center; gap:0;
+  border:1px solid color-mix(in srgb,var(--text-primary) 13%,transparent); border-radius:var(--r-chip);
+  background:linear-gradient(155deg,color-mix(in srgb,var(--text-primary) 10.5%,transparent),color-mix(in srgb,var(--text-primary) 3.5%,transparent) 58%,color-mix(in srgb,var(--text-primary) 6.5%,transparent)); color:var(--text-primary);
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--text-primary) 14%,transparent),0 5px 18px rgba(var(--black-rgb),.22),0 1px 2px rgba(var(--black-rgb),.45);
+  backdrop-filter:blur(22px) saturate(125%); -webkit-backdrop-filter:blur(22px) saturate(125%);
+  font:600 13px/1 var(--font-ui); cursor:pointer;
   transition:transform var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out),opacity var(--duration-fast) var(--ease-out);
 }
+:is([data-glass-quality="very-low"],[data-glass-quality="low"]) .shop-entry { backdrop-filter:none; -webkit-backdrop-filter:none; background:var(--surface-2); }
+.shop-entry:active:not(:disabled) { transform:scale(.94); }
 .shop-entry:hover:not(:disabled) { transform:translateY(-1px); border-color:var(--stroke-hover); }
-.shop-entry .cb-icon { width:16px; height:16px; }
+.shop-entry .cb-icon, .shop-entry.cb-icon-action .cb-icon { width:22px; height:22px; }
 .shop-entry:disabled { opacity:.4; cursor:not-allowed; }
 .shop-entry:focus-visible { outline:2px solid var(--focus); outline-offset:4px; box-shadow:0 0 0 5px var(--focus-glow); }
 :is(.is-quiet,.is-idle,.is-afk,.is-opening,.is-rarity-cinematic,.inventory-depth-active,.settings-open) .shop-entry { opacity:0; pointer-events:none; }
@@ -283,7 +287,7 @@
   .shop-offer-art .collectible-card { width:92%; }
 }
 @media (max-width:700px) {
-  .shop-entry { top:calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px) + 56px); right:calc(var(--s-6) + var(--safe-right,0px)); }
+  .shop-entry, .shop-entry.cb-icon-action { top:calc(var(--s-6) + var(--safe-top,0px) + var(--titlebar-inset,0px) + 56px); right:calc(var(--s-6) + var(--safe-right,0px)); }
   .cb-scrim:has(> .shop-screen) { padding:0; }
   .shop-screen.cb-sheet { height:100%; max-height:100%; border-radius:0; border:0; }
   .shop-scroll { padding:20px max(20px,var(--safe-left)) calc(28px + var(--safe-bottom)); }

@@ -167,7 +167,7 @@ test('assess: a listing far under Average Value is "a good price" and says what 
   assert.equal(cheap.verdict, 'good'); assert.ok(cheap.lines.some((t) => /2% fee/.test(t)), 'it states the fee'); assert.ok(cheap.gain > 0);
   l.ask = Math.round(fair * 1.4);
   const dear = g.S.advisor.assess(g.world, g.env, l, 10);
-  assert.equal(dear.verdict, 'pricey'); assert.ok(dear.lines.some((t) => /short of the likely price/.test(t)), 'it says when you cannot afford it');
+  assert.equal(dear.verdict, 'pricey'); assert.ok(dear.lines.some((t) => /available, .* short/.test(t)), 'it says when you cannot afford it');
 });
 
 test('conservation holds with news, fire sales and market makers over twenty days: no card in two places, no negative Credits', () => {

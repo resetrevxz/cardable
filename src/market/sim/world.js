@@ -183,11 +183,10 @@
         var lead = Math.round(S.between(world, kind.leadHours[0], kind.leadHours[1]) * HOUR), dur = Math.round(S.between(world, kind.hours[0], kind.hours[1]) * HOUR);
         var up = mag > 0, pct = Math.round(Math.abs(mag) * 100 / 5) * 5;
         var e2 = { id: S.nextId(world, 'N'), kind: kind.id, scope: where.scope, label: where.label, mag: mag, announced: now, start: now + lead, end: now + lead + dur, cards: n,
-          headline: up ? where.label + ' is getting attention' : where.label + ' prices are slipping',
-          detail: up ? 'Traders expect to pay about ' + pct + '% more for ' + (where.scope.card ? 'it' : 'these cards') + ' soon. Buy before it starts and sell while it lasts.'
-            : 'Traders expect to pay about ' + pct + '% less for ' + (where.scope.card ? 'it' : 'these cards') + '. Hold off buying until it passes, or sell before it bites.' };
+          headline: up ? where.label + ' demand is rising' : where.label + ' prices are slipping',
+          detail: up ? 'About ' + pct + '% more expected. Buy before it starts.' : 'About ' + pct + '% less expected. Hold off, or sell first.' };
         world.events.push(e2);
-        S.feed(world, 'news', e2.headline + (up ? ' - demand expected to rise' : ' - demand expected to fall'), { news: e2.id });
+        S.feed(world, 'news', e2.headline + ' \u00b7 about ' + pct + '% ' + (up ? 'up' : 'down'), { news: e2.id });
         break;
       }
     }

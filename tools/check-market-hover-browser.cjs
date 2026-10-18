@@ -61,7 +61,10 @@ async function pointAt(page, index, fx, fy) {
 }
 const artState = (page, index) => page.evaluate((i) => {
   const t = document.querySelectorAll('.mk-tile')[i], art = t.querySelector('.mk-art');
-  return { pointed: t.classList.contains('is-pointed'), tiltX: t.style.getPropertyValue('--tilt-x'), tiltY: t.style.getPropertyValue('--tilt-y'), transform: art ? getComputedStyle(art).transform : null, glow: getComputedStyle(t, '::after').opacity, rarity: t.dataset.rarity };
+  // the rarity glow is a coloured shadow with a wide blur and a negative spread: look for one with some strength
+  const shadow = getComputedStyle(t).boxShadow, glows = [];
+  shadow.replace(/rgba?\(([^)]+)\)\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+([\d.]+)px\s+(-?[\d.]+)px/g, (m, rgb, x, y, blur, spread) => { const a = rgb.split(',').length > 3 ? parseFloat(rgb.split(',')[3]) : 1; if (parseFloat(blur) >= 18 && parseFloat(spread) < 0 && x === '0' && y === '0') glows.push(a); return m; });
+  return { pointed: t.classList.contains('is-pointed'), tiltX: t.style.getPropertyValue('--tilt-x'), tiltY: t.style.getPropertyValue('--tilt-y'), transform: art ? getComputedStyle(art).transform : null, glow: glows.length ? Math.max.apply(null, glows) : 0, tier: Number(t.style.getPropertyValue('--mk-tier')), rarity: t.dataset.rarity };
 }, index);
 
 (async () => {
@@ -101,7 +104,7 @@ const artState = (page, index) => page.evaluate((i) => {
         res[name] = await artState(page, idx);
         if (name === 'high') await page.screenshot({ path: path.join(out, 'hover-rare.png') });
       }
-      if (res.high) assert.ok(parseFloat(res.high.glow) > 0.2, 'a ' + res.high.rarity + ' tile glows (' + res.high.glow + ')');
+      if (res.high) assert.ok(res.high.tier >= 3 && parseFloat(res.high.glow) > 0.1, 'a ' + res.high.rarity + ' tile glows (' + res.high.glow + ')');
       if (res.low) assert.equal(parseFloat(res.low.glow), 0, 'a ' + res.low.rarity + ' tile does not glow');
       return res;
     });

@@ -269,7 +269,7 @@ async function waitRevealed(page) {
       await page.evaluate(() => { Cardable.inventory.request('peek'); Cardable.market.store.markGuideSeen(); Cardable.market.open({ name: 'portfolio', params: {} }); });
       await page.waitForSelector('.mk-summary');
       const text = await page.evaluate(() => document.querySelector('.mk-summary').textContent);
-      assert(/If sold to the system/.test(text) && /Estimated collection value/.test(text), text);
+      assert(/Quick Sell value/.test(text) && /Collection value/.test(text), text);
       await page.evaluate(() => { const inst = Cardable.state.current.inventory.find((i) => Cardable.rarity(Cardable.card(i.cardId).rarity).tier === 3); Cardable.market.ui.go('compose', { instanceId: inst.instanceId }, { reset: true }); });
       await page.waitForSelector('.mk-analysis');
       await page.locator('.mk-analysis > summary').click();

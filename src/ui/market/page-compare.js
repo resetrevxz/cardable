@@ -34,11 +34,11 @@
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope;
     var items = store.compareList().filter(function (x) { return x.realm === realm; });
     host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Compare' }),
-      h('p', { text: 'Two to four exact cards, side by side, with the same numbers each one shows on its own page.' })),
+      h('p', { text: 'Two to four cards, side by side.' })),
       h('div.mk-pagehead-actions', items.length ? ui.button('Clear', { variant: 'ghost', onClick: function () { store.clearCompare(); ui.shell.remount(); } }) : null)));
     if (items.length < 1) {
-      host.appendChild(ui.emptyState({ icon: 'cards', title: 'Nothing to compare yet', body: 'Open a card’s market or its Stocks view and choose Compare. You can hold up to four.',
-        actions: [{ label: 'Open Stocks', variant: 'primary', run: function () { ui.shell.goTab('stocks'); } }] }));
+      host.appendChild(ui.emptyState({ icon: 'cards', title: 'Nothing to compare yet', body: 'Open a card’s market or its Prices view and choose Compare. Up to four.',
+        actions: [{ label: 'Open Prices', variant: 'primary', run: function () { ui.shell.goTab('stocks'); } }] }));
       ctx.restoreScroll();
       return;
     }

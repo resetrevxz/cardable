@@ -15,7 +15,7 @@
     { id: 'safe', title: 'Your offline game is safe', items: [
       'Importing your collection is a one-time copy. It reads your save and never changes it.',
       'Your Studio photos and Director album stay on your device. A picture leaves the device only when you choose to upload it for a listing.',
-      'If the service is paused or unreachable, the Simulation, your collection and every offline feature keep working.'] },
+      'If the service is paused or unreachable, Local, your collection and every offline feature keep working.'] },
     { id: 'terms', title: 'Terms of use (beta)', items: [
       'Be kind. No harassment, hate, threats, sexual content or anything illegal in comments, reviews, names or pictures.',
       'Only upload pictures you took or have the right to share, and never anyone’s face, home, documents or other private detail.',

@@ -44,6 +44,7 @@
   }
   function refresh() {
     chips.forEach(function (chip) { if (!chip.isConnected) { chips.delete(chip); return; } paintChip(chip); });
+    if (ui.island) ui.island.refresh();
   }
 
   // ---- the panel ------------------------------------------------------------------------------------------------------
@@ -51,10 +52,10 @@
   function panelBody(close, compact) {
     var r = rt(), st = status(), world = r && r.world;
     var box = h('div.mk-sim-panel');
-    box.appendChild(h('div.mk-menu-title', { text: 'Simulation clock' }));
+    box.appendChild(h('div.mk-menu-title', { text: 'Clock' }));
     box.appendChild(h('div.mk-sim-big', h('span.mk-num', { text: st.clock || 'Not started' }), h('span.mk-sim-word', { text: stateWord(st) })));
     var sp = speedInfo(st.speed);
-    box.appendChild(h('p.mk-hint', { text: !st.exists ? 'Open the Market to start a fresh simulated world.' : st.paused ? 'You paused it. Nothing moves until you resume.' : st.clockState === 'running' ? sp.note : (st.reason || 'Stopped.') }));
+    box.appendChild(h('p.mk-hint', { text: !st.exists ? 'Open the Market to start.' : st.paused ? 'Paused. Nothing moves until you resume.' : st.clockState === 'running' ? sp.note : (st.reason || 'Stopped.') }));
     var pause = ui.button(st.paused ? 'Resume' : 'Pause', { icon: st.paused ? 'play' : 'pause', variant: st.paused ? 'primary' : 'secondary', disabled: !st.exists });
     pause.addEventListener('click', function () { if (!r) return; if (r.paused) r.resume(); else r.pause(); refresh(); close && close(); });
     box.appendChild(pause);
@@ -76,19 +77,19 @@
   // ---- onboarding -----------------------------------------------------------------------------------------------------
   function introCard(onDone) {
     var card = h('aside.mk-intro.is-sim', { role: 'note' },
-      h('div', h('strong', { text: 'Simulation is a local market.' }),
+      h('div', h('strong', { text: 'Local is a market on this device.' }),
         h('p', { text: cfg().help.intro }),
         h('ul.mk-bullets',
-          h('li', { text: 'The traders are bots with their own Credits, cards and habits. You can see why each trade happened.' }),
-          h('li', { text: 'Simulated time runs only while Cardable is open and visible. Close the game and the market stops where it is; it does not catch up.' }),
-          h('li', { text: 'A card you list stays in your collection but is locked until it sells or you withdraw it. Sales add Credits once, after a 2% fee.' }))),
+          h('li', { text: 'Traders are bots with their own Credits, cards and habits.' }),
+          h('li', { text: 'Time runs only while Cardable is open and visible.' }),
+          h('li', { text: 'Listed cards are locked until they sell or you withdraw them. Sales pay Credits once, after a 2% fee.' }))),
       ui.button('Got it', { variant: 'secondary', onClick: function () { C.market.store.markGuideSeen(); card.remove(); if (onDone) onDone(); } }));
     return card;
   }
 
   // ---- export, import, reset -----------------------------------------------------------------------------------------
   function exportFile() {
-    var r = rt(); if (!r || !r.world) { C.ui.toast('There is no simulation to export yet.'); return; }
+    var r = rt(); if (!r || !r.world) { C.ui.toast('Nothing to export yet.'); return; }
     var text = r.exportText();
     var blob = new root.Blob([text], { type: 'application/json' }), url = root.URL.createObjectURL(blob);
     var a = h('a', { href: url, download: 'cardable-market-simulation-day-' + (Math.floor((r.world.now - r.world.epoch) / 86400000) + 1) + '.json' });
@@ -198,28 +199,28 @@
       var days = Math.floor((world.now - world.epoch) / 86400000) + 1;
       var credits = world.bots.reduce(function (n, b) { return n + b.credits; }, 0);
       panel.appendChild(ui.statGrid([
-        { label: 'Simulated day', value: String(days) }, { label: 'Traders', value: String(world.bots.length) },
+        { label: 'Day', value: String(days) }, { label: 'Traders', value: String(world.bots.length) },
         { label: 'Trades', value: String(world.stats.trades) }, { label: 'Volume', value: ui.fmt.exact(world.stats.volume) + ' Credits' },
         { label: 'Fees removed', value: ui.fmt.exact(world.stats.burnt) + ' Credits', note: 'The 2% fee leaves the world' }, { label: 'Allowance issued', value: ui.fmt.exact(world.stats.allowance) + ' Credits', note: 'Bounded top-ups for traders' },
         { label: 'Credits held by traders', value: ui.fmt.exact(credits) }, { label: 'Packs opened by traders', value: String(world.stats.packs) }
       ], { cols: 2 }));
     }
-    var pause = ui.button(st.paused ? 'Resume simulation' : 'Pause simulation', { icon: st.paused ? 'play' : 'pause', variant: 'secondary', disabled: !world });
+    var pause = ui.button(st.paused ? 'Resume' : 'Pause', { icon: st.paused ? 'play' : 'pause', variant: 'secondary', disabled: !world });
     pause.addEventListener('click', function () { if (r.paused) r.resume(); else r.pause(); ui.shell.remount(); });
-    var file = h('input', { type: 'file', accept: 'application/json,.json', hidden: true, 'aria-label': 'Choose a simulation file' });
+    var file = h('input', { type: 'file', accept: 'application/json,.json', hidden: true, 'aria-label': 'Choose a file' });
     file.addEventListener('change', function () { importFile(file.files && file.files[0], function () { ui.shell.remount(); }); file.value = ''; });
-    var reset = ui.button('Reset simulation', { icon: 'trash', variant: 'secondary' });
+    var reset = ui.button('Reset Local', { icon: 'trash', variant: 'secondary' });
     var armed = false, timer = 0;
     reset.addEventListener('click', function () {
-      if (!armed) { armed = true; reset.querySelector('span').textContent = 'Click again to reset'; reset.dataset.variant = 'danger'; timer = root.setTimeout(function () { armed = false; reset.querySelector('span').textContent = 'Reset simulation'; reset.dataset.variant = 'secondary'; }, 4000); return; }
+      if (!armed) { armed = true; reset.querySelector('span').textContent = 'Click again to reset'; reset.dataset.variant = 'danger'; timer = root.setTimeout(function () { armed = false; reset.querySelector('span').textContent = 'Reset Local'; reset.dataset.variant = 'secondary'; }, 4000); return; }
       root.clearTimeout(timer); resetWorld(function () { ui.shell.remount(); });
     });
     ctx.scope.add(function () { root.clearTimeout(timer); });
-    panel.appendChild(h('div.mk-sim-actions', pause, ui.button('Export simulation', { icon: 'save', variant: 'secondary', disabled: !world, onClick: exportFile }),
+    panel.appendChild(h('div.mk-sim-actions', pause, ui.button('Export', { icon: 'save', variant: 'secondary', disabled: !world, onClick: exportFile }),
       ui.button('Restore from file', { icon: 'upload', variant: 'secondary', onClick: function () { file.click(); } }), file, reset));
     panel.appendChild(h('p.mk-hint', { text: cfg().help.reset }));
     if (r && r.error) panel.appendChild(h('p.mk-field-error.is-inline', { role: 'status', text: r.error }));
-    if (r && r.recoveredFrom === 'backup') panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'The simulation was restored from its automatic backup after the last copy could not be read. The unreadable copy was kept.' })));
+    if (r && r.recoveredFrom === 'backup') panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'Restored from the automatic backup. The unreadable copy was kept.' })));
     return panel;
   }
 

@@ -290,7 +290,7 @@
           var startValue = bidDraft.touched ? bidDraft.value : String(minBid);
           var field = h('label.mk-field', h('span.mk-field-label', ui.labelWithHelp('Your maximum', 'proxy-bid')),
             h('input.mk-input.is-large', { id: 'mk-max', type: 'number', min: String(minBid), step: '1', inputmode: 'numeric', value: startValue, 'aria-describedby': 'mk-max-hint', props: { disabled: closed } }),
-            h('small.mk-hint', { id: 'mk-max-hint', text: 'The market bids the smallest amount that keeps you in front, up to this maximum. Late bids extend the close by ' + (live ? C.data.marketSim.listing.snipeExtendMin : cfg().auction.snipeExtendMin) + ' minutes.' }));
+            h('small.mk-hint', { id: 'mk-max-hint', text: 'It bids the least that keeps you in front, up to this. A late bid adds ' + (live ? C.data.marketSim.listing.snipeExtendMin : cfg().auction.snipeExtendMin) + ' minutes.' }));
           panel.appendChild(field);
           var input = field.querySelector('input');
           var bidBtn = ui.button(live ? (a.myMax ? 'Raise maximum' : 'Place bid') : 'Preview bid', { variant: 'primary', icon: 'gavel', disabled: closed, reason: closed ? 'This auction is closed.' : '', onClick: function () {
@@ -417,7 +417,7 @@
         right.appendChild(share);
       } else {
         var comments = h('section.mk-box.is-inactive', { 'aria-label': 'Comments' }, h('div.mk-panel-head', h('h3', { text: 'Comments' }), ui.chip('Players only', { tone: 'soft' })));
-        comments.appendChild(h('p.mk-hint', { text: 'Traders in the Simulation are software on this device, so there is no one to comment or rate. Comments and reviews live in Global Market.' }));
+        comments.appendChild(h('p.mk-hint', { text: 'Local traders are software, so there is no one to comment or rate. Comments and reviews live in Global.' }));
         right.appendChild(comments);
       }
       ui.sim.countdowns(right);
@@ -486,7 +486,7 @@
       var body = h('div.mk-swapper', h('label.mk-field', h('span.mk-field-label', { text: 'Credits' }), amount), seg, h('label.mk-field', h('span.mk-field-label', { text: 'Note' }), note), summary);
       ui.sim.confirm({
         title: 'Counter this offer', eyebrow: iAmSeller ? 'Reply to ' + o.from : 'Reply to ' + o.to, anchor: root.document.activeElement, body: body, rows: [],
-        note: 'The cards stay as they are. Only the Credits change. The other player then accepts, counters again (up to six replies in all) or declines. Nothing moves until someone accepts.',
+        note: 'Only the Credits change. They can accept, counter (six replies at most) or decline. Nothing moves until someone accepts.',
         confirmLabel: 'Send counteroffer', icon: 'swap',
         run: function (req) {
           var n = Math.max(0, Math.floor(Number(amount.value) || 0));
@@ -552,7 +552,7 @@
       ui.sim.confirm({
         title: 'Confirm purchase', card: cardChip(l), anchor: root.document.activeElement,
         rows: [{ label: 'Item', value: idn.name }, { label: 'Serial', node: h('span.mk-mono', { text: l.card.serial }) }, { label: 'Price', node: ui.credits(price) }, { label: 'Seller', value: l.seller.alias }].concat(balanceRows(price, wallet)),
-        note: 'The card joins your collection straight away and the Credits leave your balance once. The seller receives ' + ui.fmt.exact(price - K().feeFor(price)) + ' after the ' + cfg().fee.label.toLowerCase() + '.',
+        note: 'The card is yours at once. The seller gets ' + ui.fmt.exact(price - K().feeFor(price)) + ' after the ' + cfg().fee.label.toLowerCase() + '.',
         confirmLabel: 'Buy for ' + ui.fmt.exact(price), icon: 'tag', run: run,
         success: function () { C.ui.toast(done()); repaintNow(); }, failure: repaintNow
       });
@@ -573,7 +573,7 @@
           { label: 'Held until it ends', value: ui.fmt.exact(max) + ' Credits' },
           { label: 'Closes', value: ui.fmt.duration(l.endsMin) + (l.endsMin <= C.data.marketSim.listing.snipeWindowMin ? ' (extends on late bids)' : '') }
         ].concat(balanceRows(extra, ctx.api.walletSync(realm))),
-        note: 'Nothing is paid until you win. You pay the lowest amount that beats the next bidder, never more than your maximum. Losing bidders get their hold back.',
+        note: 'Nothing is paid until you win. You pay the least that beats the next bidder, never more than your maximum.',
         confirmLabel: a.myMax ? 'Raise maximum to ' + ui.fmt.exact(max) : 'Place bid', icon: 'gavel', run: run,
         success: function (res) { C.ui.toast(done(res)); repaintNow(); }, failure: repaintNow
       });
@@ -595,7 +595,7 @@
       input.addEventListener('input', sync); sync();
       ui.sim.confirm({
         title: 'Change the price', card: cardChip(l), eyebrow: 'Your listing', anchor: root.document.activeElement, body: h('div.mk-swapper', h('label.mk-field', h('span.mk-field-label', { text: 'New price' }), input), preview), rows: [],
-        note: 'A buyer who was looking at the old price is told it changed and must review the new one: nobody pays a price they did not see.',
+        note: 'A buyer looking at the old price is told it changed and must review the new one.',
         confirmLabel: 'Change price', icon: 'tag',
         run: function (req) { var n = Math.floor(Number(input.value)); if (!(n >= 1)) return { ok: false, message: 'Enter a whole price of at least 1 Credit.' }; return ctx.api.repriceListing(realm, l.id, n, req); },
         success: function () { C.ui.toast('Price changed'); repaintNow(); }, failure: repaintNow
@@ -671,7 +671,7 @@
       paint();
       ui.sim.confirm({
         title: 'Offer a swap', eyebrow: 'For ' + idn.name, card: cardChip(l), body: body, anchor: root.document.activeElement,
-        rows: [], note: 'The cards you choose are locked while the offer is open. The seller may accept, decline or counter within two days.',
+        rows: [], note: 'Your chosen cards are locked while the offer is open. The seller has two days to answer.',
         confirmLabel: 'Send offer', icon: 'swap', disabledReason: 'Choose at least one card.',
         ready: function (api) { ready = api; update(); },
         run: function (req) { return ctx.api.makeOffer(realm, { listingId: l.id, instanceIds: Object.keys(chosen), cash: Math.max(0, Math.floor(Number(cashInput.value) || 0)), requestId: req }); },
@@ -780,7 +780,7 @@
       headBox.appendChild(h('p.mk-detail-sub', { text: r.listings.length + ' open listings · ' + (owned ? 'You own ' + r.owned : 'Not in your collection') }));
       var acts = h('div.mk-detail-actions');
       acts.appendChild(ui.button('Set a price alert', { icon: 'bell', variant: 'secondary', onClick: function () { ui.go('alerts', { cardId: card.id }); } }));
-      acts.appendChild(ui.button('Open in Stocks', { icon: 'trend', variant: 'secondary', onClick: function () { var s = store.session; s.stocks = { scope: 'card', id: card.id, variantId: variantId }; ui.shell.goTab('stocks'); } }));
+      acts.appendChild(ui.button('Open in Prices', { icon: 'trend', variant: 'secondary', onClick: function () { var s = store.session; s.stocks = { scope: 'card', id: card.id, variantId: variantId }; ui.shell.goTab('stocks'); } }));
       if (ui.compare) {
         var inCompare = ui.compare.has(realm, card.id, variantId);
         acts.appendChild(ui.button(inCompare ? 'In Compare' : 'Compare', { icon: 'cards', variant: 'secondary', pressed: inCompare, onClick: function (e) {
@@ -895,7 +895,7 @@
       price.addEventListener('input', function () { var n = Number(price.value); if (ready) { ready.go.disabled = !(n >= 1) || n !== Math.floor(n) || n > wallet.available; ready.go.title = n > wallet.available ? 'You have ' + ui.fmt.exact(wallet.available) + ' Credits available.' : ''; } });
       ui.sim.confirm({
         title: 'Place a buy order', eyebrow: idn.name, body: body, anchor: root.document.activeElement, rows: [],
-        note: 'Your highest price is held until the order fills, expires or you cancel it. Nothing is paid unless a card is bought.',
+        note: 'Your highest price is held until the order fills, expires or you cancel it.',
         confirmLabel: 'Place order', icon: 'tag', ready: function (api) { ready = api; },
         run: function (req) { return ctx.api.placeOrder(realm, { c: card.id, v: any.checked ? null : variantId, anyFinish: any.checked, maxPrice: Math.floor(Number(price.value)), durationMs: dur[pick], requestId: req }); },
         success: function (x) { C.ui.toast('Buy order placed'); paint(ctx.api.cardMarketSync(realm, cardId, variantId)); ui.shell.refresh(); }

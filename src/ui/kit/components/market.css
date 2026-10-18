@@ -893,11 +893,11 @@ textarea.mk-input { padding: 10px 12px; resize: vertical; min-height: 84px; line
   .mk-feed-item .mk-tile-photo, .mk-feed-icon { width: 72px; }
 }
 
-/* ---- Beside the Shop entry (main 1.7.x) ---- */
-/* The Shop entry takes the slot the Market button used to have, so the Market button sits to its left. On narrow windows the
-   Shop entry drops below the gear and the Market button keeps the original slot. */
-.mk-hud { right: calc(var(--s-6) + 266px + var(--safe-right, 0px)); }
-@media (max-width: 700px) { .mk-hud { right: calc(var(--s-6) + 168px + var(--safe-right, 0px)); } }
+/* ---- Beside the Shop entry ---- */
+/* Settings, Help, Shop, Market: four 44 px circles, 12 px apart, right to left. On narrow windows the Shop entry drops below the gear
+   and the Market button moves up next to Help. */
+.mk-hud { right: calc(var(--s-6) + 168px + var(--safe-right, 0px)); }
+@media (max-width: 700px) { .mk-hud { right: calc(var(--s-6) + 112px + var(--safe-right, 0px)); } }
 
 /* ---- Help & feedback (Beta 1.0.0) ---- */
 .mk-help-section h2, .mk-help-feedback h2 { font: 600 16px/22px var(--font-ui); }
