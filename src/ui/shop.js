@@ -966,7 +966,17 @@
       if (!entry || entry.dataset.shopReady) return;
       entry.dataset.shopReady = 'true';
       C.ui.iconAction(entry,'shop','Shop');
-      entry.addEventListener('click', open);
+      // The Shop lives in the Market now (1.13.0): the bag opens the Market on its Shop tab; the classic showroom is a button there.
+      entry.addEventListener('click', function () {
+        var mk = C.market && C.market.ui;
+        if (mk && mk.pages && mk.pages.get('shop') && mk.shell && mk.shell.canOpen()) {
+          var go = function () { entry.classList.remove('is-opening'); if (!C.market.open({ name: 'shop', params: {} })) open(); };
+          if (mk.motion && mk.motion.still()) { go(); return; }
+          entry.classList.add('is-opening'); root.setTimeout(go, 180);
+          return;
+        }
+        open();
+      });
       C.events.on('opening:context', function (event) { entry.disabled = event.phase !== 'idle'; });
     }
   };

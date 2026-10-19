@@ -30,7 +30,7 @@
     { id: 'goals', label: 'Goals', icon: 'target', level: 2, bucket: 'good', hint: 'You are close to the next level.' },
     { id: 'worth', label: 'Value of your cards', icon: 'briefcase', ambient: true, bucket: 'mine', hint: 'What your cards are worth, and how it moved.' },
     { id: 'spend', label: 'Credits to spend', icon: 'coin', ambient: true, bucket: 'mine', hint: 'What you can spend now, after bids and orders hold some back.' },
-    { id: 'clock', label: 'Clock', icon: 'clock', ambient: true, bucket: 'mine', hint: 'The day and time in Local, or the connection in Global.' }
+    { id: 'clock', label: 'Clock', icon: 'clock', ambient: true, bucket: 'mine', hint: 'The day and time in Standard, or the connection in Players.' }
   ];
   var BY_ID = {}; CATS.forEach(function (c) { BY_ID[c.id] = c; });
   var DEFAULT_ORDER = CATS.map(function (c) { return c.id; });
@@ -198,7 +198,7 @@
       push('worth', { id: 'worth', tone: diff > 0 ? 'up' : diff < 0 ? 'down' : 'idle', glyph: 'briefcase', label: fx(w.now), title: diff ? 'Net worth ' + sign + fx(Math.abs(diff)) + (w.dayChange != null ? ' today' : ' since start') : 'Net worth', line: 'Cards ' + fx(w.cards) + ' · Credits ' + fx(w.credits), minutes: null, order: 0, go: { name: 'portfolio', params: {} } });
     }
     if (s.live) push('spend', { id: 'spend', tone: 'run', glyph: 'coin', label: fx(wallet.available), title: wallet.held ? 'to spend · ' + fx(wallet.held) + ' held' : 'to spend', line: '', minutes: null, order: 0, go: { name: 'portfolio', params: {} } });
-    push('clock', { id: 'clock', tone: s.clockState === 'running' ? 'run' : 'idle', glyph: s.clockState === 'running' ? 'play' : (s.realm === 'global' ? (s.live ? 'check' : 'lock') : 'pause'), label: s.clock || 'Local', title: s.clockWord || '', line: '', minutes: null, order: 0, go: null });
+    push('clock', { id: 'clock', tone: s.clockState === 'running' ? 'run' : 'idle', glyph: s.clockState === 'running' ? 'play' : (s.realm === 'global' ? (s.live ? 'check' : 'lock') : 'pause'), label: s.clock || 'Standard', title: s.clockWord || '', line: '', minutes: null, order: 0, go: null });
 
     // cap each category, then sort: pins, then the player's order, then what matters inside the category
     var seen = {};

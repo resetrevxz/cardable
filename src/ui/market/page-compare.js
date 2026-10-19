@@ -33,7 +33,7 @@
   function mount(ctx) {
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope;
     var items = store.compareList().filter(function (x) { return x.realm === realm; });
-    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Compare' }),
+    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', icon('cards')), h('span', { text: 'Compare' })),
       h('p', { text: 'Two to four cards, side by side.' })),
       h('div.mk-pagehead-actions', items.length ? ui.button('Clear', { variant: 'ghost', onClick: function () { store.clearCompare(); ui.shell.remount(); } }) : null)));
     if (items.length < 1) {

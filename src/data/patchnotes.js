@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.13.0',codename:'Open doors',date:'October 19, 2026',tag:'Update',tagline:'The Market is easier to read, and the Shop moved in.',
+    hero:{badge:'CARDABLE / 1.13.0',title:'Open doors.',subtitle:'The Shop as a Market tab, your auctions on top, a tour for new players, smarter traders and a notch that no longer flickers.',media:[]},
+    sections:{features:['The Shop is a tab of the Market, bought through the usual review.','Your auctions stay at the top of the Market while they run.','Cards you win or buy land in your inventory with a notification and a View button.','A short tour the first time the Market opens.','Smarter traders with generated names.'],qol:['Tips, icons on every page and tab, and less text.','Three ready prices when you list a card, and a Sell button in Portfolio.','New listings slide in; a refresh button; a glint on Super Rare and better.','Local is now Standard and Global Market is now Players.'],fixes:['The notch no longer flickers on every clock tick.','The special-pack marker stays inside the timer bar.']},
+    entries:['The Shop in the Market.','Your auctions on top.','A tour for new players.','Smarter traders.','No more notch flicker.']
+  },
+  {
     version:'1.12.1',codename:'Smoother',date:'October 19, 2026',tag:'Update',tagline:'Going to the inventory no longer stutters.',
     hero:{badge:'CARDABLE / 1.12.1',title:'Smoother.',subtitle:'The inventory, opening a card and the tutorial run without stutter, and the Rare, Super Rare and Exotic cinematics start without a hitch.',media:[]},
     sections:{qol:['The inventory opens and closes without dropping frames.','Opening a card is smooth.','The tutorial no longer keeps the page busy.'],fixes:['The Rare, Super Rare and Exotic cinematics prepare their textures while the pack tears open, not when they start, and no longer build them twice.','Mythical and Ascendant compile their shaders together.']},

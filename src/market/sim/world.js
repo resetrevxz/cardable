@@ -28,8 +28,47 @@
     // A world made before news existed gets its first piece of news an hour from now, so an older save is not left without any.
     if (!world.queue.some(function (e) { return e.type === 'news'; })) S.addEvent(world, world.now + HOUR, 'news', '');
     world.bots.forEach(function (b) { world.botIndex[b.id] = b; });
+    // Traders get handles from the username generator; an older world is renamed once, its history rewritten to match.
+    var nv = cfg().names ? cfg().names.version : 1;
+    if ((world.namesV || 1) < nv) { renameBots(world); world.namesV = nv; }
     world._fair = {};
     return world;
+  }
+
+  // ---- usernames ------------------------------------------------------------------------------------------------------
+  // A stable hash, never the world's random sequence, so naming changes nothing else about a world.
+  function handleFor(world, bot, used, salt) {
+    var n = cfg().names, h = function (tag) { return core().hash32(world.seed + '|' + world.nonce + '|' + bot.id + '|' + salt + '|' + tag) / 4294967296; };
+    var pickOf = function (list, tag) { return list[Math.floor(h(tag) * list.length) % list.length]; };
+    if (h('preset') < n.presetShare) {
+      var free = n.presets.filter(function (p) { return !used[p.toLowerCase()]; });
+      if (free.length) return pickOf(free, 'which');
+    }
+    var a = pickOf(n.first, 'a'), b = pickOf(n.second, 'b');
+    if (used[(a + b).toLowerCase()]) return null;
+    var roll = h('style'), style = n.styles[n.styles.length - 1][0], acc = 0;
+    for (var i = 0; i < n.styles.length; i++) { acc += n.styles[i][1]; if (roll < acc) { style = n.styles[i][0]; break; } }
+    var num = String(2 + Math.floor(h('num') * 97));
+    if (style === 'camelNum') return a + b + num;
+    if (style === 'snake') return a.toLowerCase() + '_' + b.toLowerCase();
+    if (style === 'tag') return 'x' + a + b;
+    return a + b;
+  }
+  function renameBots(world) {
+    var used = {}, swaps = [];
+    world.bots.forEach(function (bot) {
+      var name = null;
+      for (var salt = 0; salt < 24 && (!name || used[name.toLowerCase()]); salt++) name = handleFor(world, bot, used, salt);
+      if (!name || used[name.toLowerCase()]) name = 'Trader' + bot.id.replace(/\D/g, '');
+      // the base of a handle (no number, underscore or x prefix) is taken too, so there is no NeonFox beside NeonFox42
+      used[name.toLowerCase()] = true; used[(/^x[A-Z]/.test(name) ? name.slice(1) : name).replace(/[_0-9]/g, '').toLowerCase()] = true;
+      if (bot.alias && bot.alias !== name) swaps.push([bot.alias, name]);
+      bot.alias = name;
+    });
+    function fix(text) { if (typeof text !== 'string') return text; swaps.forEach(function (s) { if (text.indexOf(s[0]) >= 0) text = text.split(s[0]).join(s[1]); }); return text; }
+    (world.feed || []).forEach(function (f) { f.text = fix(f.text); });
+    (world.notices || []).forEach(function (f) { f.text = fix(f.text); });
+    Object.keys(world.offers || {}).forEach(function (id) { var o = world.offers[id]; if (o && o.note) o.note = fix(o.note); });
   }
   function uniqueAlias(world, env, used) {
     for (var tries = 0; tries < 200; tries++) {
@@ -240,13 +279,64 @@
     return out;
   }
 
-  function buyPass(world, env, host, bot, persona) {
-    var cands = openListings(world, bot.id), picked = [], shuffleCount = Math.min(cands.length, 14);
-    // Sample a limited number of listings, not the whole book.
-    for (var i = 0; i < shuffleCount; i++) {
-      var at = Math.floor(S.rnd(world) * cands.length);
-      picked.push(cands.splice(at, 1)[0]);
+  // What a trader looks at when it wakes: its best leads first (the cheapest against what it thinks the card is worth, an
+  // auction that closes soon, a card it wants), then a random handful so it still stumbles on things.
+  function scout(world, env, bot, persona, cands) {
+    var st = cfg().strategy, scanN = st ? st.scan[persona.id] || 14 : 14, smartN = st ? Math.min(scanN, st.smart[persona.id] || 0) : 0, picked = [];
+    if (smartN) {
+      var scored = [];
+      cands.forEach(function (l, i) {
+        if (l.kind === 'swap' || l.items.length !== 1) return;
+        var it = l.items[0];
+        if (!interested(world, env, bot, it)) return;
+        var fair = S.fairInfo(world, env, it.c, it.v, it.k).average * S.serialFactor(it.s);
+        if (!(fair > 0)) return;
+        var ratio = S.currentPrice(l) / fair;
+        if (l.kind === 'auction' && l.endsAt - world.now < 2 * HOUR) ratio -= 0.06;
+        if (bot.wish.indexOf(it.c) >= 0) ratio -= 0.1;
+        scored.push({ i: i, r: ratio });
+      });
+      scored.sort(function (a, b) { return a.r - b.r || a.i - b.i; });
+      var take = {};
+      scored.slice(0, smartN).forEach(function (s) { take[s.i] = true; picked.push(cands[s.i]); });
+      cands = cands.filter(function (_, i) { return !take[i]; });
     }
+    var rest = Math.min(cands.length, scanN - picked.length);
+    for (var k = 0; k < rest; k++) picked.push(cands.splice(Math.floor(S.rnd(world) * cands.length), 1)[0]);
+    return picked;
+  }
+  // The cheapest competing fixed-price copy of the same card and finish, by anyone but this seller.
+  function lowestAsk(world, it, seller) {
+    var low = null;
+    for (var id in world.listings) {
+      var l = world.listings[id];
+      if (l.status !== 'open' || l.kind !== 'fixed' || l.seller === seller || l.items.length !== 1 || world.now >= l.endsAt) continue;
+      var x = l.items[0];
+      if (x.c === it.c && (x.v || null) === (it.v || null) && (low == null || l.ask < low)) low = l.ask;
+    }
+    return low;
+  }
+  function undercuts(persona) { var st = cfg().strategy; return !!(st && st.undercut[persona.id]); }
+  function wishers(world, cardId, except) { var n = 0; world.bots.forEach(function (b) { if (b.id !== except && b.wish.indexOf(cardId) >= 0) n++; }); return n; }
+  // A fixed-price listing well under Average Value (the player's or a trader's) sends a bargain hunter or two to look soon.
+  function alertScouts(world, env, l) {
+    var st = cfg().strategy, bg = st && st.bargain;
+    if (!bg || !l || l.kind !== 'fixed' || l.items.length !== 1) return 0;
+    var it = l.items[0], fair = S.fairInfo(world, env, it.c, it.v, it.k).average * S.serialFactor(it.s);
+    if (!(fair > 0) || l.ask > fair * (1 - bg.belowFair)) return 0;
+    var hunters = world.bots.filter(function (b) { return b.id !== l.seller && bg.personas.indexOf(b.persona) >= 0 && S.botAvailable(b) >= l.ask; });
+    var sent = 0;
+    for (var i = 0; i < hunters.length && sent < bg.scouts; i++) {
+      var b = hunters[(i + Math.floor(S.stableUnit(l.id + '|scout') * hunters.length)) % hunters.length];
+      if (!interested(world, env, b, it)) continue;
+      S.addEvent(world, world.now + Math.round(S.between(world, bg.delayMin[0], bg.delayMin[1]) * MIN), 'scout', b.id, { listing: l.id });
+      sent++;
+    }
+    return sent;
+  }
+
+  function buyPass(world, env, host, bot, persona, only) {
+    var picked = only || scout(world, env, bot, persona, openListings(world, bot.id));
     var best = null;
     picked.forEach(function (l) {
       if (l.kind === 'swap') return;
@@ -269,6 +359,9 @@
         if (view.lead && view.lead.by === bot.id) return;
         var minNext = view.bidders ? view.price + S.incrementFor(view.price) : l.start;
         var max = Math.min(ceiling, Math.floor(avail * (pv.wished ? 0.85 : persona.spend + 0.15)));
+        // A crowded auction tends to finish above what the card is worth: shade the maximum unless the card is wanted.
+        var st = cfg().strategy;
+        if (st && !pv.wished && view.bidders >= st.crowdedBidders) max = Math.min(max, Math.floor(pv.value * (1 - need - st.crowdedShade)));
         if (max >= minNext) {
           var m2 = (ceiling - minNext) / Math.max(1, ceiling);
           if (!best || m2 > best.margin) best = { l: l, margin: m2, how: 'bid', max: max, pv: pv };
@@ -299,7 +392,9 @@
     var fair = S.fairInfo(world, env, it.c, it.v, it.k), sf = S.serialFactor(it.s);
     var value = fair.average * sf;
     var tier = env.tierOf[it.c] || 0, lp = cfg().listing;
-    var wantsAuction = tier >= 1 && !needCash && S.chance(world, Math.min(0.85, persona.auction * (lp.auctionShare || 1)));
+    // A card several traders want sells best to a crowd: put it up for auction more often, with a firmer start.
+    var demand = cfg().strategy ? wishers(world, it.c, bot.id) >= cfg().strategy.demandWishers : false;
+    var wantsAuction = tier >= 1 && !needCash && S.chance(world, Math.min(0.85, persona.auction * (lp.auctionShare || 1) * (demand ? 1.8 : 1)));
     // Asks scatter around fair value: a little below to a little above, wider for bolder personalities.
     var markup = persona.markup * (S.rnd(world) - 0.3);
     if (needCash) markup = Math.min(markup, -0.03);
@@ -308,7 +403,7 @@
     bot.inv = bot.inv.filter(function (x) { return x !== it; });
     if (wantsAuction) {
       var dur = S.pick(world, lp.auctionHours) * HOUR;
-      var start = Math.max(1, S.nice(value * S.between(world, 0.5, 0.78)));
+      var start = Math.max(1, S.nice(value * S.between(world, 0.5, 0.78) * (demand ? 1.12 : 1)));
       var reserve = S.chance(world, 0.4) ? Math.max(start, S.nice(value * S.between(world, 0.82, 1.0))) : null;
       var buyout = S.chance(world, 0.15) ? S.nice(value * S.between(world, 1.2, 1.45)) : null;
       var l = S.makeListing(world, { kind: 'auction', seller: bot.id, items: [it], start: start, reserve: reserve, buyout: buyout, durationMs: dur, reason: why });
@@ -323,6 +418,16 @@
     if (fire) { var fsd = cfg().fireSale.discount; markup = -S.between(world, fsd[0], fsd[1]); why = 'Needs Credits quickly'; world.fireToday.n += 1; }
     var ask = S.nice(value * (1 + markup));
     if (cost && persona.id === 'flipper' && !fire) ask = Math.max(ask, S.nice(cost * 1.03));
+    // Read the book: a seller who undercuts prices a step under the cheapest competing copy (never below its floor);
+    // a patient one does not chase a cheap copy down and keeps to what the card is worth.
+    var low = fire ? null : lowestAsk(world, it, bot.id);
+    if (low != null && ask > low) {
+      if (undercuts(persona)) {
+        var floorAsk = Math.max(cfg().economy.minPrice, S.nice(value * (needCash ? 0.7 : 0.86)), cost && persona.id === 'flipper' ? S.nice(cost * 1.01) : 0);
+        ask = Math.max(floorAsk, Math.min(ask, low - Math.max(1, Math.round(low * 0.02))));
+        why = 'Priced under the cheapest copy';
+      } else if (low < value * 0.9) ask = Math.max(ask, S.nice(value));
+    }
     ask = Math.max(cfg().economy.minPrice, ask);
     var days = S.between(world, lp.fixedDurationDays[0], lp.fixedDurationDays[1]);
     if (fire) days = Math.min(days, 3);
@@ -332,6 +437,7 @@
     bot.open += 1;
     S.feed(world, 'listed', bot.alias + ' listed ' + S.cardLabel(env, it) + ' at ' + ask + ' Credits', { listing: l2.id });
     S.matchOrdersFor(world, env, host, l2);
+    if (l2.status === 'open') alertScouts(world, env, l2);
     return l2;
   }
   function sellPass(world, env, host, bot, persona) {
@@ -363,8 +469,11 @@
       var floor = Math.max(cfg().economy.minPrice, S.nice(fair * 0.8)), cost = l.items[0].u || 0;
       if (persona.id === 'flipper' && cost) floor = Math.max(floor, S.nice(cost * 0.97));
       if (l.ask > floor) {
-        var step = S.between(world, 0.04, 0.1);
-        l.ask = Math.max(floor, Math.min(l.ask - 1, S.nice(l.ask * (1 - step))));
+        var step = S.between(world, 0.04, 0.1), target = S.nice(l.ask * (1 - step));
+        // an undercutter that is beaten by a cheaper copy moves to just under it rather than by a blind step
+        var rival = undercuts(persona) ? lowestAsk(world, l.items[0], bot.id) : null;
+        if (rival != null && rival < l.ask) target = Math.min(target, rival - Math.max(1, Math.round(rival * 0.02)));
+        l.ask = Math.max(floor, Math.min(l.ask - 1, target));
         l.pricedAt = world.now;
         S.matchOrdersFor(world, env, host, l);
       } else l.pricedAt = world.now;
@@ -377,6 +486,11 @@
     var pool = persona.quotes
       ? env.cards.filter(function (c) { var t = env.tierOf[c.id] || 0; return t >= persona.tier[0] && t <= persona.tier[1]; })
       : env.cards.filter(function (c) { return bot.wish.indexOf(c.id) >= 0 && !bot.inv.some(function (x) { return x.c === c.id; }); });
+    // A market maker quotes where the trading is: the cards with the most recent sales, when there are any.
+    if (persona.quotes && pool.length > 8) {
+      var busy = pool.map(function (c) { var o = world.obs[S.itemKey({ c: c.id, v: null, k: null })]; return { c: c, n: o ? o.length : 0 }; }).filter(function (x) { return x.n >= 3; });
+      if (busy.length >= 4) pool = busy.sort(function (a, b) { return b.n - a.n; }).slice(0, 12).map(function (x) { return x.c; });
+    }
     if (!pool.length) return;
     var card = S.pick(world, pool), fair = S.fairInfo(world, env, card.id, null, null).average;
     var price = Math.max(cfg().economy.minPrice, S.nice(fair * (1 - persona.buyMargin - S.between(world, 0.02, 0.1))));
@@ -559,6 +673,12 @@
   function handle(world, env, host, ev) {
     switch (ev.type) {
       case 'wake': { var b = S.botOf(world, ev.ref); if (b) botWake(world, env, host, b); break; }
+      // a bargain hunter sent to look at one listing: it buys only if the price still fits what it thinks the card is worth
+      case 'scout': {
+        var bsc = S.botOf(world, ev.ref), ls = world.listings[ev.listing];
+        if (bsc && ls && ls.status === 'open' && ls.kind === 'fixed' && world.now < ls.endsAt) buyPass(world, env, host, bsc, S.personaOf(bsc), [ls]);
+        break;
+      }
       case 'snipe': {
         var bs = S.botOf(world, ev.ref), l = world.listings[ev.listing];
         if (bs && l && l.status === 'open' && l.kind === 'auction') {
@@ -609,5 +729,5 @@
   }
 
   Object.assign(S, { create: create, index: index, advance: advance, botWake: botWake, privateValue: privateValue, blankWorld: blankWorld, acceptSwap: acceptSwap,
-    finishSwap: finishSwap, botAnswersOffer: botAnswersOffer, eventFactor: eventFactor, activeNews: activeNews, scopeCards: scopeCards, inScope: inScope, newsTick: newsTick, dailyTick: dailyTick, openListings: openListings, interested: interested });
+    finishSwap: finishSwap, botAnswersOffer: botAnswersOffer, eventFactor: eventFactor, activeNews: activeNews, scopeCards: scopeCards, inScope: inScope, newsTick: newsTick, dailyTick: dailyTick, openListings: openListings, interested: interested, alertScouts: alertScouts, lowestAsk: lowestAsk, handleFor: handleFor, renameBots: renameBots });
 })(window.Cardable = window.Cardable || {});

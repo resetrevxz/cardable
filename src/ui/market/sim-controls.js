@@ -26,28 +26,37 @@
   function paintChip(chip) {
     if (C.market.store.session.realm !== 'simulation') { paintGlobalChip(chip); return; }
     var st = status();
-    ui.clear(chip);
     var word = stateWord(st);
     chip.dataset.state = st.exists ? (st.paused ? 'paused' : st.clockState === 'running' ? 'running' : 'frozen') : 'idle';
-    chip.appendChild(icon(st.paused || st.clockState !== 'running' ? 'pause' : 'play'));
-    chip.appendChild(h('span.mk-sim-clock.mk-num', { text: st.clock || 'Day 1' }));
-    chip.appendChild(h('span.mk-sim-clock-short.mk-num', { text: (st.clock || 'Day 1').replace('Day ', 'D').replace(' · ', ' '), 'aria-hidden': 'true' }));
-    chip.appendChild(h('span.mk-sim-word', { text: word }));
+    chip.dataset.speed = st.speed || '';
+    var hour = dayHour(st.clock);
+    chip.dataset.daypart = hour == null ? '' : hour < 6 || hour >= 20 ? 'night' : hour < 9 ? 'dawn' : hour < 17 ? 'day' : 'dusk';
+    paintParts(chip, hour == null ? (st.paused || st.clockState !== 'running' ? 'pause' : 'play') : (hour < 6 || hour >= 20 ? 'moon' : 'sun'), st.clock || 'Day 1', (st.clock || 'Day 1').replace('Day ', 'D').replace(' · ', ' '), word);
     chip.setAttribute('aria-label', 'Simulation clock: ' + (st.clock || 'not started') + '. ' + word + (st.reason ? '. ' + st.reason : '') + '. Open the simulation controls.');
     chip.title = st.exists ? word + '. ' + (st.paused || st.clockState !== 'running' ? 'Simulated time is stopped.' : 'Simulated time runs only while Cardable is open.') : 'The simulation starts when you first use the Market.';
   }
   // In Global the same chip says whether you are connected, so the header has the same shape in both realms.
   function paintGlobalChip(chip) {
-    var g = C.market.api.statusSync('global'), on = !!g.connected, text = on ? (/read-only/i.test(g.label) ? 'Read-only' : 'Online') : (g.label || 'Global');
-    ui.clear(chip);
+    var g = C.market.api.statusSync('global'), on = !!g.connected, text = on ? (/read-only/i.test(g.label) ? 'Read-only' : 'Online') : (g.label || 'Players');
     chip.dataset.state = on ? 'running' : 'idle';
-    chip.appendChild(icon(on ? 'check' : 'lock'));
-    chip.appendChild(h('span.mk-sim-clock.mk-num', { text: text }));
-    chip.appendChild(h('span.mk-sim-clock-short.mk-num', { text: text, 'aria-hidden': 'true' }));
-    chip.appendChild(h('span.mk-sim-word', { text: on ? 'Global' : '' }));
-    chip.setAttribute('aria-label', 'Global Market: ' + text + '. Open your market');
+    chip.dataset.daypart = ''; chip.dataset.speed = '';
+    paintParts(chip, on ? 'check' : 'lock', text, text, on ? 'Players' : '');
+    chip.setAttribute('aria-label', 'Players market: ' + text + '. Open your market');
     chip.title = g.message || '';
   }
+  // The chip's pieces are made once; a tick rewrites text only (rebuilding it every tick made the header flicker).
+  function paintParts(chip, glyph, clock, short, word) {
+    var p = chip._mkParts;
+    if (!p) {
+      p = chip._mkParts = { ico: h('span.mk-sim-ico', { 'aria-hidden': 'true' }), clock: h('span.mk-sim-clock.mk-num'), short: h('span.mk-sim-clock-short.mk-num', { 'aria-hidden': 'true' }), word: h('span.mk-sim-word'), glyph: '' };
+      chip.append(p.ico, p.clock, p.short, p.word);
+    }
+    if (p.glyph !== glyph) { ui.clear(p.ico); p.ico.appendChild(icon(glyph)); p.glyph = glyph; p.ico.dataset.glyph = glyph; }
+    if (p.clock.textContent !== clock) p.clock.textContent = clock;
+    if (p.short.textContent !== short) p.short.textContent = short;
+    if (p.word.textContent !== word) p.word.textContent = word;
+  }
+  function dayHour(clock) { var m = /(\d{1,2}):(\d{2})/.exec(String(clock || '')); return m ? Number(m[1]) : null; }
   function statusChip() {
     var chip = h('button.mk-sim-chip', { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
     chips.add(chip);
@@ -90,7 +99,7 @@
   // ---- onboarding -----------------------------------------------------------------------------------------------------
   function introCard(onDone) {
     var card = h('aside.mk-intro.is-sim', { role: 'note' },
-      h('div', h('strong', { text: 'Local is a market on this device.' }),
+      h('div', h('strong', { text: 'Standard is a market on this device.' }),
         h('p', { text: cfg().help.intro }),
         h('ul.mk-bullets',
           h('li', { text: 'Traders are bots with their own Credits, cards and habits.' }),
@@ -222,10 +231,10 @@
     pause.addEventListener('click', function () { if (r.paused) r.resume(); else r.pause(); ui.shell.remount(); });
     var file = h('input', { type: 'file', accept: 'application/json,.json', hidden: true, 'aria-label': 'Choose a file' });
     file.addEventListener('change', function () { importFile(file.files && file.files[0], function () { ui.shell.remount(); }); file.value = ''; });
-    var reset = ui.button('Reset Local', { icon: 'trash', variant: 'secondary' });
+    var reset = ui.button('Reset Standard', { icon: 'trash', variant: 'secondary' });
     var armed = false, timer = 0;
     reset.addEventListener('click', function () {
-      if (!armed) { armed = true; reset.querySelector('span').textContent = 'Click again to reset'; reset.dataset.variant = 'danger'; timer = root.setTimeout(function () { armed = false; reset.querySelector('span').textContent = 'Reset Local'; reset.dataset.variant = 'secondary'; }, 4000); return; }
+      if (!armed) { armed = true; reset.querySelector('span').textContent = 'Click again to reset'; reset.dataset.variant = 'danger'; timer = root.setTimeout(function () { armed = false; reset.querySelector('span').textContent = 'Reset Standard'; reset.dataset.variant = 'secondary'; }, 4000); return; }
       root.clearTimeout(timer); resetWorld(function () { ui.shell.remount(); });
     });
     ctx.scope.add(function () { root.clearTimeout(timer); });

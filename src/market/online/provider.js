@@ -14,14 +14,14 @@
   var MIN = 60000;
 
   var STATES = {
-    unconfigured: { label: 'Not available', tone: 'offline', message: 'Global Market is not available in this build. The Simulation works fully offline.' },
-    'signed-out': { label: 'Not connected', tone: 'offline', message: 'Global Market has real players only, under anonymous names. Connect a private account to look around. Your offline game is never touched.' },
-    offline: { label: 'Offline', tone: 'offline', message: 'Global Market could not be reached. Keep playing: the Simulation and your collection are unaffected.' },
-    paused: { label: 'Paused', tone: 'offline', message: 'Global Market is paused for maintenance. Nothing is lost and nothing is changing. Your offline game and the Simulation are unaffected.' },
-    error: { label: 'Unavailable', tone: 'offline', message: 'Global Market answered with an error. Nothing was changed. Try again shortly.' },
-    online: { label: 'Beta · online', tone: 'online', message: 'Global Market beta: real players only, anonymous names, its own Credits. It may be empty, and prices appear only after players trade.' }
+    unconfigured: { label: 'Not available', tone: 'offline', message: 'Players is not available in this build. The Simulation works fully offline.' },
+    'signed-out': { label: 'Not connected', tone: 'offline', message: 'Players has real players only, under anonymous names. Connect a private account to look around. Your offline game is never touched.' },
+    offline: { label: 'Offline', tone: 'offline', message: 'Players could not be reached. Keep playing: the Simulation and your collection are unaffected.' },
+    paused: { label: 'Paused', tone: 'offline', message: 'Players is paused for maintenance. Nothing is lost and nothing is changing. Your offline game and the Simulation are unaffected.' },
+    error: { label: 'Unavailable', tone: 'offline', message: 'Players answered with an error. Nothing was changed. Try again shortly.' },
+    online: { label: 'Beta · online', tone: 'online', message: 'Players beta: real players only, anonymous names, its own Credits. It may be empty, and prices appear only after players trade.' }
   };
-  var READ_ONLY = { label: 'Beta · read-only', tone: 'offline', message: 'Global Market is read-only for a short while. You can look around, but listing, bidding and buying are paused. Nothing is lost.' };
+  var READ_ONLY = { label: 'Beta · read-only', tone: 'offline', message: 'Players is read-only for a short while. You can look around, but listing, bidding and buying are paused. Nothing is lost.' };
   function stateNow() { var s = online().state; return s.status === 'online' && s.mode === 'read-only' ? READ_ONLY : STATES[s.status] || STATES.error; }
   function isLive() { return online().state.status === 'online'; }
   function notLiveReason() {
@@ -45,9 +45,9 @@
   function friendly(error) {
     var code = error && error.code, detail = error && error.detail && error.detail.detail || {};
     var out = { ok: false, error: code || 'failed', message: error && error.message || 'That did not work. Nothing was changed.', detail: detail };
-    if (code === 'offline') { out.retrySafe = true; out.message = 'Could not reach Global Market. If you try again with this same button it will not act twice.'; }
-    if (code === 'signed-out' || code === 'session-ended' || code === 'bad-token') out.message = 'Connect to Global Market to do that.';
-    if (code === 'read-only' || code === 'maintenance') { out.retrySafe = true; out.message = code === 'maintenance' ? 'Global Market is paused for maintenance. Nothing was changed.' : 'Global Market is read-only right now. Nothing was changed; try again later.'; }
+    if (code === 'offline') { out.retrySafe = true; out.message = 'Could not reach Players. If you try again with this same button it will not act twice.'; }
+    if (code === 'signed-out' || code === 'session-ended' || code === 'bad-token') out.message = 'Connect to Players to do that.';
+    if (code === 'read-only' || code === 'maintenance') { out.retrySafe = true; out.message = code === 'maintenance' ? 'Players is paused for maintenance. Nothing was changed.' : 'Players is read-only right now. Nothing was changed; try again later.'; }
     if (code === 'rate-limited') out.message = 'That is too fast. Wait a moment and try again.';
     if (code === 'conflict' || code === 'busy') out.retrySafe = true;
     if (code === 'funds' && detail.available != null) out.message = 'You have ' + detail.available + ' available Credits.';
@@ -60,7 +60,7 @@
   // One write: ask the server with this request's key, then read everything it touched again.
   function write(method, path, body, requestId, extra) {
     if (online().state.status === 'paused') return Promise.resolve(friendly({ code: 'maintenance' }));
-    if (!isLive()) return Promise.resolve(Object.assign(friendly({ code: 'signed-out' }), { message: 'Connect to Global Market to do that.' }));
+    if (!isLive()) return Promise.resolve(Object.assign(friendly({ code: 'signed-out' }), { message: 'Connect to Players to do that.' }));
     if (online().state.mode === 'read-only') return Promise.resolve(friendly({ code: 'read-only' }));
     return online().authed(method, path, body, { idempotencyKey: key(requestId), timeoutMs: 20000 }).then(function (res) {
       data().used();
@@ -128,7 +128,7 @@
       if (s.status !== 'online') return { realm: realm, balance: null, label: s.status === 'paused' ? 'Paused' : 'Not connected', note: stateNow().message };
       data().used();
       return { realm: realm, balance: s.balance, held: s.held, available: s.available, label: 'Credits',
-        note: 'Your Global Market Credits. They are separate from your offline Credits. Open bids, buy orders and offers hold some until they end.' };
+        note: 'Your Players Credits. They are separate from your offline Credits. Open bids, buy orders and offers hold some until they end.' };
     },
 
     // ---- browsing ----
@@ -201,7 +201,7 @@
     stocks: function (realm, query) {
       query = query || {};
       var q = { scope: query.scope || 'index', id: query.id || '', variantId: query.variantId || null, window: query.window || '7d' };
-      var none = { realm: realm, empty: false, noData: true, scope: q.scope, id: q.id, window: q.window, title: 'Global Market', members: 0, candles: [], closes: [], unit: q.scope === 'card' ? 'Credits' : 'Index points',
+      var none = { realm: realm, empty: false, noData: true, scope: q.scope, id: q.id, window: q.window, title: 'Players', members: 0, candles: [], closes: [], unit: q.scope === 'card' ? 'Credits' : 'Index points',
         source: 'players', leaders: { active: [], gainers: [], losers: [], values: [] }, now: data().now(), tradesCounted: 0, coverage: null,
         aggregate: { volume24h: 0, volume7d: 0, credits24h: 0, change24h: null, change7d: null, volatility: null, liquidity: null, spread: null, samples: 0, cardsTraded: 0 } };
       if (!isLive()) return none;
@@ -416,7 +416,7 @@
   // Reads come from the data layer's last answer and ask again in the background; writes use a key and read again.
   function slotOf(map, k) { return map[k] || { data: null, loading: false }; }
   function post(method, path, body, touch) {
-    if (!isLive()) return Promise.resolve(Object.assign(friendly({ code: 'signed-out' }), { message: 'Connect to Global Market to do that.' }));
+    if (!isLive()) return Promise.resolve(Object.assign(friendly({ code: 'signed-out' }), { message: 'Connect to Players to do that.' }));
     return online().authed(method, path, body || null, { idempotencyKey: key(C.market.ui.sim.newRequestId()), timeoutMs: 20000 }).then(function (res) {
       data().used();
       var out = Object.assign({ ok: true }, res);

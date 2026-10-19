@@ -127,6 +127,37 @@
     // Stable bot names reuse the Market's two-word aliases.
     nameSeedTag: 'sim-bots',
 
+    // ---- trader usernames (1.13.0) ----------------------------------------------------------------------------------
+    // Each trader gets a handle from a stable hash of the world seed and its id (no random draws, so the world's own
+    // sequence is unchanged). Some are hand-picked presets, the rest are built from two parts in one of a few styles.
+    names: {
+      version: 2,
+      presetShare: 0.35,
+      presets: ['GPUGoblin', 'FrameRateFran', 'ThermalPaste', 'OverclockOlly', 'VRAMVandal', 'SiliconSage', 'ShaderShark', 'FanCurveFinn', 'BinnedBen', 'CacheMoney',
+        'HeatsinkHank', 'LowLatencyLu', 'TexelTrader', 'CoilWhineCal', 'MegahertzMo', 'PixelPilgrim', 'DieShrinkDee', 'BusWidthBea', 'TensorTess', 'RaytraceRae',
+        'BoostClockBo', 'SolderSam', 'WaferWendy', 'NanometerNico', 'BlowerFanBea', 'KilowattKai', 'MintCondition', 'FoilHunter', 'GradedGrace', 'SlabbedSid'],
+      first: ['Neon', 'Turbo', 'Pixel', 'Quantum', 'Velvet', 'Cobalt', 'Hyper', 'Lunar', 'Static', 'Crimson', 'Silent', 'Rapid', 'Frost', 'Ember', 'Chrome', 'Nova', 'Atomic',
+        'Glitch', 'Retro', 'Solar', 'Midnight', 'Copper', 'Arctic', 'Volt', 'Prism', 'Shadow', 'Golden', 'Binary', 'Echo', 'Lucky'],
+      second: ['Falcon', 'Fox', 'Koi', 'Raptor', 'Otter', 'Lynx', 'Badger', 'Heron', 'Mantis', 'Panda', 'Wolf', 'Viper', 'Orca', 'Hawk', 'Moth', 'Yak', 'Gecko', 'Raven',
+        'Trader', 'Dealer', 'Broker', 'Collector', 'Hoarder', 'Flipper', 'Baron', 'Smith', 'Rider', 'Pilot', 'Ghost', 'Wizard'],
+      // style weights: CamelCase, CamelCase with a number, lower_snake, CamelCase with an x prefix
+      styles: [['camel', 0.42], ['camelNum', 0.3], ['snake', 0.18], ['tag', 0.1]]
+    },
+
+    // ---- strategies shared by every personality (1.13.0) ------------------------------------------------------------
+    // scan: how many listings a trader looks at when it wakes; smart: how many of those are its best leads (the cheapest
+    // against what it thinks the card is worth, auctions closing soon, cards it wants) rather than a random sample.
+    // undercut: whether it prices just under the cheapest competing copy when it lists or reprices.
+    // bargain: a fixed-price listing this far under Average Value sends one or two bargain hunters to look within the hour.
+    strategy: {
+      scan: { collector: 12, investor: 18, hunter: 22, flipper: 20, completionist: 16, specialist: 16, cautious: 12, risk: 16, maker: 18, hype: 16 },
+      smart: { collector: 5, investor: 10, hunter: 14, flipper: 12, completionist: 8, specialist: 8, cautious: 5, risk: 8, maker: 10, hype: 8 },
+      undercut: { flipper: true, hunter: true, maker: true, hype: true, cautious: true, risk: true },
+      crowdedBidders: 3, crowdedShade: 0.04,
+      bargain: { belowFair: 0.15, scouts: 2, delayMin: [8, 50], personas: ['hunter', 'flipper', 'investor', 'maker'] },
+      demandWishers: 3
+    },
+
     // ---- the notch: what counts as a big sale and a rare find ----
     notch: { salesHours: 12, salesMinTrades: 8, rareTier: 7, rareHours: 3 },
 
@@ -134,7 +165,7 @@
     keep: { trades: 700, feed: 120, receipts: 400, days: 120, notices: 80 },
     maxStateBytes: 1800000,
     help: {
-      intro: 'A market of software traders on this device. It works offline and never touches Global or your account.',
+      intro: 'Traders on this device buy and sell cards with you. It works offline and is separate from Players.',
       pause: 'Time runs only while Cardable is open and visible. It does not catch up after you close it.',
       reset: 'Starts a fresh set of traders and listings. Your cards and Credits stay, except cards you have listed, which come back.'
     }

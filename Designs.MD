@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.12.1**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.13.0**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -230,6 +230,19 @@ The Market is a destination of the same game, not a second product. It uses the 
 - *It never creates the world and never changes one:* with no Local world saved the notch stays away on the main menu; once the Market has been opened it loads the saved world at start so the market keeps moving while the game is open, and the clock waits while a pack is opening, Studio or a tutorial is open, or the save is being recovered.
 
 When a trade settles, the card lifts where you pressed (or out of the island if it happened on its own), holds in its rarity's light, and flies into Portfolio; a sale sends Credits into the wallet. Legendary and above add a ring of rays. It listens to one event (`market:settled`), makes at most a handful of elements, and removes them all. Copy is short and specific: no section leads that restate the heading, no disclaimers repeated on every card (they sit in a tooltip), and "Local" instead of "Simulation".
+
+**Open doors (1.13.0).** The Market reads at a glance and teaches itself. Eight rules.
+
+1. *Icons carry meaning, and move with it.* Every page title has a 40 px rounded icon tile; every section heading and tab has an icon. Arriving at a tab plays that icon's one-shot motion: the house settles, the compass spins (with a small overshoot), the gavel strikes from its handle, the briefcase lifts, the price bars grow, the bag swings from its handle. The main menu's Market button is a storefront whose door swings open on hover and before the Market opens; the Shop's bag swings. Under 1.4 s, transform only, gone under Reduced motion and Very Low.
+2. *Less text.* No subtitle that repeats the title or flatters ("Picked for you" is gone). A reason is an icon chip of two words at most (New to you, Ends soon, Just listed, Wishlist, Risky); the value tag covers price. One tip at a time sits in a pill under the page head with a bulb, an icon and one sentence; it moves on every 7 s while the page is shown and nobody is hovering or focused in it, and it can be paused, stepped and hidden for good.
+3. *What you are in stays on top.* The auction tracker is a strip between the dock and the page while you bid on or run an auction: one 52 px pill per auction with the card, a draining ring for the time left, Leading/Outbid (or the bid count for your own) in word, icon and colour, the price and the clock. Each pill is built once and only its numbers change; a change of fortune shakes (outbid) or lifts (leading) it once.
+4. *Arrivals.* A card that comes to you is announced bottom-right by a card-shaped notice in its rarity light with a View button that opens it in the inventory; a sale gets a green coin notice with the Credits. At most three, 7 s each, held while pointed at. With the Market closed the card flies from the notch into the inventory, which shows +N.
+5. *The Shop is a Market tab*, drawn in the Market's language: three facts as icon pills, the featured pack on a lit stage (the classic exhibit class gives its size), and the day's cards as rarity-wearing cards with the Shop price, what traders usually ask, how many you own, and one Buy that opens the usual review.
+6. *The tour* is seven steps, each a 360 px card beside a spotlight on the real control (a ring and a 9999 px shade), or centred when the control is not on screen. Arrows step, Escape skips, focus stays on its buttons, and it runs once (More → Take the tour replays it).
+7. *Light under the pointer.* Super Rare and better carry a holographic layer (colour-dodge, following the pointer) on the card art; Shop cards, suggestion minis and tracker pills take a soft light at the pointer and a one-shot glint on arrival. The light is written on the card itself, never a container.
+8. *Nothing rebuilds on a tick.* The notch pill, its open panel, the header wallet and the clock chip are built once and rewrite only text that changed; the pill animates only when what it is about changes. The clock chip shows a sun by day and a moon by night, and '›' or '»' after its word at Brisk or Fast.
+
+Realms are named **Standard** (traders on this device) and **Players** (real players); ids stay `simulation` and `global`. Traders have generated handles and a two-letter avatar on a colour that is stable for the name.
 
 **Motion and cost.** Pages rise 10 px over the slow duration; tiles stagger up to eight. Everything stops for reduced motion, Hover animations off and Very Low. Feeds are cursor-paginated; thumbnails are created within a screen of the viewport and released beyond it; no tile owns a clock or a chart; the Market adds no scheduler subscriber and no idle loop.
 

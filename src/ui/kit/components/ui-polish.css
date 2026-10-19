@@ -95,3 +95,18 @@ html,body{min-width:0}.inventory-card-caption strong{font:500 12px/18px var(--fo
 .inventory-depth-active .menu-shell *,.inventory-depth-active .menu-shell *::before,.inventory-depth-active .menu-shell *::after,.market-open .menu-shell *,.market-open .menu-shell *::before,.market-open .menu-shell *::after{animation-play-state:paused!important}
 
 .studio-project-state>.cb-icon{width:16px;height:16px}.studio-project-state.is-error{color:var(--danger)}.studio-save-error-action{font-size:11px;padding:4px 8px;min-height:32px}
+/* the next special pack past the visible slots: a chip inside the timer bar, in that pack's colour (1.13.0) */
+.pack-hud .pack-queue-beyond { position:static;display:inline-flex;align-items:center;gap:4px;height:22px;margin-left:4px;padding:0 8px 0 6px;border-radius:999px;color:var(--queue-accent,var(--pack-rare-fluid));font:600 10px/1 var(--font-mono);letter-spacing:.02em;white-space:nowrap;background:color-mix(in srgb,var(--queue-accent,var(--pack-rare-fluid)) 12%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--queue-accent,var(--pack-rare-fluid)) 34%,transparent); }
+.pack-hud .pack-queue-beyond[hidden] { display:none; }
+.pack-queue-beyond__dot { width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor; }
+.pack-queue-beyond__glyph { font-weight:700; }
+.pack-queue-beyond__count { color:var(--text-secondary);font-weight:500; }
+.pack-queue-beyond__count::before { content:'in ';opacity:.7; }
+.pack-hud .pack-queue-beyond.is-new { animation:pack-beyond-in 520ms var(--ease-out) both; }
+@keyframes pack-beyond-in { from { opacity:0;transform:translateX(-6px) scale(.9); } to { opacity:1;transform:none; } }
+:root[data-rarity-color="mono"] .pack-hud .pack-queue-beyond { --queue-accent:var(--text) !important; }
+.reduced-motion .pack-hud .pack-queue-beyond.is-new { animation:none; }
+/* a special pack inside the visible slots: its short name is a small tag on the slot's corner, inside the bar (it used to hang below the pill) */
+.pack-hud .pack-queue-marker .pack-counter-glyph { top:-7px;left:auto;right:-7px;transform:none;z-index:2;padding:2px 4px;border-radius:5px;font:700 7px/1 var(--font-mono);letter-spacing:.02em;color:var(--queue-accent);background:var(--ink-1);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--queue-accent) 60%,transparent),0 2px 6px rgba(0,0,0,.5); }
+.pack-hud .pack-queue-marker.is-next .pack-counter-glyph { animation:pack-beyond-in 520ms var(--ease-out) both; }
+.reduced-motion .pack-hud .pack-queue-marker .pack-counter-glyph { animation:none; }

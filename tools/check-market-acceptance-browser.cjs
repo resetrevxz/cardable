@@ -177,7 +177,7 @@ async function openMarket(page, route) {
       await openMarket(page);
       await page.evaluate(() => Cardable.market.store.setRealm('global'));
       await page.waitForSelector('.mk-empty');
-      await page.locator('.mk-empty button', { hasText: 'Connect to Global Market' }).click();
+      await page.locator('.mk-empty button', { hasText: 'Connect to Players' }).click();
       await page.waitForSelector('.mk-online');
       await page.locator('.mk-online button', { hasText: 'Create a private account' }).click();
       await page.waitForSelector('.mk-recovery');

@@ -84,14 +84,14 @@ const shot = (page, name) => page.screenshot({ path: path.join(out, name + '.jpg
       await page.evaluate(() => { Cardable.market.store.markGuideSeen(); Cardable.market.store.setRealm('global'); Cardable.market.open({ name: 'discover', params: {} }); });
       await page.waitForSelector('.mk-empty');
       const text = await page.evaluate(() => document.querySelector('.mk-empty').textContent);
-      assert(/Connect to see Global Market/.test(text), text);
+      assert(/Connect to see Players/.test(text), text);
       const sent = evidence.requests.filter((r) => r.url.includes('/v1/auth')).length;
       assert.equal(sent, 0, 'nothing was sent before the player chose to connect');
       await shot(page, 'global-signed-out');
     });
 
     await step('connecting creates a private account, shows the two word name and the recovery code once', async () => {
-      await page.locator('.mk-empty button', { hasText: 'Connect to Global Market' }).click();
+      await page.locator('.mk-empty button', { hasText: 'Connect to Players' }).click();
       await page.waitForSelector('.mk-online');
       await shot(page, 'connect-dialog');
       await page.locator('.mk-online button', { hasText: 'Create a private account' }).click();

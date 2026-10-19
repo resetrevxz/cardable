@@ -80,9 +80,9 @@ const rects = (page, selectors) => page.evaluate((list) => { const r = {}; list.
       Object.keys(local).forEach((q) => { assert.ok(global[q], q + ' exists in Global'); local[q].forEach((v, i) => assert.ok(near(v, global[q][i], 1), q + ' moved: ' + local[q] + ' to ' + global[q])); });
       assert.notEqual(localIsland, globalIsland, 'the island says something different in each realm: ' + localIsland + ' / ' + globalIsland);
       const tabs = await page.evaluate(() => Array.from(document.querySelectorAll('.mk-tabs > .mk-tab')).filter((b) => !b.hidden).length);
-      assert.equal(tabs, 6, 'five sections and More in Global too');
+      assert.equal(tabs, 7, 'six sections (Shop joined in 1.13.0) and More in Players too');
       const home = await page.evaluate(() => Cardable.market.ui.shell.goTab('home')); await page.waitForTimeout(700);
-      const h1 = await page.evaluate(() => ({ h1: document.querySelector('.mk-page h1').textContent, ask: /Connect|Try again|Open Local/.test(document.querySelector('.mk-home').textContent) }));
+      const h1 = await page.evaluate(() => ({ h1: document.querySelector('.mk-page h1').textContent, ask: /Connect|Try again|Open Local|Open Standard/.test(document.querySelector('.mk-home').textContent) }));
       assert.equal(h1.h1, 'Home'); assert.ok(h1.ask, 'Global Home offers a next step');
       await page.screenshot({ path: path.join(out, 'global-home.png') });
       return { localIsland, globalIsland };

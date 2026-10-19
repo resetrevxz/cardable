@@ -256,10 +256,19 @@
   ui.sparkline = sparkline;
 
   // ---- seller ----
+  // A round avatar from a name: two letters on a colour that is always the same for that name.
+  function avatar(name, options) {
+    options = options || {};
+    var text = String(name || '?'), clean = text.replace(/^x(?=[A-Z])/, '').replace(/[_0-9]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').trim();
+    var parts = clean.split(/\s+/), letters = ((parts[0] || '?').charAt(0) + (parts[1] ? parts[1].charAt(0) : (parts[0] || '').charAt(1) || '')).toUpperCase();
+    var hue = Math.round((K().hash32 ? K().hash32(text) : text.length * 47) % 360);
+    return h('span.mk-avatar' + (options.size ? '.is-' + options.size : ''), { 'aria-hidden': 'true', style: { '--av-h': String(hue) }, data: { you: options.you ? 'true' : '' } }, letters);
+  }
+  ui.avatar = avatar;
   function sellerLine(seller, options) {
     options = options || {};
     var el = h('span.mk-seller');
-    el.appendChild(icon(seller.isBot ? 'layers' : 'user'));
+    el.appendChild(seller.isYou ? avatar('You', { you: true }) : avatar(seller.alias));
     var linked = !seller.isBot && !seller.isYou && C.market.store && C.market.store.session.realm === 'global' && C.market.onlineProvider && ui.go;
     if (linked) {
       var link = h('span.mk-seller-alias.is-link', { text: seller.alias, role: 'link', tabindex: '0', title: 'See ' + seller.alias + '’s profile' });
@@ -272,6 +281,8 @@
     return el;
   }
   ui.sellerLine = sellerLine;
+
+  var REASON_CHIPS = { gap: ['cards', 'New to you'], wishlist: ['star', 'Wishlist'], ending: ['clock', 'Ends soon'], fresh: ['sparkle', 'Just listed'], risk: ['warn', 'Risky'], swapfit: ['swap', 'You can swap'] };
 
   // ---- the listing tile (feed) ----
   function listingTile(entry, env) {
@@ -328,13 +339,15 @@
     }
     body.appendChild(priceRow);
     if (l.format !== 'swap') body.appendChild(h('div.mk-tile-value', valueTag(price, l.valuation)));
-    // The value tag already says "below Average Value", so lead with the next reason instead of repeating it.
-    var reason = rank && rank.reasons.find(function (r) { return r.id !== 'value'; });
-    if (reason) body.appendChild(h('p.mk-tile-reason', { data: { reason: reason.id } }, h('span', { text: reason.label })));
-    var foot = h('div.mk-tile-foot');
-    foot.appendChild(sellerLine(l.seller, { compact: true }));
-    foot.appendChild(h('span.mk-mono.mk-serial', { text: l.card.serial.replace('CBL-', ''), title: 'Serial ' + l.card.serial }));
-    body.appendChild(foot);
+    // Only the reasons a player acts on, as icon chips: the value tag already covers price.
+    var flags = h('div.mk-tile-flags');
+    (rank ? rank.reasons : []).forEach(function (r) { var f = REASON_CHIPS[r.id]; if (f && flags.children.length < 2) flags.appendChild(h('span.mk-flag', { data: { reason: r.id }, title: r.label }, icon(f[0]), h('span', { text: f[1] }))); });
+    if (flags.children.length) body.appendChild(flags);
+    // the seller leads the tile, with an avatar made from their name
+    var who = h('div.mk-tile-seller');
+    who.appendChild(sellerLine(l.seller, { compact: true }));
+    who.appendChild(h('span.mk-mono.mk-serial', { text: l.card.serial.replace('CBL-', ''), title: 'Serial ' + l.card.serial }));
+    body.insertBefore(who, body.firstChild);
     tile.appendChild(body);
     var name = [l.title || id.name, id.rarityName, variant ? variant.name : 'normal finish', fmtDef.label, l.format === 'swap' ? 'wants ' + l.swap.wanted[0].label : fmt.exact(price) + ' Credits'];
     open.setAttribute('aria-label', name.join(', '));

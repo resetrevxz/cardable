@@ -30,7 +30,7 @@
     var r = realm(), api = C.market.api, out = { realm: r, live: false, clock: '', clockState: 'idle', clockWord: '', wallet: { balance: 0, held: 0, available: 0 }, worth: null,
       bids: [], mine: [], orders: [], offers: [], notices: [], moves: [], news: [], progress: null, sales: [], movers: [], matches: [], rare: [] };
     if (!usable(r)) {
-      if (r === 'global') { var g0 = api.statusSync('global'); out.clock = g0.connected ? 'Online' : (g0.label || 'Global'); out.clockWord = 'Global'; out.clockState = 'idle'; }
+      if (r === 'global') { var g0 = api.statusSync('global'); out.clock = g0.connected ? 'Online' : (g0.label || 'Players'); out.clockWord = 'Players'; out.clockState = 'idle'; }
       return out;
     }
     out.live = true;
@@ -54,7 +54,7 @@
         out.sales = extra.sales; out.movers = extra.movers; out.matches = extra.matches; out.rare = extra.rare;
       } catch (error) { if (root.console) root.console.error('Notch could not read the market', error); }
     } else {
-      out.clock = 'Online'; out.clockState = 'running'; out.clockWord = 'Global';
+      out.clock = 'Online'; out.clockState = 'running'; out.clockWord = 'Players';
       try { var pf = api.portfolioSync('global'); if (pf && pf.total != null) out.worth = { now: pf.total + out.wallet.balance, credits: out.wallet.balance, cards: pf.total, start: null, history: [], dayChange: null }; } catch (error) { /* optional */ }
     }
     return out;
@@ -84,10 +84,11 @@
     return sp[idx];
   }
   function modelOf(it) {
-    if (!it) return { key: 'none', tone: 'idle', glyph: 'play', label: 'Local', name: '', more: 0, aria: 'Your market. Open the panel' };
+    if (!it) return { key: 'none', tone: 'idle', glyph: 'play', label: 'Standard', name: '', more: 0, aria: 'Your market. Open the panel' };
     var time = it.minutes != null && (it.cat === 'ending' || it.cat === 'offer' || it.cat === 'outbid') ? ' · ' + N.duration(it.minutes) : '';
     var others = result.items.filter(function (i) { return !cat(i.cat).ambient; }).length - (cat(it.cat).ambient ? 0 : 1);
-    return { key: it.id + ':' + it.label + ':' + it.title + ':' + it.line, tone: it.tone, glyph: it.glyph, label: it.label, name: it.title + time, more: Math.max(0, others), item: it,
+    // the key is what the pill is about, not its ticking text: a clock or a countdown changes in place, a new item animates in
+    return { key: it.id + ':' + it.tone, tone: it.tone, glyph: it.glyph, label: it.label, name: it.title + time, more: Math.max(0, others), item: it,
       aria: it.label + ': ' + it.title + (others > 0 ? ', and ' + others + ' more' : '') + '. Open the panel' };
   }
 
@@ -110,7 +111,8 @@
   }
   function paintPill(p, m, animate, loud) {
     p.el.dataset.tone = m.tone;
-    ui.clear(p.glyph); p.glyph.appendChild(icon(m.glyph));
+    if (p.glyphName !== m.glyph) { ui.clear(p.glyph); p.glyph.appendChild(icon(m.glyph)); p.glyphName = m.glyph; }
+    p.glyph.dataset.glyph = m.glyph;
     p.label.textContent = m.label; p.name.textContent = m.name || ''; p.name.hidden = !m.name;
     p.more.hidden = !m.more; p.more.textContent = m.more ? '+' + m.more : '';
     p.el.setAttribute('aria-label', m.aria);
@@ -142,8 +144,15 @@
       // inside the Market the clock has its own chip beside the pill, so the pill moves on to the next thing
       var pit = p.kind === 'header' && it && it.cat === 'clock' ? (result.spotlight.filter(function (x) { return x.cat !== 'clock'; })[0] || it) : it, pm = pit === it ? m : modelOf(pit);
       if (p.key !== pm.key) { var firstPaint = p.key == null; p.key = pm.key; paintPill(p, pm, !firstPaint, !!(pit && pit.loud && fresh.length)); }
-      else if (p.label.textContent !== pm.label || p.name.textContent !== (pm.name || '')) { p.label.textContent = pm.label; p.name.textContent = pm.name || ''; p.name.hidden = !pm.name; }
-      p.more.hidden = !pm.more; p.more.textContent = pm.more ? '+' + pm.more : '';
+      else {
+        // same item, new numbers: write only what changed, never rebuild or re-animate (this is what used to flicker every tick)
+        if (p.label.textContent !== pm.label) p.label.textContent = pm.label;
+        if (p.name.textContent !== (pm.name || '')) { p.name.textContent = pm.name || ''; p.name.hidden = !pm.name; }
+        if (p.el.getAttribute('aria-label') !== pm.aria) p.el.setAttribute('aria-label', pm.aria);
+      }
+      var moreText = pm.more ? '+' + pm.more : '';
+      if (p.more.textContent !== moreText) { p.more.textContent = moreText; p.more.hidden = !pm.more; }
+      if (ui.notch2 && ui.notch2.decorate) ui.notch2.decorate(p, pit, result);
     });
     if (fresh.length && !first) {
       var top = fresh[0];
@@ -153,8 +162,25 @@
     loudNow.forEach(function (id) { seenLoud[id] = true; });
     shown = m.key;
     toggleFloating();
-    if (pop && panelBox && panelSig() !== sigLast) repaintPanel();
+    if (pop && panelBox) { if (panelSig() !== sigLast) repaintPanel(); else patchPanel(); }
   }
+  // The open panel, when only clocks and countdowns moved: rewrite those few texts where they are.
+  function patchPanel() {
+    if (!panelBox || !result) return;
+    result.items.forEach(function (it) {
+      var main = panelBox.querySelector('[data-fk="row:' + String(it.id).replace(/"/g, '') + '"]');
+      if (!main) return;
+      var line = main.querySelector('.mk-island-line > span:not(.mk-island-tag)');
+      if (line && it.line && line.textContent !== it.line) line.textContent = it.line;
+      var t = main.querySelector('.mk-island-time > span');
+      if (t && it.minutes != null) { var d = N.duration(it.minutes); if (t.textContent !== d) t.textContent = d; }
+    });
+    var head = panelBox.querySelector('.mk-island-clockhead .mk-num'), st = realm() === 'simulation' ? C.market.api.statusSync('simulation') : null;
+    if (head && st && head.textContent !== (st.clock || 'Not started')) head.textContent = st.clock || 'Not started';
+    if (ui.notch2 && ui.notch2.patchPanel) ui.notch2.patchPanel(panelBox, result, snap);
+  }
+  // Times inside a line ("9h 27m ago", "3d 0h") tick on their own; the panel is rebuilt only when the rest of the line changes.
+  function stableLine(text) { return String(text || '').replace(/\d+(?:[.,]\d+)?\s?[dhm](?:\s\d+[hm])?(?:\sago)?/g, '#'); }
 
   // ---- the floating copy, on the main menu ---------------------------------------------------------------------------------------------
   function floatingVisible() { return !!layer && !layer.hidden && !(ui.shell && ui.shell.isOpen); }
@@ -301,14 +327,16 @@
     return list;
   }
   function envNow() { var d = C.market.api.data(); return { cardById: d.cardById, owned: C.market.api.playerState().owned || {} }; }
+  var SPEED_ICON = { calm: 'slow', standard: 'play', brisk: 'fast', fast: 'zap' };
   function clockControls(close) {
     var rt = C.marketSim && C.marketSim.runtime, st = C.market.api.statusSync('simulation'), cfg = C.data.marketSim;
     var box = h('div.mk-island-clock');
-    box.appendChild(h('div.mk-island-clockhead', h('span.mk-num', { text: st.clock || 'Not started' }), h('span.mk-island-word', { text: !st.exists ? 'Not started' : st.paused ? 'Paused' : st.clockState === 'running' ? 'Running' : 'Frozen' })));
+    var hr = /(\d{1,2}):/.exec(st.clock || ''), night = hr && (Number(hr[1]) < 6 || Number(hr[1]) >= 20);
+    box.appendChild(h('div.mk-island-clockhead', h('span.mk-island-daypart', { data: { night: night ? 'true' : '' } }, icon(night ? 'moon' : 'sun')), h('span.mk-num', { text: st.clock || 'Not started' }), h('span.mk-island-word', { text: !st.exists ? 'Not started' : st.paused ? 'Paused' : st.clockState === 'running' ? 'Running' : 'Frozen' })));
     var line = h('div.mk-island-clockrow');
     var pause = ui.button(st.paused ? 'Resume' : 'Pause', { icon: st.paused ? 'play' : 'pause', variant: st.paused ? 'primary' : 'secondary', size: 'sm', disabled: !st.exists });
     pause.addEventListener('click', function () { if (!rt) return; if (rt.paused) rt.resume(); else rt.pause(); ui.sim.refresh(); refresh(true); });
-    var speed = ui.segmented({ label: 'Speed', value: st.speed, onChange: function (v) { if (rt) rt.setSpeed(v); ui.sim.refresh(); refresh(true); }, options: cfg.speeds.map(function (s) { return { value: s.id, label: s.label, title: s.note }; }) });
+    var speed = ui.segmented({ label: 'Speed', value: st.speed, onChange: function (v) { if (rt) rt.setSpeed(v); ui.sim.refresh(); refresh(true); }, options: cfg.speeds.map(function (s) { return { value: s.id, label: s.label, title: s.note, icon: SPEED_ICON[s.id] }; }) });
     line.append(pause, speed); box.appendChild(line);
     box.appendChild(h('p.mk-island-note', { text: 'Time stops when the game is closed, hidden or paused.' }));
     return box;
@@ -317,7 +345,7 @@
   function panelSig() {
     if (!result) return '';
     var w = result.wallet, nw = snap && snap.worth;
-    return JSON.stringify([filter, realm(), Math.round(w.available), Math.round(w.held), nw ? Math.round(nw.now) : 0, nw ? Math.round(nw.dayChange || 0) : 0, result.items.map(function (i) { return [i.id, i.label, i.line, i.pinned ? 1 : 0, (i.actions || []).map(function (a) { return a.id; })]; })]);
+    return JSON.stringify([filter, realm(), Math.round(w.available), Math.round(w.held), nw ? Math.round(nw.now) : 0, nw ? Math.round(nw.dayChange || 0) : 0, result.items.filter(function (i) { return !cat(i.cat).ambient; }).map(function (i) { return [i.id, i.label, stableLine(i.line), i.pinned ? 1 : 0, (i.actions || []).map(function (a) { return a.id; })]; })]);
   }
   function repaintPanel() {
     var keep = doc.activeElement && doc.activeElement.dataset ? doc.activeElement.dataset.fk : null;
@@ -335,14 +363,14 @@
     var r = realm(), env = envNow(), usableNow = usable(r), counts = result.counts;
     var sum = []; if (counts.bids) sum.push(counts.bids + (counts.bids === 1 ? ' bid' : ' bids')); if (counts.offers) sum.push(counts.offers + (counts.offers === 1 ? ' offer' : ' offers')); if (counts.listings) sum.push(counts.listings + (counts.listings === 1 ? ' listing' : ' listings')); if (counts.orders) sum.push(counts.orders + (counts.orders === 1 ? ' order' : ' orders'));
     var anchorEl = popAnchor, gear = ui.iconButton('sliders', 'Customize the notch', function () { close(); if (ui.notchSettings) ui.notchSettings.open(anchorEl); }, { variant: 'ghost' }); gear.dataset.fk = 'gear';
-    box.appendChild(h('div.mk-island-head', h('div', h('h2', { text: 'Your market' }), h('span.mk-island-sum', { text: sum.join(' · ') || (usableNow ? 'Nothing open' : '') })), gear));
+    box.appendChild(h('div.mk-island-head', h('div', h('h2', h('span.mk-island-head-icon', icon('market')), h('span', { text: 'Your market' })), h('span.mk-island-sum', { text: sum.join(' · ') || (usableNow ? 'Nothing open' : '') })), gear));
     if (!usableNow) {
       var g = C.market.api.statusSync('global');
-      box.appendChild(h('p.mk-island-empty', { text: r === 'global' ? (g.label === 'Not connected' ? 'Global is not connected.' : g.label + '.') : 'Open the Market once to start Local.' }));
+      box.appendChild(h('p.mk-island-empty', { text: r === 'global' ? (g.label === 'Not connected' ? 'Players is not connected.' : g.label + '.') : 'Open the Market once to start Standard.' }));
       var acts = h('div.mk-island-actions');
       if (r === 'global' && g.label === 'Not connected' && ui.online) acts.appendChild(ui.button('Connect', { variant: 'primary', icon: 'user', size: 'sm', onClick: function () { close(); ui.online.connectDialog(); } }));
       else if (r === 'global' && g.label !== 'Not available') acts.appendChild(ui.button('Try again', { variant: 'secondary', icon: 'forward', size: 'sm', onClick: function () { C.market.online.refresh(true); } }));
-      if (r === 'global') acts.appendChild(ui.button('Open Local', { variant: 'ghost', size: 'sm', onClick: function () { close(); store.setRealm('simulation'); } }));
+      if (r === 'global') acts.appendChild(ui.button('Open Standard', { variant: 'ghost', size: 'sm', onClick: function () { close(); store.setRealm('simulation'); } }));
       else acts.appendChild(ui.button('Open the Market', { variant: 'primary', size: 'sm', onClick: function () { close(); C.market.open(); } }));
       box.appendChild(acts);
       return;

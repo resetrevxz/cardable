@@ -20,7 +20,7 @@
       dl.appendChild(h('div', { data: { strong: r.strong ? 'true' : '' } }, h('dt', { text: r.label }), h('dd', r.node ? r.node : { text: r.value })));
     });
     surface.appendChild(dl);
-    surface.appendChild(h('p.mk-review-note', icon('info'), h('span', { text: options.note || 'Nothing was bought, sold or saved. Your Credits and collection are unchanged. Global Market is not connected yet.' })));
+    surface.appendChild(h('p.mk-review-note', icon('info'), h('span', { text: options.note || 'Nothing was bought, sold or saved. Your Credits and collection are unchanged. Players is not connected yet.' })));
     var actions = h('div.mk-modal-actions');
     var handle;
     (options.actions || []).forEach(function (a) { actions.appendChild(ui.button(a.label, { variant: a.variant || 'secondary', icon: a.icon, onClick: function () { handle.close(); if (a.run) a.run(); } })); });
@@ -142,7 +142,7 @@
     var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
     if (!res) {
       host.appendChild(h('div.mk-pagehead', back));
-      host.appendChild(ui.emptyState({ kind: 'error', icon: 'warn', title: 'This listing is not available', body: live ? (realm === 'global' ? 'It may have been removed, or it could not be read from Global Market just now. Try again in a moment.' : 'It closed a while ago and is no longer kept, or this simulation was reset.') : 'It may have sold, expired or been withdrawn, or this sample set may have changed.',
+      host.appendChild(ui.emptyState({ kind: 'error', icon: 'warn', title: 'This listing is not available', body: live ? (realm === 'global' ? 'It may have been removed, or it could not be read from Players just now. Try again in a moment.' : 'It closed a while ago and is no longer kept, or this simulation was reset.') : 'It may have sold, expired or been withdrawn, or this sample set may have changed.',
         actions: [{ label: 'Back to Discover', variant: 'primary', run: function () { ui.shell.goTab('discover'); } }] }));
       return;
     }
@@ -342,7 +342,7 @@
         }
       }
       panel.appendChild(actions);
-      if (!live && !closed) panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'Preview only. Global Market is not connected, so no button here completes a trade.' })));
+      if (!live && !closed) panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'Preview only. Players is not connected, so no button here completes a trade.' })));
       if (live && !closed && !mine && wallet.held) panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: ui.fmt.exact(wallet.held) + ' of your Credits are held by open bids and buy orders, so ' + ui.fmt.exact(available) + ' are available now.' })));
       right.appendChild(panel);
 
@@ -417,7 +417,7 @@
         right.appendChild(share);
       } else {
         var comments = h('section.mk-box.is-inactive', { 'aria-label': 'Comments' }, h('div.mk-panel-head', h('h3', { text: 'Comments' }), ui.chip('Players only', { tone: 'soft' })));
-        comments.appendChild(h('p.mk-hint', { text: 'Local traders are software, so there is no one to comment or rate. Comments and reviews live in Global.' }));
+        comments.appendChild(h('p.mk-hint', { text: 'Standard traders are software, so there is no one to comment or rate. Comments and reviews live in Players.' }));
         right.appendChild(comments);
       }
       ui.sim.countdowns(right);
@@ -834,7 +834,7 @@
       right.appendChild(chartPanel);
 
       var lp = h('section.mk-box', { 'aria-label': 'Open listings' }, h('div.mk-panel-head', h('h3', { text: 'Open listings' })));
-      if (!r.listings.length) lp.appendChild(h('p.mk-hint', { text: realm === 'global' && !store.session.showGlobalSample ? 'Global Market is not connected, so there are no real listings.' : 'No one is selling this exact card right now.' }));
+      if (!r.listings.length) lp.appendChild(h('p.mk-hint', { text: realm === 'global' && !store.session.showGlobalSample ? 'Players is not connected, so there are no real listings.' : 'No one is selling this exact card right now.' }));
       else {
         var rows = h('div.mk-minilist');
         r.listings.slice(0, 6).forEach(function (l) {

@@ -25,11 +25,11 @@
   // ---- connect ------------------------------------------------------------------------------------------------
   function connectDialog() {
     var s = online().state;
-    if (s.status === 'unconfigured') { C.ui.toast('Global Market is not available in this build.'); return; }
-    return modal('Connect to Global Market', function (surface, handle) {
+    if (s.status === 'unconfigured') { C.ui.toast('Players is not available in this build.'); return; }
+    return modal('Connect to Players', function (surface, handle) {
       var body = h('div.mk-online-body');
       surface.appendChild(body);
-      body.appendChild(note('Global Market has real players only. Your account is private: there is no email, and other players see only a generated two-word name. Your offline game, Credits and collection are not touched, and you can leave at any time.', 'mk-prose'));
+      body.appendChild(note('Players has real players only. Your account is private: there is no email, and other players see only a generated two-word name. Your offline game, Credits and collection are not touched, and you can leave at any time.', 'mk-prose'));
       body.appendChild(note('Online Credits are a separate wallet that starts at zero. Cards come online only if you convert your collection, as separate copies, once.'));
       var message = h('p.mk-field-error.is-inline', { role: 'alert', hidden: true });
       var go = ui.button('Create a private account', { variant: 'primary', icon: 'user' });
@@ -47,12 +47,12 @@
           saved.addEventListener('change', function () { done.disabled = !saved.checked; });
           body.appendChild(h('div.mk-modal-actions',
             ui.button('Copy', { variant: 'secondary', icon: 'save', onClick: function () { try { root.navigator.clipboard.writeText(r.recoveryCode).then(function () { C.ui.toast('Recovery code copied'); }); } catch (_) { C.ui.toast('Copy it by hand.'); } } }),
-            ui.button('Download', { variant: 'secondary', icon: 'save', onClick: function () { download('Cardable Global Market recovery code for ' + r.alias + ': ' + r.recoveryCode + '\n', 'cardable-recovery-code.txt', 'text/plain'); } })));
+            ui.button('Download', { variant: 'secondary', icon: 'save', onClick: function () { download('Cardable Players recovery code for ' + r.alias + ': ' + r.recoveryCode + '\n', 'cardable-recovery-code.txt', 'text/plain'); } })));
           body.appendChild(h('label.mk-toggle', saved, h('span.mk-toggle-track', { 'aria-hidden': 'true' }, h('i')), h('span.mk-toggle-copy', h('span', { text: 'I have saved my recovery code' }))));
           body.appendChild(h('div.mk-modal-actions', done));
         }, function (error) {
           go.disabled = false; message.hidden = false;
-          message.textContent = error.code === 'offline' ? 'Could not reach Global Market. Check your connection; nothing was created.' : error.code === 'rate-limited' ? 'Too many attempts from this network. Try again later.' : error.message;
+          message.textContent = error.code === 'offline' ? 'Could not reach Players. Check your connection; nothing was created.' : error.code === 'rate-limited' ? 'Too many attempts from this network. Try again later.' : error.message;
         });
       });
     });
@@ -63,7 +63,7 @@
       var message = h('p.mk-field-error.is-inline', { role: 'alert', hidden: true });
       var go = ui.button('Reconnect', { variant: 'primary', onClick: function () {
         go.disabled = true; message.hidden = true;
-        online().recover(input.value).then(function (r) { handle.close(); C.ui.toast('Reconnected as ' + r.alias); }, function (e) { go.disabled = false; message.hidden = false; message.textContent = e.code === 'offline' ? 'Could not reach Global Market.' : 'That recovery code was not accepted.'; });
+        online().recover(input.value).then(function (r) { handle.close(); C.ui.toast('Reconnected as ' + r.alias); }, function (e) { go.disabled = false; message.hidden = false; message.textContent = e.code === 'offline' ? 'Could not reach Players.' : 'That recovery code was not accepted.'; });
       } });
       surface.append(h('p.mk-prose', { text: 'Enter the code you saved when you created the account. It works once per attempt and is never stored here.' }), input, message, h('div.mk-modal-actions', ui.button('Cancel', { variant: 'ghost', onClick: function () { handle.close(); } }), go));
     });
@@ -72,7 +72,7 @@
   // ---- one-time import ------------------------------------------------------------------------------------------
   function importWizard() {
     var s = online().state;
-    if (s.status !== 'online') { C.ui.toast('Connect to Global Market first.'); return; }
+    if (s.status !== 'online') { C.ui.toast('Connect to Players first.'); return; }
     if (s.imported) { receiptDialog(); return; }
     var count = C.state.current.inventory.length;
     return modal('Convert your collection', function (surface, handle) {
@@ -122,7 +122,7 @@
           body.append(message, h('div.mk-modal-actions', ui.button('Cancel', { variant: 'ghost', onClick: function () { handle.close(); } }), commit));
         }, function (e) {
           ui.clear(body);
-          body.appendChild(h('p.mk-field-error.is-inline', { role: 'alert', text: e.code === 'offline' ? 'Could not reach Global Market. Nothing was changed.' : e.message }));
+          body.appendChild(h('p.mk-field-error.is-inline', { role: 'alert', text: e.code === 'offline' ? 'Could not reach Players. Nothing was changed.' : e.message }));
           body.appendChild(h('div.mk-modal-actions', ui.button('Close', { variant: 'primary', onClick: function () { handle.close(); } })));
         });
       };
@@ -131,7 +131,7 @@
   }
   function receiptView(body, handle, receipt, replayed) {
     ui.clear(body);
-    body.appendChild(h('p.mk-prose', { text: (replayed ? 'This collection was already converted. ' : '') + receipt.count.toLocaleString() + ' cards are now yours on Global Market.' }));
+    body.appendChild(h('p.mk-prose', { text: (replayed ? 'This collection was already converted. ' : '') + receipt.count.toLocaleString() + ' cards are now yours on Players.' }));
     body.appendChild(ui.statGrid([{ label: 'Receipt', value: receipt.id }, { label: 'Converted', value: new Date(receipt.importedAt).toLocaleString() }, { label: 'Not converted', value: String(receipt.rejected) }, { label: 'Public name', value: receipt.alias }], { cols: 2 }));
     body.appendChild(h('div.mk-modal-actions', ui.button('Download receipt', { variant: 'secondary', icon: 'save', onClick: function () { download(JSON.stringify(receipt, null, 2) + '\n', 'cardable-import-receipt.json'); } }),
       ui.button('Done', { variant: 'primary', onClick: function () { handle.close(); } })));
@@ -154,7 +154,7 @@
     (preselect || []).forEach(function (id) { selected[id] = true; });
     var intro = h('div.mk-qs-intro',
       h('p.mk-prose', { text: 'The system buys cards at a fixed price, always below what another player would pay. It is not a player, it does not set market prices, and a sale to it never counts as a trade or a price.' }),
-      h('p.mk-hint', { text: 'It is the way to get your first Credits on Global Market. A card you sell is retired for good.' }));
+      h('p.mk-hint', { text: 'It is the way to get your first Credits on Players. A card you sell is retired for good.' }));
     var usage = h('p.mk-hint.mk-qs-usage', { role: 'status', text: '' });
     var search = h('input.mk-input', { type: 'search', placeholder: 'Search your online cards', 'aria-label': 'Search your online cards' });
     var list = h('div.mk-picker.is-compact', { role: 'group', 'aria-label': 'Your online cards' });
@@ -199,7 +199,7 @@
       surface.appendChild(body);
       body.appendChild(intro);
       if (!rows.length) {
-        body.appendChild(ui.emptyState({ kind: 'empty', icon: 'cards', title: 'You have no cards on Global Market', body: 'Credits here come only from selling cards. Convert your collection once to bring copies online.',
+        body.appendChild(ui.emptyState({ kind: 'empty', icon: 'cards', title: 'You have no cards on Players', body: 'Credits here come only from selling cards. Convert your collection once to bring copies online.',
           actions: [{ label: 'Convert my collection', variant: 'primary', icon: 'upload', run: function () { handle.close(); importWizard(); } }] }));
         body.appendChild(h('div.mk-modal-actions', ui.button('Close', { variant: 'ghost', onClick: function () { handle.close(); } })));
         return;
@@ -244,7 +244,7 @@
   // The first-visit note for a connected Global Market, in the place the Simulation's note sits.
   function introCard() {
     var card = h('aside.mk-intro.is-global', { role: 'note' },
-      h('div', h('strong', { text: 'Global Market is real players.' }),
+      h('div', h('strong', { text: 'Players is real players.' }),
         h('p', { text: 'Everything here is listed, bid on and bought by people under generated two-word names. It starts nearly empty, prices appear after players trade, and there are no bots.' }),
         h('ul.mk-bullets',
           h('li', { text: 'Your online Credits are separate. The first come from selling cards to the system, limited each day.' }),
@@ -260,9 +260,9 @@
     function paint() {
       ui.clear(panel);
       var s = online().state;
-      panel.appendChild(h('div.mk-panel-head', h('h3', { text: 'Global Market (beta)' }), ui.chip(STATE_WORD[s.status] || s.status, { tone: s.status === 'online' ? 'good' : 'soft' })));
-      panel.appendChild(h('p.mk-hint', { text: 'Real players only, under anonymous names. Its own Credits and history, separate from Local and your offline save.' }));
-      if (s.status === 'unconfigured') { panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'This build is not connected to Global, so it stays empty and nothing is sent anywhere.' }))); return; }
+      panel.appendChild(h('div.mk-panel-head', h('h3', { text: 'Players (beta)' }), ui.chip(STATE_WORD[s.status] || s.status, { tone: s.status === 'online' ? 'good' : 'soft' })));
+      panel.appendChild(h('p.mk-hint', { text: 'Real players only, under anonymous names. Its own Credits and history, separate from Standard and your offline save.' }));
+      if (s.status === 'unconfigured') { panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'This build is not connected to Players, so it stays empty and nothing is sent anywhere.' }))); return; }
       var actions = h('div.mk-sim-actions');
       if (s.status === 'online') {
         panel.appendChild(ui.statGrid([{ label: 'Your public name', value: s.alias || '—' }, { label: 'Online Credits', value: ui.fmt.exact(s.balance || 0) }, { label: 'Online cards', value: String(s.inventoryTotal || 0) },
@@ -275,7 +275,7 @@
         actions.appendChild(ui.button('Connect', { variant: 'primary', icon: 'user', onClick: function () { connectDialog(); } }));
         actions.appendChild(ui.button('Use a recovery code', { variant: 'ghost', onClick: function () { recoverDialog(); } }));
       } else {
-        panel.appendChild(h('p.mk-field-error.is-inline', { role: 'status', text: s.error || 'Global Market is not reachable right now. Your offline game is unaffected.' }));
+        panel.appendChild(h('p.mk-field-error.is-inline', { role: 'status', text: s.error || 'Players is not reachable right now. Your offline game is unaffected.' }));
         actions.appendChild(ui.button('Try again', { variant: 'primary', onClick: function () { online().refresh(true); } }));
         if (online().state.alias) actions.appendChild(ui.button('Sign out', { variant: 'ghost', onClick: function () { online().signOut(); } }));
       }

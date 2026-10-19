@@ -7,10 +7,10 @@
   var cfg = function () { return C.data.market; };
 
   var PAGES = {
-    discover: { title: 'Browse', blurb: 'Picked for you.', tabs: true, hero: true, formats: null },
-    auctions: { title: 'Auctions', blurb: 'Set a maximum. It bids for you.', formats: ['auction'], sort: 'ending', auctionControls: true },
-    'buy-now': { title: 'Buy Now', blurb: 'Fixed prices. First buyer wins.', formats: ['buy-now'], sort: 'recommended' },
-    trades: { title: 'Trades', blurb: 'Card for card, with optional Credits.', formats: ['swap'], sort: 'recommended' }
+    discover: { title: 'Browse', icon: 'explore', blurb: '', tabs: true, hero: true, formats: null },
+    auctions: { title: 'Auctions', icon: 'gavel', blurb: '', formats: ['auction'], sort: 'ending', auctionControls: true },
+    'buy-now': { title: 'Buy Now', icon: 'tag', blurb: '', formats: ['buy-now'], sort: 'recommended' },
+    trades: { title: 'Trades', icon: 'swap', blurb: '', formats: ['swap'], sort: 'recommended' }
   };
 
   function pageState(id) {
@@ -115,12 +115,18 @@
     if (def.formats) state.filters.formats = def.formats.slice();
     if (id === 'discover' && ctx.params.q != null) { state.filters.q = ctx.params.q; }
     if (id === 'discover') state.filters = store.session.filters && store.session.filters !== state.filters ? Object.assign(state.filters, { q: store.session.filters.q }) : state.filters;
-    var facets = null, lastTotal = 0, cursor = null, loading = false, token = 0;
+    var facets = null, lastTotal = 0, cursor = null, loading = false, token = 0, known = null;
 
     // ---- page head ----
     var head = h('div.mk-pagehead');
-    var titleBlock = h('div.mk-pagehead-copy', h('h1', { text: def.title }), h('p', { text: def.blurb }));
+    var titleBlock = h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', { data: { anim: id } }, icon(def.icon)), h('span', { text: def.title })), def.blurb ? h('p', { text: def.blurb }) : null);
     var actions = h('div.mk-pagehead-actions');
+    // refresh: shows what changed since you arrived, with the new listings sliding in
+    var refreshBtn = ui.iconButton('refresh', 'Refresh listings', function () {
+      refreshBtn.classList.remove('is-spin'); void refreshBtn.offsetWidth; refreshBtn.classList.add('is-spin');
+      pill.hidden = true; refresh(false, true);
+    }, { variant: 'ghost' });
+    refreshBtn.classList.add('mk-refresh');
     var viewSwitch = ui.segmented({ label: 'Layout', value: view, onChange: function (v) { C.settings.set('marketView', v); },
       options: [{ value: 'feed', label: 'Feed', icon: 'grid' }, { value: 'terminal', label: 'Terminal', icon: 'list' }] });
     viewSwitch.classList.add('mk-view-switch');
@@ -128,18 +134,20 @@
       options: [{ value: 'simple', label: 'Simple' }, { value: 'advanced', label: 'Advanced' }] });
     modeSwitch.classList.add('mk-mode-switch');
     var sellBtn = ui.button('List a card', { variant: 'primary', icon: 'plus', onClick: function () { ui.go('compose', {}); } });
-    actions.append(viewSwitch, modeSwitch, sellBtn);
+    actions.append(refreshBtn, viewSwitch, modeSwitch, sellBtn);
     head.append(titleBlock, actions);
     host.appendChild(head);
+    // one short tip at a time (hide it for good with its close button)
+    if ((id === 'discover' || id === 'auctions') && ui.flourish && ui.flourish.tips) { var tipBox = ui.flourish.tips(scope); if (tipBox) host.appendChild(tipBox); }
 
-    // ---- intro for first visit ----
+    // ---- intro for first visit (Standard is introduced by the guided tour instead of a block of text) ----
     if (!store.prefs.guideSeen && id === 'discover') {
       if (realm === 'global' && ui.sim.live(realm) && ui.online && ui.online.introCard) host.appendChild(ui.online.introCard());
-      else if (ui.sim.live(realm)) host.appendChild(ui.sim.introCard());
+      else if (ui.sim.live(realm)) { /* the tour (tour.js) */ }
       else {
         var intro = h('aside.mk-intro', { role: 'note' },
           h('div', h('strong', { text: 'This is a preview of the Market.' }),
-            h('p', { text: 'Two markets: Local, with traders on this device, and Global, with real players. Everything here is sample data. Nothing is bought, sold or saved.' })),
+            h('p', { text: 'Two markets: Standard, with traders on this device, and Players, with real players. Everything here is sample data. Nothing is bought, sold or saved.' })),
           ui.button('Got it', { variant: 'secondary', onClick: function () { store.markGuideSeen(); intro.remove(); } }));
         host.appendChild(intro);
       }
@@ -174,7 +182,7 @@
           });
           strip.appendChild(cols);
         }
-        strip.appendChild(h('p.mk-hint', { text: 'Want to practise? Local is a separate, offline market. Its listings never appear here.' }));
+        strip.appendChild(h('p.mk-hint', { text: 'Want to practise? Standard is a separate, offline market. Its listings never appear here.' }));
       };
       paintStrip();
       scope.add(store.subscribe(function (what) { if (what === 'sim') paintStrip(); }));
@@ -183,7 +191,7 @@
     }
     // Simulation realm: a quiet pill when the market changed under the page, so rows never jump while you read.
     var pill = h('button.mk-updates', { type: 'button', hidden: true, 'aria-live': 'polite' });
-    pill.addEventListener('click', function () { pill.hidden = true; refresh(false); });
+    pill.addEventListener('click', function () { pill.hidden = true; refresh(false, true); });
     host.appendChild(h('div.mk-updates-row', pill));
 
     var heroHost = id === 'discover' ? h('div.mk-hero-host') : null;
@@ -468,21 +476,21 @@
       if (realm === 'global' && ['signed-out', 'offline', 'paused', 'no-listings'].indexOf(res.emptyReason) >= 0 && !store.session.showGlobalSample) {
         var gs = C.market.api.statusSync('global');
         var actions = [];
-        if (res.emptyReason === 'signed-out') actions.push({ label: 'Connect to Global Market', variant: 'primary', icon: 'user', run: function () { if (ui.online) ui.online.connectDialog(); } });
+        if (res.emptyReason === 'signed-out') actions.push({ label: 'Connect to Players', variant: 'primary', icon: 'user', run: function () { if (ui.online) ui.online.connectDialog(); } });
         if (res.emptyReason === 'offline' || res.emptyReason === 'paused') actions.push({ label: 'Try again', variant: 'primary', icon: 'forward', run: function () { C.market.online.refresh(true); } });
-        actions.push({ label: 'Open Local', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
+        actions.push({ label: 'Open Standard', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
         if (res.emptyReason === 'no-listings') actions.unshift({ label: 'List a card', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } });
         results.appendChild(ui.emptyState({ kind: res.emptyReason === 'no-listings' ? 'empty' : 'offline', icon: res.emptyReason === 'no-listings' ? 'market' : 'lock',
-          title: res.emptyReason === 'no-listings' ? 'No one is selling yet' : res.emptyReason === 'paused' ? 'Global Market is paused' : res.emptyReason === 'offline' ? 'Global Market is unreachable' : 'Connect to see Global Market',
+          title: res.emptyReason === 'no-listings' ? 'No one is selling yet' : res.emptyReason === 'paused' ? 'Players is paused' : res.emptyReason === 'offline' ? 'Players is unreachable' : 'Connect to see Players',
           body: res.emptyReason === 'no-listings' ? 'Everything here comes from real players, and the beta is new. When a player lists a card it appears here. Nothing is added to make it look busy: no bots, no samples. List a card of your own, or sell a few to the system to get your first Credits.'
             : gs.message, actions: actions }));
         return;
       }
       if (res.emptyReason === 'not-connected') {
-        results.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: 'Global Market is not connected',
-          body: 'It lists real players’ cards once connected. You can browse Local or draft a listing meanwhile.',
+        results.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: 'Players is not connected',
+          body: 'It lists real players’ cards once connected. You can browse Standard or draft a listing meanwhile.',
           actions: [
-            { label: 'Open Local', variant: 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } },
+            { label: 'Open Standard', variant: 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } },
             { label: 'Draft a listing', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } },
             { label: 'Preview the layout with sample listings', variant: 'ghost', icon: 'eye', run: function () { store.session.showGlobalSample = true; store.emit('realm'); } }].filter(function (action) { return action.icon !== 'eye' || devMode(); }) }));
         return;
@@ -498,7 +506,7 @@
         extra.appendChild(b);
       });
       results.appendChild(ui.emptyState({ kind: 'no-results', icon: 'search', title: 'No listings match',
-        body: ui.sim.live(realm) && !pool.length ? (realm === 'global' ? 'No player is selling this right now. Global lists only what real players put up.' : 'No one in Local is selling this right now. New cards are listed through the day.') : 'Nothing fits every filter. Loosen one, or clear them all.', extra: hints.length ? extra : null,
+        body: ui.sim.live(realm) && !pool.length ? (realm === 'global' ? 'No player is selling this right now. Players lists only what real players put up.' : 'No one in Standard is selling this right now. New cards are listed through the day.') : 'Nothing fits every filter. Loosen one, or clear them all.', extra: hints.length ? extra : null,
         actions: [{ label: 'Clear all filters', variant: 'secondary', run: clearAll }] }));
     }
     function renderResults(res, append) {
@@ -528,8 +536,9 @@
       more.hidden = !cursor; sentinel.hidden = !cursor;
       if (cursor) more.querySelector('span').textContent = 'Show more · ' + (lastTotal - shown) + ' left';
     }
-    function refresh(resetScroll) {
-      var mine = ++token;
+    function refresh(resetScroll, markNew) {
+      var mine = ++token, before = null;
+      if (markNew && grid) { before = {}; Array.prototype.forEach.call(grid.querySelectorAll('[data-id]'), function (n) { before[n.dataset.id] = true; }); }
       renderChips();
       // A provider that answers later (the simulator, the online realm) gets a designed loading state.
       if (!results.firstChild) results.appendChild(ui.skeletonGrid(Math.min(8, pageSize)));
@@ -539,6 +548,9 @@
       ctx.api.listings(realm, q).then(function (res) {
         if (mine !== token || scope.dead) return;
         renderResults(res, false);
+        if (before && grid && ui.flourish) ui.flourish.markFresh(grid, before);
+        // every listing that exists now, shown or not: only a listing that appears after this counts as new
+        if (ui.sim.live(realm)) { known = {}; ctx.api.listingsSync(realm, { tab: state.tab, filters: state.filters, limit: 400, cursor: null, sort: state.sort || undefined, lockFormats: def.formats || null, facets: false }).items.forEach(function (e) { known[e.listing.id] = true; }); }
         if (heroHost) renderHero(res);
         if (resetScroll) ctx.scroller.scrollTop = 0;
         ctx.restoreScroll();
@@ -581,15 +593,16 @@
       artHost.appendChild(ctx.thumbs.mount(card, { instanceId: 'mk-hero-' + l.id, cardId: card.id, serial: l.card.serial, variantId: l.card.variantId, cardSkinId: l.card.cardSkinId, seen: true }, { owned: !!env.owned[card.id] }));
       var price = K().currentPrice(l), v = l.valuation;
       var copy = h('div.mk-hero-copy');
-      copy.appendChild(ui.eyebrow('Featured · ' + ui.formatDef(l.format).label));
+      copy.appendChild(h('span.mk-eyebrow.mk-hero-kind', icon(ui.formatDef(l.format).icon), h('span', { text: ui.formatDef(l.format).label })));
       copy.appendChild(h('h2', { text: idn.name }));
-      var why = main.rank.discount >= 0.05 && v.average ? (l.format === 'auction' && !(l.auction && l.auction.bids) ? 'Starts ' : 'Priced ') + ui.fmt.pct(main.rank.discount, false) + ' under an Average Value of ' + ui.fmt.exact(v.average) + '.' : 'A strong fit for your collection and budget.';
-      copy.appendChild(h('p.mk-hero-why', { text: why }));
+      var why = main.rank.discount >= 0.05 && v.average ? ui.fmt.pct(main.rank.discount, false) + ' under its usual price of ' + ui.fmt.exact(v.average) : '';
+      if (why) copy.appendChild(h('p.mk-hero-why', icon('down'), h('span', { text: why })));
       var meta = h('div.mk-hero-meta', ui.chip(idn.rarityName, { tone: 'rarity' }));
       if (l.card.variantId) meta.appendChild(ui.chip(env.variants[l.card.variantId].name));
-      main.rank.reasons.slice(0, 2).forEach(function (r) { meta.appendChild(ui.chip(r.label, { tone: r.id === 'risk' ? 'warn' : 'soft' })); });
+      var HERO = { gap: ['cards', 'New to you'], wishlist: ['star', 'Wishlist'], ending: ['clock', 'Ends soon'], fresh: ['sparkle', 'Just listed'], risk: ['warn', 'Risky'] };
+      main.rank.reasons.forEach(function (r) { if (HERO[r.id] && meta.children.length < 3) meta.appendChild(ui.chip(HERO[r.id][1], { tone: r.id === 'risk' ? 'warn' : 'soft', icon: HERO[r.id][0] })); });
       copy.appendChild(meta);
-      var priceRow = h('div.mk-hero-price', ui.credits(price, { big: true }), l.format === 'auction' ? h('span.mk-muted', { text: (l.auction.bids === 1 ? '1 bid' : l.auction.bids + ' bids') + ' · ' + ui.fmt.duration(l.endsMin) + ' left' }) : null, ui.valueTag(price, v));
+      var priceRow = h('div.mk-hero-price', ui.credits(price, { big: true }), l.format === 'auction' ? h('span.mk-muted', { text: (l.auction.bids === 1 ? '1 bid' : l.auction.bids + ' bids') + ' · ' + ui.fmt.duration(l.endsMin) + ' left' }) : null, why ? null : ui.valueTag(price, v));
       copy.appendChild(priceRow);
       var cta = h('div.mk-hero-actions', ui.button('View listing', { variant: 'primary', icon: 'forward', onClick: function () { ui.go('listing', { id: l.id }, { focusKey: l.id }); } }),
         ui.button(store.isWatching(l.id) ? 'Watching' : 'Watch', { variant: 'secondary', icon: 'bookmark', onClick: function (e) { var on = store.toggleWatch(l.id); e.currentTarget.querySelector('span').textContent = on ? 'Watching' : 'Watch'; } }));
@@ -601,7 +614,7 @@
         var tile = h('button.mk-mini', { type: 'button', 'aria-label': sid.name + ', ' + ui.formatDef(sl.format).label + ', ' + ui.fmt.exact(K().currentPrice(sl)) + ' Credits' });
         var a = h('div.mk-mini-art');
         a.appendChild(ctx.thumbs.mount(sc, { instanceId: 'mk-hero-' + sl.id, cardId: sc.id, serial: sl.card.serial, variantId: sl.card.variantId, cardSkinId: sl.card.cardSkinId, seen: true }, { owned: !!env.owned[sc.id] }));
-        tile.append(a, h('span.mk-mini-copy', h('strong', { text: sid.name }), h('span', { text: ui.formatDef(sl.format).short + ' · ' + (e.rank.reasons[0] ? e.rank.reasons[0].label : sid.rarityName) }), ui.credits(K().currentPrice(sl))));
+        tile.append(a, h('span.mk-mini-copy', h('strong', { text: sid.name }), h('span', { text: ui.formatDef(sl.format).short + ' · ' + sid.rarityName }), ui.credits(K().currentPrice(sl))));
         tile.addEventListener('click', function () { ui.go('listing', { id: sl.id }, { focusKey: sl.id }); });
         side.appendChild(tile);
       });
@@ -639,8 +652,12 @@
           }
         }
       });
-      res.items.forEach(function (e) { if (!present[e.listing.id]) changed++; });
-      if (changed) { pill.textContent = changed === 1 ? '1 new listing · Show' : changed + ' new listings · Show'; pill.hidden = false; } else pill.hidden = true;
+      res.items.forEach(function (e) { if (!present[e.listing.id] && !(known && known[e.listing.id])) changed++; });
+      // At the top of the page with nothing in hand, new listings simply slide in; further down they wait behind the pill
+      // so nothing moves under what you are reading.
+      var atTop = ctx.scroller.scrollTop < 140 && !(root.document.activeElement && root.document.activeElement.closest && root.document.activeElement.closest('.mk-results,.mk-filters,.mk-controlbar'));
+      if (changed && atTop && !results.matches(':hover') && !ui.hasPopover() && !(C.ui && C.ui.modal) && Date.now() - (liveUpdate.last || 0) > 4000) { liveUpdate.last = Date.now(); pill.hidden = true; refresh(false, true); return; }
+      if (changed) { ui.clear(pill); pill.append(icon('sparkle'), h('span', { text: changed === 1 ? '1 new listing' : changed + ' new listings' }), h('span.mk-updates-go', icon('refresh'), h('span', { text: 'Show' }))); pill.hidden = false; } else pill.hidden = true;
     }
 
     // ---- store-driven updates ----
@@ -656,7 +673,7 @@
   // ---- Recent trades ----
   function mountRecentTrades(ctx, state) {
     var host = ctx.host, realm = ctx.realm, env = ctx.env(), live = ui.sim.live(realm);
-    var head = h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Discover' }), h('p', { text: 'Completed trades only.' })));
+    var head = h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', icon('swap')), h('span', { text: 'Recent trades' })), h('p', { text: 'Completed trades only.' })));
     host.appendChild(head);
     var tabs = ui.segmented({ label: 'Discover feeds', role: 'tablist', value: 'trades', options: cfg().tabs.map(function (t) { return { value: t.id, label: t.label }; }),
       onChange: function (v) { state.tab = v; state.pages = 1; ui.shell.remount(); } });
@@ -668,7 +685,7 @@
       if (ctx.scope.dead) return;
       if (!res.items.length) {
         listHost.appendChild(ui.emptyState({ kind: 'offline', icon: 'swap', title: realm === 'global' ? 'No real trades yet' : 'No trades yet',
-          body: realm === 'global' ? (live ? 'No two players have completed a trade yet. When they do, every completed player trade appears here, and nothing else: never a bot, a sample or a system sale.' : 'Global Market is not connected. When it is, every completed player trade appears here, and nothing else.') : 'Completed Local trades appear here as traders buy and sell.',
+          body: realm === 'global' ? (live ? 'No two players have completed a trade yet. When they do, every completed player trade appears here, and nothing else: never a bot, a sample or a system sale.' : 'Players is not connected. When it is, every completed player trade appears here, and nothing else.') : 'Completed Standard trades appear here as traders buy and sell.',
           actions: [{ label: 'Back to For You', variant: 'secondary', run: function () { state.tab = 'for-you'; ui.shell.remount(); } }] }));
         ctx.restoreScroll();
         return;

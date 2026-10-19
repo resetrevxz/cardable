@@ -59,11 +59,11 @@ async function waitForMove(page, types, maxHours) {
     await page.evaluate(() => { Cardable.market.store.markGuideSeen(); Cardable.market.open(); });
     await page.waitForSelector('.mk-page');
 
-    await step('the Simulation opens on Home, with a calm header: five sections, one More, no standing notice', async () => {
+    await step('the Simulation opens on Home, with a calm header: six sections (Shop joined in 1.13.0), one More, no standing notice', async () => {
       const r = await page.evaluate(() => ({ route: Cardable.market.ui.shell.current().name, h1: document.querySelector('.mk-page h1').textContent, tabs: Array.from(document.querySelectorAll('.mk-tabs > .mk-tab')).filter((b) => !b.hidden).map((b) => b.textContent.trim().replace(/\d+$/, '')),
         notice: !!document.querySelector('.mk-notice-host:not([hidden]) .mk-notice'), headerHeight: document.querySelector('.mk-header').getBoundingClientRect().height + document.querySelector('.mk-nav').getBoundingClientRect().height }));
       assert.equal(r.route, 'home'); assert.equal(r.h1, 'Home');
-      assert.deepEqual(r.tabs, ['Home', 'Browse', 'Auctions', 'Portfolio', 'Prices', 'More']);
+      assert.deepEqual(r.tabs, ['Home', 'Browse', 'Auctions', 'Portfolio', 'Prices', 'Shop', 'More']);
       assert.equal(r.notice, false, 'no standing notice in the Simulation');
       await shot(page, 'home-1440');
       return r;

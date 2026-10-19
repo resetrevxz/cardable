@@ -15,12 +15,12 @@
     if (!st.windowTouched) st.window = C.settings.get('marketWindow');
     var reduced = !!C.settings.get('marketReducedData');
 
-    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Prices' }),
+    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', { data: { anim: 'stocks' } }, icon('prices')), h('span', { text: 'Prices' })),
       h('p', { text: 'Trends and depth for every card. Nothing here is traded.' })),
       h('div.mk-pagehead-actions', live
         ? (realm === 'global'
-          ? ui.chip('Player trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from completed sales between players on Global Market. Quick Sell, swaps, offers and bundles are never counted. Where there are none, nothing is drawn.' })
-          : ui.chip('Simulated trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from trades completed in Local. Where there are none, nothing is drawn.' }))
+          ? ui.chip('Player trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from completed sales between players on Players. Quick Sell, swaps, offers and bundles are never counted. Where there are none, nothing is drawn.' })
+          : ui.chip('Simulated trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from trades completed in Standard. Where there are none, nothing is drawn.' }))
         : ui.chip('Illustrative', { tone: 'soft', icon: 'info', title: 'All figures are sample data for the preview' }))));
 
     // controls
@@ -112,8 +112,8 @@
       ui.clear(rail); ui.clear(leadersHost); ui.clear(title);
       if (empty) {
         chart.hidden = true; title.hidden = true;
-        rail.appendChild(ui.emptyState({ kind: 'offline', icon: 'trend', title: 'No Global Market data', body: (gstate && gstate.connected ? 'Global Market is live but no player has completed a sale yet. ' : 'Global Market is not connected. ') + 'Its prices are built only from real completed player sales, so there is nothing to chart yet. The Simulation has its own numbers.',
-          actions: [{ label: 'Open Local', variant: 'primary', run: function () { store.setRealm('simulation'); } }] }));
+        rail.appendChild(ui.emptyState({ kind: 'offline', icon: 'trend', title: 'No Players data', body: (gstate && gstate.connected ? 'Players is live but no player has completed a sale yet. ' : 'Players is not connected. ') + 'Its prices are built only from real completed player sales, so there is nothing to chart yet. The Simulation has its own numbers.',
+          actions: [{ label: 'Open Standard', variant: 'primary', run: function () { store.setRealm('simulation'); } }] }));
         return;
       }
       chart.hidden = false; title.hidden = false;

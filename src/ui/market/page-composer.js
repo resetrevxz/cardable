@@ -68,7 +68,7 @@
     // ---- layout ----
     var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
     host.appendChild(h('div.mk-pagehead.is-detail', back));
-    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'List a card' }), h('p', { text: live
+    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', icon('tag')), h('span', { text: 'List a card' })), h('p', { text: live
       ? 'Pick the card, set terms, see what you keep. Locked while listed.'
       : 'Pick the card, set terms, see what you would keep. Nothing is published.' }))));
     var banner = h('div.mk-banner-host');
@@ -225,13 +225,25 @@
         var price = numberInput(draft.price, function (val) { draft.price = val; draft.touchedPrice = true; }, { min: '1' });
         body.appendChild(field('Asking price (Credits)', price, { name: 'price', help: 'average-value', hint: 'Buyers pay exactly this. You receive it minus the ' + cfg().fee.label.toLowerCase() + '.' }));
         if (v) {
-          var quick = h('div.mk-quick', { role: 'group', 'aria-label': 'Suggested prices' });
-          [['fast', 'Sell fast'], ['balanced', 'Fair'], ['patient', 'Patient']].forEach(function (u) {
-            var s = K().suggestedAsk(v, u[0]);
-            var b = h('button.mk-pill', { type: 'button' }, h('span', { text: u[1] }), h('span.mk-pill-count', { text: ui.fmt.exact(s.price) }));
-            b.addEventListener('click', function () { draft.price = String(s.price); draft.touchedPrice = true; price.value = draft.price; touch(); renderSide(); });
-            quick.appendChild(b);
+          // three ready prices as cards: what it asks, what you keep after the fee, and how long it tends to take
+          var g = selected().length === 1 && C.valuation.guidance ? (function () { var inst = selected()[0]; try { return C.valuation.guidance({ cardId: inst.cardId, variantId: inst.variantId || null, cardSkinId: inst.cardSkinId || null, serial: inst.serial }); } catch (_) { return null; } })() : null;
+          var quick = h('div.mk-price-choices', { role: 'group', 'aria-label': 'Suggested prices' }), cards = [];
+          [['fast', 'Sell fast', 'zap', 'quick'], ['balanced', 'Fair price', 'check', 'fair'], ['patient', 'Patient', 'clock', 'patient']].forEach(function (u) {
+            var s = K().suggestedAsk(v, u[0]), m = g && g.modes.find(function (x) { return x.id === u[3]; });
+            var keep = s.price - K().feeFor(s.price, cfg().fee), eta = m && m.etaHours ? (m.etaHours < 24 ? '~' + m.etaHours + ' h' : '~' + Math.round(m.etaHours / 24) + ' d') : null;
+            var b = h('button.mk-price-choice', { type: 'button', data: { urgency: u[0] }, 'aria-pressed': String(String(s.price) === String(draft.price)) },
+              h('span.mk-price-choice-top', icon(u[2]), h('span', { text: u[1] })),
+              h('strong.mk-num', { text: ui.fmt.exact(s.price) }),
+              h('span.mk-price-choice-sub', { text: 'You keep ' + ui.fmt.exact(keep) + (eta ? ' · ' + eta : '') }));
+            b.addEventListener('click', function () {
+              draft.price = String(s.price); draft.touchedPrice = true; price.value = draft.price;
+              cards.forEach(function (c) { c.setAttribute('aria-pressed', String(c === b)); });
+              if (ui.motion) ui.motion.pulse(b);
+              touch(); renderSide();
+            });
+            cards.push(b); quick.appendChild(b);
           });
+          price.addEventListener('input', function () { cards.forEach(function (c) { c.setAttribute('aria-pressed', 'false'); }); });
           body.appendChild(quick);
         }
         if (live) {
@@ -379,7 +391,7 @@
         return;
       }
       if (live) {
-        body.appendChild(h('p.mk-hint', icon('image'), h('span', { text: realm === 'global' ? 'Connect to Global to add pictures to a listing.' : 'Local listings use the card’s own art. Pictures are for Global.' })));
+        body.appendChild(h('p.mk-hint', icon('image'), h('span', { text: realm === 'global' ? 'Connect to Players to add pictures to a listing.' : 'Standard listings use the card’s own art. Pictures are for Players.' })));
         presentHost.appendChild(body);
         return;
       }
@@ -538,10 +550,10 @@
           err.hidden = false; status.textContent = 'You can try again with the same picture.'; ready();
         });
       });
-      surface.append(h('header', ui.eyebrow('Global Market'), h('h2', { text: 'Add a picture' })),
+      surface.append(h('header', ui.eyebrow('Players'), h('h2', { text: 'Add a picture' })),
         h('div.mk-crop-stage', canvas), status, bar, layoutSwitch, h('label.mk-field', h('span.mk-field-label', { text: 'Zoom' }), zoomIn),
         h('div.mk-field', h('span.mk-field-label', { text: 'Description' }), alt),
-        h('label.mk-check', agree, h('span', { text: 'I understand this picture is uploaded to Global Market and shown to other players on this listing. Camera and location data are removed.' })),
+        h('label.mk-check', agree, h('span', { text: 'I understand this picture is uploaded to Players and shown to other players on this listing. Camera and location data are removed.' })),
         err, h('div.mk-modal-actions', cancel, send));
       var handle = C.ui.present(surface, { anchor: anchor, onClose: function () { if (state.job) state.job.cancel(); } });
       fit();
@@ -740,7 +752,7 @@
       rows.push({ label: 'Held in escrow', value: sel.length === 1 ? '1 card' : sel.length + ' cards' });
       if (draft.title) rows.push({ label: 'Title', value: draft.title });
       if (draft.cover.kind !== 'card') rows.push({ label: 'Cover', value: draft.cover.name || 'Image' });
-      ui.review({ title: 'Review listing', rows: rows, note: realm === 'global' ? (C.market.online && C.market.online.state.status === 'online' ? 'Global Market is connected, but players cannot list yet: trading opens in a later beta stage. Nothing was sent, held or changed. Your draft stays on this device.' : 'Global Market is not connected, so this listing could not be published. Nothing was sent or saved to your collection.') : 'Nothing was listed and no card was locked. Publishing opens with the simulator in a later update. Your draft stays on this device.' });
+      ui.review({ title: 'Review listing', rows: rows, note: realm === 'global' ? (C.market.online && C.market.online.state.status === 'online' ? 'Players is connected, but players cannot list yet: trading opens in a later beta stage. Nothing was sent, held or changed. Your draft stays on this device.' : 'Players is not connected, so this listing could not be published. Nothing was sent or saved to your collection.') : 'Nothing was listed and no card was locked. Publishing opens with the simulator in a later update. Your draft stays on this device.' });
     }
 
     // ---- assemble ----

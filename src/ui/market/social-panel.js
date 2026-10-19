@@ -128,7 +128,7 @@
     function paint() {
       var d = social().comments(listing.id), s = settings();
       ui.clear(head); ui.clear(listEl);
-      head.append(h('h3', { text: 'Comments' }), ui.chip(d.total != null ? String(d.total) : '…', { tone: 'soft', title: 'Comments on this listing' }), ui.chip('Global Market', { tone: 'soft', icon: 'user', title: 'Written by real players under their anonymous names' }));
+      head.append(h('h3', { text: 'Comments' }), ui.chip(d.total != null ? String(d.total) : '…', { tone: 'soft', title: 'Comments on this listing' }), ui.chip('Players', { tone: 'soft', icon: 'user', title: 'Written by real players under their anonymous names' }));
       open = d.open !== false;
       if (s.hideComments && !showAll) {
         listEl.appendChild(h('p.mk-hint', { text: 'You chose to hide comments. ' + (d.total || 0) + ' on this listing.' }));
@@ -255,10 +255,10 @@
   }
 
   // ---- share a reference ---------------------------------------------------------------------------------------------------------
-  // A listing reference is plain text, "Global Market listing lst_…". It is only ever understood by pasting it back into
+  // A listing reference is plain text, "Players listing lst_…". It is only ever understood by pasting it back into
   // the Market's search; it is not a link and registers no protocol handler.
   var REF = /(lst_[A-Za-z0-9_-]{6,40})/;
-  function refOf(id) { return 'Global Market listing ' + id; }
+  function refOf(id) { return 'Players listing ' + id; }
   function copyRef(id) {
     var text = refOf(id);
     function done() { C.ui.toast('Reference copied. Paste it into Market search to open this listing.'); }
@@ -276,9 +276,9 @@
     var box = h('section.mk-box.mk-social-settings', { 'aria-label': 'Social and pictures' }), scope = ctx.scope;
     function paint() {
       ui.clear(box);
-      box.appendChild(h('div.mk-panel-head', h('h3', { text: 'Social and pictures' }), ui.chip('Global Market', { tone: 'soft', icon: 'user' })));
+      box.appendChild(h('div.mk-panel-head', h('h3', { text: 'Social and pictures' }), ui.chip('Players', { tone: 'soft', icon: 'user' })));
       if (!C.market.onlineProvider || !C.market.online || C.market.online.state.status !== 'online') {
-        box.appendChild(h('p.mk-hint', { text: 'Connect to Global Market to choose what you are told about, and to see the pictures you have uploaded.' }));
+        box.appendChild(h('p.mk-hint', { text: 'Connect to Players to choose what you are told about, and to see the pictures you have uploaded.' }));
         return;
       }
       var s = social().settings();
@@ -311,13 +311,13 @@
           var state = p.status === 'attached' ? 'On ' + (p.listingStatus === 'active' ? 'an open listing' : 'a listing that ended') : p.status === 'ready' ? (p.expired ? 'Expired, will be cleared' : 'Ready, not on a listing') : 'Unfinished';
           li.append(thumb, h('div.mk-picture-copy', h('strong', { text: state }), h('span.mk-muted', { text: bytesText(p.bytes) + ' · ' + (p.source === 'director' ? 'From the Director album' : 'From a file') })));
           var inUse = p.status === 'attached' && p.listingStatus === 'active';
-          li.appendChild(ui.button('Remove', { variant: 'ghost', size: 'sm', disabled: inUse, title: inUse ? 'It is on an open listing. Change or withdraw the listing first.' : 'Delete this picture from Global Market', onClick: function () {
-            social().deleteUpload(p.id).then(function (r) { if (!r.ok) C.ui.toast(errorText(r), null, 'error'); else C.ui.toast('Picture removed from Global Market. Your original is untouched.'); paint(); });
+          li.appendChild(ui.button('Remove', { variant: 'ghost', size: 'sm', disabled: inUse, title: inUse ? 'It is on an open listing. Change or withdraw the listing first.' : 'Delete this picture from Players', onClick: function () {
+            social().deleteUpload(p.id).then(function (r) { if (!r.ok) C.ui.toast(errorText(r), null, 'error'); else C.ui.toast('Picture removed from Players. Your original is untouched.'); paint(); });
           } }));
           ul.appendChild(li);
         });
         pics.appendChild(ul);
-        pics.appendChild(h('p.mk-hint', { text: 'Removing a picture here deletes only the copy on Global Market. The original file and your Director album are never changed.' }));
+        pics.appendChild(h('p.mk-hint', { text: 'Removing a picture here deletes only the copy on Players. The original file and your Director album are never changed.' }));
       }
       box.appendChild(pics);
 

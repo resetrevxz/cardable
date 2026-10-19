@@ -4,8 +4,10 @@
   var ui = C.market.ui, h = ui.h, icon = ui.icon, store = C.market.store, K = function () { return C.market.core; };
   var cfg = function () { return C.data.market; };
 
+  var HEAD_ICONS = { Portfolio: 'briefcase', Activity: 'activity', Watchlist: 'bookmark', Alerts: 'bell', 'My listings': 'layers', 'Market settings': 'sliders' };
   function head(title, blurb, actions) {
-    return h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: title }), blurb ? h('p', { text: blurb }) : null), actions ? h('div.mk-pagehead-actions', actions) : null);
+    var ic = HEAD_ICONS[title];
+    return h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', ic ? h('span.mk-h1-icon', icon(ic)) : null, h('span', { text: title })), blurb ? h('p', { text: blurb }) : null), actions ? h('div.mk-pagehead-actions', actions) : null);
   }
   function tileEnv(ctx, env) { return { cards: env.cards, owned: env.owned, variants: env.variants, thumbs: ctx.thumbs, index: 0 }; }
 
@@ -13,7 +15,7 @@
   function portfolio(ctx) {
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, live = ui.sim.live(realm);
     var p = ctx.api.portfolioSync(realm);
-    host.appendChild(head('Portfolio', 'What you hold, at estimated value.',
+    host.appendChild(head('Portfolio', '',
       [ui.button('List a card', { variant: 'primary', icon: 'plus', onClick: function () { ui.go('compose', {}); } }),
         realm === 'global' && live && ui.online ? ui.button('Sell to the system', { variant: 'secondary', icon: 'coin', onClick: function () { ui.online.quickSellDialog(); } }) : null].filter(Boolean)));
     var sampleNote = null;
@@ -32,7 +34,7 @@
         { label: 'Quick Sell value', value: ui.fmt.exact(p.quickSellValue || 0), note: 'All your cards. A trader pays more.', help: 'quick-sell' }
       ], { cols: 2 }));
     } else summary.appendChild(ui.statGrid([
-      { label: realm === 'global' ? 'Global wallet' : 'Credits', value: w.balance == null ? 'Not connected' : ui.fmt.exact(w.balance), note: w.note },
+      { label: realm === 'global' ? 'Players wallet' : 'Credits', value: w.balance == null ? 'Not connected' : ui.fmt.exact(w.balance), note: w.note },
       { label: 'Realized profit', value: '—', note: 'After your first sale', help: 'settlement' },
       { label: 'Unrealized change', value: '—', note: 'Pack cards have no cost basis' },
       { label: 'Fees paid', value: '0', note: cfg().fee.label }
@@ -40,7 +42,7 @@
     host.appendChild(summary);
     // The Global books: what is held back, what is marked and how sure that mark is, volume and fees, and the convention.
     if (live && p.server) {
-      var books = h('section.mk-box', { 'aria-label': 'Global accounts' }, h('div.mk-panel-head', h('h3', { text: 'Your Global books' }),
+      var books = h('section.mk-box', { 'aria-label': 'Players accounts' }, h('div.mk-panel-head', h('h3', { text: 'Your Players books' }),
         ui.chip(({ high: 'High', medium: 'Medium', low: 'Low', none: 'Estimate only' })[p.confidence] + ' confidence in the marks', { tone: 'soft', title: 'How much of the estimated value rests on recent player sales' })));
       var rs = p.reserved || { bids: { amount: 0 }, orders: { amount: 0 }, offers: { amount: 0 } };
       books.appendChild(ui.statGrid([
@@ -110,7 +112,7 @@
       if (live && hd.basis != null) body.appendChild(h('div.mk-tile-value', h('span.mk-muted', { text: 'paid ' + ui.fmt.exact(hd.basis) })));
       var sell = hd.listing && live
         ? ui.button('Listed', { variant: 'ghost', size: 'sm', icon: 'layers', onClick: function () { var id = String(hd.listing).replace(/^offer:/, ''); if (/^offer:/.test(hd.listing)) ui.go('activity', {}); else ui.go('listing', { id: id }); } })
-        : ui.button('List', { variant: 'secondary', size: 'sm', icon: 'plus', onClick: function () { ui.go('compose', { instanceId: hd.instance.instanceId }); } });
+        : ui.button('Sell', { variant: 'secondary', size: 'sm', icon: 'tag', onClick: function () { ui.go('compose', { instanceId: hd.instance.instanceId }); } });
       sell.classList.add('mk-hold-act');
       body.appendChild(h('div.mk-tile-foot', h('span.mk-mono.mk-serial', { text: String(hd.instance.serial).replace('CBL-', ''), title: 'Serial ' + hd.instance.serial }), sell));
       tile.appendChild(body);
@@ -144,9 +146,9 @@
         open.addEventListener('click', function () { ui.go('card', { id: hd.card.id, variant: hd.instance.variantId || '' }); });
         var sell = hd.listing && live
           ? ui.button('Listed', { variant: 'ghost', size: 'sm', icon: 'layers', onClick: function () { var id = String(hd.listing).replace(/^offer:/, ''); if (/^offer:/.test(hd.listing)) ui.go('activity', {}); else ui.go('listing', { id: id }); } })
-          : ui.button('List', { variant: 'ghost', size: 'sm', icon: 'plus', onClick: function () { ui.go('compose', { instanceId: hd.instance.instanceId }); } });
+          : ui.button('Sell', { variant: 'ghost', size: 'sm', icon: 'tag', onClick: function () { ui.go('compose', { instanceId: hd.instance.instanceId }); } });
         var worth = h('div.mk-tcell', { role: 'cell' }, ui.credits(hd.estimate));
-        if (live && hd.basis != null) worth.appendChild(h('small.mk-muted', { text: 'paid ' + ui.fmt.exact(hd.basis), title: realm === 'global' ? 'What you paid for this exact card on Global Market' : 'What you paid for this exact card in the Simulation' }));
+        if (live && hd.basis != null) worth.appendChild(h('small.mk-muted', { text: 'paid ' + ui.fmt.exact(hd.basis), title: realm === 'global' ? 'What you paid for this exact card on Players' : 'What you paid for this exact card in the Simulation' }));
         else if (live && p.server && hd.noBasis) worth.appendChild(h('small.mk-muted', { text: 'No cost basis', title: 'This card came from your collection import or a swap, so its cost is unknown. It is not counted as free.' }));
         row.append(h('div.mk-tcell', { role: 'cell' }, open), h('div.mk-tcell', { role: 'cell', text: hd.instance.variantId ? (env.variants[hd.instance.variantId] || {}).name : 'Normal' }),
           h('div.mk-tcell', { role: 'cell' }, h('span.mk-mono', { text: hd.instance.serial })), worth,
@@ -338,7 +340,7 @@
       // this page is open. The Average Value alert is evaluated here, from the market numbers.
       if (realm === 'global' && live && kind.value === 'below' && C.market.onlineProvider) {
         C.market.onlineProvider.createAlert({ kind: 'price', cardId: cardSel.value, maxPrice: n, label: '' }).then(function (r) {
-          C.ui.toast(r.ok ? 'Alert saved on Global Market. A match waits in your Activity inbox.' : r.message, null, r.ok ? 'info' : 'error');
+          C.ui.toast(r.ok ? 'Alert saved on Players. A match waits in your Activity inbox.' : r.message, null, r.ok ? 'info' : 'error');
           price.value = ''; paint();
         });
         return;
@@ -357,7 +359,7 @@
         var card = a.cardId ? env.cards[a.cardId] : null, idn = card ? ui.identity(card, !!env.owned[a.cardId]) : null;
         var what = a.kind === 'price' ? 'Listing at or below ' + ui.fmt.exact(a.maxPrice) + ' Credits' : 'Saved search' + (a.label ? ': ' + a.label : '');
         var row = h('li.mk-alert', { data: { state: 'waiting', server: '1' } }, h('span.mk-activity-mark', icon('bell')),
-          h('div.mk-activity-copy', h('strong', { text: idn ? idn.name : 'Any matching listing' }), h('span', { text: what + ' · Checked by Global Market when a player lists. A match waits in your inbox.' })));
+          h('div.mk-activity-copy', h('strong', { text: idn ? idn.name : 'Any matching listing' }), h('span', { text: what + ' · Checked by Players when a player lists. A match waits in your inbox.' })));
         row.appendChild(ui.iconButton('trash', 'Delete this alert', function () { C.market.onlineProvider.deleteAlert(a.id).then(function () { paint(); }); }));
         list.appendChild(row);
       });
@@ -512,7 +514,7 @@
     // preview data
     var live = ui.sim.live('simulation');
     var data = h('section.mk-box', h('div.mk-panel-head', h('h3', { text: live ? 'Watchlist, views and drafts' : 'Preview data' })));
-    data.appendChild(h('p.mk-hint', { text: 'Watchlist, saved views, alerts and drafts are stored apart from your collection. Clearing them never touches your cards or Credits' + (live ? ' or resets Local.' : '.') }));
+    data.appendChild(h('p.mk-hint', { text: 'Watchlist, saved views, alerts and drafts are stored apart from your collection. Clearing them never touches your cards or Credits' + (live ? ' or resets Standard.' : '.') }));
     data.appendChild(ui.statGrid([{ label: 'Watching', value: String(store.prefs.watch.length) }, { label: 'Saved views', value: String(store.prefs.saved.length) }, { label: 'Alerts', value: String(store.prefs.alerts.length) }, { label: 'Drafts', value: String(Object.keys(store.prefs.drafts).length) }], { cols: 4 }));
     var clear = ui.button(live ? 'Clear watchlist and drafts' : 'Clear preview data', { variant: 'secondary', icon: 'trash' });
     var armed = false, timer = 0;
@@ -529,11 +531,11 @@
     var devMode = false;
     try { devMode = new root.URLSearchParams(root.location.search).get('dev') === '1'; } catch (_) { devMode = false; }
     if (devMode) {
-      var realmCard = h('section.mk-box', h('div.mk-panel-head', h('h3', { text: 'Global Market preview (developer)' })));
-      realmCard.appendChild(h('p.mk-hint', { text: 'Global is not connected, so it has no listings. Sample listings can be switched on; they are labelled and never count as volume.' }));
-      var sample = h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Show sample listings in Global Market', props: { checked: !!store.session.showGlobalSample } });
+      var realmCard = h('section.mk-box', h('div.mk-panel-head', h('h3', { text: 'Players preview (developer)' })));
+      realmCard.appendChild(h('p.mk-hint', { text: 'Players is not connected, so it has no listings. Sample listings can be switched on; they are labelled and never count as volume.' }));
+      var sample = h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Show sample listings in Players', props: { checked: !!store.session.showGlobalSample } });
       sample.addEventListener('change', function () { store.session.showGlobalSample = sample.checked; store.emit('realm'); });
-      realmCard.appendChild(h('div.mk-setting', h('div.mk-setting-copy', h('span.mk-setting-label', { text: 'Sample listings in Global Market' }), h('span.mk-hint', { text: 'Off by default. Resets each time you open the game.' })), h('label.mk-switch', sample, h('span.mk-switch-track', { 'aria-hidden': 'true' }, h('i')))));
+      realmCard.appendChild(h('div.mk-setting', h('div.mk-setting-copy', h('span.mk-setting-label', { text: 'Sample listings in Players' }), h('span.mk-hint', { text: 'Off by default. Resets each time you open the game.' })), h('label.mk-switch', sample, h('span.mk-switch-track', { 'aria-hidden': 'true' }, h('i')))));
       layout.appendChild(realmCard);
     }
 

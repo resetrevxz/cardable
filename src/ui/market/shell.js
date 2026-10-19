@@ -11,20 +11,22 @@
     { id: 'home', label: 'Home', icon: 'home', key: '1', primary: true },
     { id: 'discover', label: 'Browse', icon: 'explore', key: '2', primary: true }, { id: 'auctions', label: 'Auctions', icon: 'gavel', key: '3', primary: true },
     { id: 'portfolio', label: 'Portfolio', icon: 'briefcase', key: '4', primary: true }, { id: 'stocks', label: 'Prices', icon: 'prices', key: '5', primary: true },
-    { id: 'buy-now', label: 'Buy Now', icon: 'tag', key: '6' }, { id: 'trades', label: 'Trades', icon: 'swap', key: '7' },
-    { id: 'activity', label: 'Activity', icon: 'activity', key: '8' }
+    { id: 'shop', label: 'Shop', icon: 'bag', key: '6', primary: true },
+    { id: 'buy-now', label: 'Buy Now', icon: 'tag', key: '7' }, { id: 'trades', label: 'Trades', icon: 'swap', key: '8' },
+    { id: 'activity', label: 'Activity', icon: 'activity', key: '9' }
   ];
   var UTILITIES = [
     { id: 'watchlist', label: 'Watchlist', icon: 'bookmark' }, { id: 'alerts', label: 'Alerts', icon: 'bell' }
   ];
   var MORE = [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['compare', 'Compare', 'cards'], ['my-listings', 'My listings', 'layers'],
-    ['settings', 'Market settings', 'sliders'], ['help', 'Help & feedback', 'info'], ['guide', 'Market guide', 'book']];
+    ['settings', 'Market settings', 'sliders'], ['help', 'Help & feedback', 'info'], ['tour', 'Take the tour', 'hand'], ['guide', 'Market guide', 'book']];
   var pages = {};
   ui.pages = { register: function (name, def) { pages[name] = def; }, get: function (name) { return pages[name]; } };
   ui.TABS = TABS;
 
   var inkReady = false, tabsEl, tabInk, el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, moreButtonTop, noticeHost, simChip;
   var PRIMARY = TABS.filter(function (t) { return t.primary; }).map(function (t) { return t.id; });
+  var lastActiveTab = null, trackerHost = null;
   var opened = false, stack = [], current = null, pageScope = null, savedFocus = null, inertRecords = [], mounting = false, suggestPop = null;
   var returnFocusKey = null;
 
@@ -86,7 +88,7 @@
       var wait = null;
       try { wait = C.market.api.prefetch(frameRealm(), entry.name, entry.params || {}); } catch (_) { wait = null; }
       if (wait && typeof wait.then === 'function') {
-        var loading = h('div.mk-page', { data: { page: entry.name, enter: 'forward' } }, ui.emptyState({ kind: 'loading', icon: 'clock', title: 'Loading', body: 'Reading from Global.' }));
+        var loading = h('div.mk-page', { data: { page: entry.name, enter: 'forward' } }, ui.emptyState({ kind: 'loading', icon: 'clock', title: 'Loading', body: 'Reading from Players.' }));
         scroller.appendChild(loading);
         var again = function () { if (current === entry && opened) mount(entry, Object.assign({}, flags, { prefetched: true })); };
         wait.then(again, again);
@@ -164,6 +166,8 @@
       b.setAttribute('aria-current', on ? 'page' : 'false');
       b.dataset.active = String(on);
     });
+    // the tab you arrive at plays its icon's little motion (the compass spins, the gavel strikes, the bag swings)
+    if (active !== lastActiveTab) { var was = lastActiveTab; lastActiveTab = active; if (was && tabButtons[active] && ui.flourish) ui.flourish.playTab(tabButtons[active]); }
     Object.keys(utilButtons).forEach(function (id) {
       var b = utilButtons[id], on = current && current.name === id;
       b.setAttribute('aria-current', on ? 'page' : 'false'); b.dataset.active = String(!!on);
@@ -187,14 +191,20 @@
     moveInk(); if (!inkReady) { inkReady = true; root.requestAnimationFrame(function () { root.requestAnimationFrame(moveInk); }); if (root.addEventListener) root.addEventListener('resize', function () { if (opened) moveInk(); }, { passive: true }); }
     var wallet = C.market.api.walletSync(frameRealm());
     var priorBalance = walletEl._mkBalance, priorRealm = walletEl._mkRealm;
-    ui.clear(walletEl);
-    walletEl.appendChild(icon('coin', 'mk-coin'));
-    if (wallet.balance == null) walletEl.appendChild(h('span.mk-wallet-off', { text: 'Not connected' }));
-    else { var walletNum = h('span.mk-num', { text: ui.fmt.credits(wallet.balance, true) }); walletEl.appendChild(walletNum); }
+    // Built once, then only its text changes: rebuilding it on every simulator tick made the header flicker.
+    if (!walletEl._mkParts) {
+      walletEl._mkParts = { num: h('span.mk-num'), off: h('span.mk-wallet-off', { text: 'Not connected' }), held: h('span.mk-wallet-held', { 'aria-hidden': 'true' }) };
+      walletEl.append(icon('coin', 'mk-coin'), walletEl._mkParts.num, walletEl._mkParts.off, walletEl._mkParts.held);
+    }
+    var wp = walletEl._mkParts, numText = wallet.balance == null ? '' : ui.fmt.credits(wallet.balance, true);
+    if (wp.num.textContent !== numText) wp.num.textContent = numText;
+    wp.num.hidden = wallet.balance == null; wp.off.hidden = wallet.balance != null;
     var held = wallet.held || 0;
     walletEl.title = wallet.balance == null ? wallet.note : ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held by open bids and orders' : '') + '. ' + wallet.note;
-    walletEl.setAttribute('aria-label', (wallet.balance == null ? 'Global Market wallet: not connected' : 'Your balance: ' + ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held' : '')) + '. Open Portfolio');
-    if (held) walletEl.appendChild(h('span.mk-wallet-held', { text: '−' + ui.fmt.credits(held, true) + ' held', 'aria-hidden': 'true' }));
+    walletEl.setAttribute('aria-label', (wallet.balance == null ? 'Players wallet: not connected' : 'Your balance: ' + ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held' : '')) + '. Open Portfolio');
+    var heldText = held ? '−' + ui.fmt.credits(held, true) + ' held' : '';
+    if (wp.held.textContent !== heldText) wp.held.textContent = heldText;
+    wp.held.hidden = !held;
     // The wallet answers a change in your Credits: it pulses, flashes in the direction it moved, and a small badge rises with the amount.
     if (wallet.balance != null && priorBalance != null && priorRealm === frameRealm() && wallet.balance !== priorBalance) {
       var diff = wallet.balance - priorBalance;
@@ -215,6 +225,7 @@
     frame.dataset.mode = C.settings.get('marketMode');
     frame.dataset.density = C.settings.get('marketDensity');
     frame.dataset.reduced = String(!!C.settings.get('marketReducedData'));
+    if (ui.tracker) ui.tracker.render();
   }
 
   // ---- search with suggestions ----
@@ -329,7 +340,7 @@
     var tabs = h('div.mk-tabs'); tabsEl = tabs;
     tabInk = h('span.mk-tab-ink', { 'aria-hidden': 'true' }); tabs.appendChild(tabInk);
     TABS.filter(function (t) { return t.primary; }).forEach(function (t) {
-      var b = h('button.mk-tab', { type: 'button', data: { tab: t.id, tooltip: t.label + ' \u00b7 ' + t.key }, 'aria-keyshortcuts': t.key }, icon(t.icon), h('span.mk-tab-label', { text: t.label }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
+      var b = h('button.mk-tab', { type: 'button', data: { tab: t.id, tooltip: t.label + ' \u00b7 ' + t.key, anim: t.id }, 'aria-keyshortcuts': t.key }, h('span.mk-tab-icon', icon(t.icon)), h('span.mk-tab-label', { text: t.label }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
       b.addEventListener('click', function () { goTab(t.id); });
       tabs.appendChild(b); tabButtons[t.id] = b;
     });
@@ -346,6 +357,9 @@
     frame.appendChild(navEl);
     noticeHost = h('div.mk-notice-host');
     frame.appendChild(noticeHost);
+    // the auctions you are in, always at the top while you have any (filled by tracker.js)
+    trackerHost = h('div.mk-tracker-host', { hidden: true });
+    frame.appendChild(trackerHost);
     scroller = h('main.mk-main', { id: 'mk-main', tabindex: '-1' });
     frame.appendChild(scroller);
     if (ui.hover) ui.hover.attach(scroller);
@@ -368,12 +382,13 @@
     ui.popover(anchor, function (close) {
       var box = h('div.mk-more', { role: 'menu' });
       // On a phone the bottom bar has four sections, so Prices, the watchlist and alerts join the list; on a desktop they are already in view.
-      var list = anchor === moreButton ? [['stocks', 'Prices', 'prices'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell']].concat(MORE) : MORE;
+      var list = anchor === moreButton ? [['shop', 'Shop', 'bag'], ['stocks', 'Prices', 'prices'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell']].concat(MORE) : MORE;
       list.forEach(function (r) {
         var b = h('button.mk-more-item', { type: 'button', role: 'menuitem' }, icon(r[2]), h('span', { text: r[1] }));
         b.addEventListener('click', function () {
           close();
           if (r[0] === 'guide') { openGuide(anchor); return; }
+          if (r[0] === 'tour') { if (ui.tour) root.setTimeout(function () { ui.tour.start(); }, 60); return; }
           if (TABS.some(function (t) { return t.id === r[0]; })) goTab(r[0]); else go(r[0], {});
         });
         box.appendChild(b);
@@ -395,7 +410,7 @@
     });
     intro.appendChild(realms);
     intro.appendChild(h('p.mk-guide-note', { text: C.market.api.simulationLive
-      ? 'Local is a working market on this device. Its traders are bots, its prices come from trades they and you complete, and its clock stops when Cardable is closed, hidden or paused. Global is not connected in this build, so it has no listings.'
+      ? 'Standard is a working market on this device. Its traders are bots, its prices come from trades they and you complete, and its clock stops when Cardable is closed, hidden or paused. Players is not connected in this build, so it has no listings.'
       : 'In this build every listing, price and trade is invented sample data. You can browse, filter, watch and draft, but nothing is bought, sold or saved to your collection.' }));
     intro.appendChild(h('h3', { text: 'Glossary' }));
     var dl = h('dl.mk-glossary');
@@ -451,7 +466,7 @@
 
   var api = {
     open: open, close: close, back: back, go: go, goTab: goTab, current: function () { return current; }, canOpen: canOpen,
-    get isOpen() { return opened; }, get el() { return el; }, get scroller() { return scroller; }, refresh: updateChrome,
+    get isOpen() { return opened; }, get el() { return el; }, get scroller() { return scroller; }, get trackerHost() { return trackerHost; }, refresh: updateChrome,
     remount: function () { if (opened && current) { store.session.scroll[routeKey(current)] = scroller.scrollTop; mount(current, { forward: false, focus: false }); } }
   };
   ui.shell = api; ui.go = go;
@@ -462,6 +477,8 @@
   function editing(target) { return !!(target && target.closest && target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"])')); }
   function onKey(event) {
     if (!opened || event.defaultPrevented) return;
+    // the tour owns the keyboard while it is showing (its own handler skips it on Escape and steps with the arrows)
+    if (ui.tour && ui.tour.active) return;
     if (event.key === 'Escape') {
       if (C.ui && C.ui.modal) return;
       if (ui.closeTopPopover && ui.hasPopover()) { event.preventDefault(); event.stopImmediatePropagation(); ui.closeTopPopover(); return; }
@@ -481,9 +498,32 @@
   }
 
   // ---- entry points ----
+  // The Market's own storefront: an awning, the walls, a warm light inside and a door that can swing open.
+  function storefront() {
+    var NS = 'http://www.w3.org/2000/svg', svg = doc.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('focusable', 'false');
+    svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '1.5'); svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+    svg.classList.add('mk-icon', 'mk-hud-store');
+    function el(tag, attrs, cls) { var n = doc.createElementNS(NS, tag); Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); }); if (cls) n.setAttribute('class', cls); svg.appendChild(n); return n; }
+    el('path', { d: 'M4 9v11h16V9' });
+    el('rect', { x: '9.5', y: '14.5', width: '5', height: '5.5', fill: '#ffd27a', stroke: 'none', rx: '.4' }, 'mk-hud-light');
+    el('path', { d: 'M4 9l1.5-5h13L20 9c0 1.5-1.1 2.5-2.7 2.5S14.7 10.5 14.7 9c0 1.5-1.2 2.5-2.7 2.5S9.3 10.5 9.3 9c0 1.5-1.1 2.5-2.7 2.5S4 10.5 4 9' }, 'mk-hud-awning');
+    el('path', { d: 'M9.5 20v-5.5h5V20' });
+    var door = el('g', {}, 'mk-hud-door');
+    var leaf = doc.createElementNS(NS, 'rect'); [['x', '9.5'], ['y', '14.5'], ['width', '5'], ['height', '5.5'], ['rx', '.4'], ['fill', 'var(--ink-1, #0b0b0f)']].forEach(function (a) { leaf.setAttribute(a[0], a[1]); }); door.appendChild(leaf);
+    var knob = doc.createElementNS(NS, 'path'); knob.setAttribute('d', 'M13.2 17.4h.01'); door.appendChild(knob);
+    return svg;
+  }
   function initEntries() {
-    var hud = h('button.mk-hud', { type: 'button', 'aria-label': 'Open Market', title: 'Market (M)', 'aria-keyshortcuts': 'M' }, icon('market'));
-    hud.addEventListener('click', function () { if (opened) close(); else if (!open()) C.ui.toast('Finish what you are doing, then open the Market.'); });
+    var hud = h('button.mk-hud', { type: 'button', 'aria-label': 'Open Market', title: 'Market (M)', 'aria-keyshortcuts': 'M' }, storefront());
+    // the door swings open first, then the Market opens (at once under reduced motion)
+    hud.addEventListener('click', function () {
+      if (opened) { close(); return; }
+      if (!canOpen()) { C.ui.toast('Finish what you are doing, then open the Market.'); return; }
+      if (ui.motion && ui.motion.still()) { open(); return; }
+      hud.classList.add('is-opening');
+      root.setTimeout(function () { hud.classList.remove('is-opening'); if (!opened && !open()) C.ui.toast('Finish what you are doing, then open the Market.'); }, 200);
+    });
     (C.viewport ? C.viewport.parent(doc.body) : doc.body).appendChild(hud);
     ui.hud = hud;
     C.commands.register({ id: 'market', label: 'Open Market', group: 'Market', run: function () { open(); } });

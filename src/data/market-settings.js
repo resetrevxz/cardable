@@ -14,7 +14,7 @@
   function fmt(map) { return function (value) { return map[value] || String(value); }; }
 
   add('marketMode', 'Market detail', 'Simple keeps filters and listings light. Advanced adds fair-value, serial, finish and auction controls.', 'simple', ['simple', 'advanced']);
-  add('marketRealm', 'Starting realm', 'Which realm the Market opens in. Global Market only has listings once it is connected.', 'simulation', ['simulation', 'global']).format = fmt({ simulation: 'Simulation', global: 'Global Market' });
+  add('marketRealm', 'Starting realm', 'Which realm the Market opens in. Players only has listings once it is connected.', 'simulation', ['simulation', 'global']).format = fmt({ simulation: 'Simulation', global: 'Players' });
   add('marketView', 'Discover layout', 'A visual feed of cards, or a denser terminal table for scanning prices.', 'feed', ['feed', 'terminal']).format = fmt({ feed: 'Feed', terminal: 'Terminal' });
   add('marketDensity', 'Density', 'Comfortable gives cards room. Compact fits more listings on screen.', 'comfortable', ['comfortable', 'compact']);
   add('marketChartType', 'Chart style', 'How Stocks draws a price window.', 'line', ['line', 'candles']).format = fmt({ line: 'Line', candles: 'Candles' });

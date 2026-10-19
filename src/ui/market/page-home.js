@@ -39,7 +39,7 @@
     var num = h('span.mk-num.mk-desk-num', { 'aria-hidden': 'true' });
     value.appendChild(num); main.appendChild(value);
     var changePct = nw.change, steady = Math.abs(changePct) < 0.0005;
-    main.appendChild(h('p.mk-desk-delta', steady ? h('span.mk-muted', { text: 'Level with where you started' }) : ui.delta(changePct, { label: 'since you started' })));
+    main.appendChild(h('p.mk-desk-delta', steady ? h('span.mk-muted', { text: 'Even since you started' }) : ui.delta(changePct, { label: 'since you started' })));
     var facts = h('dl.mk-desk-facts');
     [['Credits', fx(nw.credits)], ['Cards worth', fx(nw.cards)], ['Owned', String(data.state.cards)]].forEach(function (f) {
       facts.appendChild(h('div', h('dt', { text: f[0] }), h('dd.mk-num', { text: f[1] })));
@@ -51,7 +51,7 @@
     var hist = nw.history.map(function (x) { return x[1]; });
     var chart = h('div.mk-desk-chart', { role: 'img', 'aria-label': hist.length >= 3 ? 'Net worth over time, from ' + fx(hist[0]) + ' to ' + fx(hist[hist.length - 1]) + ' Credits' : 'Net worth over time. It fills in during the first day.' });
     if (hist.length >= 3) chart.appendChild(chartOf(hist, 320, 96));
-    else chart.appendChild(h('p.mk-muted', { text: 'Fills in during the first day' }));
+    else chart.appendChild(h('p.mk-muted.mk-chart-wait', icon('line'), h('span', { text: 'Your chart starts after a few hours of Market time' })));
     side.appendChild(chart);
     if (hist.length >= 3) side.appendChild(h('p.mk-desk-caption', { text: 'Net worth since you started' }));
     var level = h('div.mk-level');
@@ -205,7 +205,7 @@
   // ---- goals ----
   function goals(data) {
     var p = data.progress, box = h('section.mk-goals', { 'aria-labelledby': 'mk-goals-title' });
-    box.appendChild(h('div.mk-section-head', h('h2', { id: 'mk-goals-title', text: 'Goals' }), h('span.mk-muted', { text: p.questsDone + ' of ' + p.quests.length })));
+    box.appendChild(h('div.mk-section-head', h('h2', { id: 'mk-goals-title' }, icon('target'), h('span', { text: 'Goals' })), h('span.mk-muted', { text: p.questsDone + ' of ' + p.quests.length })));
     var list = h('ul.mk-goal-list');
     p.quests.forEach(function (q) {
       list.appendChild(h('li.mk-goal', { data: { done: String(q.done), id: q.id } }, h('span.mk-goal-mark', q.done ? icon('check') : null),
@@ -244,8 +244,8 @@
       var actions = [];
       if (g.label === 'Not connected' && ui.online) actions.push({ label: 'Connect', variant: 'primary', icon: 'user', run: function () { ui.online.connectDialog(); } });
       else if (g.label !== 'Not available') actions.push({ label: 'Try again', variant: 'primary', icon: 'forward', run: function () { C.market.online.refresh(true); } });
-      actions.push({ label: 'Open Local', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
-      box.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: g.label === 'Not connected' ? 'Connect to Global' : g.label, body: g.label === 'Not connected' ? 'Real players, with their own Credits. Your offline game is never touched.' : g.message, actions: actions }));
+      actions.push({ label: 'Open Standard', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
+      box.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: g.label === 'Not connected' ? 'Connect to Players' : g.label, body: g.label === 'Not connected' ? 'Real players, with their own Credits. Your offline game is never touched.' : g.message, actions: actions }));
       return;
     }
     var wallet = ctx.api.walletSync('global'), c = ui.island.collect();
@@ -271,7 +271,7 @@
   function mount(ctx) {
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope, provider = sim();
     envRef = env;
-    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: 'Home' }), h('p.mk-home-sub', { id: 'mk-home-clock', text: realm === 'simulation' || !ui.sim.live('global') ? '' : (C.market.api.statusSync('global').alias || '') }))));
+    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', { data: { anim: 'home' } }, icon('home')), h('span', { text: 'Home' })), h('p.mk-home-sub', { id: 'mk-home-clock', text: realm === 'simulation' || !ui.sim.live('global') ? '' : (C.market.api.statusSync('global').alias || '') }))));
     var root0 = h('div.mk-home'); host.appendChild(root0);
     if (realm !== 'simulation' || !provider || !provider.home) {
       globalHome(ctx, root0);
@@ -287,7 +287,7 @@
     function paintMoves(data) {
       ui.releaseArt(movesHost, ctx.thumbs); ui.clear(movesHost);
       var sec = h('section.mk-moves', { 'aria-labelledby': 'mk-moves-title' });
-      sec.appendChild(h('div.mk-section-head', h('div', h('h2', { id: 'mk-moves-title', text: 'Worth a look' })),
+      sec.appendChild(h('div.mk-section-head', h('div', h('h2', { id: 'mk-moves-title' }, icon('zap'), h('span', { text: 'Good moves' }))),
         data.moves.length ? h('span.mk-muted', { role: 'status', 'aria-live': 'polite', title: 'Guides, not promises. Prices move and other traders act.', text: plural(data.moves.length, 'move', 'moves') }) : null));
       if (!data.moves.length) {
         var none = data.state.cards === 0 && data.state.credits < 5;
@@ -305,7 +305,7 @@
       ui.clear(newsHost);
       if (!data.news.length) return;
       var sec = h('section.mk-newsbox', { 'aria-labelledby': 'mk-news-title' });
-      sec.appendChild(h('div.mk-section-head', h('div', h('h2', { id: 'mk-news-title', text: 'News' }))));
+      sec.appendChild(h('div.mk-section-head', h('div', h('h2', { id: 'mk-news-title' }, icon('activity'), h('span', { text: 'News' })))));
       var grid = h('div.mk-news-grid');
       data.news.slice(0, 3).forEach(function (n) { grid.appendChild(newsCard(n, ctx, env)); });
       sec.appendChild(grid); newsHost.appendChild(sec);
@@ -315,7 +315,7 @@
       var c = ui.island.collect();
       if (!c.items.length) return;
       var sec = h('section.mk-trades', { 'aria-labelledby': 'mk-trades-title' });
-      sec.appendChild(h('div.mk-section-head', h('h2', { id: 'mk-trades-title', text: 'Your trades' }), h('span.mk-muted', { text: ui.island.summary(c) })));
+      sec.appendChild(h('div.mk-section-head', h('h2', { id: 'mk-trades-title' }, icon('gavel'), h('span', { text: 'Your trades' })), h('span.mk-muted', { text: ui.island.summary(c) })));
       var list = h('div.mk-island-list.is-page');
       ui.island.fillList(list, c.items, ctx.thumbs, ui.island.env(), function () {}, 6);
       sec.appendChild(list); tradesHost.appendChild(sec);

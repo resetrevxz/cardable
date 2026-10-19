@@ -39,7 +39,7 @@
   function request(method, path, body, options) {
     options = options || {};
     var b = base();
-    if (!b) return Promise.reject(failure('not-configured', 'Global Market is not available in this build.'));
+    if (!b) return Promise.reject(failure('not-configured', 'Players is not available in this build.'));
     var controller = typeof root.AbortController === 'function' ? new root.AbortController() : null;
     var timer = controller ? root.setTimeout(function () { controller.abort(); }, options.timeoutMs || cfg().timeoutMs) : 0;
     var headers = { accept: 'application/json' };
@@ -61,7 +61,7 @@
   }
   function ensureToken() {
     if (S.token && S.tokenExp - 30000 > Date.now()) return Promise.resolve(S.token);
-    if (!S.refreshToken) return Promise.reject(failure('signed-out', 'Connect to use Global Market.'));
+    if (!S.refreshToken) return Promise.reject(failure('signed-out', 'Connect to use Players.'));
     if (inflight) return inflight;
     inflight = request('POST', '/v1/auth/refresh', { refreshToken: S.refreshToken }).then(function (d) {
       S.token = d.accessToken; S.tokenExp = d.accessExpiresAt; S.refreshToken = d.refreshToken; storageSet({ refreshToken: d.refreshToken });

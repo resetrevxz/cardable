@@ -50,9 +50,18 @@
       currentCount = event.openedCount;
       var limit = C.data.packs.reduce(function(n,p) { return p.enabled && p.counterStyle.accent && p.cadence ? Math.max(n,p.cadence.every) : n; }, 0);
       var next = C.packs.upcoming(Math.max(view.vials.length, limit)).findIndex(function(p) { return !!p.counterStyle.accent; });
-      beyond.textContent = next >= view.vials.length ? C.packs.upcoming(next + 1)[next].counterStyle.glyph + ' in ' + (next + 1) : '';
-      beyond.hidden = !beyond.textContent;
-      beyond.style.left = (view.vials[view.vials.length - 1].el.offsetLeft + view.vials[view.vials.length - 1].el.offsetWidth + 8) + 'px';
+      // The next special pack beyond the visible slots: a small chip inside the bar (it used to hang outside the pill).
+      var far = next >= view.vials.length ? C.packs.upcoming(next + 1)[next] : null;
+      beyond.textContent = '';
+      beyond.hidden = !far;
+      if (far) {
+        beyond.style.setProperty('--queue-accent', far.counterStyle.accent || 'var(--pack-rare-fluid)');
+        node('i', 'pack-queue-beyond__dot', beyond); node('b', 'pack-queue-beyond__glyph', beyond, far.counterStyle.glyph);
+        node('span', 'pack-queue-beyond__count', beyond, String(next + 1));
+        beyond.title = far.name + ' in ' + (next + 1) + ' packs';
+        beyond.setAttribute('aria-label', far.name + ' in ' + (next + 1) + ' packs');
+        if (beyond.dataset.pack !== far.id) { beyond.dataset.pack = far.id; beyond.classList.remove('is-new'); void beyond.offsetWidth; beyond.classList.add('is-new'); }
+      }
       intro(); C.fx.wake();
     }
     C.events.on('packs:queueChanged', queue);

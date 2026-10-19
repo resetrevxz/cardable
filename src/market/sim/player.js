@@ -82,6 +82,8 @@
       ids.forEach(function (id) { world.locks[id] = l.id; });
       S.feed(world, 'listed', 'You listed ' + S.cardLabel(env, items[0]) + (items.length > 1 ? ' and ' + (items.length - 1) + ' more' : ''), { listing: l.id, you: true });
       if (l.kind === 'fixed') S.matchOrdersFor(world, env, host, l);
+      // an underpriced listing does not sit: bargain hunters come to look within the hour
+      if (l.kind === 'fixed' && l.status === 'open' && S.alertScouts) S.alertScouts(world, env, l);
       return ok({ listing: l });
     });
   }

@@ -90,7 +90,7 @@
       return { realm: realm, state: def.state, label: sample ? 'Sample layout' : def.stateLabel, connected: false, message: C.data.market.notices[sample ? 'globalSample' : realm] };
     },
     wallet: function (realm) {
-      if (realm === 'global') return { realm: realm, balance: null, label: 'Not connected', note: 'Global Market has its own wallet. It appears when you connect.' };
+      if (realm === 'global') return { realm: realm, balance: null, label: 'Not connected', note: 'Players has its own wallet. It appears when you connect.' };
       return { realm: realm, balance: playerState().currency, label: 'Credits', note: 'Your offline Credits. Simulation trades will keep a separate ledger.' };
     },
     listings: function (realm, query) {

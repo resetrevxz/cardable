@@ -50,7 +50,7 @@
   }
 
   var EXPLAIN = [
-    ['Where the numbers come from', 'Only completed sales of one card between two players (in Local, between you and its traders). Quotes, Quick Sell, swaps, bundles, offers, cancelled orders and sample data never count.'],
+    ['Where the numbers come from', 'Only completed sales of one card between two players (in Standard, between you and its traders). Quotes, Quick Sell, swaps, bundles, offers, cancelled orders and sample data never count.'],
     ['Average Value', 'The price this card has actually been selling for. Cards that trade often (12 or more sales in 30 days) use a recency-weighted mean of the last two weeks; scarcer ones use a weighted median over up to 90 days, which one odd sale cannot move. Each sale is capped to 55% either side of the median and counts for half as much every 3 days (frequent) or 14 days (scarce).'],
     ['Fair value', 'A model estimate, kept apart from the Average Value: the card’s baseline (from its rarity, spec, finish and skin) blended with the sales, with the baseline counting as six sales. With no sales it is the baseline, and the confidence says so.'],
     ['Target buy and sell', 'Ranges from the weighted 15th, 40th, 60th and 85th percentiles of executed prices, moved by the spread (half of it each way), by demand (open buy orders against open listings, at most 3%) and by how long a sale usually takes. Never the lowest ask minus a number. With fewer than four sales they come from the baseline and the card’s rarity volatility, and are marked so.'],
