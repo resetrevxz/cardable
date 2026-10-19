@@ -281,7 +281,9 @@
     canvas.addEventListener('webglcontextlost',function(e){e.preventDefault();lost=true;stats.backend='canvas';});
     var gpu=null;
     function helpers(){return gpu||(gpu=C.cutsceneGL.create(gl,{programs:programs,textures:textures,frames:frames,renderbuffers:renderbuffers}));}
-    function program(v,f){return helpers().program(v,f);}
+    function program(v,f){return helpers().program(v,f,true);}
+    // The programs compile in the GPU process while the scene's geometry is built here; the result is read once, after the last of that work.
+    function verifyPrograms(){helpers().verify();}
     function uniform(p,key){return helpers().uniform(p,key);}
     function mesh(data,dynamic){var b=gl.createBuffer();buffers.push(b);gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,data instanceof Float32Array?data:new Float32Array(data),dynamic?gl.DYNAMIC_DRAW:gl.STATIC_DRAW);return {buffer:b,count:data.length/6};}
     function target(){return helpers().target(true,highBuilt);}
@@ -344,7 +346,7 @@
         if(dawn&&descriptor.skyFlight){skyProgram=program(screenVertex,skyFragment);skyTarget=helpers().target(false);makeCloudVolume();}
         if(dawn&&descriptor.ritual){
           sigilProgram=program(screenVertex,sigilFragment);windProgram=program(windVertex,windFragment);
-          var fogProgram=program(screenVertex,fogFragment);fogAtlas=helpers().target(false);sizeTarget(fogAtlas,1024,1024);
+          var fogProgram=program(screenVertex,fogFragment);verifyPrograms();fogAtlas=helpers().target(false);sizeTarget(fogAtlas,1024,1024);
           gl.useProgram(fogProgram.p);gl.viewport(0,0,fogAtlas.w,fogAtlas.h);gl.disable(gl.BLEND);gl.disable(gl.DEPTH_TEST);gl.drawArrays(gl.TRIANGLES,0,3);gl.bindFramebuffer(gl.FRAMEBUFFER,null);
         }
         postProgram=program(C.cutsceneGL.screenVertex,C.cutsceneGL.separableComposite());
@@ -358,7 +360,7 @@
         if(dawn){
           // Cloud/sigil cinema shares the engine and post stack, but owns no cave resources.
           mainProgram={stone:fogAtlas.texture};scene=target();bloom=helpers().target(false);blur=helpers().target(false);
-          heroScreen=[.5,.5];stats.backend='webgl2';stats.world='cloud-ritual';return;
+          heroScreen=[.5,.5];verifyPrograms();stats.backend='webgl2';stats.world='cloud-ritual';return;
         }
         var rocks=[],cluster=[],hero=[],water=[];
         var rich=level>=3,gridScale=rich?1:level===2?.75:.6;
@@ -414,7 +416,7 @@
         detailTexture=gl.createTexture();textures.push(detailTexture);gl.bindTexture(gl.TEXTURE_2D,detailTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,detailSize,detailSize,0,gl.RGBA,gl.UNSIGNED_BYTE,detailPixels);
         gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.generateMipmap(gl.TEXTURE_2D);
         stats.world='crimson-cave';stats.rockVertices=stoneMesh.count;stats.hangingClusters=hanging.length;stats.detailSize=detailSize;
-        reflection=target();scene=target();bloom=target();blur=target();if(dawn&&level>=2)makeSimulation(level>=3?256:128);stats.backend='webgl2';
+        reflection=target();scene=target();bloom=target();blur=target();if(dawn&&level>=2)makeSimulation(level>=3?256:128);verifyPrograms();stats.backend='webgl2';
       }catch(error){stats.failure=error.message;dispose();}
     }
     function makeSimulation(n){

@@ -6,6 +6,8 @@
   var node = C.packMarkup.node;
   var preferencesActive = false, scrollPositions = new Map(), infoPanel, navPrevious, navNext, flipHint;
   function clamp(value, low, high) { return Math.max(low, Math.min(high, value)); }
+  // The sheet dims behind the card. Written on the sheet that reads it (a non-inherited property), never on <body>, where each frame of the lift would restyle the whole document.
+  function focusSheet(value) { var sheet = C.inventory && C.inventory.el; if (sheet) sheet.style.setProperty('--detail-focus', value); }
   function prevent(event) { if (event.preventDefault) event.preventDefault(); }
   function focus(el) { if (el && el.focus) el.focus({ preventScroll: true }); }
   function icon(button, pathData) {
@@ -78,7 +80,7 @@
     setVisualInteractive(true);
     overlay.hidden = false; overlay.inert = false; panelOpacity = 0; panel.style.opacity = 0;
     C.accessibility.trap(overlay);
-    overlay.style.setProperty('--detail-dim', 0); root.document.body.style.setProperty('--detail-focus', 0);
+    overlay.style.setProperty('--detail-dim', 0); focusSheet(0);
     mount.appendChild(visual); from = C.viewport.rect(event.sourceRect); to = detailRect(); spring.reset(0); dragSpring.reset(0);
     phase = 'lifting'; shineAge = 0; fillPanel(); to = detailRect(); pose(from, C.motion.reduced ? 0 : 1);
     if (view) { view.setPresentation('full'); view.setVisible(true); view.setFace('front'); view.setMode('full'); }
@@ -181,7 +183,7 @@
     var p = clamp(spring.value, 0, 1), returning = phase === 'returning';
     var rect = currentRect(); pose(rect, C.motion.reduced ? returning ? Math.pow(1 - p, 3) : 1 - Math.pow(1 - p, 3) : 1);
     var dim = returning ? returnBackdropFrom * (1 - p) : p;
-    overlay.style.setProperty('--detail-dim', dim); root.document.body.style.setProperty('--detail-focus', dim);
+    overlay.style.setProperty('--detail-dim', dim); focusSheet(dim);
     panelOpacity = returning ? returnPanelFrom * (1 - p) : p; panel.style.opacity = panelOpacity; closeButton.style.opacity = panelOpacity; navPrevious.style.opacity = navNext.style.opacity = flipHint.style.opacity = panelOpacity;
     if (phase === 'lifting' && spring.settled()) { phase = 'detail'; C.events.emit('detail:opened', payload.entry.card.id); }
     if (returning && spring.settled()) { finish(); return false; }

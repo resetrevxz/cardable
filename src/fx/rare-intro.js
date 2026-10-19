@@ -7,6 +7,57 @@
   function rgba(c, a) { return C.fxColor.rgba(c, a); }
   function tone(c) { return C.fxColor.tone(c); }
   function random() { var s = 1736149; return function () { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
+  // The sky atlases are a per-pixel noise bake, about 100 ms in one go. A job does it in slices so the pack can dissolve and tear at full frame rate
+  // while it is being prepared; reading the result finishes whatever is left.
+  function bakeJob(quality) {
+    var width = quality === 'high' || quality === 'very-high' ? 768 : 512, height = width / 2;
+    var rng = random(), grids = [8, 16, 32, 64, 128].map(function (n) {
+      var a = new Float32Array(n * n); for (var i = 0; i < a.length; i++) a[i] = rng(); return { n: n, a: a };
+    });
+    function noise(index, u, v) {
+      var grid = grids[index], n = grid.n, x = ((u % 1 + 1) % 1) * n, y = ((v % 1 + 1) % 1) * n;
+      var ix = Math.floor(x), iy = Math.floor(y), fx = smooth(x - ix), fy = smooth(y - iy), a = grid.a;
+      return mix(mix(a[iy * n + ix], a[iy * n + (ix + 1) % n], fx), mix(a[((iy + 1) % n) * n + ix], a[((iy + 1) % n) * n + (ix + 1) % n], fx), fy);
+    }
+    function density(u, v) {
+      var warp = noise(0, u, v) - .5;
+      u += warp * .1; v += (noise(1, u, v) - .5) * .075;
+      return noise(0, u, v) * .48 + noise(1, u, v) * .27 + noise(2, u, v) * .14 + noise(3, u, v) * .075 + noise(4, u, v) * .035;
+    }
+    var mist = root.document.createElement('canvas'), body = root.document.createElement('canvas');
+    mist.width = body.width = width; mist.height = body.height = height;
+    var q = mist.getContext('2d'), b = body.getContext('2d'), fog = q.createImageData(width, height), inside = b.createImageData(width, height);
+    var blue = tone([31, 116, 219]), pale = tone([184, 231, 255]), deep = tone([13, 63, 135]);
+    var field = new Float32Array(width * height);
+    var dx = Math.max(1, Math.round(width * .003)), dy = Math.max(1, Math.round(height * .012));
+    var row = 0, shade = 0, job = { done: false, material: null };
+    // Returns true when the bake is finished. A slice always completes whole rows.
+    job.step = function (budgetMs) {
+      if (job.done) return true;
+      var end = root.performance.now() + budgetMs;
+      for (; row < height; row++) {
+        for (var fx = 0; fx < width; fx++) field[row * width + fx] = density(fx / width, row / height);
+        if (root.performance.now() > end) { row++; return false; }
+      }
+      for (; shade < height; shade++) {
+        var y = shade, v = y / height, fade = Math.pow(Math.sin(v * Math.PI), 1.6);
+        for (var x = 0; x < width; x++) {
+          var n = field[y * width + x], shaped = smooth((n - .39) / .27);
+          var rim = clamp((field[((y - dy + height) % height) * width + (x - dx + width) % width] - n) * 17 + .38);
+          var light = clamp(shaped * .66 + rim * .42), i = (y * width + x) * 4;
+          for (var c = 0; c < 3; c++) {
+            fog.data[i + c] = mix(blue[c], pale[c], light);
+            inside.data[i + c] = mix(deep[c], pale[c], clamp(.15 + shaped * .7 + rim * shaped * .3));
+          }
+          fog.data[i + 3] = Math.round(shaped * fade * 220); inside.data[i + 3] = 255;
+        }
+        if (root.performance.now() > end) { shade++; return false; }
+      }
+      q.putImageData(fog, 0, 0); b.putImageData(inside, 0, 0);
+      job.material = { mist: mist, body: body }; job.done = true; return true;
+    };
+    return job;
+  }
   // A separate material keeps Rare's sky photography distinct from Super Rare's seal.
   // Its two seamless sky atlases are baked once, then moved by the shared film clock.
   C.rareIntro = { create: function () {
@@ -14,40 +65,9 @@
     function sky(quality) {
       var key = C.settings.get('rarityColor') + ':' + quality;
       if (material && materialKey === key) return material;
-      if (warmed && warmed.key === key) { material = warmed.material; materialKey = key; frozen = null; warmed = null; return material; }
-      var width = quality === 'high' || quality === 'very-high' ? 768 : 512, height = width / 2;
-      var rng = random(), grids = [8, 16, 32, 64, 128].map(function (n) {
-        var a = new Float32Array(n * n); for (var i = 0; i < a.length; i++) a[i] = rng(); return { n: n, a: a };
-      });
-      function noise(index, u, v) {
-        var grid = grids[index], n = grid.n, x = ((u % 1 + 1) % 1) * n, y = ((v % 1 + 1) % 1) * n;
-        var ix = Math.floor(x), iy = Math.floor(y), fx = smooth(x - ix), fy = smooth(y - iy), a = grid.a;
-        return mix(mix(a[iy * n + ix], a[iy * n + (ix + 1) % n], fx), mix(a[((iy + 1) % n) * n + ix], a[((iy + 1) % n) * n + (ix + 1) % n], fx), fy);
-      }
-      function density(u, v) {
-        var warp = noise(0, u, v) - .5;
-        u += warp * .1; v += (noise(1, u, v) - .5) * .075;
-        return noise(0, u, v) * .48 + noise(1, u, v) * .27 + noise(2, u, v) * .14 + noise(3, u, v) * .075 + noise(4, u, v) * .035;
-      }
-      var mist = root.document.createElement('canvas'), body = root.document.createElement('canvas');
-      mist.width = body.width = width; mist.height = body.height = height;
-      var q = mist.getContext('2d'), b = body.getContext('2d'), fog = q.createImageData(width, height), inside = b.createImageData(width, height);
-      var blue = tone([31, 116, 219]), pale = tone([184, 231, 255]), deep = tone([13, 63, 135]);
-      var field = new Float32Array(width * height);
-      for (var fy = 0; fy < height; fy++) for (var fx = 0; fx < width; fx++) field[fy * width + fx] = density(fx / width, fy / height);
-      var dx = Math.max(1, Math.round(width * .003)), dy = Math.max(1, Math.round(height * .012));
-      for (var y = 0; y < height; y++) for (var x = 0; x < width; x++) {
-        var v = y / height, n = field[y * width + x], shaped = smooth((n - .39) / .27);
-        var rim = clamp((field[((y - dy + height) % height) * width + (x - dx + width) % width] - n) * 17 + .38);
-        var light = clamp(shaped * .66 + rim * .42), fade = Math.pow(Math.sin(v * Math.PI), 1.6), i = (y * width + x) * 4;
-        for (var c = 0; c < 3; c++) {
-          fog.data[i + c] = mix(blue[c], pale[c], light);
-          inside.data[i + c] = mix(deep[c], pale[c], clamp(.15 + shaped * .7 + rim * shaped * .3));
-        }
-        fog.data[i + 3] = Math.round(shaped * fade * 220); inside.data[i + 3] = 255;
-      }
-      q.putImageData(fog, 0, 0); b.putImageData(inside, 0, 0);
-      material = { mist: mist, body: body }; materialKey = key; frozen = null; return material;
+      var job = warmed && warmed.key === key ? warmed.job : bakeJob(quality);
+      if (warmed && warmed.key === key) warmed = null;
+      job.step(Infinity); material = job.material; materialKey = key; frozen = null; return material;
     }
     function bloom(q, x, y, r, c, alpha, aspect) {
       if (alpha <= 0 || r <= 0) return;
@@ -192,13 +212,15 @@
       }
       lightSides(q, w, h, 0, wash);
     }
-    return { paint: paint, prepare: sky, stop: function () { material = null; materialKey = ''; frozen = null; warmed = null; glows = Object.create(null); } };
+    return { paint: paint, prepare: sky, stop: function () { material = null; materialKey = ''; frozen = null; glows = Object.create(null); } };
   } };
   C.rareIntro.warmup = function () {
     var quality = C.settings.get('cinematicQuality');
     if (C.cutscenes.mode() === 'light' || quality === 'low') { warmed = null; return; }
     var key = C.settings.get('rarityColor') + ':' + quality;
     if (warmed && warmed.key === key) return;
-    var painter = C.rareIntro.create(); warmed = { key: key, material: painter.prepare(quality) };
+    var job = bakeJob(quality), mine = warmed = { key: key, job: job };
+    // A few milliseconds a frame until it is done; a hidden page falls back to the finish-on-read in sky().
+    (function slice() { if (warmed !== mine || job.done) return; if (!job.step(3) && root.requestAnimationFrame) root.requestAnimationFrame(slice); })();
   };
 })(window.Cardable, window);

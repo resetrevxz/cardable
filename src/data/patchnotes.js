@@ -1,5 +1,11 @@
 (function(C){'use strict';C.data.patchNotes=[
   {
+    version:'1.12.1',codename:'Smoother',date:'October 19, 2026',tag:'Update',tagline:'Going to the inventory no longer stutters.',
+    hero:{badge:'CARDABLE / 1.12.1',title:'Smoother.',subtitle:'The inventory, opening a card and the tutorial run without stutter, and the Rare, Super Rare and Exotic cinematics start without a hitch.',media:[]},
+    sections:{qol:['The inventory opens and closes without dropping frames.','Opening a card is smooth.','The tutorial no longer keeps the page busy.'],fixes:['The Rare, Super Rare and Exotic cinematics prepare their textures while the pack tears open, not when they start, and no longer build them twice.','Mythical and Ascendant compile their shaders together.']},
+    entries:['A smoother inventory and card detail.','A lighter tutorial.','Cinematics that start without a hitch.']
+  },
+  {
     version:'1.12.0',codename:'The notch',date:'October 19, 2026',tag:'Update',tagline:'Your market, at the top of the screen.',
     hero:{badge:'CARDABLE / 1.12.0',title:'The notch.',subtitle:'One pill for what needs you, what you can spend, what is good and what moved. On the main menu and in the Market.',media:[]},
     sections:{features:['The notch sits at the top of the main menu with the Market closed and keeps the market moving. It says when you are outbid, an offer arrives, an auction ends or something sells, and otherwise moves through your value, your Credits to spend, good deals, rare finds, big sales and price moves.','Press it for Credits to spend, your net worth, and everything grouped by kind. A bid you can raise shows Bid higher with up to three steps; a deal shows Buy, Bid or Sell. Each opens the usual review first.','Customize sets how much it says (Quiet, Calm or Busy), what it covers, and the order, which is the priority. Pin an item or hide it for an hour.'],changes:['A small card peeks under the notch when something needs you.','The clock chip is back beside the pill, with the same width in Local and Global.'],fixes:['The I and Up Arrow keys no longer open the inventory behind the Market or a dialog.']},

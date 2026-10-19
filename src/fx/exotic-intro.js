@@ -10,6 +10,44 @@
   }
   function rgb(c) { return C.fxColor.tone(c); }
   function rgba(c, a) { return C.fxColor.rgba(C.fxColor.tone(c), a); }
+  // The spiral dust is a per-pixel bake of about 400 ms. A job does it in slices of whole rows; the opening starts one while the pack is still dissolving,
+  // and reading the result finishes whatever is left.
+  var warmed = null;
+  function materialJob(palette) {
+    var random = randomFor('exotic-spiral-material'), size = C.config.rarityIntro.exoticMaterialSize;
+    var grids = [16, 40, 96].map(function (n) { var data = new Float32Array(n * n); for (var i = 0; i < data.length; i++) data[i] = random(); return { n: n, data: data }; });
+    function noise(grid, x, y) {
+      x = ((x % 1 + 1) % 1) * grid.n; y = ((y % 1 + 1) % 1) * grid.n;
+      var ix = Math.floor(x), iy = Math.floor(y), fx = smooth(x - ix), fy = smooth(y - iy), n = grid.n, d = grid.data;
+      return mix(mix(d[iy * n + ix], d[iy * n + (ix + 1) % n], fx), mix(d[((iy + 1) % n) * n + ix], d[((iy + 1) % n) * n + (ix + 1) % n], fx), fy);
+    }
+    var job = { done: false, materials: [] }, layer = 0, y = 0, canvas = null, q = null, image = null;
+    job.step = function (budgetMs) {
+      if (job.done) return true;
+      var end = root.performance.now() + budgetMs;
+      while (layer < 2) {
+        if (!canvas) { canvas = root.document.createElement('canvas'); canvas.width = canvas.height = size; q = canvas.getContext('2d'); image = q.createImageData(size, size); y = 0; }
+        for (; y < size; y++) {
+          for (var x = 0; x < size; x++) {
+            var u = x / size, v = y / size, dx = (u - .5) * 2, dy = (v - .5) * 2, r = Math.hypot(dx, dy), angle = Math.atan2(dy, dx);
+            var n = noise(grids[0], u, v) * .55 + noise(grids[1], u, v) * .3 + noise(grids[2], u, v) * .15;
+            var spiral = angle - Math.log(r + .09) * 3.7 + layer * .33 + (n - .5) * .7;
+            var ridge = Math.pow(.5 + .5 * Math.cos(spiral * 3), layer ? 5 : 2.8);
+            var density = ridge * Math.pow(clamp((n - .22) / .65), 1.5), edge = 1 - smooth((r - .53) / .46);
+            var lanes = smooth((noise(grids[1], u + .011, v + .018) - .28) / .36);
+            var alpha = edge * (.045 * (1 - r) + density * lanes * (layer ? .68 : .8)) * smooth(r / .11);
+            var c = rgb(palette.nebula.map(function (channel, k) { return mix(channel * .34, palette.pink[k], ridge * .64 + n * .16); }));
+            var at = (y * size + x) * 4; for (var k = 0; k < 3; k++) image.data[at + k] = c[k]; image.data[at + 3] = Math.round(clamp(alpha) * 255);
+          }
+          if (root.performance.now() > end) { y++; if (y < size) return false; break; }
+        }
+        q.putImageData(image, 0, 0); job.materials.push(canvas); canvas = null; layer++;
+        if (layer < 2 && root.performance.now() > end) return false;
+      }
+      job.done = true; return true;
+    };
+    return job;
+  }
   C.exoticIntro = { create: function () {
     var spec, field = [], disk = [], sprites = Object.create(null), materials = [], materialKey = '', timeline = Object.create(null);
     var stellarLayers = [], stellarKey = '', instanceSeed = '';
@@ -37,29 +75,9 @@
     function prepareMaterials() {
       var key = C.config.rarityColorMode + ':' + JSON.stringify(spec.palette);
       if (key === materialKey) return; materialKey = key; materials = []; stats.materialBuilds++;
-      var random = randomFor('exotic-spiral-material'), size = C.config.rarityIntro.exoticMaterialSize;
-      var grids = [16, 40, 96].map(function (n) { var data = new Float32Array(n * n); for (var i = 0; i < data.length; i++) data[i] = random(); return { n: n, data: data }; });
-      function noise(grid, x, y) {
-        x = ((x % 1 + 1) % 1) * grid.n; y = ((y % 1 + 1) % 1) * grid.n;
-        var ix = Math.floor(x), iy = Math.floor(y), fx = smooth(x - ix), fy = smooth(y - iy), n = grid.n, d = grid.data;
-        return mix(mix(d[iy * n + ix], d[iy * n + (ix + 1) % n], fx), mix(d[((iy + 1) % n) * n + ix], d[((iy + 1) % n) * n + (ix + 1) % n], fx), fy);
-      }
-      for (var layer = 0; layer < 2; layer++) {
-        var canvas = root.document.createElement('canvas'); canvas.width = canvas.height = size;
-        var q = canvas.getContext('2d'), image = q.createImageData(size, size);
-        for (var y = 0; y < size; y++) for (var x = 0; x < size; x++) {
-          var u = x / size, v = y / size, dx = (u - .5) * 2, dy = (v - .5) * 2, r = Math.hypot(dx, dy), angle = Math.atan2(dy, dx);
-          var n = noise(grids[0], u, v) * .55 + noise(grids[1], u, v) * .3 + noise(grids[2], u, v) * .15;
-          var spiral = angle - Math.log(r + .09) * 3.7 + layer * .33 + (n - .5) * .7;
-          var ridge = Math.pow(.5 + .5 * Math.cos(spiral * 3), layer ? 5 : 2.8);
-          var density = ridge * Math.pow(clamp((n - .22) / .65), 1.5), edge = 1 - smooth((r - .53) / .46);
-          var lanes = smooth((noise(grids[1], u + .011, v + .018) - .28) / .36);
-          var alpha = edge * (.045 * (1 - r) + density * lanes * (layer ? .68 : .8)) * smooth(r / .11);
-          var c = rgb(spec.palette.nebula.map(function (channel, k) { return mix(channel * .34, spec.palette.pink[k], ridge * .64 + n * .16); }));
-          var at = (y * size + x) * 4; for (var k = 0; k < 3; k++) image.data[at + k] = c[k]; image.data[at + 3] = Math.round(clamp(alpha) * 255);
-        }
-        q.putImageData(image, 0, 0); materials.push(canvas);
-      }
+      var job = warmed && warmed.key === key ? warmed.job : materialJob(spec.palette);
+      if (warmed && warmed.key === key) warmed = null;
+      job.step(Infinity); materials = job.materials;
     }
     function start(next, seed, backgroundOnly) {
       spec = next; timeline = Object.create(null); var at = 0;
@@ -235,4 +253,13 @@
     }
     return { start: start, paint: paint, backplate: backplate, stats: stats };
   } };
+  // Same conditions as start(): a still or low-detail cinematic never builds the dust.
+  C.exoticIntro.warmup = function (spec) {
+    if (!spec || !spec.palette) return;
+    if (C.motion.reduced || C.settings.policy.animation === 0 || ['low', 'very-low'].indexOf(C.settings.get('cinematicQuality')) !== -1) { warmed = null; return; }
+    var key = C.config.rarityColorMode + ':' + JSON.stringify(spec.palette);
+    if (warmed && warmed.key === key) return;
+    var job = materialJob(spec.palette), mine = warmed = { key: key, job: job };
+    (function slice() { if (warmed !== mine || job.done) return; if (!job.step(4) && root.requestAnimationFrame) root.requestAnimationFrame(slice); })();
+  };
 })(window.Cardable, window);

@@ -20,6 +20,61 @@
   function diamond(q, x, y, r, tall) {
     q.beginPath(); q.moveTo(x, y - r * tall); q.lineTo(x + r, y); q.lineTo(x, y + r * tall); q.lineTo(x - r, y); q.closePath();
   }
+  // The cloud and shadow atlases are a per-pixel bake of about 180 ms. A job does it in slices of whole rows; the opening starts one while the pack is
+  // still dissolving, and reading the result finishes whatever is left.
+  function materialJob(size) {
+    var rng = random(), grids = [8, 16, 32, 64].map(function (n) {
+      var a = new Float32Array(n * n); for (var i = 0; i < a.length; i++) a[i] = rng(); return { n: n, a: a };
+    });
+    function noise(grid, u, v) {
+      var n = grid.n, x = ((u % 1 + 1) % 1) * n, y = ((v % 1 + 1) % 1) * n;
+      var ix = Math.floor(x), iy = Math.floor(y), fx = smooth(x - ix), fy = smooth(y - iy), a = grid.a;
+      return mix(mix(a[iy * n + ix], a[iy * n + (ix + 1) % n], fx), mix(a[((iy + 1) % n) * n + ix], a[((iy + 1) % n) * n + (ix + 1) % n], fx), fy);
+    }
+    function fbm(u, v) { return noise(grids[0], u, v) * .5 + noise(grids[1], u, v) * .28 + noise(grids[2], u, v) * .15 + noise(grids[3], u, v) * .07; }
+    var values = new Float32Array(size * size);
+    var cloud = root.document.createElement('canvas'), shadow = root.document.createElement('canvas');
+    cloud.width = cloud.height = shadow.width = shadow.height = size;
+    var q = cloud.getContext('2d'), z = shadow.getContext('2d'), pixels = q.createImageData(size, size), darks = z.createImageData(size, size);
+    var blue = C.fxColor.tone([34, 76, 197]), pale = C.fxColor.tone([134, 193, 255]), deep = C.fxColor.tone([5, 13, 45]);
+    var row = 0, shade = 0, job = { done: false, material: null };
+    job.step = function (budgetMs) {
+      if (job.done) return true;
+      var end = root.performance.now() + budgetMs;
+      for (; row < size; row++) {
+        var y = row;
+        for (var x = 0; x < size; x++) {
+          var dx = (x + .5) / size * 2 - 1, dy = (y + .5) / size * 2 - 1, radius = Math.hypot(dx, dy);
+          var angle = Math.atan2(dy, dx) + radius * 1.8 + Math.sin(radius * 9) * .14;
+          var u = .5 + Math.cos(angle) * radius * .48, v = .5 + Math.sin(angle) * radius * .48;
+          u += (noise(grids[0], u, v) - .5) * .12; v += (noise(grids[1], u, v) - .5) * .1;
+          values[y * size + x] = fbm(u, v);
+        }
+        if (root.performance.now() > end) { row++; return false; }
+      }
+      // The shading reads rows above and to the left only, so it can start once every value exists.
+      for (; shade < size; shade++) {
+        var py = shade;
+        for (var px = 0; px < size; px++) {
+          var rx = (px + .5) / size * 2 - 1, ry = (py + .5) / size * 2 - 1, r = Math.hypot(rx, ry);
+          var n = values[py * size + px], density = smooth((n - .29) / .4);
+          var adjacent = values[Math.max(0, py - 4) * size + Math.max(0, px - 2)], lighting = clamp(.36 + (adjacent - n) * 6);
+          var edge = 1 - smooth((r - .72 - (n - .5) * .35) / .25);
+          var volume = edge * (.38 + .62 * Math.exp(-Math.pow((r - .52) / .3, 2))), at = (py * size + px) * 4;
+          for (var c = 0; c < 3; c++) {
+            pixels.data[at + c] = mix(blue[c], pale[c], clamp(density * .52 + lighting * .5));
+            darks.data[at + c] = mix(deep[c], blue[c], lighting * .15);
+          }
+          pixels.data[at + 3] = Math.round(density * volume * 245);
+          darks.data[at + 3] = Math.round(smooth((n - .45) / .24) * edge * smooth((r - .27) / .32) * 230);
+        }
+        if (root.performance.now() > end) { shade++; return false; }
+      }
+      q.putImageData(pixels, 0, 0); z.putImageData(darks, 0, 0);
+      job.material = { cloud: cloud, shadow: shadow }; job.done = true; return true;
+    };
+    return job;
+  }
   C.superRareIntro = { create: function () {
     var material = null, materialKey = '', field = null, fieldKey = '', fieldAt = -Infinity;
     var glows = Object.create(null), whites = 0, stars = [], seed = '', glassScene = null, glassAt = -Infinity;
@@ -28,44 +83,12 @@
     function materialFor() {
       var key = C.settings.get('rarityColor') + ':' + quality();
       if (material && materialKey === key) return material;
-      if (warmed && warmed.key === key) { material = warmed.material; materialKey = key; glassGPU.stop(); glassGPU=warmed.glass; warmed = null; glassAt=-Infinity; return material; }
-      var size = quality() === 'high' || quality() === 'very-high' ? 640 : 448;
-      var rng = random(), grids = [8, 16, 32, 64].map(function (n) {
-        var a = new Float32Array(n * n); for (var i = 0; i < a.length; i++) a[i] = rng(); return { n: n, a: a };
-      });
-      function noise(grid, u, v) {
-        var n = grid.n, x = ((u % 1 + 1) % 1) * n, y = ((v % 1 + 1) % 1) * n;
-        var ix = Math.floor(x), iy = Math.floor(y), fx = smooth(x - ix), fy = smooth(y - iy), a = grid.a;
-        return mix(mix(a[iy * n + ix], a[iy * n + (ix + 1) % n], fx), mix(a[((iy + 1) % n) * n + ix], a[((iy + 1) % n) * n + (ix + 1) % n], fx), fy);
+      if (warmed && warmed.key === key) {
+        var w = warmed; warmed = null; w.job.step(Infinity); if (!w.glassReady) w.painter.warmGlass(w.job.material);
+        material = w.job.material; materialKey = key; glassGPU.stop(); glassGPU = w.glass; glassAt = -Infinity; return material;
       }
-      function fbm(u, v) { return noise(grids[0], u, v) * .5 + noise(grids[1], u, v) * .28 + noise(grids[2], u, v) * .15 + noise(grids[3], u, v) * .07; }
-      var values = new Float32Array(size * size);
-      for (var y = 0; y < size; y++) for (var x = 0; x < size; x++) {
-        var dx = (x + .5) / size * 2 - 1, dy = (y + .5) / size * 2 - 1, radius = Math.hypot(dx, dy);
-        var angle = Math.atan2(dy, dx) + radius * 1.8 + Math.sin(radius * 9) * .14;
-        var u = .5 + Math.cos(angle) * radius * .48, v = .5 + Math.sin(angle) * radius * .48;
-        u += (noise(grids[0], u, v) - .5) * .12; v += (noise(grids[1], u, v) - .5) * .1;
-        values[y * size + x] = fbm(u, v);
-      }
-      var cloud = root.document.createElement('canvas'), shadow = root.document.createElement('canvas');
-      cloud.width = cloud.height = shadow.width = shadow.height = size;
-      var q = cloud.getContext('2d'), z = shadow.getContext('2d'), pixels = q.createImageData(size, size), darks = z.createImageData(size, size);
-      var blue = C.fxColor.tone([34, 76, 197]), pale = C.fxColor.tone([134, 193, 255]), deep = C.fxColor.tone([5, 13, 45]);
-      for (var py = 0; py < size; py++) for (var px = 0; px < size; px++) {
-        var rx = (px + .5) / size * 2 - 1, ry = (py + .5) / size * 2 - 1, r = Math.hypot(rx, ry);
-        var n = values[py * size + px], density = smooth((n - .29) / .4);
-        var adjacent = values[Math.max(0, py - 4) * size + Math.max(0, px - 2)], lighting = clamp(.36 + (adjacent - n) * 6);
-        var edge = 1 - smooth((r - .72 - (n - .5) * .35) / .25);
-        var volume = edge * (.38 + .62 * Math.exp(-Math.pow((r - .52) / .3, 2))), at = (py * size + px) * 4;
-        for (var c = 0; c < 3; c++) {
-          pixels.data[at + c] = mix(blue[c], pale[c], clamp(density * .52 + lighting * .5));
-          darks.data[at + c] = mix(deep[c], blue[c], lighting * .15);
-        }
-        pixels.data[at + 3] = Math.round(density * volume * 245);
-        darks.data[at + 3] = Math.round(smooth((n - .45) / .24) * edge * smooth((r - .27) / .32) * 230);
-      }
-      q.putImageData(pixels, 0, 0); z.putImageData(darks, 0, 0);
-      material = { cloud: cloud, shadow: shadow }; materialKey = key; fieldKey = ''; glassAt=-Infinity; return material;
+      var job = materialJob(quality() === 'high' || quality() === 'very-high' ? 640 : 448); job.step(Infinity);
+      material = job.material; materialKey = key; fieldKey = ''; glassAt = -Infinity; return material;
     }
     function glow(q, x, y, r, c, alpha, sx, sy) {
       if (r <= 0 || alpha <= 0) return;
@@ -338,15 +361,24 @@
       seed = String(value || 'super-rare'); whites = 0; fieldAt = -Infinity; stars = [];
       var rng = random(); for (var i = 0; i < 48; i++) stars.push({ x: rng(), y: rng(), size: i % 9 ? .55 : 1, alpha: .1 + rng() * .34, phase: rng() * TAU });
     }
-    function stop() { material = null; materialKey = ''; field = null; fieldKey = ''; glows = Object.create(null); if(warmed&&warmed.glass)warmed.glass.stop();warmed = null; stars = []; glassScene = null; glassAt = -Infinity; glassGPU.stop(); }
-    return { paint: paint, start: start, stop: stop, prepare: function(){var m=materialFor();if(glassGPU.prepare()){var warmCanvas=root.document.createElement('canvas');warmCanvas.width=warmCanvas.height=1;glassGPU.paint(warmCanvas.getContext('2d'),1,0,.6,m.cloud,contour);}return m;},get gpu(){return glassGPU;},
+    function warmGlass(m){if(glassGPU.prepare()){var warmCanvas=root.document.createElement('canvas');warmCanvas.width=warmCanvas.height=1;glassGPU.paint(warmCanvas.getContext('2d'),1,0,.6,m.cloud,contour);}}
+    function stop() { material = null; materialKey = ''; field = null; fieldKey = ''; glows = Object.create(null); if(warmed&&root.performance.now()-warmed.at>20000)releaseWarm(); stars = []; glassScene = null; glassAt = -Infinity; glassGPU.stop(); }
+    return { paint: paint, start: start, stop: stop, warmGlass: warmGlass, prepare: function(){var m=materialFor();warmGlass(m);return m;},get gpu(){return glassGPU;},
       get stats() { return { materialSize: material ? material.cloud.width : 0, fieldSize: field ? field.width : 0, glowCount: Object.keys(glows).length, white: whites, seed: seed, glass:glassGPU.stats }; } };
   } };
+  // The opening stops the intro between the warm-up and its start, so a warm-up survives a stop while it is fresh.
+  function releaseWarm() { if (warmed && warmed.glass) warmed.glass.stop(); warmed = null; }
   C.superRareIntro.warmup = function () {
-    if (C.cutscenes.mode() === 'light' || C.settings.get('cinematicQuality') === 'low') { if(warmed&&warmed.glass)warmed.glass.stop();warmed = null; return; }
-    var key = C.settings.get('rarityColor') + ':' + C.settings.get('cinematicQuality');
+    if (C.cutscenes.mode() === 'light' || C.settings.get('cinematicQuality') === 'low') { releaseWarm(); return; }
+    var quality = C.settings.get('cinematicQuality'), key = C.settings.get('rarityColor') + ':' + quality;
     if (warmed && warmed.key === key) return;
-    if(warmed&&warmed.glass)warmed.glass.stop();warmed=null;
-    var painter = C.superRareIntro.create(); warmed = { key: key, material: painter.prepare(), glass:painter.gpu };
+    releaseWarm();
+    var painter = C.superRareIntro.create(), job = materialJob(quality === 'high' || quality === 'very-high' ? 640 : 448);
+    var mine = warmed = { key: key, job: job, painter: painter, glass: painter.gpu, glassReady: false, at: root.performance.now() };
+    (function slice() {
+      if (warmed !== mine) return;
+      if (!job.step(3)) { if (root.requestAnimationFrame) root.requestAnimationFrame(slice); return; }
+      painter.warmGlass(job.material); mine.glassReady = true;
+    })();
   };
 })(window.Cardable, window);

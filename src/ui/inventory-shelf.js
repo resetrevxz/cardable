@@ -61,7 +61,9 @@
     create:function(host,callbacks){
       var cfg=C.config.inventoryMotion, el=node('div','inventory-shelf',host), track=node('div','inventory-track',el), light=node('i','inventory-focus-light',el), label=node('div','inventory-group-label',el);
       el.setAttribute('role','listbox');el.setAttribute('tabindex','0');el.setAttribute('aria-label','GPU card shelf');light.style.width=cfg.indicatorWidthPx+'px';
-      var spring=C.springs.create(0,{stiffness:C.config.carousel.stiffness,damping:C.config.carousel.damping,epsilon:0.0005}), entries=[],tiles=new Map(),width=180,pitch=204,center=0,drag=null,clickUntil=0,idle=null,dirty=true,active=false,detailId=null,viewportWidth=C.viewport.width;
+      var spring=C.springs.create(0,{stiffness:C.config.carousel.stiffness,damping:C.config.carousel.damping,epsilon:0.0005}), entries=[],tiles=new Map(),width=180,pitch=204,center=0,drag=null,clickUntil=0,idle=null,dirty=true,active=false,detailId=null,viewportWidth=C.viewport.width,sizeW='180px',sizeH='252px';
+      // The tile size is a non-inherited property (inventory.css): written here per element it restyles that element, where one write on the shelf restyled every card inside it on every frame of the pull.
+      track.style.setProperty('--inventory-tile-width',sizeW);track.style.setProperty('--inventory-tile-height',sizeH);
       function bounds(v){return clamp(v,0,Math.max(0,entries.length-1));}
       function setTarget(v){spring.target=bounds(v);dirty=true;C.fx.wake();}
       function snap(v,velocity){spring.target=bounds(Math.round(v));if(velocity!=null)spring.velocity=clamp(velocity,-15,15);idle=null;dirty=true;C.fx.wake();}
@@ -73,6 +75,7 @@
         for(var i=min;i<=max;i++){
           if(entries[i].stackKey===detailId)continue;
           var tile=tiles.get(i);if(tile&&!tile.visual){C.inventoryTiles.destroy(tile);tiles.delete(i);tile=null;}if(!tile){tile=pool.length?C.inventoryTiles.recycle(pool.pop(),entries[i],i):C.inventoryTiles.create(entries[i],i,tileCallbacks);track.appendChild(tile.el);tiles.set(i,tile);}else C.inventoryTiles.refresh(tile,entries[i]);
+          if(tile.sizeW!==sizeW){tile.sizeW=sizeW;tile.el.style.setProperty('--inventory-tile-width',sizeW);tile.el.style.setProperty('--inventory-tile-height',sizeH);}
           var delta=i-spring.value,d=Math.min(1,Math.abs(delta)),motion=C.settings.policy.animation;
           // Pan one compositor layer. Content and stationary neighbours stay untouched.
           var placement='translateX('+((i-center)*pitch).toFixed(3)+'px)';
@@ -102,7 +105,7 @@
         setActive:function(value){active=value;el.hidden=!value;tiles.forEach(function(t){if(t.view){t.view.setMode('lite');t.view.setVisible(value);}});dirty=true;},
         setModel:function(next,id){cancel();entries=next;tiles.forEach(C.inventoryTiles.destroy);tiles.clear();var i=entries.findIndex(function(e){return e.stackKey===id;});spring.reset(bounds(i<0?center:i));dirty=true;},
         refreshModel:function(next){entries=next;dirty=true;},
-        resize:function(height){viewportWidth=el.clientWidth||C.viewport.width;width=clamp((height-144-156)/1.18,80,360)*5/7;pitch=width+cfg.tileGapPx;el.style.setProperty('--inventory-tile-width',width+'px');el.style.setProperty('--inventory-tile-height',width*7/5+'px');dirty=true;},
+        resize:function(height,heightOnly){if(!heightOnly||!viewportWidth)viewportWidth=el.clientWidth||C.viewport.width;width=clamp((height-144-156)/1.18,80,360)*5/7;pitch=width+cfg.tileGapPx;sizeW=width+'px';sizeH=width*7/5+'px';track.style.setProperty('--inventory-tile-width',sizeW);track.style.setProperty('--inventory-tile-height',sizeH);dirty=true;},
         focus:function(id,instant){var i=entries.findIndex(function(e){return e.stackKey===id;});if(i>=0){snap(i);if(instant)spring.reset(i);}},
         update:function(now,dt){if(!active)return false;if(idle!=null){idle+=dt;if(idle>=cfg.wheelSnapMs)snap(spring.target);}var old=spring.value;if(!drag){if(C.motion.reduced){spring.value+= (spring.target-spring.value)*Math.min(1,dt/70);spring.velocity=0;if(Math.abs(spring.value-spring.target)<.001)spring.reset(spring.target);}else spring.step(dt,spring.target);}spring.value=bounds(spring.value);if(dirty||old!==spring.value)paint();return !spring.settled()||idle!=null||!!drag;},
         rect:function(id){var tile=Array.from(tiles.values()).find(function(t){return t.entry.stackKey===id;});return tile?tile.card.getBoundingClientRect():null;},

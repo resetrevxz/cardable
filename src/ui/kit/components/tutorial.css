@@ -1,3 +1,4 @@
+@property --tutorial-pulse { syntax: '<number>'; inherits: false; initial-value: 1; }
 .tutorial { position: fixed; inset: 0; z-index: var(--z-toast); pointer-events: none; }
 .tutorial[hidden] { display: none; }
 .tutorial-instruction {

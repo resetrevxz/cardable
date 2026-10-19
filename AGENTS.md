@@ -1,6 +1,6 @@
 # AGENTS.md — current Cardable working guide
 
-Cardable's current public version is **1.12.0**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
+Cardable's current public version is **1.12.1**; the series started at **1.0.0**, carrying forward the former 4.2.0 game without resetting saves. It is an offline GPU-card collector, delivered as a classic-script browser game and a Windows Electron app. The public repository is `resetrevxz/cardable`; its website is `https://resetrevxz.github.io/cardable/`. The card is the showstopper; the surrounding UI stays quiet.
 
 ## Read only what the task needs
 
@@ -29,6 +29,7 @@ The latest direct user instruction controls scope. Historical plans, patches, de
 - Keep Very Low, Low, Medium and High, plus opt-in hardware-gated Very High, with High as the new-player default. The ten graphics controls are independent. Presets preserve FPS, reduced motion and other preferences.
 - Use shared scheduling, focused full-card effects, bounded static inventory thumbnails and quality-aware canvas/resource budgets. Release hidden/offscreen work and temporary GL/material resources. Do not create a clock per card or an always-running idle loop.
 - Respect reduced motion, keyboard access, focus restoration, touch controls and the existing Safe/Full cinematic gates. Saved preferences must not be changed by temporary battery/Safe Mode/adaptive overrides.
+- Never write a custom property every frame on `<body>`, `<html>` or a container: it is inherited, so every element inside restyles each frame (the inventory, card detail and tutorial each did this and cost 5 to 20 ms a frame). Register it with `@property { inherits: false }` and write it on the elements that read it, or write the final style (transform, opacity) directly. Do not read layout (`offsetTop`, `clientWidth`) right after writing size in a frame loop. Build large procedural textures in sliced jobs ahead of the scene that needs them, not in its first frame.
 - Do not promise universal frame rates or claim accessibility, photosensitivity or physical-device performance beyond what was actually measured.
 
 ## Workspace ownership and history

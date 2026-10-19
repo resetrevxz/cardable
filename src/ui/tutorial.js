@@ -1,5 +1,15 @@
 (function (C, root) {
   'use strict';
+  // The pulse is a non-inherited property (tutorial.css) written on the two things that read it. On <body> it restyled the whole document every frame for as long as the step was showing.
+  var pulseTargets = [], pulseStep = '', pulseLast = null;
+  function pulseTo(value) {
+    if (pulseStep !== step) {
+      pulseStep = step; pulseLast = null; pulseTargets.forEach(function (el) { el.style.removeProperty('--tutorial-pulse'); });
+      pulseTargets = step === 'hold' ? [].slice.call(root.document.querySelectorAll('.pack-open-action kbd, .pack-key-hint kbd')) : step === 'inventory' ? [].slice.call(root.document.querySelectorAll('.inventory-arrow')) : [];
+    }
+    if (value === pulseLast) return; pulseLast = value;
+    pulseTargets.forEach(function (el) { el.style.setProperty('--tutorial-pulse', value); });
+  }
   var cfg, shell, instruction, skipButton, ghost, cutHint, step = 'done', active = false, phase = 'idle';
   var elapsed = 0, pulseClock = 0, ghostClock = 0, cutStarted = false, target = null, lastContext = '', opacity = 0, exitMs = 0, uiMs, shellOpacity = 0;
   var steps = ['welcome', 'hold', 'cut', 'keep', 'inventory', 'timer', 'done'];
@@ -113,7 +123,7 @@
     if (visible) {
       elapsed += dt; pulseClock += dt;
       var pulse = C.motion.reduced || !C.settings.policy.animation ? 1 : cfg.pulseMin + (1 - cfg.pulseMin) * (1 + Math.sin(pulseClock / cfg.pulseMs * Math.PI * 2)) / 2;
-      shell.style.setProperty('--tutorial-pulse', pulse); root.document.body.style.setProperty('--tutorial-pulse', pulse);
+      pulseTo(pulse);
       if (step === 'cut' && !cutStarted) {
         ghostClock += dt; stats.ghostCycles = Math.floor(ghostClock / cfg.ghostMs);
         ghost.style.strokeDashoffset = C.motion.reduced || !C.settings.policy.animation ? 0 : 1 - ghostClock % cfg.ghostMs / cfg.ghostMs;
