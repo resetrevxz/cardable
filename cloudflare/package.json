@@ -7,7 +7,7 @@
   "scripts": {
     "catalog": "node scripts/build-catalog.cjs",
     "dev": "wrangler dev --local",
-    "test": "node --test test/api.test.mjs test/analytics.test.mjs test/social.test.mjs test/economy.test.mjs test/trading.test.mjs test/races.test.mjs",
+    "test": "node --test --test-concurrency=1 test/api.test.mjs test/analytics.test.mjs test/social.test.mjs test/economy.test.mjs test/trading.test.mjs test/races.test.mjs test/ops.test.mjs test/game.test.mjs",
     "deploy:check": "node scripts/deploy.cjs --check"
   },
   "devDependencies": {

@@ -35,6 +35,8 @@ import { mediaUsage } from './uploads.js';
 import { currentMode, enforceMode, opsLog, setMode } from './maintenance.js';
 import { resetPlan, summary } from './opsreport.js';
 import { checkBudget } from './budget.js';
+import { gameState, linkGame, syncGame, transferGame, requireGameDevice } from './game.js';
+import { runTraders } from './traders.js';
 export { Gate } from './gate.js';
 
 const VERSION = '1.0.0-beta';
@@ -79,6 +81,7 @@ async function route(request, env, url, trace) {
     if (pathname === '/v1/admin/reconcile' && method === 'GET') return reconcile(env);
     if (pathname === '/v1/admin/repair' && method === 'POST') return repair(env, now);
     if (pathname === '/v1/admin/sweep' && method === 'POST') { const b = await readJson(request, 2_000); return sweep(env, now, b.limit); }
+    if (pathname === '/v1/admin/traders' && method === 'POST') return runTraders(env, now);
     if (pathname === '/v1/admin/import/revoke' && method === 'POST') return revokeImport(env, await readJson(request, 2_000), now);
     if (pathname === '/v1/admin/reports' && method === 'GET') return listReports(env, url, now);
     if (pathname === '/v1/admin/moderate' && method === 'POST') return moderate(env, await readJson(request, 4_000), actorOf(request), now);
@@ -95,6 +98,11 @@ async function route(request, env, url, trace) {
 
   const who = await authenticate(env, request);
   await rateLimit(env, who.accountId, 'api', Number(env.API_RATE_LIMIT) || 600, 60);
+  if (pathname === '/v1/game/state' && method === 'GET') return gameState(env, who);
+  if (pathname === '/v1/game/link' && method === 'POST') return linkGame(env, who, key, await readJson(request, 12_000_000), now);
+  if (pathname === '/v1/game/sync' && method === 'POST') return syncGame(env, who, key, await readJson(request, 12_000_000), now);
+  if (pathname === '/v1/game/transfer' && method === 'POST') return transferGame(env, who, key, await readJson(request, 4_000), now);
+  if (!['GET','HEAD'].includes(method) && !pathname.startsWith('/v1/auth/')) await requireGameDevice(env, who, request);
   if (pathname === '/v1/auth/logout' && method === 'POST') { await logout(env, who); return { ok: true }; }
   if (pathname === '/v1/auth/sessions' && method === 'GET') return { sessions: await listSessions(env, who) };
   const sessionMatch = /^\/v1\/auth\/sessions\/([A-Za-z0-9_-]{4,40})$/.exec(pathname);
@@ -278,7 +286,7 @@ export default {
     ctx.waitUntil((async () => {
       try { await checkBudget(env, Date.now()); } catch (error) { console.error(JSON.stringify({ budget: String(error && error.message).slice(0, 200) })); }
       const state = await currentMode(env);
-      if (state.mode === 'open') await sweep(env, Date.now());
+      if (state.mode === 'open') { await sweep(env, Date.now()); await runTraders(env, Date.now()); }
     })());
   }
 };

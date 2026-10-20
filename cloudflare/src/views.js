@@ -38,7 +38,7 @@ function listingRow(r, me, val, now) {
       rating: r.seller_reviews ? { average: Math.round(r.seller_rating * 10) / 10, count: r.seller_reviews } : null },
     images: imagesOf(r), cover: coverOf(r), treatment: r.treatment || 'none', commentCount: r.comment_count || 0,
     valuation: val, createdAt: r.created_at, endsAt: r.ends_at, closedAt: r.closed_at, soldFor: r.sold_price, endNote: r.end_note || '', snipeNote: r.snipe_note || '',
-    isMine: mine, version: r.version, source: 'players', reservedCard: false
+    isMine: mine, version: r.version, source: r.actor_kind === 'trader' ? 'trader' : 'player', reservedCard: false
   };
   if (r.kind === 'auction') {
     const hasBids = r.bid_count > 0;
@@ -53,7 +53,7 @@ function listingRow(r, me, val, now) {
   return view;
 }
 
-export const LISTING_SQL = 'SELECT l.*, s.alias AS seller_alias, s.created_at AS seller_since, ld.alias AS leader_alias, ' +
+export const LISTING_SQL = 'SELECT l.*, s.actor_kind, s.alias AS seller_alias, s.created_at AS seller_since, ld.alias AS leader_alias, ' +
   '(SELECT COUNT(*) FROM trades t WHERE t.seller_id = l.seller_id) AS seller_sales, ' +
   "(SELECT COUNT(*) FROM reviews rv WHERE rv.seller_id = l.seller_id AND rv.status = 'visible') AS seller_reviews, " +
   "(SELECT AVG(rv.rating) FROM reviews rv WHERE rv.seller_id = l.seller_id AND rv.status = 'visible') AS seller_rating, " +

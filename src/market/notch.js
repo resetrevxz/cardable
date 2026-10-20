@@ -198,7 +198,7 @@
       push('worth', { id: 'worth', tone: diff > 0 ? 'up' : diff < 0 ? 'down' : 'idle', glyph: 'briefcase', label: fx(w.now), title: diff ? 'Net worth ' + sign + fx(Math.abs(diff)) + (w.dayChange != null ? ' today' : ' since start') : 'Net worth', line: 'Cards ' + fx(w.cards) + ' · Credits ' + fx(w.credits), minutes: null, order: 0, go: { name: 'portfolio', params: {} } });
     }
     if (s.live) push('spend', { id: 'spend', tone: 'run', glyph: 'coin', label: fx(wallet.available), title: wallet.held ? 'to spend · ' + fx(wallet.held) + ' held' : 'to spend', line: '', minutes: null, order: 0, go: { name: 'portfolio', params: {} } });
-    push('clock', { id: 'clock', tone: s.clockState === 'running' ? 'run' : 'idle', glyph: s.clockState === 'running' ? 'play' : (s.realm === 'global' ? (s.live ? 'check' : 'lock') : 'pause'), label: s.clock || 'Standard', title: s.clockWord || '', line: '', minutes: null, order: 0, go: null });
+    push('clock', { id: 'clock', tone: s.clockState === 'running' ? 'run' : 'idle', glyph: s.clockState === 'running' ? 'play' : (s.realm === 'global' ? (s.live ? 'check' : 'lock') : 'pause'), label: s.clock || 'Market', title: s.clockWord || '', line: '', minutes: null, order: 0, go: null });
 
     // cap each category, then sort: pins, then the player's order, then what matters inside the category
     var seen = {};

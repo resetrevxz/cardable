@@ -56,7 +56,7 @@
         offer.variantId !== null && !C.variant(offer.variantId))
       return fail('unsupported', 'This card or finish is no longer available.');
     if (!Number.isSafeInteger(offer.price) || offer.price <= 0) return fail('invalid', 'This Shop quote is invalid.');
-    if (save.currency < offer.price) return fail('funds', 'Not enough Credits for this card.');
+    if (!C.currency.canAfford(offer.price)) return fail('funds', 'Not enough available Credits for this card. Some Credits may be held by bids.');
     if (!Number.isSafeInteger(save.serialCounter + 1)) return fail('capacity', 'The card serial counter is full.');
     var candidate = JSON.parse(C.state.encode(save)), target = candidate.shop.days.find(function (row) { return row.dayKey === key; })
       .offers.find(function (row) { return row.offerId === offer.offerId; });
@@ -87,7 +87,7 @@
     if (shop.entitlement) return fail('entitlement', 'Your purchased Titan Pack is ready to open first.');
     if (!pack || !pack.enabled || pack.id !== 'titan' || !Number.isSafeInteger(price) || price <= 0)
       return fail('unsupported', 'The featured Titan Pack is unavailable.');
-    if (save.currency < price) return fail('funds', 'Not enough Credits for the Titan Pack.');
+    if (!C.currency.canAfford(price)) return fail('funds', 'Not enough available Credits for the Titan Pack. Some Credits may be held by bids.');
     var candidate = JSON.parse(C.state.encode(save)), now = C.clock.now(), before = candidate.currency;
     var entitlementId = C.randomId('shop-pack');
     try {

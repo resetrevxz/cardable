@@ -67,7 +67,7 @@
     }
     paint();
     host.appendChild(table);
-    host.appendChild(h('p.mk-hint', { text: realm === 'global' ? 'Figures come only from completed player sales; a card with none shows its baseline and says so.' : 'Figures come from trades completed in this simulation.' }));
+    host.appendChild(h('p.mk-hint', { text: ui.sim.isGlobal(realm) ? 'Figures come only from completed player sales; a card with none shows its baseline and says so.' : 'Figures come from trades completed in this simulation.' }));
     scope.add(store.subscribe(function (what) { if (what === 'sim' || what === 'compare') paint(); }));
     ctx.restoreScroll();
   }

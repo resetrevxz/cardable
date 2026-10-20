@@ -173,7 +173,7 @@
       var r = C.marketSim.ensure(false), w = r.world, peek = r.peek();
       var def = C.data.market.realms.find(function (x) { return x.id === realm; });
       var speed = cfg().speeds.find(function (s) { return s.id === r.speedId; });
-      return { realm: realm, state: 'local', label: 'Offline · local', connected: true, live: true, message: cfg().help.intro,
+      return { realm: realm, state: 'local', label: 'Game traders', connected: true, live: true, message: cfg().help.intro,
         exists: !!w, running: peek.state === 'running', clockState: w ? peek.state : 'idle', reason: peek.reason, paused: r.paused, clock: w ? clockLabel(w) : null,
         speed: speed ? speed.id : r.speedId, factor: r.factor(), error: r.error, def: def, bots: w ? w.bots.length : 0, revision: r.revision };
     },
@@ -187,6 +187,7 @@
       var x = ctxNow(), world = x.world, env = x.env, k = core();
       var ctx = C.market.api.context(realm);
       var all = openViews(world, env, false);
+      if (query.source === 'player') all = [];
       var tab = query.tab || 'for-you', sortId = query.sort;
       var base = all;
       if (tab === 'ending') { base = all.filter(function (l) { return l.format === 'auction'; }); sortId = sortId || 'ending'; }
@@ -194,7 +195,7 @@
       else if (tab === 'trending') sortId = sortId || 'popular';
       else sortId = sortId || 'recommended';
       var locked = query.lockFormats && query.lockFormats.length ? base.filter(function (l) { return query.lockFormats.indexOf(l.format) >= 0; }) : base;
-      var filtered = k.applyFilters(base, query.filters, ctx), ranks = {};
+      var filtered = k.applyFilters(locked, query.filters, ctx), ranks = {};
       var sorted = k.sortListings(filtered, sortId, ctx, { ranks: ranks });
       var page = k.paginate(sorted, query.cursor, query.limit || 24);
       return {

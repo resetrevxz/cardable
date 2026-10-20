@@ -266,7 +266,7 @@ async function waitRevealed(page) {
     });
 
     await step('the Market portfolio separates collection value from Quick Sell value and the composer shows price analysis', async () => {
-      await page.evaluate(() => { Cardable.inventory.request('peek'); Cardable.market.store.markGuideSeen(); Cardable.market.open({ name: 'portfolio', params: {} }); });
+      await page.evaluate(() => { Cardable.settings.set('marketMode', 'advanced'); Cardable.inventory.request('peek'); Cardable.market.store.markGuideSeen(); Cardable.market.open({ name: 'portfolio', params: {} }); });
       await page.waitForSelector('.mk-summary');
       const text = await page.evaluate(() => document.querySelector('.mk-summary').textContent);
       assert(/Quick Sell value/.test(text) && /Collection value/.test(text), text);

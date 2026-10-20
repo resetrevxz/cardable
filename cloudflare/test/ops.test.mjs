@@ -16,7 +16,7 @@ test('the service starts open and says so on the public status page', async () =
   assert.equal(s.status, 200);
   assert.equal(s.data.mode, 'open');
   assert.equal(s.data.version, '1.0.0-beta');
-  assert.equal(s.data.schema, 6);
+  assert.equal(s.data.schema, 7);
 });
 
 test('the operator route answers 404 without the token and the mode cannot be changed by a player', async () => {

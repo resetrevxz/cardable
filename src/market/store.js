@@ -34,6 +34,10 @@
         if (Number.isFinite(n.open)) base.notch.open = n.open;
       }
       prefs = base;
+      if (!prefs.drafts['compose:unified']) {
+        var legacyDrafts = ['compose:simulation', 'compose:global'].map(function (key) { return prefs.drafts[key]; }).filter(Boolean).sort(function (a, b) { return b.savedAt - a.savedAt; });
+        if (legacyDrafts.length) prefs.drafts['compose:unified'] = legacyDrafts[0];
+      }
     } catch (_) { stored = false; }
   }
   function persist() {
@@ -42,7 +46,7 @@
   function emit(what) { listeners.forEach(function (fn) { try { fn(what); } catch (e) { console.error(e); } }); }
 
   var session = {
-    realm: 'simulation', tab: 'for-you', sort: 'recommended', filters: null, view: null, advanced: null,
+    realm: 'unified', tab: 'for-you', sort: 'recommended', filters: null, view: null, advanced: null,
     showGlobalSample: false, filtersOpen: true, scroll: {}, stack: [], lastRoute: null, paneTop: 0
   };
   function resetFilters() { session.filters = K().emptyFilters(); }
@@ -56,13 +60,12 @@
     init: function () {
       load();
       resetFilters();
-      var realm = C.settings && C.settings.get('marketRealm');
-      session.realm = realm === 'global' ? 'global' : 'simulation';
+      session.realm = 'unified';
     },
     setRealm: function (id) {
-      if (id !== 'simulation' && id !== 'global') return;
-      if (session.realm === id) return;
-      session.realm = id; session.scroll = {};
+      if (['simulation', 'global', 'unified'].indexOf(id) < 0) return;
+      if (session.realm === 'unified') return;
+      session.realm = 'unified'; session.scroll = {};
       emit('realm');
     },
     // ---- watchlist ----

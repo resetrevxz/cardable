@@ -176,7 +176,7 @@ async function clickByText(page, scope, text) {
       const price = await page.evaluate(() => Number(document.querySelector('.mk-terms input[type="number"]').value));
       assert(price > 0, 'a suggested price');
       await shot(page, 'composer');
-      await clickByText(page, '.mk-side-actions', 'List this card');
+      await clickByText(page, '.mk-side-actions', 'Review listing');
       await page.waitForSelector('.mk-review');
       const sum = await page.evaluate(() => document.querySelector('.mk-review').textContent);
       assert(/2% market fee|market fee/i.test(sum) && /You receive/.test(sum), sum);
@@ -256,6 +256,7 @@ async function clickByText(page, scope, text) {
 
     // The detail page remounts when the simulator reports a change, which can land between filling the form and confirming it (it also did before the notch); the step retries once the page is stable.
     await step('a buy order reserves its price and can be cancelled', async () => {
+      await page.evaluate(() => Cardable.settings.set('marketMode', 'advanced'));
       for (let attempt = 0; ; attempt++) {
         try { await buyOrderOnce(); return; } catch (error) { if (attempt >= 2) throw error; await page.waitForTimeout(600); }
       }
@@ -404,13 +405,15 @@ async function clickByText(page, scope, text) {
         await route('compose'); m = await metrics('compose'); assert(m.scroll <= 1, name + ' compose ' + JSON.stringify(m));
         await route('stocks'); m = await metrics('stocks'); assert(m.scroll <= 1, name + ' stocks ' + JSON.stringify(m));
         await route('portfolio'); m = await metrics('portfolio'); assert(m.scroll <= 1, name + ' portfolio ' + JSON.stringify(m));
-        // on a phone the clock chip gives way (the clock is in the notch's panel); the panel opens from the notch there
-        const chipShown = await p.evaluate(() => getComputedStyle(document.querySelector('.mk-sim-chip')).display !== 'none');
-        if (chipShown) { await p.click('.mk-sim-chip'); await p.waitForSelector('.mk-sim-panel'); } else { await p.click('.mk-header .mk-island'); await p.waitForSelector('.mk-island-panel'); }
-        await p.waitForTimeout(300);
-        const panel = await p.evaluate(() => { const r = (document.querySelector('.mk-sim-panel') || document.querySelector('.mk-island-pop')).getBoundingClientRect(); return r.left >= 0 && r.right <= window.innerWidth + 1; });
-        assert(panel, name + ' sim panel inside the window');
-        await shot(p, 'sim-panel-' + name);
+        // The compact header omits trader controls; phone settings are covered by
+        // check-market-unified-browser. Inspect this panel wherever it is visible.
+        if (await p.locator('.mk-sim-chip').isVisible()) {
+          await p.click('.mk-sim-chip'); await p.waitForSelector('.mk-sim-panel');
+          await p.waitForTimeout(300);
+          const panel = await p.evaluate(() => { const r = document.querySelector('.mk-sim-panel').getBoundingClientRect(); return r.left >= 0 && r.right <= window.innerWidth + 1; });
+          assert(panel, name + ' sim panel inside the window');
+          await shot(p, 'sim-panel-' + name);
+        }
         await context.close();
       }
       return seen;
@@ -421,7 +424,7 @@ async function clickByText(page, scope, text) {
       await p.evaluate(() => { Cardable.settings.set('rarityColor', 'mono'); });
       await openMarket(p);
       const chipState = await p.evaluate(() => { const c = document.querySelector('.mk-sim-chip'); return { text: c.textContent, label: c.getAttribute('aria-label') }; });
-      assert(/Running/i.test(chipState.text) && /Simulation clock/.test(chipState.label), JSON.stringify(chipState));
+      assert(/Running/i.test(chipState.text) && /Game trader clock/.test(chipState.label), JSON.stringify(chipState));
       await shot(p, 'discover-mono');
       const l = await p.evaluate(() => Cardable.market.api.listingsSync('simulation', { filters: Cardable.market.core.emptyFilters(), limit: 100, facets: false }).items.map((e) => e.listing).find((x) => x.format === 'auction').id);
       await p.evaluate((id) => Cardable.market.ui.go('listing', { id }, { reset: true }), l); await p.waitForSelector('#mk-max');

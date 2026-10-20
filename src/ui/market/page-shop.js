@@ -22,7 +22,8 @@
     if (C.state.current.pendingReveal || (C.opening && C.opening.phase !== 'idle')) return 'Finish the current pack first.';
     if (kind === 'pack' && C.shopPurchase.entitlement(C.state.current)) return 'Your Titan Pack is ready to open.';
     if (kind === 'card' && offer.purchased) return 'Bought. A new offer comes tomorrow.';
-    if (balance() < amount) return 'You need ' + fx(amount - balance()) + ' more Credits.';
+    var available = balance() - (C.marketSim ? C.marketSim.heldCredits() : 0);
+    if (available < amount) return 'You need ' + fx(amount - available) + ' more available Credits.';
     return null;
   }
   function owned(cardId) { return C.state.current.inventory.filter(function (i) { return i.cardId === cardId; }).length; }
@@ -40,7 +41,7 @@
     var head = h('div.mk-pagehead.mk-shop-head',
       h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', icon('bag')), h('span', { text: 'Shop' })),
         h('p.mk-shop-sub', icon('clock'), h('span', { text: 'New offers in ' }), timer)),
-      h('div.mk-pagehead-actions', ui.button('Classic Shop', { variant: 'ghost', icon: 'forward', onClick: function () { openClassic(); } })));
+      h('div.mk-pagehead-actions'));
     host.appendChild(head);
     var tick = root.setInterval(function () { if (!timer.isConnected) return; var t = resetIn(); if (timer.textContent !== t) timer.textContent = t; }, 15000);
     scope.add(function () { root.clearInterval(tick); });
@@ -51,12 +52,6 @@
       return;
     }
     var snap = daily.snapshot;
-
-    // ---- how it differs from the Market, in three short points with icons ----
-    host.appendChild(h('ul.mk-shop-facts', { 'aria-label': 'About the Shop' },
-      h('li', icon('lock'), h('span', { text: 'Fixed price, no bidding' })),
-      h('li', icon('sparkle'), h('span', { text: 'Brand-new copy, your serial' })),
-      h('li', icon('refresh'), h('span', { text: 'Four new cards every day' }))));
 
     // ---- featured pack ----
     var pack = C.pack(C.data.shop.featuredPackId), price = C.data.shop.featuredPrice;
@@ -95,20 +90,37 @@
       var body = h('div.mk-shop-card-body',
         h('strong.mk-shop-card-name', { text: idn.name }),
         h('div.mk-shop-card-meta', h('span.mk-tile-rarity', { data: { rarity: card.rarity }, text: idn.rarityName }), variant ? h('span.mk-tile-variant', { text: variant.name }) : null, n ? h('span.mk-shop-owned', icon('cards'), h('span', { text: n + ' owned' })) : null),
-        h('div.mk-shop-card-price', ui.credits(offer.price, { big: true }), value ? h('span.mk-muted', { title: 'What this card usually sells for between traders in Standard' }, icon('market'), h('span', { text: '~' + fx(value) + ' on the Market' })) : null));
+        h('div.mk-shop-card-price', ui.credits(offer.price, { big: true }), value ? h('span.mk-muted', { title: 'Estimated value from completed Market trades' }, icon('market'), h('span', { text: '~' + fx(value) + ' on the Market' })) : null));
       var why2 = blocked('card', offer, offer.price);
       var b = ui.button(offer.purchased ? 'Bought' : 'Buy', { variant: offer.purchased ? 'ghost' : 'secondary', icon: offer.purchased ? 'check' : 'bag', disabled: !!why2, reason: why2 || '', onClick: function () { reviewCard(b, offer, card, idn, variant); } });
-      body.appendChild(b);
+      var controls = h('div.mk-shop-card-actions', b, ui.button('Inspect', { variant: 'ghost', icon: 'eye', onClick: function () { inspect(offer, card); } }));
+      body.appendChild(controls);
+      if (C.shopWishlist) {
+        var wishlistTarget = null, wishlist;
+        wishlist = C.shopWishlist.create(body, card.id, { active: function () { return !scope.dead; }, busy: function () { return false; }, target: function () { return wishlistTarget; }, setTarget: function (id) { wishlistTarget = id; }, announce: function (message) { C.ui.toast(message); }, changed: function () { if (wishlist) wishlist.refresh(); } });
+        scope.add(C.events.on('inventory:changed', function () { wishlist.refresh(); }));
+        root.setTimeout(function () { if (!scope.dead) wishlist.refresh(); }, 0);
+      }
       if (why2 && !offer.purchased) body.appendChild(h('p.mk-shop-state', { text: why2 }));
       tile.appendChild(body);
       grid.appendChild(tile);
     });
     host.appendChild(grid);
-    host.appendChild(h('p.mk-hint.mk-shop-foot', icon('info'), h('span', { text: 'The Shop sells at a fixed price above what traders usually ask. Bargains are on the Market; the Shop is for the card you want today, for sure.' })));
-
-    function openClassic() {
-      ui.shell.close();
-      root.setTimeout(function () { if (C.shop && C.shop.open) C.shop.open(); }, 60);
+    function inspect(offer, card) {
+      var surface = h('section.mk-modal.mk-shop-inspect', { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Inspect ' + card.name });
+      var view = null, handle, destroyed = false;
+      function release() { if (destroyed) return; destroyed = true; if (view) { view.destroy(); view = null; } }
+      surface.appendChild(h('h2', { text: ui.identity(card, true).name }));
+      try {
+        view = C.cardView.create(card, { instanceId: 'shop-inspect-' + offer.offerId, cardId: card.id, serial: 'SHOP', variantId: offer.variantId, cardSkinId: null, seen: true }, { owned: true, autoFocus: false, keyboardFlip: false, autoStamp: false, presentation: 'full' });
+        var stage = h('div.mk-stage-card'); stage.appendChild(view.el); surface.appendChild(stage);
+        if (C.settings.get('quality') !== 'very-low') view.setMode('full');
+        surface.appendChild(ui.button('Flip', { variant: 'secondary', icon: 'flip', onClick: function () { if (view) view.setFace(view.side === 'front' ? 'back' : 'front'); } }));
+      } catch (_) { surface.appendChild(h('p.mk-hint', { text: 'Card preview unavailable.' })); }
+      surface.appendChild(h('p.mk-hint', { text: 'Shop preview' }));
+      surface.appendChild(ui.button('Close', { variant: 'primary', onClick: function () { handle.close(); } }));
+      handle = C.ui.present(surface, { anchor: doc.activeElement, onClose: release });
+      scope.add(function () { release(); handle.close(); });
     }
     function openEntitlement() {
       ui.shell.close();
@@ -122,7 +134,7 @@
     ui.sim.confirm({ title: 'Buy from the Shop', eyebrow: 'Shop', anchor: anchor, icon: 'bag', confirmLabel: 'Buy for ' + fx(offer.price),
       card: h('div.mk-review-card', h('strong', { text: idn.name }), h('span', { text: idn.rarityName + (variant ? ' · ' + variant.name : '') })),
       rows: [{ label: 'Price', node: ui.credits(offer.price), strong: true }, { label: 'Your Credits after', value: fx(after) }, { label: 'Arrives', value: 'In your inventory, right away' }],
-      note: 'A fixed price from the game. It is a brand-new copy with your own serial.',
+      note: 'The Shop card is added to your collection after purchase.',
       run: function () {
         var day = C.shopState.ensure();
         if (!day.snapshot) return { ok: false, message: day.error || 'Today’s offers are not ready.' };

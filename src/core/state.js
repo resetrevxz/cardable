@@ -71,6 +71,7 @@
     base.inventoryUi = C.inventoryModel.normalize(base.inventoryUi);
     // Normalize optional collection history against the restored save.
     if(C.journal)base.journal=C.journal.normalize(value.journal,base);else if (value.journal !== undefined) base.journal = value.journal;
+    if (value.unified !== undefined) base.unified = C.market && C.market.sync ? C.market.sync.normalize(value.unified) : JSON.parse(JSON.stringify(value.unified));
     base.wallet = C.currency.normalize(value.wallet);
     base.unlocks = C.cutsceneUnlocks.normalize(value.unlocks);
     if (value.studio !== undefined && C.studioScenes) base.studio = C.studioScenes.normalize(value.studio);
@@ -271,6 +272,7 @@
           preserveOriginal(store, recovery.raw); recovery.backedUp = true;
         }
         writeStage = 'guard';
+        if (C.market && C.market.sync) C.market.sync.prepareCommit(candidate);
         if (C.state.beforeWrite) C.state.beforeWrite(candidate);
         writeStage = 'encode'; json = C.state.encode(candidate);
         writeStage = 'storage';
@@ -289,6 +291,7 @@
       if (!C.state.current) C.state.current = freshState();
       var writeStage = 'guard', json;
       try {
+        if (C.market && C.market.sync) C.market.sync.prepareCommit(C.state.current);
         if (C.state.beforeWrite) C.state.beforeWrite(C.state.current);
         writeStage = 'encode'; json = C.state.encode(C.state.current);
         writeStage = 'storage'; var store = root.localStorage;

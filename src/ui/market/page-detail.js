@@ -1,5 +1,5 @@
 /* Cardable Market — listing detail and card detail.
- * The real card is the hero. In the Simulation every action here is real: a purchase, bid, swap offer, buy order or
+ * The real card is the hero. In the Market every action here is real: a purchase, bid, swap offer, buy order or
  * withdrawal changes the exact cards and Credits in the player's save, once, after a review. In the sample realm the
  * same buttons only open a review that says plainly nothing was changed. */
 (function (C, root) {
@@ -20,7 +20,7 @@
       dl.appendChild(h('div', { data: { strong: r.strong ? 'true' : '' } }, h('dt', { text: r.label }), h('dd', r.node ? r.node : { text: r.value })));
     });
     surface.appendChild(dl);
-    surface.appendChild(h('p.mk-review-note', icon('info'), h('span', { text: options.note || 'Nothing was bought, sold or saved. Your Credits and collection are unchanged. Players is not connected yet.' })));
+    surface.appendChild(h('p.mk-review-note', icon('info'), h('span', { text: options.note || 'Nothing was bought, sold or saved. Your Credits and collection are unchanged. Market is not connected yet.' })));
     var actions = h('div.mk-modal-actions');
     var handle;
     (options.actions || []).forEach(function (a) { actions.appendChild(ui.button(a.label, { variant: a.variant || 'secondary', icon: a.icon, onClick: function () { handle.close(); if (a.run) a.run(); } })); });
@@ -74,13 +74,13 @@
   function sellerPanel(seller, live) {
     var persona = seller.isBot && !live ? C.market.fixtures.PERSONAS.find(function (p) { return p.id === seller.persona; }) : null;
     var box = h('section.mk-box.mk-seller-box', { 'aria-label': 'Seller' });
-    box.appendChild(h('div.mk-panel-head', ui.eyebrow(seller.isYou ? 'Your listing' : seller.isBot ? 'Simulation trader' : 'Seller'), h('h3', { text: seller.alias })));
+    box.appendChild(h('div.mk-panel-head', ui.eyebrow(seller.isYou ? 'Your listing' : seller.isBot ? 'Trader' : 'Seller'), h('h3', { text: seller.alias })));
     if (live) {
       var rows = seller.isYou ? [{ label: 'Completed sales', value: String(seller.sales) }] : [
         seller.personaLabel ? { label: 'Style', value: seller.personaLabel } : { label: 'Here for', value: seller.tenureDays + (seller.tenureDays === 1 ? ' day' : ' days') }, { label: 'Completed sales', value: String(seller.sales) }
       ];
       box.appendChild(ui.statGrid(rows, { cols: rows.length }));
-      var player = !seller.isBot && !seller.isYou && C.market.store && C.market.store.session.realm === 'global';
+      var player = !seller.isBot && !seller.isYou && C.market.store && ui.sim.isGlobal(C.market.store.session.realm);
       if (player && C.market.onlineProvider && ui.social) {
         rows.push({ label: 'Reviews', value: seller.reviews ? ui.social.starsLine(seller.reviews.average) + ' · ' + seller.reviews.count + (seller.reviews.count === 1 ? ' review' : ' reviews') : 'No reviews yet' });
         var oldGrid = box.querySelector('.mk-stats'); if (oldGrid) oldGrid.remove();
@@ -142,10 +142,11 @@
     var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
     if (!res) {
       host.appendChild(h('div.mk-pagehead', back));
-      host.appendChild(ui.emptyState({ kind: 'error', icon: 'warn', title: 'This listing is not available', body: live ? (realm === 'global' ? 'It may have been removed, or it could not be read from Players just now. Try again in a moment.' : 'It closed a while ago and is no longer kept, or this simulation was reset.') : 'It may have sold, expired or been withdrawn, or this sample set may have changed.',
+      host.appendChild(ui.emptyState({ kind: 'error', icon: 'warn', title: 'This listing is not available', body: live ? (ui.sim.isGlobal(realm) ? 'It may have been removed, or it could not be read from Market just now. Try again in a moment.' : 'It closed a while ago and is no longer kept, or the trader market was reset.') : 'It may have sold, expired or been withdrawn, or this sample set may have changed.',
         actions: [{ label: 'Back to Discover', variant: 'primary', run: function () { ui.shell.goTab('discover'); } }] }));
       return;
     }
+    realm = res.listing._realm || realm;
     var first = res.listing, card = res.card, owned = !!env.owned[card.id], idn = ui.identity(card, owned);
     var variant0 = first.card.variantId ? env.variants[first.card.variantId] : null;
     ctx.title(first.title || idn.name);
@@ -176,7 +177,7 @@
     identity.appendChild(h('div.mk-linkrow', ui.button('Open this card’s market', { icon: 'trend', variant: 'ghost', onClick: function () { ui.go('card', { id: card.id, variant: first.card.variantId || '' }); } })));
     left.appendChild(identity);
     // the seller's own pictures, after and apart from the card: labelled, and never a substitute for it
-    var photos = realm === 'global' && ui.social ? ui.social.gallery(first) : null;
+    var photos = ui.sim.isGlobal(realm) && ui.social ? ui.social.gallery(first) : null;
     if (photos) left.appendChild(photos);
     layout.appendChild(left);
 
@@ -198,18 +199,18 @@
       var headBox = h('header.mk-detail-head');
       var topLine = h('div.mk-detail-top');
       topLine.appendChild(h('span.mk-format', { data: { format: l.format } }, icon(ui.formatDef(l.format).icon), h('span', { text: ui.formatDef(l.format).label })));
-      // The realm switch already says where you are in the Simulation; Global keeps its badge because real players are involved.
-      if ((l.realm || realm) !== 'simulation') topLine.appendChild(ui.realmBadge(l.realm || realm, { short: true }));
+      // The realm switch already says where you are in the Market; Global keeps its badge because real players are involved.
+      topLine.appendChild(ui.chip((l.source ? l.source === 'player' : !l.seller.isBot) ? 'Player' : 'Game trader', { tone: 'soft' }));
       topLine.appendChild(ui.chip(STATUS[l.status] || l.status, { tone: l.status === 'sold' || l.status === 'expired' || l.status === 'cancelled' ? 'warn' : 'soft', icon: l.status === 'sold' ? 'check' : closed ? 'clock' : null }));
       if (mine) topLine.appendChild(ui.chip('Yours', { tone: 'soft' }));
       // What is going on with this exact auction, in the words the market uses everywhere.
-      if (realm === 'global' && l.format === 'auction' && l.auction) {
+      if (ui.sim.isGlobal(realm) && l.format === 'auction' && l.auction) {
         var au = l.auction;
         if (open && !au.bids) topLine.appendChild(ui.chip('Awaiting bids', { tone: 'soft' }));
         if (open && au.bids && au.hasReserve && !au.reserveMet) topLine.appendChild(ui.chip('Reserve not met', { tone: 'warn', title: 'The seller set a minimum. If bidding stops below it the auction ends unsold.' }));
         if (open && !mine && au.myMax) topLine.appendChild(au.youLead ? ui.chip('Reserved ' + ui.fmt.exact(au.myMax), { tone: 'good', icon: 'lock', title: 'Your maximum is held in escrow until the auction ends or you are outbid.' }) : ui.chip('Outbid', { tone: 'warn' }));
       }
-      if (realm === 'global' && l.status === 'sold' && mine) topLine.appendChild(ui.chip('Completed', { tone: 'good', icon: 'check' }));
+      if (ui.sim.isGlobal(realm) && l.status === 'sold' && mine) topLine.appendChild(ui.chip('Completed', { tone: 'good', icon: 'check' }));
       headBox.appendChild(topLine);
       headBox.appendChild(h('h1', { text: l.title || idn.name }));
       var sub = [idn.rarityName, variant ? variant.name : 'Normal finish'];
@@ -237,7 +238,7 @@
       }
 
       // ---- the coach: a plain answer to "is this a good price?" (Simulation) ----
-      if (r.coach && open && !mine) {
+      if (C.settings.get('marketMode') === 'advanced' && r.coach && open && !mine) {
         var co = r.coach, cbox = h('section.mk-coachbox', { data: { verdict: co.verdict }, 'aria-label': 'What the coach thinks' }, h('span.mk-coach-mark', icon(co.verdict === 'good' ? 'up' : co.verdict === 'fair' ? 'check' : 'warn')));
         var ctext = h('div.mk-coach-text', h('strong', { text: co.title }));
         co.lines.forEach(function (t) { ctext.appendChild(h('p', { text: t })); });
@@ -279,7 +280,7 @@
           h('span.mk-muted', { text: (a.bids === 1 ? '1 bid' : a.bids + ' bids') + (a.leaderAlias ? ' · ' + a.leaderAlias + ' leads' : '') })));
         panel.appendChild(ui.statGrid([
           { label: 'Time left', node: closed ? h('span.mk-num', { text: 'Ended' }) : h('span.mk-num.mk-countdown', { data: { end: String(l.endsAt || '') }, class: l.endsMin <= 60 ? 'is-urgent' : '', text: ui.fmt.duration(l.endsMin) }), tone: l.endsMin <= 60 && open ? 'urgent' : '' },
-          { label: 'Reserve', value: a.reserve == null && !a.hasReserve ? 'None' : a.reserveMet ? 'Met' : 'Not met', help: 'reserve', note: mine && a.reserveAmount ? ui.fmt.exact(a.reserveAmount) + ' Credits' : null },
+          C.settings.get('marketMode') === 'advanced' || a.hasReserve ? { label: 'Reserve', value: a.reserve == null && !a.hasReserve ? 'None' : a.reserveMet ? 'Met' : 'Not met', help: 'reserve', note: mine && a.reserveAmount ? ui.fmt.exact(a.reserveAmount) + ' Credits' : null } : null,
           { label: mine ? 'Next bid must be' : 'Lowest bid you can place', value: ui.fmt.exact(minBid) + ' Credits' },
           a.buyout ? { label: 'Buyout', value: ui.fmt.exact(a.buyout) + ' Credits' } : null
         ], { cols: 2 }));
@@ -288,9 +289,9 @@
             !open ? why('This listing is closed.') : a.bids ? why('An auction with bids cannot be withdrawn.') : {})));
         } else {
           var startValue = bidDraft.touched ? bidDraft.value : String(minBid);
-          var field = h('label.mk-field', h('span.mk-field-label', ui.labelWithHelp('Your maximum', 'proxy-bid')),
+          var field = h('label.mk-field', h('span.mk-field-label', C.settings.get('marketMode') === 'advanced' ? ui.labelWithHelp('Your maximum', 'proxy-bid') : 'Your bid'),
             h('input.mk-input.is-large', { id: 'mk-max', type: 'number', min: String(minBid), step: '1', inputmode: 'numeric', value: startValue, 'aria-describedby': 'mk-max-hint', props: { disabled: closed } }),
-            h('small.mk-hint', { id: 'mk-max-hint', text: 'It bids the least that keeps you in front, up to this. A late bid adds ' + (live ? C.data.marketSim.listing.snipeExtendMin : cfg().auction.snipeExtendMin) + ' minutes.' }));
+            h('small.mk-hint', { id: 'mk-max-hint', text: C.settings.get('marketMode') === 'advanced' ? 'It bids the least that keeps you in front, up to this. A late bid extends the auction.' : 'You may pay less if no one bids against you. Credits stay held until you win or are outbid.' }));
           panel.appendChild(field);
           var input = field.querySelector('input');
           var bidBtn = ui.button(live ? (a.myMax ? 'Raise maximum' : 'Place bid') : 'Preview bid', { variant: 'primary', icon: 'gavel', disabled: closed, reason: closed ? 'This auction is closed.' : '', onClick: function () {
@@ -298,7 +299,7 @@
           } });
           actions.appendChild(bidBtn);
           if (a.buyout) {
-            var cannotBuyout = closed ? 'This auction is closed.' : price >= a.buyout ? 'The price has passed the buyout.' : live && available + (a.myMax || 0) < a.buyout ? 'You have ' + ui.fmt.exact(available + (a.myMax || 0)) + ' Credits available. The buyout is ' + ui.fmt.exact(a.buyout) + '.' : '';
+            var cannotBuyout = closed ? 'This auction is closed.' : live && available + (a.myMax || 0) < a.buyout ? 'You have ' + ui.fmt.exact(available + (a.myMax || 0)) + ' Credits available. The buyout is ' + ui.fmt.exact(a.buyout) + '.' : '';
             actions.appendChild(ui.button(live ? 'Buy out' : 'Preview buyout', { variant: 'secondary', icon: 'tag', disabled: !!cannotBuyout, reason: cannotBuyout, onClick: function () { if (live) liveBuyout(l, a, available); else sampleReview('buyout', l, price, v); } }));
           }
           var check = function () {
@@ -342,7 +343,7 @@
         }
       }
       panel.appendChild(actions);
-      if (!live && !closed) panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'Preview only. Players is not connected, so no button here completes a trade.' })));
+      if (!live && !closed) panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'Preview only. Market is not connected, so no button here completes a trade.' })));
       if (live && !closed && !mine && wallet.held) panel.appendChild(h('p.mk-hint', icon('info'), h('span', { text: ui.fmt.exact(wallet.held) + ' of your Credits are held by open bids and buy orders, so ' + ui.fmt.exact(available) + ' are available now.' })));
       right.appendChild(panel);
 
@@ -350,10 +351,10 @@
       if (live && l.format === 'swap') right.appendChild(offersPanel(r, l, mine, open, wallet));
 
       // ---- value read ----
-      if (l.format !== 'swap') {
+      if (C.settings.get('marketMode') === 'advanced' && l.format !== 'swap') {
         var vp = h('section.mk-box', { 'aria-label': 'Value read' });
         vp.appendChild(h('div.mk-panel-head', h('h3', { text: 'How this price compares' }), live
-          ? ui.chip(v.basis === 'baseline' ? 'Baseline estimate' : v.samples + ' recent trades', { tone: 'soft', title: v.basis === 'baseline' ? 'No completed trades of this card yet, so the figure comes from its specs and rarity.' : (realm === 'global' ? 'Built only from completed player trades. Quick Sell and swaps are never counted.' : 'Built only from completed trades in this simulation.') })
+          ? ui.chip(v.basis === 'baseline' ? 'Baseline estimate' : v.samples + ' recent trades', { tone: 'soft', title: v.basis === 'baseline' ? 'No completed trades of this card yet, so the figure comes from its specs and rarity.' : (ui.sim.isGlobal(realm) ? 'Built only from completed player trades. Quick Sell and swaps are never counted.' : 'Built only from completed trades in the trader market.') })
           : ui.chip('Illustrative', { tone: 'soft', title: 'Sample figures for the preview' })));
         vp.appendChild(ui.valueMeter(v, price, { priceLabel: l.format === 'auction' ? 'Current bid' : 'Asking price' }));
         var verdict = K().verdictFor(price, v), say = {
@@ -377,7 +378,7 @@
       }
 
       // ---- why this listing ranks where it does ----
-      if (r.rank && open && !mine) {
+      if (C.settings.get('marketMode') === 'advanced' && r.rank && open && !mine) {
         var whyBox = h('section.mk-box', { 'aria-label': 'Why this ranks here' }, h('div.mk-panel-head', h('h3', { text: 'Why you are seeing this' }), ui.chip(live ? 'Ranking factors' : 'Illustrative weights', { tone: 'soft' })));
         var reasons = h('ul.mk-reasons');
         (r.rank.reasons.length ? r.rank.reasons : [{ id: 'none', label: 'Nothing stands out. It is shown because it matches what you are browsing.' }]).forEach(function (x) {
@@ -396,8 +397,8 @@
       }
       right.appendChild(sellerPanel(l.seller, live));
       if (l.description) right.appendChild(h('section.mk-box', h('div.mk-panel-head', h('h3', { text: 'From the seller' })), h('p.mk-prose', { text: l.description })));
-      right.appendChild(historyPanel(l, live));
-      if (live && r.trades && r.trades.length) {
+      if (C.settings.get('marketMode') === 'advanced') right.appendChild(historyPanel(l, live));
+      if (C.settings.get('marketMode') === 'advanced' && live && r.trades && r.trades.length) {
         var tbox = h('section.mk-box', { 'aria-label': 'Recent sales of this card' }, h('div.mk-panel-head', h('h3', { text: 'Recent sales of this card' })));
         var tl = h('ul.mk-events');
         r.trades.slice(0, 5).forEach(function (t) {
@@ -406,7 +407,7 @@
         tbox.appendChild(tl);
         right.appendChild(tbox);
       }
-      if (realm === 'global' && ui.social && C.market.onlineProvider) {
+      if (ui.sim.isGlobal(realm) && ui.social && C.market.onlineProvider) {
         // built once: it keeps its own draft and subscription while the rest of this column is redrawn
         if (!commentsBox) commentsBox = ui.social.commentsPanel(ctx, l);
         right.appendChild(commentsBox);
@@ -415,10 +416,6 @@
           mine ? null : ui.button('Report listing', { icon: 'warn', variant: 'ghost', size: 'sm', onClick: function () { ui.social.reportDialog('listing', l.id, l.id, 'this listing'); } })));
         share.appendChild(h('p.mk-hint', { text: 'A reference is plain text. Paste it into Market search to open this listing. It is not a link.' }));
         right.appendChild(share);
-      } else {
-        var comments = h('section.mk-box.is-inactive', { 'aria-label': 'Comments' }, h('div.mk-panel-head', h('h3', { text: 'Comments' }), ui.chip('Players only', { tone: 'soft' })));
-        comments.appendChild(h('p.mk-hint', { text: 'Standard traders are software, so there is no one to comment or rate. Comments and reviews live in Players.' }));
-        right.appendChild(comments);
       }
       ui.sim.countdowns(right);
       if (focusId) { var again = right.querySelector('#' + focusId); if (again) again.focus({ preventScroll: true }); }
@@ -433,7 +430,7 @@
       var box = h('section.mk-box', { 'aria-label': mine ? 'Offers on your listing' : 'Your offers' });
       box.appendChild(h('div.mk-panel-head', h('h3', { text: mine ? 'Offers on your listing' : 'Your offers' })));
       var list = (mine ? r.offers : r.myOffers) || [];
-      if (!list.length) { box.appendChild(h('p.mk-hint', { text: mine ? (realm === 'global' ? 'No one has offered yet. An offer from another player appears here the moment it arrives.' : 'No one has offered yet. Traders look at swaps as they wake through the day.') : 'You have not offered anything on this listing.' })); return box; }
+      if (!list.length) { box.appendChild(h('p.mk-hint', { text: mine ? (ui.sim.isGlobal(realm) ? 'No one has offered yet. An offer from another player appears here the moment it arrives.' : 'No one has offered yet. Traders look at swaps as they wake through the day.') : 'You have not offered anything on this listing.' })); return box; }
       var ul = h('ul.mk-offers');
       list.slice().sort(function (a, b) { return a.minutesAgo - b.minutesAgo; }).forEach(function (o) {
         var live1 = o.status === 'pending' || o.status === 'countered';
@@ -442,8 +439,8 @@
         li.appendChild(h('div.mk-offer-copy', h('strong', { text: (o.fromYou ? 'You offered' : o.from + ' offered') + ': ' + offerLine(o) }),
           h('span.mk-muted', { text: statusWord + ' · ' + ui.fmt.age(o.minutesAgo) + (live1 ? ' · ' + ui.fmt.duration(o.minutesLeft) + ' left' : '') + (o.note ? ' · ' + o.note : '') })));
         var acts = h('div.mk-offer-actions');
-        var canCounter = realm === 'global' && ctx.api.capabilities(realm).counter && o.myTurn && (o.round || 0) < 6;
-        if (live1 && o.myTurn != null && realm === 'global') {
+        var canCounter = ui.sim.isGlobal(realm) && ctx.api.capabilities(realm).counter && o.myTurn && (o.round || 0) < 6;
+        if (live1 && o.myTurn != null && ui.sim.isGlobal(realm)) {
           if (o.myTurn) {
             acts.appendChild(ui.button(o.fromYou ? 'Accept counter' : 'Accept', { variant: 'primary', size: 'sm', onClick: function () { answerOffer(o, true); } }));
             if (canCounter) acts.appendChild(ui.button('Counter', { variant: 'secondary', size: 'sm', onClick: function () { counterDialog(o); } }));
@@ -506,7 +503,7 @@
         title: 'Accept this swap', eyebrow: 'Review', anchor: root.document.activeElement,
         rows: (function () {
           var name = function (g) { var c = env.cards[g.cardId]; return c ? ui.identity(c, true).name : g.cardId; };
-          var youGive = o.fromYou && realm === 'global' ? o.give : got, youGet = o.fromYou && realm === 'global' ? got : o.give;
+          var youGive = o.fromYou && ui.sim.isGlobal(realm) ? o.give : got, youGet = o.fromYou && ui.sim.isGlobal(realm) ? got : o.give;
           var moves = o.cash ? { label: o.fromYou ? 'You add' : 'They add', value: ui.fmt.exact(o.cash) + ' Credits', fee: K().feeFor(o.cash) } : o.refund ? { label: o.fromYou ? 'You receive back' : 'You give back', value: ui.fmt.exact(o.refund) + ' Credits', fee: K().feeFor(o.refund) } : null;
           return [
             { label: 'You give', value: youGive.map(name).join(', ') },
@@ -780,19 +777,20 @@
       headBox.appendChild(h('p.mk-detail-sub', { text: r.listings.length + ' open listings · ' + (owned ? 'You own ' + r.owned : 'Not in your collection') }));
       var acts = h('div.mk-detail-actions');
       acts.appendChild(ui.button('Set a price alert', { icon: 'bell', variant: 'secondary', onClick: function () { ui.go('alerts', { cardId: card.id }); } }));
-      acts.appendChild(ui.button('Open in Prices', { icon: 'trend', variant: 'secondary', onClick: function () { var s = store.session; s.stocks = { scope: 'card', id: card.id, variantId: variantId }; ui.shell.goTab('stocks'); } }));
-      if (ui.compare) {
+      if (C.settings.get('marketMode') === 'advanced') acts.appendChild(ui.button('Open in Prices', { icon: 'trend', variant: 'secondary', onClick: function () { var s = store.session; s.stocks = { scope: 'card', id: card.id, variantId: variantId }; ui.shell.goTab('stocks'); } }));
+      if (C.settings.get('marketMode') === 'advanced' && ui.compare) {
         var inCompare = ui.compare.has(realm, card.id, variantId);
         acts.appendChild(ui.button(inCompare ? 'In Compare' : 'Compare', { icon: 'cards', variant: 'secondary', pressed: inCompare, onClick: function (e) {
           var now = ui.compare.toggle(realm, card.id, variantId);
           if (e && e.currentTarget && now !== false) { e.currentTarget.setAttribute('aria-pressed', String(!!now)); e.currentTarget.querySelector('span').textContent = now ? 'In Compare' : 'Compare'; }
         } }));
       }
-      if (live) acts.appendChild(ui.button('Place a buy order', { icon: 'tag', variant: 'secondary', onClick: function () { buyOrder(r); } }));
+      if (C.settings.get('marketMode') === 'advanced' && live) acts.appendChild(ui.button('Place a buy order', { icon: 'tag', variant: 'secondary', onClick: function () { buyOrder(r); } }));
       if (owned) acts.appendChild(ui.button('List a copy', { icon: 'plus', variant: 'primary', onClick: function () { ui.go('compose', { cardId: card.id }); } }));
       headBox.appendChild(acts);
       right.appendChild(headBox);
 
+      if (C.settings.get('marketMode') === 'advanced') {
       var vp = h('section.mk-box', { 'aria-label': 'Market numbers' });
       vp.appendChild(h('div.mk-panel-head', h('h3', { text: 'Market numbers' }), ui.chip(v.basis === 'baseline' ? 'Baseline estimate' : live ? v.samples + ' recent trades' : 'Illustrative', { tone: 'soft' })));
       vp.appendChild(ui.statGrid([
@@ -826,15 +824,16 @@
       function drawChart() {
         var s = ctx.api.stocksSync(realm, { scope: 'card', id: card.id, variantId: variantId, window: windowId });
         chartLoading = !!s.loading;
-        chart.update({ candles: s.candles, type: type, window: windowId, unit: 'Credits', label: idn.name + ' price', live: live, now: s.now || 0, badge: live ? (realm === 'global' ? 'Player trades' : 'Simulated trades') : 'Illustrative' });
+        chart.update({ candles: s.candles, type: type, window: windowId, unit: 'Credits', label: idn.name + ' price', live: live, now: s.now || 0, badge: live ? (ui.sim.isGlobal(realm) ? 'Player trades' : 'Simulated trades') : 'Illustrative' });
         note.textContent = live ? (s.candles.length ? s.tradesCounted + ' completed trades of this card are kept. A bar appears only where a trade happened.' : 'No trades of this card in this window yet. Nothing is drawn until one happens.') : '';
         note.hidden = !live;
       }
       drawChart();
       right.appendChild(chartPanel);
 
+      }
       var lp = h('section.mk-box', { 'aria-label': 'Open listings' }, h('div.mk-panel-head', h('h3', { text: 'Open listings' })));
-      if (!r.listings.length) lp.appendChild(h('p.mk-hint', { text: realm === 'global' && !store.session.showGlobalSample ? 'Players is not connected, so there are no real listings.' : 'No one is selling this exact card right now.' }));
+      if (!r.listings.length) lp.appendChild(h('p.mk-hint', { text: ui.sim.isGlobal(realm) && !store.session.showGlobalSample ? 'Market is not connected, so there are no real listings.' : 'No one is selling this exact card right now.' }));
       else {
         var rows = h('div.mk-minilist');
         r.listings.slice(0, 6).forEach(function (l) {

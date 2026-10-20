@@ -1,7 +1,7 @@
 {
   "name": "cardable",
   "productName": "Cardable",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "description": "Cardable - GPU Card Collecting Game",
   "author": "Cardable Team",
   "main": "electron/main.js",
@@ -34,12 +34,12 @@
     "release:github": "node tools/release-github.cjs",
     "test:mini": "node tools/test-mini-mode.cjs",
     "test:merged-collections": "node tools/check-merged-collections.cjs",
-    "test:market": "node --test tests/market-core.test.cjs tests/market-sim.test.cjs tests/market-sim-provider.test.cjs tests/market-sales.test.cjs tests/market-advisor.test.cjs tests/rarity-odds.test.cjs tests/market-notch.test.cjs",
+    "test:market": "node --test tests/market-core.test.cjs tests/market-sim.test.cjs tests/market-sim-provider.test.cjs tests/market-sales.test.cjs tests/market-advisor.test.cjs tests/rarity-odds.test.cjs tests/market-notch.test.cjs tests/market-sync.test.cjs",
     "check:market": "node tools/check-market-browser.cjs",
     "check:market-sim": "node tools/check-market-sim-browser.cjs",
     "check:market-economy": "node tools/check-market-economy-browser.cjs",
     "check:market-online": "node tools/check-market-online-browser.cjs",
-    "test:cloudflare": "node --test cloudflare/test/api.test.mjs cloudflare/test/analytics.test.mjs cloudflare/test/social.test.mjs cloudflare/test/economy.test.mjs cloudflare/test/trading.test.mjs cloudflare/test/races.test.mjs cloudflare/test/ops.test.mjs",
+    "test:cloudflare": "node --test --test-concurrency=1 cloudflare/test/api.test.mjs cloudflare/test/analytics.test.mjs cloudflare/test/social.test.mjs cloudflare/test/economy.test.mjs cloudflare/test/trading.test.mjs cloudflare/test/races.test.mjs cloudflare/test/ops.test.mjs cloudflare/test/game.test.mjs",
     "check:market-trading": "node tools/check-market-trading-browser.cjs",
     "check:market-analytics": "node tools/check-market-analytics-browser.cjs",
     "check:market-home": "node tools/check-market-home-browser.cjs",
@@ -53,7 +53,9 @@
     "economy:global": "node tools/global-economy-experiment.cjs",
     "cloudflare:check": "node cloudflare/scripts/deploy.cjs --check",
     "economy:experiment": "node tools/economy-experiment.cjs",
-    "sim:experiment": "node tools/sim-experiment.cjs"
+    "sim:experiment": "node tools/sim-experiment.cjs",
+    "check:market-unified": "node tools/check-market-unified-browser.cjs",
+    "check:market-unified-online": "node tools/check-market-unified-online.cjs"
   },
   "dependencies": {
     "discord-rpc": "^4.0.1",

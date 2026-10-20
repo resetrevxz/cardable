@@ -8,17 +8,15 @@
 
   // Five sections are always in view, as icons with names on hover; everything else is one tap away under More. Home is in both realms.
   var TABS = [
-    { id: 'home', label: 'Home', icon: 'home', key: '1', primary: true },
-    { id: 'discover', label: 'Browse', icon: 'explore', key: '2', primary: true }, { id: 'auctions', label: 'Auctions', icon: 'gavel', key: '3', primary: true },
-    { id: 'portfolio', label: 'Portfolio', icon: 'briefcase', key: '4', primary: true }, { id: 'stocks', label: 'Prices', icon: 'prices', key: '5', primary: true },
-    { id: 'shop', label: 'Shop', icon: 'bag', key: '6', primary: true },
-    { id: 'buy-now', label: 'Buy Now', icon: 'tag', key: '7' }, { id: 'trades', label: 'Trades', icon: 'swap', key: '8' },
-    { id: 'activity', label: 'Activity', icon: 'activity', key: '9' }
+    { id: 'discover', label: 'Browse', icon: 'explore', key: '1', primary: true },
+    { id: 'shop', label: 'Shop', icon: 'bag', key: '2', primary: true },
+    { id: 'portfolio', label: 'Your cards', icon: 'cards', key: '3', primary: true },
+    { id: 'activity', label: 'Activity', icon: 'activity', key: '4', primary: true }
   ];
   var UTILITIES = [
     { id: 'watchlist', label: 'Watchlist', icon: 'bookmark' }, { id: 'alerts', label: 'Alerts', icon: 'bell' }
   ];
-  var MORE = [['buy-now', 'Buy Now', 'tag'], ['trades', 'Trades', 'swap'], ['activity', 'Activity', 'activity'], ['compare', 'Compare', 'cards'], ['my-listings', 'My listings', 'layers'],
+  var MORE = [['watchlist', 'Saved cards', 'bookmark'], ['alerts', 'Price alerts', 'bell'], ['my-listings', 'My listings', 'layers'], ['stocks', 'Prices', 'prices'], ['trades', 'Trades', 'swap'], ['compare', 'Compare', 'cards'],
     ['settings', 'Market settings', 'sliders'], ['help', 'Help & feedback', 'info'], ['tour', 'Take the tour', 'hand'], ['guide', 'Market guide', 'book']];
   var pages = {};
   ui.pages = { register: function (name, def) { pages[name] = def; }, get: function (name) { return pages[name]; } };
@@ -26,7 +24,7 @@
 
   var inkReady = false, tabsEl, tabInk, el, frame, scroller, headerEl, navEl, tabButtons = {}, utilButtons = {}, liveRegion, searchInput, walletEl, realmSwitch, bottomBar, moreButton, moreButtonTop, noticeHost, simChip;
   var PRIMARY = TABS.filter(function (t) { return t.primary; }).map(function (t) { return t.id; });
-  var lastActiveTab = null, trackerHost = null;
+  var lastActiveTab = null, trackerHost = null, lastProvider = null;
   var opened = false, stack = [], current = null, pageScope = null, savedFocus = null, inertRecords = [], mounting = false, suggestPop = null;
   var returnFocusKey = null;
 
@@ -49,6 +47,8 @@
   }
   function go(name, params, options) {
     options = options || {};
+    if (['home', 'auctions', 'buy-now'].indexOf(name) >= 0) { if (name === 'auctions') store.session.tab = 'ending'; name = 'discover'; }
+    if (['stocks', 'trades', 'compare'].indexOf(name) >= 0 && C.settings.get('marketMode') !== 'advanced') name = 'settings';
     if (!pages[name]) { console.error('Market page missing: ' + name); return; }
     if (!opened) { open({ name: name, params: params }); return; }
     var entry = { name: name, params: params || {}, from: current && navFor(current) };
@@ -69,7 +69,7 @@
     close();
     return false;
   }
-  function frameRealm() { return store.session.realm; }
+  function frameRealm() { return 'unified'; }
 
   function envFor(realm) {
     var d = C.market.api.data(), ctx = C.market.api.context(realm);
@@ -82,13 +82,14 @@
     if (!page) return;
     if (pageScope) { pageScope.destroy(); pageScope = null; }
     current = entry;
+    lastProvider = C.market.api.effectiveRealm();
     ui.clear(scroller);
     // A page that needs the server's answer first (Global) shows a designed loading state, then draws itself once.
     if (!flags.prefetched && C.market.api.prefetch) {
       var wait = null;
       try { wait = C.market.api.prefetch(frameRealm(), entry.name, entry.params || {}); } catch (_) { wait = null; }
       if (wait && typeof wait.then === 'function') {
-        var loading = h('div.mk-page', { data: { page: entry.name, enter: 'forward' } }, ui.emptyState({ kind: 'loading', icon: 'clock', title: 'Loading', body: 'Reading from Players.' }));
+        var loading = h('div.mk-page', { data: { page: entry.name, enter: 'forward' } }, ui.emptyState({ kind: 'loading', icon: 'clock', title: 'Loading Market', body: 'Checking the latest listings.' }));
         scroller.appendChild(loading);
         var again = function () { if (current === entry && opened) mount(entry, Object.assign({}, flags, { prefetched: true })); };
         wait.then(again, again);
@@ -137,8 +138,7 @@
   }
   function setTitle(text) {
     if (!liveRegion) return;
-    var def = ui.realmDef(frameRealm());
-    liveRegion.textContent = text + ', ' + def.label;
+    liveRegion.textContent = text + ', Market';
   }
 
   // ---- chrome ----
@@ -201,7 +201,7 @@
     wp.num.hidden = wallet.balance == null; wp.off.hidden = wallet.balance != null;
     var held = wallet.held || 0;
     walletEl.title = wallet.balance == null ? wallet.note : ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held by open bids and orders' : '') + '. ' + wallet.note;
-    walletEl.setAttribute('aria-label', (wallet.balance == null ? 'Players wallet: not connected' : 'Your balance: ' + ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held' : '')) + '. Open Portfolio');
+    walletEl.setAttribute('aria-label', (wallet.balance == null ? 'Account not linked' : 'Your balance: ' + ui.fmt.exact(wallet.balance) + ' Credits' + (held ? ', ' + ui.fmt.exact(held) + ' held' : '')) + '. Open Your cards');
     var heldText = held ? '−' + ui.fmt.credits(held, true) + ' held' : '';
     if (wp.held.textContent !== heldText) wp.held.textContent = heldText;
     wp.held.hidden = !held;
@@ -213,7 +213,6 @@
     }
     walletEl._mkBalance = wallet.balance; walletEl._mkRealm = frameRealm();
     ui.sim.refresh();
-    realmSwitch.set(frameRealm());
     // Neither realm keeps a standing notice: the realm switch and the island say where you are. Sample listings are always labelled.
     ui.clear(noticeHost);
     // Only a condition the player needs explained keeps a notice: sample listings, a paused or read-only service, an unreachable one.
@@ -225,6 +224,8 @@
     frame.dataset.mode = C.settings.get('marketMode');
     frame.dataset.density = C.settings.get('marketDensity');
     frame.dataset.reduced = String(!!C.settings.get('marketReducedData'));
+    frame.dataset.textSize = C.settings.get('marketTextSize') || 'standard';
+    frame.dataset.material = C.settings.get('marketPanelMaterial') || 'solid';
     if (ui.tracker) ui.tracker.render();
   }
 
@@ -251,7 +252,7 @@
       q = String(q || '').trim();
       // a pasted listing reference opens that listing (an internal page; it is text, not a link)
       var ref = ui.social && ui.social.parseRef ? ui.social.parseRef(q) : null;
-      if (ref && frameRealm() === 'global') { hide(); go('listing', { id: ref }); return; }
+      if (ref && C.market.api.effectiveRealm() === 'global') { hide(); go('listing', { id: ref }); return; }
       store.session.filters = Object.assign(C.market.core.emptyFilters(), store.session.filters || {}, { q: q });
       store.rememberSearch(q);
       hide();
@@ -267,7 +268,7 @@
           recents.slice(0, 5).forEach(function (r, i) { add({ label: r, icon: 'clock', run: function () { searchInput.value = r; run(r); } }, i); });
         }
         list.appendChild(h('div.mk-suggest-group', { text: 'Try' }));
-        ['rarity:rare', 'price:<50', 'variant:holo', 'format:auction', 'seller:silent'].forEach(function (t) { add({ label: t, icon: 'search', run: function () { searchInput.value = t; run(t); } }, items.length); });
+        (C.settings.get('marketMode') === 'advanced' ? ['rarity:rare', 'price:<50', 'variant:holo'] : ['GeForce', 'Radeon', 'Intel Arc']).forEach(function (t) { add({ label: t, icon: 'search', run: function () { searchInput.value = t; run(t); } }, items.length); });
       } else {
         var s = C.market.api.suggestSync(frameRealm(), q);
         if (s.cards.length) list.appendChild(h('div.mk-suggest-group', { text: 'Cards' }));
@@ -317,21 +318,19 @@
 
     // header
     headerEl = h('header.mk-header');
-    var brand = h('div.mk-brand', { 'aria-label': 'Cardable Market' }, h('span.mk-brand-mark', { title: 'Cardable Market' }, icon('market')), h('span.mk-brand-tag', { title: 'Cardable Market Beta ' + cfg().betaVersion + '. Real players, its own Credits, and it can be reset.' }, 'Beta'));
+    var brand = h('div.mk-brand', { 'aria-label': 'Cardable Market' }, h('span.mk-brand-mark', { title: 'Cardable Market' }, icon('market')), h('strong.mk-brand-name', { text: 'Market' }));
     var search = buildSearch();
     var end = h('div.mk-header-end');
     walletEl = h('button.mk-wallet', { type: 'button' });
     walletEl.addEventListener('click', function () { goTab('portfolio'); });
-    realmSwitch = ui.segmented({ label: 'Realm', value: store.session.realm, onChange: function (v) { store.setRealm(v); },
-      options: cfg().realms.map(function (r) { return { value: r.id, label: r.shortLabel, title: r.label + ': ' + r.blurb }; }) });
-    realmSwitch.classList.add('mk-realm-switch');
     var closeBtn = ui.iconButton('close', 'Close Market', function () { close(); }, { variant: 'ghost' });
     closeBtn.classList.add('mk-close');
-    end.append(walletEl, closeBtn);
-    var realmHost = h('div.mk-realm-host', realmSwitch);
+    var account = ui.button('Account', { variant: 'ghost', icon: 'user', onClick: function () { go('settings', { section: 'account' }); } });
+    account.classList.add('mk-account-button');
+    end.append(walletEl, account, closeBtn);
     simChip = ui.sim.statusChip();
     var islandHost = h('div.mk-island-host', ui.island.build(), simChip);
-    headerEl.append(brand, search, islandHost, realmHost, end);
+    headerEl.append(brand, search, islandHost, end);
     ui.shell.searchField = search;
     frame.appendChild(headerEl);
 
@@ -353,7 +352,9 @@
     moreButtonTop = h('button.mk-tab.mk-tab-more', { type: 'button', 'aria-haspopup': 'menu', 'aria-label': 'More Market sections', data: { tooltip: 'More' } }, icon('more'), h('span.mk-tab-label', { text: 'More' }), h('span.mk-count', { hidden: true, 'aria-hidden': 'true' }));
     moreButtonTop.addEventListener('click', function () { openMore(moreButtonTop); });
     tabs.appendChild(moreButtonTop);
-    navEl.append(tabs, utils);
+    var sell = ui.button('Sell a card', { variant: 'primary', icon: 'plus', onClick: function () { go('compose', {}); } }); sell.classList.add('mk-sell');
+    var settingsButton = ui.button('Settings', { variant: 'ghost', icon: 'sliders', onClick: function () { go('settings', {}); } });
+    navEl.append(tabs, h('div.mk-nav-actions', settingsButton, sell));
     frame.appendChild(navEl);
     noticeHost = h('div.mk-notice-host');
     frame.appendChild(noticeHost);
@@ -366,7 +367,7 @@
 
     // phone bottom bar
     bottomBar = h('nav.mk-bottom', { 'aria-label': 'Market sections' });
-    [['home', 'Home', 'home'], ['discover', 'Browse', 'explore'], ['auctions', 'Auctions', 'gavel'], ['portfolio', 'Portfolio', 'briefcase']].forEach(function (t) {
+    [['discover', 'Browse', 'explore'], ['shop', 'Shop', 'bag'], ['portfolio', 'Your cards', 'cards'], ['activity', 'Activity', 'activity']].forEach(function (t) {
       var b = h('button.mk-bottom-item', { type: 'button', 'aria-label': t[1], data: { tab: t[0] } }, icon(t[2]), h('span', { text: t[1], 'aria-hidden': 'true' }));
       b.addEventListener('click', function () { goTab(t[0]); });
       bottomBar.appendChild(b);
@@ -382,7 +383,7 @@
     ui.popover(anchor, function (close) {
       var box = h('div.mk-more', { role: 'menu' });
       // On a phone the bottom bar has four sections, so Prices, the watchlist and alerts join the list; on a desktop they are already in view.
-      var list = anchor === moreButton ? [['shop', 'Shop', 'bag'], ['stocks', 'Prices', 'prices'], ['watchlist', 'Watchlist', 'bookmark'], ['alerts', 'Alerts', 'bell']].concat(MORE) : MORE;
+      var list = MORE.filter(function (entry) { return C.settings.get('marketMode') === 'advanced' || ['stocks', 'trades', 'compare'].indexOf(entry[0]) < 0; });
       list.forEach(function (r) {
         var b = h('button.mk-more-item', { type: 'button', role: 'menuitem' }, icon(r[2]), h('span', { text: r[1] }));
         b.addEventListener('click', function () {
@@ -403,18 +404,12 @@
     var inner = h('div.mk-guide-inner');
     inner.appendChild(h('header.mk-guide-head', h('h2', { text: 'How the Market works' }), ui.iconButton('close', 'Close guide', function () { handle.close(); }, { variant: 'ghost' })));
     var intro = h('div.mk-guide-body');
-    intro.appendChild(h('p', { text: 'Two markets. They never share balances, histories or values.' }));
-    var realms = h('div.mk-guide-realms');
-    cfg().realms.forEach(function (r) {
-      realms.appendChild(h('div.mk-guide-realm', { data: { realm: r.id } }, ui.realmBadge(r.id), h('p', { text: r.blurb })));
-    });
-    intro.appendChild(realms);
-    intro.appendChild(h('p.mk-guide-note', { text: C.market.api.simulationLive
-      ? 'Standard is a working market on this device. Its traders are bots, its prices come from trades they and you complete, and its clock stops when Cardable is closed, hidden or paused. Players is not connected in this build, so it has no listings.'
-      : 'In this build every listing, price and trade is invented sample data. You can browse, filter, watch and draft, but nothing is bought, sold or saved to your collection.' }));
+    intro.appendChild(h('p', { text: 'Browse cards, place a bid or buy a card, and sell cards from your collection. The Market and Shop use the same Credits.' }));
+    intro.appendChild(h('p.mk-guide-note', { text: 'Link an account to trade with players. You can keep playing with game traders without an account or connection.' }));
     intro.appendChild(h('h3', { text: 'Glossary' }));
     var dl = h('dl.mk-glossary');
-    cfg().glossary.forEach(function (g) { dl.appendChild(h('div', h('dt', { text: g.term }), h('dd', { text: g.body }))); });
+    var glossarySeen = {};
+    cfg().glossary.filter(function (g) { return C.settings.get('marketMode') === 'advanced' || ['average-value', 'quick-sell', 'realm'].indexOf(g.id) >= 0; }).forEach(function (g) { if (glossarySeen[g.id]) return; glossarySeen[g.id] = true; dl.appendChild(h('div', h('dt', { text: g.term }), h('dd', { text: g.body }))); });
     intro.appendChild(dl);
     inner.appendChild(intro);
     surface.appendChild(inner);
@@ -428,8 +423,8 @@
     if (C.commands && C.commands.active) C.commands.close();
     if (C.preferences && C.preferences.open) C.preferences.close();
     if (C.contextMenu && C.contextMenu.open) C.contextMenu.close();
-    if (store.session.realm === 'simulation' && C.marketSim) { try { C.marketSim.ensure(true); } catch (error) { console.error('Market simulation could not start', error); } }
-    if (store.session.realm === 'global' && C.market.onlineData) C.market.onlineData.used();
+    if (C.marketSim) { try { C.marketSim.ensure(true); } catch (error) { console.error('Market could not start', error); } }
+    if (C.market.api.effectiveRealm() === 'global' && C.market.onlineData) C.market.onlineData.used();
     build();
     opened = true; savedFocus = doc.activeElement;
     el.hidden = false;
@@ -439,8 +434,9 @@
     C.events.emit('market:open', {});
     C.events.emit('menu:visibilityHold', { reason: 'market', active: true });
     C.events.emit('qol:context', { active: true });
-    if (!stack.length) stack = [{ name: store.session.realm === 'simulation' ? 'home' : 'discover', params: {} }];
+    if (!stack.length) stack = [{ name: 'discover', params: {} }];
     var entry = route && route.name ? { name: route.name, params: route.params || {}, from: route.from } : stack[stack.length - 1];
+    if (['home', 'auctions', 'buy-now'].indexOf(entry.name) >= 0) { if (entry.name === 'auctions') store.session.tab = 'ending'; entry.name = 'discover'; }
     if (route && route.name) stack = [entry];
     mount(entry, { forward: true, focus: false });
     // Focus the frame so Escape and Tab work immediately; the page heading takes focus on navigation.
@@ -559,7 +555,7 @@
         mount(current, { forward: false, focus: false });
       }
       else if (what === 'watch' || what === 'alerts' || what === 'notifications' || what === 'cleared' || what === 'compare') updateChrome();
-      else if (what === 'online') { updateChrome(); if (frameRealm() === 'global' && current && current.name !== 'settings') mount(current, { forward: false, focus: false }); }
+      else if (what === 'online') { var provider = C.market.api.effectiveRealm(); updateChrome(); if (provider !== lastProvider && current) { lastProvider = provider; mount(current, { forward: false, focus: false }); } }
     });
     C.settings.onChange('*', function (_, key) {
       if (!opened || typeof key !== 'string' || key.indexOf('market') !== 0) return;

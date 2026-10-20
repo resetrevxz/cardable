@@ -11,8 +11,8 @@
     var host = ctx.host, env = ctx.env(), realm = ctx.realm, scope = ctx.scope, alias = ctx.params.alias || '';
     var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
     host.appendChild(h('div.mk-pagehead.is-detail', back));
-    if (realm !== 'global' || !C.market.onlineProvider) {
-      host.appendChild(ui.emptyState({ icon: 'user', title: 'Profiles are for real players', body: 'Standard traders are software, so they have no profile. Switch to Players to see a player.' }));
+    if (!ui.sim.isGlobal(realm) || !C.market.onlineProvider) {
+      host.appendChild(ui.emptyState({ icon: 'user', title: 'Profiles are for real players', body: 'Game traders are software, so they have no profile. Link an account to see player profiles.' }));
       ctx.restoreScroll(); return;
     }
     var social = C.market.onlineProvider.social, body = h('div.mk-profile');
@@ -33,8 +33,8 @@
       }
       var since = new Date(p.memberSince);
       var head = h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', { text: p.alias }),
-        h('p', { text: 'A real player on Players, shown only by this generated name. Here since ' + MONTHS[since.getUTCMonth()] + ' ' + since.getUTCFullYear() + '.' })),
-        h('div.mk-pagehead-actions', ui.chip('Players', { tone: 'soft', icon: 'user' }), p.isYou ? ui.chip('This is you', { tone: 'soft' })
+        h('p', { text: 'A real player in the Market, shown only by this generated name. Here since ' + MONTHS[since.getUTCMonth()] + ' ' + since.getUTCFullYear() + '.' })),
+        h('div.mk-pagehead-actions', ui.chip('Player', { tone: 'soft', icon: 'user' }), p.isYou ? ui.chip('This is you', { tone: 'soft' })
           : ui.social.followButton({ kind: 'seller', alias: p.alias }, { size: 'md', onChange: function () { /* the profile reads follower count again */ data().state.profiles[alias.toLowerCase()].at = 0; } })));
       body.appendChild(head);
       body.appendChild(ui.statGrid([
@@ -53,7 +53,7 @@
         });
         rep.appendChild(bars);
       }
-      rep.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'Reviews come only from a completed trade between two players, one per trade. Quick Sell and Standard trades never count.' })));
+      rep.appendChild(h('p.mk-hint', icon('info'), h('span', { text: 'Reviews come only from a completed trade between two players, one per trade. Quick Sell and game-trader trades never count.' })));
       body.appendChild(rep);
 
       // reviews

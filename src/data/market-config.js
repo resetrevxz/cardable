@@ -15,16 +15,16 @@
 
     // The two environments never share balances, histories, inventory claims or valuations.
     realms: [
-      { id: 'simulation', label: 'Standard', shortLabel: 'Standard', state: 'local', stateLabel: 'Offline',
+      { id: 'simulation', label: 'Market', shortLabel: 'Market', state: 'local', stateLabel: 'Offline',
         blurb: 'Traders on this device. Works offline.',
-        counterparties: 'Standard traders', sourceLabel: 'Standard trader' },
-      { id: 'global', label: 'Players', shortLabel: 'Players', state: 'offline', stateLabel: 'Not connected',
+        counterparties: 'Traders', sourceLabel: 'Game trader' },
+      { id: 'global', label: 'Market', shortLabel: 'Market', state: 'offline', stateLabel: 'Not connected',
         blurb: 'Real players, with their own Credits.',
-        counterparties: 'Players', sourceLabel: 'Player' }
+        counterparties: 'Players and game traders', sourceLabel: 'Player' }
     ],
 
     formats: [
-      { id: 'buy-now', label: 'Buy Now', short: 'Buy Now', icon: 'tag', blurb: 'A fixed price. The first buyer settles it.' },
+      { id: 'buy-now', label: 'Buy', short: 'Buy', icon: 'tag', blurb: 'Buy this card at the shown price.' },
       { id: 'auction', label: 'Auction', short: 'Auction', icon: 'gavel', blurb: 'Timed bidding with a proxy maximum.' },
       { id: 'swap', label: 'Trade', short: 'Trade', icon: 'swap', blurb: 'Card for card, with an optional Credits top-up.' }
     ],
@@ -69,9 +69,10 @@
 
     // Discover.
     tabs: [
-      { id: 'for-you', label: 'For You' },
+      { id: 'for-you', label: 'All' },
       { id: 'new', label: 'New' },
       { id: 'ending', label: 'Ending soon' },
+      { id: 'saved', label: 'Saved' },
       { id: 'trending', label: 'Trending' },
       { id: 'trades', label: 'Recent trades' }
     ],
@@ -110,12 +111,12 @@
       { id: 'series', label: 'Series and brand', sort: 'recommended', filters: {}, dynamic: 'brands' }
     ],
     notices: {
-      simulation: 'Standard is a market of software traders on this device. It works offline and is separate from Players.',
-      global: 'Players is not connected in this build. When it is, only real player listings appear here.',
+      simulation: 'Cards from traders are available while you play offline.',
+      global: 'Link an account to trade with players.',
       globalSample: 'Sample layout. These listings are invented to show the design. They are not real players and never count as market volume.'
     },
     noticesShort: {
-      simulation: 'Standard traders, offline.',
+      simulation: 'Trader listings available.',
       global: 'Not connected. Real players only.',
       globalSample: 'Invented sample listings. Not real players.'
     },
@@ -123,7 +124,7 @@
     // Unified glossary shown in help popovers and the Market guide.
     glossary: [
       { id: 'average-value', term: 'Average Value', body: 'A robust average of recent completed sales for this exact card, finish and skin, pulled toward a baseline when there are few sales. It is an estimate, not a promise.' },
-      { id: 'quick-sell', term: 'Quick Sell', body: 'A fixed price from the system for a card you do not want to list: a share of its Average Value, always below what another trader would pay. It is not a trade and never counts as volume or sets a price.' },
+      { id: 'quick-sell', term: 'Quick Sell', body: 'Sell a card immediately for the shown Credits. Listing it may earn more.' },
       { id: 'target-buy', term: 'Target Buy', body: 'A price at or below which this card looks well priced against its Average Value, after allowing for the spread.' },
       { id: 'target-sell', term: 'Target Sell', body: 'A price at which a listing is likely to sell in a reasonable time, given liquidity and the market fee.' },
       { id: 'volume', term: 'Volume', body: 'Completed sales only, counted in cards and in Credits. Listings, bids, Quick Sell and cancelled offers never count.' },
@@ -133,7 +134,7 @@
       { id: 'settlement', term: 'Settlement', body: 'The moment a sale completes: the card changes owner, Credits move, and the fee is taken once.' },
       { id: 'escrow', term: 'Escrow', body: 'Credits or a card held aside while an offer is open, so nothing can be spent or sold twice.' },
       { id: 'quick-sell', term: 'Quick Sell', body: 'An instant sale to the game itself at a deliberate discount. It is not a player trade and is never counted as market volume.' },
-      { id: 'realm', term: 'Realm', body: 'Standard (traders on this device, offline) and Players (real players). Balances, histories and values are never shared between them.' },
+      { id: 'realm', term: 'Market sources', body: 'Player listings come from other players. Game trader listings come from software traders. Every listing shows its source.' },
       { id: 'liquidity', term: 'Liquidity', body: 'How easily this card changes hands near its Average Value. Higher means faster, tighter trades.' },
       { id: 'confidence', term: 'Confidence', body: 'How much recent sale data supports the Average Value. Low means the estimate leans on the baseline.' },
       { id: 'volatility', term: 'Volatility', body: 'How far the price tends to move day to day. Scarcer rarities move more.' }

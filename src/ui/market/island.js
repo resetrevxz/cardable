@@ -17,7 +17,7 @@
   var snap = null, snapAt = 0, result = null, shown = null, rot = { id: null, at: 0 }, seenLoud = null, filter = 'all';
   var hold = 0, peek = null, wired = false, headerPill = null, sigLast = '';
 
-  function realm() { return store.session.realm; }
+  function realm() { return C.market.api.effectiveRealm(); }
   function settings() { return C.settings; }
   function fx(n) { return ui.fmt.exact(Math.round(n)); }
   function worldReady() { try { return !!(C.marketSim && C.marketSim.runtime && C.marketSim.runtime.world); } catch (error) { return false; } }
@@ -30,7 +30,7 @@
     var r = realm(), api = C.market.api, out = { realm: r, live: false, clock: '', clockState: 'idle', clockWord: '', wallet: { balance: 0, held: 0, available: 0 }, worth: null,
       bids: [], mine: [], orders: [], offers: [], notices: [], moves: [], news: [], progress: null, sales: [], movers: [], matches: [], rare: [] };
     if (!usable(r)) {
-      if (r === 'global') { var g0 = api.statusSync('global'); out.clock = g0.connected ? 'Online' : (g0.label || 'Players'); out.clockWord = 'Players'; out.clockState = 'idle'; }
+      if (r === 'global') { var g0 = api.statusSync('global'); out.clock = g0.connected ? 'Online' : (g0.label || 'Market'); out.clockWord = 'Connected'; out.clockState = 'idle'; }
       return out;
     }
     out.live = true;
@@ -38,7 +38,7 @@
     var act; try { act = api.activitySync(r); } catch (error) { act = { bids: [], mine: [], orders: [], offers: [], notifications: [] }; }
     var allow = settings().get('marketNotifyTrades') !== false;
     out.bids = act.bids || []; out.mine = act.mine || []; out.orders = act.orders || []; out.offers = act.offers || [];
-    out.notices = (allow ? (act.notifications || []) : []).map(function (n) { var meta = ui.activityMeta[n.kind] || {}; return { id: n.id, kind: n.kind, kindLabel: meta.label || 'Update', glyph: meta.icon, text: n.text, minutesAgo: n.minutesAgo, listingId: n.listingId, read: !!read[n.id] || !!n.read }; });
+    out.notices = (allow ? (act.notifications || []) : []).filter(function (n) { return !(n.kind === 'ending' && settings().get('marketNotifyEnding') === false || n.kind === 'sold' && settings().get('marketNotifySold') === false || n.kind === 'won' && settings().get('marketNotifyWon') === false); }).map(function (n) { var meta = ui.activityMeta[n.kind] || {}; return { id: n.id, kind: n.kind, kindLabel: meta.label || 'Update', glyph: meta.icon, text: n.text, minutesAgo: n.minutesAgo, listingId: n.listingId, read: !!read[n.id] || !!n.read }; });
     var w = api.walletSync(r);
     out.wallet = { balance: w.balance || 0, held: w.held || 0, available: w.available != null ? w.available : Math.max(0, (w.balance || 0) - (w.held || 0)) };
     if (r === 'simulation') {
@@ -54,7 +54,7 @@
         out.sales = extra.sales; out.movers = extra.movers; out.matches = extra.matches; out.rare = extra.rare;
       } catch (error) { if (root.console) root.console.error('Notch could not read the market', error); }
     } else {
-      out.clock = 'Online'; out.clockState = 'running'; out.clockWord = 'Players';
+      out.clock = 'Online'; out.clockState = 'running'; out.clockWord = 'Connected';
       try { var pf = api.portfolioSync('global'); if (pf && pf.total != null) out.worth = { now: pf.total + out.wallet.balance, credits: out.wallet.balance, cards: pf.total, start: null, history: [], dayChange: null }; } catch (error) { /* optional */ }
     }
     return out;
@@ -84,7 +84,7 @@
     return sp[idx];
   }
   function modelOf(it) {
-    if (!it) return { key: 'none', tone: 'idle', glyph: 'play', label: 'Standard', name: '', more: 0, aria: 'Your market. Open the panel' };
+    if (!it) return { key: 'none', tone: 'idle', glyph: 'play', label: 'Market', name: '', more: 0, aria: 'Your market. Open the panel' };
     var time = it.minutes != null && (it.cat === 'ending' || it.cat === 'offer' || it.cat === 'outbid') ? ' · ' + N.duration(it.minutes) : '';
     var others = result.items.filter(function (i) { return !cat(i.cat).ambient; }).length - (cat(it.cat).ambient ? 0 : 1);
     // the key is what the pill is about, not its ticking text: a clock or a countdown changes in place, a new item animates in
@@ -366,11 +366,11 @@
     box.appendChild(h('div.mk-island-head', h('div', h('h2', h('span.mk-island-head-icon', icon('market')), h('span', { text: 'Your market' })), h('span.mk-island-sum', { text: sum.join(' · ') || (usableNow ? 'Nothing open' : '') })), gear));
     if (!usableNow) {
       var g = C.market.api.statusSync('global');
-      box.appendChild(h('p.mk-island-empty', { text: r === 'global' ? (g.label === 'Not connected' ? 'Players is not connected.' : g.label + '.') : 'Open the Market once to start Standard.' }));
+      box.appendChild(h('p.mk-island-empty', { text: r === 'global' ? (g.label === 'Not connected' ? 'Link an account to trade with players.' : g.label + '.') : 'Open the Market to meet game traders.' }));
       var acts = h('div.mk-island-actions');
       if (r === 'global' && g.label === 'Not connected' && ui.online) acts.appendChild(ui.button('Connect', { variant: 'primary', icon: 'user', size: 'sm', onClick: function () { close(); ui.online.connectDialog(); } }));
       else if (r === 'global' && g.label !== 'Not available') acts.appendChild(ui.button('Try again', { variant: 'secondary', icon: 'forward', size: 'sm', onClick: function () { C.market.online.refresh(true); } }));
-      if (r === 'global') acts.appendChild(ui.button('Open Standard', { variant: 'ghost', size: 'sm', onClick: function () { close(); store.setRealm('simulation'); } }));
+      if (r === 'global') acts.appendChild(ui.button('Browse cards', { variant: 'ghost', size: 'sm', onClick: function () { close(); store.setRealm('simulation'); } }));
       else acts.appendChild(ui.button('Open the Market', { variant: 'primary', size: 'sm', onClick: function () { close(); C.market.open(); } }));
       box.appendChild(acts);
       return;

@@ -1,7 +1,6 @@
 /* Cardable Market — the listing composer.
  * Picks exact card instances, previews the listing as a feed tile, shows the 2% fee and net proceeds and keeps a
- * local draft. It never publishes: the final step is a review that says so. Cover images stay in this window
- * (object URLs and a read-only look at the Director album); nothing is uploaded. */
+ * saved draft. Publishing always passes through a review; online pictures use the existing upload client. */
 (function (C, root) {
   'use strict';
   var ui = C.market.ui, h = ui.h, icon = ui.icon, store = C.market.store, K = function () { return C.market.core; };
@@ -18,11 +17,18 @@
     var byId = {}; inv.items.forEach(function (i) { byId[i.instanceId] = i; });
     var draftKey = 'compose:' + realm;
     var draft = {
-      format: 'buy-now', items: [], price: '', startBid: '', reserve: '', buyout: '', preset: C.settings.get('marketListingDuration') || cfg().auction.defaultPreset,
+      format: C.settings.get('marketBiddingDefault') === false ? 'buy-now' : 'auction', items: [], price: '', startBid: '', reserve: '', buyout: '', preset: C.settings.get('marketListingDuration') || cfg().auction.defaultPreset,
       durationMode: 'preset', customHours: 48, fixedDays: 7, wanted: [{ type: 'card', cardId: '', rarity: '', variant: '', minValuePct: '' }], creditTopUp: '', topUpDirection: 'asks',
       minRelativePct: '', wantLowSerial: false, title: '', description: '', cover: { kind: 'card', ratio: 'card', name: '', alt: '', zoom: 1, x: 50, y: 50 }, touchedPrice: false
     };
-    var saved = store.getDraft(draftKey), resumed = false, dirty = false, status = 'idle';
+    var saved = C.settings.get('marketRememberSelling') === false ? null : store.getDraft(draftKey), resumed = false, dirty = false, status = 'idle';
+    var setup = C.settings.get('marketRememberSelling') === false ? null : store.getDraft('selling-setup');
+    if (setup && setup.draft) {
+      var last = setup.draft;
+      draft.format = last.format === 'buy-now' ? 'buy-now' : last.format === 'swap' && advanced ? 'swap' : 'auction';
+      draft.preset = last.preset || draft.preset; draft.fixedDays = last.fixedDays || draft.fixedDays;
+      if (advanced) { draft.durationMode = last.durationMode || 'preset'; draft.customHours = last.customHours || draft.customHours; }
+    }
     var carry = store.session.composeCarry;
     store.session.composeCarry = null;
     var coverUrl = null;
@@ -57,7 +63,7 @@
     function hours() { return K().durationHours({ durationMode: draft.durationMode, customHours: draft.customHours, preset: draft.preset }); }
     function toDraft() {
       return { mode: advanced ? 'advanced' : 'simple', format: draft.format, items: selected().map(function (i) { return { instanceId: i.instanceId }; }),
-        price: draft.price, startBid: draft.startBid, reserve: advanced ? draft.reserve : '', buyout: advanced ? draft.buyout : '', preset: draft.preset,
+        price: draft.price, startBid: draft.startBid, reserve: advanced ? draft.reserve : '', buyout: draft.buyout, preset: draft.preset,
         durationMode: advanced ? draft.durationMode : 'preset', customHours: draft.customHours, fixedDays: draft.fixedDays,
         wanted: draft.wanted.map(function (w) { return { cardId: w.type === 'card' ? w.cardId : '', rarity: w.type === 'rarity' ? w.rarity : '', variant: w.type === 'finish' ? w.variant : '', minValuePct: w.minValuePct }; }),
         creditTopUp: advanced ? draft.creditTopUp : '', minRelativePct: advanced ? draft.minRelativePct : '', wantLowSerial: advanced && draft.wantLowSerial,
@@ -68,7 +74,7 @@
     // ---- layout ----
     var back = ui.button('Back', { icon: 'back', variant: 'ghost', onClick: function () { ui.shell.back(); } });
     host.appendChild(h('div.mk-pagehead.is-detail', back));
-    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', icon('tag')), h('span', { text: 'List a card' })), h('p', { text: live
+    host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', icon('tag')), h('span', { text: 'Sell a card' })), h('p', { text: live
       ? 'Pick the card, set terms, see what you keep. Locked while listed.'
       : 'Pick the card, set terms, see what you would keep. Nothing is published.' }))));
     var banner = h('div.mk-banner-host');
@@ -77,6 +83,7 @@
     var form = h('div.mk-composer-form'), side = h('aside.mk-composer-side', { 'aria-label': 'Listing preview' });
     layout.append(form, side);
     host.appendChild(layout);
+    if (ui.online && ui.online.settingsPanel) host.appendChild(ui.online.settingsPanel(ctx));
 
     function resumeBanner() {
       ui.clear(banner);
@@ -91,7 +98,7 @@
     function applyDraft(d) {
       if (!d) return;
       var ids = (d.items || []).map(function (i) { return i.instanceId; }).filter(function (id) { return byId[id]; });
-      draft.items = ids; draft.format = d.format || draft.format; draft.price = d.price || ''; draft.startBid = d.startBid || ''; draft.reserve = d.reserve || ''; draft.buyout = d.buyout || '';
+      draft.items = advanced ? ids : ids.slice(0, 1); draft.format = !advanced && d.format === 'swap' ? 'auction' : d.format || draft.format; draft.price = d.price || ''; draft.startBid = d.startBid || ''; draft.reserve = d.reserve || ''; draft.buyout = d.buyout || '';
       draft.preset = d.preset || draft.preset; draft.durationMode = d.durationMode || 'preset'; draft.customHours = d.customHours || 48;
       draft.creditTopUp = d.creditTopUp || ''; draft.minRelativePct = d.minRelativePct || ''; draft.wantLowSerial = !!d.wantLowSerial; draft.title = d.title || ''; draft.description = d.description || '';
       draft.pictures = Array.isArray(d.pictures) ? d.pictures.filter(function (p) { return p && /^upl_/.test(p.uploadId); }).slice(0, 3) : [];
@@ -112,15 +119,15 @@
       saveTimer = root.setTimeout(function () {
         if (scope.dead) return;
         if (!draft.items.length && !draft.title && !draft.price && !draft.startBid) { store.clearDraft(draftKey); setStatus('idle'); return; }
-        store.saveDraft(draftKey, toDraft());
+        if (C.settings.get('marketRememberSelling') !== false) store.saveDraft(draftKey, toDraft());
         setStatus(store.persistent ? 'saved' : 'error');
       }, 500);
     }
     scope.add(function () {
       root.clearTimeout(saveTimer);
       // Leaving the page keeps the draft: flush it, and hand it straight to a remount (a settings change).
-      if (dirty && (draft.items.length || draft.title || draft.price || draft.startBid)) {
-        store.saveDraft(draftKey, toDraft());
+      if (C.settings.get('marketRememberSelling') !== false && dirty && (draft.items.length || draft.title || draft.price || draft.startBid)) {
+        if (C.settings.get('marketRememberSelling') !== false) store.saveDraft(draftKey, toDraft());
         store.session.composeCarry = { key: draftKey, draft: toDraft(), at: Date.now() };
       }
     });
@@ -130,8 +137,8 @@
     function buildPicker() {
       ui.releaseArt(pickerHost, ctx.thumbs);
       ui.clear(pickerHost);
-      pickerHost.appendChild(h('div.mk-step-head', h('span.mk-step-no', { text: '1' }), h('div', h('h2', { text: 'Choose the exact card' }),
-        h('p', { text: advanced ? 'Pick one card, or build a bundle of up to ' + cfg().listing.maxBundle + '. Each copy is chosen by its serial, never the whole stack.' : 'Pick one card. When you own several copies you choose which serial to list.' }))));
+      pickerHost.appendChild(h('div.mk-step-head', h('span.mk-step-no', { text: '1' }), h('div', h('h2', { text: 'Choose a card' }),
+        h('p', { text: advanced ? 'Pick one card, or build a bundle of up to ' + cfg().listing.maxBundle + '. Each copy is chosen by its serial, never the whole stack.' : 'Choose the card you want to sell.' }))));
       if (inv.demo && !live) pickerHost.appendChild(h('div.mk-banner', { data: { tone: 'info' } }, icon('info'), h('span', { text: 'You have no cards yet, so these are sample cards. Open a pack and your own collection appears here.' })));
       var search = h('input.mk-input', { type: 'search', placeholder: 'Search your cards', 'aria-label': 'Search your cards' });
       pickerHost.appendChild(h('div.mk-picker-bar', search, h('span.mk-muted', { text: inv.items.length + ' cards' })));
@@ -160,7 +167,13 @@
             h('span', { text: idn.rarityName + ' · ' + (head.variantId ? (env.variants[head.variantId] || {}).name : 'Normal finish') + (stack.length > 1 ? ' · ' + stack.length + ' copies' : '') }),
             h('span.mk-muted', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' + (live && v.basis === 'baseline' ? ' · baseline' : '') }));
           var chips = h('div.mk-pick-chips', { role: advanced ? 'group' : 'radiogroup', 'aria-label': 'Copies of ' + idn.name });
-          stack.forEach(function (i) {
+          if (stack.length === 1) {
+            var single = stack[0], chosen = draft.items.indexOf(single.instanceId) >= 0;
+            var selectCard = ui.button(chosen ? 'Selected' : 'Select', { variant: chosen ? 'primary' : 'secondary', icon: chosen ? 'check' : 'plus', disabled: !!(single._listed || single.locked), reason: single._listed ? 'Already listed' : single.locked ? 'Unlock this card first' : '', onClick: function () { choose(single.instanceId); } });
+            chips.appendChild(selectCard);
+            art.addEventListener('click', function () { choose(single.instanceId); });
+          }
+          (stack.length > 1 ? stack : []).forEach(function (i) {
             var on = draft.items.indexOf(i.instanceId) >= 0;
             var blocked = live ? (i._listed ? 'Already in a listing or offer' : i.locked ? 'Locked cards cannot be listed. Unlock it first.' : '') : '';
             var b = h('button.mk-pill.is-serial', { type: 'button', role: advanced ? 'checkbox' : 'radio', 'aria-checked': String(on), 'aria-pressed': advanced ? String(on) : null, data: { instance: i.instanceId }, disabled: !!blocked, title: blocked },
@@ -212,19 +225,21 @@
     function buildTerms() {
       ui.clear(termsHost); errorEls = {};
       var v = bundleValuation();
-      termsHost.appendChild(h('div.mk-step-head', h('span.mk-step-no', { text: '2' }), h('div', h('h2', { text: 'Type and terms' }), h('p', { text: 'How it sells, and for how much.' }))));
-      var typeSwitch = ui.segmented({ label: 'Listing type', value: draft.format, onChange: function (f) { draft.format = f; draft.touchedPrice = false; suggestIfBlank(); touch(); buildTerms(); renderSide(); },
-        options: cfg().formats.map(function (f) { return { value: f.id, label: f.label, icon: f.icon, title: f.blurb }; }) });
-      typeSwitch.classList.add('mk-type-switch');
-      termsHost.appendChild(typeSwitch);
-      termsHost.appendChild(h('p.mk-hint', { text: ui.formatDef(draft.format).blurb }));
+      termsHost.appendChild(h('div.mk-step-head', h('span.mk-step-no', { text: '2' }), h('div', h('h2', { text: 'Set price' }), h('p', { text: 'Choose a starting bid or a Buy price.' }))));
+      var bids = h('input', { type: 'checkbox', role: 'switch', props: { checked: draft.format === 'auction' } });
+      bids.addEventListener('change', function () { draft.format = bids.checked ? 'auction' : 'buy-now'; suggestIfBlank(); touch(); buildTerms(); renderSide(); });
+      termsHost.appendChild(h('label.mk-toggle', bids, h('span.mk-toggle-track', { 'aria-hidden': 'true' }, h('i')), h('span.mk-toggle-copy', h('span', { text: 'Allow bids' }))));
+      if (advanced) {
+        var typeSwitch = ui.segmented({ label: 'Listing type', value: draft.format, onChange: function (f) { draft.format = f; draft.touchedPrice = false; suggestIfBlank(); touch(); buildTerms(); renderSide(); }, options: cfg().formats.map(function (f) { return { value: f.id, label: f.label, icon: f.icon }; }) });
+        termsHost.appendChild(typeSwitch);
+      }
       var body = h('div.mk-terms');
-      if (v && live && selected().length === 1) body.appendChild(analysis(selected()[0]));
-      if (v) body.appendChild(h('p.mk-guidance', icon('trend'), h('span', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' + (v.basis === 'baseline' ? ' (baseline estimate, no sales yet)' : ' from ' + v.samples + ' recent trades') + ' · Target Sell ' + ui.fmt.exact(v.targetSell) + (live ? '' : ' · about ' + v.windowHours + ' h to sell near it.') })));
+      if (advanced && v && live && selected().length === 1) body.appendChild(analysis(selected()[0]));
+      if (advanced && v) body.appendChild(h('p.mk-guidance', icon('trend'), h('span', { text: 'Average Value ' + ui.fmt.exact(v.average) + ' Credits' + (v.basis === 'baseline' ? ' (baseline estimate, no sales yet)' : ' from ' + v.samples + ' recent trades') + ' · Target Sell ' + ui.fmt.exact(v.targetSell) + (live ? '' : ' · about ' + v.windowHours + ' h to sell near it.') })));
       if (draft.format === 'buy-now') {
         var price = numberInput(draft.price, function (val) { draft.price = val; draft.touchedPrice = true; }, { min: '1' });
-        body.appendChild(field('Asking price (Credits)', price, { name: 'price', help: 'average-value', hint: 'Buyers pay exactly this. You receive it minus the ' + cfg().fee.label.toLowerCase() + '.' }));
-        if (v) {
+        body.appendChild(field('Buy price (Credits)', price, { name: 'price', help: 'average-value', hint: 'Buyers pay exactly this. You receive it minus the ' + cfg().fee.label.toLowerCase() + '.' }));
+        if (advanced && v) {
           // three ready prices as cards: what it asks, what you keep after the fee, and how long it tends to take
           var g = selected().length === 1 && C.valuation.guidance ? (function () { var inst = selected()[0]; try { return C.valuation.guidance({ cardId: inst.cardId, variantId: inst.variantId || null, cardSkinId: inst.cardSkinId || null, serial: inst.serial }); } catch (_) { return null; } })() : null;
           var quick = h('div.mk-price-choices', { role: 'group', 'aria-label': 'Suggested prices' }), cards = [];
@@ -273,14 +288,14 @@
         if (advanced && draft.durationMode === 'custom') {
           var dur = numberInput(draft.customHours, function (val) { draft.customHours = val; }, { min: String(cfg().auction.customMinHours), max: String(cfg().auction.customMaxHours) });
           body.appendChild(field('Custom length (hours)', dur, { name: 'duration', hint: 'Between 1 hour and 14 days. Only available in Advanced.' }));
-        } else if (!advanced) {
-          body.appendChild(h('p.mk-hint', { text: 'Want a different length? Custom durations are part of Advanced.' }));
         }
         if (advanced) {
           var reserve = numberInput(draft.reserve, function (val) { draft.reserve = val; }, { min: '0', placeholder: 'None' });
           body.appendChild(field('Reserve (Credits)', reserve, { name: 'reserve', help: 'reserve', hint: 'The auction only sells if the winning bid reaches this. Bidders see whether it has been met, not the amount.' }));
+        }
+        {
           var buyout = numberInput(draft.buyout, function (val) { draft.buyout = val; }, { min: '0', placeholder: 'None' });
-          body.appendChild(field('Buyout (Credits)', buyout, { name: 'buyout', hint: 'Lets a buyer end the auction at once at this price.' }));
+          body.appendChild(field('Buy now price (optional)', buyout, { name: 'buyout', hint: 'Lets a buyer end the auction at once at this price.' }));
         }
       } else {
         body.appendChild(buildWanted(v));
@@ -385,13 +400,13 @@
       note.addEventListener('input', function () { draft.description = note.value; touch(); });
       body.appendChild(field('Note', note, { name: 'description' }));
 
-      if (live && realm === 'global' && C.market.media && C.market.online && C.market.online.state.status === 'online') {
+      if (live && ui.sim.isGlobal(realm) && C.market.media && C.market.online && C.market.online.state.status === 'online') {
         body.appendChild(picturesSection());
         presentHost.appendChild(body);
         return;
       }
       if (live) {
-        body.appendChild(h('p.mk-hint', icon('image'), h('span', { text: realm === 'global' ? 'Connect to Players to add pictures to a listing.' : 'Standard listings use the card’s own art. Pictures are for Players.' })));
+        body.appendChild(h('p.mk-hint', icon('image'), h('span', { text: 'The card’s own art is always shown on the listing.' })));
         presentHost.appendChild(body);
         return;
       }
@@ -550,10 +565,10 @@
           err.hidden = false; status.textContent = 'You can try again with the same picture.'; ready();
         });
       });
-      surface.append(h('header', ui.eyebrow('Players'), h('h2', { text: 'Add a picture' })),
+      surface.append(h('header', ui.eyebrow('Market'), h('h2', { text: 'Add a picture' })),
         h('div.mk-crop-stage', canvas), status, bar, layoutSwitch, h('label.mk-field', h('span.mk-field-label', { text: 'Zoom' }), zoomIn),
         h('div.mk-field', h('span.mk-field-label', { text: 'Description' }), alt),
-        h('label.mk-check', agree, h('span', { text: 'I understand this picture is uploaded to Players and shown to other players on this listing. Camera and location data are removed.' })),
+        h('label.mk-check', agree, h('span', { text: 'I understand this picture is uploaded to Market and shown to other players on this listing. Camera and location data are removed.' })),
         err, h('div.mk-modal-actions', cancel, send));
       var handle = C.ui.present(surface, { anchor: anchor, onClose: function () { if (state.job) state.job.cancel(); } });
       fit();
@@ -637,7 +652,7 @@
       ui.clear(side);
       var v = bundleValuation(), result = K().validateDraft(toDraft(), { config: cfg() });
       var listing = syntheticListing(v);
-      side.appendChild(h('div.mk-side-head', ui.eyebrow('Preview'), statusEl));
+      side.appendChild(h('div.mk-side-head', ui.eyebrow('3 · Review'), statusEl));
       if (listing) {
         var tileEnv = { cards: env.cards, owned: env.owned, variants: env.variants, thumbs: ctx.thumbs, index: 0 };
         var tile = ui.listingTile({ listing: listing, rank: null }, tileEnv);
@@ -651,7 +666,7 @@
       else rows.push({ label: draft.format === 'auction' ? 'Starting bid' : 'Asking price', value: (draft.format === 'auction' ? Number(draft.startBid) : Number(draft.price)) ? ui.fmt.exact(draft.format === 'auction' ? Number(draft.startBid) : Number(draft.price)) + ' Credits' : '—' });
       rows.push({ label: cfg().fee.label, value: result.fee ? '− ' + ui.fmt.exact(result.fee) : (draft.format === 'swap' ? 'None on a pure swap' : '—'), help: 'settlement' });
       rows.push({ label: draft.format === 'auction' ? 'Estimated net at the starting bid' : 'Estimated net proceeds', value: result.net ? ui.fmt.exact(result.net) + ' Credits' : '—', strong: true });
-      if (v && listing && draft.format !== 'swap') {
+      if (advanced && v && listing && draft.format !== 'swap') {
         var verdict = K().priceVerdict(toDraft(), v);
         if (verdict) rows.push({ label: 'Against Average Value', node: ui.valueTag(draft.format === 'auction' ? Number(draft.startBid) : Number(draft.price), v) });
       }
@@ -664,7 +679,7 @@
         : 'While listed, the exact card is held in escrow and cannot be traded elsewhere. You could withdraw it at any time before a bid or sale.' })));
       var reason = result.ok ? '' : result.disabledReason;
       var blocked = live && selected().some(function (i) { return i._listed || i.locked; });
-      var publish = ui.button(live ? 'List this card' : 'Preview this listing', { variant: 'primary', icon: 'check', disabled: !result.ok || blocked, reason: blocked ? 'One of these cards is already listed or locked.' : reason, onClick: function () { if (live) publishLive(result); else reviewListing(result, v, listing); } });
+      var publish = ui.button(live ? 'Review listing' : 'Preview this listing', { variant: 'primary', icon: 'check', disabled: !result.ok || blocked, reason: blocked ? 'One of these cards is already listed or locked.' : reason, onClick: function () { if (live) publishLive(result); else reviewListing(result, v, listing); } });
       var wrap = h('div.mk-side-actions', publish);
       if (!result.ok && draft.items.length) wrap.appendChild(h('p.mk-field-error.is-inline', { role: 'status', text: reason }));
       else if (!draft.items.length) wrap.appendChild(h('p.mk-hint', { text: 'Choose a card to continue.' }));
@@ -692,15 +707,15 @@
     function listingSpec(requestId) {
       var ids = selected().map(function (i) { return i.instanceId; });
       var base = { instanceIds: ids, title: draft.title.trim(), note: draft.description.trim(), requestId: requestId };
-      if (realm === 'global' && (draft.pictures || []).length) {
+      if (ui.sim.isGlobal(realm) && (draft.pictures || []).length) {
         base.images = draft.pictures.map(function (p) { return { uploadId: p.uploadId, alt: p.alt || '' }; });
         base.cover = { layout: draft.pictures[0].layout || 'banner', zoom: 1, x: 50, y: 50 };
       }
-      if (realm === 'global' && draft.treatment && draft.treatment !== 'none') base.treatment = draft.treatment;
+      if (ui.sim.isGlobal(realm) && draft.treatment && draft.treatment !== 'none') base.treatment = draft.treatment;
       if (draft.format === 'buy-now') return Object.assign(base, { kind: 'fixed', ask: Math.floor(Number(draft.price)), durationMs: draft.fixedDays * DAY });
       if (draft.format === 'auction') {
         return Object.assign(base, { kind: 'auction', start: Math.floor(Number(draft.startBid)), durationMs: (hours() || 24) * 3600000,
-          reserve: advanced && draft.reserve !== '' ? Math.floor(Number(draft.reserve)) : null, buyout: advanced && draft.buyout !== '' ? Math.floor(Number(draft.buyout)) : null });
+          reserve: advanced && draft.reserve !== '' ? Math.floor(Number(draft.reserve)) : null, buyout: draft.buyout !== '' ? Math.floor(Number(draft.buyout)) : null });
       }
       return Object.assign(base, { kind: 'swap', durationMs: 5 * DAY, wants: wantsSpec() });
     }
@@ -712,7 +727,7 @@
       if (draft.format === 'auction') {
         rows.push({ label: 'Starting bid', node: ui.credits(Number(draft.startBid)) }); rows.push({ label: 'Length', value: result.hours >= 48 ? Math.round(result.hours / 24) + ' days' : result.hours + ' hours' });
         if (advanced && draft.reserve) rows.push({ label: 'Reserve', value: ui.fmt.exact(Number(draft.reserve)) + ' Credits' });
-        if (advanced && draft.buyout) rows.push({ label: 'Buyout', value: ui.fmt.exact(Number(draft.buyout)) + ' Credits' });
+        if (draft.buyout) rows.push({ label: 'Buyout', value: ui.fmt.exact(Number(draft.buyout)) + ' Credits' });
       }
       if (draft.format === 'swap') {
         var w = wantsSpec();
@@ -722,7 +737,7 @@
         rows.push({ label: draft.format === 'auction' ? 'You receive at the starting bid' : 'You receive', value: ui.fmt.exact(result.net) + ' Credits', strong: true });
       }
       if (draft.title) rows.push({ label: 'Title', value: draft.title });
-      if (realm === 'global' && (draft.pictures || []).length) rows.push({ label: 'Pictures', value: draft.pictures.length + ' shown to other players, next to the card' });
+      if (ui.sim.isGlobal(realm) && (draft.pictures || []).length) rows.push({ label: 'Pictures', value: draft.pictures.length + ' shown to other players, next to the card' });
       ui.sim.confirm({
         title: 'List ' + (sel.length === 1 ? 'this card' : sel.length + ' cards'), eyebrow: 'Review', rows: rows, anchor: root.document.activeElement,
         note: 'Locked while listed. A sale pays your Credits once, after the fee, and the card leaves then.',
@@ -730,6 +745,7 @@
         run: function (req) { return ctx.api.publishListing(realm, listingSpec(req)); },
         success: function (res) {
           var id = res.listing && res.listing.id;
+          if (C.settings.get('marketRememberSelling') !== false) store.saveDraft('selling-setup', { format: draft.format, preset: draft.preset, fixedDays: draft.fixedDays, durationMode: draft.durationMode, customHours: draft.customHours });
           store.clearDraft(draftKey); dirty = false; saved = null;
           draft.items = []; draft.price = ''; draft.startBid = ''; draft.title = ''; draft.description = ''; draft.pictures = []; draft.treatment = 'none';
           C.ui.toast('Listed. It is now open to the market.');
@@ -748,17 +764,17 @@
       if (draft.format === 'swap') rows.push({ label: 'You would accept', value: draft.wanted.map(function (w) { return w.type === 'card' ? (env.cards[w.cardId] || {}).name : w.type === 'rarity' ? (env.rarities[w.rarity] || {}).name + ' or better' : (env.variants[w.variant] || {}).name; }).filter(Boolean).join(', ') });
       rows.push({ label: cfg().fee.label, value: result.fee ? '− ' + ui.fmt.exact(result.fee) + ' Credits' : 'None' });
       rows.push({ label: 'Estimated net proceeds', value: ui.fmt.exact(result.net) + ' Credits', strong: true });
-      rows.push({ label: 'Realm', value: ui.realmDef(realm).label + (realm === 'global' ? (C.market.online && C.market.online.state.status === 'online' ? ' (beta, trading opens later)' : ' (not connected)') : ' (preview)') });
+      rows.push({ label: 'Realm', value: ui.realmDef(realm).label + (ui.sim.isGlobal(realm) ? (C.market.online && C.market.online.state.status === 'online' ? ' (beta, trading opens later)' : ' (not connected)') : ' (preview)') });
       rows.push({ label: 'Held in escrow', value: sel.length === 1 ? '1 card' : sel.length + ' cards' });
       if (draft.title) rows.push({ label: 'Title', value: draft.title });
       if (draft.cover.kind !== 'card') rows.push({ label: 'Cover', value: draft.cover.name || 'Image' });
-      ui.review({ title: 'Review listing', rows: rows, note: realm === 'global' ? (C.market.online && C.market.online.state.status === 'online' ? 'Players is connected, but players cannot list yet: trading opens in a later beta stage. Nothing was sent, held or changed. Your draft stays on this device.' : 'Players is not connected, so this listing could not be published. Nothing was sent or saved to your collection.') : 'Nothing was listed and no card was locked. Publishing opens with the simulator in a later update. Your draft stays on this device.' });
+      ui.review({ title: 'Review listing', rows: rows, note: ui.sim.isGlobal(realm) ? (C.market.online && C.market.online.state.status === 'online' ? 'Market is connected, but players cannot list yet: trading opens in a later beta stage. Nothing was sent, held or changed. Your draft stays on this device.' : 'Market is not connected, so this listing could not be published. Nothing was sent or saved to your collection.') : 'Nothing was listed and no card was locked. Publishing opens with the simulator in a later update. Your draft stays on this device.' });
     }
 
     // ---- assemble ----
     function renderAll() { buildPicker(); buildTerms(); buildPresent(); renderSide(); }
-    form.append(pickerHost, termsHost, presentHost);
-    if (carry && carry.key === draftKey && Date.now() - carry.at < 4000) { applyDraft(carry.draft); resumed = true; dirty = true; }
+    form.append(pickerHost, termsHost); if (advanced) form.appendChild(presentHost);
+    if (C.settings.get('marketRememberSelling') !== false && carry && carry.key === draftKey && Date.now() - carry.at < 4000) { applyDraft(carry.draft); resumed = true; dirty = true; }
     resumeBanner();
     suggestIfBlank();
     renderAll();

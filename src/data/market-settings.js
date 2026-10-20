@@ -13,8 +13,15 @@
   }
   function fmt(map) { return function (value) { return map[value] || String(value); }; }
 
-  add('marketMode', 'Market detail', 'Simple keeps filters and listings light. Advanced adds fair-value, serial, finish and auction controls.', 'simple', ['simple', 'advanced']);
-  add('marketRealm', 'Starting realm', 'Which realm the Market opens in. Players only has listings once it is connected.', 'simulation', ['simulation', 'global']).format = fmt({ simulation: 'Simulation', global: 'Players' });
+  add('marketMode', 'Advanced market tools', 'Simple keeps trading clear. Advanced adds swaps, bundles, reserves, custom lengths and analytics.', 'simple', ['simple', 'advanced']);
+  add('marketTextSize', 'Text size', 'Larger type in Market pages and controls.', 'standard', ['standard', 'large']);
+  add('marketPanelMaterial', 'Panel material', 'Choose glass or solid Market panels.', 'glass', ['glass', 'solid']);
+  add('marketRememberFilters', 'Remember filters', 'Keep your Browse filters between visits on this device.', true);
+  add('marketAffordableDefault', 'Affordable by default', 'Start Browse with cards within your available Credits.', false);
+  add('marketUnownedDefault', 'Unowned by default', 'Start Browse with cards outside your collection.', false);
+  add('marketBiddingDefault', 'Allow bids by default', 'New listings start as an auction. Switch off to start with a buy price.', true);
+  add('marketRememberSelling', 'Remember selling setup', 'Keep listing drafts and restore your unfinished selling setup.', true);
+  add('marketRealm', 'Starting realm', 'Legacy starting view preference.', 'simulation', ['simulation', 'global']).format = fmt({ simulation: 'Market', global: 'Market' });
   add('marketView', 'Discover layout', 'A visual feed of cards, or a denser terminal table for scanning prices.', 'feed', ['feed', 'terminal']).format = fmt({ feed: 'Feed', terminal: 'Terminal' });
   add('marketDensity', 'Density', 'Comfortable gives cards room. Compact fits more listings on screen.', 'comfortable', ['comfortable', 'compact']);
   add('marketChartType', 'Chart style', 'How Stocks draws a price window.', 'line', ['line', 'candles']).format = fmt({ line: 'Line', candles: 'Candles' });
@@ -23,15 +30,18 @@
   add('marketCompactNumbers', 'Compact Credits', 'Show 12,500 as 12.5K in dense places. Exact values stay in tooltips and receipts.', false);
   add('marketConfirm', 'Confirm before trades', 'Always shows the review step. Large trades only skips it for small amounts.', 'always', ['always', 'large']).format = fmt({ always: 'Always', large: 'Large trades only' });
   add('marketListingDuration', 'Default auction length', 'The preset the listing composer starts with. Custom lengths are in Advanced.', '24h', ['6h', '24h', '3d']).format = fmt({ '6h': '6 hours', '24h': '24 hours', '3d': '3 days' });
-  add('marketSimSpeed', 'Simulation speed', 'How fast simulated time runs while the game is open. It never runs while the game is closed, hidden or paused.', 'brisk', ['calm', 'standard', 'brisk', 'fast']).format = fmt({ calm: 'Calm', standard: 'Standard', brisk: 'Brisk', fast: 'Fast' });
+  add('marketSimSpeed', 'Trader pace', 'How fast simulated time runs while the game is open. It never runs while the game is closed, hidden or paused.', 'brisk', ['calm', 'standard', 'brisk', 'fast']).format = fmt({ calm: 'Calm', standard: 'Normal', brisk: 'Brisk', fast: 'Fast' });
   add('marketNotifyBids', 'Bid and auction notices', 'Outbid, leading and ending-soon notices in Activity.', true);
+  add('marketNotifyEnding', 'Ending soon notices', 'Notice when an auction you follow is about to end.', true);
+  add('marketNotifySold', 'Sold notices', 'Notice when a card you listed sells.', true);
+  add('marketNotifyWon', 'Won notices', 'Notice when you win an auction.', true);
   add('marketNotifyTrades', 'Sale and offer notices', 'Sold, won, expired and offer notices in Activity.', true);
   add('marketNotifyWatch', 'Watchlist and price notices', 'Watchlist and price-alert notices in Activity.', true);
 
   // The notch: the pill at the top of the main menu and of the Market. Order and hidden are set from its own Customize sheet; they live here so
   // they save, export and reset like every other setting.
   add('marketNotch', 'Notch on the main menu', 'Your trades, prices and Credits at the top, even with the Market closed.', true);
-  add('marketNotchMode', 'What the notch says', 'Quiet: only what needs you. Calm: and what is going on. Busy: everything, with prices and news.', 'calm', ['quiet', 'calm', 'busy']).format = fmt({ quiet: 'Quiet', calm: 'Calm', busy: 'Busy' });
+  add('marketNotchMode', 'What the notch says', 'Quiet: only what needs you. Calm: and what is going on. Busy: everything, with prices and news.', 'quiet', ['quiet', 'calm', 'busy']).format = fmt({ quiet: 'Quiet', calm: 'Calm', busy: 'Busy' });
   add('marketNotchCycle', 'Move through items', 'When nothing needs you, the notch moves through the best few things. Off keeps the top one.', true);
   add('marketNotchPeek', 'Peek for important news', 'A small card under the notch when you are outbid, an offer arrives or something sells.', true);
   var ORDER = 'outbid,offer,ending,sold,bids,listings,watch,deals,rare,sales,fell,rose,news,goals,worth,spend,clock';
@@ -40,10 +50,11 @@
   add('marketNotchHidden', 'Notch hidden items', 'What the notch leaves out. Change it from the notch.', '', null, 'none', { advanced: true, validate: function (value) { var n = C.market && C.market.notch; return n ? Object.keys(n.normalizeHidden(value)).join(',') : (typeof value === 'string' ? ids(value).join(',') : ''); } });
   s.marketNotchOrder.group = null; s.marketNotchHidden.group = null;
 
+  s.marketRealm.group = null; s.marketRealm.retired = true;
   ['marketSimSpeed', 'marketMode', 'marketRealm', 'marketView', 'marketDensity', 'marketChartType', 'marketWindow', 'marketReducedData', 'marketCompactNumbers',
     'marketConfirm', 'marketListingDuration', 'marketNotifyBids', 'marketNotifyTrades', 'marketNotifyWatch', 'marketNotch', 'marketNotchMode', 'marketNotchCycle', 'marketNotchPeek', 'marketNotchOrder', 'marketNotchHidden'].forEach(function (key) {
     // Defaults for new keys must also pass the shared validator.
     s[key].key = key;
   });
-  ['marketRealm', 'marketConfirm', 'marketListingDuration', 'marketCompactNumbers'].forEach(function (key) { s[key].advanced = true; });
+  ['marketRealm', 'marketCompactNumbers', 'marketChartType', 'marketWindow'].forEach(function (key) { s[key].advanced = true; });
 })(window.Cardable);

@@ -31,7 +31,7 @@
     if (S.emitTimer) return;
     S.emitTimer = root.setTimeout(function () {
       S.emitTimer = 0;
-      if (C.market.store && C.market.store.session.realm === 'global') C.market.store.emit('sim');
+      if (C.market.store && (C.market.store.session.realm === 'global' || C.market.store.session.realm === 'unified' && C.market.api.effectiveRealm() === 'global')) C.market.store.emit('sim');
     }, 250);
   }
 
@@ -108,9 +108,9 @@
       id: v.id, realm: 'global', format: v.format, kind: v.kind, status: statusOf(v), ask: v.ask, title: v.title || '', description: v.description || '', cover: { kind: 'card' }, reason: '',
       card: { cardId: v.card.cardId, variantId: v.card.variantId || null, cardSkinId: v.card.cardSkinId || null, serial: v.card.serial, count: v.card.count, packId: v.card.packId || null },
       items: (v.items || []).map(function (i) { return { instanceId: i.instanceId || '', cardId: i.cardId, variantId: i.variantId || null, cardSkinId: i.cardSkinId || null, serial: i.serial, packId: i.packId || null }; }),
-      seller: { alias: v.seller.alias, isBot: false, isYou: !!v.seller.isYou, persona: null, personaLabel: null, sales: v.seller.sales || 0, rating: null, reviews: v.seller.rating || null, tenureDays: v.seller.tenureDays || 0 },
+      seller: { alias: v.seller.alias, isBot: v.source === 'trader', isYou: !!v.seller.isYou, persona: null, personaLabel: v.source === 'trader' ? 'Game trader' : null, sales: v.seller.sales || 0, rating: null, reviews: v.seller.rating || null, tenureDays: v.seller.tenureDays || 0 },
       images: (v.images || []).map(function (i) { return { id: i.id, alt: i.alt || '', width: i.width, height: i.height }; }), photoCover: v.cover || null, treatment: v.treatment || 'none', commentCount: v.commentCount || 0,
-      valuation: val, listedMin: Math.max(0, (t - v.createdAt) / MIN), watchers: 0, source: 'players', isMine: !!v.isMine,
+      valuation: val, listedMin: Math.max(0, (t - v.createdAt) / MIN), watchers: 0, source: v.source === 'trader' ? 'trader' : 'player', isMine: !!v.isMine,
       closedAt: v.closedAt || null, endsMin: closed ? null : minutesUntil(v.endsAt), endedMin: v.closedAt ? Math.max(0, (t - v.closedAt) / MIN) : null,
       soldFor: v.soldFor != null ? v.soldFor : null, endNote: v.endNote || '', snipeNote: v.snipeNote || '', createdSim: v.createdAt, endsAt: v.endsAt, offerIds: [], reservedCard: false, version: v.version
     };
@@ -229,7 +229,7 @@
       });
     }
     I.loading = page(null).then(function (d) {
-      I.items = items.map(function (i) { return { instanceId: i.id, cardId: i.cardId, variantId: i.variantId || null, cardSkinId: i.cardSkinId || null, serial: i.serial, packId: i.packId || null,
+      I.items = C.market.sync && C.market.sync.isLinked() ? C.state.current.inventory.map(function (i) { return Object.assign({}, i, { _listed: C.market.sync.lockOf(i.instanceId) }); }) : items.map(function (i) { return { instanceId: i.instanceId || i.id, cardId: i.cardId, variantId: i.variantId || null, cardSkinId: i.cardSkinId || null, serial: i.serial, packId: i.packId || null,
         pulledAt: i.pulledAt || null, seen: true, locked: false, origin: i.source === 'legacy-import' ? 'beta-import' : 'market', _listed: i.listedIn || null, state: i.state }; });
       I.total = d.total; I.at = Date.now(); I.loading = null;
       if (online().applyInventory) online().applyInventory(d.total);

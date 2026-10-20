@@ -9,14 +9,9 @@
   var ui = C.market.ui, h = ui.h, icon = ui.icon, doc = root.document, KEY = 'cardable.market.tour';
 
   var STEPS = [
-    { icon: 'market', title: 'Welcome to the Market', body: 'Buy cards from traders, bid in auctions and sell the cards you do not need. Here is the short version.',
-      ways: [['tag', 'Buy now'], ['gavel', 'Bid'], ['coin', 'Sell']] },
-    { target: '.mk-tab[data-tab="discover"]', icon: 'explore', title: 'Browse', body: 'Everything for sale. A green price is lower than what the card usually sells for.' },
-    { target: '.mk-tab[data-tab="auctions"]', icon: 'gavel', title: 'Auctions', body: 'Set the most you would pay. The Market bids for you, one step at a time, so you never pay more than needed to win.' },
-    { target: '.mk-tab[data-tab="portfolio"]', icon: 'briefcase', title: 'Sell your cards', body: 'Your cards and what they are worth. Choose one and list it; a fair price is filled in for you.' },
-    { target: '.mk-header .mk-island', icon: 'bell', title: 'The notch', body: 'Outbid, sold, won: you hear it here first, with a button to act on it.' },
-    { target: '.mk-header .mk-sim-chip', icon: 'clock', title: 'Market time', body: 'The Market’s clock runs only while you play. Pause it or speed it up here.' },
-    { target: '.mk-tab[data-tab="shop"]', icon: 'bag', title: 'The Shop', body: 'Four cards a day at a fixed price, and the featured pack. No bidding, no waiting.' }
+    { target: '.mk-tab[data-tab="discover"]', icon: 'explore', title: 'Browse', body: 'Cards from players and traders share one feed. Each listing tells you who is selling.' },
+    { target: '.mk-tab[data-tab="discover"]', icon: 'gavel', title: 'Bid or buy', body: 'Open a card to bid or buy now. Review the exact card and Credits before confirming.' },
+    { target: '.mk-sell', icon: 'tag', title: 'Sell', body: 'Choose a card and set a starting bid. Turn off Allow bids for a buy now listing.' }
   ];
 
   function done() { try { return root.localStorage.getItem(KEY) === 'done'; } catch (_) { return true; } }
@@ -98,10 +93,6 @@
     return true;
   }
 
-  C.events.on('market:open', function () {
-    if (done() || C.market.store.prefs.guideSeen || !C.market.api.simulationLive || C.market.store.session.realm !== 'simulation') return;
-    root.setTimeout(function () { if (ui.shell.isOpen && !active && !(C.ui && C.ui.modal)) start(); }, 700);
-  });
   C.events.on('market:close', function () { if (active) active.finish(); });
 
   ui.tour = { start: start, get active() { return !!active; }, reset: function () { try { root.localStorage.removeItem(KEY); } catch (_) { /* nothing kept */ } }, STEPS: STEPS };

@@ -39,13 +39,14 @@
   function request(method, path, body, options) {
     options = options || {};
     var b = base();
-    if (!b) return Promise.reject(failure('not-configured', 'Players is not available in this build.'));
+    if (!b) return Promise.reject(failure('not-configured', 'Player trading is not available in this build.'));
     var controller = typeof root.AbortController === 'function' ? new root.AbortController() : null;
     var timer = controller ? root.setTimeout(function () { controller.abort(); }, options.timeoutMs || cfg().timeoutMs) : 0;
     var headers = { accept: 'application/json' };
     if (body) headers['content-type'] = 'application/json';
     if (options.idempotencyKey) headers['idempotency-key'] = options.idempotencyKey;
     if (options.token) headers.authorization = 'Bearer ' + options.token;
+    if (C.market.sync && options.token) Object.assign(headers, C.market.sync.headers());
     return root.fetch(b + path, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined, signal: controller ? controller.signal : undefined,
       mode: 'cors', credentials: 'omit', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer' })
       .then(function (res) { return res.text().then(function (text) {
@@ -61,7 +62,7 @@
   }
   function ensureToken() {
     if (S.token && S.tokenExp - 30000 > Date.now()) return Promise.resolve(S.token);
-    if (!S.refreshToken) return Promise.reject(failure('signed-out', 'Connect to use Players.'));
+    if (!S.refreshToken) return Promise.reject(failure('signed-out', 'Link an account to trade with players.'));
     if (inflight) return inflight;
     inflight = request('POST', '/v1/auth/refresh', { refreshToken: S.refreshToken }).then(function (d) {
       S.token = d.accessToken; S.tokenExp = d.accessExpiresAt; S.refreshToken = d.refreshToken; storageSet({ refreshToken: d.refreshToken });
@@ -101,17 +102,20 @@
 
   // ---- the player's actions -------------------------------------------------------------------------------------
   function connect(label) {
+    if (!S.refreshToken && C.market.sync && C.market.sync.isLinked()) return Promise.reject(failure('recovery-required', 'Use your recovery code to reconnect the account linked to this collection.'));
+    if (S.refreshToken) return refresh(true).then(function () { return C.market.sync ? C.market.sync.link() : null; }).then(function () { return { alias: S.alias, alreadyConnected: true }; });
     return request('POST', '/v1/auth/register', { label: label || 'This device' }).then(function (d) {
       S.token = d.accessToken; S.tokenExp = d.accessExpiresAt; S.refreshToken = d.refreshToken; S.alias = d.alias; S.imported = false; S.status = 'online'; S.error = null;
       storageSet({ refreshToken: d.refreshToken, alias: d.alias, imported: false });
-      return refresh(true).then(function () { return { alias: d.alias, recoveryCode: d.recoveryCode }; });
+      return refresh(true).then(function () { return C.market.sync ? C.market.sync.link() : null; }).then(function () { return { alias: d.alias, recoveryCode: d.recoveryCode }; }, function (error) { return { alias: d.alias, recoveryCode: d.recoveryCode, syncPending: true, syncError: error.message }; });
     });
   }
   function recover(code) {
+    if (C.market.sync) C.market.sync.deviceId();
     return request('POST', '/v1/auth/recover', { recoveryCode: code, label: 'This device' }).then(function (d) {
       S.token = d.accessToken; S.tokenExp = d.accessExpiresAt; S.refreshToken = d.refreshToken; S.alias = d.alias;
       storageSet({ refreshToken: d.refreshToken, alias: d.alias });
-      return refresh(true).then(function () { return { alias: d.alias }; });
+      return refresh(true).then(function () { return C.market.sync ? C.market.sync.recover() : null; }).then(function () { return { alias: d.alias }; });
     });
   }
   function signOut() {
@@ -157,5 +161,5 @@
     get state() { return S; }, configured: function () { return !!base(); }, base: base,
     subscribe: function (fn) { listeners.add(fn); return function () { listeners.delete(fn); }; }
   };
-  C.events.on('app:ready', function () { init(); if (base() && S.refreshToken) refresh(false); });
+  C.events.on('app:ready', function () { init(); if (base() && S.refreshToken && C.market.sync && (C.market.sync.isLinked() || C.market.sync.state.linking)) refresh(false).then(function () { if (S.status === 'online') return C.market.sync.sync(); }).catch(function () {}); });
 })(window.Cardable = window.Cardable || {}, window);

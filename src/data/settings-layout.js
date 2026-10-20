@@ -219,13 +219,13 @@
       { title: 'Collection', keys: ['defaultSort', 'defaultView', 'defaultTagMode', 'startupScreen'] },
       { title: 'Shop', keys: ['shopLayout', 'shopMotion', 'shopSort', 'shopCompareDifferences', 'shopWishlistMarkers'] },
       { title: 'Formats', keys: ['timeFormat', 'dateFormat', 'numberFormat'] } ] },
-    { id: 'Market', icon: 'mk-market', blurb: 'The trading preview: layout, charts and confirmations.', sections: [
-      { title: 'Browsing', keys: ['marketMode', 'marketRealm', 'marketView', 'marketDensity', 'marketReducedData', 'marketCompactNumbers'] },
-      { title: 'Simulation', keys: ['marketSimSpeed'] },
-      { title: 'Stocks', keys: ['marketChartType', 'marketWindow'] },
-      { title: 'Trading', keys: ['marketConfirm', 'marketListingDuration'] },
-      { title: 'Notch', keys: ['marketNotch', 'marketNotchMode', 'marketNotchCycle', 'marketNotchPeek'] },
-      { title: 'Notices', keys: ['marketNotifyBids', 'marketNotifyTrades', 'marketNotifyWatch'] } ] },
+    { id: 'Market', icon: 'mk-market', blurb: 'Appearance, browsing and trading preferences.', sections: [
+      { title: 'Appearance', keys: ['marketTextSize', 'marketPanelMaterial', 'marketDensity', 'marketCompactNumbers'] },
+      { title: 'Browsing', keys: ['marketRememberFilters', 'marketAffordableDefault', 'marketUnownedDefault', 'marketView', 'marketReducedData'] },
+      { title: 'Selling', keys: ['marketMode', 'marketBiddingDefault', 'marketListingDuration', 'marketRememberSelling', 'marketConfirm'] },
+      { title: 'Notifications', keys: ['marketNotifyBids', 'marketNotifyEnding', 'marketNotifySold', 'marketNotifyWon', 'marketNotifyTrades', 'marketNotifyWatch', 'marketNotch', 'marketNotchMode', 'marketNotchCycle', 'marketNotchPeek'] },
+      { title: 'Account', slot: 'market-account', keys: [] },
+      { title: 'Advanced', keys: ['marketChartType', 'marketWindow', 'marketSimSpeed'] } ] },
     { id: 'Controls', icon: 'keyboard', advanced: true, blurb: 'Two keys for every action.', sections: [{ title: 'Keyboard', slot: 'bindings', keys: [] }] },
     { id: 'Accessibility', icon: 'access', blurb: 'Clearer, calmer, easier to read.', sections: [
       { title: 'Vision', keys: ['highContrast', 'largerText', 'reduceTransparency', 'focusEmphasis'] },

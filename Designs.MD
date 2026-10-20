@@ -1,6 +1,6 @@
 # The Cardable design rules
 
-Current app: **1.13.0**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
+Current app: **1.14.0 — One Market**. The 1.2 series includes the One Cardable foundation, Controls update, desktop reliability and frame consistency passes. The owner's instruction permits purposeful color in the normal theme; full monochrome belongs to the saved Color theme setting. The older monochrome-only sentence in the incoming brief is superseded.
 
 ## 1. Principles
 
@@ -176,13 +176,17 @@ Exceptions: authored card/variant/pack/cinematic materials retain their recipes 
 
 Design references: [Vercel interface guidelines](https://vercel.com/design/guidelines), [Apple color](https://developer.apple.com/design/human-interface-guidelines/color), [Apple motion](https://developer.apple.com/design/human-interface-guidelines/motion), [Apple accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility). Cardable adopts their focus, semantic controls, redundant color, restraint and meaningful-motion guidance within its offline runtime.
 
-## 12. Market (Cardable Market Beta)
+## 12. Market (One Market, 1.14.0)
 
 The Market is a destination of the same game, not a second product. It uses the kit tokens, Inter and JetBrains Mono, the HUD glass for its entry button and one near-black surface. The real card is the hero everywhere: feed tiles show real GPU art, detail pages mount one focused full card, and a seller's cover image never replaces it.
 
-**Structure.** A full-window overlay (`src/ui/market/shell.js`) holds a header (brand mark, search with suggestions, the island, realm switch, wallet, close), a dock of icons (Home, Browse, Auctions, Portfolio, Prices and More, with Watchlist and Alerts at the far end) and a scrolling page. Names appear on hover and focus and are always in the accessible name; the page's own heading names where you are. Below 840 px of its own width it folds to a bottom bar of four sections and More. Layout follows the Market's container width (container queries on `.mk-frame`), not the window's. One router owns Back, Escape and scroll and focus restoration.
+**Structure.** A full-window overlay (`src/ui/market/shell.js`) holds search, the notch, the shared wallet and Close above four visibly labelled tabs: **Browse**, **Shop**, **Your cards** and **Activity**. Keep their names visible in narrow layouts. One router owns Back, Escape, scroll and focus restoration. Settings holds secondary tools and Advanced; an icon-only navigation dock and realm selector are superseded.
 
-**Realms.** Simulation and Global Market are always labelled: a realm badge with its state (Preview, Not connected, Sample layout) sits in the header, the notice row and every detail page. Balances, histories and valuations are never mixed. An unconnected Global Market is empty and says so. Sample listings can be switched on and are always labelled; they are never counted as volume.
+**One economy.** The game, Shop and all trades show the same Credits and actual collection. Computer traders work offline; player listings join the same feed only after account connection and linking. Label computer and player sellers clearly without asking the player to switch realms. Connection and pending-sync states explain what is available; linking failure leaves player listings gated. Never imply that an offline action reached the service before acknowledgment. Legacy provider ids are internal compatibility details.
+
+**Simple selling.** Show the exact copy, price, fee and what the seller receives. Bidding starts on by default and its saved preference controls later drafts. An auction may include an optional Buy now price. The review confirms the exact terms before mutation. Advanced controls belong in Market Settings; routine listing does not require a realm choice, a portfolio import or knowledge of provider APIs.
+
+The earlier stage descriptions below record the original patterns. Their separate-realm, split-wallet and icon-dock rules are historical and are superseded by the current structure and economy above. See [the implementation and verification record](docs/MARKET-UNIFIED-1.14.0.md).
 
 | Pattern | Rule |
 |---|---|
@@ -242,13 +246,13 @@ When a trade settles, the card lifts where you pressed (or out of the island if 
 7. *Light under the pointer.* Super Rare and better carry a holographic layer (colour-dodge, following the pointer) on the card art; Shop cards, suggestion minis and tracker pills take a soft light at the pointer and a one-shot glint on arrival. The light is written on the card itself, never a container.
 8. *Nothing rebuilds on a tick.* The notch pill, its open panel, the header wallet and the clock chip are built once and rewrite only text that changed; the pill animates only when what it is about changes. The clock chip shows a sun by day and a moon by night, and '›' or '»' after its word at Brisk or Fast.
 
-Realms are named **Standard** (traders on this device) and **Players** (real players); ids stay `simulation` and `global`. Traders have generated handles and a two-letter avatar on a colour that is stable for the name.
+In 1.13.0 the realms were named Standard and Players. One Market removes that visible choice; `simulation` and `global` remain internal compatibility ids. Traders retain generated handles and stable avatars.
 
 **Motion and cost.** Pages rise 10 px over the slow duration; tiles stagger up to eight. Everything stops for reduced motion, Hover animations off and Very Low. Feeds are cursor-paginated; thumbnails are created within a screen of the viewport and released beyond it; no tile owns a clock or a chart; the Market adds no scheduler subscriber and no idle loop.
 
 **Copy.** Sentence case. Terms follow the glossary in `src/data/market-config.js` (Average Value, Target Buy, Target Sell, Volume, Spread, Reserve, Proxy bid, Settlement, Escrow, Quick Sell, Realm), each reachable from a help control beside its first use. Never imply that a preview trade happened.
 
-**Settings.** Fourteen `market*` keys live in the shared schema under a Market page: detail level, starting realm, Discover layout, density, chart style, default window, Reduced data, Compact Credits, confirmation level, default auction length, simulation speed and three notice groups. Each changes something that exists in the build. A Simulation panel in Market settings holds pause, export, restore and reset.
+**Historical settings (pre-1.14.0).** Fourteen `market*` keys live in the shared schema under a Market page: detail level, starting realm, Discover layout, density, chart style, default window, Reduced data, Compact Credits, confirmation level, default auction length, simulation speed and three notice groups. Each changes something that exists in the build. A Simulation panel in Market settings holds pause, export, restore and reset.
 
 ## Appendix: retained gameplay, artwork and delivery contracts
 

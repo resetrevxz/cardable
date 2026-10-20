@@ -52,6 +52,7 @@
     return ctxCache;
   }
   function context(realm) {
+    if (realm === 'unified') realm = effectiveRealm();
     var p = playerState(), watch = C.market.store ? C.market.store.watching() : {};
     // A Secret card that is not yet found stays concealed: it is searched and shown under its concealed name.
     var concealed = {}, base = baseContext();
@@ -90,8 +91,8 @@
       return { realm: realm, state: def.state, label: sample ? 'Sample layout' : def.stateLabel, connected: false, message: C.data.market.notices[sample ? 'globalSample' : realm] };
     },
     wallet: function (realm) {
-      if (realm === 'global') return { realm: realm, balance: null, label: 'Not connected', note: 'Players has its own wallet. It appears when you connect.' };
-      return { realm: realm, balance: playerState().currency, label: 'Credits', note: 'Your offline Credits. Simulation trades will keep a separate ledger.' };
+      if (realm === 'global') return { realm: realm, balance: null, label: 'Not connected', note: 'Link an account to trade with players using your Credits.' };
+      return { realm: realm, balance: playerState().currency, label: 'Credits', note: 'Your Credits for packs, the Shop and trading.' };
     },
     listings: function (realm, query) {
       query = query || {};
@@ -233,14 +234,75 @@
 
   // The developer's sample layout for Global (?dev=1) always reads the Stage 1 sample data, never the online client.
   function resolve(realm) {
+    if (realm === 'unified') return unifiedProvider;
     if (realm === 'global' && C.market.store && C.market.store.session.showGlobalSample) return sampleProvider;
     return providers[realm] || sampleProvider;
   }
+  // The realm is now an implementation detail. A connected game uses the same server
+  // records for players and game traders; a disconnected game keeps its own traders.
+  function effectiveRealm() {
+    var sync = C.market.sync, state = sync && sync.state;
+    return sync && sync.isLinked() && C.market.online && C.market.online.state.status === 'online' && state.status !== 'offline' && state.status !== 'device-mismatch' ? 'global' : 'simulation';
+  }
+  var listingSources = Object.create(null), unifiedProvider = {};
+  function markListing(listing, realm) {
+    if (!listing) return listing;
+    listingSources[listing.id] = realm;
+    listing._realm = realm;
+    listing.source = realm === 'simulation' || listing.source === 'trader' || listing.seller && listing.seller.isBot ? 'trader' : 'player';
+    return listing;
+  }
+  function markResult(name, result, realm) {
+    if (!result) return result;
+    if (name === 'listings') (result.items || []).forEach(function (entry) { markListing(entry.listing, realm); });
+    if (name === 'listing') markListing(result.listing || (result.card && result.id ? result : null), realm);
+    if (name === 'suggest') (result.listings || []).forEach(function (listing) { markListing(listing, realm); });
+    if (name === 'activity') ['mine', 'bids'].forEach(function (key) { (result[key] || []).forEach(function (entry) { markListing(entry.listing || entry, realm); }); });
+    return result;
+  }
+  CONTRACT.reads.forEach(function (name) {
+    unifiedProvider[name] = function () {
+      var args = Array.prototype.slice.call(arguments), realm = effectiveRealm();
+      if (name === 'listing' && C.state.current && C.state.current.unified) {
+        var moved = (C.state.current.unified.publishedListings || []).find(function (entry) { return entry.originalId === args[1]; });
+        if (moved) { args[1] = moved.listingId; realm = 'global'; }
+      }
+      if (name === 'listing' && listingSources[args[1]]) realm = listingSources[args[1]];
+      // Cached player cards never become a disconnected browsing surface.
+      if (realm === 'global' && effectiveRealm() !== 'global') {
+        if (name === 'listing') return { realm: 'unified', listing: null, reason: 'offline' };
+        realm = 'simulation';
+      }
+      if (name === 'wallet') {
+        var balance = playerState().currency, held = C.marketSim && C.marketSim.heldCredits ? C.marketSim.heldCredits() : 0;
+        return { realm: 'unified', balance: balance, held: held, available: Math.max(0, balance - held), label: 'Credits', note: held ? 'Some Credits are held by your open bids and orders.' : 'Available across the Market and Shop.' };
+      }
+      args[0] = realm;
+      return markResult(name, resolve(realm)[name].apply(null, args), realm);
+    };
+  });
+  CONTRACT.writes.concat(CONTRACT.optionalWrites).forEach(function (name) {
+    unifiedProvider[name] = function () {
+      var args = Array.prototype.slice.call(arguments), realm = effectiveRealm();
+      if (typeof args[1] === 'string' && listingSources[args[1]]) realm = listingSources[args[1]];
+      if (realm === 'global' && effectiveRealm() !== 'global') return { ok: false, message: 'Reconnect to trade with players.' };
+      args[0] = realm;
+      var provider = resolve(realm);
+      if (!provider[name]) return { ok: false, message: 'This action is unavailable.' };
+      return provider[name].apply(null, args);
+    };
+  });
+  unifiedProvider.prefetch = function (name, params) {
+    var realm = effectiveRealm(), provider = resolve(realm);
+    return provider.prefetch ? provider.prefetch(name, params) : null;
+  };
+  Object.defineProperty(unifiedProvider, 'capabilities', { get: function () { return resolve(effectiveRealm()).capabilities || {}; } });
   var api = {
     contract: CONTRACT,
     data: data,
     context: context,
     playerState: playerState,
+    effectiveRealm: effectiveRealm,
     registerProvider: function (realm, provider) {
       CONTRACT.reads.concat(CONTRACT.writes).forEach(function (m) { if (typeof provider[m] !== 'function') throw new Error('Market provider is missing ' + m); });
       if (realm === 'simulation') { simulationLive = true; simProvider = provider; }

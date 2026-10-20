@@ -3,14 +3,11 @@
  *    briefcase lifts, the price bars grow, the bag swings.
  *  - Cards under the pointer catch the light where the pointer is; Super Rare and better also get a glint that sweeps
  *    across when you reach them. The light is a custom property written on the card itself (never on a container).
- *  - Tips: one short tip at a time with an icon, moving on every few seconds while you are on the page (pause it, step
- *    through it, or hide it for good).
  *  - Listings that just arrived slide in with a "New" mark.
  * One-shot transform/opacity motion only; Reduced motion, Hover animations off and the lowest qualities turn it all off. */
 (function (C, root) {
   'use strict';
   var ui = C.market.ui, h = ui.h, icon = ui.icon, doc = root.document;
-  var TIP_MS = 7000, TIPS_KEY = 'cardable.market.tips';
 
   function still() { return ui.motion.still(); }
   function hoverOn() { return !still() && C.settings.get('hoverAnimations') !== false; }
@@ -57,51 +54,6 @@
     scroller.addEventListener('pointerout', onOut, { passive: true });
   }
 
-  // ---- tips ----
-  var TIPS = [
-    { icon: 'bulb', text: 'Cards in green are priced under what they usually sell for.' },
-    { icon: 'gavel', text: 'In an auction you set the most you would pay. The Market bids for you, one step at a time.' },
-    { icon: 'tag', text: 'Selling? “List a card” suggests a fair price. Price a little lower to sell faster.' },
-    { icon: 'bell', text: 'Outbid? The notch at the top tells you, with a button to bid again.' },
-    { icon: 'clock', text: 'Market time only runs while you play. Speed it up from the clock.' },
-    { icon: 'bookmark', text: 'Bookmark a listing to watch it. You will hear when its price moves.' },
-    { icon: 'zap', text: 'A fire sale is a trader who needs Credits now. They do not last.' },
-    { icon: 'bag', text: 'The Shop sells four cards a day at a fixed price. No bidding, no waiting.' },
-    { icon: 'activity', text: 'News moves prices. A card in the news often sells for more a few hours later.' },
-    { icon: 'cards', text: 'A card you list is locked, not gone. Withdraw it any time before it sells.' }
-  ];
-  function tipsHidden() { try { return root.localStorage.getItem(TIPS_KEY) === 'hidden'; } catch (_) { return false; } }
-  function hideTips() { try { root.localStorage.setItem(TIPS_KEY, 'hidden'); } catch (_) { /* this session only */ } }
-  function tips(scope, options) {
-    options = options || {};
-    if (tipsHidden() && !options.force) return null;
-    var list = options.tips || TIPS, at = Math.floor((Date.now() / 86400000) % list.length), paused = false, timer = 0;
-    var glyph = h('span.mk-tips-icon', { 'aria-hidden': 'true' }), text = h('span.mk-tips-text'), dots = h('span.mk-tips-dots', { 'aria-hidden': 'true' });
-    var pauseBtn = ui.iconButton('pause', 'Pause tips', function () { paused = !paused; pauseBtn.setAttribute('aria-pressed', String(paused)); ui.clear(pauseBtn); pauseBtn.appendChild(icon(paused ? 'play' : 'pause')); pauseBtn.title = paused ? 'Play tips' : 'Pause tips'; pauseBtn.setAttribute('aria-label', pauseBtn.title); schedule(); }, { variant: 'ghost' });
-    var box = h('aside.mk-tips', { 'aria-label': 'Tips', 'aria-roledescription': 'carousel' },
-      h('span.mk-tips-label', icon('bulb'), h('span', { text: 'Tip' })),
-      h('div.mk-tips-stage', { 'aria-live': 'polite' }, glyph, text),
-      h('div.mk-tips-controls', dots,
-        ui.iconButton('back', 'Previous tip', function () { show(at - 1, -1); }, { variant: 'ghost' }),
-        ui.iconButton('forward', 'Next tip', function () { show(at + 1, 1); }, { variant: 'ghost' }),
-        pauseBtn,
-        ui.iconButton('close', 'Hide tips', function () { hideTips(); box.remove(); stop(); }, { variant: 'ghost' })));
-    list.forEach(function () { dots.appendChild(h('i')); });
-    function show(i, dir) {
-      at = (i + list.length) % list.length;
-      var t = list[at];
-      ui.clear(glyph); glyph.appendChild(icon(t.icon)); text.textContent = t.text;
-      Array.prototype.forEach.call(dots.children, function (d, n) { d.dataset.on = String(n === at); });
-      if (dir && !still()) { box.dataset.dir = dir > 0 ? 'next' : 'prev'; box.classList.remove('is-turn'); void box.offsetWidth; box.classList.add('is-turn'); }
-      schedule();
-    }
-    function schedule() { stop(); if (!paused && !still()) timer = root.setTimeout(function () { if (!box.isConnected) return; if (doc.hidden || box.matches(':hover') || box.contains(doc.activeElement)) { schedule(); return; } show(at + 1, 1); }, TIP_MS); }
-    function stop() { if (timer) { root.clearTimeout(timer); timer = 0; } }
-    show(at, 0);
-    if (scope) scope.add(stop);
-    return box;
-  }
-
   // ---- fresh listings ----
   function markFresh(container, beforeIds) {
     if (!container || !beforeIds) return 0;
@@ -121,6 +73,6 @@
   // a short celebration on something you did (a Shop purchase, a first sale)
   function cheer(anchor) { ui.motion.burst(anchor); ui.motion.pulse(anchor); }
 
-  ui.flourish = Object.assign(ui.flourish || {}, { playTab: playTab, attach: attach, tips: tips, markFresh: markFresh, cheer: cheer, TIPS: TIPS });
+  ui.flourish = Object.assign(ui.flourish || {}, { playTab: playTab, attach: attach, markFresh: markFresh, cheer: cheer });
   C.events.on('market:open', function () { if (ui.shell && ui.shell.scroller) attach(ui.shell.scroller); if (ui.shell && ui.shell.trackerHost) attach(ui.shell.trackerHost); });
 })(window.Cardable = window.Cardable || {}, window);

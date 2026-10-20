@@ -16,7 +16,13 @@
   function pageState(id) {
     var s = store.session;
     s.pages = s.pages || {};
-    if (!s.pages[id]) s.pages[id] = { tab: 'for-you', sort: PAGES[id].sort || 'recommended', filters: K().emptyFilters(), pages: 1, saved: null };
+    if (!s.pages[id] || C.settings.get('marketRememberFilters') === false) {
+      var saved = C.settings.get('marketRememberFilters') !== false ? store.getDraft('browse-filters:' + id) : null;
+      var f = saved && saved.draft && saved.draft.filters ? K().normalizeFilters(saved.draft.filters) : K().emptyFilters();
+      if (!saved) { f.withinBudget = !!C.settings.get('marketAffordableDefault'); f.ownership = C.settings.get('marketUnownedDefault') ? 'not-owned' : ''; }
+      s.pages[id] = { tab: saved && saved.draft.tab || 'for-you', sort: saved && saved.draft.sort || PAGES[id].sort || 'recommended', filters: f, source: saved && saved.draft.source || '', pages: 1, saved: null };
+    }
+
     return s.pages[id];
   }
   // Invented sample listings exist only as a developer aid (?dev=1); in play an unconnected Global Market is simply empty.
@@ -111,10 +117,12 @@
     var view = C.settings.get('marketView');
     var reduced = !!C.settings.get('marketReducedData');
     var pageSize = reduced ? cfg().pageSize.reduced : view === 'terminal' ? cfg().pageSize.terminal : cfg().pageSize.feed;
+    if (!advanced && ['trending', 'trades'].indexOf(state.tab) >= 0) state.tab = 'for-you';
     if (id === 'discover' && state.tab === 'trades') return mountRecentTrades(ctx, state);
     if (def.formats) state.filters.formats = def.formats.slice();
     if (id === 'discover' && ctx.params.q != null) { state.filters.q = ctx.params.q; }
     if (id === 'discover') state.filters = store.session.filters && store.session.filters !== state.filters ? Object.assign(state.filters, { q: store.session.filters.q }) : state.filters;
+    scope.add(function () { if (C.settings.get('marketRememberFilters') !== false) store.saveDraft('browse-filters:' + id, { filters: state.filters, tab: state.tab, sort: state.sort, source: state.source || '' }); });
     var facets = null, lastTotal = 0, cursor = null, loading = false, token = 0, known = null;
 
     // ---- page head ----
@@ -130,31 +138,15 @@
     var viewSwitch = ui.segmented({ label: 'Layout', value: view, onChange: function (v) { C.settings.set('marketView', v); },
       options: [{ value: 'feed', label: 'Feed', icon: 'grid' }, { value: 'terminal', label: 'Terminal', icon: 'list' }] });
     viewSwitch.classList.add('mk-view-switch');
-    var modeSwitch = ui.segmented({ label: 'Detail level', value: advanced ? 'advanced' : 'simple', onChange: function (v) { C.settings.set('marketMode', v); },
-      options: [{ value: 'simple', label: 'Simple' }, { value: 'advanced', label: 'Advanced' }] });
-    modeSwitch.classList.add('mk-mode-switch');
-    var sellBtn = ui.button('List a card', { variant: 'primary', icon: 'plus', onClick: function () { ui.go('compose', {}); } });
-    actions.append(refreshBtn, viewSwitch, modeSwitch, sellBtn);
+    actions.appendChild(refreshBtn); if (advanced) actions.appendChild(viewSwitch);
     head.append(titleBlock, actions);
     host.appendChild(head);
     // one short tip at a time (hide it for good with its close button)
-    if ((id === 'discover' || id === 'auctions') && ui.flourish && ui.flourish.tips) { var tipBox = ui.flourish.tips(scope); if (tipBox) host.appendChild(tipBox); }
 
-    // ---- intro for first visit (Standard is introduced by the guided tour instead of a block of text) ----
-    if (!store.prefs.guideSeen && id === 'discover') {
-      if (realm === 'global' && ui.sim.live(realm) && ui.online && ui.online.introCard) host.appendChild(ui.online.introCard());
-      else if (ui.sim.live(realm)) { /* the tour (tour.js) */ }
-      else {
-        var intro = h('aside.mk-intro', { role: 'note' },
-          h('div', h('strong', { text: 'This is a preview of the Market.' }),
-            h('p', { text: 'Two markets: Standard, with traders on this device, and Players, with real players. Everything here is sample data. Nothing is bought, sold or saved.' })),
-          ui.button('Got it', { variant: 'secondary', onClick: function () { store.markGuideSeen(); intro.remove(); } }));
-        host.appendChild(intro);
-      }
-    }
+
     // Global Discover: what is moving, what is busy and what just sold, from completed player sales only. The Simulation
     // appears as one separate line, never as listings or prices.
-    if (realm === 'global' && ui.sim.live(realm) && id === 'discover' && C.market.onlineProvider) {
+    if (advanced && ui.sim.isGlobal(realm) && ui.sim.live(realm) && id === 'discover' && C.market.onlineProvider) {
       var strip = h('section.mk-explore', { 'aria-label': 'Moving now' });
       host.appendChild(strip);
       var paintStrip = function () {
@@ -182,7 +174,7 @@
           });
           strip.appendChild(cols);
         }
-        strip.appendChild(h('p.mk-hint', { text: 'Want to practise? Standard is a separate, offline market. Its listings never appear here.' }));
+
       };
       paintStrip();
       scope.add(store.subscribe(function (what) { if (what === 'sim') paintStrip(); }));
@@ -201,7 +193,7 @@
     var tabsEl = null;
     if (def.tabs) {
       tabsEl = ui.segmented({ label: 'Discover feeds', role: 'tablist', value: state.tab,
-        options: cfg().tabs.map(function (t) { return { value: t.id, label: t.label }; }),
+        options: cfg().tabs.filter(function (t) { return advanced || ['for-you', 'new', 'ending', 'saved'].indexOf(t.id) >= 0; }).map(function (t) { return { value: t.id, label: t.id === 'for-you' ? 'All' : t.label }; }),
         onChange: function (v) { state.tab = v; state.pages = 1; if (v === 'trades') { ui.shell.remount(); return; } if (v !== 'for-you') state.sort = ''; else if (!state.sort) state.sort = 'recommended'; refresh(true); updateSortSelect(); } });
       tabsEl.classList.add('mk-feed-tabs');
       var tabWrap = h('div.mk-feedbar', tabsEl);
@@ -242,7 +234,8 @@
     viewsBtn.setAttribute('aria-haspopup', 'dialog'); viewsBtn.setAttribute('aria-expanded', 'false');
     var right = h('div.mk-controlbar-right', sortWrap, viewsBtn);
     toolbar.append(filterToggle, presetRow, right);
-    host.appendChild(toolbar);
+    if (tabsEl) host.appendChild(h('div.mk-browse-tools', tabWrap, toolbar));
+    else host.appendChild(toolbar);
 
     // ---- active chips + count ----
     var chipsRow = h('div.mk-chiprow');
@@ -268,7 +261,8 @@
     var tileEnv = { cards: env.cards, owned: env.owned, variants: env.variants, thumbs: ctx.thumbs, index: 0 };
 
     function query(limit) {
-      var q = { tab: state.tab, filters: state.filters, limit: limit, cursor: null, sort: state.sort || undefined, lockFormats: def.formats || null };
+      var filters = K().normalizeFilters(state.filters); if (state.tab === 'saved') filters.ownership = 'watching';
+      var q = { source: advanced ? state.source || '' : '', tab: state.tab === 'saved' ? 'for-you' : state.tab, filters: filters, limit: limit, cursor: null, sort: state.sort || undefined, lockFormats: def.formats || (advanced ? null : ['buy-now', 'auction']) };
       return q;
     }
 
@@ -298,8 +292,8 @@
       var body = h('div.mk-rail-body');
       rail.appendChild(body);
       function toggleIn(group) { return function (value) { change(function (g) { var i = g[group].indexOf(value); if (i >= 0) g[group].splice(i, 1); else g[group].push(value); }); }; }
-      if (!def.formats) {
-        controls.formats = chipGroup(cfg().formats.map(function (x) { return { value: x.id, label: x.short, count: 0 }; }), f.formats, toggleIn('formats'), 'Listing type');
+      if (advanced && !def.formats) {
+        controls.formats = chipGroup(cfg().formats.filter(function (x) { return advanced || x.id !== 'swap'; }).map(function (x) { return { value: x.id, label: x.short, count: 0 }; }), f.formats, toggleIn('formats'), 'Listing type');
         body.appendChild(section('Listing type', controls.formats, { key: 'format' }));
       }
       if (def.auctionControls) {
@@ -309,13 +303,15 @@
       controls.rarities = chipGroup(rarityList(env).map(function (r) { return { value: r.id, label: r.name, count: 0, title: r.name }; }), f.rarities, toggleIn('rarities'), 'Rarity');
       body.appendChild(section('Rarity', controls.rarities, { key: 'rarity' }));
       var budgetFields = h('div.mk-stack');
-      if (realm === 'simulation') budgetFields.appendChild(toggle('Within my budget', f.withinBudget, function (v) { change(function (g) { g.withinBudget = v; }); }, 'Credits you hold: ' + ui.fmt.credits(env.budget || 0)));
+      if (ui.sim.live(realm)) budgetFields.appendChild(toggle('Within my budget', f.withinBudget, function (v) { change(function (g) { g.withinBudget = v; }); }, 'Credits you hold: ' + ui.fmt.credits(env.budget || 0)));
       controls.price = rangeFields('Price in Credits', f.price, '–', function (v) { change(function (g) { g.price = v; }); });
       budgetFields.appendChild(controls.price);
       body.appendChild(section('Price', budgetFields, { key: 'price' }));
       var own = selectField('Ownership', [{ value: '', label: 'Any' }, { value: 'owned', label: 'Cards I own' }, { value: 'not-owned', label: 'Cards I do not own' }, { value: 'gap', label: 'Collection gaps' }, { value: 'wishlist', label: 'On my wishlist' }, { value: 'watching', label: 'On my watchlist' }], f.ownership, function (v) { change(function (g) { g.ownership = v; }); });
       body.appendChild(section('Your collection', own, { key: 'own' }));
       if (advanced) {
+        var source = selectField('Listing source', [{ value: '', label: 'All' }, { value: 'player', label: 'Player' }, { value: 'trader', label: 'Game trader' }], state.source || '', function (v) { state.source = v; state.pages = 1; refresh(true); });
+        body.appendChild(section('Source', source, { key: 'source' }));
         controls.variants = chipGroup([{ value: 'normal', label: 'Normal', count: 0 }].concat(C.data.variants.filter(function (v) { return v.kind !== 'frame'; }).map(function (v) { return { value: v.id, label: v.name, count: 0 }; })), f.variants, toggleIn('variants'), 'Finish');
         body.appendChild(section('Finish', controls.variants, { key: 'variant', open: false }));
         controls.generations = chipGroup(C.data.generations.map(function (g) { return { value: g.id, label: g.name.replace('Generation', 'Gen'), count: 0, title: g.name }; }), f.generations, toggleIn('generations'), 'Generation');
@@ -351,7 +347,7 @@
 
     function clearAll() {
       var keep = def.formats ? def.formats.slice() : [];
-      state.filters = K().emptyFilters(); state.filters.formats = keep; state.pages = 1;
+      state.filters = K().emptyFilters(); state.filters.formats = keep; state.source = ''; state.pages = 1;
       if (id === 'discover') store.session.filters = state.filters;
       buildRail(); refresh(true);
     }
@@ -416,7 +412,7 @@
         store.prefs.sortPresets.filter(function (p) { return p.realm === realm; }).forEach(function (p) {
           box.appendChild(h('button.mk-menu-item', { type: 'button', role: 'menuitem', on: { click: function () { state.sort = p.sort; state.tab = p.tab || state.tab; state.pages = 1; close(false); fillSort(); refresh(true); if (tabsEl) tabsEl.set(state.tab); } } }, h('span', { text: 'Sort: ' + p.name }), h('small', { text: 'preset' })));
         });
-        if (realm === 'global' && ui.sim.live(realm) && C.market.onlineProvider) {
+        if (ui.sim.isGlobal(realm) && ui.sim.live(realm) && C.market.onlineProvider) {
           box.appendChild(ui.button('Alert me when something matches', { icon: 'bell', variant: 'secondary', onClick: function () {
             var f = state.filters, q = {};
             if (f.q) q.q = f.q; if (f.rarities.length) q.rarity = f.rarities.slice(0, 8);
@@ -440,6 +436,7 @@
     function renderChips() {
       ui.clear(chipsRow);
       var chips = describe(state.filters, env, function (m) { change(m); });
+      if (advanced && state.source) chips.push({ id: 'source', label: state.source === 'player' ? 'Player listings' : 'Game trader listings', remove: function () { state.source = ''; state.pages = 1; refresh(true); } });
       var visible = chips.filter(function (c) { return !(def.formats && /^format:/.test(c.id)); });
       var count = visible.length + (state.filters.q ? 1 : 0);
       var badge = filterToggle.querySelector('.mk-count');
@@ -473,31 +470,31 @@
     function renderEmpty(res) {
       ui.releaseArt(results, ctx.thumbs);
       ui.clear(results); grid = null;
-      if (realm === 'global' && ['signed-out', 'offline', 'paused', 'no-listings'].indexOf(res.emptyReason) >= 0 && !store.session.showGlobalSample) {
+      if (ui.sim.isGlobal(realm) && ['signed-out', 'offline', 'paused', 'no-listings'].indexOf(res.emptyReason) >= 0 && !store.session.showGlobalSample) {
         var gs = C.market.api.statusSync('global');
         var actions = [];
-        if (res.emptyReason === 'signed-out') actions.push({ label: 'Connect to Players', variant: 'primary', icon: 'user', run: function () { if (ui.online) ui.online.connectDialog(); } });
+        if (res.emptyReason === 'signed-out') actions.push({ label: 'Connect to Market', variant: 'primary', icon: 'user', run: function () { if (ui.online) ui.online.connectDialog(); } });
         if (res.emptyReason === 'offline' || res.emptyReason === 'paused') actions.push({ label: 'Try again', variant: 'primary', icon: 'forward', run: function () { C.market.online.refresh(true); } });
-        actions.push({ label: 'Open Standard', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
+        actions.push({ label: 'Refresh listings', variant: actions.length ? 'secondary' : 'primary', icon: 'refresh', run: function () { refresh(true); } });
         if (res.emptyReason === 'no-listings') actions.unshift({ label: 'List a card', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } });
         results.appendChild(ui.emptyState({ kind: res.emptyReason === 'no-listings' ? 'empty' : 'offline', icon: res.emptyReason === 'no-listings' ? 'market' : 'lock',
-          title: res.emptyReason === 'no-listings' ? 'No one is selling yet' : res.emptyReason === 'paused' ? 'Players is paused' : res.emptyReason === 'offline' ? 'Players is unreachable' : 'Connect to see Players',
-          body: res.emptyReason === 'no-listings' ? 'Everything here comes from real players, and the beta is new. When a player lists a card it appears here. Nothing is added to make it look busy: no bots, no samples. List a card of your own, or sell a few to the system to get your first Credits.'
+          title: res.emptyReason === 'no-listings' ? 'No one is selling yet' : res.emptyReason === 'paused' ? 'Market is paused' : res.emptyReason === 'offline' ? 'Market is unreachable' : 'Connect to see Market',
+          body: res.emptyReason === 'no-listings' ? 'No cards are listed right now. Check again soon or list one of your own.'
             : gs.message, actions: actions }));
         return;
       }
       if (res.emptyReason === 'not-connected') {
-        results.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: 'Players is not connected',
-          body: 'It lists real players’ cards once connected. You can browse Standard or draft a listing meanwhile.',
+        results.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: 'Market is not connected',
+          body: 'Link an account to trade with players, or keep browsing game trader listings.',
           actions: [
-            { label: 'Open Standard', variant: 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } },
+            { label: 'Refresh listings', variant: 'primary', icon: 'refresh', run: function () { refresh(true); } },
             { label: 'Draft a listing', variant: 'secondary', icon: 'plus', run: function () { ui.go('compose', {}); } },
             { label: 'Preview the layout with sample listings', variant: 'ghost', icon: 'eye', run: function () { store.session.showGlobalSample = true; store.emit('realm'); } }].filter(function (action) { return action.icon !== 'eye' || devMode(); }) }));
         return;
       }
       var pool = ui.sim.live(realm)
         ? ctx.api.listingsSync(realm, { tab: 'for-you', filters: K().emptyFilters(), limit: 400, facets: false, lockFormats: def.formats || null }).items.map(function (e) { return e.listing; })
-        : env.data.listings[realm === 'global' && !store.session.showGlobalSample ? 'simulation' : realm].filter(function (l) { return l.status === 'active' || l.status === 'ending'; });
+        : env.data.listings[ui.sim.isGlobal(realm) && !store.session.showGlobalSample ? 'simulation' : realm].filter(function (l) { return l.status === 'active' || l.status === 'ending'; });
       var hints = K().relaxSuggestions(pool, state.filters, env.ctx);
       var extra = h('div.mk-hints');
       hints.forEach(function (hint) {
@@ -506,7 +503,7 @@
         extra.appendChild(b);
       });
       results.appendChild(ui.emptyState({ kind: 'no-results', icon: 'search', title: 'No listings match',
-        body: ui.sim.live(realm) && !pool.length ? (realm === 'global' ? 'No player is selling this right now. Players lists only what real players put up.' : 'No one in Standard is selling this right now. New cards are listed through the day.') : 'Nothing fits every filter. Loosen one, or clear them all.', extra: hints.length ? extra : null,
+        body: ui.sim.live(realm) && !pool.length ? (ui.sim.isGlobal(realm) ? 'No player is selling this right now. Player and game trader listings appear here as they are created.' : 'No game trader is selling this right now. New cards are listed through the day.') : 'Nothing fits every filter. Loosen one, or clear them all.', extra: hints.length ? extra : null,
         actions: [{ label: 'Clear all filters', variant: 'secondary', run: clearAll }] }));
     }
     function renderResults(res, append) {
@@ -550,7 +547,7 @@
         renderResults(res, false);
         if (before && grid && ui.flourish) ui.flourish.markFresh(grid, before);
         // every listing that exists now, shown or not: only a listing that appears after this counts as new
-        if (ui.sim.live(realm)) { known = {}; ctx.api.listingsSync(realm, { tab: state.tab, filters: state.filters, limit: 400, cursor: null, sort: state.sort || undefined, lockFormats: def.formats || null, facets: false }).items.forEach(function (e) { known[e.listing.id] = true; }); }
+        if (ui.sim.live(realm)) { known = {}; ctx.api.listingsSync(realm, Object.assign(query(400), { facets: false })).items.forEach(function (e) { known[e.listing.id] = true; }); }
         if (heroHost) renderHero(res);
         if (resetScroll) ctx.scroller.scrollTop = 0;
         ctx.restoreScroll();
@@ -559,7 +556,8 @@
     function loadMore() {
       if (loading || !cursor) return;
       loading = true;
-      var q = { tab: state.tab, filters: state.filters, limit: pageSize, cursor: cursor, sort: state.sort || undefined, facets: false };
+      var filters = K().normalizeFilters(state.filters); if (state.tab === 'saved') filters.ownership = 'watching';
+      var q = { source: advanced ? state.source || '' : '', tab: state.tab === 'saved' ? 'for-you' : state.tab, filters: filters, limit: pageSize, cursor: cursor, sort: state.sort || undefined, facets: false, lockFormats: def.formats || (advanced ? null : ['buy-now', 'auction']) };
       ctx.api.listings(realm, q).then(function (res) {
         loading = false; if (scope.dead) return;
         cursor = res.nextCursor; state.pages = Math.ceil((shown + res.items.length) / pageSize);
@@ -576,7 +574,7 @@
       ui.releaseArt(heroHost, ctx.thumbs);
       ui.clear(heroHost);
       var active = K().activeFilterCount(state.filters) + (state.filters.q ? 1 : 0);
-      if (id !== 'discover' || state.tab !== 'for-you' || active || !res.items.length || view === 'terminal') return;
+      if (id !== 'discover' || state.tab !== 'for-you' || (advanced && state.source) || active || !res.items.length || view === 'terminal') return;
       var pool = ctx.api.listingsSync(realm, { tab: 'for-you', filters: K().emptyFilters(), limit: 48, facets: false }).items.filter(function (e) { return e.listing.format !== 'swap'; });
       // Editorial picks: confident discounts first, scarcer cards leading, one entry per card.
       function tierOf(e) { var r = env.rarities[env.cards[e.listing.card.cardId].rarity]; return r ? r.tier : 0; }
@@ -587,47 +585,33 @@
         if (picks.length >= 4 || seen[e.listing.card.cardId]) return; seen[e.listing.card.cardId] = true; picks.push(e);
       });
       if (!picks.length) return;
-      var shelf = h('section.mk-hero', { 'aria-label': 'Featured opportunities' });
-      var main = picks[0], l = main.listing, card = env.cards[l.card.cardId], idn = ui.identity(card, !!env.owned[card.id]);
-      var artHost = h('div.mk-hero-art');
-      artHost.appendChild(ctx.thumbs.mount(card, { instanceId: 'mk-hero-' + l.id, cardId: card.id, serial: l.card.serial, variantId: l.card.variantId, cardSkinId: l.card.cardSkinId, seen: true }, { owned: !!env.owned[card.id] }));
-      var price = K().currentPrice(l), v = l.valuation;
-      var copy = h('div.mk-hero-copy');
-      copy.appendChild(h('span.mk-eyebrow.mk-hero-kind', icon(ui.formatDef(l.format).icon), h('span', { text: ui.formatDef(l.format).label })));
-      copy.appendChild(h('h2', { text: idn.name }));
-      var why = main.rank.discount >= 0.05 && v.average ? ui.fmt.pct(main.rank.discount, false) + ' under its usual price of ' + ui.fmt.exact(v.average) : '';
-      if (why) copy.appendChild(h('p.mk-hero-why', icon('down'), h('span', { text: why })));
-      var meta = h('div.mk-hero-meta', ui.chip(idn.rarityName, { tone: 'rarity' }));
-      if (l.card.variantId) meta.appendChild(ui.chip(env.variants[l.card.variantId].name));
-      var HERO = { gap: ['cards', 'New to you'], wishlist: ['star', 'Wishlist'], ending: ['clock', 'Ends soon'], fresh: ['sparkle', 'Just listed'], risk: ['warn', 'Risky'] };
-      main.rank.reasons.forEach(function (r) { if (HERO[r.id] && meta.children.length < 3) meta.appendChild(ui.chip(HERO[r.id][1], { tone: r.id === 'risk' ? 'warn' : 'soft', icon: HERO[r.id][0] })); });
-      copy.appendChild(meta);
-      var priceRow = h('div.mk-hero-price', ui.credits(price, { big: true }), l.format === 'auction' ? h('span.mk-muted', { text: (l.auction.bids === 1 ? '1 bid' : l.auction.bids + ' bids') + ' · ' + ui.fmt.duration(l.endsMin) + ' left' }) : null, why ? null : ui.valueTag(price, v));
-      copy.appendChild(priceRow);
-      var cta = h('div.mk-hero-actions', ui.button('View listing', { variant: 'primary', icon: 'forward', onClick: function () { ui.go('listing', { id: l.id }, { focusKey: l.id }); } }),
-        ui.button(store.isWatching(l.id) ? 'Watching' : 'Watch', { variant: 'secondary', icon: 'bookmark', onClick: function (e) { var on = store.toggleWatch(l.id); e.currentTarget.querySelector('span').textContent = on ? 'Watching' : 'Watch'; } }));
-      copy.appendChild(cta);
-      shelf.append(artHost, copy);
-      var side = h('div.mk-hero-side');
-      picks.slice(1).forEach(function (e) {
-        var sl = e.listing, sc = env.cards[sl.card.cardId], sid = ui.identity(sc, !!env.owned[sc.id]);
-        var tile = h('button.mk-mini', { type: 'button', 'aria-label': sid.name + ', ' + ui.formatDef(sl.format).label + ', ' + ui.fmt.exact(K().currentPrice(sl)) + ' Credits' });
-        var a = h('div.mk-mini-art');
-        a.appendChild(ctx.thumbs.mount(sc, { instanceId: 'mk-hero-' + sl.id, cardId: sc.id, serial: sl.card.serial, variantId: sl.card.variantId, cardSkinId: sl.card.cardSkinId, seen: true }, { owned: !!env.owned[sc.id] }));
-        tile.append(a, h('span.mk-mini-copy', h('strong', { text: sid.name }), h('span', { text: ui.formatDef(sl.format).short + ' · ' + sid.rarityName }), ui.credits(K().currentPrice(sl))));
-        tile.addEventListener('click', function () { ui.go('listing', { id: sl.id }, { focusKey: sl.id }); });
-        side.appendChild(tile);
+      var shelf = h('section.mk-recommendations', { 'aria-label': 'Recommended cards' });
+      var row = h('div.mk-recommendations-row');
+      picks.slice(0, 3).forEach(function (e) {
+        var l = e.listing, card = env.cards[l.card.cardId]; if (!card) return;
+        var name = ui.identity(card, !!env.owned[card.id]).name;
+        var tile = h('button.mk-mini', { type: 'button', 'aria-label': name + ', ' + ui.fmt.exact(K().currentPrice(l)) + ' Credits' });
+        var art = h('div.mk-mini-art');
+        art.appendChild(ctx.thumbs.mount(card, { instanceId: 'mk-rec-' + l.id, cardId: card.id, serial: l.card.serial, variantId: l.card.variantId, cardSkinId: l.card.cardSkinId, seen: true }, { owned: !!env.owned[card.id] }));
+        tile.append(art, h('span.mk-mini-copy', h('strong', { text: name }), h('span', { text: ui.formatDef(l.format).short }), ui.credits(K().currentPrice(l))));
+        tile.addEventListener('click', function () { ui.go('listing', { id: l.id }, { focusKey: l.id }); });
+        row.appendChild(tile);
       });
-      shelf.appendChild(side);
+      shelf.appendChild(row);
       heroHost.appendChild(shelf);
     }
 
     // ---- live simulation updates ----
     // Prices change in place, listings that closed are marked, and anything new waits behind the pill.
     function liveUpdate() {
-      if (!ui.sim.live(realm) || !grid) return;
+      if (!ui.sim.live(realm)) return;
+      if (!grid) {
+        var firstResults = ctx.api.listingsSync(realm, Object.assign(query(pageSize), { facets: false }));
+        if (!firstResults.loading && firstResults.items.length) refresh(false);
+        return;
+      }
       ui.sim.countdowns(results);
-      var res = ctx.api.listingsSync(realm, { tab: state.tab, filters: state.filters, limit: Math.max(pageSize, shown + 24), cursor: null, sort: state.sort || undefined, lockFormats: def.formats || null, facets: false });
+      var res = ctx.api.listingsSync(realm, Object.assign(query(Math.max(pageSize, shown + 24)), { facets: false }));
       var now = {}; res.items.forEach(function (e) { now[e.listing.id] = e.listing; });
       var present = {}, changed = 0;
       Array.prototype.forEach.call(grid.querySelectorAll('[data-id]'), function (node) {
@@ -672,10 +656,10 @@
 
   // ---- Recent trades ----
   function mountRecentTrades(ctx, state) {
-    var host = ctx.host, realm = ctx.realm, env = ctx.env(), live = ui.sim.live(realm);
+    var host = ctx.host, realm = ctx.realm, env = ctx.env(), live = ui.sim.live(realm), advanced = C.settings.get('marketMode') === 'advanced';
     var head = h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', icon('swap')), h('span', { text: 'Recent trades' })), h('p', { text: 'Completed trades only.' })));
     host.appendChild(head);
-    var tabs = ui.segmented({ label: 'Discover feeds', role: 'tablist', value: 'trades', options: cfg().tabs.map(function (t) { return { value: t.id, label: t.label }; }),
+    var tabs = ui.segmented({ label: 'Discover feeds', role: 'tablist', value: 'trades', options: cfg().tabs.filter(function (t) { return advanced || ['for-you', 'new', 'ending', 'saved'].indexOf(t.id) >= 0; }).map(function (t) { return { value: t.id, label: t.id === 'for-you' ? 'All' : t.label }; }),
       onChange: function (v) { state.tab = v; state.pages = 1; ui.shell.remount(); } });
     tabs.classList.add('mk-feed-tabs');
     host.appendChild(h('div.mk-feedbar', tabs));
@@ -684,8 +668,8 @@
     ctx.api.trades(realm, { limit: 40 }).then(function (res) {
       if (ctx.scope.dead) return;
       if (!res.items.length) {
-        listHost.appendChild(ui.emptyState({ kind: 'offline', icon: 'swap', title: realm === 'global' ? 'No real trades yet' : 'No trades yet',
-          body: realm === 'global' ? (live ? 'No two players have completed a trade yet. When they do, every completed player trade appears here, and nothing else: never a bot, a sample or a system sale.' : 'Players is not connected. When it is, every completed player trade appears here, and nothing else.') : 'Completed Standard trades appear here as traders buy and sell.',
+        listHost.appendChild(ui.emptyState({ kind: 'offline', icon: 'swap', title: ui.sim.isGlobal(realm) ? 'No real trades yet' : 'No trades yet',
+          body: ui.sim.isGlobal(realm) ? (live ? 'No two players have completed a trade yet. When they do, every completed player trade appears here, and nothing else: never a bot, a sample or a system sale.' : 'Market is not connected. When it is, every completed player trade appears here, and nothing else.') : 'Completed Market trades appear here as traders buy and sell.',
           actions: [{ label: 'Back to For You', variant: 'secondary', run: function () { state.tab = 'for-you'; ui.shell.remount(); } }] }));
         ctx.restoreScroll();
         return;

@@ -18,9 +18,9 @@
     host.appendChild(h('div.mk-pagehead', h('div.mk-pagehead-copy', h('h1', h('span.mk-h1-icon', { data: { anim: 'stocks' } }, icon('prices')), h('span', { text: 'Prices' })),
       h('p', { text: 'Trends and depth for every card. Nothing here is traded.' })),
       h('div.mk-pagehead-actions', live
-        ? (realm === 'global'
-          ? ui.chip('Player trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from completed sales between players on Players. Quick Sell, swaps, offers and bundles are never counted. Where there are none, nothing is drawn.' })
-          : ui.chip('Simulated trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from trades completed in Standard. Where there are none, nothing is drawn.' }))
+        ? (ui.sim.isGlobal(realm)
+          ? ui.chip('Player trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from completed sales between players in the Market. Quick Sell, swaps, offers and bundles are never counted. Where there are none, nothing is drawn.' })
+          : ui.chip('Simulated trades', { tone: 'soft', icon: 'info', title: 'Every figure comes from trades completed with game traders. Where there are none, nothing is drawn.' }))
         : ui.chip('Illustrative', { tone: 'soft', icon: 'info', title: 'All figures are sample data for the preview' }))));
 
     // controls
@@ -105,15 +105,15 @@
     }
 
     function draw() {
-      var empty = realm === 'global' && !live && !store.session.showGlobalSample;
+      var empty = ui.sim.isGlobal(realm) && !live && !store.session.showGlobalSample;
       var gstate = empty ? ctx.api.statusSync('global') : null;
       st.window = st.window || '7d';
       winSwitch.set(st.window); typeSwitch.set(st.type); scopeSwitch.set(st.scope);
       ui.clear(rail); ui.clear(leadersHost); ui.clear(title);
       if (empty) {
         chart.hidden = true; title.hidden = true;
-        rail.appendChild(ui.emptyState({ kind: 'offline', icon: 'trend', title: 'No Players data', body: (gstate && gstate.connected ? 'Players is live but no player has completed a sale yet. ' : 'Players is not connected. ') + 'Its prices are built only from real completed player sales, so there is nothing to chart yet. The Simulation has its own numbers.',
-          actions: [{ label: 'Open Standard', variant: 'primary', run: function () { store.setRealm('simulation'); } }] }));
+        rail.appendChild(ui.emptyState({ kind: 'offline', icon: 'trend', title: 'No price history', body: (gstate && gstate.connected ? 'The Market is connected but no player has completed a sale yet. ' : 'Player trading is not connected. ') + 'Its prices are built only from real completed player sales, so there is nothing to chart yet. Game-trader history is available while you play offline.',
+          actions: [{ label: 'Browse cards', variant: 'primary', run: function () { ui.go('discover', {}); } }] }));
         return;
       }
       chart.hidden = false; title.hidden = false;
@@ -127,9 +127,9 @@
       title.append(h('div', ui.eyebrow(res.scope === 'index' ? 'Market index' : res.scope === 'card' ? 'Single GPU' : 'Group index'), h('h2', { text: heading })),
         h('div.mk-chart-now', h('span.mk-num.is-big', { text: nowText }), h('span.mk-muted', { text: !has && res.scope === 'card' ? 'Credits · baseline, no trades in this window' : res.unit }),
           ui.delta(change, { label: 'over ' + K().WINDOWS[st.window].label, empty: has ? 'One trade so far' : 'No trades' })));
-      chart.update({ candles: res.candles, type: st.type, window: st.window, unit: res.unit, label: heading, live: live, now: res.now || 0, badge: live ? (realm === 'global' ? 'Player trades' : 'Simulated trades') : 'Illustrative' });
+      chart.update({ candles: res.candles, type: st.type, window: st.window, unit: res.unit, label: heading, live: live, now: res.now || 0, badge: live ? (ui.sim.isGlobal(realm) ? 'Player trades' : 'Simulated trades') : 'Illustrative' });
       if (live) {
-        var cover = res.coverage ? 'The ' + res.tradesCounted + ' trades of this scope go back ' + ui.fmt.age((res.now - res.coverage.from) / 60000).replace(/ ago$/, '') + '.' + (res.truncated ? ' The series shows the most recent ' + (res.coverage.retained || '') + '; the totals count every trade.' : '') : (realm === 'global' ? 'No two players have completed a sale in this scope yet.' : 'No trades have happened yet.');
+        var cover = res.coverage ? 'The ' + res.tradesCounted + ' trades of this scope go back ' + ui.fmt.age((res.now - res.coverage.from) / 60000).replace(/ ago$/, '') + '.' + (res.truncated ? ' The series shows the most recent ' + (res.coverage.retained || '') + '; the totals count every trade.' : '') : (ui.sim.isGlobal(realm) ? 'No two players have completed a sale in this scope yet.' : 'No trades have happened yet.');
         title.appendChild(h('p.mk-hint', { text: cover + ' Each point is a time-bucket of real completed trades; quiet periods are gaps, not guesses.' }));
       }
       rail.appendChild(h('div.mk-panel-head', h('h3', { text: 'The numbers' })));

@@ -79,7 +79,7 @@ function planSale(tx, L, buyerId, price, kind, heldRelease) {
   tx.credit(L.seller_id, net, 'sale', tradeId);
   tx.add("UPDATE listings SET status = 'sold', closed_at = ?, sold_price = ?, fee = ?, buyer_id = ?, price = ?, feed_at = ?, version = version + 1 WHERE id = ?", tx.now, price, fee, buyerId, price, tx.now, L.id);
   // One card sold for Credits is a price observation. A bundle is not attributed to any card, so it never moves a price.
-  if (L.item_count === 1) tx.add('INSERT INTO price_observations (at, card_key, price, kind, trade_id, card_id) VALUES (?, ?, ?, ?, ?, ?)', tx.now, keyOf(first.c, first.v, first.k), price, kind === 'order' ? 'fixed' : kind, tradeId, first.c);
+  if (L.item_count === 1) tx.add("INSERT INTO price_observations (at, card_key, price, kind, trade_id, card_id) SELECT ?, ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM accounts WHERE id IN (?,?) AND actor_kind='trader')", tx.now, keyOf(first.c, first.v, first.k), price, kind === 'order' ? 'fixed' : kind, tradeId, first.c,L.seller_id,buyerId);
   tx.notify(L.seller_id, 'sold', label(L) + ' sold for ' + price + ' Credits. You receive ' + net + ' after the ' + fee + ' Credit fee.', L.id);
   tx.notify(buyerId, kind === 'auction' ? 'won' : 'bought', (kind === 'auction' ? 'You won ' : 'You bought ') + label(L) + ' for ' + price + ' Credits.', L.id);
   return { tradeId, fee, net };
@@ -372,9 +372,8 @@ export async function buyoutListing(env, who, key, listingId, body, now) {
     if (L.status === 'active' && now >= L.ends_at) { await settleListing(env, L.id, now); throw new ApiError(409, 'ended', 'This auction has ended.', { status: 'ended' }); }
     if (L.status !== 'active') throw new ApiError(409, 'closed', 'This auction is closed.', { status: L.status });
     if (L.seller_id === who.accountId) throw new ApiError(403, 'own', 'You cannot buy out your own auction.');
-    // Policy: the buyout is on offer until the price reaches it, whether or not there are bids.
+    // The seller's optional buyout remains available until the auction ends, including after bids pass it.
     if (!L.buyout) throw new ApiError(409, 'no-buyout', 'This auction has no buyout.');
-    if (L.price >= L.buyout) throw new ApiError(409, 'no-buyout', 'The price has reached the buyout, so it is no longer offered.');
     if (expected !== L.buyout) throw new ApiError(409, 'price-changed', 'The buyout price changed to ' + L.buyout + ' Credits. Review it before buying.', { price: L.buyout });
     const proxies = await getProxies(env, L.id), mine = proxies.find((p) => p.id === who.accountId && p.active), ownHold = mine ? mine.max : 0;
     const w = await getWallet(env, who.accountId);

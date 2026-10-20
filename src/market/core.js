@@ -599,7 +599,7 @@
         var reserve = Number(draft.reserve);
         if (!(reserve >= start)) errors.reserve = 'The reserve cannot be below the starting bid.';
       }
-      if (advanced && draft.buyout !== '' && draft.buyout != null) {
+      if (draft.buyout !== '' && draft.buyout != null) {
         var buyout = Number(draft.buyout), floor = Math.max(start, Number(draft.reserve) || 0);
         if (!(buyout > floor)) errors.buyout = 'The buyout must be above the starting bid and reserve.';
       }

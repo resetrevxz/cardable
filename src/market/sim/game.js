@@ -34,10 +34,10 @@
   }
 
   var player = {
-    balance: function () { var s = save(); return s ? s.currency : 0; },
+    balance: function () { var s = save(); return s ? Math.max(0, s.currency - (C.market.sync ? C.market.sync.heldCredits() : 0)) : 0; },
     instance: function (id) {
       var s = save(), found = s && s.inventory.find(function (i) { return i.instanceId === id; });
-      return found ? JSON.parse(JSON.stringify(found)) : null;
+      return found && !(C.market.sync && C.market.sync.lockOf(id)) ? JSON.parse(JSON.stringify(found)) : null;
     },
     hasReceipt: function (id) { var s = save(); return !!(s && s.market && s.market.receipts.indexOf(id) >= 0); },
     identity: identity,
@@ -54,7 +54,8 @@
       var candidate = JSON.parse(C.state.encode(current)), before = current.currency;
       var ids = {};
       candidate.inventory.forEach(function (i) { ids[i.instanceId] = true; });
-      for (var r = 0; r < effect.remove.length; r++) if (!ids[effect.remove[r]]) return false;
+      for (var r = 0; r < effect.remove.length; r++) if (!ids[effect.remove[r]] || C.market.sync && C.market.sync.lockOf(effect.remove[r])) return false;
+      if (effect.delta < 0 && -effect.delta > current.currency - (C.market.sync ? C.market.sync.heldCredits() : 0)) return false;
       for (var a = 0; a < effect.add.length; a++) if (ids[effect.add[a].instanceId]) return false;
       candidate.inventory = candidate.inventory.filter(function (i) { return effect.remove.indexOf(i.instanceId) < 0; });
       effect.add.forEach(function (i) { candidate.inventory.push(JSON.parse(JSON.stringify(i))); });
@@ -74,7 +75,10 @@
 
   // ---- when the clock may run ----
   function gate() {
+    if (C.market.sync && C.market.sync.state.status === 'syncing') return 'Syncing your Market.';
+    if (C.market.sync && C.market.sync.isLinked() && C.market.online && C.market.online.state.status === 'online' && C.market.sync.state.status !== 'offline') return 'Game traders are running in the shared Market.';
     if (C.bootFailure) return 'Cardable did not finish starting.';
+    if (C.market.sync && C.market.sync.ready()) return 'Connected to Players.';
     if (C.state.recovery && C.state.recovery.pending) return 'Waiting for a save recovery choice.';
     // The notch keeps the market moving on the main menu, so the clock also waits while something else is changing the save.
     if (C.setup && C.setup.loading) return 'Cardable is starting.';
@@ -115,8 +119,41 @@
       if (create) { r.create(); r.start(); }
       return r;
     },
-    lockOf: function (id) { return rt && rt.world ? rt.lockOf(id) : null; },
-    heldCredits: function () { return rt && rt.world ? rt.heldCredits() : 0; },
+    lockOf: function (id) { return C.market.sync && C.market.sync.lockOf(id) || (rt && rt.world ? rt.lockOf(id) : null); },
+    heldCredits: function () { return (C.market.sync ? C.market.sync.heldCredits() : 0) + (rt && rt.world ? rt.heldCredits() : 0); },
+    // Record the replacement intent in the gameplay save before retiring any
+    // simulator listing. A restart can replay either side without selling twice.
+    prepareSync: function () {
+      var r = api.ensure(false), w = r && r.world;
+      if (!w) return;
+      if (S.retrySettlements && w.pending.length) S.retrySettlements(w, r.env, r.host);
+      if (w.pending.length) throw new Error('Finish saving your pending trade before syncing.');
+      var candidate = JSON.parse(C.state.encode(save()));
+      candidate.unified = candidate.unified || { linked: false, sequence: 0, pending: [], held: 0, locks: {}, deviceId: C.randomId('device') };
+      var queue = candidate.unified.pendingListings || [], added = false;
+      Object.keys(w.listings).forEach(function (id) {
+        var l = w.listings[id];
+        if (l.seller !== 'you' || l.status !== 'open') return;
+        if (!queue.some(function (entry) { return entry.originalId === id; })) {
+          queue.push({ originalId: id, requestId: C.randomId('listing'), spec: { kind: l.kind, instanceIds: l.items.map(function (item) { return item.i; }), ask: l.ask, start: l.start, reserve: l.reserve, buyout: l.buyout, title: l.title || '', note: l.note || '', wants: l.wants || null, durationMs: Math.max(3600000, Math.min(1209600000, l.endsAt - w.now)) } });
+          added = true;
+        }
+      });
+      if (added) {
+        candidate.unified.pendingListings = queue;
+        if (!C.state.commit(candidate)) throw new Error('Your listing could not be saved for syncing. Try again.');
+      }
+      queue.forEach(function (entry) {
+        var l = w.listings[entry.originalId];
+        if (l && l.seller === 'you' && l.status === 'open') S.finishListing(w, l, 'cancelled');
+      });
+      // Old game-trader commitments have no remote counterparty. Release them
+      // before the new ledger takes over, keeping the completed trade history.
+      Object.keys(w.listings).forEach(function (id) { var l = w.listings[id]; if (l.status === 'open' && l.maxes && l.maxes.you) delete l.maxes.you; });
+      Object.keys(w.orders).forEach(function (id) { var o = w.orders[id]; if (o.owner === 'you' && o.status === 'open') o.status = 'cancelled'; });
+      Object.keys(w.offers).forEach(function (id) { var o = w.offers[id]; if ((o.from === 'you' || o.to === 'you') && ['pending', 'countered'].indexOf(o.status) >= 0) S.closeOffer(w, o, 'withdrawn', 'Moved to the shared Market'); });
+      if (!r.flush()) throw new Error('Your game-trader history could not be saved. Try syncing again.');
+    },
     dev: {
       // Moving simulated time by hand is a developer and test affordance. No interface offers it, and the wrapper
       // needs ?dev=1; it runs the same engine, so it can never fabricate a trade.

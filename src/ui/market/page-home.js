@@ -244,8 +244,8 @@
       var actions = [];
       if (g.label === 'Not connected' && ui.online) actions.push({ label: 'Connect', variant: 'primary', icon: 'user', run: function () { ui.online.connectDialog(); } });
       else if (g.label !== 'Not available') actions.push({ label: 'Try again', variant: 'primary', icon: 'forward', run: function () { C.market.online.refresh(true); } });
-      actions.push({ label: 'Open Standard', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
-      box.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: g.label === 'Not connected' ? 'Connect to Players' : g.label, body: g.label === 'Not connected' ? 'Real players, with their own Credits. Your offline game is never touched.' : g.message, actions: actions }));
+      actions.push({ label: 'Browse Market', variant: actions.length ? 'secondary' : 'primary', icon: 'layers', run: function () { store.setRealm('simulation'); } });
+      box.appendChild(ui.emptyState({ kind: 'offline', icon: 'lock', title: g.label === 'Not connected' ? 'Link an account' : g.label, body: g.label === 'Not connected' ? 'Link an account to trade with players using your collection and Credits.' : g.message, actions: actions }));
       return;
     }
     var wallet = ctx.api.walletSync('global'), c = ui.island.collect();

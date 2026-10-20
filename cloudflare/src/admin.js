@@ -36,14 +36,14 @@ const CHECKS = [
   ['pending-offer-items', "SELECT o.id AS offer FROM offers o WHERE o.status = 'pending' AND (SELECT COUNT(*) FROM offer_items oi WHERE oi.offer_id = o.id) = 0"],
   ['sold-listing-without-trade', "SELECT l.id AS listing FROM listings l WHERE l.status = 'sold' AND NOT EXISTS (SELECT 1 FROM trades t WHERE t.listing_id = l.id)"],
   ['observation-without-trade', 'SELECT p.id AS observation FROM price_observations p WHERE p.trade_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM trades t WHERE t.id = p.trade_id AND t.attributed = 1)'],
-  ['attributed-trade-without-observation', "SELECT t.id AS trade FROM trades t WHERE t.attributed = 1 AND NOT EXISTS (SELECT 1 FROM price_observations p WHERE p.trade_id = t.id)"],
+  ['attributed-trade-without-observation', "SELECT t.id AS trade FROM trades t WHERE t.attributed = 1 AND NOT EXISTS (SELECT 1 FROM accounts a WHERE a.id IN (t.seller_id,t.buyer_id) AND a.actor_kind='trader') AND NOT EXISTS (SELECT 1 FROM price_observations p WHERE p.trade_id = t.id)"],
   ['swap-in-price-history', "SELECT p.id AS observation FROM price_observations p JOIN trades t ON t.id = p.trade_id WHERE t.kind = 'swap'"],
   ['redeemed-in-play', "SELECT r.instance_id AS instance FROM redemptions r JOIN instances i ON i.id = r.instance_id WHERE i.state <> 'redeemed'"]
 ];
 
 // Credits are created only by the system redemption and destroyed only by fees, so the total in wallets is exact.
 async function supply(env) {
-  const row = await env.DB.prepare('SELECT (SELECT COALESCE(SUM(balance), 0) FROM wallets) AS wallets, (SELECT COALESCE(SUM(quote), 0) FROM redemptions) AS issued, (SELECT COALESCE(SUM(fee), 0) FROM trades) AS burned').first();
+  const row = await env.DB.prepare("SELECT (SELECT COALESCE(SUM(balance), 0) FROM wallets) AS wallets, (SELECT COALESCE(SUM(quote), 0) FROM redemptions) + (SELECT COALESCE(SUM(delta),0) FROM ledger WHERE reason IN ('game migration','gameplay','trader issuance')) AS issued, (SELECT COALESCE(SUM(fee), 0) FROM trades) AS burned").first();
   return { wallets: row.wallets, issued: row.issued, burned: row.burned, balanced: row.wallets === row.issued - row.burned };
 }
 
@@ -95,7 +95,7 @@ export async function sweep(env, now, limit) {
   for (const r of of) { const x = await safe(() => expireOffer(env, r.id, now)); if (x && x.ok) out.offersExpired++; }
   const waiting = (await env.DB.prepare("SELECT o.id FROM orders o WHERE o.status = 'open' AND o.expires_at > ? AND EXISTS (SELECT 1 FROM listings l WHERE l.status = 'active' AND l.kind = 'fixed' AND l.item_count = 1 AND l.card_id = o.card_id AND l.ask <= o.max_price AND l.seller_id <> o.account_id AND l.ends_at > ?) LIMIT ?").bind(now, now, Math.min(cap, 5)).all()).results;
   for (const r of waiting) out.matched += (await safe(() => matchOrder(env, r.id, now))) || 0;
-  const old = await env.DB.prepare('DELETE FROM idempotency WHERE rowid IN (SELECT rowid FROM idempotency WHERE created_at < ? LIMIT 200)').bind(now - RULES.history.keepIdempotencyMs).run();
+  const old = await env.DB.prepare('DELETE FROM idempotency WHERE rowid IN (SELECT rowid FROM idempotency WHERE durable = 0 AND created_at < ? LIMIT 200)').bind(now - RULES.history.keepIdempotencyMs).run();
   out.cleaned = old.meta ? old.meta.changes : 0;
   const notes = await env.DB.prepare('DELETE FROM notifications WHERE id IN (SELECT id FROM notifications WHERE at < ? LIMIT 200)').bind(now - RULES.history.keepNotificationsMs).run();
   out.cleaned += notes.meta ? notes.meta.changes : 0;

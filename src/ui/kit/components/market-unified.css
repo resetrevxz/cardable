@@ -1,0 +1,153 @@
+/* One Market: readable words and prices, quiet glass, artwork first. */
+.mk-frame { --mk-pad: clamp(16px, 2.4vw, 36px); --mk-secondary: #b6b6bf; font-size: 16px; line-height: 1.5; }
+.mk-frame[data-text-size="large"] { font-size: 18px; }
+.mk-frame .mk-header { grid-template-columns: auto minmax(180px, 1fr) minmax(0, auto) auto; grid-template-areas: "brand search island end"; padding-block: 16px 8px; gap: 16px; }
+.mk-frame .mk-brand-name { display: inline; font: 600 20px/1.25 var(--font-ui); }
+.mk-frame .mk-brand-mark { width: 40px; height: 40px; }
+.mk-frame .mk-header-end { gap: 8px; }
+.mk-frame .mk-account-button { min-height: 44px; }
+.mk-frame .mk-search { max-width: 560px; }
+.mk-frame .mk-search-input { font-size: 1em; }
+.mk-frame .mk-nav { display: flex; justify-content: space-between; gap: 16px; padding-block: 8px 16px; border-bottom: 1px solid var(--stroke); }
+.mk-frame .mk-tabs { gap: 4px; padding: 4px; background: var(--ink-1); }
+.mk-frame .mk-tab { width: auto; min-width: 100px; height: 44px; padding: 0 16px; gap: 8px; font-size: 1em; }
+.mk-frame .mk-tab .mk-tab-label { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: nowrap; }
+.mk-frame .mk-tab-more { min-width: 44px; padding-inline: 12px; }
+.mk-frame .mk-tab-more .mk-tab-label { display: none; }
+.mk-nav-actions { display: flex; align-items: center; gap: 8px; }
+.mk-frame .mk-nav-actions .mk-button { min-height: 44px; font-size: 1em; }
+.mk-frame .mk-main { padding-top: 0; }
+.mk-frame .mk-page { max-width: 1360px; margin-inline: auto; padding-top: 24px; padding-bottom: 32px; }
+.mk-frame .mk-pagehead { margin-bottom: 16px; gap: 16px; }
+.mk-frame .mk-pagehead h1 { font-size: 28px; line-height: 1.2; }
+.mk-frame .mk-pagehead p { margin-top: 8px; max-width: 64ch; font-size: 1em; color: var(--mk-secondary); }
+.mk-frame .mk-hint, .mk-frame .mk-muted, .mk-frame .mk-prose, .mk-frame .mk-field-error { font-size: .875em; line-height: 1.5; color: var(--mk-secondary); }
+.mk-frame .mk-field-error { color: var(--danger); }
+.mk-frame .mk-eyebrow { font: 500 .875em/1.4 var(--font-ui); letter-spacing: 0; text-transform: none; color: var(--mk-secondary); }
+.mk-frame :is(.mk-button, .mk-input, .mk-select, .mk-segment, .mk-pill, .mk-field-label) { font-size: 1em; }
+.mk-frame :is(.mk-button, .mk-input, .mk-select, .mk-segment) { min-height: 44px; }
+.mk-frame .mk-field-label { font-weight: 500; color: var(--text); }
+.mk-frame :is(.mk-box, .mk-tile, .mk-shop-card, .mk-picker, .mk-step, .mk-compose-side) { background-color: var(--ink-1); border-color: color-mix(in srgb, var(--text-primary) 18%, transparent); }
+.mk-frame[data-material="solid"] :is(.mk-box, .mk-tile, .mk-shop-card, .mk-step, .mk-compose-side, .mk-header, .mk-tabs) { background: var(--ink-1); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.mk-frame .mk-grid { gap: 20px; }
+.mk-frame .mk-tile-name { font-size: 1.05em; line-height: 1.4; }
+.mk-frame :is(.mk-tile-meta, .mk-tile-seller, .mk-tile-rarity, .mk-tile-variant, .mk-tile-time) { font-size: .875em; line-height: 1.5; color: var(--mk-secondary); }
+.mk-frame .mk-tile-price { font-size: 1.375em; }
+.mk-frame .mk-tile-art { padding: 40px 16px 12px; }
+.mk-frame .mk-tile-art .mk-art { width: min(100%, 128px); margin-inline: auto; }
+.mk-frame .mk-tile-bids, .mk-frame .mk-seller, .mk-frame .mk-seller-alias, .mk-frame .mk-seller-meta { font-size: 14px; line-height: 1.4; }
+.mk-frame .mk-tile-body { padding: 14px 16px; gap: 6px; }
+.mk-frame[data-mode="simple"] :is(.mk-tile-serial, .mk-serial, .mk-tile-value, .mk-tile-reason, .mk-tile-flags, .mk-tile-meter, .mk-tile-price .mk-delta) { display: none; }
+.mk-frame .mk-tile-seller { order: 0; justify-content: flex-start; flex-wrap: wrap; margin-top: 4px; }
+.mk-frame .mk-tile-seller .mk-seller { min-width: 0; flex: 1 1 100%; }
+.mk-frame .mk-tile-seller .mk-seller-alias { white-space: normal; }
+.mk-frame .mk-controlbar { margin-bottom: 8px; }
+.mk-frame .mk-statusrow { margin-bottom: 12px; }
+.mk-frame .mk-updates-row:has(> [hidden]) { display: none; }
+.mk-browse-tools { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+.mk-browse-tools .mk-feedbar { flex: 0 0 auto; margin: 0; }
+.mk-browse-tools .mk-controlbar { flex: 1 1 auto; margin: 0; }
+.mk-frame .mk-section-head h2 { font-size: 20px; line-height: 1.4; }
+.mk-recommendations { margin-bottom: 16px; }
+.mk-frame .mk-recommendations h2 { font-size: 16px; line-height: 24px; margin-bottom: 8px; }
+.mk-recommendations-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.mk-recommendations .mk-mini { min-height: 88px; border: 1px solid var(--stroke); border-radius: 16px; background: var(--ink-1); padding: 12px 16px; display: flex; gap: 12px; align-items: center; text-align: left; min-width: 0; }
+.mk-recommendations .mk-mini:hover { border-color: var(--accent); background: var(--ink-2); }
+.mk-recommendations .mk-mini-art { width: 44px; height: 60px; flex-shrink: 0; }
+.mk-recommendations .mk-mini-name { font-size: .95em; line-height: 1.4; }
+.mk-recommendations .mk-mini-meta { font-size: .875em; color: var(--mk-secondary); }
+.mk-recommendations .mk-mini-copy strong { font-size: 16px; line-height: 1.4; }
+.mk-recommendations .mk-mini-copy span { font-size: 14px; line-height: 1.4; }
+.mk-recommendations .mk-mini-copy > span:nth-child(2) { display: none; }
+.mk-frame .mk-filters { font-size: 1em; }
+.mk-frame .mk-filter-title { font-size: 1em; }
+.mk-frame .mk-shop-feature { min-height: 0; padding: 24px 32px; grid-template-columns: 180px 1fr; gap: 32px; margin-block: 0 24px; }
+.mk-frame .mk-shop-pack-stage { height: 200px; min-height: 0; }
+.mk-frame .mk-shop-pack-copy h2 { font-size: 32px; line-height: 1.2; margin-block: 4px 12px; }
+.mk-frame .mk-shop-pack-copy .mk-shop-price { font-size: 22px; }
+.mk-frame .mk-shop-pack-tag { display: none; }
+.mk-frame .mk-shop-card-name { font-size: 1.05em; line-height: 1.4; }
+.mk-frame .mk-shop-card-meta, .mk-frame .mk-shop-state { font-size: .875em; line-height: 1.5; }
+.mk-frame .mk-shop-card-price { flex-wrap: wrap; gap: 8px; }
+.mk-frame .mk-shop-card-price .mk-muted { display: none; }
+.mk-frame .mk-shop-card-body { padding: 16px; gap: 12px; }
+.mk-frame .mk-shop-card-art { height: 232px; padding: 16px; }
+.mk-frame .mk-shop-card-art .mk-art { width: 142px; margin-inline: auto; }
+.mk-frame .mk-shop-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.mk-frame .mk-step-head h2 { font-size: 20px; line-height: 1.4; }
+.mk-frame .mk-step-head p, .mk-frame .mk-pick-copy span { font-size: .875em; line-height: 1.5; color: var(--mk-secondary); }
+.mk-frame .mk-pick-copy strong { font-size: 1em; line-height: 1.4; }
+.mk-frame .mk-pick { padding: 16px; }
+.mk-frame .mk-pick-chips { flex-wrap: wrap; }
+.mk-frame .mk-pick-chips .mk-pill { min-height: 44px; }
+.mk-frame .mk-summary-value { font-size: 32px; }
+.mk-frame .mk-summary { padding: 24px; }
+.mk-frame .mk-settings-list { display: flex; flex-direction: column; gap: 16px; }
+.mk-frame .mk-setting-row { padding-block: 16px; gap: 24px; }
+.mk-frame .mk-setting-label { font-size: 1em; line-height: 1.4; }
+.mk-frame .mk-setting-help { font-size: .875em; line-height: 1.5; color: var(--mk-secondary); }
+.mk-frame .mk-account-section { border: 1px solid var(--stroke); border-radius: 16px; padding: 20px; background: var(--ink-2); margin-block: 16px; }
+.mk-frame .mk-account-section .mk-sim-actions { margin-top: 12px; }
+.mk-frame .mk-settings-group { margin-top: 24px; }
+.mk-frame .mk-settings-group > h2 { font-size: 20px; margin-bottom: 16px; }
+.mk-frame .mk-bottom-item { font-size: 12px; min-height: 56px; }
+.mk-frame .mk-bottom-item > span { display: block; font-size: 12px; line-height: 1.3; animation: none; }
+.mk-shop-inspect { max-width: 500px; }
+.mk-shop-inspect .mk-stage-card { width: min(280px, 60vw); margin: 20px auto; }
+.mk-frame .mk-notice-host { padding-inline: var(--mk-pad); }
+@container mk (max-width: 1100px) {
+  .mk-frame .mk-header { grid-template-columns: auto minmax(180px, 1fr) auto; grid-template-areas: "brand search end"; }
+  .mk-frame .mk-header > .mk-island-host { display: none; }
+  .mk-frame .mk-tab { min-width: 0; padding-inline: 12px; }
+  .mk-frame .mk-nav-actions > .mk-button:first-child { display: none; }
+}
+@container mk (max-width: 840px) {
+  .mk-browse-tools { flex-wrap: wrap; }
+  .mk-browse-tools .mk-controlbar { flex-basis: 100%; }
+  .mk-frame .mk-header { grid-template-columns: auto 1fr auto; grid-template-areas: "brand search end"; gap: 8px; padding-block: 12px; }
+  .mk-frame .mk-header-end { display: flex; grid-area: end; align-items: center; min-width: 0; }
+  .mk-frame .mk-header-end :is(.mk-wallet, .mk-close) { grid-area: auto; position: static; }
+  .mk-frame .mk-brand-name, .mk-frame .mk-account-button { display: none; }
+  .mk-frame .mk-search { width: auto; min-width: 44px; max-width: none; }
+  .mk-frame .mk-search-input { width: 100%; opacity: 1; padding-inline: 8px; }
+  .mk-frame .mk-search-input { pointer-events: auto; }
+  .mk-frame .mk-search:focus-within { position: relative; left: auto; right: auto; top: auto; width: auto; }
+  .mk-frame .mk-search-icon { margin-left: 12px; }
+  .mk-frame .mk-wallet { padding-inline: 12px; font-size: 14px; }
+  .mk-frame .mk-nav { display: flex; padding-block: 0 12px; border-bottom: 1px solid var(--stroke); }
+  .mk-frame .mk-nav .mk-tabs { display: none; }
+  .mk-frame .mk-nav-actions { width: 100%; justify-content: flex-end; }
+  .mk-frame .mk-nav-actions > .mk-button:first-child { display: inline-flex; margin-right: auto; }
+  .mk-frame .mk-main { padding-top: 20px; }
+  .mk-frame .mk-pagehead h1 { font-size: 26px; }
+  .mk-frame .mk-pagehead { flex-direction: row; align-items: center; }
+  .mk-frame .mk-pagehead-actions { margin-left: auto; }
+  .mk-recommendations-row { grid-template-columns: 1fr; }
+  .mk-recommendations .mk-mini { min-height: 76px; }
+  .mk-recommendations .mk-mini:nth-child(n+2) { display: none; }
+  .mk-frame .mk-shop-feature { padding: 20px; grid-template-columns: 100px 1fr; gap: 16px; }
+  .mk-frame .mk-shop-pack-stage { height: 144px; }
+  .mk-frame .mk-shop-pack-stage.shop-detail-pack { --pack-width: 100px; --pack-height: 148px; width: 100px; min-width: 0; transform: none; }
+  .mk-frame .mk-shop-pack-copy h2 { font-size: 24px; }
+  .mk-frame .mk-shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .mk-frame .mk-shop-card-body { padding: 12px; }
+  .mk-frame .mk-shop-card-price { font-size: 1em; }
+  .mk-frame .mk-setting-row { flex-wrap: wrap; gap: 12px; }
+  .mk-frame .mk-setting-row > :last-child { max-width: 100%; }
+  .mk-frame .mk-setting { flex-wrap: wrap; gap: 12px; }
+  .mk-frame .mk-setting .mk-segments { max-width: 100%; flex-wrap: wrap; }
+  .mk-frame .mk-shop-card[data-state="purchased"] { opacity: 1; }
+}
+@container mk (max-width: 440px) {
+  .mk-frame .mk-header { grid-template-columns: 1fr auto; grid-template-areas: "brand end" "search search"; }
+  .mk-frame .mk-brand-name { display: inline; font-size: 18px; }
+  .mk-frame .mk-search { height: 44px; width: 100%; justify-self: stretch; }
+  .mk-frame .mk-search-input { display: block; }
+  .mk-frame .mk-brand-mark { width: 36px; height: 36px; }
+  .mk-frame .mk-pagehead-actions { flex-wrap: wrap; }
+  .mk-frame .mk-shop-grid { grid-template-columns: 1fr; }
+  .mk-frame .mk-shop-card { display: grid; grid-template-columns: 110px 1fr; }
+  .mk-frame .mk-shop-card-art { height: 165px; min-height: 0; padding: 0; margin: 12px 0 12px 12px; }
+  .mk-frame .mk-shop-card-art .mk-art { width: min(100%, 90px); }
+  .mk-frame .mk-shop-card-name { font-size: 16px; }
+}

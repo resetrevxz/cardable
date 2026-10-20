@@ -1,18 +1,26 @@
 # Play Cardable on Windows
 
-Cardable **1.13.0** supports **Windows 10/11 x64**. The installer includes the complete game and Electron runtime. This community release is **unsigned**; Windows may show an unknown publisher. Verify that you downloaded it from the repository below before opening it.
+Cardable **1.14.0** supports **Windows 10/11 x64**. The installer includes the complete game and Electron runtime. This community release is **unsigned**; Windows may show an unknown publisher. Verify that you downloaded it from the repository below before opening it.
 
 1. Open [the Cardable download page](https://resetrevxz.github.io/cardable/download/) and select **Download for Windows**, or use [GitHub Releases](https://github.com/resetrevxz/cardable/releases/latest).
-2. Run **Cardable-Setup-1.13.0.exe**. Choose an installation folder (the suggested folder is recommended). The next page offers **Turn on reduced motion**, unchecked by default. Setup installs for your Windows user and creates desktop/Start Menu shortcuts. Updates reuse this folder. Players need no terminal, Node.js, npm, account or Discord configuration.
+2. Run **Cardable-Setup-1.14.0.exe**. Choose an installation folder (the suggested folder is recommended). The next page offers **Turn on reduced motion**, unchecked by default. Setup installs for your Windows user and creates desktop/Start Menu shortcuts. Updates reuse this folder. Players need no terminal, Node.js, npm, account or Discord configuration.
 3. Open **Cardable** and play offline. Your collection saves locally on this computer.
 
-For the alternative full-folder download, get **Cardable-1.13.0-Windows-x64.zip** from that release, extract **all** of it, and run **Cardable.exe**. Keep its resources, DLLs and locales together. These folder builds use manual updates and can have a separate storage origin from installed/browser builds.
+For the alternative full-folder download, get **Cardable-1.14.0-Windows-x64.zip** from that release, extract **all** of it, and run **Cardable.exe**. Keep its resources, DLLs and locales together. These folder builds use manual updates and can have a separate storage origin from installed/browser builds.
 
 The full source is also available through the repository's **Code → Download ZIP**. That source folder is separate from the ready-to-run Electron ZIP; source browser play uses index.html directly.
 
-Public numbering reset from the earlier 4.x series at **v1.0.0**. The current release is **v1.13.0 — Open doors**. An old installation needs the new installer once because normal update checks do not downgrade. App identity and save schema remain unchanged. Close Cardable normally first, export important progress and download Studio photos separately. Actual setup/upgrade execution and live updater acceptance remain unverified in this pass.
+Public numbering reset from the earlier 4.x series at **v1.0.0**. The current release is **v1.14.0 — One Market**. An old installation needs the new installer once because normal update checks do not downgrade. App identity and save schema remain unchanged. Close Cardable normally first, export important progress and download Studio photos separately. Actual setup/upgrade execution and live updater acceptance remain unverified in this pass.
 
 Native saves/backups live under **%APPDATA%/Cardable/saves**; use **Settings → Open saves folder** rather than moving these files. The Chromium profile also holds local renderer/IndexedDB data. Do not delete AppData or change Windows users to troubleshoot a missing collection.
+
+## One Market
+
+**Browse**, **Shop**, **Your cards** and **Activity** use the same Credits and collection as the game. Computer traders remain available offline. To include player listings, open Market Settings and connect and link an account; player listings stay hidden until the link completes. There is no second wallet or collection to import into.
+
+Selling starts with bidding enabled. The saved bidding preference can switch future listings to a fixed price; an auction can also have an optional Buy now price. The review names the exact card, price and fee before confirmation. Advanced tools are in Market Settings.
+
+After linking, offline play continues to save locally. The saved journal retains actual card instances and Credit changes, then uploads them in order when connected. A retry uses the same operation identity and receipt so it cannot pay or mint twice. Let pending work sync before transferring play to another device through Market Settings; only one device is active for the linked account at a time. A JSON import is a backup/recovery action, not an account transfer. Keep Studio photos separately as described below.
 
 ## Keep a backup
 

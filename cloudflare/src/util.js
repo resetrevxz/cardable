@@ -59,7 +59,7 @@ export class ApiError extends Error {
 export function corsHeaders(request, env) {
   const origin = request.headers.get('Origin');
   const allow = String(env.CORS_ALLOW || '').split(',').map((s) => s.trim()).filter(Boolean);
-  const headers = { 'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS', 'Access-Control-Allow-Headers': 'authorization,content-type,idempotency-key,x-trace-id',
+  const headers = { 'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS', 'Access-Control-Allow-Headers': 'authorization,content-type,idempotency-key,x-trace-id,x-game-device,x-game-sequence',
     'Access-Control-Max-Age': '600', Vary: 'Origin' };
   if (origin === null) return headers;
   // The game runs from file:// (Origin: null) and the packaged app. The API uses bearer tokens only, so this is not an auth boundary.

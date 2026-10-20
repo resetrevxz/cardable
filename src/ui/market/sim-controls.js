@@ -8,6 +8,7 @@
 
   // A realm is "live" when real trades can happen in it: the offline Simulation, or a connected Global Market.
   function live(realm) {
+    if (realm === 'unified') return !!C.market.api && C.market.api.simulationLive;
     if (realm === 'simulation') return !!C.market.api && C.market.api.simulationLive;
     if (realm === 'global') return !!C.market.online && C.market.online.state.status === 'online' && !(C.market.store && C.market.store.session.showGlobalSample);
     return false;
@@ -24,7 +25,7 @@
 
   // ---- the chip -------------------------------------------------------------------------------------------------------
   function paintChip(chip) {
-    if (C.market.store.session.realm !== 'simulation') { paintGlobalChip(chip); return; }
+    if (C.market.api.effectiveRealm() === 'global') { paintGlobalChip(chip); return; }
     var st = status();
     var word = stateWord(st);
     chip.dataset.state = st.exists ? (st.paused ? 'paused' : st.clockState === 'running' ? 'running' : 'frozen') : 'idle';
@@ -32,16 +33,16 @@
     var hour = dayHour(st.clock);
     chip.dataset.daypart = hour == null ? '' : hour < 6 || hour >= 20 ? 'night' : hour < 9 ? 'dawn' : hour < 17 ? 'day' : 'dusk';
     paintParts(chip, hour == null ? (st.paused || st.clockState !== 'running' ? 'pause' : 'play') : (hour < 6 || hour >= 20 ? 'moon' : 'sun'), st.clock || 'Day 1', (st.clock || 'Day 1').replace('Day ', 'D').replace(' · ', ' '), word);
-    chip.setAttribute('aria-label', 'Simulation clock: ' + (st.clock || 'not started') + '. ' + word + (st.reason ? '. ' + st.reason : '') + '. Open the simulation controls.');
+    chip.setAttribute('aria-label', 'Game trader clock: ' + (st.clock || 'not started') + '. ' + word + (st.reason ? '. ' + st.reason : '') + '. Open clock controls.');
     chip.title = st.exists ? word + '. ' + (st.paused || st.clockState !== 'running' ? 'Simulated time is stopped.' : 'Simulated time runs only while Cardable is open.') : 'The simulation starts when you first use the Market.';
   }
   // In Global the same chip says whether you are connected, so the header has the same shape in both realms.
   function paintGlobalChip(chip) {
-    var g = C.market.api.statusSync('global'), on = !!g.connected, text = on ? (/read-only/i.test(g.label) ? 'Read-only' : 'Online') : (g.label || 'Players');
+    var g = C.market.api.statusSync('global'), on = !!g.connected, text = on ? (/read-only/i.test(g.label) ? 'Read-only' : 'Online') : (g.label || 'Market');
     chip.dataset.state = on ? 'running' : 'idle';
     chip.dataset.daypart = ''; chip.dataset.speed = '';
-    paintParts(chip, on ? 'check' : 'lock', text, text, on ? 'Players' : '');
-    chip.setAttribute('aria-label', 'Players market: ' + text + '. Open your market');
+    paintParts(chip, on ? 'check' : 'lock', text, text, on ? 'Connected' : '');
+    chip.setAttribute('aria-label', 'Market connection: ' + text + '. Open your market');
     chip.title = g.message || '';
   }
   // The chip's pieces are made once; a tick rewrites text only (rebuilding it every tick made the header flicker).
@@ -61,7 +62,7 @@
     var chip = h('button.mk-sim-chip', { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
     chips.add(chip);
     paintChip(chip);
-    chip.addEventListener('click', function () { if (C.market.store.session.realm === 'simulation') openPanel(chip); else if (ui.island) ui.island.toggle(chip); });
+    chip.addEventListener('click', function () { if (C.market.api.effectiveRealm() === 'simulation') openPanel(chip); else if (ui.island) ui.island.toggle(chip); });
     return chip;
   }
   function refresh() {
@@ -99,7 +100,7 @@
   // ---- onboarding -----------------------------------------------------------------------------------------------------
   function introCard(onDone) {
     var card = h('aside.mk-intro.is-sim', { role: 'note' },
-      h('div', h('strong', { text: 'Standard is a market on this device.' }),
+      h('div', h('strong', { text: 'Game traders keep the Market moving.' }),
         h('p', { text: cfg().help.intro }),
         h('ul.mk-bullets',
           h('li', { text: 'Traders are bots with their own Credits, cards and habits.' }),
@@ -152,7 +153,7 @@
   function newRequestId() { reqCounter++; return 'r' + Date.now().toString(36) + reqCounter.toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
   // The clock a countdown is read against: the Simulation's own time, or the server's time in Global.
   function simNow() {
-    if (C.market.store && C.market.store.session.realm === 'global' && C.market.onlineData) return C.market.onlineData.now();
+    if (C.market.api.effectiveRealm() === 'global' && C.market.onlineData) return C.market.onlineData.now();
     var r = rt(); return r && r.world ? r.world.now : 0;
   }
   // Countdowns are plain text updated from the simulator's own clock; there is no timer of their own.
@@ -214,7 +215,7 @@
   // The Market settings panel.
   function settingsPanel(ctx) {
     var r = rt(), st = status(), world = r && r.world;
-    var panel = h('section.mk-box.mk-simbox', h('div.mk-panel-head', h('h3', { text: 'Simulation' }), ui.chip(stateWord(st), { tone: 'soft' })));
+    var panel = h('section.mk-box.mk-simbox', h('div.mk-panel-head', h('h3', { text: 'Game traders' }), ui.chip(stateWord(st), { tone: 'soft' })));
     panel.appendChild(h('p.mk-hint', { text: cfg().help.intro }));
     panel.appendChild(h('p.mk-hint', { text: cfg().help.pause }));
     if (world) {
@@ -231,10 +232,10 @@
     pause.addEventListener('click', function () { if (r.paused) r.resume(); else r.pause(); ui.shell.remount(); });
     var file = h('input', { type: 'file', accept: 'application/json,.json', hidden: true, 'aria-label': 'Choose a file' });
     file.addEventListener('change', function () { importFile(file.files && file.files[0], function () { ui.shell.remount(); }); file.value = ''; });
-    var reset = ui.button('Reset Standard', { icon: 'trash', variant: 'secondary' });
+    var reset = ui.button('Reset game traders', { icon: 'trash', variant: 'secondary' });
     var armed = false, timer = 0;
     reset.addEventListener('click', function () {
-      if (!armed) { armed = true; reset.querySelector('span').textContent = 'Click again to reset'; reset.dataset.variant = 'danger'; timer = root.setTimeout(function () { armed = false; reset.querySelector('span').textContent = 'Reset Standard'; reset.dataset.variant = 'secondary'; }, 4000); return; }
+      if (!armed) { armed = true; reset.querySelector('span').textContent = 'Click again to reset'; reset.dataset.variant = 'danger'; timer = root.setTimeout(function () { armed = false; reset.querySelector('span').textContent = 'Reset game traders'; reset.dataset.variant = 'secondary'; }, 4000); return; }
       root.clearTimeout(timer); resetWorld(function () { ui.shell.remount(); });
     });
     ctx.scope.add(function () { root.clearTimeout(timer); });
@@ -246,5 +247,5 @@
     return panel;
   }
 
-  ui.sim = { newRequestId: newRequestId, simNow: simNow, countdowns: countdowns, confirm: confirm, live: live, statusChip: statusChip, refresh: refresh, openPanel: openPanel, introCard: introCard, settingsPanel: settingsPanel, exportFile: exportFile, importFile: importFile, resetWorld: resetWorld, stateWord: stateWord, status: status };
+  ui.sim = { isGlobal: function (realm) { return realm === 'global' || realm === 'unified' && C.market.api.effectiveRealm() === 'global'; }, newRequestId: newRequestId, simNow: simNow, countdowns: countdowns, confirm: confirm, live: live, statusChip: statusChip, refresh: refresh, openPanel: openPanel, introCard: introCard, settingsPanel: settingsPanel, exportFile: exportFile, importFile: importFile, resetWorld: resetWorld, stateWord: stateWord, status: status };
 })(window.Cardable = window.Cardable || {}, window);

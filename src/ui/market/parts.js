@@ -20,7 +20,7 @@
     container.querySelectorAll('.mk-art').forEach(function (host) { thumbs.forget(host); });
   };
 
-  function realmDef(id) { return cfg().realms.find(function (r) { return r.id === id; }) || cfg().realms[0]; }
+  function realmDef(id) { if (id === 'unified') return { id: 'unified', label: 'Market', shortLabel: 'Market', state: 'ready', stateLabel: '', counterparties: 'Players and game traders', sourceLabel: 'Game trader' }; return cfg().realms.find(function (r) { return r.id === id; }) || cfg().realms[0]; }
   function formatDef(id) { return cfg().formats.find(function (f) { return f.id === id; }) || cfg().formats[0]; }
   ui.realmDef = realmDef; ui.formatDef = formatDef;
 
@@ -106,7 +106,7 @@
     var bar = h('div.mk-notice', { role: 'note', data: { realm: realmId, state: sample ? 'sample' : st && st.state ? st.state : def.state } });
     bar.appendChild(realmBadge(realmId, { short: true }));
     bar.appendChild(h('p.mk-notice-long', { text: text }));
-    bar.appendChild(h('p.mk-notice-short', { text: st && st.state === 'online' ? 'Players only, beta. May be empty.' : cfg().noticesShort[sample ? 'globalSample' : realmId], 'aria-hidden': 'true' }));
+    bar.appendChild(h('p.mk-notice-short', { text: st && st.state === 'online' ? 'Market only, beta. May be empty.' : cfg().noticesShort[sample ? 'globalSample' : realmId], 'aria-hidden': 'true' }));
     return bar;
   }
   ui.realmBadge = realmBadge; ui.noticeBar = noticeBar;
@@ -269,7 +269,7 @@
     options = options || {};
     var el = h('span.mk-seller');
     el.appendChild(seller.isYou ? avatar('You', { you: true }) : avatar(seller.alias));
-    var linked = !seller.isBot && !seller.isYou && C.market.store && C.market.store.session.realm === 'global' && C.market.onlineProvider && ui.go;
+    var linked = !seller.isBot && !seller.isYou && C.market.store && ui.sim.isGlobal(C.market.store.session.realm) && C.market.onlineProvider && ui.go;
     if (linked) {
       var link = h('span.mk-seller-alias.is-link', { text: seller.alias, role: 'link', tabindex: '0', title: 'See ' + seller.alias + '’s profile' });
       var openProfile = function (e) { e.stopPropagation(); ui.go('profile', { alias: seller.alias }); };
@@ -277,7 +277,7 @@
       link.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProfile(e); } });
       el.appendChild(link);
     } else el.appendChild(h('span.mk-seller-alias', { text: seller.alias }));
-    if (!options.compact) el.appendChild(h('span.mk-seller-meta', { text: seller.isYou ? 'Your listing' : seller.isBot ? (seller.personaLabel || 'Simulation bot') : seller.sales + ' sales' }));
+    if (!options.compact) el.appendChild(h('span.mk-seller-meta', { text: seller.isYou ? 'Your listing' : seller.isBot ? (seller.personaLabel || 'Trader') : seller.sales + ' sales' }));
     return el;
   }
   ui.sellerLine = sellerLine;
@@ -346,8 +346,9 @@
     // the seller leads the tile, with an avatar made from their name
     var who = h('div.mk-tile-seller');
     who.appendChild(sellerLine(l.seller, { compact: true }));
+    if (!l.isMine && !l.seller.isYou) who.appendChild(chip((l.source ? l.source === 'player' : !l.seller.isBot) ? 'Player' : 'Game trader', { tone: 'soft' }));
     who.appendChild(h('span.mk-mono.mk-serial', { text: l.card.serial.replace('CBL-', ''), title: 'Serial ' + l.card.serial }));
-    body.insertBefore(who, body.firstChild);
+    body.appendChild(who);
     tile.appendChild(body);
     var name = [l.title || id.name, id.rarityName, variant ? variant.name : 'normal finish', fmtDef.label, l.format === 'swap' ? 'wants ' + l.swap.wanted[0].label : fmt.exact(price) + ' Credits'];
     open.setAttribute('aria-label', name.join(', '));

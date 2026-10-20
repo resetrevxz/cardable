@@ -101,6 +101,11 @@
       C.controlsSettings.create(shell);
       shell.refresh();
       C.preferences.data = C.settingsData.create(shell.slots, { close: close, announce: announce });
+      if (shell.slots['market-account']) {
+        var marketAccount = shell.slots['market-account'];
+        node('p', 'cbs-about-line', marketAccount, 'Link an account to trade with players. Your collection and Credits stay together.');
+        button('Manage Market account', marketAccount, function () { close(); root.setTimeout(function () { if (C.market && C.market.open) C.market.open({ name: 'settings', params: { section: 'account' } }); }, 0); });
+      }
       var about = shell.slots.about, hero = node('div', 'cbs-about-hero', about), heroMark = node('span', 'cbs-tile-mark', hero, 'cardable'); heroMark.setAttribute('aria-hidden', 'true');
       function heroStyle() { heroMark.dataset.logoStyle = C.settings.get('logoStyle'); } C.settings.onChange('logoStyle', heroStyle); heroStyle();
       var version = node('div', 'settings-about-version', hero), versionDigits = C.numbers.create(version); version.setAttribute('aria-label', 'Version ' + C.config.version); versionDigits.set('v' + C.config.version, false);

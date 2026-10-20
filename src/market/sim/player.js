@@ -130,7 +130,6 @@
       if (l.kind !== 'auction' || !l.buyout) return fail('no-buyout');
       if (l.seller === 'you') return fail('own');
       if (l.status !== 'open' || world.now >= l.endsAt) return fail('closed');
-      if (S.currentPrice(l) >= l.buyout) return fail('no-buyout');
       var own = l.maxes.you ? l.maxes.you.max : 0;
       if (S.playerAvailable(world, host) + own < l.buyout) return fail('funds', { available: S.playerAvailable(world, host) + own, price: l.buyout });
       // The player's own hold on this auction ends with the purchase.

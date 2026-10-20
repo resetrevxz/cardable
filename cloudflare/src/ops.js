@@ -105,8 +105,10 @@ export async function mutate(env, who, key, requestShape, now, plan) {
   let lastGuard = null;
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const { tx, result } = await plan(attempt);
-    const statements = [env.DB.prepare('INSERT INTO idempotency (account_id, key, request_hash, response, created_at) VALUES (?, ?, ?, ?, ?)')
-      .bind(who.accountId, key, requestHash, JSON.stringify(result), now)].concat(tx.statements);
+    if (who.gameDevice) tx.guard('conflict', 'EXISTS (SELECT 1 FROM game_links WHERE account_id=? AND device_id=? AND sequence=?)', who.accountId, who.gameDevice, who.gameSequence);
+    // A linked game's durable outgoing journal can retry an uncertain market write after ordinary history expires.
+    const statements = [env.DB.prepare('INSERT INTO idempotency (account_id, key, request_hash, response, created_at, durable) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(who.accountId, key, requestHash, JSON.stringify(result), now, requestShape.game || who.gameDevice ? 1 : 0)].concat(tx.statements);
     try {
       await env.DB.batch(statements);
       return Object.assign({}, result, { replayed: false });
