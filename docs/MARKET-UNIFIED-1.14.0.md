@@ -1,6 +1,6 @@
 # One Market — Cardable 1.14.0
 
-Status: implementation integrated and Worker schema 7 deployed with live service verification passed. Desktop delivery and the GitHub release remain pending. This record does not confirm public app publication or an installer upgrade.
+Source acceptance is complete. Worker schema 7 is deployed and its live verification passed. Windows delivery and publication are tracked separately by the local delivery manifest and the matching release/Actions records; neither packaging nor publication confirms an installer upgrade.
 
 ## Current behavior
 
@@ -38,11 +38,13 @@ These checks ran against the integrated implementation in disposable saves and d
 | Existing Simulation browser suite | 18 passed | Updated intentional navigation, review and trader-clock labels |
 | Isolated native launch and recovery | Passed | Isolated application run, not setup or live-updater acceptance |
 
-Release evidence will be added after delivery and publication. Do not infer an all-bugs-fixed claim from these checks. Clean-profile installer execution, a real previous-version updater upgrade, broad hardware performance and screen reader acceptance have not been tested in this update.
+Consult the matching release and Actions for packaging and publication outcomes. Do not infer an all-bugs-fixed claim from these checks. Clean-profile installer execution, a real previous-version updater upgrade, broad hardware performance and screen reader acceptance have not been tested in this update.
 
 ## Delivery and publication
 
-Worker schema 7 deployment and live status/authentication/CORS/media/logout checks passed. Pending: reviewed commit, `npm run deliver:desktop`, stable Latest Build handoff, GitHub release/Actions and live website/asset verification. No public app artifact URLs or successful setup run are asserted here. The integrating agent owns these shared release operations and will replace this pending status with actual outcomes.
+Worker schema 7 deployment and live status/authentication/CORS/media/logout checks passed. The live reconciliation report passed 22 checks, found no ownership/hold problems, and reported balanced Credit supply.
+
+The Windows release is [v1.14.0](https://github.com/resetrevxz/cardable/releases/tag/v1.14.0); its installer, complete-folder ZIP, blockmap, updater metadata and checksums must all be published by the [Windows release workflow](https://github.com/resetrevxz/cardable/actions/workflows/release.yml). Local delivery is recorded in `dist/delivery/latest.json` and keeps the stable Cardable (Latest Build) shortcut. Installer execution, live updater upgrade and broad hardware acceptance remain outside this update's evidence.
 
 ## Superseded guidance
 

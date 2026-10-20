@@ -225,4 +225,3 @@
   C.events.on('save:written', schedule);
   C.events.on('app:ready', function () { if (value()) status = 'offline'; root.addEventListener('online', function () { if (api.isLinked()) sync().catch(function () {}); }); });
 })(window.Cardable = window.Cardable || {}, window);
-
