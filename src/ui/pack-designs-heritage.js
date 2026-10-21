@@ -417,6 +417,6 @@
 
   ['classic', 'royal'].forEach(function (id) {
     var skin = C.packSkins && C.packSkins.registry[id], spec = id === 'classic' ? paintClassic : paintRoyal;
-    if (skin) skin.snapshot = function (g, w, h, pack) { spec(g, w, h, false, pack.id); };
+    if (skin) skin.snapshot = function (g, w, h, pack) { spec(g, w, h, false, pack && pack.id || id); };
   });
 })(window.Cardable, window);

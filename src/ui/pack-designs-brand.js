@@ -542,7 +542,7 @@
 
   // Studio / transition snapshots: the printed front, flat.
   function snapshot(painter) {
-    return function (g, w, h, pack) { painter(g, w, h, false, pack.id); };
+    return function (g, w, h, pack) { painter(g, w, h, false, pack && pack.id || 'nvidia'); };
   }
   ['nvidia', 'amd', 'snapdragon', 'apple'].forEach(function (id) {
     var skin = C.packSkins && C.packSkins.registry[id];

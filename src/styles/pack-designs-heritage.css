@@ -14,7 +14,8 @@
 /* The seal: a sticker across the lid with a tab to pull. */
 [data-face="classic"] .classic-pull-tab { position: absolute; left: 27%; top: -3.4%; width: 46%; height: 9.4%; z-index: 4; display: flex; align-items: center; justify-content: center; gap: 6%;
   border: 1px solid #8a7f5a; border-bottom: 2px dashed #7d7456; background: linear-gradient(#fbf3d5,#ddd0a4); color: #5a2218; box-shadow: 0 1px 0 #fff9 inset,0 2px 4px rgba(60,45,20,.35);
-  font: 700 max(7px,calc(var(--pack-width) * .04))/1 var(--font-mono); letter-spacing: .18em; cursor: grab; pointer-events: auto; }
+  font: 700 max(7px,calc(var(--pack-width) * .04))/1 var(--font-mono); letter-spacing: .18em; cursor: grab; pointer-events: auto;
+  transform: translateY(calc(var(--classic-pull, 0) * -70px)) rotate(calc(var(--classic-pull, 0) * -6deg)); transform-origin: bottom center; touch-action: none; }
 [data-face="classic"] .classic-pull-tab::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(135deg,transparent 0 6px,rgba(190,40,30,.16) 6px 9px); }
 [data-face="classic"] .classic-pull-tab::after { content: attr(data-hint); position: absolute; left: 50%; bottom: calc(100% + 5px); transform: translateX(-50%); white-space: nowrap; font: 500 max(5.5px,calc(var(--pack-width) * .026))/1 var(--font-mono); letter-spacing: .14em; color: #ffd28b; text-transform: uppercase; opacity: var(--classic-tab-pulse,1); }
 [data-face="classic"] .classic-pull-tab__arrow { position: relative; opacity: var(--classic-tab-pulse,1); font-size: 1.15em; }

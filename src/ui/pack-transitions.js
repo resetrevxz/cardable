@@ -22,7 +22,7 @@
     var logo=Array.from(root.document.querySelectorAll('.pack-company-logo')).find(function(img){return img.getAttribute('src')===pack.design.companyLogo;})||source&&source.querySelector('.pack-company-logo');if(logo&&logo.complete&&logo.naturalWidth){var w=width*.58,h=w*logo.naturalHeight/logo.naturalWidth;ctx.drawImage(logo,width*.21,height*.44-h*.5,w,h);}
     else{ctx.strokeStyle='#202427';ctx.lineWidth=width*.018;ctx.beginPath();ctx.arc(width*.5,height*.49,width*.2,.6,Math.PI*2-.6);ctx.stroke();ctx.strokeRect(width*.44,height*.49-width*.06,width*.12,width*.12);}
     ctx.font=width*.039+'px monospace';ctx.fillText(pack.tagline,width*.5,height*.72);ctx.fillText('SERIES 01 / CARDABLE',width*.5,height*.86);
-    var skin=C.packSkins.get(pack);if(skin.snapshot)skin.snapshot(ctx,width,height);return canvas;
+    var skin=C.packSkins.get(pack);if(skin.snapshot)skin.snapshot(ctx,width,height,pack);return canvas;
   }
   C.packTransitions={register:function(id,factory){registry[id]=factory;},create:function(id,host,sourcePack,targetEl,adopt,options){return registry[id]?registry[id](host,sourcePack,targetEl,adopt,options||{}):null;},dither:dither};
   C.packTransitions.register('tornadoPixel',function(host,sourcePack,targetEl,adopt,options){

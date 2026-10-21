@@ -1,3 +1,13 @@
+# Cardable v1.16.0 — Classic Pull
+
+Restores the classic pack pull phase and seal opening.
+
+- **Classic pull tab restored.** Opening the Classic Pack now reliably transitions into the pull phase and allows tearing the pull seal smoothly via upward drag or Enter.
+- **Snapshot transition fix.** Fixed missing pack arguments in transition snapshots that prevented the dissolve phase from completing on designed pack faces.
+- **Pull face stability.** Guarded pointer capture and hidden stale glass pull tabs during the cutting phase so that dragging and keyboard activation consistently open the pack.
+
+---
+
 # Cardable v1.14.0 — One Market
 
 Your collection and Credits now travel through one Market.

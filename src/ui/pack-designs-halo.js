@@ -279,7 +279,7 @@
 
   ['titan', 'picker'].forEach(function (id) {
     var skin = C.packSkins && C.packSkins.registry[id], spec = id === 'titan' ? paintTitan : paintPicker;
-    if (skin) skin.snapshot = function (g, w, h, pack) { spec(g, w, h, false, pack.id); };
+    if (skin) skin.snapshot = function (g, w, h, pack) { spec(g, w, h, false, pack && pack.id || id); };
   });
   C.packFaces.cardBack = cardBack;
 })(window.Cardable, window);
